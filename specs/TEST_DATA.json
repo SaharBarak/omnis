@@ -1,0 +1,20 @@
+{
+  "people": [
+    { "name": "ליאור", "birthDate": "1966-09-23" },
+    { "name": "ילנה", "birthDate": "1955-06-11" },
+    { "name": "אביטל", "birthDate": "1967-03-26" },
+    { "name": "איתן", "birthDate": "1957-02-19" },
+    { "name": "יפעת", "birthDate": "1971-08-10" },
+    { "name": "מיכל", "birthDate": "1968-07-09" },
+    { "name": "אויה", "birthDate": "1967-03-27" },
+    { "name": "קרן", "birthDate": "1976-11-28" },
+    { "name": "עינת", "birthDate": "1965-06-21" },
+    { "name": "גניה", "birthDate": "1966-02-25" },
+    { "name": "גדי", "birthDate": "1960-10-10" },
+    { "name": "דינה", "birthDate": "1977-04-02" },
+    { "name": "סיגל", "birthDate": "1968-10-01" },
+    { "name": "מיטל", "birthDate": "1978-11-01" },
+    { "name": "אלנה", "birthDate": "1956-07-19" },
+    { "name": "ענת", "birthDate": "1961-09-21" }
+  ]
+}

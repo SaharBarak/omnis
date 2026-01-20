@@ -1,0 +1,41 @@
+services:
+  ralph:
+    build: .
+    container_name: tzolkin-ralph
+
+    # Claude Code OAuth token (from: claude setup-token)
+    environment:
+      - CLAUDE_CODE_OAUTH_TOKEN=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
+
+    # Mount project directory and SSH keys for GitHub
+    volumes:
+      - .:/home/ralph/project
+      - ~/.ssh/id_rsa:/home/ralph/.ssh/id_rsa:ro        # SSH private key
+      - ~/.ssh/id_rsa.pub:/home/ralph/.ssh/id_rsa.pub:ro # SSH public key
+      - ~/.gitconfig:/home/ralph/.gitconfig:ro           # Git config
+
+    # Security: limit network access
+    # Uncomment to fully isolate (breaks API calls):
+    # network_mode: none
+
+    # Security: read-only root filesystem (optional, stricter)
+    # read_only: true
+
+    # Security: drop all capabilities
+    cap_drop:
+      - ALL
+
+    # Security: no privilege escalation
+    security_opt:
+      - no-new-privileges:true
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+
+    # Keep container running
+    stdin_open: true
+    tty: true

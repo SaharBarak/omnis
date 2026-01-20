@@ -1,0 +1,27 @@
+# Environment and secrets
+.env
+.env.*
+*.local
+
+# Build outputs
+dist/
+build/
+node_modules/
+
+# Metrics (local only)
+ralph_metrics.csv
+ralph_metrics.jsonl
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temp
+/tmp/
+*.tmp
