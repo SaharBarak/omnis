@@ -269,6 +269,7 @@ Guide:    Tone-dependent offset (see above)
 - Corrected Dreamspell test dates: The original expected Kin values for 2000-01-01 and 2024-02-28 were incorrect. Verified against epoch (Kin 34) and End of Long Count (2012-12-21 = Kin 207).
 - **DREAMSPELL_SPEC.md 2000-01-01 Kin Error**: The spec stated Kin 163, but the verified correct value is **Kin 153** (Red Planetary Skywalker). **FIXED in v0.0.9** - Both spec files updated.
 - Corrected Tzolkin day sign offset from 16 to 20 to match 2012-12-21 = 4 Ajaw
+- **MVP_SCOPE.md sync**: Updated spec to show MVP complete status, matching IMPLEMENTATION_PLAN.md (all checkboxes marked done).
 
 ### Implementation Verification
 - **Verified**: `npm run build` completes with zero errors
