@@ -579,28 +579,31 @@ export function calculateOracle(kin: Kin): Oracle {
 
 ```bash
 # Install dev dependencies only
-pnpm install
+npm install
 
 # Development server (Vite)
-pnpm dev
+npm run dev
 
 # Build for production (outputs to dist/)
-pnpm build
+npm run build
 
 # Preview production build
-pnpm preview
+npm run preview
 
 # Type check
-pnpm typecheck
+npm run typecheck
 
-# Lint
-pnpm lint
+# Run tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
 ```
 
 ## Validation
 
-- Typecheck: `pnpm typecheck`
-- Lint: `pnpm lint`
+- Typecheck: `npm run typecheck`
+- Tests: `npm test` (66 unit tests for calculations)
 - Manual test: Open in browser, verify 16 cards render
 
 ## Operational Notes

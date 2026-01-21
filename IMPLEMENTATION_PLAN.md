@@ -267,6 +267,7 @@ Guide:    Tone-dependent offset (see above)
 - Added pre-1987 test case for negative day handling
 - Clarified Tzolkin leap day handling (counts normally, differs from Dreamspell)
 - Corrected Dreamspell test dates: The original expected Kin values for 2000-01-01 and 2024-02-28 were incorrect. Verified against epoch (Kin 34) and End of Long Count (2012-12-21 = Kin 207).
+- **DREAMSPELL_SPEC.md 2000-01-01 Kin Error**: The spec stated Kin 163, but the verified correct value is **Kin 153**. Hand calculation: 4542 days from epoch - 3 leap days (1988, 1992, 1996) = 4539 adjusted days. Formula: ((34 - 1 + 4539) % 260) + 1 = 153.
 - Corrected Tzolkin day sign offset from 16 to 20 to match 2012-12-21 = 4 Ajaw
 
 ### Implementation Verification
@@ -283,4 +284,4 @@ Guide:    Tone-dependent offset (see above)
 ### Known Limitations (Post-MVP)
 - **Occult Tone Not Displayed**: Oracle interface only stores seal numbers. Per spec, occult position has a different tone (14 - originalTone), but this is not calculated or displayed in the UI. The occult seal is correct.
 - **Simplified Mantras**: Only line 1 of the 5-line mantra format is implemented ("I [action] in order to [purpose]"). Full 260 mantras would need to be sourced from Dreamspell materials.
-- **No Automated Tests**: Validation was done manually against spec dates. Consider adding unit tests for calculation functions.
+- **Automated Tests Added**: 66 unit tests covering Dreamspell, Tzolkin, Oracle, and Julian day calculations. Tests verify against spec validation dates (epoch, Long Count end).
