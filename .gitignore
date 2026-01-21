@@ -25,3 +25,10 @@ Thumbs.db
 # Temp
 /tmp/
 *.tmp
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*

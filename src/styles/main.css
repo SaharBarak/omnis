@@ -1,0 +1,41 @@
+@import './reset.css';
+@import './tokens.css';
+
+html {
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: var(--text-primary);
+  background-color: var(--bg-page);
+}
+
+body {
+  direction: rtl;
+  text-align: right;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-head);
+  font-weight: 700;
+}
+
+/* Print Styles */
+@page {
+  size: 148mm 210mm;
+  margin: 0;
+}
+
+@media print {
+  body {
+    background-color: transparent;
+  }
+
+  card-grid {
+    display: block;
+  }
+
+  person-card {
+    break-inside: avoid;
+    box-shadow: none;
+    page-break-after: always;
+  }
+}
