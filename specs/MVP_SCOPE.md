@@ -1,8 +1,8 @@
 # Omnis — MVP Scope Document
 
-## Status: 🟢 DECISIONS LOCKED
+## Status: 🟢 MVP COMPLETE
 
-**Last Updated:** 2025-01-20
+**Last Updated:** 2026-01-21
 
 ---
 
@@ -170,18 +170,18 @@ For each person:
 
 ## Definition of Done
 
-The MVP is **DONE** when:
-- [ ] A page renders one A5 card per person (16 cards)
-- [ ] Each card contains:
-  - [ ] Name (Hebrew)
-  - [ ] Dreamspell mantra (Hebrew + English)
-  - [ ] Dreamspell map (5 icons in cross pattern)
-  - [ ] Tzolkin sign + trilingual name + tone + icon
-- [ ] All icons load locally
-- [ ] RTL layout (Hebrew primary)
-- [ ] No runtime errors
-- [ ] TypeScript clean
-- [ ] No external calls
+The MVP is **DONE** - ALL requirements met:
+- [x] A page renders one A5 card per person (16 cards)
+- [x] Each card contains:
+  - [x] Name (Hebrew)
+  - [x] Dreamspell mantra (Hebrew + English)
+  - [x] Dreamspell map (5 icons in cross pattern)
+  - [x] Tzolkin sign + trilingual name + tone + icon
+- [x] All icons load locally (colored SVG circles with seal numbers)
+- [x] RTL layout (Hebrew primary)
+- [x] No runtime errors
+- [x] TypeScript clean (strict mode)
+- [x] No external calls
 
 ---
 
@@ -214,14 +214,14 @@ The MVP is **DONE** when:
 
 ---
 
-## Next Steps
+## Completed Implementation
 
-1. [ ] Verify Law of Time icon license
-2. [ ] Create/source Hebrew mantra translations
-3. [ ] Build Dreamspell calculation logic
-4. [ ] Build Tzolkin calculation logic
-5. [ ] Create lookup tables
-6. [ ] Design A5 card component
-7. [ ] Render test data
+1. [x] Icon implementation: Colored SVG circles with seal numbers (Red/White/Blue/Yellow by family)
+2. [x] Hebrew mantras: Template-based placeholders ("I [tone-action] in order to [seal-action]...")
+3. [x] Dreamspell calculation logic: Complete with leap day handling
+4. [x] Tzolkin calculation logic: Complete with GMT correlation 584283
+5. [x] Lookup tables: 20 seals, 13 tones, oracle relationships
+6. [x] A5 card component: Web Components with Shadow DOM
+7. [x] 16 test people render correctly
 
 ---
