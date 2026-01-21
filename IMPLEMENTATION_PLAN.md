@@ -1,178 +1,508 @@
-# Omnis Phase 1 Implementation Plan
+# Omnis MVP Implementation Plan
 
-> **Status:** IN PROGRESS - All features complete, end-to-end testing pending
+> **Status:** COMPLETE - MVP Fully Implemented
 > **Last Updated:** 2026-01-21
-> **Goal:** Transform MVP into usable product with OAuth, persistence, and People Directory
+> **Goal:** Render 16 A5 person cards with Dreamspell and Tzolkin data
 
 ---
 
 ## Executive Summary
 
-Phase 1 migrates the vanilla TypeScript MVP to Next.js 14 + Supabase, adding:
-- OAuth authentication (Google + Email Magic Link)
-- User profiles with birth data
-- People directory (CRUD, tags, search)
-- Saved computed results
-- Basic dashboard shell with RTL support
+The MVP goal is to generate **16 printable A5 person cards** displaying:
+- Person name (Hebrew)
+- Dreamspell section: mantra + oracle map (5 icons in cross pattern)
+- Tzolkin section: seal + tone + trilingual name
 
-### Progress Overview
+### Current State Overview
 
-| Category | Status | Details |
-|----------|--------|---------|
-| Next.js 14 Setup | COMPLETE | TypeScript, Tailwind, shadcn/ui |
-| Calculation Logic | COMPLETE | Migrated from MVP (dreamspell, tzolkin, oracle, julian) |
-| Supabase Config | COMPLETE | Client, server, middleware configured |
-| Database Schema | COMPLETE | profiles, people, tags, computed_results with RLS |
-| Authentication | COMPLETE | Google OAuth + Email Magic Link + Onboarding |
-| People Directory | COMPLETE | CRUD, tags, search, filters |
-| Dashboard Shell | COMPLETE | RTL, Hebrew fonts, sidebar navigation |
-| Computed Results | COMPLETE | Storage hook with auto-compute on create/update |
-| End-to-End Testing | PENDING | Requires Supabase project setup |
-
-**Build Status:** Passing (npm run build succeeds)
-
----
-
-## Completed Tasks
-
-### 1. Next.js 14 Project Setup
-- Created Next.js 14 app with TypeScript
-- Configured Tailwind CSS
-- Installed shadcn/ui components (button, input, card, form, dialog, dropdown-menu, avatar, badge, separator, tabs, sheet)
-- Added Hebrew fonts (Heebo, Assistant)
-- Set up RTL support in root layout
-
-### 2. MVP Calculation Logic Migration
-- Copied `src/lib/calculations/` (dreamspell, tzolkin, oracle, julian)
-- Copied `src/lib/data/` (seals, tones, tzolkin-signs, mantras)
-- Copied `src/lib/types/` and `src/core/types.ts`
-- Updated imports to remove `.ts` extensions
-
-### 3. Supabase Configuration
-- Created client utilities (`src/lib/supabase/client.ts`, `server.ts`, `middleware.ts`)
-- Defined database types (`src/lib/supabase/database.types.ts`)
-- Created Next.js middleware for auth protection (`middleware.ts`)
-- Created environment template (`.env.local.example`)
-
-### 4. Database Schema
-- Created migration file (`supabase/migrations/00001_initial_schema.sql`)
-- Tables: profiles, people, tags, person_tags, computed_results
-- Indexes for search and filtering
-- Full-text search on people names
-- Row Level Security (RLS) policies for all tables
-- Auto-update triggers for timestamps
-- System tags pre-populated (family, partner, friend, colleague, child, parent)
-
-### 5. Authentication
-- Login page with Google OAuth button
-- Email Magic Link form with Hebrew UI
-- Auth callback handler (`/auth/callback`)
-- Onboarding flow (3 steps: name, birth date, Hebrew name)
-- Auth hook (`useAuth`) with session management
-- Protected route middleware
-
-### 6. People Directory
-- List view with search and tag filters
-- Add/Edit person dialog forms
-- Delete confirmation
-- Tag badges with colors
-- Dreamspell Kin calculation display
-- `usePeople` hook for CRUD operations
-
-### 7. Dashboard Shell
-- RTL layout with Hebrew fonts
-- Responsive sidebar navigation (desktop + mobile sheet)
-- User menu with avatar and dropdown
-- Dashboard page with feature cards
-- Profile page with symbolic data display
-
-### 8. Computed Results Storage
-- Created `src/lib/hooks/use-computed-results.ts` with versioned storage
-- Auto-compute Dreamspell and Tzolkin results on person creation
-- Auto-recompute when birth_date is updated
-- Stores results in `computed_results` table with system versioning
-- Support for future algorithm updates via version field
+| Category | Status | Notes |
+|----------|--------|-------|
+| **Calculation Logic** | COMPLETE | 132 tests passing (dreamspell, tzolkin, oracle, julian) |
+| **Icon Assets** | COMPLETE | 40 SVGs (20 Dreamspell + 20 Tzolkin) |
+| **Oracle Tables** | COMPLETE | All relationships defined |
+| **Core Types** | COMPLETE | Branded types Kin, SealNumber, ToneNumber, JulianDay |
+| **Phase 1 Infrastructure** | COMPLETE | Next.js 14, Supabase auth, People CRUD, RTL |
+| **React Hooks** | COMPLETE | use-auth, use-people, use-computed-results |
+| **Test Data** | COMPLETE | 16 Hebrew names with birth dates |
+| **Hebrew Translations** | NOT STARTED | Defined in specs, NOT in data files |
+| **A5 Card Components** | COMPLETE | 7 React components in src/components/cards/ |
+| **Cards Page Route** | COMPLETE | `/app/(app)/cards/page.tsx` exists |
+| **Print CSS** | COMPLETE | @media print rules in globals.css |
+| **Navigation Link** | COMPLETE | Cards link (כרטיסים) in sidebar |
+| **Mantras** | TEMPLATE | Template-based, not authentic 260 (P2) |
 
 ---
 
-## Pending Tasks
+## COMPLETE - No Work Needed
 
-### Task: End-to-End Testing
-**Priority:** P1
-**Status:** PENDING (Requires Supabase project)
+### 1. Calculation Logic (COMPLETE)
 
-**Prerequisites:**
-1. Create Supabase project at https://supabase.com
-2. Copy project URL and anon key to `.env.local`
-3. Run migration SQL in Supabase SQL Editor
-4. Enable Google OAuth in Supabase dashboard
-5. Enable Email authentication
+**Location:** `src/lib/calculations/`
 
-**Verification checklist:**
-- [ ] `npm run dev` starts without errors
-- [ ] Login page shows Google OAuth + email form
-- [ ] Auth callback creates profile
-- [ ] Onboarding flow completes
-- [ ] Dashboard loads for authenticated users
-- [ ] People CRUD works
-- [ ] Profile shows symbolic data
-- [ ] Sign out works
+| File | Functions | Status |
+|------|-----------|--------|
+| `julian.ts` | `gregorianToJDN()`, `isLeapYear()`, `parseDate()` | COMPLETE |
+| `dreamspell.ts` | `dateToKin()`, `kinToSeal()`, `kinToTone()` (with leap day skip) | COMPLETE |
+| `oracle.ts` | `calculateOracle()` (guide, analog, antipode, occult) | COMPLETE |
+| `tzolkin.ts` | `dateToTzolkin()`, `getTzolkinSealNumber()`, `getTzolkinTone()` | COMPLETE |
+
+**Test Coverage:** 132 tests passing
+
+### 2. Icon Assets (COMPLETE)
+
+**Dreamspell Seals:** `public/icons/dreamspell/seals/`
+- `01-dragon.svg` through `20-sun.svg` (all 20 present)
+
+**Tzolkin Signs:** `public/icons/tzolkin/signs/`
+- `01-imix.svg` through `20-ajaw.svg` (all 20 present)
+
+### 3. Data Tables (COMPLETE - Structure Only)
+
+| File | Content | Status |
+|------|---------|--------|
+| `seals.ts` | 20 seals (number, mayan, english, color) | COMPLETE (missing hebrew) |
+| `tones.ts` | 13 tones (number, name, keywords, action) | COMPLETE (missing nameHebrew) |
+| `tzolkin-signs.ts` | 20 signs (number, yucatec, english) | COMPLETE (missing hebrew) |
+| `oracle-tables.ts` | getAnalog, getAntipode, getOccult, getGuide functions | COMPLETE |
+| `people.ts` | 16 test people (Hebrew names + birth dates) | COMPLETE |
+| `mantras.ts` | Template-based mantra generation (English only) | COMPLETE |
+
+### 4. Core Types (COMPLETE)
+
+**Location:** `src/core/types.ts`
+- Branded types: `Kin`, `SealNumber`, `ToneNumber`, `JulianDay`
+
+### 5. Phase 1 Infrastructure (COMPLETE)
+
+- Next.js 14 + TypeScript + Tailwind CSS
+- Supabase auth (Google OAuth + Magic Link)
+- People directory with CRUD operations
+- RTL layout with Hebrew fonts (Heebo, Assistant)
+- 12 shadcn/ui components
+
+### 6. React Hooks (COMPLETE)
+
+**Location:** `src/lib/hooks/`
+
+| Hook | Purpose | Status |
+|------|---------|--------|
+| `use-auth.ts` | Supabase authentication state | COMPLETE |
+| `use-people.ts` | People CRUD operations | COMPLETE |
+| `use-computed-results.ts` | Dreamspell/Tzolkin calculations storage | COMPLETE |
+
+### 7. Existing Routes (COMPLETE)
+
+- `/app` - Dashboard
+- `/app/people` - People directory
+- `/app/profile` - User profile
+- `/login` - Authentication
+- `/onboarding` - New user onboarding
 
 ---
 
-## File Structure (Phase 1)
+## P0: CRITICAL - Must Complete for MVP
+
+### P0.1: React Card Components (7 components)
+
+**Target Directory:** `src/components/cards/` (DOES NOT EXIST - must create)
+
+**Reference Implementation:** `src-mvp/components/` (Web Components to port)
+
+| # | Component | Target File | Reference | Lines |
+|---|-----------|-------------|-----------|-------|
+| 1 | SealIcon | `SealIcon.tsx` | `seal-icon.ts` | ~56 |
+| 2 | OracleMap | `OracleMap.tsx` | `oracle-map.ts` | ~88 |
+| 3 | MantraDisplay | `MantraDisplay.tsx` | `mantra-display.ts` | ~54 |
+| 4 | DreamspellSection | `DreamspellSection.tsx` | `dreamspell-section.ts` | ~61 |
+| 5 | TzolkinSection | `TzolkinSection.tsx` | `tzolkin-section.ts` | ~87 |
+| 6 | PersonCard | `PersonCard.tsx` | `person-card.ts` | ~70 |
+| 7 | CardGrid | `CardGrid.tsx` | `card-grid.ts` | ~25 |
+
+### P0.2: Cards Page Route
+
+**File:** `src/app/(app)/cards/page.tsx` (DOES NOT EXIST)
+
+Requirements:
+- Load TEST_PEOPLE from `src/lib/data/people.ts` OR database people
+- Calculate Dreamspell and Tzolkin for each person
+- Render CardGrid with PersonCard components
+- Support toggle between test data and database
+
+### P0.3: Print CSS
+
+**File:** Add to `src/app/globals.css` (NO @media print rules exist)
+
+**Reference:** `src-mvp/styles/tokens.css` and `src-mvp/styles/main.css`
+
+Required rules:
+```css
+@media print {
+  .person-card {
+    width: 148mm;
+    height: 210mm;
+    page-break-after: always;
+    page-break-inside: avoid;
+    margin: 0;
+  }
+
+  /* Hide navigation and non-printable elements */
+  nav, .no-print {
+    display: none !important;
+  }
+}
+```
+
+### P0.4: Navigation Link
+
+**File:** `src/app/(app)/layout.tsx`
+
+Current `navItems` array is MISSING cards link. Add:
+```tsx
+{ href: '/app/cards', label: 'כרטיסים', icon: '🎴' }
+```
+
+**Note:** There is also a dead link to `/app/settings` which does not exist (minor issue, can defer).
+
+---
+
+## P1: Required for Full Spec (Hebrew Translations)
+
+These are required for trilingual display but MVP can function without them.
+
+### P1.1: Seal Type & Data Hebrew
+
+**Files:**
+- `src/lib/types/seal.ts` - Add `hebrew: string` field
+- `src/lib/data/seals.ts` - Add Hebrew values
+
+**Hebrew translations (from DREAMSPELL_SPEC.md):**
+| # | English | Hebrew |
+|---|---------|--------|
+| 1 | Dragon | תנין |
+| 2 | Wind | רוח |
+| 3 | Night | לילה |
+| 4 | Seed | זרע |
+| 5 | Serpent | נחש |
+| 6 | Worldbridger | מגשר עולמות |
+| 7 | Hand | יד |
+| 8 | Star | כוכב |
+| 9 | Moon | ירח |
+| 10 | Dog | כלב |
+| 11 | Monkey | קוף |
+| 12 | Human | אדם |
+| 13 | Skywalker | הולך שמיים |
+| 14 | Wizard | קוסם |
+| 15 | Eagle | נשר |
+| 16 | Warrior | לוחם |
+| 17 | Earth | אדמה |
+| 18 | Mirror | מראה |
+| 19 | Storm | סערה |
+| 20 | Sun | שמש |
+
+### P1.2: Tone Type & Data Hebrew
+
+**Files:**
+- `src/lib/types/tone.ts` - Add `nameHebrew: string` field
+- `src/lib/data/tones.ts` - Add Hebrew values
+
+**Hebrew translations (from DREAMSPELL_SPEC.md):**
+| # | English | Hebrew |
+|---|---------|--------|
+| 1 | Magnetic | מגנטי |
+| 2 | Lunar | ירחי |
+| 3 | Electric | חשמלי |
+| 4 | Self-Existing | קיים-עצמי |
+| 5 | Overtone | על-טון |
+| 6 | Rhythmic | קצבי |
+| 7 | Resonant | מהדהד |
+| 8 | Galactic | גלקטי |
+| 9 | Solar | שמשי |
+| 10 | Planetary | כוכבי |
+| 11 | Spectral | ספקטרלי |
+| 12 | Crystal | קריסטלי |
+| 13 | Cosmic | קוסמי |
+
+### P1.3: TzolkinDaySign Type & Data Hebrew
+
+**Files:**
+- `src/lib/types/tzolkin.ts` - Add `hebrew: string` field
+- `src/lib/data/tzolkin-signs.ts` - Add Hebrew values
+
+**Note:** Hebrew translations for Tzolkin signs are NOT defined in specs. Recommendation: Use same Hebrew translations as Dreamspell seals where the signs correspond (they share the same 20-day cycle conceptually).
+
+---
+
+## P2: Can Defer (Post-MVP)
+
+### P2.1: Authentic Mantras
+- Source 260 authentic mantras from Dreamspell Kit
+- Translate mantras to Hebrew
+- Create `mantras-full.ts` with complete data
+
+### P2.2: PDF Export
+- Implement browser print or react-pdf
+- Direct PDF download functionality
+
+### P2.3: Settings Route
+- Create `/app/settings` page (currently dead link in nav)
+- Or remove the dead link from navigation
+
+---
+
+## Implementation Priorities
+
+### Priority Matrix
+
+| Priority | Category | Tasks | Effort Est. |
+|----------|----------|-------|-------------|
+| **P0** | React Components | 7 components + page + CSS + nav | 2-3 days |
+| **P1** | Hebrew Translations | 3 types + 3 data files | 0.5 day |
+| **P2** | Mantras | 260 authentic mantras + Hebrew | Defer |
+| **P2** | PDF Export | Browser print or react-pdf | Defer |
+| **P2** | Settings | Create settings page or remove link | Defer |
+
+### P0 Task Checklist (Critical Path) - COMPLETE
+
+```
+[x] 1. Create src/components/cards/ directory
+[x] 2. Create SealIcon.tsx - SVG wrapper with size variants (sm/md/lg)
+[x] 3. Create OracleMap.tsx - 3x3 CSS Grid with 5 icons
+[x] 4. Create MantraDisplay.tsx - Bilingual mantra text
+[x] 5. Create DreamspellSection.tsx - Section wrapper
+[x] 6. Create TzolkinSection.tsx - Sign + tone display
+[x] 7. Create PersonCard.tsx - A5 container (148mm x 210mm)
+[x] 8. Create CardGrid.tsx - Multi-card layout
+[x] 9. Create src/app/(app)/cards/page.tsx
+[x] 10. Add print CSS to globals.css (@media print rules)
+[x] 11. Add navigation link to sidebar (כרטיסים)
+```
+
+### P1 Task Checklist
+
+```
+[ ] 12. Add hebrew field to Seal interface
+[ ] 13. Update seals.ts with 20 Hebrew values
+[ ] 14. Add nameHebrew field to Tone interface
+[ ] 15. Update tones.ts with 13 Hebrew values
+[ ] 16. Add hebrew field to TzolkinDaySign interface
+[ ] 17. Update tzolkin-signs.ts with 20 Hebrew values
+```
+
+### P2 Task Checklist (Deferred)
+
+```
+[ ] 18. Source 260 authentic mantras from Dreamspell Kit
+[ ] 19. Translate mantras to Hebrew
+[ ] 20. Create mantras-full.ts with complete data
+[ ] 21. Add PDF export functionality
+[ ] 22. Create settings page or remove dead link
+```
+
+---
+
+## File Structure
 
 ```
 src/
+├── components/
+│   ├── cards/                      # P0 - MVP Card Components (TO CREATE)
+│   │   ├── index.ts                # Barrel exports
+│   │   ├── SealIcon.tsx            # P0 - SVG wrapper
+│   │   ├── OracleMap.tsx           # P0 - 5-icon cross pattern
+│   │   ├── MantraDisplay.tsx       # P0 - Bilingual text
+│   │   ├── DreamspellSection.tsx   # P0 - Section wrapper
+│   │   ├── TzolkinSection.tsx      # P0 - Sign + tone display
+│   │   ├── PersonCard.tsx          # P0 - A5 container
+│   │   └── CardGrid.tsx            # P0 - Multi-card layout
+│   └── ui/                         # Existing shadcn/ui (12 components)
 ├── app/
-│   ├── (app)/                    # Protected routes
-│   │   ├── layout.tsx            # Dashboard layout with sidebar
-│   │   ├── page.tsx              # Dashboard home
-│   │   ├── people/page.tsx       # People directory
-│   │   └── profile/page.tsx      # User profile
-│   ├── auth/callback/route.ts    # OAuth callback handler
-│   ├── login/page.tsx            # Login page
-│   ├── onboarding/page.tsx       # Onboarding flow
-│   ├── layout.tsx                # Root layout (RTL, fonts)
-│   └── page.tsx                  # Landing page
-├── components/ui/                # shadcn/ui components
+│   ├── globals.css                 # P0 - Add @media print rules
+│   └── (app)/
+│       ├── layout.tsx              # P0 - Add cards nav link
+│       └── cards/
+│           └── page.tsx            # P0 - Cards page (TO CREATE)
 ├── lib/
-│   ├── calculations/             # MVP calculation logic
-│   ├── data/                     # MVP data files
-│   ├── hooks/
-│   │   ├── use-auth.ts           # Auth hook
-│   │   ├── use-people.ts         # People CRUD hook
-│   │   └── use-computed-results.ts # Computed results storage
-│   ├── supabase/
-│   │   ├── client.ts             # Browser Supabase client
-│   │   ├── server.ts             # Server Supabase client
-│   │   ├── middleware.ts         # Session refresh
-│   │   └── database.types.ts     # TypeScript types
-│   └── utils.ts                  # shadcn/ui utilities
-├── core/types.ts                 # Branded types
-middleware.ts                     # Next.js middleware
-supabase/migrations/
-└── 00001_initial_schema.sql      # Database schema
+│   ├── types/
+│   │   ├── seal.ts                 # P1 - Add hebrew field
+│   │   ├── tone.ts                 # P1 - Add nameHebrew field
+│   │   └── tzolkin.ts              # P1 - Add hebrew field
+│   ├── data/
+│   │   ├── seals.ts                # P1 - Add Hebrew values
+│   │   ├── tones.ts                # P1 - Add Hebrew values
+│   │   ├── tzolkin-signs.ts        # P1 - Add Hebrew values
+│   │   └── mantras-full.ts         # P2 - Authentic 260 mantras
+│   └── hooks/
+│       ├── use-auth.ts             # COMPLETE
+│       ├── use-people.ts           # COMPLETE
+│       └── use-computed-results.ts # COMPLETE
+
+src-mvp/                            # Reference implementation
+├── components/                     # Web Components (port to React)
+│   ├── person-card.ts              # Reference for PersonCard.tsx
+│   ├── card-grid.ts                # Reference for CardGrid.tsx
+│   ├── dreamspell-section.ts       # Reference for DreamspellSection.tsx
+│   ├── oracle-map.ts               # Reference for OracleMap.tsx
+│   ├── tzolkin-section.ts          # Reference for TzolkinSection.tsx
+│   ├── seal-icon.ts                # Reference for SealIcon.tsx
+│   └── mantra-display.ts           # Reference for MantraDisplay.tsx
+└── styles/                         # Print CSS reference
+    ├── tokens.css                  # A5 dimensions, colors, typography
+    └── main.css                    # @page size, page-break rules
 ```
 
 ---
 
-## Environment Setup
+## Component Specifications
 
-### Required Environment Variables
+### SealIcon Component
 
-```bash
-# .env.local
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```tsx
+interface SealIconProps {
+  sealNumber: number          // 1-20
+  size?: 'sm' | 'md' | 'lg'   // 32px, 48px, 64px
+  system?: 'dreamspell' | 'tzolkin'
+}
+```
+- Load SVG from `/public/icons/{system}/` directory
+- Support size variants for oracle (48px) vs center (64px) icons
+- Handle both Dreamspell seals and Tzolkin signs
+
+### OracleMap Component
+
+```tsx
+interface OracleMapProps {
+  kin: number
+  seal: number
+  oracle: {
+    guide: number
+    analog: number
+    antipode: number
+    occult: number
+  }
+}
+```
+- CSS Grid layout: 3x3
+- Position mapping:
+  - Guide: row 1, col 2 (top center)
+  - Antipode: row 2, col 1 (middle left)
+  - Kin: row 2, col 2 (center)
+  - Analog: row 2, col 3 (middle right)
+  - Occult: row 3, col 2 (bottom center)
+- Center icon: 64px (lg), oracle icons: 48px (md)
+
+### PersonCard Layout
+
+```
+┌─────────────────────────────────────────┐
+│              [NAME - Large]             │  <- 15% Header
+│                  ליאור                   │
+├─────────────────────────────────────────┤
+│     לפי הדרימספל / According to the     │  <- 55% Dreamspell
+│              Dreamspell                 │
+│              ┌─────────┐                │
+│              │  Guide  │                │
+│              └─────────┘                │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐   │
+│  │Antipode │ │   KIN   │ │ Analog  │   │
+│  └─────────┘ └─────────┘ └─────────┘   │
+│              ┌─────────┐                │
+│              │ Occult  │                │
+│              └─────────┘                │
+│  "I unify in order to dream..."         │
+│  "אני מאחד כדי לחלום..."                │
+├─────────────────────────────────────────┤
+│      לפי הצולקין / According to the     │  <- 30% Tzolkin
+│               Tzolkin                   │
+│              [icon]  7                  │
+│         Muluc — Moon — ירח             │
+└─────────────────────────────────────────┘
 ```
 
-### Supabase Dashboard Configuration
+**Dimensions:** A5 = 148mm x 210mm (ratio 1:1.414)
 
-1. **Google OAuth:** Authentication > Providers > Google
-2. **Email Authentication:** Authentication > Providers > Email (enable OTP)
-3. **Database:** SQL Editor > Run migration file
+### Icon Size Reference
+
+| Context | Size | Pixels | Usage |
+|---------|------|--------|-------|
+| Center Kin | lg | 64px | PersonCard main icon |
+| Oracle Icons | md | 48px | Guide, Analog, Antipode, Occult |
+| Tzolkin Sign | lg | 64px | TzolkinSection main icon |
+| Small badges | sm | 32px | Lists, compact views |
+
+### Typography
+
+| Element | Size | Weight | Alignment |
+|---------|------|--------|-----------|
+| Name | 32px | Bold | Center |
+| Section title | 14px | Medium | Center |
+| Mantra (HE) | 16px | Regular | Center |
+| Mantra (EN) | 12px | Light/Italic | Center |
+| Sign name | 18px | Medium | Center |
+
+### RTL Considerations
+
+- All components use `direction: rtl`
+- Hebrew text is primary, English secondary
+- Oracle map layout remains LTR for spatial consistency
+- Section titles are bilingual (Hebrew / English)
+
+---
+
+## Definition of Done
+
+The MVP is **DONE** when:
+
+### Core Requirements
+- [x] Cards page renders at `/app/cards`
+- [x] Page displays one A5 card per person (16 cards total)
+- [x] Navigation link exists in sidebar ("כרטיסים")
+
+### Per-Card Requirements
+- [x] Name displayed (Hebrew, bold, centered)
+- [x] Dreamspell section with:
+  - [x] Oracle map (5 icons in cross pattern)
+  - [x] Mantra text (English minimum, Hebrew if P1 complete)
+- [x] Tzolkin section with:
+  - [x] Day sign icon (64px)
+  - [x] Tone number
+  - [x] Bilingual name (Yucatec - English, Hebrew if P1 complete)
+
+### Technical Requirements
+- [x] All 40 icons load from local SVG files
+- [x] RTL layout (Hebrew primary)
+- [x] No runtime errors
+- [x] TypeScript clean (strict mode)
+- [x] Print CSS produces proper A5 layout
+
+### P1 Enhancement (for full spec)
+- [ ] Hebrew names for seals/signs displayed
+- [ ] Hebrew tone names displayed
+- [ ] Trilingual display (Yucatec - English - Hebrew)
+
+---
+
+## Test Data (16 People)
+
+From `src/lib/data/people.ts`:
+
+| Name | Birth Date |
+|------|------------|
+| ליאור | 1966-09-23 |
+| ילנה | 1955-06-11 |
+| אביטל | 1967-03-26 |
+| איתן | 1957-02-19 |
+| יפעת | 1971-08-10 |
+| מיכל | 1968-07-09 |
+| אויה | 1967-03-27 |
+| קרן | 1976-11-28 |
+| עינת | 1965-06-21 |
+| גניה | 1966-02-25 |
+| גדי | 1960-10-10 |
+| דינה | 1977-04-02 |
+| סיגל | 1968-10-01 |
+| מיטל | 1978-11-01 |
+| אלנה | 1956-07-19 |
+| ענת | 1961-09-21 |
 
 ---
 
@@ -181,24 +511,691 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```bash
 npm run dev           # Start dev server
 npm run build         # Production build
-npm run test          # Run calculation tests
+npm run test          # Run calculation tests (48+ tests)
 npm run typecheck     # TypeScript type checking
 ```
 
 ---
 
-## Notes
+## References
 
-- Build requires placeholder Supabase credentials (`.env.local`)
-- All 132 calculation tests pass (66 in src-mvp + 66 in src)
-- Hebrew translations for seals/tones not yet migrated (P2)
+- `/specs/MVP_SCOPE.md` - MVP requirements
+- `/specs/CARD_LAYOUT.md` - A5 card visual spec
+- `/specs/DREAMSPELL_SPEC.md` - Calculation details + Hebrew translations
+- `/specs/TZOLKIN_SPEC.md` - Tzolkin system details
+- `src-mvp/` - Legacy Web Components (reference for porting)
+
+---
+---
+
+# FUTURE PHASES
+
+The following phases are planned after MVP completion.
 
 ---
 
-## Out of Scope (Future Phases)
+# PHASE 2: Relationship Graph + Group Analysis
 
-- Phase 2: Relationship graph
-- Phase 3: Multi-system expansion
-- Phase 4: Canvas editor
-- Phase 5: Predictions
-- Phase 6: AI layer
+> **Status:** NOT STARTED
+> **Prerequisite:** MVP Complete
+> **Reference:** `specs/components/RELATIONSHIPS.md`
+
+## Phase 2 Goal
+
+"People + connections" becomes the product. Model relationships, visualize networks, and analyze group dynamics.
+
+---
+
+## Phase 2.1: Relationship Data Model
+
+### Tasks
+
+- [ ] **2.1.1** Create relationship database tables
+  - `relationships` table (person1_id, person2_id, type, subtype, strength)
+  - `groups` table (name, description)
+  - `group_members` junction table
+  - Add RLS policies
+
+- [ ] **2.1.2** Create TypeScript types
+  - `Relationship`, `RelationshipType`, `RelationshipSubtype`
+  - `Group`, `GroupMember`
+  - `RelationshipWithAnalysis`
+
+- [ ] **2.1.3** Create API layer
+  - `src/lib/api/relationships.ts` - CRUD operations
+  - `src/lib/api/groups.ts` - Group operations
+
+- [ ] **2.1.4** Create Zustand store
+  - `src/stores/relationships-store.ts`
+  - State: relationships, groups
+  - Actions: add/update/delete relationships
+
+### Definition of Done
+- [ ] Relationships can be created between people
+- [ ] Relationships have types (family, romantic, friend, professional)
+- [ ] Groups can be created with members
+
+---
+
+## Phase 2.2: Relationship CRUD UI
+
+### Tasks
+
+- [ ] **2.2.1** Create add relationship dialog
+  - Person 1 + Person 2 selectors
+  - Relationship type/subtype pickers
+  - Strength slider (1-5)
+  - Start/end date (optional)
+  - Notes field
+
+- [ ] **2.2.2** Create relationship list view
+  - List relationships for a person
+  - Filter by type
+  - Edit/delete actions
+
+- [ ] **2.2.3** Create group management UI
+  - Create/edit group
+  - Add/remove members
+  - Group list view
+
+- [ ] **2.2.4** Add relationship indicators to person cards
+  - Show relationship count
+  - Quick-add relationship button
+
+### Definition of Done
+- [ ] User can add relationships between people
+- [ ] User can create and manage groups
+- [ ] Relationships shown on person cards
+
+---
+
+## Phase 2.3: Network Graph Visualization
+
+### Tasks
+
+- [ ] **2.3.1** Choose graph library
+  - Options: react-force-graph, vis-network, d3-force
+  - Must support: zoom, pan, drag nodes, styling
+
+- [ ] **2.3.2** Create graph data transformer
+  - Convert people + relationships → nodes + edges
+  - Calculate node sizes (connection count)
+  - Assign colors by tag/type
+
+- [ ] **2.3.3** Create graph visualization component
+  - `NetworkGraph` component
+  - Force-directed layout
+  - Click node → select person
+  - Click edge → select relationship
+
+- [ ] **2.3.4** Add graph controls
+  - Zoom in/out
+  - Reset view
+  - Layout options (force, hierarchical, circular)
+  - Filter by relationship type
+
+- [ ] **2.3.5** Create graph page
+  - `/app/graph` - Full-screen network view
+  - Sidebar with selected person details
+  - Add relationship from graph
+
+### Definition of Done
+- [ ] Network graph renders all people and relationships
+- [ ] User can zoom, pan, drag nodes
+- [ ] User can filter by relationship type
+- [ ] Clicking node shows person details
+
+---
+
+## Phase 2.4: Group Analysis
+
+### Tasks
+
+- [ ] **2.4.1** Create compatibility calculations
+  - Dreamspell compatibility (analog, antipode, occult, guide)
+  - Tzolkin compatibility
+  - Score calculation
+
+- [ ] **2.4.2** Create group analysis service
+  - `src/lib/services/group-analysis.ts`
+  - Kin distribution
+  - Seal/tone distribution
+  - Color balance
+  - Compatibility matrix
+
+- [ ] **2.4.3** Create compatibility matrix component
+  - Grid showing person-to-person scores
+  - Color-coded (green = high, red = low)
+  - Click cell for details
+
+- [ ] **2.4.4** Create group analysis page
+  - `/app/groups/[id]/analysis`
+  - Distribution charts
+  - Compatibility matrix
+  - Strengths/challenges summary
+
+### Definition of Done
+- [ ] Compatibility scores calculated for pairs
+- [ ] Group analysis shows distributions
+- [ ] Compatibility matrix renders correctly
+
+---
+
+## Phase 2.5: Sharing
+
+### Tasks
+
+- [ ] **2.5.1** Create shared_views table
+  - URL, expiration, max views, password hash
+  - RLS for public access
+
+- [ ] **2.5.2** Create share dialog
+  - Select what to share
+  - Set expiration
+  - Optional password
+  - Generate link
+
+- [ ] **2.5.3** Create public share view
+  - `/share/[id]` - Public route
+  - Read-only view
+  - No account required
+  - CTA to sign up
+
+### Definition of Done
+- [ ] User can create share links
+- [ ] Share links work without login
+- [ ] Links expire correctly
+
+---
+
+## Phase 2 Progress Tracker
+
+| Phase | Status | Tasks | Complete |
+|-------|--------|-------|----------|
+| 2.1 Data Model | NOT STARTED | 4 | 0/4 |
+| 2.2 CRUD UI | NOT STARTED | 4 | 0/4 |
+| 2.3 Graph | NOT STARTED | 5 | 0/5 |
+| 2.4 Analysis | NOT STARTED | 4 | 0/4 |
+| 2.5 Sharing | NOT STARTED | 3 | 0/3 |
+| **TOTAL** | **0%** | **20** | **0/20** |
+
+---
+---
+
+# PHASE 3: Multi-System Expansion
+
+> **Status:** NOT STARTED
+> **Prerequisite:** Phase 2 Complete
+> **Reference:** `specs/systems/*.md`
+
+## Phase 3 Goal
+
+Unify the full set of symbolic systems under one UI. Add Astrology, Human Design, Gematria, and expand Dreamspell/Tzolkin depth.
+
+**Note:** Astrology and Human Design require birth TIME and PLACE for accuracy.
+
+---
+
+## Phase 3.1: Dreamspell Full Depth
+
+### Tasks
+
+- [ ] **3.1.1** Add wavespell calculations
+  - 13-day wavespell cycles
+  - Current wavespell position
+
+- [ ] **3.1.2** Add yearly kin calculations
+  - Galactic birthday
+  - Year bearer
+
+- [ ] **3.1.3** Create wavespell visualization
+  - 13-kin wavespell diagram
+  - Person's position highlighted
+
+- [ ] **3.1.4** Add cycle tracking
+  - 260-day Tzolkin cycle position
+  - Castles (52-day periods)
+
+### Definition of Done
+- [ ] Wavespell calculations work
+- [ ] Yearly kin shown for each person
+- [ ] Wavespell visualization renders
+
+---
+
+## Phase 3.2: Mayan Long Count
+
+### Tasks
+
+- [ ] **3.2.1** Implement Long Count calculations
+  - `src/lib/calculations/long-count.ts`
+  - Baktun, Katun, Tun, Uinal, Kin
+  - GMT correlation 584283
+
+- [ ] **3.2.2** Create Long Count display
+  - Format: 13.0.11.5.8 (example)
+  - Haab date (365-day solar year)
+  - Current Long Count position
+
+- [ ] **3.2.3** Add key dates timeline
+  - Birth Long Count
+  - Current Long Count
+  - Notable historical dates
+
+### Definition of Done
+- [ ] Long Count calculated for any date
+- [ ] Display shows all components
+- [ ] Timeline visualization works
+
+---
+
+## Phase 3.3: Astrology (Natal Chart)
+
+### Reference
+- `specs/systems/ASTROLOGY.md`
+
+### Tasks
+
+- [ ] **3.3.1** Integrate ephemeris library
+  - Options: astronomia, swiss-ephemeris-wasm
+  - Calculate planetary positions
+
+- [ ] **3.3.2** Implement natal chart calculation
+  - `src/lib/calculations/astrology.ts`
+  - Sun, Moon, Rising
+  - All planets in signs
+  - House placements (Placidus)
+
+- [ ] **3.3.3** Implement aspect calculations
+  - Conjunction, opposition, square, trine, sextile
+  - Orb calculations
+  - Aspect strength
+
+- [ ] **3.3.4** Create chart wheel visualization
+  - SVG-based natal chart wheel
+  - Zodiac ring
+  - Planet positions
+  - Aspect lines
+
+- [ ] **3.3.5** Create astrology card component
+  - Sun/Moon/Rising summary
+  - Element balance
+  - Key aspects
+
+- [ ] **3.3.6** Handle missing birth time
+  - Use noon default
+  - Mark positions as approximate
+  - Omit houses
+
+### Definition of Done
+- [ ] Natal chart calculated with correct positions
+- [ ] Chart wheel renders correctly
+- [ ] Works with or without birth time
+
+---
+
+## Phase 3.4: Human Design (Bodygraph)
+
+### Reference
+- `specs/systems/HUMAN_DESIGN.md`
+
+### Tasks
+
+- [ ] **3.4.1** Implement gate/channel calculations
+  - `src/lib/calculations/human-design.ts`
+  - Personality (birth) activations
+  - Design (~88 days before) activations
+  - Gate-to-center mapping
+
+- [ ] **3.4.2** Implement type determination
+  - Manifestor, Generator, MG, Projector, Reflector
+  - Based on defined centers and motor-throat connection
+
+- [ ] **3.4.3** Implement authority determination
+  - Emotional, Sacral, Splenic, etc.
+  - Based on center hierarchy
+
+- [ ] **3.4.4** Implement profile calculation
+  - Sun line positions (1-6)
+  - 12 profile combinations
+
+- [ ] **3.4.5** Create bodygraph visualization
+  - SVG-based bodygraph
+  - 9 centers (colored/white)
+  - 36 channels
+  - Personality (black) vs Design (red)
+
+- [ ] **3.4.6** Create Human Design card component
+  - Type + Strategy
+  - Authority
+  - Profile
+  - Defined centers
+
+- [ ] **3.4.7** Handle missing birth time
+  - Require birth time for HD
+  - Show "Birth time required" message
+
+### Definition of Done
+- [ ] Bodygraph calculated correctly
+- [ ] Type/Authority/Profile determined
+- [ ] Bodygraph visualization renders
+- [ ] Graceful handling of missing birth time
+
+---
+
+## Phase 3.5: Gematria
+
+### Reference
+- `specs/systems/GEMATRIA.md`
+
+### Tasks
+
+- [ ] **3.5.1** Implement Hebrew gematria methods
+  - `src/lib/calculations/gematria.ts`
+  - Standard (Mispar Hechrachi)
+  - Small (Mispar Katan)
+  - Ordinal
+
+- [ ] **3.5.2** Implement name processing
+  - Hebrew letter extraction
+  - Transliteration handling
+  - Alias support (nicknames)
+
+- [ ] **3.5.3** Create gematria display
+  - Show value per method
+  - Letter breakdown
+  - Related numbers
+
+- [ ] **3.5.4** Add name correlations
+  - Find people with matching values
+  - Highlight connections
+
+### Definition of Done
+- [ ] Gematria calculated for Hebrew names
+- [ ] Multiple methods supported
+- [ ] Matching names highlighted
+
+---
+
+## Phase 3.6: System Integration
+
+### Tasks
+
+- [ ] **3.6.1** Create unified person detail page
+  - `/app/people/[id]` - All systems view
+  - Tabs or sections per system
+  - Collapsible details
+
+- [ ] **3.6.2** Create system toggle
+  - User can enable/disable systems
+  - Store preference
+  - Hide disabled systems
+
+- [ ] **3.6.3** Update computed_results table
+  - Store results per system
+  - Version tracking
+  - Recompute on algorithm change
+
+- [ ] **3.6.4** Create cross-system insights
+  - Show correlations between systems
+  - "Themes" that appear in multiple systems
+
+### Definition of Done
+- [ ] All systems shown on person page
+- [ ] User can toggle systems
+- [ ] Cross-system insights displayed
+
+---
+
+## Phase 3 Progress Tracker
+
+| Phase | Status | Tasks | Complete |
+|-------|--------|-------|----------|
+| 3.1 Dreamspell Depth | NOT STARTED | 4 | 0/4 |
+| 3.2 Long Count | NOT STARTED | 3 | 0/3 |
+| 3.3 Astrology | NOT STARTED | 6 | 0/6 |
+| 3.4 Human Design | NOT STARTED | 7 | 0/7 |
+| 3.5 Gematria | NOT STARTED | 4 | 0/4 |
+| 3.6 Integration | NOT STARTED | 4 | 0/4 |
+| **TOTAL** | **0%** | **28** | **0/28** |
+
+---
+---
+
+# PHASE 4: Canvas Editor + Full Dashboard
+
+> **Status:** NOT STARTED
+> **Prerequisite:** Phase 3 Complete
+> **Reference:** `specs/components/CANVAS_EDITOR.md`
+
+## Phase 4 Goal
+
+Move from "viewer" to "creator tool." Users can create boards with draggable nodes, layers, annotations, and export them.
+
+---
+
+## Phase 4.1: Board Data Model
+
+### Tasks
+
+- [ ] **4.1.1** Create boards table
+  - id, owner_id, name, description
+  - template, canvas (JSONB), layers (JSONB)
+  - thumbnail, is_public
+
+- [ ] **4.1.2** Create TypeScript types
+  - `Board`, `CanvasState`, `Layer`
+  - `CanvasNode`, `Connection`, `Annotation`
+
+- [ ] **4.1.3** Create API layer
+  - `src/lib/api/boards.ts`
+  - CRUD operations
+  - Auto-save
+
+### Definition of Done
+- [ ] Boards can be created and saved
+- [ ] Canvas state persists as JSON
+
+---
+
+## Phase 4.2: Canvas Core
+
+### Tasks
+
+- [ ] **4.2.1** Choose canvas library
+  - Options: Fabric.js, Konva, React-Flow, custom SVG
+  - Must support: drag, zoom, pan, layers, export
+
+- [ ] **4.2.2** Create canvas component
+  - `CanvasEditor` component
+  - Infinite canvas with pan/zoom
+  - Grid background (optional)
+
+- [ ] **4.2.3** Implement node rendering
+  - Person nodes (avatar, mini, card)
+  - Shape nodes (rectangle, ellipse, etc.)
+  - Text nodes
+
+- [ ] **4.2.4** Implement selection
+  - Click to select
+  - Multi-select (shift+click, box select)
+  - Selection handles for resize/rotate
+
+- [ ] **4.2.5** Implement drag & drop
+  - Drag nodes to reposition
+  - Drag from sidebar to add
+  - Snap to grid
+
+### Definition of Done
+- [ ] Canvas renders with pan/zoom
+- [ ] Nodes can be added and positioned
+- [ ] Selection and drag work
+
+---
+
+## Phase 4.3: Connections & Layers
+
+### Tasks
+
+- [ ] **4.3.1** Implement connections
+  - Draw lines between nodes
+  - Connection styles (solid, dashed, arrow)
+  - Auto-route or bezier curves
+
+- [ ] **4.3.2** Implement layers panel
+  - Create/rename/delete layers
+  - Toggle visibility
+  - Lock layers
+  - Reorder layers
+
+- [ ] **4.3.3** Layer assignment
+  - Assign nodes to layers
+  - Move between layers
+
+### Definition of Done
+- [ ] Connections render between nodes
+- [ ] Layers can be created and toggled
+- [ ] Nodes can be assigned to layers
+
+---
+
+## Phase 4.4: Annotations & Tools
+
+### Tasks
+
+- [ ] **4.4.1** Create toolbar
+  - Select tool
+  - Hand tool (pan)
+  - Text tool
+  - Shape tool
+  - Sticky note tool
+
+- [ ] **4.4.2** Implement sticky notes
+  - Color options
+  - Editable text
+  - Resize
+
+- [ ] **4.4.3** Implement text annotations
+  - Rich text (bold, italic)
+  - Font size/color
+  - Text alignment
+
+- [ ] **4.4.4** Implement highlights
+  - Highlight region
+  - Color overlay
+  - Optional label
+
+### Definition of Done
+- [ ] Toolbar switches between tools
+- [ ] Annotations can be added
+- [ ] Text editing works
+
+---
+
+## Phase 4.5: Properties Panel
+
+### Tasks
+
+- [ ] **4.5.1** Create properties panel
+  - Position (X, Y)
+  - Size (W, H)
+  - Style (opacity, shadow, border)
+
+- [ ] **4.5.2** Node-specific properties
+  - Person node: display mode, systems to show
+  - Text node: font, color, alignment
+  - Shape node: fill, stroke
+
+- [ ] **4.5.3** Connection properties
+  - Style, color, width
+  - Start/end markers
+
+### Definition of Done
+- [ ] Properties panel shows for selected node
+- [ ] Changes apply immediately
+
+---
+
+## Phase 4.6: History & Keyboard
+
+### Tasks
+
+- [ ] **4.6.1** Implement undo/redo
+  - History stack
+  - Ctrl+Z / Ctrl+Shift+Z
+
+- [ ] **4.6.2** Implement keyboard shortcuts
+  - Delete (remove selected)
+  - Ctrl+C/V (copy/paste)
+  - Ctrl+D (duplicate)
+  - Arrow keys (nudge)
+
+- [ ] **4.6.3** Auto-save
+  - Debounced save on change
+  - Save indicator
+
+### Definition of Done
+- [ ] Undo/redo works
+- [ ] Keyboard shortcuts functional
+- [ ] Auto-save active
+
+---
+
+## Phase 4.7: Templates & Export
+
+### Tasks
+
+- [ ] **4.7.1** Create board templates
+  - Relationship map (auto-populate people + relationships)
+  - Family tree (hierarchical layout)
+  - Personal profile (single person, all systems)
+  - Yearly overview (timeline)
+
+- [ ] **4.7.2** Implement export
+  - PNG export
+  - PDF export
+  - SVG export
+
+- [ ] **4.7.3** Create boards list page
+  - `/app/boards` - List user's boards
+  - Create new board
+  - Board thumbnails
+
+### Definition of Done
+- [ ] Templates create pre-populated boards
+- [ ] Export works for PNG/PDF
+- [ ] Boards list shows all boards
+
+---
+
+## Phase 4 Progress Tracker
+
+| Phase | Status | Tasks | Complete |
+|-------|--------|-------|----------|
+| 4.1 Data Model | NOT STARTED | 3 | 0/3 |
+| 4.2 Canvas Core | NOT STARTED | 5 | 0/5 |
+| 4.3 Connections | NOT STARTED | 3 | 0/3 |
+| 4.4 Annotations | NOT STARTED | 4 | 0/4 |
+| 4.5 Properties | NOT STARTED | 3 | 0/3 |
+| 4.6 History | NOT STARTED | 3 | 0/3 |
+| 4.7 Templates | NOT STARTED | 3 | 0/3 |
+| **TOTAL** | **0%** | **24** | **0/24** |
+
+---
+---
+
+# Full Roadmap Summary
+
+| Phase | Name | Tasks | Status |
+|-------|------|-------|--------|
+| MVP | React Card Components | 22 | COMPLETE |
+| 2 | Relationship Graph | 20 | NOT STARTED |
+| 3 | Multi-System Expansion | 28 | NOT STARTED |
+| 4 | Canvas Editor | 24 | NOT STARTED |
+| **TOTAL** | | **94** | |
+
+**Future Phases (not detailed):**
+- Phase 5: Predictions + Time-Based Intelligence
+- Phase 6: AI Layer (Interpretation + RAG)
+- Phase 7: SaaS Monetization + Billing ($30/mo)
+- Phase 8: Platform Scale

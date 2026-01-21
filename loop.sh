@@ -1,63 +1,28 @@
 #!/bin/bash
-# Usage: ./loop.sh [plan|auto] [max_iterations]
+# Usage: ./loop.sh [plan] [max_iterations]
 # Examples:
 #   ./loop.sh              # Build mode, unlimited iterations
 #   ./loop.sh 20           # Build mode, max 20 iterations
 #   ./loop.sh plan         # Plan mode, unlimited iterations
 #   ./loop.sh plan 5       # Plan mode, max 5 iterations
-#   ./loop.sh auto         # Auto mode: 5 plan → 5 build → repeat
 
 # Parse arguments
-AUTO_MODE=false
-CYCLE_LENGTH=5  # iterations per mode in auto mode
-
-if [ "$1" = "auto" ]; then
-    # Auto mode: alternate between plan and build every 20 iterations
-    AUTO_MODE=true
-    MODE="plan"
-    PROMPT_FILE="PROMPT_plan.md"
-    MAX_ITERATIONS=0
-    MODE_ITERATION=0
-    echo "🔄 AUTO MODE: Will alternate 5 plan → 5 build → repeat"
-elif [ "$1" = "plan" ]; then
+if [ "$1" = "plan" ]; then
     # Plan mode
     MODE="plan"
     PROMPT_FILE="PROMPT_plan.md"
     MAX_ITERATIONS=${2:-0}
-    MODE_ITERATION=0
 elif [[ "$1" =~ ^[0-9]+$ ]]; then
     # Build mode with max iterations
     MODE="build"
     PROMPT_FILE="PROMPT_build.md"
     MAX_ITERATIONS=$1
-    MODE_ITERATION=0
 else
     # Build mode, unlimited (no arguments or invalid input)
     MODE="build"
     PROMPT_FILE="PROMPT_build.md"
     MAX_ITERATIONS=0
-    MODE_ITERATION=0
 fi
-
-# Function to switch modes in auto mode
-switch_mode() {
-    if [ "$MODE" = "plan" ]; then
-        MODE="build"
-        PROMPT_FILE="PROMPT_build.md"
-        echo ""
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "🔄 AUTO MODE: Switching to BUILD mode for next 5 iterations"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    else
-        MODE="plan"
-        PROMPT_FILE="PROMPT_plan.md"
-        echo ""
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "🔄 AUTO MODE: Switching to PLAN mode for next 5 iterations"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    fi
-    MODE_ITERATION=0
-}
 
 ITERATION=0
 CURRENT_BRANCH=$(git branch --show-current)
@@ -96,6 +61,7 @@ extract_claude_metrics() {
     local start_time=$2
 
     if [ ! -f "$output_file" ]; then
+        # Return default values for all metrics
         echo '{"input_tokens":0,"output_tokens":0,"cache_read":0,"cache_write":0,"cost_cents":0,"tool_calls_total":0,"tool_read":0,"tool_edit":0,"tool_write":0,"tool_bash":0,"tool_glob":0,"tool_grep":0,"tool_task":0,"tool_todo":0,"subagents":0,"errors":0,"retries_same_file":0,"tests_run":0,"tests_passed":0,"tests_failed":0,"build_attempted":0,"build_succeeded":0,"files_touched":"","unique_files":0,"context_pct":0,"first_tool_sec":0,"first_commit_sec":0,"task_type":"unknown","task_desc":"No output captured"}'
         return
     fi
@@ -135,11 +101,13 @@ extract_claude_metrics() {
     local tests_run=0
     local tests_passed=0
     local tests_failed=0
+    # Parse vitest/jest output
     if grep -q "Tests:" "$output_file" 2>/dev/null; then
         tests_passed=$(grep -o '[0-9]* passed' "$output_file" | tail -1 | grep -o '[0-9]*' || echo "0")
         tests_failed=$(grep -o '[0-9]* failed' "$output_file" | tail -1 | grep -o '[0-9]*' || echo "0")
         tests_run=$((tests_passed + tests_failed))
     fi
+    # Parse pytest output
     if grep -q "passed\|failed" "$output_file" 2>/dev/null; then
         local pytest_passed=$(grep -oE '[0-9]+ passed' "$output_file" | tail -1 | grep -o '[0-9]*' || echo "0")
         local pytest_failed=$(grep -oE '[0-9]+ failed' "$output_file" | tail -1 | grep -o '[0-9]*' || echo "0")
@@ -163,12 +131,15 @@ extract_claude_metrics() {
     local unique_files=$(grep -o '"file_path":"[^"]*"' "$output_file" 2>/dev/null | cut -d'"' -f4 | sort -u | wc -l | tr -d ' ')
 
     # === CONTEXT METRICS ===
+    # Estimate context usage (200K max for Opus)
     local total_tokens=$((input_tokens + output_tokens))
     local context_pct=$(echo "scale=1; $total_tokens * 100 / 200000" | bc 2>/dev/null || echo "0")
 
     # === TIMING METRICS ===
     local first_tool_sec=0
     local first_commit_sec=0
+    # These would need timestamps in the JSON to calculate accurately
+    # For now, estimate based on output patterns
 
     # === TASK TYPE INFERENCE ===
     local task_type="unknown"
@@ -189,12 +160,16 @@ extract_claude_metrics() {
 
     # === TASK DESCRIPTION ===
     local task_desc=""
+    # Try TodoWrite content first
     task_desc=$(grep -o '"content":"[^"]*' "$output_file" 2>/dev/null | head -3 | cut -d'"' -f4 | tr '\n' ' ' | head -c 200)
+    # Fallback to commit message
     if [ -z "$task_desc" ] || [ ${#task_desc} -lt 10 ]; then
         task_desc="$commit_msg"
     fi
+    # Clean for JSON
     task_desc=$(echo "$task_desc" | tr '"' "'" | tr '\n' ' ' | tr '\t' ' ' | head -c 200)
 
+    # Output as JSON for parsing
     cat << JSONEOF
 {
   "input_tokens": ${input_tokens:-0},
@@ -252,8 +227,10 @@ log_metrics() {
     local lines_added=$(echo "$diff_stats" | cut -d',' -f2)
     local lines_deleted=$(echo "$diff_stats" | cut -d',' -f3)
 
+    # Extract comprehensive Claude metrics as JSON
     local metrics_json=$(extract_claude_metrics "$TEMP_OUTPUT" "$start_time")
 
+    # Parse JSON fields using grep (portable)
     local input_tokens=$(echo "$metrics_json" | grep -o '"input_tokens": *[0-9]*' | grep -o '[0-9]*')
     local output_tokens=$(echo "$metrics_json" | grep -o '"output_tokens": *[0-9]*' | grep -o '[0-9]*')
     local cache_read=$(echo "$metrics_json" | grep -o '"cache_read": *[0-9]*' | grep -o '[0-9]*')
@@ -284,14 +261,18 @@ log_metrics() {
     local task_desc=$(echo "$metrics_json" | grep -o '"task_desc": *"[^"]*"' | cut -d'"' -f4 | tr ',' ';')
     local files_touched=$(echo "$metrics_json" | grep -o '"files_touched": *"[^"]*"' | cut -d'"' -f4)
 
+    # Write to CSV
     echo "$SESSION_ID,$ITERATION,$MODE,$CURRENT_BRANCH,$start_time,$end_time,$duration,$duration_human,${input_tokens:-0},${output_tokens:-0},${cache_read:-0},${cache_write:-0},${cost_cents:-0},${tool_calls_total:-0},${tool_read:-0},${tool_edit:-0},${tool_write:-0},${tool_bash:-0},${tool_glob:-0},${tool_grep:-0},${tool_task:-0},${tool_todo:-0},${subagents:-0},${errors:-0},${retries_same_file:-0},${tests_run:-0},${tests_passed:-0},${tests_failed:-0},${build_attempted:-0},${build_succeeded:-0},\"$files_touched\",${unique_files:-0},${context_pct:-0},${first_tool_sec:-0},${first_commit_sec:-0},$commit_hash,${task_type:-unknown},\"$task_desc\",$status" >> "$METRICS_CSV"
 
+    # Write full JSON to JSONL for detailed analysis
     cat >> "$METRICS_JSON" << JSONLEOF
 {"session_id":"$SESSION_ID","iteration":$ITERATION,"mode":"$MODE","branch":"$CURRENT_BRANCH","start_time":$start_time,"end_time":$end_time,"duration_seconds":$duration,"duration_human":"$duration_human","commit_hash":"$commit_hash","git_files_changed":$files_changed,"git_lines_added":$lines_added,"git_lines_deleted":$lines_deleted,"status":"$status",$(echo "$metrics_json" | tr -d '\n' | sed 's/^{//' | sed 's/}$//')}
 JSONLEOF
 
+    # Calculate cost in dollars
     local cost_dollars=$(echo "scale=2; ${cost_cents:-0} / 100" | bc 2>/dev/null || echo "0.00")
 
+    # Display metrics
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo "📊 ITERATION $ITERATION METRICS"
@@ -318,6 +299,7 @@ JSONLEOF
     echo "Task: ${task_desc:0:70}..."
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 }
+# ===============================================
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Mode:      $MODE"
@@ -328,6 +310,7 @@ echo "Metrics:   $METRICS_CSV"
 [ $MAX_ITERATIONS -gt 0 ] && echo "Max:       $MAX_ITERATIONS iterations"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+# Trap for cleanup on exit - track cumulative totals
 SESSION_START_TIME=$(date +%s)
 
 cleanup() {
@@ -335,6 +318,7 @@ cleanup() {
     SESSION_DURATION=$((SESSION_END_TIME - SESSION_START_TIME))
     SESSION_DURATION_HUMAN=$(format_duration $SESSION_DURATION)
 
+    # Calculate session totals from CSV (columns based on new header)
     local total_input=0 total_output=0 total_cache_read=0 total_cache_write=0 total_cost=0
     local total_tool_calls=0 total_subagents=0 total_errors=0 total_retries=0
     local total_tests_run=0 total_tests_passed=0 total_tests_failed=0
@@ -391,19 +375,23 @@ cleanup() {
     printf "%-40s %s\n" "JSONL (detailed):" "$METRICS_JSON"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+    # Clean up temp file
     rm -f "$TEMP_OUTPUT"
 }
 trap cleanup EXIT
 
+# Verify prompt file exists
 if [ ! -f "$PROMPT_FILE" ]; then
     echo "Error: $PROMPT_FILE not found"
     exit 1
 fi
 
+# Test git push capability before starting loop
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Testing git push capability..."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+# Test SSH connection to GitHub
 if ! ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
     echo "❌ ERROR: Cannot authenticate with GitHub via SSH"
     echo "Please check:"
@@ -414,6 +402,7 @@ if ! ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
 fi
 echo "✓ SSH authentication to GitHub works"
 
+# Test git push
 if git push origin "$CURRENT_BRANCH" 2>&1; then
     echo "✓ Git push test successful"
 else
@@ -494,26 +483,24 @@ while true; do
         break
     fi
 
-    # Auto mode: switch modes every CYCLE_LENGTH iterations
-    if [ "$AUTO_MODE" = true ]; then
-        if [ $MODE_ITERATION -ge $CYCLE_LENGTH ]; then
-            switch_mode
-        fi
-        MODE_ITERATION=$((MODE_ITERATION + 1))
-    fi
-
     ITERATION=$((ITERATION + 1))
-    if [ "$AUTO_MODE" = true ]; then
-        echo -e "\n\n======================== LOOP $ITERATION [$MODE $MODE_ITERATION/$CYCLE_LENGTH] ========================\n"
-    else
-        echo -e "\n\n======================== LOOP $ITERATION ========================\n"
-    fi
+    echo -e "\n\n======================== LOOP $ITERATION ========================\n"
 
+    # Keep retrying this iteration until it succeeds (no rate limit)
     while true; do
+        # Record start time
         START_TIME=$(date +%s)
         START_DATETIME=$(date '+%Y-%m-%d %H:%M:%S')
         echo "🕐 Started at: $START_DATETIME"
 
+        # Run Ralph iteration with selected prompt
+        # -p: Headless mode (non-interactive, reads from stdin)
+        # --dangerously-skip-permissions: Auto-approve all tool calls (YOLO mode)
+        # --output-format=stream-json: Structured output for logging/monitoring
+        # --model opus: Primary agent uses Opus for complex reasoning (task selection, prioritization)
+        #               Can use 'sonnet' in build mode for speed if plan is clear and tasks well-defined
+        # --verbose: Detailed execution logging
+        # Capture output for metrics while still displaying it
         CLAUDE_EXIT_CODE=0
         cat "$PROMPT_FILE" | claude -p \
             --dangerously-skip-permissions \
@@ -521,17 +508,20 @@ while true; do
             --model opus \
             --verbose 2>&1 | tee "$TEMP_OUTPUT" || CLAUDE_EXIT_CODE=$?
 
+        # Record end time
         END_TIME=$(date +%s)
         END_DATETIME=$(date '+%Y-%m-%d %H:%M:%S')
         DURATION=$((END_TIME - START_TIME))
         echo "🕐 Finished at: $END_DATETIME (duration: $(format_duration $DURATION))"
 
+        # Check for rate limiting - if rate limited, wait and probe until cleared
         if is_rate_limited "$TEMP_OUTPUT"; then
             wait_for_rate_limit_clear
             echo "🔄 Retrying iteration $ITERATION..."
             continue
         fi
 
+        # Successful iteration - exit retry loop
         if [ $CLAUDE_EXIT_CODE -eq 0 ]; then
             STATUS="success"
         else
@@ -540,12 +530,15 @@ while true; do
         break
     done
 
+    # Push changes after each iteration
     git push origin "$CURRENT_BRANCH" || {
         echo "Failed to push. Creating remote branch..."
         git push -u origin "$CURRENT_BRANCH"
     }
 
+    # Log metrics to CSV
     log_metrics $START_TIME $END_TIME $STATUS
 
+    # Cleanup temp file
     rm -f "$TEMP_OUTPUT"
 done
