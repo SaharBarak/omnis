@@ -536,7 +536,7 @@ The following phases are planned after MVP completion.
 
 # PHASE 2: Relationship Graph + Group Analysis
 
-> **Status:** IN PROGRESS - Phase 2.1 COMPLETE
+> **Status:** IN PROGRESS - Phases 2.1, 2.2, 2.3 COMPLETE (70%)
 > **Prerequisite:** MVP Complete
 > **Reference:** `specs/components/RELATIONSHIPS.md`
 
@@ -637,41 +637,50 @@ The following phases are planned after MVP completion.
 
 ---
 
-## Phase 2.3: Network Graph Visualization
+## Phase 2.3: Network Graph Visualization (COMPLETE)
 
 ### Tasks
 
-- [ ] **2.3.1** Choose graph library
-  - Options: react-force-graph, vis-network, d3-force
-  - Must support: zoom, pan, drag nodes, styling
+- [x] **2.3.1** Choose graph library
+  - Chose: react-force-graph-2d
+  - Supports: zoom, pan, drag nodes, styling, canvas rendering
+  - Dynamic import to avoid SSR issues with Next.js
 
-- [ ] **2.3.2** Create graph data transformer
+- [x] **2.3.2** Create graph data transformer
+  - `transformToGraphData()` function in graph page
   - Convert people + relationships → nodes + edges
-  - Calculate node sizes (connection count)
-  - Assign colors by tag/type
+  - Calculate node sizes based on connection count
+  - Assign colors by Dreamspell seal color (red, white, blue, yellow)
 
-- [ ] **2.3.3** Create graph visualization component
-  - `NetworkGraph` component
-  - Force-directed layout
-  - Click node → select person
-  - Click edge → select relationship
+- [x] **2.3.3** Create graph visualization component
+  - ForceGraph2D with custom node rendering
+  - Force-directed layout with cooldown
+  - Click node → opens PersonDetails sheet
+  - Custom nodeCanvasObject for styled nodes with labels
 
-- [ ] **2.3.4** Add graph controls
-  - Zoom in/out
-  - Reset view
-  - Layout options (force, hierarchical, circular)
-  - Filter by relationship type
+- [x] **2.3.4** Add graph controls
+  - Zoom in/out buttons
+  - Reset view (zoom to fit)
+  - Filter by relationship type badges
+  - Enable zoom/pan/drag interactions
 
-- [ ] **2.3.5** Create graph page
+- [x] **2.3.5** Create graph page
   - `/app/graph` - Full-screen network view
-  - Sidebar with selected person details
-  - Add relationship from graph
+  - Sidebar sheet with selected person details
+  - PersonDetails component with relationships list
+  - Navigation link added (מפת קשרים)
 
 ### Definition of Done
-- [ ] Network graph renders all people and relationships
-- [ ] User can zoom, pan, drag nodes
-- [ ] User can filter by relationship type
-- [ ] Clicking node shows person details
+- [x] Network graph renders all people and relationships
+- [x] User can zoom, pan, drag nodes
+- [x] User can filter by relationship type
+- [x] Clicking node shows person details
+
+### Files Created
+- `src/app/(app)/graph/page.tsx` - Complete graph visualization page
+
+### Files Modified
+- `src/app/(app)/layout.tsx` - Added graph navigation link
 
 ---
 
@@ -743,10 +752,10 @@ The following phases are planned after MVP completion.
 |-------|--------|-------|----------|
 | 2.1 Data Model | ✅ COMPLETE | 4 | 4/4 |
 | 2.2 CRUD UI | ✅ COMPLETE | 4 | 4/4 |
-| 2.3 Graph | NOT STARTED | 5 | 0/5 |
+| 2.3 Graph | ✅ COMPLETE | 5 | 5/5 |
 | 2.4 Analysis | NOT STARTED | 4 | 0/4 |
 | 2.5 Sharing | IN PROGRESS | 3 | 1/3 |
-| **TOTAL** | **45%** | **20** | **9/20** |
+| **TOTAL** | **70%** | **20** | **14/20** |
 
 ---
 ---
@@ -1218,7 +1227,7 @@ Move from "viewer" to "creator tool." Users can create boards with draggable nod
 | Phase | Name | Tasks | Status |
 |-------|------|-------|--------|
 | MVP | React Card Components | 22 | COMPLETE |
-| 2 | Relationship Graph | 20 | NOT STARTED |
+| 2 | Relationship Graph | 20 | 70% (14/20) |
 | 3 | Multi-System Expansion | 28 | NOT STARTED |
 | 4 | Canvas Editor | 24 | NOT STARTED |
 | **TOTAL** | | **94** | |

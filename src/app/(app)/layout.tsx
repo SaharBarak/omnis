@@ -20,6 +20,7 @@ const navItems = [
   { href: '/app/people', label: 'אנשים', icon: '👥' },
   { href: '/app/relationships', label: 'קשרים', icon: '🔗' },
   { href: '/app/groups', label: 'קבוצות', icon: '👨‍👩‍👧‍👦' },
+  { href: '/app/graph', label: 'מפת קשרים', icon: '🕸️' },
   { href: '/app/cards', label: 'כרטיסים', icon: '🎴' },
   { href: '/app/profile', label: 'פרופיל', icon: '👤' },
 ]
