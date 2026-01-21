@@ -178,16 +178,189 @@ export type Database = {
           computed_at?: string
         }
       }
+      relationships: {
+        Row: {
+          id: string
+          owner_id: string
+          person1_id: string
+          person2_id: string
+          type: 'family' | 'romantic' | 'friend' | 'professional' | 'other'
+          subtype: string | null
+          bidirectional: boolean
+          strength: number
+          start_date: string | null
+          end_date: string | null
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          owner_id: string
+          person1_id: string
+          person2_id: string
+          type: 'family' | 'romantic' | 'friend' | 'professional' | 'other'
+          subtype?: string | null
+          bidirectional?: boolean
+          strength?: number
+          start_date?: string | null
+          end_date?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          owner_id?: string
+          person1_id?: string
+          person2_id?: string
+          type?: 'family' | 'romantic' | 'friend' | 'professional' | 'other'
+          subtype?: string | null
+          bidirectional?: boolean
+          strength?: number
+          start_date?: string | null
+          end_date?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      groups: {
+        Row: {
+          id: string
+          owner_id: string
+          name: string
+          description: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          owner_id: string
+          name: string
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          owner_id?: string
+          name?: string
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      group_members: {
+        Row: {
+          group_id: string
+          person_id: string
+          added_at: string
+        }
+        Insert: {
+          group_id: string
+          person_id: string
+          added_at?: string
+        }
+        Update: {
+          group_id?: string
+          person_id?: string
+          added_at?: string
+        }
+      }
+      shared_views: {
+        Row: {
+          id: string
+          owner_id: string
+          share_type: 'person' | 'relationship' | 'group' | 'graph'
+          options: Json
+          url_token: string
+          expires_at: string | null
+          max_views: number | null
+          view_count: number
+          password_hash: string | null
+          active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          owner_id: string
+          share_type: 'person' | 'relationship' | 'group' | 'graph'
+          options?: Json
+          url_token: string
+          expires_at?: string | null
+          max_views?: number | null
+          view_count?: number
+          password_hash?: string | null
+          active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          owner_id?: string
+          share_type?: 'person' | 'relationship' | 'group' | 'graph'
+          options?: Json
+          url_token?: string
+          expires_at?: string | null
+          max_views?: number | null
+          view_count?: number
+          password_hash?: string | null
+          active?: boolean
+          created_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_person_relationships: {
+        Args: { p_person_id: string }
+        Returns: {
+          id: string
+          person1_id: string
+          person2_id: string
+          type: string
+          subtype: string | null
+          bidirectional: boolean
+          strength: number
+          start_date: string | null
+          end_date: string | null
+          notes: string | null
+          created_at: string
+          updated_at: string
+          other_person_id: string
+          other_person_name: string
+        }[]
+      }
+      get_relationship_graph: {
+        Args: Record<string, never>
+        Returns: {
+          nodes: Json
+          edges: Json
+        }[]
+      }
+      get_group_with_members: {
+        Args: { p_group_id: string }
+        Returns: {
+          id: string
+          name: string
+          description: string | null
+          created_at: string
+          updated_at: string
+          members: Json
+        }[]
+      }
+      increment_shared_view_count: {
+        Args: { p_token: string }
+        Returns: boolean
+      }
     }
     Enums: {
       locale: 'he' | 'en'
       system_type: 'dreamspell' | 'tzolkin' | 'longcount' | 'humandesign' | 'astrology' | 'gematria'
+      relationship_type: 'family' | 'romantic' | 'friend' | 'professional' | 'other'
+      share_type: 'person' | 'relationship' | 'group' | 'graph'
     }
   }
 }
@@ -211,5 +384,22 @@ export type ComputedResult = Database['public']['Tables']['computed_results']['R
 export type ComputedResultInsert = Database['public']['Tables']['computed_results']['Insert']
 export type ComputedResultUpdate = Database['public']['Tables']['computed_results']['Update']
 
+export type Relationship = Database['public']['Tables']['relationships']['Row']
+export type RelationshipInsert = Database['public']['Tables']['relationships']['Insert']
+export type RelationshipUpdate = Database['public']['Tables']['relationships']['Update']
+
+export type Group = Database['public']['Tables']['groups']['Row']
+export type GroupInsert = Database['public']['Tables']['groups']['Insert']
+export type GroupUpdate = Database['public']['Tables']['groups']['Update']
+
+export type GroupMember = Database['public']['Tables']['group_members']['Row']
+export type GroupMemberInsert = Database['public']['Tables']['group_members']['Insert']
+
+export type SharedView = Database['public']['Tables']['shared_views']['Row']
+export type SharedViewInsert = Database['public']['Tables']['shared_views']['Insert']
+export type SharedViewUpdate = Database['public']['Tables']['shared_views']['Update']
+
 export type SystemType = Database['public']['Enums']['system_type']
 export type Locale = Database['public']['Enums']['locale']
+export type RelationshipType = Database['public']['Enums']['relationship_type']
+export type ShareType = Database['public']['Enums']['share_type']

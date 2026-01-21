@@ -536,7 +536,7 @@ The following phases are planned after MVP completion.
 
 # PHASE 2: Relationship Graph + Group Analysis
 
-> **Status:** NOT STARTED
+> **Status:** IN PROGRESS - Phase 2.1 COMPLETE
 > **Prerequisite:** MVP Complete
 > **Reference:** `specs/components/RELATIONSHIPS.md`
 
@@ -546,34 +546,47 @@ The following phases are planned after MVP completion.
 
 ---
 
-## Phase 2.1: Relationship Data Model
+## Phase 2.1: Relationship Data Model (COMPLETE)
 
 ### Tasks
 
-- [ ] **2.1.1** Create relationship database tables
+- [x] **2.1.1** Create relationship database tables
   - `relationships` table (person1_id, person2_id, type, subtype, strength)
   - `groups` table (name, description)
   - `group_members` junction table
+  - `shared_views` table for sharing
   - Add RLS policies
+  - Migration: `supabase/migrations/00002_relationships_schema.sql`
 
-- [ ] **2.1.2** Create TypeScript types
-  - `Relationship`, `RelationshipType`, `RelationshipSubtype`
-  - `Group`, `GroupMember`
-  - `RelationshipWithAnalysis`
+- [x] **2.1.2** Create TypeScript types
+  - `src/lib/types/relationship.ts` - Full relationship domain types
+  - `src/lib/supabase/database.types.ts` - Updated with new tables
+  - Types: `Relationship`, `RelationshipType`, `RelationshipSubtype`, `Group`, `GroupWithMembers`, `GraphNode`, `GraphEdge`, etc.
 
-- [ ] **2.1.3** Create API layer
-  - `src/lib/api/relationships.ts` - CRUD operations
-  - `src/lib/api/groups.ts` - Group operations
+- [x] **2.1.3** Create API/hooks layer
+  - `src/lib/hooks/use-relationships.ts` - Relationships CRUD operations
+  - `src/lib/hooks/use-groups.ts` - Groups CRUD operations
+  - Note: Using React hooks pattern (consistent with existing codebase) instead of Zustand
 
-- [ ] **2.1.4** Create Zustand store
-  - `src/stores/relationships-store.ts`
-  - State: relationships, groups
-  - Actions: add/update/delete relationships
+- [x] **2.1.4** Create state management (via hooks)
+  - `useRelationships()` - fetch, add, update, delete relationships
+  - `useGroups()` - fetch, create, update, delete groups, manage members
+  - Helper functions: getRelationshipColor, getRelationshipLabel
 
 ### Definition of Done
-- [ ] Relationships can be created between people
-- [ ] Relationships have types (family, romantic, friend, professional)
-- [ ] Groups can be created with members
+- [x] Relationships can be created between people
+- [x] Relationships have types (family, romantic, friend, professional)
+- [x] Groups can be created with members
+
+### Files Created
+- `supabase/migrations/00002_relationships_schema.sql`
+- `src/lib/types/relationship.ts`
+- `src/lib/hooks/use-relationships.ts`
+- `src/lib/hooks/use-groups.ts`
+
+### Files Modified
+- `src/lib/supabase/database.types.ts` - Added relationships, groups, group_members, shared_views tables
+- `src/lib/types/index.ts` - Added relationship type exports
 
 ---
 
@@ -685,9 +698,10 @@ The following phases are planned after MVP completion.
 
 ### Tasks
 
-- [ ] **2.5.1** Create shared_views table
+- [x] **2.5.1** Create shared_views table
   - URL, expiration, max views, password hash
   - RLS for public access
+  - Done: Included in migration 00002
 
 - [ ] **2.5.2** Create share dialog
   - Select what to share
@@ -712,12 +726,12 @@ The following phases are planned after MVP completion.
 
 | Phase | Status | Tasks | Complete |
 |-------|--------|-------|----------|
-| 2.1 Data Model | NOT STARTED | 4 | 0/4 |
+| 2.1 Data Model | ✅ COMPLETE | 4 | 4/4 |
 | 2.2 CRUD UI | NOT STARTED | 4 | 0/4 |
 | 2.3 Graph | NOT STARTED | 5 | 0/5 |
 | 2.4 Analysis | NOT STARTED | 4 | 0/4 |
-| 2.5 Sharing | NOT STARTED | 3 | 0/3 |
-| **TOTAL** | **0%** | **20** | **0/20** |
+| 2.5 Sharing | IN PROGRESS | 3 | 1/3 |
+| **TOTAL** | **25%** | **20** | **5/20** |
 
 ---
 ---
