@@ -18,6 +18,8 @@ import { usePathname } from 'next/navigation'
 const navItems = [
   { href: '/app', label: 'ראשי', icon: '🏠' },
   { href: '/app/people', label: 'אנשים', icon: '👥' },
+  { href: '/app/relationships', label: 'קשרים', icon: '🔗' },
+  { href: '/app/groups', label: 'קבוצות', icon: '👨‍👩‍👧‍👦' },
   { href: '/app/cards', label: 'כרטיסים', icon: '🎴' },
   { href: '/app/profile', label: 'פרופיל', icon: '👤' },
 ]

@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import Link from 'next/link'
 import { usePeople } from '@/lib/hooks/use-people'
+import { useRelationships } from '@/lib/hooks/use-relationships'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -18,6 +20,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Label } from '@/components/ui/label'
@@ -32,10 +35,12 @@ interface PersonWithTags extends Person {
 
 function PersonCard({
   person,
+  relationshipCount,
   onEdit,
   onDelete,
 }: {
   person: PersonWithTags
+  relationshipCount: number
   onEdit: (person: PersonWithTags) => void
   onDelete: (id: string) => void
 }) {
@@ -69,6 +74,13 @@ function PersonCard({
               <DropdownMenuItem onClick={() => onEdit(person)}>
                 ערוך
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/app/relationships">
+                  🔗 קשרים ({relationshipCount})
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive"
                 onClick={() => onDelete(person.id)}
@@ -89,19 +101,22 @@ function PersonCard({
           <span>{tone.name} {seal.english}</span>
         </div>
 
-        {person.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {person.tags.map(tag => (
-              <Badge
-                key={tag.id}
-                variant="secondary"
-                style={{ backgroundColor: tag.color + '20', color: tag.color }}
-              >
-                {tag.hebrew_name}
-              </Badge>
-            ))}
-          </div>
-        )}
+        <div className="flex flex-wrap gap-1">
+          {person.tags.length > 0 && person.tags.map(tag => (
+            <Badge
+              key={tag.id}
+              variant="secondary"
+              style={{ backgroundColor: tag.color + '20', color: tag.color }}
+            >
+              {tag.hebrew_name}
+            </Badge>
+          ))}
+          {relationshipCount > 0 && (
+            <Badge variant="outline" className="text-muted-foreground">
+              🔗 {relationshipCount} קשרים
+            </Badge>
+          )}
+        </div>
       </CardContent>
     </Card>
   )
@@ -244,11 +259,24 @@ function PersonForm({
 
 export default function PeoplePage() {
   const { people, tags, loading, error, addPerson, updatePerson, deletePerson } = usePeople()
+  const { relationships } = useRelationships()
   const [search, setSearch] = useState('')
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
   const [editingPerson, setEditingPerson] = useState<PersonWithTags | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+
+  // Compute relationship counts per person
+  const relationshipCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    relationships.forEach(rel => {
+      counts[rel.person1_id] = (counts[rel.person1_id] || 0) + 1
+      if (rel.bidirectional) {
+        counts[rel.person2_id] = (counts[rel.person2_id] || 0) + 1
+      }
+    })
+    return counts
+  }, [relationships])
 
   // Filter people by search and tag
   const filteredPeople = people.filter(person => {
@@ -426,6 +454,7 @@ export default function PeoplePage() {
             <PersonCard
               key={person.id}
               person={person}
+              relationshipCount={relationshipCounts[person.id] || 0}
               onEdit={handleEditPerson}
               onDelete={handleDeletePerson}
             />

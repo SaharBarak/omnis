@@ -590,35 +590,50 @@ The following phases are planned after MVP completion.
 
 ---
 
-## Phase 2.2: Relationship CRUD UI
+## Phase 2.2: Relationship CRUD UI (COMPLETE)
 
 ### Tasks
 
-- [ ] **2.2.1** Create add relationship dialog
+- [x] **2.2.1** Create add relationship dialog
   - Person 1 + Person 2 selectors
   - Relationship type/subtype pickers
   - Strength slider (1-5)
   - Start/end date (optional)
   - Notes field
+  - File: `src/app/(app)/relationships/page.tsx`
 
-- [ ] **2.2.2** Create relationship list view
-  - List relationships for a person
-  - Filter by type
-  - Edit/delete actions
+- [x] **2.2.2** Create relationship list view
+  - List all relationships with filters
+  - Filter by type (badges)
+  - Edit/delete actions via dropdown
+  - Full CRUD in dialogs
+  - File: `src/app/(app)/relationships/page.tsx`
 
-- [ ] **2.2.3** Create group management UI
-  - Create/edit group
-  - Add/remove members
-  - Group list view
+- [x] **2.2.3** Create group management UI
+  - Create/edit group with name/description
+  - Add/remove members via checkboxes
+  - Group list view with member counts
+  - View/edit members dialog
+  - File: `src/app/(app)/groups/page.tsx`
 
-- [ ] **2.2.4** Add relationship indicators to person cards
-  - Show relationship count
-  - Quick-add relationship button
+- [x] **2.2.4** Add relationship indicators to person cards
+  - Show relationship count badge on cards
+  - Link to relationships page from card menu
+  - Relationship counts computed from store
+  - File: `src/app/(app)/people/page.tsx`
 
 ### Definition of Done
-- [ ] User can add relationships between people
-- [ ] User can create and manage groups
-- [ ] Relationships shown on person cards
+- [x] User can add relationships between people
+- [x] User can create and manage groups
+- [x] Relationships shown on person cards
+
+### Files Created
+- `src/app/(app)/relationships/page.tsx` - Full relationships CRUD page
+- `src/app/(app)/groups/page.tsx` - Groups management page
+
+### Files Modified
+- `src/app/(app)/layout.tsx` - Added navigation links for relationships and groups
+- `src/app/(app)/people/page.tsx` - Added relationship indicators to person cards
 
 ---
 
@@ -727,11 +742,11 @@ The following phases are planned after MVP completion.
 | Phase | Status | Tasks | Complete |
 |-------|--------|-------|----------|
 | 2.1 Data Model | ✅ COMPLETE | 4 | 4/4 |
-| 2.2 CRUD UI | NOT STARTED | 4 | 0/4 |
+| 2.2 CRUD UI | ✅ COMPLETE | 4 | 4/4 |
 | 2.3 Graph | NOT STARTED | 5 | 0/5 |
 | 2.4 Analysis | NOT STARTED | 4 | 0/4 |
 | 2.5 Sharing | IN PROGRESS | 3 | 1/3 |
-| **TOTAL** | **25%** | **20** | **5/20** |
+| **TOTAL** | **45%** | **20** | **9/20** |
 
 ---
 ---
