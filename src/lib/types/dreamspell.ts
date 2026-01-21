@@ -1,6 +1,6 @@
-import type { Kin, SealNumber } from '../../core/types.ts'
-import type { Seal } from './seal.ts'
-import type { Tone } from './tone.ts'
+import type { Kin, SealNumber } from '../../core/types'
+import type { Seal } from './seal'
+import type { Tone } from './tone'
 
 export interface DreamspellKin {
   kin: Kin

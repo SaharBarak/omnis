@@ -6,6 +6,8 @@
 # Build outputs
 dist/
 build/
+.next/
+out/
 node_modules/
 
 # Metrics (local only)
@@ -25,6 +27,9 @@ Thumbs.db
 # Temp
 /tmp/
 *.tmp
+
+# MVP backup (migrated to Next.js)
+src-mvp/
 
 # TypeScript
 *.tsbuildinfo

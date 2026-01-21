@@ -1,7 +1,7 @@
-import type { Kin, SealNumber, ToneNumber } from '../../core/types.ts'
-import type { Oracle } from '../types/dreamspell.ts'
-import { getAnalog, getAntipode, getOccult, getGuide } from '../data/oracle-tables.ts'
-import { kinToSeal, kinToTone } from './dreamspell.ts'
+import type { Kin, SealNumber, ToneNumber } from '../../core/types'
+import type { Oracle } from '../types/dreamspell'
+import { getAnalog, getAntipode, getOccult, getGuide } from '../data/oracle-tables'
+import { kinToSeal, kinToTone } from './dreamspell'
 
 export function calculateOracle(kin: Kin): Oracle {
   const seal: SealNumber = kinToSeal(kin)

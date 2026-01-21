@@ -1,4 +1,4 @@
-import type { Person } from '../types/person.ts'
+import type { Person } from '../types/person'
 
 export const TEST_PEOPLE: readonly Person[] = Object.freeze([
   { name: 'ליאור', birthDate: '1966-09-23' },

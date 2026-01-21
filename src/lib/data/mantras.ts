@@ -1,40 +1,68 @@
-import type { Seal } from '../types/seal.ts'
-import type { Tone } from '../types/tone.ts'
+import type { Seal } from '../types/seal'
+import type { Tone } from '../types/tone'
 
-// Seal actions for mantra templates
-const SEAL_ACTIONS: Record<number, { english: string; hebrew: string }> = {
-  1:  { english: 'nurture being',      hebrew: 'לטפח הוויה' },
-  2:  { english: 'communicate spirit', hebrew: 'לתקשר רוח' },
-  3:  { english: 'dream abundance',    hebrew: 'לחלום שפע' },
-  4:  { english: 'target awareness',   hebrew: 'לכוון מודעות' },
-  5:  { english: 'survive instinct',   hebrew: 'לשרוד אינסטינקט' },
-  6:  { english: 'equalize death',     hebrew: 'לאזן מוות' },
-  7:  { english: 'know healing',       hebrew: 'לדעת ריפוי' },
-  8:  { english: 'beautify elegance',  hebrew: 'ליפות אלגנטיות' },
-  9:  { english: 'purify flow',        hebrew: 'לטהר זרימה' },
-  10: { english: 'love heart',         hebrew: 'לאהוב לב' },
-  11: { english: 'play magic',         hebrew: 'לשחק קסם' },
-  12: { english: 'influence wisdom',   hebrew: 'להשפיע חוכמה' },
-  13: { english: 'explore space',      hebrew: 'לחקור מרחב' },
-  14: { english: 'enchant timelessness', hebrew: 'להקסים נצחיות' },
-  15: { english: 'create vision',      hebrew: 'ליצור חזון' },
-  16: { english: 'question fearlessness', hebrew: 'לשאול חוסר פחד' },
-  17: { english: 'evolve synchronicity', hebrew: 'להתפתח סינכרוניות' },
-  18: { english: 'reflect endlessness',  hebrew: 'לשקף אינסופיות' },
-  19: { english: 'catalyze energy',    hebrew: 'לזרז אנרגיה' },
-  20: { english: 'enlighten life',     hebrew: 'להאיר חיים' },
+// Seal data for Dreamspell affirmations (from José Argüelles' Dreamspell)
+const SEAL_DATA: Record<number, { power: string; action: string; essence: string }> = {
+  1:  { power: 'Birth',         action: 'nurture',     essence: 'Being' },
+  2:  { power: 'Spirit',        action: 'communicate', essence: 'Breath' },
+  3:  { power: 'Abundance',     action: 'dream',       essence: 'Intuition' },
+  4:  { power: 'Flowering',     action: 'target',      essence: 'Awareness' },
+  5:  { power: 'Life Force',    action: 'survive',     essence: 'Instinct' },
+  6:  { power: 'Death',         action: 'equalize',    essence: 'Opportunity' },
+  7:  { power: 'Accomplishment', action: 'know',       essence: 'Healing' },
+  8:  { power: 'Elegance',      action: 'beautify',    essence: 'Art' },
+  9:  { power: 'Universal Water', action: 'purify',    essence: 'Flow' },
+  10: { power: 'Heart',         action: 'love',        essence: 'Loyalty' },
+  11: { power: 'Magic',         action: 'play',        essence: 'Illusion' },
+  12: { power: 'Free Will',     action: 'influence',   essence: 'Wisdom' },
+  13: { power: 'Space',         action: 'explore',     essence: 'Wakefulness' },
+  14: { power: 'Timelessness',  action: 'enchant',     essence: 'Receptivity' },
+  15: { power: 'Vision',        action: 'create',      essence: 'Mind' },
+  16: { power: 'Intelligence',  action: 'question',    essence: 'Fearlessness' },
+  17: { power: 'Navigation',    action: 'evolve',      essence: 'Synchronicity' },
+  18: { power: 'Endlessness',   action: 'reflect',     essence: 'Order' },
+  19: { power: 'Self-Generation', action: 'catalyze',  essence: 'Energy' },
+  20: { power: 'Universal Fire', action: 'enlighten',  essence: 'Life' },
 }
 
-export interface Mantra {
-  hebrew: string
-  english: string
+// Tone data for Dreamspell affirmations
+const TONE_DATA: Record<number, { action: string; essence: string; power: string }> = {
+  1:  { action: 'Unify',       essence: 'Attracting',    power: 'Purpose' },
+  2:  { action: 'Polarize',    essence: 'Stabilizing',   power: 'Challenge' },
+  3:  { action: 'Activate',    essence: 'Bonding',       power: 'Service' },
+  4:  { action: 'Define',      essence: 'Measuring',     power: 'Form' },
+  5:  { action: 'Empower',     essence: 'Commanding',    power: 'Radiance' },
+  6:  { action: 'Organize',    essence: 'Balancing',     power: 'Equality' },
+  7:  { action: 'Channel',     essence: 'Inspiring',     power: 'Attunement' },
+  8:  { action: 'Harmonize',   essence: 'Modeling',      power: 'Integrity' },
+  9:  { action: 'Pulse',       essence: 'Realizing',     power: 'Intention' },
+  10: { action: 'Perfect',     essence: 'Producing',     power: 'Manifestation' },
+  11: { action: 'Dissolve',    essence: 'Releasing',     power: 'Liberation' },
+  12: { action: 'Dedicate',    essence: 'Universalizing', power: 'Cooperation' },
+  13: { action: 'Endure',      essence: 'Transcending',  power: 'Presence' },
 }
 
-export function generateMantra(seal: Seal, tone: Tone): Mantra {
-  const sealAction = SEAL_ACTIONS[seal.number]
+// Wavespell type based on seal color
+const WAVESPELL_TYPE: Record<string, string> = {
+  red: 'Input',
+  white: 'Store',
+  blue: 'Output',
+  yellow: 'Matrix',
+}
 
-  const english = `I ${tone.action} in order to ${sealAction.english}`
-  const hebrew = `אני ${tone.hebrewName} כדי ${sealAction.hebrew}`
+export function generateMantra(seal: Seal, tone: Tone): string {
+  const sealData = SEAL_DATA[seal.number]
+  const toneData = TONE_DATA[tone.number]
+  const wavespell = WAVESPELL_TYPE[seal.color]
 
-  return { hebrew, english }
+  // Standard Dreamspell 5-line affirmation format
+  const lines = [
+    `I ${toneData.action.toLowerCase()} in order to ${sealData.action}`,
+    `${toneData.essence} ${sealData.essence.toLowerCase()}`,
+    `I seal the ${wavespell.toLowerCase()} of ${sealData.power.toLowerCase()}`,
+    `With the ${tone.name.toLowerCase()} tone of ${toneData.power.toLowerCase()}`,
+    `I am guided by the power of ${sealData.power.toLowerCase()}`
+  ]
+
+  return lines.join('\n')
 }

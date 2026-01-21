@@ -1,7 +1,7 @@
-import { asSeal, asTone, type SealNumber, type ToneNumber } from '../../core/types.ts'
-import { gregorianToJDN, parseDate } from './julian.ts'
-import type { TzolkinDay } from '../types/tzolkin.ts'
-import { getTzolkinSign } from '../data/tzolkin-signs.ts'
+import { asSeal, asTone, type SealNumber, type ToneNumber } from '../../core/types'
+import { gregorianToJDN, parseDate } from './julian'
+import type { TzolkinDay } from '../types/tzolkin'
+import { getTzolkinSign } from '../data/tzolkin-signs'
 
 // GMT correlation constant
 const GMT_CORRELATION = 584283

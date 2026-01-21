@@ -1,5 +1,5 @@
-import type { DreamspellKin, Oracle } from './dreamspell.ts'
-import type { TzolkinDay } from './tzolkin.ts'
+import type { DreamspellKin, Oracle } from './dreamspell'
+import type { TzolkinDay } from './tzolkin'
 
 export interface Person {
   name: string          // Hebrew name
