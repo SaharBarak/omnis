@@ -21,8 +21,8 @@ export function TzolkinSection({ date }: TzolkinSectionProps) {
           <span className="text-2xl font-bold">
             {tone} {daySign.yucatec}
           </span>
-          <span className="text-sm text-muted-foreground">
-            {daySign.english}
+          <span className="text-base text-muted-foreground">
+            {daySign.english} — {daySign.hebrew}
           </span>
         </div>
       </div>

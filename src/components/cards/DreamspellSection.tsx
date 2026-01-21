@@ -20,7 +20,8 @@ export function DreamspellSection({ date }: DreamspellSectionProps) {
   const seal = getSeal(sealNumber)
   const tone = getTone(toneNumber)
 
-  const kinName = `${capitalizeFirstLetter(seal.color)} ${tone.name} ${seal.english}`
+  const kinNameEn = `${capitalizeFirstLetter(seal.color)} ${tone.name} ${seal.english}`
+  const kinNameHe = `${seal.hebrew} ${tone.nameHebrew}`
 
   return (
     <section className="dreamspell-section flex-1 flex flex-col border-b pb-4">
@@ -29,9 +30,12 @@ export function DreamspellSection({ date }: DreamspellSectionProps) {
       </h3>
 
       <div className="text-center mb-4">
-        <span className="text-lg font-semibold">
-          {kinName} (Kin {kin})
-        </span>
+        <div className="text-lg font-semibold">
+          {kinNameEn} (Kin {kin})
+        </div>
+        <div className="text-base text-muted-foreground">
+          {kinNameHe}
+        </div>
       </div>
 
       <OracleMap kin={kin} />

@@ -24,7 +24,7 @@ The MVP goal is to generate **16 printable A5 person cards** displaying:
 | **Phase 1 Infrastructure** | COMPLETE | Next.js 14, Supabase auth, People CRUD, RTL |
 | **React Hooks** | COMPLETE | use-auth, use-people, use-computed-results |
 | **Test Data** | COMPLETE | 16 Hebrew names with birth dates |
-| **Hebrew Translations** | NOT STARTED | Defined in specs, NOT in data files |
+| **Hebrew Translations** | COMPLETE | All types and data files updated with Hebrew |
 | **A5 Card Components** | COMPLETE | 7 React components in src/components/cards/ |
 | **Cards Page Route** | COMPLETE | `/app/(app)/cards/page.tsx` exists |
 | **Print CSS** | COMPLETE | @media print rules in globals.css |
@@ -60,9 +60,9 @@ The MVP goal is to generate **16 printable A5 person cards** displaying:
 
 | File | Content | Status |
 |------|---------|--------|
-| `seals.ts` | 20 seals (number, mayan, english, color) | COMPLETE (missing hebrew) |
-| `tones.ts` | 13 tones (number, name, keywords, action) | COMPLETE (missing nameHebrew) |
-| `tzolkin-signs.ts` | 20 signs (number, yucatec, english) | COMPLETE (missing hebrew) |
+| `seals.ts` | 20 seals (number, mayan, english, hebrew, color) | COMPLETE |
+| `tones.ts` | 13 tones (number, name, nameHebrew, keywords, action) | COMPLETE |
+| `tzolkin-signs.ts` | 20 signs (number, yucatec, english, hebrew) | COMPLETE |
 | `oracle-tables.ts` | getAnalog, getAntipode, getOccult, getGuide functions | COMPLETE |
 | `people.ts` | 16 test people (Hebrew names + birth dates) | COMPLETE |
 | `mantras.ts` | Template-based mantra generation (English only) | COMPLETE |
@@ -277,15 +277,15 @@ These are required for trilingual display but MVP can function without them.
 [x] 11. Add navigation link to sidebar (כרטיסים)
 ```
 
-### P1 Task Checklist
+### P1 Task Checklist - COMPLETE
 
 ```
-[ ] 12. Add hebrew field to Seal interface
-[ ] 13. Update seals.ts with 20 Hebrew values
-[ ] 14. Add nameHebrew field to Tone interface
-[ ] 15. Update tones.ts with 13 Hebrew values
-[ ] 16. Add hebrew field to TzolkinDaySign interface
-[ ] 17. Update tzolkin-signs.ts with 20 Hebrew values
+[x] 12. Add hebrew field to Seal interface
+[x] 13. Update seals.ts with 20 Hebrew values
+[x] 14. Add nameHebrew field to Tone interface
+[x] 15. Update tones.ts with 13 Hebrew values
+[x] 16. Add hebrew field to TzolkinDaySign interface
+[x] 17. Update tzolkin-signs.ts with 20 Hebrew values
 ```
 
 ### P2 Task Checklist (Deferred)
@@ -474,10 +474,10 @@ The MVP is **DONE** when:
 - [x] TypeScript clean (strict mode)
 - [x] Print CSS produces proper A5 layout
 
-### P1 Enhancement (for full spec)
-- [ ] Hebrew names for seals/signs displayed
-- [ ] Hebrew tone names displayed
-- [ ] Trilingual display (Yucatec - English - Hebrew)
+### P1 Enhancement (for full spec) - COMPLETE
+- [x] Hebrew names for seals/signs displayed
+- [x] Hebrew tone names displayed
+- [x] Trilingual display (Yucatec - English - Hebrew)
 
 ---
 
