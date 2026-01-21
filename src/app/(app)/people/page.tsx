@@ -304,9 +304,16 @@ export default function PeoplePage() {
     setIsEditDialogOpen(true)
   }
 
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
   const handleDeletePerson = async (id: string) => {
     if (confirm('האם למחוק את האדם הזה?')) {
-      await deletePerson(id)
+      setDeleteError(null)
+      try {
+        await deletePerson(id)
+      } catch (err) {
+        setDeleteError(err instanceof Error ? err.message : 'שגיאה במחיקה')
+      }
     }
   }
 
@@ -355,6 +362,13 @@ export default function PeoplePage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Delete error message */}
+      {deleteError && (
+        <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
+          {deleteError}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
