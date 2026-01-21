@@ -279,3 +279,8 @@ Guide:    Tone-dependent offset (see above)
 - **Verified**: All components implemented with Shadow DOM
 - **Verified**: RTL layout with Hebrew support
 - **Verified**: Print styles for A5 pages
+
+### Known Limitations (Post-MVP)
+- **Occult Tone Not Displayed**: Oracle interface only stores seal numbers. Per spec, occult position has a different tone (14 - originalTone), but this is not calculated or displayed in the UI. The occult seal is correct.
+- **Simplified Mantras**: Only line 1 of the 5-line mantra format is implemented ("I [action] in order to [purpose]"). Full 260 mantras would need to be sourced from Dreamspell materials.
+- **No Automated Tests**: Validation was done manually against spec dates. Consider adding unit tests for calculation functions.

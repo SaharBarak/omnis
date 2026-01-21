@@ -101,7 +101,7 @@ function dateToTzolkin(date):
     // Using GMT 584283 correlation
     // Adjusted so that Aug 11, 3114 BCE = 4 Ahau 8 Kumk'u
 
-    dayNumber = (jdn - 584283 + 16) mod 20  // +16 adjusts to correct day
+    dayNumber = (jdn - 584283 + 20) mod 20  // +20 adjusts to correct day
     toneNumber = (jdn - 584283 + 4) mod 13   // +4 adjusts to correct tone
 
     if dayNumber == 0: dayNumber = 20
