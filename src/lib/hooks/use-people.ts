@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Person, PersonInsert, PersonUpdate, Tag } from '@/lib/supabase/database.types'
+import { useComputedResults } from './use-computed-results'
 
-interface PersonWithTags extends Person {
+export interface PersonWithTags extends Person {
   tags: Tag[]
 }
 
@@ -24,6 +25,7 @@ export function usePeople() {
   })
 
   const supabase = createClient()
+  const { computeAndStore, invalidateResults } = useComputedResults()
 
   // Fetch all people with their tags
   const fetchPeople = useCallback(async () => {
@@ -98,9 +100,12 @@ export function usePeople() {
       )
     }
 
+    // Compute and store symbolic results for the new person
+    await computeAndStore(data.id, data.birth_date)
+
     await fetchPeople()
     return data
-  }, [supabase, fetchPeople])
+  }, [supabase, fetchPeople, computeAndStore])
 
   // Update a person
   const updatePerson = useCallback(async (id: string, updates: PersonUpdate, tagIds?: string[]) => {
@@ -126,9 +131,15 @@ export function usePeople() {
       }
     }
 
+    // If birth_date was updated, recompute symbolic results
+    if (updates.birth_date) {
+      await invalidateResults(id)
+      await computeAndStore(id, data.birth_date)
+    }
+
     await fetchPeople()
     return data
-  }, [supabase, fetchPeople])
+  }, [supabase, fetchPeople, invalidateResults, computeAndStore])
 
   // Soft delete a person
   const deletePerson = useCallback(async (id: string) => {

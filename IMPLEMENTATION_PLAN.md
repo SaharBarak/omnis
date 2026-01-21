@@ -1,6 +1,6 @@
 # Omnis Phase 1 Implementation Plan
 
-> **Status:** IN PROGRESS - Core features complete, testing pending
+> **Status:** IN PROGRESS - All features complete, end-to-end testing pending
 > **Last Updated:** 2026-01-21
 > **Goal:** Transform MVP into usable product with OAuth, persistence, and People Directory
 
@@ -26,7 +26,7 @@ Phase 1 migrates the vanilla TypeScript MVP to Next.js 14 + Supabase, adding:
 | Authentication | COMPLETE | Google OAuth + Email Magic Link + Onboarding |
 | People Directory | COMPLETE | CRUD, tags, search, filters |
 | Dashboard Shell | COMPLETE | RTL, Hebrew fonts, sidebar navigation |
-| Computed Results | PENDING | Storage and retrieval hooks |
+| Computed Results | COMPLETE | Storage hook with auto-compute on create/update |
 | End-to-End Testing | PENDING | Requires Supabase project setup |
 
 **Build Status:** Passing (npm run build succeeds)
@@ -86,19 +86,16 @@ Phase 1 migrates the vanilla TypeScript MVP to Next.js 14 + Supabase, adding:
 - Dashboard page with feature cards
 - Profile page with symbolic data display
 
+### 8. Computed Results Storage
+- Created `src/lib/hooks/use-computed-results.ts` with versioned storage
+- Auto-compute Dreamspell and Tzolkin results on person creation
+- Auto-recompute when birth_date is updated
+- Stores results in `computed_results` table with system versioning
+- Support for future algorithm updates via version field
+
 ---
 
 ## Pending Tasks
-
-### Task: Computed Results Storage
-**Priority:** P1
-**Status:** PENDING
-**Estimated:** 30 minutes
-
-**Implementation needed:**
-1. Create `src/lib/hooks/use-computed-results.ts`
-2. Auto-compute on person creation/update
-3. Display in people cards and profile
 
 ### Task: End-to-End Testing
 **Priority:** P1
@@ -144,7 +141,8 @@ src/
 │   ├── data/                     # MVP data files
 │   ├── hooks/
 │   │   ├── use-auth.ts           # Auth hook
-│   │   └── use-people.ts         # People CRUD hook
+│   │   ├── use-people.ts         # People CRUD hook
+│   │   └── use-computed-results.ts # Computed results storage
 │   ├── supabase/
 │   │   ├── client.ts             # Browser Supabase client
 │   │   ├── server.ts             # Server Supabase client
@@ -192,7 +190,7 @@ npm run typecheck     # TypeScript type checking
 ## Notes
 
 - Build requires placeholder Supabase credentials (`.env.local`)
-- MVP calculation tests still work (66 tests in src-mvp)
+- All 132 calculation tests pass (66 in src-mvp + 66 in src)
 - Hebrew translations for seals/tones not yet migrated (P2)
 
 ---
