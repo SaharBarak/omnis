@@ -456,7 +456,7 @@ assets/
 ```typescript
 const testCases = [
   { date: '1987-07-26', expectedKin: 34 },   // Epoch
-  { date: '2000-01-01', expectedKin: 163 },
+  { date: '2000-01-01', expectedKin: 153 },
   { date: '2024-02-28', expectedKin: 108 },
   { date: '2024-02-29', expectedKin: 108 },  // Same as Feb 28
   { date: '2024-03-01', expectedKin: 109 },

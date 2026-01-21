@@ -231,7 +231,7 @@ Use these known dates to validate calculations:
 | Date | Kin | Seal | Tone | Name |
 |------|-----|------|------|------|
 | 1987-07-26 | 34 | White | 8 | White Galactic Wizard |
-| 2000-01-01 | 163 | Blue | 7 | Blue Resonant Night |
+| 2000-01-01 | 153 | Red | 10 | Red Planetary Skywalker |
 | 2012-12-21 | 207 | Blue | 12 | Blue Crystal Hand |
 
 ---
