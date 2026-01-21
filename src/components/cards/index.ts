@@ -18,3 +18,21 @@ export type { PersonCardProps } from './PersonCard'
 
 export { CardGrid } from './CardGrid'
 export type { CardGridProps } from './CardGrid'
+
+// Phase 3.1: Wavespell and Cycle visualization
+export { WavespellDisplay, WavespellMini, WavespellProgress } from './WavespellDisplay'
+export type { WavespellDisplayProps, WavespellMiniProps, WavespellProgressProps } from './WavespellDisplay'
+
+export { CastleDisplay, CastleMini } from './CastleDisplay'
+export type { CastleDisplayProps, CastleMiniProps } from './CastleDisplay'
+
+export {
+  DreamspellYearDisplay,
+  GalacticBirthdayDisplay,
+  PersonalYearDisplay,
+} from './YearlyDisplay'
+export type {
+  DreamspellYearDisplayProps,
+  GalacticBirthdayDisplayProps,
+  PersonalYearDisplayProps,
+} from './YearlyDisplay'
