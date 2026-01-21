@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { usePeople } from '@/lib/hooks/use-people'
 import { useGroups } from '@/lib/hooks/use-groups'
 import { Button } from '@/components/ui/button'
@@ -22,8 +23,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Label } from '@/components/ui/label'
+import { ShareDialog } from '@/components/share-dialog'
 import type { Group, Person } from '@/lib/supabase/database.types'
-import type { GroupWithMembers, CreateGroupInput } from '@/lib/types/relationship'
+import type { GroupWithMembers, CreateGroupInput, ShareOptions } from '@/lib/types/relationship'
 
 // Group Card Component
 function GroupCard({
@@ -32,12 +34,16 @@ function GroupCard({
   onEdit,
   onDelete,
   onViewMembers,
+  onAnalyze,
+  onShare,
 }: {
   group: Group
   memberCount: number
   onEdit: (group: Group) => void
   onDelete: (id: string) => void
   onViewMembers: (group: Group) => void
+  onAnalyze: (group: Group) => void
+  onShare: (group: Group) => void
 }) {
   return (
     <Card className="cursor-pointer hover:border-primary/50 transition-colors">
@@ -63,6 +69,12 @@ function GroupCard({
             <DropdownMenuContent align="start">
               <DropdownMenuItem onClick={() => onViewMembers(group)}>
                 צפה בחברים
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onAnalyze(group)}>
+                ניתוח קבוצתי
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onShare(group)}>
+                שתף
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit(group)}>
                 ערוך
@@ -330,6 +342,7 @@ function GroupMembersView({
 
 // Main Page Component
 export default function GroupsPage() {
+  const router = useRouter()
   const { people, loading: peopleLoading } = usePeople()
   const {
     groups,
@@ -345,9 +358,11 @@ export default function GroupsPage() {
   const [search, setSearch] = useState('')
   const [editingGroup, setEditingGroup] = useState<Group | null>(null)
   const [viewingGroup, setViewingGroup] = useState<{ group: Group; members: GroupWithMembers['members'] } | null>(null)
+  const [sharingGroup, setSharingGroup] = useState<Group | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [memberCounts, setMemberCounts] = useState<Record<string, number>>({})
 
@@ -411,6 +426,15 @@ export default function GroupsPage() {
       members: groupData?.members || [],
     })
     setIsViewDialogOpen(true)
+  }
+
+  const handleAnalyze = (group: Group) => {
+    router.push(`/app/groups/${group.id}/analysis`)
+  }
+
+  const handleShare = (group: Group) => {
+    setSharingGroup(group)
+    setIsShareDialogOpen(true)
   }
 
   const handleUpdateGroupMembers = async (personIds: string[]) => {
@@ -518,6 +542,8 @@ export default function GroupsPage() {
               onEdit={handleEditGroup}
               onDelete={handleDeleteGroup}
               onViewMembers={handleViewMembers}
+              onAnalyze={handleAnalyze}
+              onShare={handleShare}
             />
           ))}
         </div>
@@ -577,6 +603,24 @@ export default function GroupsPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Share dialog */}
+      {sharingGroup && (
+        <ShareDialog
+          open={isShareDialogOpen}
+          onOpenChange={(open) => {
+            setIsShareDialogOpen(open)
+            if (!open) setSharingGroup(null)
+          }}
+          shareType="group"
+          title={sharingGroup.name}
+          options={{
+            groupId: sharingGroup.id,
+            includeSystems: ['dreamspell', 'tzolkin'],
+            includeAnalysis: true,
+          }}
+        />
+      )}
     </div>
   )
 }

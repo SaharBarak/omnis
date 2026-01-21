@@ -1,0 +1,404 @@
+'use client'
+
+import { useState, useEffect, use } from 'react'
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
+import { analyzeGroup } from '@/lib/services/group-analysis'
+import type { FullGroupAnalysis, GroupMemberAnalysis } from '@/lib/services/group-analysis'
+import type { GroupWithMembers, ShareOptions } from '@/lib/types/relationship'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+
+// Color display names
+const COLOR_LABELS: Record<string, { hebrew: string; hex: string }> = {
+  red: { hebrew: 'אדום', hex: '#EF4444' },
+  white: { hebrew: 'לבן', hex: '#F3F4F6' },
+  blue: { hebrew: 'כחול', hex: '#3B82F6' },
+  yellow: { hebrew: 'צהוב', hex: '#F59E0B' },
+}
+
+// Member card for display
+function MemberCard({ member }: { member: GroupMemberAnalysis }) {
+  const colorHex = COLOR_LABELS[member.dreamspell.color]?.hex || '#6B7280'
+
+  return (
+    <div className="flex items-center gap-3 p-3 border rounded-lg">
+      <div
+        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+        style={{ backgroundColor: colorHex }}
+      >
+        {member.dreamspell.kin}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="font-medium truncate">{member.hebrewName || member.name}</div>
+        <div className="text-sm text-muted-foreground">
+          {member.dreamspell.sealNameHebrew} {member.dreamspell.toneNameHebrew}
+        </div>
+      </div>
+      <Badge variant="outline" className="text-xs">
+        Kin {member.dreamspell.kin}
+      </Badge>
+    </div>
+  )
+}
+
+// Password form
+function PasswordForm({
+  onSubmit,
+  error,
+}: {
+  onSubmit: (password: string) => void
+  error: string | null
+}) {
+  const [password, setPassword] = useState('')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSubmit(password)
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4" dir="rtl">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle>תוכן מוגן בסיסמה</CardTitle>
+          <CardDescription>
+            הזן את הסיסמה כדי לצפות בתוכן
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="הזן סיסמה"
+                required
+              />
+            </div>
+            {error && (
+              <div className="text-sm text-destructive">{error}</div>
+            )}
+            <Button type="submit" className="w-full">
+              כניסה
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// Group share view
+function GroupShareView({ analysis }: { analysis: FullGroupAnalysis }) {
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-3xl font-bold tracking-tight">{analysis.groupName}</h1>
+        <p className="text-muted-foreground mt-2">
+          {analysis.memberCount} חברים • ניתוח קבוצתי
+        </p>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">חברים</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{analysis.memberCount}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">תאימות ממוצעת</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{analysis.compatibility.averageScore}%</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">חותם נפוץ</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold">
+              {analysis.dreamspell.sealDistribution.find(d => d.count > 0)?.nameHebrew || '-'}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Insights */}
+      {analysis.insights.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>תובנות</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {analysis.insights.map((insight, idx) => (
+              <div key={idx} className="p-3 bg-muted/50 rounded-lg">
+                <p className="font-medium">{insight.hebrew}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Color Balance */}
+      <Card>
+        <CardHeader>
+          <CardTitle>מאזן צבעים</CardTitle>
+          <CardDescription>התפלגות ארבעת הצבעים הכיווניים</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {(['red', 'white', 'blue', 'yellow'] as const).map(color => {
+              const data = analysis.dreamspell.colorBalance[color]
+              return (
+                <div key={color} className="flex items-center gap-3">
+                  <div
+                    className="w-6 h-6 rounded-full border-2"
+                    style={{ backgroundColor: COLOR_LABELS[color].hex, borderColor: color === 'white' ? '#D1D5DB' : COLOR_LABELS[color].hex }}
+                  />
+                  <div className="w-16 text-sm font-medium">
+                    {COLOR_LABELS[color].hebrew}
+                  </div>
+                  <div className="flex-1 bg-muted rounded-full h-4 overflow-hidden">
+                    <div
+                      className="h-full transition-all duration-300"
+                      style={{ width: `${data.percentage}%`, backgroundColor: COLOR_LABELS[color].hex }}
+                    />
+                  </div>
+                  <div className="w-12 text-sm text-left">
+                    {data.count}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Members */}
+      <Card>
+        <CardHeader>
+          <CardTitle>חברי הקבוצה</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {analysis.members.map(member => (
+              <MemberCard key={member.id} member={member} />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// Main page
+export default function SharePage({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = use(params)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [requiresPassword, setRequiresPassword] = useState(false)
+  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [shareData, setShareData] = useState<{
+    type: string
+    options: ShareOptions
+    groupAnalysis?: FullGroupAnalysis
+  } | null>(null)
+
+  const supabase = createClient()
+
+  const loadShare = async (password?: string) => {
+    setLoading(true)
+    setError(null)
+    setPasswordError(null)
+
+    try {
+      // First, get the share metadata
+      const { data: share, error: shareError } = await supabase
+        .from('shared_views')
+        .select('*')
+        .eq('url_token', token)
+        .eq('active', true)
+        .single()
+
+      if (shareError || !share) {
+        setError('קישור לא נמצא או לא פעיל')
+        setLoading(false)
+        return
+      }
+
+      // Check expiration
+      if (share.expires_at && new Date(share.expires_at) < new Date()) {
+        setError('קישור פג תוקף')
+        setLoading(false)
+        return
+      }
+
+      // Check max views
+      if (share.max_views !== null && share.view_count >= share.max_views) {
+        setError('קישור הגיע למקסימום צפיות')
+        setLoading(false)
+        return
+      }
+
+      // Check password
+      if (share.password_hash) {
+        if (!password) {
+          setRequiresPassword(true)
+          setLoading(false)
+          return
+        }
+        // Simple hash comparison (in production, use bcrypt or similar)
+        const encoder = new TextEncoder()
+        const data = encoder.encode(password)
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+        const hashArray = Array.from(new Uint8Array(hashBuffer))
+        const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+        if (hash !== share.password_hash) {
+          setPasswordError('סיסמה שגויה')
+          setLoading(false)
+          return
+        }
+      }
+
+      // Increment view count using RPC
+      await supabase.rpc('increment_shared_view_count', { p_token: token })
+
+      const options = share.options as unknown as ShareOptions
+
+      // Load the actual content based on share type
+      if (share.share_type === 'group' && options.groupId) {
+        // Load group data
+        const { data: groupData, error: groupError } = await supabase
+          .rpc('get_group_with_members', { p_group_id: options.groupId })
+
+        if (groupError || !groupData) {
+          setError('לא ניתן לטעון את נתוני הקבוצה')
+          setLoading(false)
+          return
+        }
+
+        const groupWithMembers: GroupWithMembers = {
+          id: groupData.id,
+          owner_id: groupData.owner_id,
+          name: groupData.name,
+          description: groupData.description,
+          created_at: groupData.created_at,
+          updated_at: groupData.updated_at,
+          members: groupData.members || [],
+        }
+
+        const analysis = analyzeGroup(groupWithMembers)
+        setShareData({
+          type: share.share_type,
+          options,
+          groupAnalysis: analysis,
+        })
+        setRequiresPassword(false)
+      } else {
+        // For other share types, just set basic data
+        setShareData({
+          type: share.share_type,
+          options,
+        })
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'שגיאה בטעינה')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadShare()
+  }, [token])
+
+  const handlePasswordSubmit = (password: string) => {
+    loadShare(password)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" dir="rtl">
+        <div className="text-center">טוען...</div>
+      </div>
+    )
+  }
+
+  if (requiresPassword) {
+    return <PasswordForm onSubmit={handlePasswordSubmit} error={passwordError} />
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4" dir="rtl">
+        <Card className="w-full max-w-md text-center">
+          <CardHeader>
+            <CardTitle className="text-destructive">שגיאה</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">{error}</p>
+            <Link href="/login">
+              <Button>התחבר ל-Omnis</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-background" dir="rtl">
+      {/* Header */}
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex h-14 items-center px-4 max-w-7xl mx-auto">
+          <Link href="/" className="font-bold text-xl">
+            Omnis
+          </Link>
+          <div className="flex-1" />
+          <Link href="/login">
+            <Button variant="outline" size="sm">
+              התחבר
+            </Button>
+          </Link>
+        </div>
+      </header>
+
+      {/* Content */}
+      <main className="max-w-7xl mx-auto p-6">
+        {shareData?.type === 'group' && shareData.groupAnalysis && (
+          <GroupShareView analysis={shareData.groupAnalysis} />
+        )}
+
+        {shareData?.type !== 'group' && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">סוג שיתוף זה עדיין לא נתמך בתצוגה הציבורית</p>
+          </div>
+        )}
+
+        {/* CTA */}
+        <Card className="mt-8 bg-primary/5 border-primary/20">
+          <CardContent className="flex flex-col md:flex-row items-center justify-between py-6 gap-4">
+            <div>
+              <h3 className="font-bold text-lg">רוצים ליצור ניתוח משלכם?</h3>
+              <p className="text-muted-foreground">הצטרפו ל-Omnis וגלו את החיבורים הסמליים שלכם</p>
+            </div>
+            <Link href="/login">
+              <Button size="lg">התחילו עכשיו</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </main>
+    </div>
+  )
+}
