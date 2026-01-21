@@ -36,3 +36,30 @@ export type {
   GalacticBirthdayDisplayProps,
   PersonalYearDisplayProps,
 } from './YearlyDisplay'
+
+// Phase 3.2: Long Count and Mayan Calendar
+export {
+  LongCountDisplay,
+  LongCountMini,
+  BaktunProgress,
+  HaabDisplay,
+  CalendarRoundDisplay,
+} from './LongCountDisplay'
+export type {
+  LongCountDisplayProps,
+  LongCountMiniProps,
+  BaktunProgressProps,
+  HaabDisplayProps,
+  CalendarRoundDisplayProps,
+} from './LongCountDisplay'
+
+export {
+  MayanTimelineDisplay,
+  MayanTimelineMini,
+  HistoricalDatesDisplay,
+} from './MayanTimelineDisplay'
+export type {
+  MayanTimelineDisplayProps,
+  MayanTimelineMiniProps,
+  HistoricalDatesDisplayProps,
+} from './MayanTimelineDisplay'

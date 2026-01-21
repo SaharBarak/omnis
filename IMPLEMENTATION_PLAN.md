@@ -849,29 +849,47 @@ Unify the full set of symbolic systems under one UI. Add Astrology, Human Design
 
 ---
 
-## Phase 3.2: Mayan Long Count
+## Phase 3.2: Mayan Long Count (COMPLETE)
 
 ### Tasks
 
-- [ ] **3.2.1** Implement Long Count calculations
+- [x] **3.2.1** Implement Long Count calculations
   - `src/lib/calculations/long-count.ts`
   - Baktun, Katun, Tun, Uinal, Kin
   - GMT correlation 584283
+  - Haab (365-day solar year) calculations
+  - Calendar Round (Tzolkin + Haab combination)
 
-- [ ] **3.2.2** Create Long Count display
+- [x] **3.2.2** Create Long Count display
   - Format: 13.0.11.5.8 (example)
   - Haab date (365-day solar year)
   - Current Long Count position
+  - LongCountDisplay, LongCountMini, BaktunProgress components
+  - HaabDisplay, CalendarRoundDisplay components
 
-- [ ] **3.2.3** Add key dates timeline
+- [x] **3.2.3** Add key dates timeline
   - Birth Long Count
   - Current Long Count
   - Notable historical dates
+  - MayanTimelineDisplay, MayanTimelineMini components
+  - HistoricalDatesDisplay component
 
 ### Definition of Done
-- [ ] Long Count calculated for any date
-- [ ] Display shows all components
-- [ ] Timeline visualization works
+- [x] Long Count calculated for any date
+- [x] Display shows all components
+- [x] Timeline visualization works
+- [x] 47 comprehensive tests passing
+- [x] Haab and Calendar Round calculations work
+
+### Files Created
+- `src/lib/calculations/long-count.ts` - Long Count, Haab, Calendar Round calculations
+- `src/lib/calculations/long-count.test.ts` - 47 comprehensive tests
+- `src/components/cards/LongCountDisplay.tsx` - LongCountDisplay, LongCountMini, BaktunProgress, HaabDisplay, CalendarRoundDisplay
+- `src/components/cards/MayanTimelineDisplay.tsx` - MayanTimelineDisplay, MayanTimelineMini, HistoricalDatesDisplay
+
+### Files Modified
+- `src/lib/calculations/index.ts` - Added Long Count exports
+- `src/components/cards/index.ts` - Added Long Count component exports
 
 ---
 
@@ -1038,12 +1056,12 @@ Unify the full set of symbolic systems under one UI. Add Astrology, Human Design
 | Phase | Status | Tasks | Complete |
 |-------|--------|-------|----------|
 | 3.1 Dreamspell Depth | ✅ COMPLETE | 4 | 4/4 |
-| 3.2 Long Count | NOT STARTED | 3 | 0/3 |
+| 3.2 Long Count | ✅ COMPLETE | 3 | 3/3 |
 | 3.3 Astrology | NOT STARTED | 6 | 0/6 |
 | 3.4 Human Design | NOT STARTED | 7 | 0/7 |
 | 3.5 Gematria | NOT STARTED | 4 | 0/4 |
 | 3.6 Integration | NOT STARTED | 4 | 0/4 |
-| **TOTAL** | **14%** | **28** | **4/28** |
+| **TOTAL** | **25%** | **28** | **7/28** |
 
 ---
 ---
@@ -1276,9 +1294,9 @@ Move from "viewer" to "creator tool." Users can create boards with draggable nod
 |-------|------|-------|--------|
 | MVP | React Card Components | 22 | COMPLETE |
 | 2 | Relationship Graph | 20 | COMPLETE (20/20) |
-| 3 | Multi-System Expansion | 28 | IN PROGRESS (4/28) |
+| 3 | Multi-System Expansion | 28 | IN PROGRESS (7/28) |
 | 4 | Canvas Editor | 24 | NOT STARTED |
-| **TOTAL** | | **94** | **46/94 (49%)** |
+| **TOTAL** | | **94** | **49/94 (52%)** |
 
 **Future Phases (not detailed):**
 - Phase 5: Predictions + Time-Based Intelligence
