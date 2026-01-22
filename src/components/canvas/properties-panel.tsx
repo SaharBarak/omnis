@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useCallback } from 'react'
 import {
   Lock,
   Unlock,
@@ -19,6 +19,92 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { useCanvas } from './canvas-context'
+import type {
+  PersonNode,
+  TextNode,
+  ShapeNode,
+  StickyNote,
+  PersonDisplayMode,
+  SystemType,
+  ShapeType,
+  StickyColor,
+  CanvasNode,
+} from '@/lib/types/board'
+import { STICKY_COLORS } from '@/lib/types/board'
+
+// Display mode options
+const DISPLAY_MODES: { value: PersonDisplayMode; label: string }[] = [
+  { value: 'avatar', label: 'תמונה' },
+  { value: 'mini', label: 'מינימלי' },
+  { value: 'card', label: 'כרטיס' },
+  { value: 'detailed', label: 'מפורט' },
+]
+
+// System types for checkboxes
+const SYSTEM_TYPES: { value: SystemType; label: string }[] = [
+  { value: 'dreamspell', label: 'דרימספל' },
+  { value: 'tzolkin', label: 'צולקין' },
+  { value: 'longcount', label: 'ספירה ארוכה' },
+  { value: 'astrology', label: 'אסטרולוגיה' },
+  { value: 'humandesign', label: 'עיצוב אנושי' },
+  { value: 'gematria', label: 'גימטריה' },
+]
+
+// Shape type options
+const SHAPE_TYPES: { value: ShapeType; label: string }[] = [
+  { value: 'rectangle', label: 'מלבן' },
+  { value: 'ellipse', label: 'אליפסה' },
+  { value: 'triangle', label: 'משולש' },
+  { value: 'diamond', label: 'מעוין' },
+  { value: 'star', label: 'כוכב' },
+  { value: 'arrow', label: 'חץ' },
+  { value: 'line', label: 'קו' },
+]
+
+// Sticky note color options
+const STICKY_COLOR_OPTIONS: { value: StickyColor; label: string }[] = [
+  { value: 'yellow', label: 'צהוב' },
+  { value: 'pink', label: 'ורוד' },
+  { value: 'blue', label: 'כחול' },
+  { value: 'green', label: 'ירוק' },
+  { value: 'purple', label: 'סגול' },
+]
+
+// Preset colors for various color pickers
+const PRESET_COLORS = [
+  '#000000', // black
+  '#6B7280', // gray
+  '#3B82F6', // blue
+  '#10B981', // green
+  '#F59E0B', // amber
+  '#EF4444', // red
+  '#8B5CF6', // purple
+  '#EC4899', // pink
+]
+
+// Text alignment options
+const TEXT_ALIGNMENTS: { value: 'right' | 'center' | 'left'; label: string; icon: 'right' | 'center' | 'left' }[] = [
+  { value: 'right', label: 'ימין', icon: 'right' },
+  { value: 'center', label: 'מרכז', icon: 'center' },
+  { value: 'left', label: 'שמאל', icon: 'left' },
+]
+
+// Helper type guards
+function isPersonNode(node: CanvasNode): node is PersonNode {
+  return node.type === 'person'
+}
+
+function isTextNode(node: CanvasNode): node is TextNode {
+  return node.type === 'text'
+}
+
+function isShapeNode(node: CanvasNode): node is ShapeNode {
+  return node.type === 'shape'
+}
+
+function isStickyNote(node: CanvasNode): node is StickyNote {
+  return node.type === 'sticky'
+}
 
 export function PropertiesPanel() {
   const {
@@ -100,6 +186,83 @@ export function PropertiesPanel() {
       updateNode(node.id, { layerId })
     })
   }
+
+  // === Person Node Handlers ===
+  const handleDisplayModeChange = useCallback((display: PersonDisplayMode) => {
+    if (isMultiSelect || !isPersonNode(firstNode)) return
+    updateNode(firstNode.id, { display } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  const handleSystemToggle = useCallback((system: SystemType) => {
+    if (isMultiSelect || !isPersonNode(firstNode)) return
+    const currentSystems = firstNode.showSystems || []
+    const newSystems = currentSystems.includes(system)
+      ? currentSystems.filter(s => s !== system)
+      : [...currentSystems, system]
+    updateNode(firstNode.id, { showSystems: newSystems } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  // === Text Node Handlers ===
+  const handleFontSizeChange = useCallback((fontSize: number) => {
+    if (isMultiSelect || !isTextNode(firstNode)) return
+    updateNode(firstNode.id, {
+      textStyle: { ...firstNode.textStyle, fontSize }
+    } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  const handleFontWeightChange = useCallback((fontWeight: number) => {
+    if (isMultiSelect || !isTextNode(firstNode)) return
+    updateNode(firstNode.id, {
+      textStyle: { ...firstNode.textStyle, fontWeight }
+    } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  const handleTextColorChange = useCallback((color: string) => {
+    if (isMultiSelect || !isTextNode(firstNode)) return
+    updateNode(firstNode.id, {
+      textStyle: { ...firstNode.textStyle, color }
+    } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  const handleTextAlignmentChange = useCallback((alignment: 'right' | 'center' | 'left') => {
+    if (isMultiSelect || !isTextNode(firstNode)) return
+    updateNode(firstNode.id, {
+      textStyle: { ...firstNode.textStyle, alignment }
+    } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  // === Shape Node Handlers ===
+  const handleShapeTypeChange = useCallback((shape: ShapeType) => {
+    if (isMultiSelect || !isShapeNode(firstNode)) return
+    updateNode(firstNode.id, { shape } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  const handleFillColorChange = useCallback((color: string) => {
+    if (isMultiSelect || !isShapeNode(firstNode)) return
+    updateNode(firstNode.id, {
+      fill: { ...firstNode.fill, type: 'solid', color }
+    } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  const handleStrokeColorChange = useCallback((color: string) => {
+    if (isMultiSelect || !isShapeNode(firstNode)) return
+    updateNode(firstNode.id, {
+      stroke: { ...firstNode.stroke, color }
+    } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  const handleStrokeWidthChange = useCallback((width: number) => {
+    if (isMultiSelect || !isShapeNode(firstNode)) return
+    updateNode(firstNode.id, {
+      stroke: { ...firstNode.stroke, width }
+    } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  // === Sticky Note Handler ===
+  const handleStickyColorChange = useCallback((color: StickyColor) => {
+    if (isMultiSelect || !isStickyNote(firstNode)) return
+    updateNode(firstNode.id, { color } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
 
   return (
     <div className="w-64 p-4 bg-card rounded-lg shadow-md border max-h-[80vh] overflow-y-auto">
@@ -247,6 +410,255 @@ export function PropertiesPanel() {
           ))}
         </select>
       </div>
+
+      {/* === Type-Specific Properties === */}
+
+      {/* Person Node Properties */}
+      {!isMultiSelect && isPersonNode(firstNode) && (
+        <>
+          <Separator className="my-4" />
+          <div className="space-y-4">
+            {/* Display Mode */}
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">מצב תצוגה</Label>
+              <select
+                value={firstNode.display || 'card'}
+                onChange={(e) => handleDisplayModeChange(e.target.value as PersonDisplayMode)}
+                className="w-full px-2 py-1.5 text-sm border rounded"
+                dir="rtl"
+              >
+                {DISPLAY_MODES.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Show Systems */}
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">הצג מערכות</Label>
+              <div className="space-y-1.5">
+                {SYSTEM_TYPES.map(system => (
+                  <label key={system.value} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={(firstNode.showSystems || []).includes(system.value)}
+                      onChange={() => handleSystemToggle(system.value)}
+                      className="rounded border"
+                    />
+                    <span className="text-sm">{system.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Text Node Properties */}
+      {!isMultiSelect && isTextNode(firstNode) && (
+        <>
+          <Separator className="my-4" />
+          <div className="space-y-4">
+            {/* Font Size */}
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">גודל גופן</Label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="8"
+                  max="72"
+                  step="1"
+                  value={firstNode.textStyle.fontSize}
+                  onChange={(e) => handleFontSizeChange(Number(e.target.value))}
+                  className="flex-1"
+                />
+                <span className="text-sm w-12 text-right">{firstNode.textStyle.fontSize}px</span>
+              </div>
+            </div>
+
+            {/* Font Weight */}
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">משקל גופן</Label>
+              <select
+                value={firstNode.textStyle.fontWeight}
+                onChange={(e) => handleFontWeightChange(Number(e.target.value))}
+                className="w-full px-2 py-1.5 text-sm border rounded"
+                dir="rtl"
+              >
+                <option value={300}>קל</option>
+                <option value={400}>רגיל</option>
+                <option value={500}>בינוני</option>
+                <option value={600}>חצי מודגש</option>
+                <option value={700}>מודגש</option>
+              </select>
+            </div>
+
+            {/* Text Color */}
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">צבע טקסט</Label>
+              <div className="flex flex-wrap gap-2">
+                {PRESET_COLORS.map(color => (
+                  <button
+                    key={color}
+                    type="button"
+                    className={`w-6 h-6 rounded-full border-2 ${
+                      firstNode.textStyle.color === color ? 'border-primary' : 'border-transparent'
+                    }`}
+                    style={{ backgroundColor: color }}
+                    onClick={() => handleTextColorChange(color)}
+                  />
+                ))}
+              </div>
+              <input
+                type="color"
+                value={firstNode.textStyle.color}
+                onChange={(e) => handleTextColorChange(e.target.value)}
+                className="w-full h-8 rounded border"
+              />
+            </div>
+
+            {/* Text Alignment */}
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">יישור טקסט</Label>
+              <div className="flex gap-1">
+                {TEXT_ALIGNMENTS.map(align => (
+                  <Button
+                    key={align.value}
+                    variant={firstNode.textStyle.alignment === align.value ? 'default' : 'outline'}
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => handleTextAlignmentChange(align.value)}
+                    title={align.label}
+                  >
+                    {align.icon === 'right' && <AlignRight className="h-4 w-4" />}
+                    {align.icon === 'center' && <AlignCenter className="h-4 w-4" />}
+                    {align.icon === 'left' && <AlignLeft className="h-4 w-4" />}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Shape Node Properties */}
+      {!isMultiSelect && isShapeNode(firstNode) && (
+        <>
+          <Separator className="my-4" />
+          <div className="space-y-4">
+            {/* Shape Type */}
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">סוג צורה</Label>
+              <select
+                value={firstNode.shape}
+                onChange={(e) => handleShapeTypeChange(e.target.value as ShapeType)}
+                className="w-full px-2 py-1.5 text-sm border rounded"
+                dir="rtl"
+              >
+                {SHAPE_TYPES.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Fill Color */}
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">צבע מילוי</Label>
+              <div className="flex flex-wrap gap-2">
+                {PRESET_COLORS.map(color => (
+                  <button
+                    key={color}
+                    type="button"
+                    className={`w-6 h-6 rounded-full border-2 ${
+                      firstNode.fill.color === color ? 'border-primary' : 'border-transparent'
+                    }`}
+                    style={{ backgroundColor: color }}
+                    onClick={() => handleFillColorChange(color)}
+                  />
+                ))}
+              </div>
+              <input
+                type="color"
+                value={firstNode.fill.color || '#3B82F6'}
+                onChange={(e) => handleFillColorChange(e.target.value)}
+                className="w-full h-8 rounded border"
+              />
+            </div>
+
+            {/* Stroke Color */}
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">צבע קו מתאר</Label>
+              <div className="flex flex-wrap gap-2">
+                {PRESET_COLORS.map(color => (
+                  <button
+                    key={color}
+                    type="button"
+                    className={`w-6 h-6 rounded-full border-2 ${
+                      firstNode.stroke.color === color ? 'border-primary' : 'border-transparent'
+                    }`}
+                    style={{ backgroundColor: color }}
+                    onClick={() => handleStrokeColorChange(color)}
+                  />
+                ))}
+              </div>
+              <input
+                type="color"
+                value={firstNode.stroke.color}
+                onChange={(e) => handleStrokeColorChange(e.target.value)}
+                className="w-full h-8 rounded border"
+              />
+            </div>
+
+            {/* Stroke Width */}
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">עובי קו מתאר</Label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="0"
+                  max="10"
+                  step="1"
+                  value={firstNode.stroke.width}
+                  onChange={(e) => handleStrokeWidthChange(Number(e.target.value))}
+                  className="flex-1"
+                />
+                <span className="text-sm w-12 text-right">{firstNode.stroke.width}px</span>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Sticky Note Properties */}
+      {!isMultiSelect && isStickyNote(firstNode) && (
+        <>
+          <Separator className="my-4" />
+          <div className="space-y-4">
+            {/* Sticky Color */}
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">צבע פתק</Label>
+              <div className="flex flex-wrap gap-2">
+                {STICKY_COLOR_OPTIONS.map(option => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={`w-8 h-8 rounded border-2 flex items-center justify-center ${
+                      firstNode.color === option.value ? 'border-primary ring-2 ring-primary/20' : 'border-transparent'
+                    }`}
+                    style={{ backgroundColor: STICKY_COLORS[option.value] }}
+                    onClick={() => handleStickyColorChange(option.value)}
+                    title={option.label}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       <Separator className="my-4" />
 
