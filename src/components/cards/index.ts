@@ -116,3 +116,13 @@ export type {
   NameComparisonDisplayProps,
   GematriaMiniProps,
 } from './GematriaDisplay'
+
+// Phase 3.6: Cross-System Insights
+export {
+  CrossSystemInsights,
+  CrossSystemInsightsMini,
+} from './CrossSystemInsights'
+export type {
+  CrossSystemInsightsProps,
+  InsightTheme,
+} from './CrossSystemInsights'

@@ -54,7 +54,9 @@ function PersonCard({
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div>
-            <CardTitle className="text-lg">{person.name}</CardTitle>
+            <Link href={`/app/people/${person.id}`} className="hover:underline">
+              <CardTitle className="text-lg">{person.name}</CardTitle>
+            </Link>
             {person.hebrew_name && (
               <CardDescription>{person.hebrew_name}</CardDescription>
             )}
@@ -71,6 +73,12 @@ function PersonCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
+              <DropdownMenuItem asChild>
+                <Link href={`/app/people/${person.id}`}>
+                  👁️ צפייה מלאה
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => onEdit(person)}>
                 ערוך
               </DropdownMenuItem>
