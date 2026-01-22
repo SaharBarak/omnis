@@ -286,6 +286,15 @@ export interface GroupNode extends BaseNode {
   label?: string
 }
 
+// Sticky note color type (moved here so StickyNote can use it in CanvasNode union)
+export type StickyColor = 'yellow' | 'pink' | 'blue' | 'green' | 'purple'
+
+export interface StickyNote extends BaseNode {
+  type: 'sticky'
+  content: string
+  color: StickyColor
+}
+
 // Union type for all nodes
 export type CanvasNode =
   | PersonNode
@@ -295,6 +304,7 @@ export type CanvasNode =
   | ImageNode
   | ShapeNode
   | GroupNode
+  | StickyNote
 
 // ============================================================================
 // CONNECTION TYPES
@@ -328,7 +338,7 @@ export interface CanvasConnection {
 // ANNOTATION TYPES
 // ============================================================================
 
-export type StickyColor = 'yellow' | 'pink' | 'blue' | 'green' | 'purple'
+// Note: StickyColor type is defined above (near StickyNote) to allow inclusion in CanvasNode type
 
 export const STICKY_COLORS: Record<StickyColor, string> = {
   yellow: '#FEF3C7',
@@ -338,11 +348,7 @@ export const STICKY_COLORS: Record<StickyColor, string> = {
   purple: '#EDE9FE',
 }
 
-export interface StickyNote extends BaseNode {
-  type: 'sticky'
-  content: string
-  color: StickyColor
-}
+// Note: StickyNote interface is defined above (near CanvasNode union) to allow inclusion in CanvasNode type
 
 export interface Highlight extends BaseNode {
   type: 'highlight'

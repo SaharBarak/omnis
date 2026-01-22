@@ -1,0 +1,204 @@
+'use client'
+
+import { useState } from 'react'
+import {
+  Eye,
+  EyeOff,
+  Lock,
+  Unlock,
+  Plus,
+  Trash2,
+  ChevronUp,
+  ChevronDown,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { useCanvas } from './canvas-context'
+
+export function LayersPanel() {
+  const {
+    layers,
+    activeLayerId,
+    setActiveLayer,
+    toggleLayerVisibility,
+    toggleLayerLock,
+    addLayer,
+    deleteLayer,
+    reorderLayers,
+  } = useCanvas()
+
+  const [isExpanded, setIsExpanded] = useState(true)
+
+  const sortedLayers = [...layers].sort((a, b) => b.order - a.order)
+
+  const handleAddLayer = () => {
+    const newId = `layer-${Date.now()}`
+    addLayer({
+      id: newId,
+      name: `שכבה ${layers.length + 1}`,
+      visible: true,
+      locked: false,
+      opacity: 1,
+      order: layers.length,
+      color: '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0'),
+    })
+  }
+
+  const handleMoveUp = (layerId: string) => {
+    const index = sortedLayers.findIndex(l => l.id === layerId)
+    if (index === 0) return
+    const newOrder = sortedLayers.map(l => l.id)
+    ;[newOrder[index], newOrder[index - 1]] = [newOrder[index - 1], newOrder[index]]
+    reorderLayers(newOrder.reverse())
+  }
+
+  const handleMoveDown = (layerId: string) => {
+    const index = sortedLayers.findIndex(l => l.id === layerId)
+    if (index === sortedLayers.length - 1) return
+    const newOrder = sortedLayers.map(l => l.id)
+    ;[newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]]
+    reorderLayers(newOrder.reverse())
+  }
+
+  if (!isExpanded) {
+    return (
+      <div className="bg-card rounded-lg shadow-md border">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="px-4"
+          onClick={() => setIsExpanded(true)}
+        >
+          שכבות ({layers.length})
+          <ChevronUp className="h-4 w-4 mr-2" />
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-card rounded-lg shadow-md border p-2 min-w-[300px]">
+      <div className="flex items-center justify-between mb-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsExpanded(false)}
+        >
+          שכבות
+          <ChevronDown className="h-4 w-4 mr-2" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={handleAddLayer}
+          title="הוסף שכבה"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="flex gap-1 overflow-x-auto pb-2">
+        {sortedLayers.map((layer, index) => (
+          <div
+            key={layer.id}
+            className={`
+              flex items-center gap-1 px-2 py-1 rounded cursor-pointer
+              min-w-fit whitespace-nowrap
+              ${activeLayerId === layer.id ? 'bg-primary/10 ring-1 ring-primary' : 'hover:bg-muted'}
+            `}
+            onClick={() => setActiveLayer(layer.id)}
+          >
+            {/* Color indicator */}
+            <div
+              className="w-3 h-3 rounded-full flex-shrink-0"
+              style={{ backgroundColor: layer.color }}
+            />
+
+            {/* Layer name */}
+            <span className="text-sm font-medium" dir="rtl">
+              {layer.name}
+            </span>
+
+            {/* Controls */}
+            <div className="flex gap-0.5 mr-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggleLayerVisibility(layer.id)
+                }}
+                title={layer.visible ? 'הסתר שכבה' : 'הצג שכבה'}
+              >
+                {layer.visible ? (
+                  <Eye className="h-3 w-3" />
+                ) : (
+                  <EyeOff className="h-3 w-3 text-muted-foreground" />
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggleLayerLock(layer.id)
+                }}
+                title={layer.locked ? 'בטל נעילה' : 'נעל שכבה'}
+              >
+                {layer.locked ? (
+                  <Lock className="h-3 w-3 text-amber-600" />
+                ) : (
+                  <Unlock className="h-3 w-3" />
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleMoveUp(layer.id)
+                }}
+                disabled={index === 0}
+                title="העבר למעלה"
+              >
+                <ChevronUp className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleMoveDown(layer.id)
+                }}
+                disabled={index === sortedLayers.length - 1}
+                title="העבר למטה"
+              >
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+              {layers.length > 1 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    deleteLayer(layer.id)
+                  }}
+                  title="מחק שכבה"
+                >
+                  <Trash2 className="h-3 w-3 text-destructive" />
+                </Button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export default LayersPanel
