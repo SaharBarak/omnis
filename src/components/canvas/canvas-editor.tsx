@@ -25,6 +25,7 @@ import { CanvasToolbar } from './canvas-toolbar'
 import { PropertiesPanel } from './properties-panel'
 import { LayersPanel } from './layers-panel'
 import { edgeTypes } from './edges'
+import { useKeyboardShortcuts } from './use-keyboard-shortcuts'
 import type { CanvasNode, CanvasConnection, Layer, TextNode, ShapeNode, StickyNote, StickyColor } from '@/lib/types/board'
 
 // ============================================================================
@@ -113,12 +114,14 @@ export function CanvasEditor({ className, readOnly = false, onSave, onExport }: 
     clearSelection,
     addNode,
     addConnection,
-    deleteNode,
     setZoom,
     setActiveTool,
   } = useCanvas()
 
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
+
+  // Enable keyboard shortcuts when not in read-only mode
+  useKeyboardShortcuts({ enabled: !readOnly })
 
   // Convert canvas nodes to React Flow nodes
   const initialNodes = useMemo(() => {
@@ -331,15 +334,6 @@ export function CanvasEditor({ className, readOnly = false, onSave, onExport }: 
     }
   }, [readOnly, activeTool, activeLayerId, clearSelection, addNode, select, setActiveTool, canvas.grid.size, canvas.nodes.length, snapToGrid, reactFlowInstance])
 
-  // Handle delete key
-  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
-    if (readOnly) return
-
-    if (event.key === 'Delete' || event.key === 'Backspace') {
-      Array.from(selectedIds).forEach(id => deleteNode(id))
-    }
-  }, [readOnly, selectedIds, deleteNode])
-
   // Handle zoom change
   const handleMoveEnd = useCallback((_event: unknown, viewport: { zoom: number }) => {
     setZoom(viewport.zoom)
@@ -364,7 +358,6 @@ export function CanvasEditor({ className, readOnly = false, onSave, onExport }: 
       ref={reactFlowWrapper}
       className={`h-full w-full ${className || ''}`}
       style={{ cursor: getCursor() }}
-      onKeyDown={handleKeyDown}
       tabIndex={0}
     >
       <ReactFlow

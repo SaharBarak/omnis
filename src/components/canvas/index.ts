@@ -20,3 +20,6 @@ export { FreehandCanvasNode } from './nodes/freehand-node'
 
 // Edge components
 export { RelationshipEdge, FlowEdge, LineEdge, CurveEdge, edgeTypes } from './edges'
+
+// Hooks
+export { useKeyboardShortcuts } from './use-keyboard-shortcuts'
