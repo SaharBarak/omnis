@@ -40,3 +40,38 @@ export {
   RELATIONSHIP_TYPE_LABELS,
   STRENGTH_LABELS,
 } from './relationship'
+
+// Phase 3.3: Astrology types
+export type {
+  Element,
+  Modality,
+  PlanetType,
+  PlanetId,
+  ZodiacSignId,
+  AspectNature,
+  Dignity,
+  ChartShape,
+  HouseSystem,
+  ZodiacType,
+  ZodiacSign,
+  Planet,
+  House,
+  Aspect,
+  ZodiacPosition,
+  PlanetPosition,
+  HousePosition,
+  AspectInstance,
+  BirthPlace,
+  NatalChart,
+  SunSignChart,
+  AstrologyInput,
+  Transit,
+  TransitReport,
+  InterAspect,
+  SynastryReport,
+} from './astrology'
+export {
+  ELEMENT_LABELS,
+  MODALITY_LABELS,
+  HOUSE_SYSTEM_LABELS,
+} from './astrology'

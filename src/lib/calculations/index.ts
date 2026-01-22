@@ -94,3 +94,14 @@ export {
   type CalendarRoundReturn,
   type HistoricalDate,
 } from './long-count'
+
+// Phase 3.3: Astrology
+export {
+  calculateNatalChart,
+  calculateSunSignChart,
+  getSunSign,
+  getApproximateSunSign,
+  getCurrentPlanetaryPositions,
+  formatPlanetPosition,
+  getChartSummary,
+} from './astrology'

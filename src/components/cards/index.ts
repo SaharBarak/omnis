@@ -63,3 +63,19 @@ export type {
   MayanTimelineMiniProps,
   HistoricalDatesDisplayProps,
 } from './MayanTimelineDisplay'
+
+// Phase 3.3: Astrology
+export {
+  AstrologyDisplay,
+  ChartSummaryCard,
+  ChartSummaryMini,
+  PlanetPositions,
+  AspectsDisplay,
+  AstrologyMini,
+} from './AstrologyDisplay'
+export type {
+  AstrologyDisplayProps,
+  ChartSummaryCardProps,
+  PlanetPositionsProps,
+  AspectsDisplayProps,
+} from './AstrologyDisplay'
