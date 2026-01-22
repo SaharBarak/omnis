@@ -309,6 +309,85 @@ export type Database = {
           created_at?: string
         }
       }
+      boards: {
+        Row: {
+          id: string
+          owner_id: string
+          name: string
+          description: string | null
+          template: 'blank' | 'relationship-map' | 'family-tree' | 'yearly-overview' | 'personal-profile' | 'group-analysis' | null
+          canvas: Json
+          layers: Json
+          thumbnail: string | null
+          is_public: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          owner_id: string
+          name: string
+          description?: string | null
+          template?: 'blank' | 'relationship-map' | 'family-tree' | 'yearly-overview' | 'personal-profile' | 'group-analysis' | null
+          canvas?: Json
+          layers?: Json
+          thumbnail?: string | null
+          is_public?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          owner_id?: string
+          name?: string
+          description?: string | null
+          template?: 'blank' | 'relationship-map' | 'family-tree' | 'yearly-overview' | 'personal-profile' | 'group-analysis' | null
+          canvas?: Json
+          layers?: Json
+          thumbnail?: string | null
+          is_public?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      board_shares: {
+        Row: {
+          id: string
+          board_id: string
+          url_token: string
+          permissions: 'view' | 'comment' | 'edit'
+          expires_at: string | null
+          max_views: number | null
+          view_count: number
+          password_hash: string | null
+          active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          board_id: string
+          url_token: string
+          permissions?: 'view' | 'comment' | 'edit'
+          expires_at?: string | null
+          max_views?: number | null
+          view_count?: number
+          password_hash?: string | null
+          active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          board_id?: string
+          url_token?: string
+          permissions?: 'view' | 'comment' | 'edit'
+          expires_at?: string | null
+          max_views?: number | null
+          view_count?: number
+          password_hash?: string | null
+          active?: boolean
+          created_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -355,12 +434,45 @@ export type Database = {
         Args: { p_token: string }
         Returns: boolean
       }
+      get_board_by_share_token: {
+        Args: { p_token: string }
+        Returns: {
+          id: string
+          name: string
+          description: string | null
+          template: string | null
+          canvas: Json
+          layers: Json
+          permissions: string
+          expires_at: string | null
+          owner_name: string | null
+        }[]
+      }
+      duplicate_board: {
+        Args: { p_board_id: string; p_new_name?: string }
+        Returns: string
+      }
+      get_recent_boards: {
+        Args: { p_limit?: number }
+        Returns: {
+          id: string
+          name: string
+          description: string | null
+          template: string | null
+          thumbnail: string | null
+          is_public: boolean
+          node_count: number
+          updated_at: string
+        }[]
+      }
     }
     Enums: {
       locale: 'he' | 'en'
       system_type: 'dreamspell' | 'tzolkin' | 'longcount' | 'humandesign' | 'astrology' | 'gematria'
       relationship_type: 'family' | 'romantic' | 'friend' | 'professional' | 'other'
       share_type: 'person' | 'relationship' | 'group' | 'graph'
+      board_template: 'blank' | 'relationship-map' | 'family-tree' | 'yearly-overview' | 'personal-profile' | 'group-analysis'
+      board_share_permissions: 'view' | 'comment' | 'edit'
     }
   }
 }
@@ -403,3 +515,15 @@ export type SystemType = Database['public']['Enums']['system_type']
 export type Locale = Database['public']['Enums']['locale']
 export type RelationshipType = Database['public']['Enums']['relationship_type']
 export type ShareType = Database['public']['Enums']['share_type']
+
+// Phase 4: Canvas Editor / Boards
+export type Board = Database['public']['Tables']['boards']['Row']
+export type BoardInsert = Database['public']['Tables']['boards']['Insert']
+export type BoardUpdate = Database['public']['Tables']['boards']['Update']
+
+export type BoardShare = Database['public']['Tables']['board_shares']['Row']
+export type BoardShareInsert = Database['public']['Tables']['board_shares']['Insert']
+export type BoardShareUpdate = Database['public']['Tables']['board_shares']['Update']
+
+export type BoardTemplate = Database['public']['Enums']['board_template']
+export type BoardSharePermissions = Database['public']['Enums']['board_share_permissions']
