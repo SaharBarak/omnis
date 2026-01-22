@@ -23,13 +23,20 @@ import { useCanvas } from './canvas-context'
 import { CanvasToolbar } from './canvas-toolbar'
 import { PropertiesPanel } from './properties-panel'
 import { LayersPanel } from './layers-panel'
-import type { CanvasNode, CanvasConnection } from '@/lib/types/board'
+import { edgeTypes } from './edges'
+import type { CanvasNode, CanvasConnection, Layer } from '@/lib/types/board'
 
 // ============================================================================
 // HELPERS
 // ============================================================================
 
-function canvasNodeToFlowNode(node: CanvasNode): Node {
+function canvasNodeToFlowNode(node: CanvasNode, layers: Layer[]): Node {
+  // Find the layer and apply its opacity
+  const layer = layers.find(l => l.id === node.layerId)
+  const layerOpacity = layer?.opacity ?? 1
+  const finalOpacity = node.style.opacity * layerOpacity
+  const isLayerLocked = layer?.locked ?? false
+
   return {
     id: node.id,
     type: 'default',
@@ -41,30 +48,41 @@ function canvasNodeToFlowNode(node: CanvasNode): Node {
     width: node.size.width,
     height: node.size.height,
     style: {
-      opacity: node.style.opacity,
+      opacity: finalOpacity,
     },
-    draggable: !node.locked,
-    selectable: !node.locked,
+    draggable: !node.locked && !isLayerLocked,
+    selectable: !node.locked && !isLayerLocked,
     hidden: !node.visible,
   }
 }
 
 function canvasConnectionToFlowEdge(conn: CanvasConnection): Edge {
+  // Map our connection types to custom edge types
+  const edgeType = conn.type === 'relationship' ? 'relationship'
+    : conn.type === 'flow' ? 'flow'
+    : conn.type === 'curve' ? 'curve'
+    : 'line'
+
   return {
     id: conn.id,
     source: conn.sourceId,
     target: conn.targetId,
     sourceHandle: conn.sourceAnchor,
     targetHandle: conn.targetAnchor,
-    type: conn.type === 'curve' ? 'smoothstep' : conn.type === 'flow' ? 'default' : 'straight',
-    label: conn.label,
+    type: edgeType,
+    data: {
+      label: conn.label,
+      color: conn.style.color,
+      width: conn.style.width,
+      dash: conn.style.dash,
+      connectionData: conn,
+    } as Record<string, unknown>,
     style: {
       stroke: conn.style.color,
       strokeWidth: conn.style.width,
       strokeDasharray: conn.style.dash?.join(' '),
     },
     markerEnd: conn.style.endMarker === 'arrow' ? { type: 'arrowclosed' as const } : undefined,
-    data: conn as unknown as Record<string, unknown>,
   }
 }
 
@@ -103,7 +121,7 @@ export function CanvasEditor({ className, readOnly = false, onSave, onExport }: 
     const visibleLayerIds = new Set(layers.filter(l => l.visible).map(l => l.id))
     return canvas.nodes
       .filter(node => visibleLayerIds.has(node.layerId))
-      .map(canvasNodeToFlowNode)
+      .map(node => canvasNodeToFlowNode(node, layers))
   }, [canvas.nodes, layers])
 
   // Convert canvas connections to React Flow edges
@@ -122,7 +140,7 @@ export function CanvasEditor({ className, readOnly = false, onSave, onExport }: 
     const visibleLayerIds = new Set(layers.filter(l => l.visible).map(l => l.id))
     const newNodes = canvas.nodes
       .filter(node => visibleLayerIds.has(node.layerId))
-      .map(canvasNodeToFlowNode)
+      .map(node => canvasNodeToFlowNode(node, layers))
     setNodes(newNodes)
   }, [canvas.nodes, layers, setNodes])
 
@@ -229,6 +247,7 @@ export function CanvasEditor({ className, readOnly = false, onSave, onExport }: 
       <ReactFlow
         nodes={nodes}
         edges={edges}
+        edgeTypes={edgeTypes}
         onNodesChange={handleNodesChange}
         onEdgesChange={handleEdgesChange}
         onConnect={handleConnect}

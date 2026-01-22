@@ -10,8 +10,15 @@ import {
   Trash2,
   ChevronUp,
   ChevronDown,
+  Settings,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Label } from '@/components/ui/label'
 import { useCanvas } from './canvas-context'
 
 export function LayersPanel() {
@@ -22,6 +29,7 @@ export function LayersPanel() {
     toggleLayerVisibility,
     toggleLayerLock,
     addLayer,
+    updateLayer,
     deleteLayer,
     reorderLayers,
   } = useCanvas()
@@ -57,6 +65,18 @@ export function LayersPanel() {
     const newOrder = sortedLayers.map(l => l.id)
     ;[newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]]
     reorderLayers(newOrder.reverse())
+  }
+
+  const handleOpacityChange = (layerId: string, opacity: number) => {
+    updateLayer(layerId, { opacity })
+  }
+
+  const handleColorChange = (layerId: string, color: string) => {
+    updateLayer(layerId, { color })
+  }
+
+  const handleNameChange = (layerId: string, name: string) => {
+    updateLayer(layerId, { name })
   }
 
   if (!isExpanded) {
@@ -111,13 +131,24 @@ export function LayersPanel() {
             {/* Color indicator */}
             <div
               className="w-3 h-3 rounded-full flex-shrink-0"
-              style={{ backgroundColor: layer.color }}
+              style={{ backgroundColor: layer.color, opacity: layer.opacity }}
             />
 
             {/* Layer name */}
-            <span className="text-sm font-medium" dir="rtl">
+            <span
+              className="text-sm font-medium"
+              dir="rtl"
+              style={{ opacity: layer.opacity }}
+            >
               {layer.name}
             </span>
+
+            {/* Opacity indicator */}
+            {layer.opacity < 1 && (
+              <span className="text-xs text-muted-foreground">
+                {Math.round(layer.opacity * 100)}%
+              </span>
+            )}
 
             {/* Controls */}
             <div className="flex gap-0.5 mr-1">
@@ -179,6 +210,67 @@ export function LayersPanel() {
               >
                 <ChevronDown className="h-3 w-3" />
               </Button>
+
+              {/* Layer settings popover */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={(e) => e.stopPropagation()}
+                    title="הגדרות שכבה"
+                  >
+                    <Settings className="h-3 w-3" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56" dir="rtl" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                  <div className="space-y-3">
+                    {/* Name */}
+                    <div className="space-y-1">
+                      <Label className="text-xs">שם</Label>
+                      <input
+                        type="text"
+                        value={layer.name}
+                        onChange={(e) => handleNameChange(layer.id, e.target.value)}
+                        className="w-full px-2 py-1 text-sm border rounded"
+                        dir="rtl"
+                      />
+                    </div>
+
+                    {/* Opacity */}
+                    <div className="space-y-1">
+                      <Label className="text-xs">שקיפות</Label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.1"
+                          value={layer.opacity}
+                          onChange={(e) => handleOpacityChange(layer.id, Number(e.target.value))}
+                          className="flex-1"
+                        />
+                        <span className="text-xs w-10 text-right">
+                          {Math.round(layer.opacity * 100)}%
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Color */}
+                    <div className="space-y-1">
+                      <Label className="text-xs">צבע</Label>
+                      <input
+                        type="color"
+                        value={layer.color}
+                        onChange={(e) => handleColorChange(layer.id, e.target.value)}
+                        className="w-full h-8 rounded border"
+                      />
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
               {layers.length > 1 && (
                 <Button
                   variant="ghost"
