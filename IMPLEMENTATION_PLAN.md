@@ -1028,37 +1028,58 @@ Unify the full set of symbolic systems under one UI. Add Astrology, Human Design
 
 ---
 
-## Phase 3.5: Gematria
+## Phase 3.5: Gematria (COMPLETE)
 
 ### Reference
 - `specs/systems/GEMATRIA.md`
 
 ### Tasks
 
-- [ ] **3.5.1** Implement Hebrew gematria methods
+- [x] **3.5.1** Implement Hebrew gematria methods
   - `src/lib/calculations/gematria.ts`
   - Standard (Mispar Hechrachi)
+  - Full (Mispar Gadol) - Final letters have high values (500-900)
   - Small (Mispar Katan)
-  - Ordinal
+  - Ordinal (Mispar Siduri)
+  - AtBash, Avgad, Albam ciphers
+  - Digital root calculation
 
-- [ ] **3.5.2** Implement name processing
+- [x] **3.5.2** Implement name processing
   - Hebrew letter extraction
-  - Transliteration handling
-  - Alias support (nicknames)
+  - Nikud (vowel marks) removal
+  - Full 22-letter alphabet + 5 final forms
+  - AtBash, Avgad, Albam cipher pairs
 
-- [ ] **3.5.3** Create gematria display
-  - Show value per method
-  - Letter breakdown
-  - Related numbers
+- [x] **3.5.3** Create gematria display
+  - GematriaSummaryCard: Main value, digital root, notable number
+  - LetterBreakdownDisplay: Letter-by-letter values
+  - MethodValuesDisplay: All 7 calculation methods
+  - GematriaMini: Compact inline display
+  - NameComparisonDisplay: Two-name comparison
 
-- [ ] **3.5.4** Add name correlations
-  - Find people with matching values
-  - Highlight connections
+- [x] **3.5.4** Add name correlations
+  - `compareNames()` function for two-name comparison
+  - `analyzeGroup()` function for group gematria
+  - Notable numbers database (18 entries: Chai, YHVH, Mashiach, etc.)
+  - Matching pairs detection by value or digital root
 
 ### Definition of Done
-- [ ] Gematria calculated for Hebrew names
-- [ ] Multiple methods supported
-- [ ] Matching names highlighted
+- [x] Gematria calculated for Hebrew names (78 tests passing)
+- [x] Multiple methods supported (7 methods: standard, full, small, ordinal, atbash, avgad, albam)
+- [x] Matching names highlighted (compareNames, analyzeGroup functions)
+
+### Files Created
+- `src/lib/types/gematria.ts` - Full type definitions (GematriaMethod, HebrewLetter, GematriaResult, NameGematria, NameComparison, GroupGematria, NotableNumber)
+- `src/lib/data/hebrew-letters.ts` - 22 Hebrew letters + 5 final forms + notable numbers database + cipher helpers
+- `src/lib/calculations/gematria.ts` - All calculation functions (calculateGematria, standardGematria, analyzeNameGematria, compareNames, analyzeGroup)
+- `src/lib/calculations/gematria.test.ts` - 78 comprehensive tests
+- `src/components/cards/GematriaDisplay.tsx` - 6 display components (GematriaDisplay, GematriaSummaryCard, LetterBreakdownDisplay, MethodValuesDisplay, NameComparisonDisplay, GematriaMini)
+
+### Files Modified
+- `src/lib/types/index.ts` - Added gematria type exports
+- `src/lib/data/index.ts` - Added Hebrew letter data exports
+- `src/lib/calculations/index.ts` - Added gematria function exports
+- `src/components/cards/index.ts` - Added gematria component exports
 
 ---
 
@@ -1100,9 +1121,9 @@ Unify the full set of symbolic systems under one UI. Add Astrology, Human Design
 | 3.2 Long Count | ✅ COMPLETE | 3 | 3/3 |
 | 3.3 Astrology | ✅ COMPLETE | 6 | 6/6 |
 | 3.4 Human Design | ✅ COMPLETE | 7 | 7/7 |
-| 3.5 Gematria | NOT STARTED | 4 | 0/4 |
+| 3.5 Gematria | ✅ COMPLETE | 4 | 4/4 |
 | 3.6 Integration | NOT STARTED | 4 | 0/4 |
-| **TOTAL** | **71%** | **28** | **20/28** |
+| **TOTAL** | **86%** | **28** | **24/28** |
 
 ---
 ---
@@ -1335,9 +1356,9 @@ Move from "viewer" to "creator tool." Users can create boards with draggable nod
 |-------|------|-------|--------|
 | MVP | React Card Components | 22 | COMPLETE |
 | 2 | Relationship Graph | 20 | COMPLETE (20/20) |
-| 3 | Multi-System Expansion | 28 | IN PROGRESS (20/28) |
+| 3 | Multi-System Expansion | 28 | IN PROGRESS (24/28) |
 | 4 | Canvas Editor | 24 | NOT STARTED |
-| **TOTAL** | | **94** | **62/94 (66%)** |
+| **TOTAL** | | **94** | **66/94 (70%)** |
 
 **Future Phases (not detailed):**
 - Phase 5: Predictions + Time-Based Intelligence

@@ -98,3 +98,21 @@ export type {
   ChannelsDisplayProps,
   MissingBirthTimeMessageProps,
 } from './HumanDesignDisplay'
+
+// Phase 3.5: Gematria
+export {
+  GematriaDisplay,
+  GematriaSummaryCard,
+  LetterBreakdownDisplay,
+  MethodValuesDisplay,
+  NameComparisonDisplay,
+  GematriaMini,
+} from './GematriaDisplay'
+export type {
+  GematriaDisplayProps,
+  GematriaSummaryCardProps,
+  LetterBreakdownDisplayProps,
+  MethodValuesDisplayProps,
+  NameComparisonDisplayProps,
+  GematriaMiniProps,
+} from './GematriaDisplay'

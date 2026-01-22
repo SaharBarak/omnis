@@ -87,3 +87,25 @@ export {
   QUARTER_GATES,
   getQuarterFromGate,
 } from './human-design'
+
+// Phase 3.5: Gematria data
+export {
+  HEBREW_LETTERS,
+  FINAL_LETTER_FORMS,
+  LETTER_BY_CHAR,
+  FINAL_BY_CHAR,
+  LETTER_BY_ID,
+  ALL_HEBREW_CHARS,
+  NOTABLE_NUMBERS,
+  NOTABLE_BY_VALUE,
+  getLetterById,
+  getLetterByChar,
+  getFinalByChar,
+  isHebrewLetter,
+  isFinalForm,
+  getNotableNumber,
+  getAtBashPair,
+  getAvgadLetter,
+  getAlbamPair,
+} from './hebrew-letters'
+export type { FinalLetterForm } from './hebrew-letters'

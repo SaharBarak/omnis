@@ -117,3 +117,24 @@ export {
   QUARTER_LABELS,
   QUARTER_LABELS_HEBREW,
 } from './human-design'
+
+// Phase 3.5: Gematria types
+export type {
+  HebrewLetterId,
+  FinalLetterId,
+  AllHebrewLetterId,
+  GematriaMethod,
+  HebrewLetter,
+  LetterBreakdown,
+  GematriaValue,
+  GematriaResult,
+  NameGematria,
+  NameComparison,
+  GroupGematria,
+  NotableNumber,
+  PersonGematria,
+} from './gematria'
+export {
+  GEMATRIA_METHOD_LABELS,
+  DIGITAL_ROOT_LABELS,
+} from './gematria'

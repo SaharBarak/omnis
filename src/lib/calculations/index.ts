@@ -120,3 +120,23 @@ export {
   formatGateActivation,
   getPlanetsForGate,
 } from './human-design'
+
+// Phase 3.5: Gematria
+export {
+  cleanHebrewText,
+  extractHebrewLetters,
+  isHebrewChar,
+  digitalRoot,
+  calculateGematriaValue,
+  calculateGematria,
+  standardGematria,
+  analyzeNameGematria,
+  compareNames,
+  analyzeGroup,
+  findEquivalentMeanings,
+  hasNotableMeaning,
+  getLetterBreakdown,
+  countLetters,
+  getGematriaSummary,
+  formatGematriaValue,
+} from './gematria'
