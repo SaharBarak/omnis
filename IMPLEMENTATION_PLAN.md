@@ -294,8 +294,8 @@ These are required for trilingual display but MVP can function without them.
 [ ] 18. Source 260 authentic mantras from Dreamspell Kit
 [ ] 19. Translate mantras to Hebrew
 [ ] 20. Create mantras-full.ts with complete data
-[ ] 21. Add PDF export functionality
-[ ] 22. Create settings page or remove dead link
+[ ] 21. Full PDF export (current: falls back to PNG; needs html2canvas + jspdf)
+[x] 22. Create settings page - COMPLETE (src/app/(app)/settings/page.tsx)
 ```
 
 ---
