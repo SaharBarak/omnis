@@ -13,5 +13,10 @@ export { TextCanvasNode } from './nodes/text-node'
 export { ShapeCanvasNode } from './nodes/shape-node'
 export { StickyCanvasNode } from './nodes/sticky-node'
 
+// Annotation node components
+export { HighlightCanvasNode } from './nodes/highlight-node'
+export { CalloutCanvasNode } from './nodes/callout-node'
+export { FreehandCanvasNode } from './nodes/freehand-node'
+
 // Edge components
 export { RelationshipEdge, FlowEdge, LineEdge, CurveEdge, edgeTypes } from './edges'

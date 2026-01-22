@@ -8,6 +8,7 @@ import {
   MiniMap,
   useNodesState,
   useEdgesState,
+  useReactFlow,
   Panel,
   type Node,
   type Edge,
@@ -24,7 +25,7 @@ import { CanvasToolbar } from './canvas-toolbar'
 import { PropertiesPanel } from './properties-panel'
 import { LayersPanel } from './layers-panel'
 import { edgeTypes } from './edges'
-import type { CanvasNode, CanvasConnection, Layer } from '@/lib/types/board'
+import type { CanvasNode, CanvasConnection, Layer, TextNode, ShapeNode, StickyNote, StickyColor } from '@/lib/types/board'
 
 // ============================================================================
 // HELPERS
@@ -103,15 +104,18 @@ export function CanvasEditor({ className, readOnly = false, onSave, onExport }: 
     layers,
     selectedIds,
     activeTool,
+    activeLayerId,
     showGrid,
     snapToGrid,
     zoom,
     moveNode,
     select,
     clearSelection,
+    addNode,
     addConnection,
     deleteNode,
     setZoom,
+    setActiveTool,
   } = useCanvas()
 
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
@@ -203,10 +207,129 @@ export function CanvasEditor({ className, readOnly = false, onSave, onExport }: 
     select(selectedNodes.map(n => n.id))
   }, [select])
 
-  // Handle click on canvas background
-  const handlePaneClick = useCallback(() => {
-    clearSelection()
-  }, [clearSelection])
+  // Get React Flow instance for viewport conversion
+  const reactFlowInstance = useReactFlow()
+
+  // Handle click on canvas background - create nodes based on active tool
+  const handlePaneClick = useCallback((event: React.MouseEvent) => {
+    if (readOnly) {
+      clearSelection()
+      return
+    }
+
+    // For select or hand tool, just clear selection
+    if (activeTool === 'select' || activeTool === 'hand') {
+      clearSelection()
+      return
+    }
+
+    // Get click position in canvas coordinates
+    const bounds = reactFlowWrapper.current?.getBoundingClientRect()
+    if (!bounds) return
+
+    const position = reactFlowInstance.screenToFlowPosition({
+      x: event.clientX - bounds.left,
+      y: event.clientY - bounds.top,
+    })
+
+    // Snap to grid if enabled
+    const finalPosition = snapToGrid
+      ? {
+          x: Math.round(position.x / canvas.grid.size) * canvas.grid.size,
+          y: Math.round(position.y / canvas.grid.size) * canvas.grid.size,
+        }
+      : position
+
+    const nodeId = crypto.randomUUID()
+
+    // Create node based on active tool
+    switch (activeTool) {
+      case 'text': {
+        const textNode: TextNode = {
+          id: nodeId,
+          type: 'text',
+          position: finalPosition,
+          size: { width: 200, height: 100 },
+          rotation: 0,
+          locked: false,
+          visible: true,
+          layerId: activeLayerId,
+          zIndex: canvas.nodes.length,
+          style: { opacity: 1 },
+          content: '',
+          textStyle: {
+            fontFamily: 'Heebo, sans-serif',
+            fontSize: 16,
+            fontWeight: 400,
+            color: '#1F2937',
+            alignment: 'right',
+            direction: 'rtl',
+            lineHeight: 1.5,
+          },
+        }
+        addNode(textNode)
+        select([nodeId])
+        setActiveTool('select')
+        break
+      }
+
+      case 'shape': {
+        const shapeNode: ShapeNode = {
+          id: nodeId,
+          type: 'shape',
+          position: finalPosition,
+          size: { width: 100, height: 100 },
+          rotation: 0,
+          locked: false,
+          visible: true,
+          layerId: activeLayerId,
+          zIndex: canvas.nodes.length,
+          style: { opacity: 1 },
+          shape: 'rectangle',
+          fill: { type: 'solid', color: '#E5E7EB' },
+          stroke: { color: '#6B7280', width: 2 },
+        }
+        addNode(shapeNode)
+        select([nodeId])
+        setActiveTool('select')
+        break
+      }
+
+      case 'sticky': {
+        const stickyColors: StickyColor[] = ['yellow', 'pink', 'blue', 'green', 'purple']
+        const randomColor = stickyColors[Math.floor(Math.random() * stickyColors.length)]
+        const stickyNode: StickyNote = {
+          id: nodeId,
+          type: 'sticky',
+          position: finalPosition,
+          size: { width: 150, height: 150 },
+          rotation: 0,
+          locked: false,
+          visible: true,
+          layerId: activeLayerId,
+          zIndex: canvas.nodes.length,
+          style: { opacity: 1 },
+          content: '',
+          color: randomColor,
+        }
+        addNode(stickyNode)
+        select([nodeId])
+        setActiveTool('select')
+        break
+      }
+
+      case 'line':
+      case 'pen':
+      case 'highlight':
+        // These tools require drag behavior, not just click
+        // For now, just clear selection
+        clearSelection()
+        break
+
+      default:
+        clearSelection()
+    }
+  }, [readOnly, activeTool, activeLayerId, clearSelection, addNode, select, setActiveTool, canvas.grid.size, canvas.nodes.length, snapToGrid, reactFlowInstance])
 
   // Handle delete key
   const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
