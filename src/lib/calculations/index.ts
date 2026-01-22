@@ -105,3 +105,18 @@ export {
   formatPlanetPosition,
   getChartSummary,
 } from './astrology'
+
+// Phase 3.4: Human Design
+export {
+  calculateBodygraph,
+  isCompleteBodygraph,
+  getAllGates,
+  getPersonalityGates,
+  getDesignGates,
+  isPersonalityGate,
+  isDesignGate,
+  getGateActivation,
+  getBodygraphSummary,
+  formatGateActivation,
+  getPlanetsForGate,
+} from './human-design'

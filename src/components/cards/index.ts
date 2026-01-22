@@ -79,3 +79,22 @@ export type {
   PlanetPositionsProps,
   AspectsDisplayProps,
 } from './AstrologyDisplay'
+
+// Phase 3.4: Human Design
+export {
+  HumanDesignDisplay,
+  BodygraphSummaryCard,
+  CenterStateDisplay,
+  ActivationsDisplay,
+  ChannelsDisplay,
+  MissingBirthTimeMessage,
+  HumanDesignMini,
+} from './HumanDesignDisplay'
+export type {
+  HumanDesignDisplayProps,
+  BodygraphSummaryCardProps,
+  CenterStateDisplayProps,
+  ActivationsDisplayProps,
+  ChannelsDisplayProps,
+  MissingBirthTimeMessageProps,
+} from './HumanDesignDisplay'
