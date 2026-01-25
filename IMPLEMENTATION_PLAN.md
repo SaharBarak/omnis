@@ -1699,3 +1699,274 @@ See `specs/I18N_ENGLISH_FIRST.md` for detailed patterns:
 - Phase 6: AI Layer (Interpretation + RAG)
 - Phase 7: SaaS Monetization + Billing ($30/mo)
 - Phase 8: Platform Scale
+
+---
+---
+
+# BUGS & ISSUES (Discovered 2026-01-25)
+
+> **Status:** ✅ ALL FIXED (2026-01-25)
+
+## BUG-1: Boards Route 404 Error - ✅ FIXED
+
+**File:** `src/app/app/boards/page.tsx`
+
+**Fix Applied:** Updated all href attributes to include `/app` prefix
+- Line ~227: BoardCard thumbnail link → `/app/boards/${board.id}`
+- Line ~246: BoardCard title link → `/app/boards/${board.id}`
+- Line ~268: Edit menu item link → `/app/boards/${board.id}`
+
+---
+
+## BUG-2: Missing Legal Pages - ✅ FIXED
+
+**Files Created:**
+- `src/app/terms/page.tsx` - Terms of Service page
+- `src/app/privacy/page.tsx` - Privacy Policy page
+
+---
+---
+
+# VERIFICATION RESULTS (2026-01-25)
+
+## Code Quality Metrics
+
+| Metric | Result | Status |
+|--------|--------|--------|
+| TODO comments | 0 found | ✅ Clean |
+| FIXME comments | 0 found | ✅ Clean |
+| Skipped tests (.skip) | 0 found | ✅ Clean |
+| Placeholder implementations | 0 found | ✅ Clean |
+| Test count | 418 passing | ✅ Exceeds plan (132 claimed) |
+| TypeScript errors | 0 | ✅ Clean |
+
+## Component Verification
+
+| Category | Expected | Found | Status |
+|----------|----------|-------|--------|
+| Card components | 7 core + 9 display | 16 total | ✅ Complete |
+| Test people | 16 | 16 | ✅ Complete |
+| Hebrew translations | All data files | Present | ✅ Complete |
+| Seals with Hebrew | 20 | 20 | ✅ Complete |
+| Tones with Hebrew | 13 | 13 | ✅ Complete |
+| Tzolkin signs with Hebrew | 20 | 20 | ✅ Complete |
+
+## Route Verification
+
+| Route | Status | Notes |
+|-------|--------|-------|
+| /app (dashboard) | ✅ Exists | Redesigned with Today's Kin |
+| /app/cards | ✅ Exists | Renders 16 A5 cards |
+| /app/people | ✅ Exists | Full CRUD |
+| /app/relationships | ✅ Exists | With filters |
+| /app/groups | ✅ Exists | With analysis |
+| /app/graph | ✅ Exists | Force-directed visualization |
+| /app/boards | ✅ Exists | Canvas editor |
+| /app/profile | ✅ Exists | User profile |
+| /app/settings | ✅ Exists | System preferences |
+| /app/predictions | ✅ Exists | Forecasts |
+| /today | ❌ Missing | LP phase |
+| /calculate | ❌ Missing | LP phase |
+| /learn/* | ❌ Missing | LP phase |
+| /terms | ✅ Exists | Legal page |
+| /privacy | ✅ Exists | Legal page |
+
+---
+---
+
+# DETAILED REMAINING WORK
+
+## Priority 1: CRITICAL (Fix Immediately)
+
+### Bug Fixes Checklist
+
+```
+[x] BUG-1: Fix boards route links (add /app prefix)
+[x] BUG-2: Create /terms page
+[x] BUG-2: Create /privacy page
+```
+
+---
+
+## Priority 2: CRITICAL (LP - Landing Page Phase)
+
+### LP.1: Core Landing Page
+
+```
+[ ] LP.1.1 Create landing page layout (src/app/page.tsx replacement)
+[ ] LP.1.2 Build Hero section with starfield background
+[ ] LP.1.3 Add social proof bar
+[ ] LP.1.4 Build features grid with system icons
+[ ] LP.1.5 Create pricing comparison section
+[ ] LP.1.6 Build FAQ accordion
+[ ] LP.1.7 Create footer with navigation
+```
+
+### LP.2: Interactive Elements
+
+```
+[ ] LP.2.1 Create interactive kin calculator demo
+[ ] LP.2.2 Build testimonial carousel
+[ ] LP.2.3 Create final CTA section
+[ ] LP.2.4 Add demo result reveal animation
+```
+
+### LP.3: Animations (Vanilla JS + CSS)
+
+```
+[ ] LP.3.1 Implement scroll-triggered fade animations
+[ ] LP.3.2 Add hero floating card animation
+[ ] LP.3.3 Add CTA shimmer effects
+[ ] LP.3.4 Implement smooth scroll behavior
+[ ] LP.3.5 Add micro-interactions (button press, input focus)
+```
+
+### LP.4: Free Value Routes (Public, No Auth)
+
+```
+[ ] LP.4.1 Create /today route - Daily Kin page
+[ ] LP.4.2 Create /calculate route - Universal Kin Calculator
+[ ] LP.4.3 Create /learn hub page
+[ ] LP.4.4 Create /learn/dreamspell page
+[ ] LP.4.5 Create /learn/human-design page
+[ ] LP.4.6 Create /learn/astrology page
+[ ] LP.4.7 Create /learn/gematria page
+[ ] LP.4.8 Create /compatibility route - Free relationship check
+```
+
+### LP.5: Email & Marketing Infrastructure
+
+```
+[ ] LP.5.1 Integrate email service (Resend)
+[ ] LP.5.2 Create email signup component for daily kin
+[ ] LP.5.3 Set up Vercel cron job for daily kin emails
+[ ] LP.5.4 Create email templates (daily kin, welcome)
+```
+
+### LP.6: Polish & Optimization
+
+```
+[ ] LP.6.1 Mobile responsiveness (320px - 1920px)
+[ ] LP.6.2 Performance optimization (target < 2s load)
+[ ] LP.6.3 SEO meta tags for all public pages
+[ ] LP.6.4 Analytics integration
+[ ] LP.6.5 Lighthouse score optimization (target > 90)
+```
+
+---
+
+## Priority 3: HIGH (AD - Authentic Data Phase)
+
+### AD.1: Data Sourcing
+
+```
+[ ] AD.1.1 Survey available sources (lawoftime.org, 13moon.com)
+[ ] AD.1.2 Extract 260 authentic mantras
+[ ] AD.1.3 Extract 20 seal power/action/essence descriptions
+[ ] AD.1.4 Extract 13 tone power/action/essence/question data
+[ ] AD.1.5 Extract 20 wavespell descriptions
+[ ] AD.1.6 Extract 5 castle descriptions
+```
+
+### AD.2: Data Integration
+
+```
+[ ] AD.2.1 Update src/lib/data/mantras.ts with 260 authentic mantras
+[ ] AD.2.2 Update src/lib/data/seals.ts with extended descriptions
+[ ] AD.2.3 Update src/lib/data/tones.ts with extended data
+[ ] AD.2.4 Create src/lib/data/wavespells.ts (20 entries)
+[ ] AD.2.5 Create src/lib/data/castles.ts (5 entries)
+```
+
+### AD.3: UI Updates
+
+```
+[ ] AD.3.1 Display authentic mantras in PersonCard
+[ ] AD.3.2 Show wavespell context in DreamspellSection
+[ ] AD.3.3 Add castle journey information to displays
+```
+
+---
+
+## Priority 4: MEDIUM (Polish - English-First UI)
+
+### Polish.P1: Core Display Components (5)
+
+```
+[ ] HumanDesignDisplay.tsx - Swap Hebrew/English order
+[ ] AstrologyDisplay.tsx - Swap Hebrew/English order
+[ ] GematriaDisplay.tsx - Swap Hebrew/English order
+[ ] DreamspellSection.tsx - Swap "דרימספל / Dreamspell" to "Dreamspell (דרימספל)"
+[ ] TzolkinSection.tsx - Swap "צולקין / Tzolkin" to "Tzolkin (צולקין)"
+```
+
+### Polish.P2: Secondary Display Components (5)
+
+```
+[ ] LongCountDisplay.tsx - English-first labels
+[ ] MayanTimelineDisplay.tsx - English-first labels
+[ ] WavespellDisplay.tsx - English-first labels
+[ ] YearlyDisplay.tsx - English-first labels
+[ ] CrossSystemInsights.tsx - English-first data structure
+```
+
+### Polish.P3: Minor Display Components (3)
+
+```
+[ ] OracleMap.tsx - Already English-primary (verify only)
+[ ] MantraDisplay.tsx - No UI labels (verify only)
+[ ] CastleDisplay.tsx - English-first labels
+```
+
+---
+
+## Execution Timeline Recommendation
+
+| Week | Focus | Tasks |
+|------|-------|-------|
+| Day 1 | Bug Fixes | BUG-1, BUG-2 (45 min) |
+| Week 1-2 | Landing Page Core | LP.1, LP.2, LP.3 |
+| Week 2-3 | Free Value Routes | LP.4, LP.5 |
+| Week 3 | Authentic Data | AD.1, AD.2 |
+| Week 4 | Polish & Optimize | Polish.P1-P3, LP.6 |
+
+---
+
+## Files Reference
+
+### Bug Fix Files
+- `src/app/(app)/boards/page.tsx` - Fix route links
+- `src/app/terms/page.tsx` - Create new
+- `src/app/privacy/page.tsx` - Create new
+
+### Landing Page Files (Create)
+- `src/app/page.tsx` - Replace with landing page
+- `src/app/today/page.tsx`
+- `src/app/calculate/page.tsx`
+- `src/app/learn/page.tsx`
+- `src/app/learn/dreamspell/page.tsx`
+- `src/app/learn/human-design/page.tsx`
+- `src/app/learn/astrology/page.tsx`
+- `src/app/learn/gematria/page.tsx`
+- `src/app/compatibility/page.tsx`
+- `src/components/landing/*.tsx` - Hero, Features, Demo, Testimonials, Pricing, CTA, Footer
+
+### Authentic Data Files
+- `src/lib/data/mantras.ts` - Update with 260 authentic
+- `src/lib/data/seals.ts` - Update with descriptions
+- `src/lib/data/tones.ts` - Update with descriptions
+- `src/lib/data/wavespells.ts` - Create new
+- `src/lib/data/castles.ts` - Create new
+
+### Polish Files (English-First)
+- `src/components/cards/HumanDesignDisplay.tsx`
+- `src/components/cards/AstrologyDisplay.tsx`
+- `src/components/cards/GematriaDisplay.tsx`
+- `src/components/cards/DreamspellSection.tsx`
+- `src/components/cards/TzolkinSection.tsx`
+- `src/components/cards/LongCountDisplay.tsx`
+- `src/components/cards/MayanTimelineDisplay.tsx`
+- `src/components/cards/WavespellDisplay.tsx`
+- `src/components/cards/YearlyDisplay.tsx`
+- `src/components/cards/CrossSystemInsights.tsx`
+- `src/components/cards/CastleDisplay.tsx`

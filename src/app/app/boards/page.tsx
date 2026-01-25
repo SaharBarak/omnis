@@ -224,7 +224,7 @@ function BoardCard({ board, onDelete, onDuplicate }: BoardCardProps) {
   return (
     <div className="group relative bg-card border rounded-xl overflow-hidden hover:shadow-md transition-shadow">
       {/* Thumbnail / Preview */}
-      <Link href={`/boards/${board.id}`}>
+      <Link href={`/app/boards/${board.id}`}>
         <div className="aspect-video bg-muted flex items-center justify-center">
           {board.thumbnail ? (
             <img
@@ -243,7 +243,7 @@ function BoardCard({ board, onDelete, onDuplicate }: BoardCardProps) {
       {/* Info */}
       <div className="p-4">
         <div className="flex items-start justify-between">
-          <Link href={`/boards/${board.id}`} className="flex-1 min-w-0">
+          <Link href={`/app/boards/${board.id}`} className="flex-1 min-w-0">
             <h3 className="font-medium truncate">{board.name}</h3>
             {board.description && (
               <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
@@ -265,7 +265,7 @@ function BoardCard({ board, onDelete, onDuplicate }: BoardCardProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link href={`/boards/${board.id}`} className="flex items-center">
+                <Link href={`/app/boards/${board.id}`} className="flex items-center">
                   <Pencil className="h-4 w-4 mr-2" />
                   Edit
                 </Link>
