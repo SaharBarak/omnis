@@ -266,8 +266,8 @@ export default function PersonDetailPage() {
         </div>
         <Link href={`/app/people`}>
           <Button variant="outline" onClick={() => router.push('/app/people')}>
-            <span className="ml-2">←</span>
-            חזרה
+            <span className="mr-2">←</span>
+            Back
           </Button>
         </Link>
       </div>
@@ -275,23 +275,23 @@ export default function PersonDetailPage() {
       {/* Person Info Card */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg">פרטים אישיים</CardTitle>
+          <CardTitle className="text-lg">Personal Details</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <span className="text-sm text-muted-foreground">תאריך לידה: </span>
-              <span>{new Date(person.birth_date).toLocaleDateString('he-IL')}</span>
+              <span className="text-sm text-muted-foreground">Birth Date: </span>
+              <span>{new Date(person.birth_date).toLocaleDateString('en-US')}</span>
             </div>
             {person.birth_time && (
               <div>
-                <span className="text-sm text-muted-foreground">שעת לידה: </span>
-                <span dir="ltr">{person.birth_time}</span>
+                <span className="text-sm text-muted-foreground">Birth Time: </span>
+                <span>{person.birth_time}</span>
               </div>
             )}
             {birthPlace?.name && (
               <div>
-                <span className="text-sm text-muted-foreground">מקום לידה: </span>
+                <span className="text-sm text-muted-foreground">Birth Place: </span>
                 <span>{birthPlace.name}</span>
               </div>
             )}
@@ -304,7 +304,7 @@ export default function PersonDetailPage() {
                   variant="secondary"
                   style={{ backgroundColor: tag.color + '20', color: tag.color }}
                 >
-                  {tag.hebrew_name}
+                  {tag.name}
                 </Badge>
               ))}
             </div>
@@ -325,13 +325,13 @@ export default function PersonDetailPage() {
               <span className="text-amber-600">⚠️</span>
               <div className="text-sm">
                 {!hasBirthTime && !hasLocation && (
-                  <p>שעת ומקום לידה לא צוינו. אסטרולוגיה ועיצוב אנושי יוצגו בקירוב בלבד.</p>
+                  <p>Birth time and place not specified. Astrology and Human Design will be shown as approximations only.</p>
                 )}
                 {!hasBirthTime && hasLocation && (
-                  <p>שעת לידה לא צוינה. אסטרולוגיה ועיצוב אנושי יוצגו בקירוב בלבד.</p>
+                  <p>Birth time not specified. Astrology and Human Design will be shown as approximations only.</p>
                 )}
                 {hasBirthTime && !hasLocation && (
-                  <p>מקום לידה לא צוין. אסטרולוגיה ועיצוב אנושי יוצגו עם ברירת מחדל (תל אביב).</p>
+                  <p>Birth place not specified. Astrology and Human Design will use default location (Tel Aviv).</p>
                 )}
               </div>
             </div>
@@ -344,10 +344,10 @@ export default function PersonDetailPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground mb-4">
-              לא נבחרו מערכות להצגה. ניתן להפעיל מערכות בהגדרות.
+              No systems selected for display. You can enable systems in settings.
             </p>
             <Button variant="outline" onClick={() => router.push('/app/settings')}>
-              הגדרות מערכות
+              System Settings
             </Button>
           </CardContent>
         </Card>
@@ -361,7 +361,7 @@ export default function PersonDetailPage() {
               className="flex-1 min-w-[100px] gap-1"
             >
               <span>{system.icon}</span>
-              <span className="hidden sm:inline">{system.labelHe}</span>
+              <span className="hidden sm:inline">{system.label}</span>
             </TabsTrigger>
           ))}
         </TabsList>
@@ -371,8 +371,8 @@ export default function PersonDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>קין יום הולדת</CardTitle>
-                <CardDescription>החותם הגלקטי שלך לפי הדרימספל</CardDescription>
+                <CardTitle>Birthday Kin</CardTitle>
+                <CardDescription>Your Galactic Signature according to the Dreamspell</CardDescription>
               </CardHeader>
               <CardContent>
                 <DreamspellSection date={person.birth_date} />
@@ -381,8 +381,8 @@ export default function PersonDetailPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>גל הזמן</CardTitle>
-                <CardDescription>מיקום ב-13 ימי הגל</CardDescription>
+                <CardTitle>Wavespell</CardTitle>
+                <CardDescription>Position in the 13-day wave</CardDescription>
               </CardHeader>
               <CardContent>
                 <WavespellDisplay kin={kin} showLabels />
@@ -393,8 +393,8 @@ export default function PersonDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>הטירה</CardTitle>
-                <CardDescription>מיקום במחזור 52 הימים</CardDescription>
+                <CardTitle>Castle</CardTitle>
+                <CardDescription>Position in the 52-day cycle</CardDescription>
               </CardHeader>
               <CardContent>
                 <CastleDisplay kin={kin} />
@@ -403,8 +403,8 @@ export default function PersonDetailPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>שנה אישית</CardTitle>
-                <CardDescription>הקין השנתי שלך</CardDescription>
+                <CardTitle>Personal Year</CardTitle>
+                <CardDescription>Your annual Kin</CardDescription>
               </CardHeader>
               <CardContent>
                 <PersonalYearDisplay birthDate={person.birth_date} />
@@ -414,8 +414,8 @@ export default function PersonDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>יום הולדת גלקטי</CardTitle>
-              <CardDescription>תאריך יום ההולדת הגלקטי הבא שלך</CardDescription>
+              <CardTitle>Galactic Birthday</CardTitle>
+              <CardDescription>Date of your next Galactic Birthday</CardDescription>
             </CardHeader>
             <CardContent>
               <GalacticBirthdayDisplay birthDate={person.birth_date} />
@@ -427,8 +427,8 @@ export default function PersonDetailPage() {
         <TabsContent value="tzolkin" className="space-y-6 mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>הצולקין המסורתי</CardTitle>
-              <CardDescription>לוח השנה המאיה המסורתי (260 יום)</CardDescription>
+              <CardTitle>Traditional Tzolkin</CardTitle>
+              <CardDescription>The traditional Mayan calendar (260 days)</CardDescription>
             </CardHeader>
             <CardContent>
               <TzolkinSection date={person.birth_date} />
@@ -441,8 +441,8 @@ export default function PersonDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>הספירה הארוכה</CardTitle>
-                <CardDescription>תאריך הלידה בספירה המאיה הארוכה</CardDescription>
+                <CardTitle>Long Count</CardTitle>
+                <CardDescription>Birth date in the Mayan Long Count</CardDescription>
               </CardHeader>
               <CardContent>
                 <LongCountDisplay dateStr={person.birth_date} showLabels showDaysSinceCreation />
@@ -451,8 +451,8 @@ export default function PersonDetailPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>הַאַב (שנה שמשית)</CardTitle>
-                <CardDescription>השנה השמשית בת 365 הימים</CardDescription>
+                <CardTitle>Haab (Solar Year)</CardTitle>
+                <CardDescription>The 365-day solar calendar</CardDescription>
               </CardHeader>
               <CardContent>
                 <HaabDisplay dateStr={person.birth_date} showMonthIndex />
@@ -462,8 +462,8 @@ export default function PersonDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>גלגל הלוח</CardTitle>
-              <CardDescription>שילוב הצולקין והחַאַב - מחזור בן 52 שנה</CardDescription>
+              <CardTitle>Calendar Round</CardTitle>
+              <CardDescription>Combination of Tzolkin and Haab - 52-year cycle</CardDescription>
             </CardHeader>
             <CardContent>
               <CalendarRoundDisplay dateStr={person.birth_date} />
@@ -472,8 +472,8 @@ export default function PersonDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>ציר זמן מאיה</CardTitle>
-              <CardDescription>אירועים משמעותיים בלוח המאיה</CardDescription>
+              <CardTitle>Mayan Timeline</CardTitle>
+              <CardDescription>Significant events in the Mayan calendar</CardDescription>
             </CardHeader>
             <CardContent>
               <MayanTimelineDisplay
@@ -490,10 +490,10 @@ export default function PersonDetailPage() {
         <TabsContent value="astrology" className="space-y-6 mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>מפת לידה</CardTitle>
+              <CardTitle>Birth Chart</CardTitle>
               <CardDescription>
-                אסטרולוגיה מערבית - מיקום הכוכבים ברגע הלידה
-                {!hasBirthTime && <span className="text-amber-600 mr-2">(ללא שעת לידה - בקירוב)</span>}
+                Western Astrology - Planet positions at birth
+                {!hasBirthTime && <span className="text-amber-600 ml-2">(without birth time - approximate)</span>}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -514,10 +514,10 @@ export default function PersonDetailPage() {
         <TabsContent value="humandesign" className="space-y-6 mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>עיצוב אנושי</CardTitle>
+              <CardTitle>Human Design</CardTitle>
               <CardDescription>
-                הטיפוס, האסטרטגיה והסמכות שלך
-                {!hasBirthTime && <span className="text-amber-600 mr-2">(ללא שעת לידה - בקירוב)</span>}
+                Your Type, Strategy, and Authority
+                {!hasBirthTime && <span className="text-amber-600 ml-2">(without birth time - approximate)</span>}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -538,8 +538,8 @@ export default function PersonDetailPage() {
         <TabsContent value="gematria" className="space-y-6 mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>גימטריה</CardTitle>
-              <CardDescription>ערכים מספריים של השם העברי</CardDescription>
+              <CardTitle>Gematria</CardTitle>
+              <CardDescription>Numerical values of the Hebrew name</CardDescription>
             </CardHeader>
             <CardContent>
               <GematriaDisplay
@@ -556,8 +556,8 @@ export default function PersonDetailPage() {
         <TabsContent value="insights" className="space-y-6 mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>תובנות בין-מערכתיות</CardTitle>
-              <CardDescription>קשרים ודפוסים שחוזרים בין המערכות השונות</CardDescription>
+              <CardTitle>Cross-System Insights</CardTitle>
+              <CardDescription>Connections and patterns across different systems</CardDescription>
             </CardHeader>
             <CardContent>
               <CrossSystemInsights
