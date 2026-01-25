@@ -26,7 +26,7 @@ export function DreamspellSection({ date }: DreamspellSectionProps) {
   return (
     <section className="dreamspell-section flex-1 flex flex-col border-b pb-4">
       <h3 className="text-center text-sm font-medium text-muted-foreground mb-2">
-        לפי הדרימספל / According to the Dreamspell
+        According to the Dreamspell (דרימספל)
       </h3>
 
       <div className="text-center mb-4">

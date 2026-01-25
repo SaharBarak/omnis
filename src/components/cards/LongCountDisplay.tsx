@@ -41,11 +41,11 @@ export function LongCountDisplay({
   const data = getLongCountData(dateStr)
 
   return (
-    <div className={cn('long-count-display', className)} dir="rtl">
+    <div className={cn('long-count-display', className)}>
       {/* Header */}
       <div className="text-center mb-4">
         <h3 className="text-lg font-semibold">
-          תאריך ה-Long Count / Long Count Date
+          Long Count Date (תאריך ה-Long Count)
         </h3>
       </div>
 
@@ -71,11 +71,11 @@ export function LongCountDisplay({
                   {data.longCount[unit]}
                 </span>
                 <span className="text-xs text-muted-foreground mt-1">
-                  {UNIT_NAMES[unit].hebrew}
+                  {UNIT_NAMES[unit].english}
                 </span>
                 {!compact && (
                   <span className="text-xs text-muted-foreground">
-                    {UNIT_NAMES[unit].english}
+                    ({UNIT_NAMES[unit].hebrew})
                   </span>
                 )}
               </div>
@@ -88,10 +88,10 @@ export function LongCountDisplay({
           <div className="mt-4 pt-4 border-t border-border text-center">
             <p className="text-sm text-muted-foreground">
               <span className="font-medium">{data.daysSinceCreation.toLocaleString()}</span>
-              <span className="mx-1">ימים מאז הבריאה</span>
+              <span className="mx-1">days since creation</span>
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Days since creation: {data.daysSinceCreation.toLocaleString()}
+              ({data.daysSinceCreation.toLocaleString()} ימים מאז הבריאה)
             </p>
           </div>
         )}
@@ -102,7 +102,7 @@ export function LongCountDisplay({
         <div className="mt-4 bg-accent/10 rounded-lg p-3">
           <div className="text-center">
             <p className="text-sm font-medium">
-              מעגל לוח השנה / Calendar Round
+              Calendar Round (מעגל לוח השנה)
             </p>
             <p className="text-lg font-semibold mt-1">
               {data.calendarRound.formatted}
@@ -158,7 +158,7 @@ export function BaktunProgress({ dateStr, className = '' }: BaktunProgressProps)
   return (
     <div className={cn('w-full', className)}>
       <div className="flex justify-between text-xs text-muted-foreground mb-1">
-        <span>באקטון {lc.baktun}</span>
+        <span>Baktun {lc.baktun}</span>
         <span>{percentage.toFixed(1)}%</span>
       </div>
       <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -168,7 +168,7 @@ export function BaktunProgress({ dateStr, className = '' }: BaktunProgressProps)
         />
       </div>
       <div className="text-center text-xs text-muted-foreground mt-1">
-        {daysIntoBaktun.toLocaleString()} / 144,000 ימים
+        {daysIntoBaktun.toLocaleString()} / 144,000 days
       </div>
     </div>
   )
@@ -186,19 +186,19 @@ export function HaabDisplay({ dateStr, showMonthIndex = false, className = '' }:
   const { haab } = data
 
   return (
-    <div className={cn('haab-display text-center', className)} dir="rtl">
+    <div className={cn('haab-display text-center', className)}>
       <div className="text-sm text-muted-foreground mb-1">
-        האאב / Haab'
+        Haab' (האאב)
       </div>
       <div className="text-lg font-semibold">
         {haab.day} {haab.monthName}
       </div>
       <div className="text-sm text-muted-foreground">
-        {haab.day} {haab.monthNameHebrew}
+        ({haab.day} {haab.monthNameHebrew})
       </div>
       {showMonthIndex && (
         <div className="text-xs text-muted-foreground mt-1">
-          חודש {haab.month + 1} / Month {haab.month + 1}
+          Month {haab.month + 1}
         </div>
       )}
     </div>
@@ -216,10 +216,10 @@ export function CalendarRoundDisplay({ dateStr, className = '' }: CalendarRoundD
   const { tzolkin, haab, calendarRound } = data
 
   return (
-    <div className={cn('calendar-round-display', className)} dir="rtl">
+    <div className={cn('calendar-round-display', className)}>
       <div className="text-center mb-3">
         <h4 className="text-sm font-medium text-muted-foreground">
-          מעגל לוח השנה / Calendar Round
+          Calendar Round (מעגל לוח השנה)
         </h4>
       </div>
 
@@ -227,26 +227,26 @@ export function CalendarRoundDisplay({ dateStr, className = '' }: CalendarRoundD
         {/* Tzolkin Section */}
         <div className="bg-muted/30 rounded-lg p-3 text-center">
           <div className="text-xs text-muted-foreground mb-1">
-            צולקין / Tzolk'in
+            Tzolk'in (צולקין)
           </div>
           <div className="text-lg font-semibold">
             {tzolkin.tone} {tzolkin.daySign.yucatec}
           </div>
           <div className="text-sm text-muted-foreground">
-            {tzolkin.tone} {tzolkin.daySign.hebrew}
+            ({tzolkin.tone} {tzolkin.daySign.hebrew})
           </div>
         </div>
 
         {/* Haab Section */}
         <div className="bg-muted/30 rounded-lg p-3 text-center">
           <div className="text-xs text-muted-foreground mb-1">
-            האאב / Haab'
+            Haab' (האאב)
           </div>
           <div className="text-lg font-semibold">
             {haab.day} {haab.monthName}
           </div>
           <div className="text-sm text-muted-foreground">
-            {haab.day} {haab.monthNameHebrew}
+            ({haab.day} {haab.monthNameHebrew})
           </div>
         </div>
       </div>

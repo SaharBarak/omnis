@@ -120,9 +120,9 @@ function MethodRow({
       'border-b border-border/50 last:border-0'
     )}>
       <div className="flex flex-col">
-        <span className="text-sm font-medium">{labels.labelHebrew}</span>
+        <span className="text-sm font-medium">{labels.label}</span>
         {!compact && (
-          <span className="text-xs text-muted-foreground">{labels.label}</span>
+          <span className="text-xs text-muted-foreground">({labels.labelHebrew})</span>
         )}
       </div>
       <div className="flex items-center gap-2">
@@ -146,8 +146,8 @@ function NotableBadge({ value }: { value: number }) {
     <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30">
       <span className="text-amber-600 font-medium">{value}</span>
       <span className="text-sm">=</span>
-      <span className="text-sm">{notable.meaningHebrew}</span>
-      <span className="text-xs text-muted-foreground">({notable.meaning})</span>
+      <span className="text-sm">{notable.meaning}</span>
+      <span className="text-xs text-muted-foreground">({notable.meaningHebrew})</span>
     </div>
   )
 }
@@ -167,14 +167,14 @@ export function LetterBreakdownDisplay({
   if (breakdown.length === 0) {
     return (
       <div className={cn('text-center text-muted-foreground', className)}>
-        אין אותיות עבריות בטקסט
+        No Hebrew letters in text
       </div>
     )
   }
 
   return (
     <div className={cn('bg-card border rounded-lg p-4', className)} dir="rtl">
-      <h4 className="text-sm font-medium mb-3 text-center">פירוט אותיות</h4>
+      <h4 className="text-sm font-medium mb-3 text-center">Letter Breakdown (פירוט אותיות)</h4>
       <div className={cn(
         'flex flex-wrap justify-center',
         compact ? 'gap-1' : 'gap-2'
@@ -213,23 +213,23 @@ export function GematriaSummaryCard({
   return (
     <div className={cn('bg-card border rounded-lg p-4', className)} dir="rtl">
       <h4 className="text-sm font-medium mb-3 text-center">
-        גימטריה של &quot;{result.cleanedText}&quot;
+        Gematria of &quot;{result.cleanedText}&quot;
       </h4>
 
       {/* Main value */}
       <div className="text-center mb-4">
         <span className="text-4xl font-bold">{summary.standardValue}</span>
         <div className="text-sm text-muted-foreground mt-1">
-          {result.letterCount} אותיות • שורש דיגיטלי: {summary.digitalRoot}
+          {result.letterCount} letters • Digital root: {summary.digitalRoot}
         </div>
       </div>
 
       {/* Digital root meaning */}
       {digitalRootMeaning && (
         <div className="text-center text-sm px-4 py-2 rounded-lg bg-muted/30 mb-4">
-          <span className="font-medium">{digitalRootMeaning.meaningHebrew}</span>
+          <span className="font-medium">{digitalRootMeaning.meaning}</span>
           <span className="text-muted-foreground mx-1">—</span>
-          <span className="text-muted-foreground">{digitalRootMeaning.meaning}</span>
+          <span className="text-muted-foreground">({digitalRootMeaning.meaningHebrew})</span>
         </div>
       )}
 
@@ -267,7 +267,7 @@ export function MethodValuesDisplay({
 
   return (
     <div className={cn('bg-card border rounded-lg p-4', className)} dir="rtl">
-      <h4 className="text-sm font-medium mb-3 text-center">שיטות חישוב</h4>
+      <h4 className="text-sm font-medium mb-3 text-center">Calculation Methods (שיטות חישוב)</h4>
       <div className="space-y-1">
         {methods.map(method => (
           <MethodRow
@@ -298,7 +298,7 @@ export function NameComparisonDisplay({
 
   return (
     <div className={cn('bg-card border rounded-lg p-4', className)} dir="rtl">
-      <h4 className="text-sm font-medium mb-4 text-center">השוואת שמות</h4>
+      <h4 className="text-sm font-medium mb-4 text-center">Name Comparison (השוואת שמות)</h4>
 
       {/* Two names side by side */}
       <div className="grid grid-cols-2 gap-4 mb-4">
@@ -315,20 +315,20 @@ export function NameComparisonDisplay({
       {/* Combined stats */}
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span>ערך משולב:</span>
+          <span>Combined value:</span>
           <span className="font-bold">{comparison.combinedValue}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span>הפרש:</span>
+          <span>Difference:</span>
           <span className="font-bold">{comparison.difference}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span>שורש דיגיטלי משותף:</span>
+          <span>Shared digital root:</span>
           <span className={cn(
             'font-bold',
             comparison.sharedDigitalRoot ? 'text-green-600' : 'text-muted-foreground'
           )}>
-            {comparison.sharedDigitalRoot ? 'כן ✓' : 'לא'}
+            {comparison.sharedDigitalRoot ? 'Yes ✓' : 'No'}
           </span>
         </div>
       </div>
@@ -336,8 +336,8 @@ export function NameComparisonDisplay({
       {/* Interpretation */}
       {comparison.interpretation && (
         <div className="mt-4 p-3 rounded-lg bg-primary/10 text-center">
-          <div className="text-sm font-medium">{comparison.interpretationHebrew}</div>
-          <div className="text-xs text-muted-foreground">{comparison.interpretation}</div>
+          <div className="text-sm font-medium">{comparison.interpretation}</div>
+          <div className="text-xs text-muted-foreground">({comparison.interpretationHebrew})</div>
         </div>
       )}
     </div>
@@ -356,8 +356,8 @@ export function GematriaMini({ text, className }: GematriaMiniProps) {
   const notable = hasNotableMeaning(value)
 
   return (
-    <div className={cn('inline-flex items-center gap-2', className)} dir="rtl">
-      <span className="text-muted-foreground">גימטריה:</span>
+    <div className={cn('inline-flex items-center gap-2', className)}>
+      <span className="text-muted-foreground">Gematria:</span>
       <span className={cn(
         'font-bold px-2 py-0.5 rounded',
         notable ? 'bg-amber-500/20 text-amber-700' : 'bg-muted'
@@ -386,8 +386,8 @@ export function GematriaDisplay({
   // Handle empty text
   if (!text || text.trim() === '') {
     return (
-      <div className={cn('bg-card border rounded-lg p-4 text-center', className)} dir="rtl">
-        <span className="text-muted-foreground">הזן טקסט עברי לחישוב גימטריה</span>
+      <div className={cn('bg-card border rounded-lg p-4 text-center', className)}>
+        <span className="text-muted-foreground">Enter Hebrew text for gematria calculation</span>
       </div>
     )
   }
@@ -397,8 +397,8 @@ export function GematriaDisplay({
   // No Hebrew letters found
   if (result.letterCount === 0) {
     return (
-      <div className={cn('bg-card border rounded-lg p-4 text-center', className)} dir="rtl">
-        <span className="text-muted-foreground">לא נמצאו אותיות עבריות בטקסט</span>
+      <div className={cn('bg-card border rounded-lg p-4 text-center', className)}>
+        <span className="text-muted-foreground">No Hebrew letters found in text</span>
       </div>
     )
   }

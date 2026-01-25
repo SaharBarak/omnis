@@ -34,14 +34,14 @@ export function WavespellDisplay({
   const wavespellSeal = getSeal(wavespell.sealNumber)
 
   return (
-    <div className={cn('wavespell-display', className)} dir="rtl">
+    <div className={cn('wavespell-display', className)}>
       {/* Wavespell Header */}
       <div className="text-center mb-4">
         <h3 className="text-lg font-semibold">
-          גל ה{wavespellSeal.hebrew} / {wavespellSeal.english} Wavespell
+          {wavespellSeal.english} Wavespell (גל ה{wavespellSeal.hebrew})
         </h3>
         <p className="text-sm text-muted-foreground">
-          קין {wavespell.startKin}-{wavespell.endKin} / Kin {wavespell.startKin}-{wavespell.endKin}
+          Kin {wavespell.startKin}-{wavespell.endKin}
         </p>
       </div>
 
@@ -80,7 +80,7 @@ export function WavespellDisplay({
               {showLabels && !compact && (
                 <>
                   <span className="text-xs text-muted-foreground mt-0.5">
-                    {tone.nameHebrew}
+                    {tone.name}
                   </span>
                   <span className="text-xs text-muted-foreground">
                     {role}
@@ -90,7 +90,7 @@ export function WavespellDisplay({
 
               {isCurrent && (
                 <span className="text-xs text-primary font-medium mt-1">
-                  ← אתה פה
+                  You are here →
                 </span>
               )}
             </div>
@@ -102,8 +102,7 @@ export function WavespellDisplay({
       {showLabels && (
         <div className="mt-4 text-center text-sm text-muted-foreground">
           <p>
-            מיקום {currentPosition}: {getWavespellRole(currentPosition)} —
-            {' '}Position {currentPosition}: {getWavespellRole(currentPosition)}
+            Position {currentPosition}: {getWavespellRole(currentPosition)}
           </p>
         </div>
       )}
@@ -127,7 +126,7 @@ export function WavespellMini({ kin, className = '' }: WavespellMiniProps) {
     <div className={cn('inline-flex items-center gap-2', className)}>
       <SealIcon sealNumber={wavespell.sealNumber} size="sm" />
       <div className="text-sm">
-        <span className="font-medium">{wavespellSeal.hebrew}</span>
+        <span className="font-medium">{wavespellSeal.english}</span>
         <span className="text-muted-foreground mx-1">•</span>
         <span>{position}/13</span>
         <span className="text-muted-foreground mx-1">•</span>
@@ -151,8 +150,8 @@ export function WavespellProgress({ kin, className = '' }: WavespellProgressProp
   return (
     <div className={cn('w-full', className)}>
       <div className="flex justify-between text-xs text-muted-foreground mb-1">
-        <span>קין {wavespell.startKin}</span>
-        <span>קין {wavespell.endKin}</span>
+        <span>Kin {wavespell.startKin}</span>
+        <span>Kin {wavespell.endKin}</span>
       </div>
       <div className="h-2 bg-muted rounded-full overflow-hidden">
         <div
@@ -161,7 +160,7 @@ export function WavespellProgress({ kin, className = '' }: WavespellProgressProp
         />
       </div>
       <div className="text-center text-xs text-muted-foreground mt-1">
-        יום {position} מתוך 13 / Day {position} of 13
+        Day {position} of 13
       </div>
     </div>
   )

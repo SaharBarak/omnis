@@ -11,7 +11,7 @@ export function TzolkinSection({ date }: TzolkinSectionProps) {
   return (
     <section className="tzolkin-section pt-4">
       <h3 className="text-center text-sm font-medium text-muted-foreground mb-4">
-        לפי הצולקין / According to the Tzolkin
+        According to the Tzolkin (צולקין)
       </h3>
 
       <div className="flex items-center justify-center gap-4">

@@ -105,10 +105,10 @@ function CenterBadge({
       )}
     >
       <span className={cn('font-semibold', compact ? 'text-xs' : 'text-sm')}>
-        {hebrewName}
+        {englishName}
       </span>
       {!compact && (
-        <span className="text-xs opacity-75">{englishName}</span>
+        <span className="text-xs opacity-75">{hebrewName}</span>
       )}
     </div>
   )
@@ -181,14 +181,13 @@ export function MissingBirthTimeMessage({
         'flex flex-col items-center justify-center p-6 bg-muted/50 rounded-lg border border-dashed',
         className
       )}
-      dir="rtl"
     >
       <div className="text-4xl mb-3">⏰</div>
       <p className="text-center text-muted-foreground">
-        {partial.messageHebrew}
+        {partial.message}
       </p>
       <p className="text-center text-sm text-muted-foreground mt-2">
-        {partial.message}
+        {partial.messageHebrew}
       </p>
     </div>
   )
@@ -207,31 +206,31 @@ export function BodygraphSummaryCard({
   return (
     <div
       className={cn('bodygraph-summary bg-card border rounded-lg p-4', className)}
-      dir="rtl"
     >
       {/* Type and Strategy */}
       <div className="text-center mb-4">
         <div className="text-3xl font-bold mb-1">
-          {bodygraph.typeDefinition.nameHebrew}
-        </div>
-        <div className="text-muted-foreground">
           {bodygraph.typeDefinition.name}
         </div>
+        <div className="text-muted-foreground">
+          {bodygraph.typeDefinition.nameHebrew}
+        </div>
         <div className="text-sm mt-2 bg-muted p-2 rounded">
-          <span className="font-medium">אסטרטגיה: </span>
-          {bodygraph.typeDefinition.strategyHebrew}
+          <span className="font-medium">Strategy: </span>
+          {bodygraph.typeDefinition.strategy}
+          <span className="text-muted-foreground"> ({bodygraph.typeDefinition.strategyHebrew})</span>
         </div>
       </div>
 
       {/* Authority */}
       <div className="border-t pt-4 mb-4">
-        <h4 className="text-sm font-medium mb-2">סמכות פנימית / Inner Authority</h4>
+        <h4 className="text-sm font-medium mb-2">Inner Authority (סמכות פנימית)</h4>
         <div className="flex items-center gap-2">
           <span className="text-lg font-semibold">
-            {bodygraph.authorityDefinition.nameHebrew}
+            {bodygraph.authorityDefinition.name}
           </span>
           <span className="text-sm text-muted-foreground">
-            ({bodygraph.authorityDefinition.name})
+            ({bodygraph.authorityDefinition.nameHebrew})
           </span>
         </div>
         <p className="text-sm text-muted-foreground mt-1">
@@ -241,12 +240,12 @@ export function BodygraphSummaryCard({
 
       {/* Profile */}
       <div className="border-t pt-4 mb-4">
-        <h4 className="text-sm font-medium mb-2">פרופיל / Profile</h4>
+        <h4 className="text-sm font-medium mb-2">Profile (פרופיל)</h4>
         <div className="flex items-center gap-2">
           <span className="text-2xl font-bold">{bodygraph.profile.id}</span>
           <div className="flex flex-col">
-            <span className="font-semibold">{bodygraph.profile.nameHebrew}</span>
-            <span className="text-sm text-muted-foreground">{bodygraph.profile.name}</span>
+            <span className="font-semibold">{bodygraph.profile.name}</span>
+            <span className="text-sm text-muted-foreground">{bodygraph.profile.nameHebrew}</span>
           </div>
         </div>
         <p className="text-sm text-muted-foreground mt-1">
@@ -257,29 +256,29 @@ export function BodygraphSummaryCard({
       {/* Definition */}
       {showDefinition && (
         <div className="border-t pt-4">
-          <h4 className="text-sm font-medium mb-2">הגדרה / Definition</h4>
+          <h4 className="text-sm font-medium mb-2">Definition (הגדרה)</h4>
           <div className="flex items-center gap-2">
             <span className="font-semibold">
-              {DEFINITION_LABELS_HEBREW[bodygraph.definition]}
+              {DEFINITION_LABELS[bodygraph.definition]}
             </span>
             <span className="text-sm text-muted-foreground">
-              ({DEFINITION_LABELS[bodygraph.definition]})
+              ({DEFINITION_LABELS_HEBREW[bodygraph.definition]})
             </span>
           </div>
           <div className="text-sm text-muted-foreground mt-1">
-            {bodygraph.definedCenters.length} מרכזים מוגדרים • {bodygraph.channels.length} ערוצים
+            {bodygraph.definedCenters.length} defined centers • {bodygraph.channels.length} channels
           </div>
         </div>
       )}
 
       {/* Incarnation Cross */}
       <div className="border-t pt-4 mt-4">
-        <h4 className="text-sm font-medium mb-2">צלב הגלגול / Incarnation Cross</h4>
+        <h4 className="text-sm font-medium mb-2">Incarnation Cross (צלב הגלגול)</h4>
         <div className="text-center p-3 bg-muted rounded">
-          <div className="font-semibold">{bodygraph.incarnationCross.nameHebrew}</div>
-          <div className="text-sm text-muted-foreground">{bodygraph.incarnationCross.name}</div>
+          <div className="font-semibold">{bodygraph.incarnationCross.name}</div>
+          <div className="text-sm text-muted-foreground">{bodygraph.incarnationCross.nameHebrew}</div>
           <div className="text-xs text-muted-foreground mt-2">
-            שערים: {bodygraph.incarnationCross.gates.personalitySun} / {bodygraph.incarnationCross.gates.personalityEarth} | {bodygraph.incarnationCross.gates.designSun} / {bodygraph.incarnationCross.gates.designEarth}
+            Gates: {bodygraph.incarnationCross.gates.personalitySun} / {bodygraph.incarnationCross.gates.personalityEarth} | {bodygraph.incarnationCross.gates.designSun} / {bodygraph.incarnationCross.gates.designEarth}
           </div>
         </div>
       </div>
@@ -308,9 +307,9 @@ export function CenterStateDisplay({
   ]
 
   return (
-    <div className={cn('center-state-display', className)} dir="rtl">
+    <div className={cn('center-state-display', className)}>
       <h4 className="text-sm font-medium mb-3 text-center">
-        מרכזים / Centers
+        Centers (מרכזים)
       </h4>
       <div className={cn('grid gap-2', compact ? 'grid-cols-5' : 'grid-cols-3')}>
         {centerOrder.map((centerId) => (
@@ -324,10 +323,10 @@ export function CenterStateDisplay({
       </div>
       <div className="flex justify-center gap-4 mt-3 text-sm text-muted-foreground">
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 bg-amber-600 rounded" /> מוגדר
+          <span className="w-3 h-3 bg-amber-600 rounded" /> Defined
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 bg-muted border border-dashed rounded" /> פתוח
+          <span className="w-3 h-3 bg-muted border border-dashed rounded" /> Open
         </span>
       </div>
     </div>
@@ -344,13 +343,13 @@ export function ActivationsDisplay({
   className = '',
 }: ActivationsDisplayProps) {
   return (
-    <div className={cn('activations-display', className)} dir="rtl">
+    <div className={cn('activations-display', className)}>
       <div className={cn('grid gap-4', showDesign ? 'grid-cols-2' : 'grid-cols-1')}>
         {/* Personality (Conscious) */}
         <div>
           <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
             <span className="w-2 h-2 bg-black rounded-full" />
-            אישיות / Personality (מודע)
+            Personality (Conscious)
           </h4>
           <div className="space-y-1">
             {bodygraph.activations.personality.slice(0, compact ? 5 : undefined).map((activation, i) => (
@@ -362,7 +361,7 @@ export function ActivationsDisplay({
             ))}
             {compact && bodygraph.activations.personality.length > 5 && (
               <div className="text-sm text-muted-foreground text-center">
-                +{bodygraph.activations.personality.length - 5} נוספים
+                +{bodygraph.activations.personality.length - 5} more
               </div>
             )}
           </div>
@@ -373,7 +372,7 @@ export function ActivationsDisplay({
           <div>
             <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
               <span className="w-2 h-2 bg-red-500 rounded-full" />
-              עיצוב / Design (לא מודע)
+              Design (Unconscious)
             </h4>
             <div className="space-y-1">
               {bodygraph.activations.design.slice(0, compact ? 5 : undefined).map((activation, i) => (
@@ -385,7 +384,7 @@ export function ActivationsDisplay({
               ))}
               {compact && bodygraph.activations.design.length > 5 && (
                 <div className="text-sm text-muted-foreground text-center">
-                  +{bodygraph.activations.design.length - 5} נוספים
+                  +{bodygraph.activations.design.length - 5} more
                 </div>
               )}
             </div>
@@ -406,16 +405,16 @@ export function ChannelsDisplay({
 }: ChannelsDisplayProps) {
   if (channels.length === 0) {
     return (
-      <div className={cn('text-center text-muted-foreground py-4', className)} dir="rtl">
-        אין ערוצים מוגדרים / No defined channels
+      <div className={cn('text-center text-muted-foreground py-4', className)}>
+        No defined channels (אין ערוצים מוגדרים)
       </div>
     )
   }
 
   return (
-    <div className={cn('channels-display', className)} dir="rtl">
+    <div className={cn('channels-display', className)}>
       <h4 className="text-sm font-medium mb-3">
-        ערוצים מוגדרים ({channels.length}) / Defined Channels
+        Defined Channels ({channels.length})
       </h4>
       <div className="space-y-2">
         {channels.slice(0, compact ? 5 : undefined).map((channel) => (
@@ -425,16 +424,16 @@ export function ChannelsDisplay({
           >
             <span className="font-bold text-base">{channel.id}</span>
             <div className="flex flex-col flex-1 min-w-0">
-              <span className="font-medium truncate">{channel.nameHebrew}</span>
+              <span className="font-medium truncate">{channel.name}</span>
               <span className="text-xs text-muted-foreground truncate">
-                {channel.name} • {CIRCUITRY_LABELS_HEBREW[channel.circuitry]}
+                {channel.nameHebrew} • {channel.circuitry}
               </span>
             </div>
           </div>
         ))}
         {compact && channels.length > 5 && (
           <div className="text-sm text-muted-foreground text-center">
-            +{channels.length - 5} ערוצים נוספים
+            +{channels.length - 5} more channels
           </div>
         )}
       </div>
@@ -467,21 +466,21 @@ export function HumanDesignMini({
 
   if (!isCompleteBodygraph(result)) {
     return (
-      <div className={cn('text-sm text-muted-foreground', className)} dir="rtl">
-        נדרשת שעת לידה
+      <div className={cn('text-sm text-muted-foreground', className)}>
+        Birth time required
       </div>
     )
   }
 
   return (
-    <div className={cn('human-design-mini', className)} dir="rtl">
+    <div className={cn('human-design-mini', className)}>
       <div className="flex items-center gap-2">
-        <span className="text-lg font-bold">{result.typeDefinition.nameHebrew}</span>
+        <span className="text-lg font-bold">{result.typeDefinition.name}</span>
         <span className="text-muted-foreground">•</span>
         <span>{result.profile.id}</span>
         <span className="text-muted-foreground">•</span>
         <span className="text-sm text-muted-foreground">
-          {result.authorityDefinition.nameHebrew}
+          {result.authorityDefinition.name}
         </span>
       </div>
     </div>
@@ -514,7 +513,7 @@ export function HumanDesignDisplay({
   }
 
   return (
-    <div className={cn('human-design-display space-y-6', className)} dir="rtl">
+    <div className={cn('human-design-display space-y-6', className)}>
       {/* Summary Card */}
       <BodygraphSummaryCard
         bodygraph={result}

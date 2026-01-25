@@ -92,26 +92,26 @@ export function ChartSummaryCard({
   const getMoon = chart.planets.find(p => p.planet.id === 'moon')
 
   return (
-    <div className={cn('chart-summary-card bg-card border rounded-lg p-4', className)} dir="rtl">
+    <div className={cn('chart-summary-card bg-card border rounded-lg p-4', className)}>
       {/* Big Three */}
       <div className="text-center mb-4">
         <h3 className="text-lg font-semibold mb-3">
-          הסימנים הגדולים / Big Three
+          Big Three (הסימנים הגדולים)
         </h3>
 
         <div className="grid grid-cols-3 gap-4">
           {/* Sun Sign */}
           <div className="flex flex-col items-center">
             <span className="text-3xl">{chart.sunSign.symbol}</span>
-            <span className="font-semibold">{chart.sunSign.hebrew}</span>
-            <span className="text-sm text-muted-foreground">שמש / Sun</span>
+            <span className="font-semibold">{chart.sunSign.name}</span>
+            <span className="text-sm text-muted-foreground">Sun ({chart.sunSign.hebrew})</span>
           </div>
 
           {/* Moon Sign */}
           <div className="flex flex-col items-center">
             <span className="text-3xl">{chart.moonSign.symbol}</span>
-            <span className="font-semibold">{chart.moonSign.hebrew}</span>
-            <span className="text-sm text-muted-foreground">ירח / Moon</span>
+            <span className="font-semibold">{chart.moonSign.name}</span>
+            <span className="text-sm text-muted-foreground">Moon ({chart.moonSign.hebrew})</span>
           </div>
 
           {/* Rising Sign */}
@@ -119,15 +119,15 @@ export function ChartSummaryCard({
             {chart.risingSign ? (
               <>
                 <span className="text-3xl">{chart.risingSign.symbol}</span>
-                <span className="font-semibold">{chart.risingSign.hebrew}</span>
+                <span className="font-semibold">{chart.risingSign.name}</span>
               </>
             ) : (
               <>
                 <span className="text-3xl text-muted-foreground">?</span>
-                <span className="text-muted-foreground">לא ידוע</span>
+                <span className="text-muted-foreground">Unknown</span>
               </>
             )}
-            <span className="text-sm text-muted-foreground">עולה / Rising</span>
+            <span className="text-sm text-muted-foreground">Rising ({chart.risingSign?.hebrew || 'עולה'})</span>
           </div>
         </div>
       </div>
@@ -136,7 +136,7 @@ export function ChartSummaryCard({
       {showBalance && (
         <div className="border-t pt-4">
           <h4 className="text-sm font-medium mb-3 text-center">
-            איזון אלמנטים / Element Balance
+            Element Balance (איזון אלמנטים)
           </h4>
           <div className="space-y-2">
             {(['fire', 'earth', 'air', 'water'] as Element[]).map(element => (
@@ -162,7 +162,7 @@ export function ChartSummaryMini({
   className?: string
 }) {
   return (
-    <div className={cn('chart-summary-mini flex items-center gap-2', className)} dir="rtl">
+    <div className={cn('chart-summary-mini flex items-center gap-2', className)}>
       <div className="flex items-center gap-1">
         <span className="text-lg" title={chart.sunSign.name}>{chart.sunSign.symbol}</span>
         <span>/</span>
@@ -175,7 +175,7 @@ export function ChartSummaryMini({
         )}
       </div>
       <span className="text-sm text-muted-foreground">
-        {chart.sunSign.hebrew}
+        {chart.sunSign.name}
       </span>
     </div>
   )
@@ -195,9 +195,9 @@ export function PlanetPositions({
   })
 
   return (
-    <div className={cn('planet-positions', className)} dir="rtl">
+    <div className={cn('planet-positions', className)}>
       <h4 className="text-sm font-medium mb-3 text-center">
-        מיקומי כוכבים / Planetary Positions
+        Planetary Positions (מיקומי כוכבים)
       </h4>
 
       <div className={cn(
@@ -214,7 +214,7 @@ export function PlanetPositions({
           >
             <div className="flex items-center gap-2">
               <span className="text-lg w-6 text-center">{pos.planet.symbol}</span>
-              <span className="font-medium">{pos.planet.hebrew}</span>
+              <span className="font-medium">{pos.planet.name}</span>
               {pos.retrograde && (
                 <span className="text-xs text-orange-500" title="Retrograde">℞</span>
               )}
@@ -224,7 +224,7 @@ export function PlanetPositions({
               <span className="font-mono">{pos.position.formatted}</span>
               {showHouses && pos.house && (
                 <span className="text-muted-foreground">
-                  בית {pos.house}
+                  House {pos.house}
                 </span>
               )}
               {pos.dignity !== 'neutral' && (
@@ -255,7 +255,7 @@ export function AspectsDisplay({
   if (aspects.length === 0) {
     return (
       <div className={cn('aspects-display text-center text-muted-foreground', className)}>
-        לא נמצאו אספקטים / No aspects found
+        No aspects found (לא נמצאו אספקטים)
       </div>
     )
   }
@@ -267,9 +267,9 @@ export function AspectsDisplay({
   const displayAspects = compact ? sortedAspects.slice(0, 10) : sortedAspects
 
   return (
-    <div className={cn('aspects-display', className)} dir="rtl">
+    <div className={cn('aspects-display', className)}>
       <h4 className="text-sm font-medium mb-3 text-center">
-        אספקטים / Aspects
+        Aspects (אספקטים)
       </h4>
 
       <div className={cn(
@@ -291,7 +291,7 @@ export function AspectsDisplay({
                   style={{ backgroundColor: getAspectColor(asp.aspect) }}
                 />
                 <span>{asp.aspect.symbol}</span>
-                <span>{asp.aspect.hebrew}</span>
+                <span>{asp.aspect.name}</span>
               </div>
 
               <div className="flex items-center gap-2 text-sm">
@@ -308,7 +308,7 @@ export function AspectsDisplay({
 
         {compact && sortedAspects.length > 10 && (
           <div className="text-center text-muted-foreground text-sm pt-2">
-            +{sortedAspects.length - 10} עוד אספקטים
+            +{sortedAspects.length - 10} more aspects
           </div>
         )}
       </div>
@@ -336,15 +336,15 @@ export function AstrologyDisplay({
   })
 
   return (
-    <div className={cn('astrology-display space-y-4', className)} dir="rtl">
+    <div className={cn('astrology-display space-y-4', className)}>
       {/* Header */}
       <div className="text-center">
         <h3 className="text-lg font-semibold">
-          מפת לידה / Natal Chart
+          Natal Chart (מפת לידה)
         </h3>
         {!chart.hasBirthTime && (
           <p className="text-sm text-muted-foreground">
-            ללא שעת לידה - חישוב לשעה 12:00
+            Without birth time - calculated at 12:00
           </p>
         )}
       </div>
@@ -374,15 +374,15 @@ export function AstrologyDisplay({
       {chart.hasBirthTime && chart.ascendant && chart.midheaven && (
         <div className="bg-card border rounded-lg p-4">
           <h4 className="text-sm font-medium mb-3 text-center">
-            נקודות זוויתיות / Angular Points
+            Angular Points (נקודות זוויתיות)
           </h4>
           <div className="grid grid-cols-2 gap-4 text-center">
             <div>
-              <span className="text-muted-foreground block text-sm">ASC (עולה)</span>
+              <span className="text-muted-foreground block text-sm">ASC (Ascendant)</span>
               <span className="font-medium">{chart.ascendant.formatted}</span>
             </div>
             <div>
-              <span className="text-muted-foreground block text-sm">MC (אמצע שמיים)</span>
+              <span className="text-muted-foreground block text-sm">MC (Midheaven)</span>
               <span className="font-medium">{chart.midheaven.formatted}</span>
             </div>
           </div>
@@ -407,18 +407,18 @@ export function AstrologyMini({
   const chart = calculateNatalChart({ date, latitude, longitude })
 
   return (
-    <div className={cn('astrology-mini', className)} dir="rtl">
+    <div className={cn('astrology-mini', className)}>
       <div className="flex items-center justify-center gap-3">
         <div className="text-center">
           <span className="text-2xl">{chart.sunSign.symbol}</span>
           <span className="block text-xs text-muted-foreground">
-            {chart.sunSign.hebrew}
+            {chart.sunSign.name}
           </span>
         </div>
         <div className="text-center">
           <span className="text-2xl">{chart.moonSign.symbol}</span>
           <span className="block text-xs text-muted-foreground">
-            {chart.moonSign.hebrew}
+            {chart.moonSign.name}
           </span>
         </div>
       </div>

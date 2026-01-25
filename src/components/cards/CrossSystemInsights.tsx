@@ -372,16 +372,16 @@ function InsightCard({ theme }: { theme: InsightTheme }) {
   }
 
   const strengthLabels = {
-    strong: 'חזק',
-    moderate: 'בינוני',
-    subtle: 'עדין',
+    strong: 'Strong',
+    moderate: 'Moderate',
+    subtle: 'Subtle',
   }
 
   return (
     <Card className="border-l-4" style={{ borderLeftColor: `var(--${theme.color}-500, hsl(var(--primary)))` }}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between gap-2">
-          <CardTitle className="text-base">{theme.titleHebrew}</CardTitle>
+          <CardTitle className="text-base">{theme.title}</CardTitle>
           <Badge variant="secondary" className={cn('text-xs', strengthColors[theme.strength])}>
             {strengthLabels[theme.strength]}
           </Badge>
@@ -391,7 +391,7 @@ function InsightCard({ theme }: { theme: InsightTheme }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground">{theme.descriptionHebrew}</p>
+        <p className="text-sm text-muted-foreground">{theme.description}</p>
       </CardContent>
     </Card>
   )
@@ -407,22 +407,22 @@ function SystemSummary({ props }: { props: CrossSystemInsightsProps }) {
     <div className="flex flex-wrap gap-2 mb-4">
       {dreamspell && (
         <Badge variant="outline" className="text-xs">
-          קין {dreamspell.kin} • טון {dreamspell.tone}
+          Kin {dreamspell.kin} • Tone {dreamspell.tone}
         </Badge>
       )}
       {astrology && (
         <Badge variant="outline" className="text-xs">
-          {astrology.sunSignHebrew || astrology.sunSign}
+          {astrology.sunSign}
         </Badge>
       )}
       {humanDesign && (
         <Badge variant="outline" className="text-xs">
-          {humanDesign.typeHebrew || humanDesign.type}
+          {humanDesign.type}
         </Badge>
       )}
       {gematria && (
         <Badge variant="outline" className="text-xs">
-          גימטריה {gematria.standardValue}
+          Gematria {gematria.standardValue}
         </Badge>
       )}
     </div>
@@ -445,8 +445,8 @@ export function CrossSystemInsights(props: CrossSystemInsightsProps) {
   if (themes.length === 0) {
     return (
       <div className={cn('text-center text-muted-foreground py-6', className)}>
-        <p>אין מספיק נתונים להצגת תובנות בין-מערכתיות.</p>
-        <p className="text-xs mt-1">הוסף עוד מידע (שעת לידה, שם עברי) לקבלת תובנות נוספות.</p>
+        <p>Not enough data to display cross-system insights.</p>
+        <p className="text-xs mt-1">Add more information (birth time, Hebrew name) for additional insights.</p>
       </div>
     )
   }
@@ -463,7 +463,7 @@ export function CrossSystemInsights(props: CrossSystemInsightsProps) {
 
       {themes.length > 0 && (
         <p className="text-xs text-center text-muted-foreground mt-4">
-          נמצאו {themes.length} קשרים בין המערכות השונות
+          Found {themes.length} connections between different systems
         </p>
       )}
     </div>
@@ -485,7 +485,7 @@ export function CrossSystemInsightsMini(props: CrossSystemInsightsProps) {
     <div className="flex flex-wrap gap-1">
       {strongThemes.slice(0, 3).map((theme) => (
         <Badge key={theme.id} variant="secondary" className="text-xs">
-          {theme.titleHebrew}
+          {theme.title}
         </Badge>
       ))}
     </div>

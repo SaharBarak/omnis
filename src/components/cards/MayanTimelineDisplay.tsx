@@ -36,14 +36,14 @@ export function MayanTimelineDisplay({
     .slice(0, maxTunBirthdays)
 
   return (
-    <div className={cn('mayan-timeline-display', className)} dir="rtl">
+    <div className={cn('mayan-timeline-display', className)}>
       {/* Header */}
       <div className="text-center mb-4">
         <h3 className="text-lg font-semibold">
-          לוח זמנים מאיה / Mayan Timeline
+          Mayan Timeline (לוח זמנים מאיה)
         </h3>
         <p className="text-sm text-muted-foreground mt-1">
-          תאריכים מיוחדים בחייך
+          Special dates in your life
         </p>
       </div>
 
@@ -51,7 +51,7 @@ export function MayanTimelineDisplay({
       <div className="bg-primary/10 rounded-lg p-4 mb-4">
         <div className="text-center">
           <div className="text-sm text-muted-foreground mb-1">
-            לידה / Birth
+            Birth (לידה)
           </div>
           <div className="text-lg font-mono font-bold">
             {formatLongCount(dates.birth.longCount)}
@@ -70,8 +70,8 @@ export function MayanTimelineDisplay({
         <div className="mb-4">
           <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-            ימי הולדת טון / Tun Birthdays
-            <span className="text-xs text-muted-foreground font-normal">(כל 360 ימים)</span>
+            Tun Birthdays (ימי הולדת טון)
+            <span className="text-xs text-muted-foreground font-normal">(every 360 days)</span>
           </h4>
           <div className="space-y-2">
             {futureTunBirthdays.map((tun) => (
@@ -86,8 +86,8 @@ export function MayanTimelineDisplay({
         <div className="mb-4">
           <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-purple-500"></span>
-            ימי הולדת קאטון / K'atun Birthdays
-            <span className="text-xs text-muted-foreground font-normal">(~19.7 שנים)</span>
+            K'atun Birthdays (ימי הולדת קאטון)
+            <span className="text-xs text-muted-foreground font-normal">(~19.7 years)</span>
           </h4>
           <div className="space-y-2">
             {dates.katunBirthdays.map((katun) => (
@@ -102,8 +102,8 @@ export function MayanTimelineDisplay({
         <div className="mb-4">
           <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-amber-500"></span>
-            חזרת מעגל לוח השנה / Calendar Round Return
-            <span className="text-xs text-muted-foreground font-normal">(~52 שנים)</span>
+            Calendar Round Return (חזרת מעגל לוח השנה)
+            <span className="text-xs text-muted-foreground font-normal">(~52 years)</span>
           </h4>
           <CalendarRoundReturnCard crReturn={dates.nextCalendarRoundReturn} />
         </div>
@@ -126,14 +126,14 @@ function TunBirthdayCard({ tun }: TunBirthdayCardProps) {
     )}>
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium">
-          טון {tun.tunNumber}
+          Tun {tun.tunNumber}
         </span>
         <span className="text-xs text-muted-foreground">
           {formatLongCount(tun.longCount)}
         </span>
       </div>
       <div className="text-sm">
-        {formatDateHebrew(tun.gregorianDate)}
+        {formatDateEnglish(tun.gregorianDate)}
       </div>
     </div>
   )
@@ -152,14 +152,14 @@ function KatunBirthdayCard({ katun }: KatunBirthdayCardProps) {
       <div className="flex items-center justify-between">
         <div>
           <span className="text-sm font-semibold">
-            קאטון {katun.katunNumber}
+            K'atun {katun.katunNumber}
           </span>
-          <span className="text-xs text-muted-foreground mr-2">
-            (גיל ~{katun.ageAtKatun})
+          <span className="text-xs text-muted-foreground ml-2">
+            (age ~{katun.ageAtKatun})
           </span>
         </div>
         <div className="text-sm text-muted-foreground">
-          {katun.isFuture ? 'עתידי' : 'עבר'}
+          {katun.isFuture ? 'Future' : 'Past'}
         </div>
       </div>
       <div className="mt-1 flex items-center gap-2">
@@ -168,7 +168,7 @@ function KatunBirthdayCard({ katun }: KatunBirthdayCardProps) {
         </span>
         <span className="text-xs text-muted-foreground">•</span>
         <span className="text-sm">
-          {formatDateHebrew(katun.gregorianDate)}
+          {formatDateEnglish(katun.gregorianDate)}
         </span>
       </div>
     </div>
@@ -184,30 +184,30 @@ function CalendarRoundReturnCard({ crReturn }: CalendarRoundReturnCardProps) {
     <div className="p-3 rounded-lg border bg-amber-500/10 border-amber-500/30">
       <div className="text-center">
         <div className="text-sm font-medium">
-          בגיל {crReturn.yearsFromBirth} שנים
+          At age {crReturn.yearsFromBirth}
         </div>
         <div className="text-lg font-semibold mt-1">
-          {formatDateHebrew(crReturn.gregorianDate)}
+          {formatDateEnglish(crReturn.gregorianDate)}
         </div>
         <div className="text-xs font-mono text-muted-foreground mt-1">
           {formatLongCount(crReturn.longCount)}
         </div>
         <div className="text-xs text-muted-foreground mt-2">
-          אותו מעגל לוח שנה כמו יום הלידה
+          Same calendar round as birth date
         </div>
       </div>
     </div>
   )
 }
 
-// Helper to format date in Hebrew-friendly format
-function formatDateHebrew(dateStr: string): string {
+// Helper to format date in English format
+function formatDateEnglish(dateStr: string): string {
   const [year, month, day] = dateStr.split('-').map(Number)
-  const hebrewMonths = [
-    'ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
-    'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'
+  const englishMonths = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
   ]
-  return `${day} ב${hebrewMonths[month - 1]} ${year}`
+  return `${englishMonths[month - 1]} ${day}, ${year}`
 }
 
 // Historical dates display component
@@ -217,10 +217,10 @@ export interface HistoricalDatesDisplayProps {
 
 export function HistoricalDatesDisplay({ className = '' }: HistoricalDatesDisplayProps) {
   return (
-    <div className={cn('historical-dates-display', className)} dir="rtl">
+    <div className={cn('historical-dates-display', className)}>
       <div className="text-center mb-4">
         <h3 className="text-lg font-semibold">
-          תאריכים היסטוריים / Historical Dates
+          Historical Dates (תאריכים היסטוריים)
         </h3>
       </div>
 
@@ -232,14 +232,14 @@ export function HistoricalDatesDisplay({ className = '' }: HistoricalDatesDispla
           >
             <div className="flex items-center justify-between">
               <div className="text-sm font-semibold">
-                {date.significanceHebrew}
+                {date.significance}
               </div>
               <div className="text-xs text-muted-foreground">
                 {date.gregorian}
               </div>
             </div>
             <div className="mt-1 text-xs text-muted-foreground">
-              {date.significance}
+              ({date.significanceHebrew})
             </div>
             <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
               <div>
@@ -274,11 +274,11 @@ export function MayanTimelineMini({ birthDateStr, className = '' }: MayanTimelin
   const nextKatun = dates.katunBirthdays.find(k => k.isFuture)
 
   return (
-    <div className={cn('mayan-timeline-mini text-sm', className)} dir="rtl">
+    <div className={cn('mayan-timeline-mini text-sm', className)}>
       <div className="flex flex-wrap gap-3">
         {/* Birth Long Count */}
         <div className="flex items-center gap-1">
-          <span className="text-muted-foreground">לידה:</span>
+          <span className="text-muted-foreground">Birth:</span>
           <span className="font-mono text-xs">
             {formatLongCount(dates.birth.longCount)}
           </span>
@@ -288,7 +288,7 @@ export function MayanTimelineMini({ birthDateStr, className = '' }: MayanTimelin
         {nextTun && (
           <div className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-            <span className="text-muted-foreground">טון הבא:</span>
+            <span className="text-muted-foreground">Next Tun:</span>
             <span className="text-xs">{nextTun.gregorianDate}</span>
           </div>
         )}
@@ -297,7 +297,7 @@ export function MayanTimelineMini({ birthDateStr, className = '' }: MayanTimelin
         {nextKatun && (
           <div className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-            <span className="text-muted-foreground">קאטון הבא:</span>
+            <span className="text-muted-foreground">Next K'atun:</span>
             <span className="text-xs">{nextKatun.gregorianDate}</span>
           </div>
         )}
@@ -306,7 +306,7 @@ export function MayanTimelineMini({ birthDateStr, className = '' }: MayanTimelin
         {dates.nextCalendarRoundReturn && (
           <div className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-            <span className="text-muted-foreground">חזרת מעגל:</span>
+            <span className="text-muted-foreground">CR Return:</span>
             <span className="text-xs">{dates.nextCalendarRoundReturn.gregorianDate}</span>
           </div>
         )}
