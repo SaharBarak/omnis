@@ -1,5 +1,15 @@
+import { Metadata } from 'next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'Terms of Service | Omnis',
+  description: 'Terms of Service for Omnis - the personal symbolic mapping platform for Dreamspell, Human Design, Astrology, and Gematria.',
+  robots: {
+    index: true,
+    follow: true,
+  },
+}
 
 export default function TermsPage() {
   return (

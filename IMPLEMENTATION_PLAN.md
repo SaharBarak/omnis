@@ -1671,10 +1671,10 @@ See `specs/I18N_ENGLISH_FIRST.md` for detailed patterns:
 | 3 | Multi-System Expansion | 28 | COMPLETE | - |
 | 4 | Canvas Editor | 24 | COMPLETE | - |
 | **DS** | **Design System & UX** | **12** | **COMPLETE** | **CRITICAL** |
-| **LP** | **Landing Page & Animations** | **24** | **20/24 (83%)** | **CRITICAL** |
-| **AD** | **Authentic Data** | **9** | **1/9 (11%)** | **HIGH** |
+| **LP** | **Landing Page & Animations** | **24** | **22/24 (92%)** | **CRITICAL** |
+| **AD** | **Authentic Data** | **9** | **2/9 (22%)** | **HIGH** |
 | Polish | English-First UI | 9 components | **COMPLETE** | MEDIUM |
-| **TOTAL** | | **152** | **126/152 (83%)** |
+| **TOTAL** | | **152** | **128/152 (84%)** |
 
 **Core phases (MVP through Phase 4) are COMPLETE.**
 
@@ -1691,7 +1691,7 @@ See `specs/I18N_ENGLISH_FIRST.md` for detailed patterns:
    - ✅ LP.3 Animations: COMPLETE (scroll fade, floating card, shimmer, micro-interactions)
    - ✅ LP.4 Free Value Routes: COMPLETE (/today, /calculate, /learn/*, /compatibility)
    - ✅ LP.5 Email Infrastructure: COMPLETE (Resend integration, daily kin cron)
-   - ⬜ LP.6 Polish & Optimization: TODO (mobile responsiveness, SEO, Lighthouse)
+   - ⚠️ LP.6 Polish & Optimization: MOSTLY DONE (mobile ✅, SEO ✅, Lighthouse/Analytics pending)
 
 3. **Phase AD (Authentic Data)** - HIGH:
    - Replace template mantras with real 260 Dreamspell affirmations
@@ -1855,9 +1855,9 @@ Note: Animations already implemented in landing components (see exploration repo
 ### LP.6: Polish & Optimization
 
 ```
-[ ] LP.6.1 Mobile responsiveness (320px - 1920px)
+[x] LP.6.1 Mobile responsiveness (320px - 1920px) - DONE (Tailwind responsive classes throughout)
 [ ] LP.6.2 Performance optimization (target < 2s load)
-[ ] LP.6.3 SEO meta tags for all public pages
+[x] LP.6.3 SEO meta tags for all public pages - DONE (all 10 public pages have metadata)
 [ ] LP.6.4 Analytics integration
 [ ] LP.6.5 Lighthouse score optimization (target > 90)
 ```
@@ -1899,33 +1899,9 @@ Note: Animations already implemented in landing components (see exploration repo
 
 ## Priority 4: MEDIUM (Polish - English-First UI)
 
-### Polish.P1: Core Display Components (5)
+**Status:** ✅ COMPLETE - See "POLISH: English-First UI Translation" section above for detailed status.
 
-```
-[ ] HumanDesignDisplay.tsx - Swap Hebrew/English order
-[ ] AstrologyDisplay.tsx - Swap Hebrew/English order
-[ ] GematriaDisplay.tsx - Swap Hebrew/English order
-[ ] DreamspellSection.tsx - Swap "דרימספל / Dreamspell" to "Dreamspell (דרימספל)"
-[ ] TzolkinSection.tsx - Swap "צולקין / Tzolkin" to "Tzolkin (צולקין)"
-```
-
-### Polish.P2: Secondary Display Components (5)
-
-```
-[ ] LongCountDisplay.tsx - English-first labels
-[ ] MayanTimelineDisplay.tsx - English-first labels
-[ ] WavespellDisplay.tsx - English-first labels
-[ ] YearlyDisplay.tsx - English-first labels
-[ ] CrossSystemInsights.tsx - English-first data structure
-```
-
-### Polish.P3: Minor Display Components (3)
-
-```
-[ ] OracleMap.tsx - Already English-primary (verify only)
-[ ] MantraDisplay.tsx - No UI labels (verify only)
-[ ] CastleDisplay.tsx - English-first labels
-```
+All 9 display components have been updated to English-first pattern.
 
 ---
 
