@@ -5,6 +5,25 @@ export { generateMantra } from './mantras'
 export { TZOLKIN_SIGNS, getTzolkinSign } from './tzolkin-signs'
 export { TEST_PEOPLE } from './people'
 
+// Wavespell and Castle data
+export {
+  WAVESPELLS,
+  getWavespellData,
+  getWavespellBySeal,
+  getWavespellByKin,
+} from './wavespells'
+export type { WavespellData } from './wavespells'
+
+export {
+  CASTLES,
+  getCastleData,
+  getCastleByKin,
+  getCastleByWavespell,
+  getCastleColor,
+  getCastleWavespellNumbers,
+} from './castles'
+export type { CastleData, CastleColor } from './castles'
+
 // Phase 3.3: Astrology data
 export {
   ZODIAC_SIGNS,

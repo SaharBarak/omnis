@@ -1876,8 +1876,8 @@ Note: Animations already implemented in landing components (see exploration repo
 [ ] AD.2.1 Update src/lib/data/mantras.ts with 260 authentic mantras
 [ ] AD.2.2 Update src/lib/data/seals.ts with extended descriptions
 [ ] AD.2.3 Update src/lib/data/tones.ts with extended data
-[ ] AD.2.4 Create src/lib/data/wavespells.ts (20 entries)
-[ ] AD.2.5 Create src/lib/data/castles.ts (5 entries)
+[x] AD.2.4 Create src/lib/data/wavespells.ts (20 entries)
+[x] AD.2.5 Create src/lib/data/castles.ts (5 entries)
 ```
 
 ### AD.3: UI Updates
