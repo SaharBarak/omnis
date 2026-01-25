@@ -1421,17 +1421,225 @@ Move from "viewer" to "creator tool." Users can create boards with draggable nod
 ---
 ---
 
+# CRITICAL: Design System & UX Fixes
+
+> **Status:** TODO
+> **Created:** 2026-01-25
+> **Spec:** `specs/DESIGN_SYSTEM.md`
+> **Priority:** CRITICAL - Blocks usability
+
+## Critical Problems
+
+1. **No Birth Time/Place Input** - Database has fields, UI doesn't expose them
+2. **No Design System** - Inconsistent spacing, typography, colors
+3. **No Visual Hierarchy** - Everything looks the same weight
+4. **Dashboard is Empty** - No useful content, just 3 link cards
+
+---
+
+## Phase DS.1: Birth Data Input (CRITICAL)
+
+### Tasks
+
+- [ ] **DS.1.1** Create BirthTimeInput component
+  - Time picker (HH:MM)
+  - "Unknown" checkbox toggle
+  - Hint about why it matters
+
+- [ ] **DS.1.2** Create LocationPicker component
+  - City search autocomplete
+  - Extract lat/lng coordinates
+  - Auto-detect timezone
+  - Manual fallback option
+
+- [ ] **DS.1.3** Update PersonForm
+  - Add birth_time field
+  - Add birth_place section
+  - Show importance hints
+
+- [ ] **DS.1.4** Update use-people hook
+  - Save birth_time
+  - Save birth_place JSON
+
+### Definition of Done
+- [ ] Users can enter birth time
+- [ ] Users can search and select birth place
+- [ ] Coordinates are stored for calculations
+
+---
+
+## Phase DS.2: Design System Foundation
+
+### Tasks
+
+- [ ] **DS.2.1** Color system
+  - Dark mode cosmic palette
+  - Accent colors (gold, system colors)
+  - Update globals.css
+
+- [ ] **DS.2.2** Typography scale
+  - Add Cinzel font for headings
+  - Define text-xs through text-4xl
+  - Update tailwind.config
+
+- [ ] **DS.2.3** Component hierarchy
+  - Create HeroCard variant
+  - Create StatCard component
+  - Create CompactCard variant
+
+### Definition of Done
+- [ ] Consistent colors across app
+- [ ] Typography scale applied
+- [ ] Card variants available
+
+---
+
+## Phase DS.3: Dashboard Redesign
+
+### Tasks
+
+- [ ] **DS.3.1** Today's Kin Display
+  - Show current Dreamspell day
+  - Mantra, seal, tone
+  - Wavespell and castle info
+
+- [ ] **DS.3.2** Quick Stats
+  - People count
+  - Relationships count
+  - Groups count
+  - Boards count
+
+- [ ] **DS.3.3** User Profile Snapshot
+  - Show user's own Kin
+  - Today's oracle relationship
+  - Quick link to full profile
+
+- [ ] **DS.3.4** Recent Items
+  - Recent people added
+  - Upcoming galactic birthdays
+  - Recent boards
+
+### Definition of Done
+- [ ] Dashboard shows useful information
+- [ ] Today's energies visible immediately
+- [ ] Quick actions accessible
+
+---
+
+## Phase DS Progress Tracker
+
+| Phase | Status | Priority |
+|-------|--------|----------|
+| DS.1 Birth Data | ⬜ TODO | CRITICAL |
+| DS.2 Design System | ⬜ TODO | HIGH |
+| DS.3 Dashboard | ⬜ TODO | HIGH |
+
+---
+---
+
+# POLISH: English-First UI Translation
+
+> **Status:** IN PROGRESS
+> **Started:** 2026-01-25
+> **Spec:** `specs/I18N_ENGLISH_FIRST.md`
+
+## Goal
+
+Make English the primary display language across all UI components while preserving Hebrew as secondary. Pattern: `English (עברית)` instead of `עברית (English)`.
+
+---
+
+## Completed (Page-Level)
+
+These pages have been translated to English-first:
+
+| Page | File | Status |
+|------|------|--------|
+| People List | `src/app/app/people/page.tsx` | ✅ DONE |
+| Person Detail | `src/app/app/people/[id]/page.tsx` | ✅ DONE |
+| Relationships | `src/app/app/relationships/page.tsx` | ✅ DONE |
+| Groups | `src/app/app/groups/page.tsx` | ✅ DONE |
+| Boards | `src/app/app/boards/page.tsx` | ✅ DONE |
+| Graph | `src/app/app/graph/page.tsx` | ✅ DONE |
+| Dashboard | `src/app/app/page.tsx` | ✅ DONE |
+| Predictions | `src/app/app/predictions/page.tsx` | ✅ DONE |
+
+---
+
+## Pending (Display Components)
+
+### Priority 1 (Core Display)
+
+| Component | File | Status |
+|-----------|------|--------|
+| HumanDesignDisplay | `src/components/cards/HumanDesignDisplay.tsx` | ⬜ TODO |
+| AstrologyDisplay | `src/components/cards/AstrologyDisplay.tsx` | ⬜ TODO |
+| GematriaDisplay | `src/components/cards/GematriaDisplay.tsx` | ⬜ TODO |
+| DreamspellSection | `src/components/cards/DreamspellSection.tsx` | ⬜ TODO |
+| TzolkinSection | `src/components/cards/TzolkinSection.tsx` | ⬜ TODO |
+
+### Priority 2 (Secondary)
+
+| Component | File | Status |
+|-----------|------|--------|
+| LongCountDisplay | `src/components/cards/LongCountDisplay.tsx` | ⬜ TODO |
+| MayanTimelineDisplay | `src/components/cards/MayanTimelineDisplay.tsx` | ⬜ TODO |
+| WavespellDisplay | `src/components/cards/WavespellDisplay.tsx` | ⬜ TODO |
+| YearlyDisplay | `src/components/cards/YearlyDisplay.tsx` | ⬜ TODO |
+| CrossSystemInsights | `src/components/cards/CrossSystemInsights.tsx` | ⬜ TODO |
+
+### Priority 3 (Minor)
+
+| Component | File | Status |
+|-----------|------|--------|
+| OracleMap | `src/components/cards/OracleMap.tsx` | ⬜ TODO |
+| MantraDisplay | `src/components/cards/MantraDisplay.tsx` | ⬜ TODO |
+| CastleDisplay | `src/components/cards/CastleDisplay.tsx` | ⬜ TODO |
+
+---
+
+## Translation Patterns
+
+See `specs/I18N_ENGLISH_FIRST.md` for detailed patterns:
+
+1. **Swap Primary/Secondary Order** - English text first, Hebrew second
+2. **Bilingual Labels** - `Inner Authority` instead of `סמכות פנימית / Inner Authority`
+3. **Inline Values** - English value primary, Hebrew in parentheses
+4. **Remove RTL Direction** - Remove `dir="rtl"` from LTR-friendly components
+5. **Static Labels** - Translate all Hebrew-only labels to English
+
+---
+
+## Definition of Done
+
+- [ ] All P1 components translated to English-first
+- [ ] All P2 components translated to English-first
+- [ ] All P3 components translated to English-first
+- [ ] TypeScript compiles without errors
+- [ ] Visual review confirms English is primary
+- [ ] Hebrew still appears as secondary where appropriate
+
+---
+---
+
 # Full Roadmap Summary
 
-| Phase | Name | Tasks | Status |
-|-------|------|-------|--------|
-| MVP | React Card Components | 22 | COMPLETE |
-| 2 | Relationship Graph | 20 | COMPLETE (20/20) |
-| 3 | Multi-System Expansion | 28 | COMPLETE (28/28) |
-| 4 | Canvas Editor | 24 | COMPLETE (24/24) |
-| **TOTAL** | | **94** | **94/94 (100%)** |
+| Phase | Name | Tasks | Status | Priority |
+|-------|------|-------|--------|----------|
+| MVP | React Card Components | 22 | COMPLETE | - |
+| 2 | Relationship Graph | 20 | COMPLETE | - |
+| 3 | Multi-System Expansion | 28 | COMPLETE | - |
+| 4 | Canvas Editor | 24 | COMPLETE | - |
+| **DS** | **Design System & UX** | **12** | **TODO** | **CRITICAL** |
+| Polish | English-First UI | 13 components | TODO | HIGH |
+| **TOTAL** | | **119** | **94/119 (79%)** |
 
-**All planned phases (MVP through Phase 4) are now COMPLETE!**
+**Core phases (MVP through Phase 4) are COMPLETE.**
+
+**NEXT PRIORITY: Phase DS (Design System) - Critical UX blockers:**
+- Birth time/place input missing (blocks Human Design & Astrology)
+- Dashboard is empty/useless
+- No visual hierarchy or design system
 
 **Future Phases (not detailed):**
 - Phase 5: Predictions + Time-Based Intelligence
