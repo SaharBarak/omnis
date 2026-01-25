@@ -135,17 +135,17 @@ function PersonDetails({
 
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">
-              תאריך לידה: {new Date(person.birth_date).toLocaleDateString('he-IL')}
+              Birth Date: {new Date(person.birth_date).toLocaleDateString('en-US')}
             </p>
             <p className="text-sm">
-              <span className="font-medium">קין {kin}: </span>
+              <span className="font-medium">Kin {kin}: </span>
               <span>{tone.name} {seal.english}</span>
             </p>
           </div>
 
           {personRelationships.length > 0 && (
             <div className="space-y-2">
-              <h4 className="font-medium">קשרים ({personRelationships.length})</h4>
+              <h4 className="font-medium">Relationships ({personRelationships.length})</h4>
               <div className="space-y-1">
                 {personRelationships.map(rel => {
                   const otherPerson = rel.person1_id === person.id ? rel.person2 : rel.person1
@@ -160,7 +160,7 @@ function PersonDetails({
                         className="text-xs"
                         style={{ backgroundColor: typeInfo.color + '20', color: typeInfo.color }}
                       >
-                        {typeInfo.labelHebrew}
+                        {typeInfo.label}
                       </Badge>
                       <span>{otherPerson.name}</span>
                     </div>
@@ -271,7 +271,7 @@ export default function GraphPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">טוען...</div>
+        <div className="text-center">Loading...</div>
       </div>
     )
   }
@@ -282,9 +282,9 @@ export default function GraphPage() {
     <div className="space-y-4 h-[calc(100vh-8rem)]">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">מפת קשרים</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Relationship Map</h1>
           <p className="text-muted-foreground">
-            {people.length} אנשים, {relationships.length} קשרים
+            {people.length} people, {relationships.length} relationships
           </p>
         </div>
 
@@ -309,7 +309,7 @@ export default function GraphPage() {
           className="cursor-pointer"
           onClick={() => setFilterType(null)}
         >
-          הכל
+          All
         </Badge>
         {(Object.entries(RELATIONSHIP_TYPE_LABELS) as [RelationshipType, typeof RELATIONSHIP_TYPE_LABELS[RelationshipType]][]).map(([type, info]) => (
           <Badge
@@ -325,7 +325,7 @@ export default function GraphPage() {
             }}
             onClick={() => setFilterType(filterType === type ? null : type)}
           >
-            {info.labelHebrew}
+            {info.label}
           </Badge>
         ))}
       </div>
@@ -341,16 +341,16 @@ export default function GraphPage() {
             <CardContent className="flex flex-col items-center justify-center h-full">
               <p className="text-muted-foreground mb-4 text-center">
                 {people.length === 0
-                  ? 'הוסף אנשים כדי לראות את מפת הקשרים'
-                  : 'צור קשרים בין אנשים כדי לראות את המפה'}
+                  ? 'Add people to see the relationship map'
+                  : 'Create relationships between people to see the map'}
               </p>
               {people.length === 0 ? (
                 <Button onClick={() => window.location.href = '/app/people'}>
-                  + הוסף אנשים
+                  + Add People
                 </Button>
               ) : (
                 <Button onClick={() => window.location.href = '/app/relationships'}>
-                  + צור קשרים
+                  + Create Relationships
                 </Button>
               )}
             </CardContent>

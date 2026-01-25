@@ -57,13 +57,13 @@ function RelationshipCard({
               variant="secondary"
               style={{ backgroundColor: typeInfo.color + '20', color: typeInfo.color }}
             >
-              {typeInfo.labelHebrew}
+              {typeInfo.label}
             </Badge>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
-                <span className="sr-only">תפריט</span>
+                <span className="sr-only">Menu</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="1" />
                   <circle cx="12" cy="5" r="1" />
@@ -73,13 +73,13 @@ function RelationshipCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               <DropdownMenuItem onClick={() => onEdit(relationship)}>
-                ערוך
+                Edit
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-destructive"
                 onClick={() => onDelete(relationship.id)}
               >
-                מחק
+                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -90,12 +90,12 @@ function RelationshipCard({
           <div className="text-sm text-muted-foreground">
             {RELATIONSHIP_SUBTYPES[relationship.type as RelationshipType]?.find(
               s => s.value === relationship.subtype
-            )?.labelHebrew || relationship.subtype}
+            )?.label || relationship.subtype}
           </div>
         )}
 
         <div className="flex items-center gap-1">
-          <span className="text-sm text-muted-foreground">עוצמה:</span>
+          <span className="text-sm text-muted-foreground">Strength:</span>
           <div className="flex gap-0.5">
             {[1, 2, 3, 4, 5].map((level) => (
               <div
@@ -109,13 +109,13 @@ function RelationshipCard({
             ))}
           </div>
           <span className="text-xs text-muted-foreground mr-1">
-            ({strengthInfo.labelHebrew})
+            ({strengthInfo.label})
           </span>
         </div>
 
         {!relationship.bidirectional && (
           <Badge variant="outline" className="text-xs">
-            חד-כיווני
+            One-way
           </Badge>
         )}
 
@@ -171,7 +171,7 @@ function RelationshipForm({
     setError(null)
 
     if (formData.person1Id === formData.person2Id) {
-      setError('יש לבחור שני אנשים שונים')
+      setError('Please select two different people')
       setLoading(false)
       return
     }
@@ -189,7 +189,7 @@ function RelationshipForm({
         notes: formData.notes || undefined,
       })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'שגיאה בשמירה')
+      setError(err instanceof Error ? err.message : 'Error saving')
     } finally {
       setLoading(false)
     }
@@ -199,7 +199,7 @@ function RelationshipForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Person 1 */}
       <div className="space-y-2">
-        <Label htmlFor="person1">אדם 1 *</Label>
+        <Label htmlFor="person1">Person 1 *</Label>
         <select
           id="person1"
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
@@ -207,7 +207,7 @@ function RelationshipForm({
           onChange={(e) => setFormData(prev => ({ ...prev, person1Id: e.target.value }))}
           required
         >
-          <option value="">בחר אדם...</option>
+          <option value="">Select a person...</option>
           {people.map(person => (
             <option key={person.id} value={person.id}>
               {person.name}
@@ -218,7 +218,7 @@ function RelationshipForm({
 
       {/* Person 2 */}
       <div className="space-y-2">
-        <Label htmlFor="person2">אדם 2 *</Label>
+        <Label htmlFor="person2">Person 2 *</Label>
         <select
           id="person2"
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
@@ -226,7 +226,7 @@ function RelationshipForm({
           onChange={(e) => setFormData(prev => ({ ...prev, person2Id: e.target.value }))}
           required
         >
-          <option value="">בחר אדם...</option>
+          <option value="">Select a person...</option>
           {people
             .filter(p => p.id !== formData.person1Id)
             .map(person => (
@@ -239,7 +239,7 @@ function RelationshipForm({
 
       {/* Relationship Type */}
       <div className="space-y-2">
-        <Label>סוג קשר *</Label>
+        <Label>Relationship Type *</Label>
         <div className="flex flex-wrap gap-2">
           {(Object.entries(RELATIONSHIP_TYPE_LABELS) as [RelationshipType, typeof RELATIONSHIP_TYPE_LABELS[RelationshipType]][]).map(([type, info]) => (
             <Badge
@@ -255,7 +255,7 @@ function RelationshipForm({
               }}
               onClick={() => setFormData(prev => ({ ...prev, type, subtype: '' }))}
             >
-              {info.labelHebrew}
+              {info.label}
             </Badge>
           ))}
         </div>
@@ -264,17 +264,17 @@ function RelationshipForm({
       {/* Subtype */}
       {availableSubtypes.length > 0 && (
         <div className="space-y-2">
-          <Label htmlFor="subtype">תת-סוג</Label>
+          <Label htmlFor="subtype">Subtype</Label>
           <select
             id="subtype"
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             value={formData.subtype}
             onChange={(e) => setFormData(prev => ({ ...prev, subtype: e.target.value }))}
           >
-            <option value="">בחר תת-סוג (אופציונלי)</option>
+            <option value="">Select subtype (optional)</option>
             {availableSubtypes.map(subtype => (
               <option key={subtype.value} value={subtype.value}>
-                {subtype.labelHebrew}
+                {subtype.label}
               </option>
             ))}
           </select>
@@ -283,7 +283,7 @@ function RelationshipForm({
 
       {/* Strength */}
       <div className="space-y-2">
-        <Label>עוצמת הקשר</Label>
+        <Label>Relationship Strength</Label>
         <div className="flex items-center gap-4">
           <div className="flex gap-1">
             {([1, 2, 3, 4, 5] as const).map((level) => (
@@ -300,7 +300,7 @@ function RelationshipForm({
             ))}
           </div>
           <span className="text-sm text-muted-foreground">
-            {STRENGTH_LABELS[formData.strength as 1 | 2 | 3 | 4 | 5].labelHebrew}
+            {STRENGTH_LABELS[formData.strength as 1 | 2 | 3 | 4 | 5].label}
           </span>
         </div>
       </div>
@@ -315,13 +315,13 @@ function RelationshipForm({
           className="rounded border-input"
         />
         <Label htmlFor="bidirectional" className="font-normal">
-          קשר דו-כיווני (שני הצדדים רואים את הקשר)
+          Bidirectional relationship (both sides see the relationship)
         </Label>
       </div>
 
       {/* Start Date */}
       <div className="space-y-2">
-        <Label htmlFor="startDate">תאריך התחלה</Label>
+        <Label htmlFor="startDate">Start Date</Label>
         <Input
           id="startDate"
           type="date"
@@ -333,12 +333,12 @@ function RelationshipForm({
 
       {/* Notes */}
       <div className="space-y-2">
-        <Label htmlFor="notes">הערות</Label>
+        <Label htmlFor="notes">Notes</Label>
         <Input
           id="notes"
           value={formData.notes}
           onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-          placeholder="הערות (אופציונלי)"
+          placeholder="Notes (optional)"
         />
       </div>
 
@@ -348,10 +348,10 @@ function RelationshipForm({
 
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>
-          ביטול
+          Cancel
         </Button>
         <Button type="submit" disabled={loading}>
-          {loading ? 'שומר...' : relationship ? 'עדכן' : 'הוסף'}
+          {loading ? 'Saving...' : relationship ? 'Update' : 'Add'}
         </Button>
       </div>
     </form>
@@ -424,12 +424,12 @@ export default function RelationshipsPage() {
   }
 
   const handleDeleteRelationship = async (id: string) => {
-    if (confirm('האם למחוק את הקשר הזה?')) {
+    if (confirm('Are you sure you want to delete this relationship?')) {
       setDeleteError(null)
       try {
         await deleteRelationship(id)
       } catch (err) {
-        setDeleteError(err instanceof Error ? err.message : 'שגיאה במחיקה')
+        setDeleteError(err instanceof Error ? err.message : 'Error deleting')
       }
     }
   }
@@ -437,7 +437,7 @@ export default function RelationshipsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">טוען...</div>
+        <div className="text-center">Loading...</div>
       </div>
     )
   }
@@ -457,23 +457,23 @@ export default function RelationshipsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">קשרים</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Relationships</h1>
           <p className="text-muted-foreground">
-            {relationships.length} קשרים
+            {relationships.length} relationships
           </p>
         </div>
 
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button disabled={!canAddRelationship}>
-              + הוסף קשר
+              + Add Relationship
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>הוסף קשר חדש</DialogTitle>
+              <DialogTitle>Add New Relationship</DialogTitle>
               <DialogDescription>
-                צור קשר בין שני אנשים
+                Create a relationship between two people
               </DialogDescription>
             </DialogHeader>
             <RelationshipForm
@@ -487,7 +487,7 @@ export default function RelationshipsPage() {
 
       {!canAddRelationship && (
         <div className="p-4 text-sm text-amber-600 bg-amber-50 dark:bg-amber-900/20 rounded-md">
-          יש להוסיף לפחות 2 אנשים לפני שניתן ליצור קשרים
+          You need to add at least 2 people before you can create relationships
         </div>
       )}
 
@@ -500,7 +500,7 @@ export default function RelationshipsPage() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <Input
-          placeholder="חיפוש לפי שם..."
+          placeholder="Search by name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="sm:max-w-xs"
@@ -511,7 +511,7 @@ export default function RelationshipsPage() {
             className="cursor-pointer"
             onClick={() => setSelectedType(null)}
           >
-            הכל
+            All
           </Badge>
           {(Object.entries(RELATIONSHIP_TYPE_LABELS) as [RelationshipType, typeof RELATIONSHIP_TYPE_LABELS[RelationshipType]][]).map(([type, info]) => (
             <Badge
@@ -527,7 +527,7 @@ export default function RelationshipsPage() {
               }}
               onClick={() => setSelectedType(selectedType === type ? null : type)}
             >
-              {info.labelHebrew}
+              {info.label}
             </Badge>
           ))}
         </div>
@@ -538,11 +538,11 @@ export default function RelationshipsPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <p className="text-muted-foreground mb-4">
-              {search || selectedType ? 'לא נמצאו תוצאות' : 'עדיין לא יצרת קשרים'}
+              {search || selectedType ? 'No results found' : 'You haven\'t created any relationships yet'}
             </p>
             {!search && !selectedType && canAddRelationship && (
               <Button onClick={() => setIsAddDialogOpen(true)}>
-                + צור קשר ראשון
+                + Create First Relationship
               </Button>
             )}
           </CardContent>
@@ -567,9 +567,9 @@ export default function RelationshipsPage() {
       }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>עריכת קשר</DialogTitle>
+            <DialogTitle>Edit Relationship</DialogTitle>
             <DialogDescription>
-              עדכן את פרטי הקשר
+              Update the relationship details
             </DialogDescription>
           </DialogHeader>
           {editingRelationship && (

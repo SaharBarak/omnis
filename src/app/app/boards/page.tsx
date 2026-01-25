@@ -58,7 +58,7 @@ export default function BoardsPage() {
   }
 
   const handleDeleteBoard = async (id: string) => {
-    if (!confirm('האם למחוק את הלוח?')) return
+    if (!confirm('Are you sure you want to delete this board?')) return
     try {
       await deleteBoard(id)
     } catch (err) {
@@ -68,7 +68,7 @@ export default function BoardsPage() {
 
   const handleDuplicateBoard = async (id: string, name: string) => {
     try {
-      await duplicateBoard(id, `${name} (העתק)`)
+      await duplicateBoard(id, `${name} (Copy)`)
     } catch (err) {
       console.error('Error duplicating board:', err)
     }
@@ -88,7 +88,7 @@ export default function BoardsPage() {
     return (
       <div className="p-6">
         <div className="text-center text-destructive">
-          <p>שגיאה בטעינת הלוחות</p>
+          <p>Error loading boards</p>
           <p className="text-sm">{error}</p>
         </div>
       </div>
@@ -100,32 +100,32 @@ export default function BoardsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold" dir="rtl">לוחות</h1>
-          <p className="text-muted-foreground" dir="rtl">
-            צור וערוך לוחות ויזואליים
+          <h1 className="text-2xl font-bold">Boards</h1>
+          <p className="text-muted-foreground">
+            Create and edit visual boards
           </p>
         </div>
 
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
             <Button>
-              <Plus className="h-4 w-4 ml-2" />
-              לוח חדש
+              <Plus className="h-4 w-4 mr-2" />
+              New Board
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-lg" dir="rtl">
+          <DialogContent className="sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle>יצירת לוח חדש</DialogTitle>
+              <DialogTitle>Create New Board</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 mt-4">
               {/* Board name */}
               <div className="space-y-2">
-                <Label>שם הלוח</Label>
+                <Label>Board Name</Label>
                 <input
                   type="text"
                   value={newBoardName}
                   onChange={(e) => setNewBoardName(e.target.value)}
-                  placeholder="לוח חדש"
+                  placeholder="New Board"
                   className="w-full px-3 py-2 border rounded-md"
                   autoFocus
                 />
@@ -133,7 +133,7 @@ export default function BoardsPage() {
 
               {/* Template selection */}
               <div className="space-y-2">
-                <Label>תבנית</Label>
+                <Label>Template</Label>
                 <div className="grid grid-cols-2 gap-2">
                   {(Object.entries(BOARD_TEMPLATES) as [BoardTemplate, typeof BOARD_TEMPLATES[BoardTemplate]][]).map(
                     ([key, template]) => (
@@ -141,7 +141,7 @@ export default function BoardsPage() {
                         key={key}
                         type="button"
                         className={`
-                          p-3 border rounded-lg text-right transition-all
+                          p-3 border rounded-lg text-left transition-all
                           ${selectedTemplate === key
                             ? 'border-primary bg-primary/5 ring-1 ring-primary'
                             : 'hover:border-primary/50'
@@ -151,10 +151,10 @@ export default function BoardsPage() {
                       >
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-xl">{template.icon}</span>
-                          <span className="font-medium text-sm">{template.nameHebrew}</span>
+                          <span className="font-medium text-sm">{template.name}</span>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          {template.descriptionHebrew}
+                          {template.description}
                         </p>
                       </button>
                     )
@@ -168,13 +168,13 @@ export default function BoardsPage() {
                   variant="outline"
                   onClick={() => setIsCreateOpen(false)}
                 >
-                  ביטול
+                  Cancel
                 </Button>
                 <Button
                   onClick={handleCreateBoard}
                   disabled={!newBoardName.trim() || isCreating}
                 >
-                  {isCreating ? 'יוצר...' : 'צור לוח'}
+                  {isCreating ? 'Creating...' : 'Create Board'}
                 </Button>
               </div>
             </div>
@@ -186,13 +186,13 @@ export default function BoardsPage() {
       {boards.length === 0 ? (
         <div className="text-center py-16">
           <LayoutTemplate className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2" dir="rtl">אין לוחות עדיין</h3>
-          <p className="text-muted-foreground mb-4" dir="rtl">
-            צור לוח חדש כדי להתחיל לעבוד
+          <h3 className="text-lg font-medium mb-2">No boards yet</h3>
+          <p className="text-muted-foreground mb-4">
+            Create a new board to get started
           </p>
           <Button onClick={() => setIsCreateOpen(true)}>
-            <Plus className="h-4 w-4 ml-2" />
-            צור לוח ראשון
+            <Plus className="h-4 w-4 mr-2" />
+            Create First Board
           </Button>
         </div>
       ) : (
@@ -244,9 +244,9 @@ function BoardCard({ board, onDelete, onDuplicate }: BoardCardProps) {
       <div className="p-4">
         <div className="flex items-start justify-between">
           <Link href={`/boards/${board.id}`} className="flex-1 min-w-0">
-            <h3 className="font-medium truncate" dir="rtl">{board.name}</h3>
+            <h3 className="font-medium truncate">{board.name}</h3>
             {board.description && (
-              <p className="text-sm text-muted-foreground line-clamp-2 mt-1" dir="rtl">
+              <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
                 {board.description}
               </p>
             )}
@@ -266,25 +266,25 @@ function BoardCard({ board, onDelete, onDuplicate }: BoardCardProps) {
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
                 <Link href={`/boards/${board.id}`} className="flex items-center">
-                  <Pencil className="h-4 w-4 ml-2" />
-                  ערוך
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Edit
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onDuplicate}>
-                <Copy className="h-4 w-4 ml-2" />
-                שכפל
+                <Copy className="h-4 w-4 mr-2" />
+                Duplicate
               </DropdownMenuItem>
               <DropdownMenuItem disabled>
-                <Share2 className="h-4 w-4 ml-2" />
-                שתף
+                <Share2 className="h-4 w-4 mr-2" />
+                Share
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={onDelete}
                 className="text-destructive focus:text-destructive"
               >
-                <Trash2 className="h-4 w-4 ml-2" />
-                מחק
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -295,12 +295,12 @@ function BoardCard({ board, onDelete, onDuplicate }: BoardCardProps) {
           {template && (
             <span className="flex items-center gap-1">
               {template.icon}
-              {template.nameHebrew}
+              {template.name}
             </span>
           )}
           <span className="text-muted-foreground/50">•</span>
           <span>
-            {new Date(board.updated_at).toLocaleDateString('he-IL')}
+            {new Date(board.updated_at).toLocaleDateString('en-US')}
           </span>
         </div>
       </div>

@@ -85,7 +85,7 @@ export default function PersonDetailPage() {
         .single()
 
       if (personError || !personData) {
-        setError('לא נמצא אדם')
+        setError('Person not found')
         setLoading(false)
         return
       }
@@ -117,7 +117,7 @@ export default function PersonDetailPage() {
   if (loading || prefsLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">טוען...</div>
+        <div className="text-center">Loading...</div>
       </div>
     )
   }
@@ -125,9 +125,9 @@ export default function PersonDetailPage() {
   if (error || !person) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <div className="text-center text-destructive">{error || 'לא נמצא אדם'}</div>
+        <div className="text-center text-destructive">{error || 'Person not found'}</div>
         <Button variant="outline" onClick={() => router.push('/app/people')}>
-          חזרה לרשימה
+          Back to List
         </Button>
       </div>
     )

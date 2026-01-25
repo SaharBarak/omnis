@@ -58,7 +58,7 @@ function GroupCard({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
-                <span className="sr-only">תפריט</span>
+                <span className="sr-only">Menu</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="1" />
                   <circle cx="12" cy="5" r="1" />
@@ -68,22 +68,22 @@ function GroupCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               <DropdownMenuItem onClick={() => onViewMembers(group)}>
-                צפה בחברים
+                View Members
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onAnalyze(group)}>
-                ניתוח קבוצתי
+                Group Analysis
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onShare(group)}>
-                שתף
+                Share
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit(group)}>
-                ערוך
+                Edit
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-destructive"
                 onClick={() => onDelete(group.id)}
               >
-                מחק
+                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -91,7 +91,7 @@ function GroupCard({
       </CardHeader>
       <CardContent onClick={() => onViewMembers(group)}>
         <Badge variant="secondary">
-          {memberCount} חברים
+          {memberCount} members
         </Badge>
       </CardContent>
     </Card>
@@ -133,7 +133,7 @@ function GroupForm({
         memberIds: formData.memberIds,
       })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'שגיאה בשמירה')
+      setError(err instanceof Error ? err.message : 'Error saving')
     } finally {
       setLoading(false)
     }
@@ -151,32 +151,32 @@ function GroupForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="name">שם הקבוצה *</Label>
+        <Label htmlFor="name">Group Name *</Label>
         <Input
           id="name"
           value={formData.name}
           onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
           required
-          placeholder="לדוגמה: משפחה גרעינית, חברים"
+          placeholder="e.g., Nuclear Family, Friends"
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">תיאור</Label>
+        <Label htmlFor="description">Description</Label>
         <Input
           id="description"
           value={formData.description}
           onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-          placeholder="תיאור קצר של הקבוצה (אופציונלי)"
+          placeholder="Short description of the group (optional)"
         />
       </div>
 
       <div className="space-y-2">
-        <Label>חברי הקבוצה</Label>
+        <Label>Group Members</Label>
         <div className="max-h-48 overflow-y-auto border rounded-md p-2">
           {people.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
-              עדיין לא הוספת אנשים
+              You haven&apos;t added any people yet
             </p>
           ) : (
             <div className="space-y-1">
@@ -203,7 +203,7 @@ function GroupForm({
           )}
         </div>
         <p className="text-xs text-muted-foreground">
-          נבחרו {formData.memberIds.length} אנשים
+          {formData.memberIds.length} people selected
         </p>
       </div>
 
@@ -213,10 +213,10 @@ function GroupForm({
 
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>
-          ביטול
+          Cancel
         </Button>
         <Button type="submit" disabled={loading}>
-          {loading ? 'שומר...' : group ? 'עדכן' : 'צור קבוצה'}
+          {loading ? 'Saving...' : group ? 'Update' : 'Create Group'}
         </Button>
       </div>
     </form>
@@ -262,10 +262,10 @@ function GroupMembersView({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-medium">חברי הקבוצה ({members.length})</h3>
+        <h3 className="font-medium">Group Members ({members.length})</h3>
         {!isEditing && (
           <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-            ערוך חברים
+            Edit Members
           </Button>
         )}
       </div>
@@ -297,10 +297,10 @@ function GroupMembersView({
                 setSelectedIds(members.map(m => m.id))
               }}
             >
-              ביטול
+              Cancel
             </Button>
             <Button size="sm" onClick={handleSave} disabled={loading}>
-              {loading ? 'שומר...' : 'שמור'}
+              {loading ? 'Saving...' : 'Save'}
             </Button>
           </div>
         </>
@@ -308,7 +308,7 @@ function GroupMembersView({
         <div className="space-y-1">
           {members.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
-              אין חברים בקבוצה
+              No members in this group
             </p>
           ) : (
             members.map(member => (
@@ -333,7 +333,7 @@ function GroupMembersView({
 
       <div className="flex justify-end">
         <Button variant="outline" onClick={onClose}>
-          סגור
+          Close
         </Button>
       </div>
     </div>
@@ -448,12 +448,12 @@ export default function GroupsPage() {
   }
 
   const handleDeleteGroup = async (id: string) => {
-    if (confirm('האם למחוק את הקבוצה הזו?')) {
+    if (confirm('Are you sure you want to delete this group?')) {
       setDeleteError(null)
       try {
         await deleteGroup(id)
       } catch (err) {
-        setDeleteError(err instanceof Error ? err.message : 'שגיאה במחיקה')
+        setDeleteError(err instanceof Error ? err.message : 'Error deleting')
       }
     }
   }
@@ -461,7 +461,7 @@ export default function GroupsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">טוען...</div>
+        <div className="text-center">Loading...</div>
       </div>
     )
   }
@@ -478,21 +478,21 @@ export default function GroupsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">קבוצות</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Groups</h1>
           <p className="text-muted-foreground">
-            {groups.length} קבוצות
+            {groups.length} groups
           </p>
         </div>
 
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button>+ צור קבוצה</Button>
+            <Button>+ Create Group</Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>צור קבוצה חדשה</DialogTitle>
+              <DialogTitle>Create New Group</DialogTitle>
               <DialogDescription>
-                צור קבוצה של אנשים לניתוח קבוצתי
+                Create a group of people for group analysis
               </DialogDescription>
             </DialogHeader>
             <GroupForm
@@ -512,7 +512,7 @@ export default function GroupsPage() {
 
       {/* Search */}
       <Input
-        placeholder="חיפוש קבוצה..."
+        placeholder="Search groups..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="max-w-xs"
@@ -523,11 +523,11 @@ export default function GroupsPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <p className="text-muted-foreground mb-4">
-              {search ? 'לא נמצאו תוצאות' : 'עדיין לא יצרת קבוצות'}
+              {search ? 'No results found' : 'You haven\'t created any groups yet'}
             </p>
             {!search && (
               <Button onClick={() => setIsAddDialogOpen(true)}>
-                + צור קבוצה ראשונה
+                + Create First Group
               </Button>
             )}
           </CardContent>
@@ -556,9 +556,9 @@ export default function GroupsPage() {
       }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>עריכת קבוצה</DialogTitle>
+            <DialogTitle>Edit Group</DialogTitle>
             <DialogDescription>
-              עדכן את פרטי הקבוצה
+              Update the group details
             </DialogDescription>
           </DialogHeader>
           {editingGroup && (
