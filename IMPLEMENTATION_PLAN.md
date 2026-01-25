@@ -1631,9 +1631,10 @@ See `specs/I18N_ENGLISH_FIRST.md` for detailed patterns:
 | 3 | Multi-System Expansion | 28 | COMPLETE | - |
 | 4 | Canvas Editor | 24 | COMPLETE | - |
 | **DS** | **Design System & UX** | **12** | **TODO** | **CRITICAL** |
+| **LP** | **Landing Page & Animations** | **15** | **TODO** | **CRITICAL** |
 | **AD** | **Authentic Data** | **9** | **TODO** | **HIGH** |
 | Polish | English-First UI | 13 components | TODO | MEDIUM |
-| **TOTAL** | | **128** | **94/128 (73%)** |
+| **TOTAL** | | **143** | **94/143 (66%)** |
 
 **Core phases (MVP through Phase 4) are COMPLETE.**
 
@@ -1644,7 +1645,13 @@ See `specs/I18N_ENGLISH_FIRST.md` for detailed patterns:
    - Dashboard is empty/useless
    - No visual hierarchy or design system
 
-2. **Phase AD (Authentic Data)** - HIGH:
+2. **Phase LP (Landing Page)** - CRITICAL for conversion:
+   - High-converting landing page with animations
+   - Free value pages (/today, /calculate, /learn)
+   - Content-first funnel: free knowledge → email → account → paid
+   - Modern vanilla JS animations (no heavy libs)
+
+3. **Phase AD (Authentic Data)** - HIGH:
    - Replace template mantras with real 260 Dreamspell affirmations
    - Scrape authentic kin data from lawoftime.org
    - Add wavespell and castle descriptions
