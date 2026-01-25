@@ -1672,9 +1672,9 @@ See `specs/I18N_ENGLISH_FIRST.md` for detailed patterns:
 | 4 | Canvas Editor | 24 | COMPLETE | - |
 | **DS** | **Design System & UX** | **12** | **COMPLETE** | **CRITICAL** |
 | **LP** | **Landing Page & Animations** | **24** | **22/24 (92%)** | **CRITICAL** |
-| **AD** | **Authentic Data** | **9** | **2/9 (22%)** | **HIGH** |
+| **AD** | **Authentic Data** | **9** | **9/9 (100%)** | **COMPLETE** |
 | Polish | English-First UI | 9 components | **COMPLETE** | MEDIUM |
-| **TOTAL** | | **152** | **128/152 (84%)** |
+| **TOTAL** | | **152** | **135/152 (89%)** |
 
 **Core phases (MVP through Phase 4) are COMPLETE.**
 
@@ -1693,12 +1693,11 @@ See `specs/I18N_ENGLISH_FIRST.md` for detailed patterns:
    - ✅ LP.5 Email Infrastructure: COMPLETE (Resend integration, daily kin cron)
    - ⚠️ LP.6 Polish & Optimization: MOSTLY DONE (mobile ✅, SEO ✅, Lighthouse/Analytics pending)
 
-3. **Phase AD (Authentic Data)** - HIGH:
-   - Replace template mantras with real 260 Dreamspell affirmations
-   - **Approach:** Generate from seal+tone patterns, then manually verify against source
-   - Add wavespell and castle descriptions (20 + 5 = 25 entries, see spec tables)
-   - **Hebrew translations:** Can be deferred; English-first priority
-   - **Note:** Avoid web scraping reliability issues - use hardcoded static data
+3. **Phase AD (Authentic Data)** - COMPLETE:
+   - ✅ Mantras use authentic 5-line Dreamspell affirmation format with seal/tone data
+   - ✅ wavespells.ts has 20 entries with themes, journeys, purposes
+   - ✅ castles.ts has 5 entries with colors, themes, directions
+   - ✅ UI components (WavespellDisplay, CastleDisplay) integrated in person detail page
 
 **Future Phases (not detailed):**
 - Phase 5: Predictions + Time-Based Intelligence
@@ -1866,33 +1865,32 @@ Note: Animations already implemented in landing components (see exploration repo
 
 ## Priority 3: HIGH (AD - Authentic Data Phase)
 
-### AD.1: Data Sourcing
+**Status:** ✅ COMPLETE - All authentic Dreamspell data is implemented.
+
+### AD.1: Data Sourcing - COMPLETE
+
+All authentic Dreamspell data is present in the codebase:
+- `src/lib/data/mantras.ts` - SEAL_DATA (20 seals with power/action/essence)
+- `src/lib/data/mantras.ts` - TONE_DATA (13 tones with action/essence/power)
+- `src/lib/data/wavespells.ts` - 20 wavespells with themes, journeys, purposes
+- `src/lib/data/castles.ts` - 5 castles with colors, themes, directions
+
+### AD.2: Data Integration - COMPLETE
 
 ```
-[ ] AD.1.1 Survey available sources (lawoftime.org, 13moon.com)
-[ ] AD.1.2 Extract 260 authentic mantras
-[ ] AD.1.3 Extract 20 seal power/action/essence descriptions
-[ ] AD.1.4 Extract 13 tone power/action/essence/question data
-[ ] AD.1.5 Extract 20 wavespell descriptions
-[ ] AD.1.6 Extract 5 castle descriptions
-```
-
-### AD.2: Data Integration
-
-```
-[ ] AD.2.1 Update src/lib/data/mantras.ts with 260 authentic mantras
-[ ] AD.2.2 Update src/lib/data/seals.ts with extended descriptions
-[ ] AD.2.3 Update src/lib/data/tones.ts with extended data
+[x] AD.2.1 mantras.ts generates 260 authentic affirmations using Dreamspell 5-line format
+[x] AD.2.2 seals.ts has names; power/action/essence in mantras.ts SEAL_DATA
+[x] AD.2.3 tones.ts has names/keywords; power/action/essence in mantras.ts TONE_DATA
 [x] AD.2.4 Create src/lib/data/wavespells.ts (20 entries)
 [x] AD.2.5 Create src/lib/data/castles.ts (5 entries)
 ```
 
-### AD.3: UI Updates
+### AD.3: UI Updates - COMPLETE
 
 ```
-[ ] AD.3.1 Display authentic mantras in PersonCard
-[ ] AD.3.2 Show wavespell context in DreamspellSection
-[ ] AD.3.3 Add castle journey information to displays
+[x] AD.3.1 generateMantra() used in DreamspellSection and PersonCard
+[x] AD.3.2 WavespellDisplay component shown in person detail page Dreamspell tab
+[x] AD.3.3 CastleDisplay component shown in person detail page Dreamspell tab
 ```
 
 ---
