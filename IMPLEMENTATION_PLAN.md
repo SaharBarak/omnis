@@ -1793,21 +1793,21 @@ See `specs/I18N_ENGLISH_FIRST.md` for detailed patterns:
 ### LP.1: Core Landing Page
 
 ```
-[ ] LP.1.1 Create landing page layout (src/app/page.tsx replacement)
-[ ] LP.1.2 Build Hero section with starfield background
-[ ] LP.1.3 Add social proof bar
-[ ] LP.1.4 Build features grid with system icons
-[ ] LP.1.5 Create pricing comparison section
-[ ] LP.1.6 Build FAQ accordion
-[ ] LP.1.7 Create footer with navigation
+[x] LP.1.1 Create landing page layout (src/app/page.tsx replacement)
+[x] LP.1.2 Build Hero section with starfield background
+[x] LP.1.3 Add social proof bar
+[x] LP.1.4 Build features grid with system icons
+[x] LP.1.5 Create pricing comparison section
+[x] LP.1.6 Build FAQ accordion
+[x] LP.1.7 Create footer with navigation
 ```
 
 ### LP.2: Interactive Elements
 
 ```
-[ ] LP.2.1 Create interactive kin calculator demo
-[ ] LP.2.2 Build testimonial carousel
-[ ] LP.2.3 Create final CTA section
+[x] LP.2.1 Create interactive kin calculator demo
+[x] LP.2.2 Build testimonial carousel
+[x] LP.2.3 Create final CTA section
 [ ] LP.2.4 Add demo result reveal animation
 ```
 
