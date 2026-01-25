@@ -1,0 +1,12 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://omnis.app/sitemap.xml
+
+# Disallow private routes
+Disallow: /app/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /onboarding

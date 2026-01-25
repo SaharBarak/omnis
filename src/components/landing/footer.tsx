@@ -31,12 +31,35 @@ const footerLinks = {
 export function Footer() {
   const [email, setEmail] = useState('')
   const [subscribed, setSubscribed] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email) return
-    // TODO: Implement actual subscription
-    setSubscribed(true)
+    if (!email || loading) return
+
+    setLoading(true)
+    setError('')
+
+    try {
+      const response = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.toLowerCase().trim() })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setSubscribed(true)
+      } else {
+        setError(data.error || 'Failed to subscribe. Please try again.')
+      }
+    } catch {
+      setError('An error occurred. Please try again later.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -87,21 +110,27 @@ export function Footer() {
 
             {subscribed ? (
               <div className="text-green-500 font-medium">
-                You&apos;re subscribed!
+                You&apos;re subscribed! Check your inbox.
               </div>
             ) : (
-              <form onSubmit={handleSubscribe} className="flex gap-2 w-full md:w-auto">
-                <Input
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full md:w-64"
-                  required
-                />
-                <Button type="submit" variant="outline">
-                  Subscribe
-                </Button>
+              <form onSubmit={handleSubscribe} className="flex flex-col gap-2 w-full md:w-auto">
+                <div className="flex gap-2">
+                  <Input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full md:w-64"
+                    required
+                    disabled={loading}
+                  />
+                  <Button type="submit" variant="outline" disabled={loading}>
+                    {loading ? 'Subscribing...' : 'Subscribe'}
+                  </Button>
+                </div>
+                {error && (
+                  <p className="text-red-500 text-sm">{error}</p>
+                )}
               </form>
             )}
           </div>

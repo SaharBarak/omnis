@@ -416,65 +416,17 @@ echo "All pre-flight checks passed! Starting loop..."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-is_rate_limited() {
+# Check if truly out of tokens (hard limit, not soft throttle)
+is_hard_rate_limited() {
     local output_file=$1
 
-    # Only trigger when completely out of tokens (100% usage exhausted)
     if [ -f "$output_file" ]; then
-        # Check for 100% token exhaustion patterns
-        if grep -qiE 'usage.*100%|100%.*usage|exceeded.*limit|quota.*exhausted|token.*limit.*reached|daily.*limit.*reached|you.ve.*run.*out|limit.*exhausted|rate_limit_error|overloaded_error' "$output_file" 2>/dev/null; then
-            return 0  # true - rate limited
+        # Only stop for hard errors that mean we literally cannot continue
+        if grep -qiE 'rate_limit_error.*429|overloaded_error|account.*suspended|api.*key.*invalid' "$output_file" 2>/dev/null; then
+            return 0  # true - hard rate limited
         fi
     fi
-    return 1  # false - not rate limited
-}
-
-# Probe to check if rate limit has cleared
-check_rate_limit_cleared() {
-    local probe_output="/tmp/ralph_probe_$$.json"
-
-    # Minimal request to test if API is available
-    echo "hi" | claude -p --output-format json --max-turns 1 2>&1 > "$probe_output"
-    local exit_code=$?
-
-    # Check if probe succeeded without rate limit error
-    if [ $exit_code -eq 0 ]; then
-        if ! grep -qiE 'rate_limit|overloaded|exceeded.*limit|quota.*exhausted|100%.*usage' "$probe_output" 2>/dev/null; then
-            rm -f "$probe_output"
-            return 0  # true - cleared
-        fi
-    fi
-
-    rm -f "$probe_output"
-    return 1  # false - still limited
-}
-
-# Wait for rate limit to clear with periodic checks
-wait_for_rate_limit_clear() {
-    local check_interval=1200  # 20 minutes
-    local attempt=1
-
-    echo ""
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "⏳ RATE LIMITED - 100% token usage reached"
-    echo "⏳ Will check every 20 minutes until limit clears..."
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-    while true; do
-        local next_check=$(date -v+20M '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date -d '+20 minutes' '+%Y-%m-%d %H:%M:%S' 2>/dev/null || echo "in 20 minutes")
-        echo "⏳ [Attempt $attempt] Waiting... Next check at: $next_check"
-        sleep $check_interval
-
-        echo "🔍 [Attempt $attempt] Probing API to check if limit cleared..."
-        if check_rate_limit_cleared; then
-            echo "✅ Rate limit CLEARED! Resuming work..."
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            return 0
-        fi
-
-        echo "⏳ [Attempt $attempt] Still rate limited."
-        attempt=$((attempt + 1))
-    done
+    return 1  # false - keep going
 }
 
 while true; do
@@ -486,49 +438,47 @@ while true; do
     ITERATION=$((ITERATION + 1))
     echo -e "\n\n======================== LOOP $ITERATION ========================\n"
 
-    # Keep retrying this iteration until it succeeds (no rate limit)
-    while true; do
-        # Record start time
-        START_TIME=$(date +%s)
-        START_DATETIME=$(date '+%Y-%m-%d %H:%M:%S')
-        echo "🕐 Started at: $START_DATETIME"
+    # Record start time
+    START_TIME=$(date +%s)
+    START_DATETIME=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "🕐 Started at: $START_DATETIME"
 
-        # Run Ralph iteration with selected prompt
-        # -p: Headless mode (non-interactive, reads from stdin)
-        # --dangerously-skip-permissions: Auto-approve all tool calls (YOLO mode)
-        # --output-format=stream-json: Structured output for logging/monitoring
-        # --model opus: Primary agent uses Opus for complex reasoning (task selection, prioritization)
-        #               Can use 'sonnet' in build mode for speed if plan is clear and tasks well-defined
-        # --verbose: Detailed execution logging
-        # Capture output for metrics while still displaying it
-        CLAUDE_EXIT_CODE=0
-        cat "$PROMPT_FILE" | claude -p \
-            --dangerously-skip-permissions \
-            --output-format=stream-json \
-            --model opus \
-            --verbose 2>&1 | tee "$TEMP_OUTPUT" || CLAUDE_EXIT_CODE=$?
+    # Run Ralph iteration with selected prompt
+    # -p: Headless mode (non-interactive, reads from stdin)
+    # --dangerously-skip-permissions: Auto-approve all tool calls (YOLO mode)
+    # --output-format=stream-json: Structured output for logging/monitoring
+    # --model opus: Primary agent uses Opus for complex reasoning (task selection, prioritization)
+    # --verbose: Detailed execution logging
+    # Capture output for metrics while still displaying it
+    CLAUDE_EXIT_CODE=0
+    cat "$PROMPT_FILE" | claude -p \
+        --dangerously-skip-permissions \
+        --output-format=stream-json \
+        --model opus \
+        --verbose 2>&1 | tee "$TEMP_OUTPUT" || CLAUDE_EXIT_CODE=$?
 
-        # Record end time
-        END_TIME=$(date +%s)
-        END_DATETIME=$(date '+%Y-%m-%d %H:%M:%S')
-        DURATION=$((END_TIME - START_TIME))
-        echo "🕐 Finished at: $END_DATETIME (duration: $(format_duration $DURATION))"
+    # Record end time
+    END_TIME=$(date +%s)
+    END_DATETIME=$(date '+%Y-%m-%d %H:%M:%S')
+    DURATION=$((END_TIME - START_TIME))
+    echo "🕐 Finished at: $END_DATETIME (duration: $(format_duration $DURATION))"
 
-        # Check for rate limiting - if rate limited, wait and probe until cleared
-        if is_rate_limited "$TEMP_OUTPUT"; then
-            wait_for_rate_limit_clear
-            echo "🔄 Retrying iteration $ITERATION..."
-            continue
-        fi
-
-        # Successful iteration - exit retry loop
-        if [ $CLAUDE_EXIT_CODE -eq 0 ]; then
-            STATUS="success"
-        else
-            STATUS="error:$CLAUDE_EXIT_CODE"
-        fi
+    # Only stop for hard rate limit errors (429, suspended, invalid key)
+    if is_hard_rate_limited "$TEMP_OUTPUT"; then
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "🛑 HARD RATE LIMIT - API returned 429 or account error"
+        echo "🛑 Stopping loop. Re-run when tokens refresh."
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        log_metrics $START_TIME $END_TIME "rate_limited"
         break
-    done
+    fi
+
+    # Set status
+    if [ $CLAUDE_EXIT_CODE -eq 0 ]; then
+        STATUS="success"
+    else
+        STATUS="error:$CLAUDE_EXIT_CODE"
+    fi
 
     # Push changes after each iteration
     git push origin "$CURRENT_BRANCH" || {
@@ -541,4 +491,8 @@ while true; do
 
     # Cleanup temp file
     rm -f "$TEMP_OUTPUT"
+
+    # Brief pause between iterations to avoid hammering API
+    echo "⏳ Brief pause (5s) before next iteration..."
+    sleep 5
 done

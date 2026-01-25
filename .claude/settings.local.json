@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__plugin_playwright_playwright__browser_wait_for",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "Bash(npx supabase:*)",
+      "Bash(curl:*)",
+      "Bash(npm run dev:*)",
+      "WebSearch",
+      "WebFetch(domain:nebula.tv)",
+      "WebFetch(domain:www.asknebula.com)"
+    ]
+  }
+}

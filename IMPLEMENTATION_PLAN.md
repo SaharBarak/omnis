@@ -1683,7 +1683,7 @@ See `specs/I18N_ENGLISH_FIRST.md` for detailed patterns:
    - ✅ LP.2 Interactive Elements: COMPLETE
    - ✅ LP.3 Animations: COMPLETE (scroll fade, floating card, shimmer, micro-interactions)
    - ✅ LP.4 Free Value Routes: COMPLETE (/today, /calculate, /learn/*, /compatibility)
-   - ⬜ LP.5 Email Infrastructure: TODO (Resend integration, daily kin cron)
+   - ✅ LP.5 Email Infrastructure: COMPLETE (Resend integration, daily kin cron)
    - ⬜ LP.6 Polish & Optimization: TODO (mobile responsiveness, SEO, Lighthouse)
 
 3. **Phase AD (Authentic Data)** - HIGH:
@@ -1839,10 +1839,10 @@ Note: Animations already implemented in landing components (see exploration repo
 ### LP.5: Email & Marketing Infrastructure
 
 ```
-[ ] LP.5.1 Integrate email service (Resend)
-[ ] LP.5.2 Create email signup component for daily kin
-[ ] LP.5.3 Set up Vercel cron job for daily kin emails
-[ ] LP.5.4 Create email templates (daily kin, welcome)
+[x] LP.5.1 Integrate email service (Resend)
+[x] LP.5.2 Create email signup component for daily kin
+[x] LP.5.3 Set up Vercel cron job for daily kin emails
+[x] LP.5.4 Create email templates (daily kin, welcome)
 ```
 
 ### LP.6: Polish & Optimization
