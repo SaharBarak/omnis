@@ -1631,15 +1631,23 @@ See `specs/I18N_ENGLISH_FIRST.md` for detailed patterns:
 | 3 | Multi-System Expansion | 28 | COMPLETE | - |
 | 4 | Canvas Editor | 24 | COMPLETE | - |
 | **DS** | **Design System & UX** | **12** | **TODO** | **CRITICAL** |
-| Polish | English-First UI | 13 components | TODO | HIGH |
-| **TOTAL** | | **119** | **94/119 (79%)** |
+| **AD** | **Authentic Data** | **9** | **TODO** | **HIGH** |
+| Polish | English-First UI | 13 components | TODO | MEDIUM |
+| **TOTAL** | | **128** | **94/128 (73%)** |
 
 **Core phases (MVP through Phase 4) are COMPLETE.**
 
-**NEXT PRIORITY: Phase DS (Design System) - Critical UX blockers:**
-- Birth time/place input missing (blocks Human Design & Astrology)
-- Dashboard is empty/useless
-- No visual hierarchy or design system
+**NEXT PRIORITIES:**
+
+1. **Phase DS (Design System)** - CRITICAL UX blockers:
+   - Birth time/place input missing (blocks Human Design & Astrology)
+   - Dashboard is empty/useless
+   - No visual hierarchy or design system
+
+2. **Phase AD (Authentic Data)** - HIGH:
+   - Replace template mantras with real 260 Dreamspell affirmations
+   - Scrape authentic kin data from lawoftime.org
+   - Add wavespell and castle descriptions
 
 **Future Phases (not detailed):**
 - Phase 5: Predictions + Time-Based Intelligence
