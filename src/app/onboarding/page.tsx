@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,10 +16,28 @@ export default function OnboardingPage() {
   const [error, setError] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
-    displayName: profile?.display_name || user?.user_metadata?.full_name || '',
-    birthDate: profile?.birth_date || '',
-    hebrewName: profile?.hebrew_name || '',
+    displayName: '',
+    birthDate: '',
+    hebrewName: '',
   })
+
+  // Initialize form data when profile/user loads
+  useEffect(() => {
+    if (profile || user) {
+      setFormData({
+        displayName: profile?.display_name || user?.user_metadata?.full_name || '',
+        birthDate: profile?.birth_date || '',
+        hebrewName: profile?.hebrew_name || '',
+      })
+    }
+  }, [profile, user])
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login')
+    }
+  }, [authLoading, user, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,7 +48,7 @@ export default function OnboardingPage() {
       if (step === 1) {
         // Validate display name
         if (!formData.displayName.trim()) {
-          setError('יש להזין שם תצוגה')
+          setError('Please enter a display name')
           setLoading(false)
           return
         }
@@ -42,7 +60,7 @@ export default function OnboardingPage() {
       if (step === 2) {
         // Validate birth date
         if (!formData.birthDate) {
-          setError('יש להזין תאריך לידה')
+          setError('Please enter your birth date')
           setLoading(false)
           return
         }
@@ -61,34 +79,29 @@ export default function OnboardingPage() {
 
       router.push('/app')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'שגיאה בשמירת הפרופיל')
+      setError(err instanceof Error ? err.message : 'Error saving profile')
     } finally {
       setLoading(false)
     }
   }
 
-  if (authLoading) {
+  if (authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center" dir="rtl">
-        <div className="text-center">טוען...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">Loading...</div>
       </div>
     )
   }
 
-  if (!user) {
-    router.push('/login')
-    return null
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4" dir="rtl">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">ברוכים הבאים ל-Omnis</CardTitle>
+          <CardTitle className="text-2xl">Welcome to Omnis</CardTitle>
           <CardDescription>
-            {step === 1 && 'בואו נכיר - מה שמך?'}
-            {step === 2 && 'מתי נולדת?'}
-            {step === 3 && 'האם יש לך שם עברי? (אופציונלי)'}
+            {step === 1 && "Let's get to know you - what's your name?"}
+            {step === 2 && 'When were you born?'}
+            {step === 3 && 'Do you have a Hebrew name? (optional)'}
           </CardDescription>
           <div className="flex justify-center gap-2 mt-4">
             {[1, 2, 3].map((s) => (
@@ -105,11 +118,11 @@ export default function OnboardingPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {step === 1 && (
               <div className="space-y-2">
-                <Label htmlFor="displayName">שם תצוגה</Label>
+                <Label htmlFor="displayName">Display Name</Label>
                 <Input
                   id="displayName"
                   type="text"
-                  placeholder="השם שלך"
+                  placeholder="Your name"
                   value={formData.displayName}
                   onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
                   required
@@ -120,7 +133,7 @@ export default function OnboardingPage() {
 
             {step === 2 && (
               <div className="space-y-2">
-                <Label htmlFor="birthDate">תאריך לידה</Label>
+                <Label htmlFor="birthDate">Birth Date</Label>
                 <Input
                   id="birthDate"
                   type="date"
@@ -128,28 +141,27 @@ export default function OnboardingPage() {
                   onChange={(e) => setFormData(prev => ({ ...prev, birthDate: e.target.value }))}
                   required
                   autoFocus
-                  dir="ltr"
                   max={new Date().toISOString().split('T')[0]}
                 />
                 <p className="text-sm text-muted-foreground">
-                  תאריך הלידה נדרש לחישוב המפות הסימבוליות
+                  Birth date is required to calculate your symbolic maps
                 </p>
               </div>
             )}
 
             {step === 3 && (
               <div className="space-y-2">
-                <Label htmlFor="hebrewName">שם עברי (אופציונלי)</Label>
+                <Label htmlFor="hebrewName">Hebrew Name (optional)</Label>
                 <Input
                   id="hebrewName"
                   type="text"
-                  placeholder="השם העברי שלך"
+                  placeholder="Your Hebrew name"
                   value={formData.hebrewName}
                   onChange={(e) => setFormData(prev => ({ ...prev, hebrewName: e.target.value }))}
                   autoFocus
                 />
                 <p className="text-sm text-muted-foreground">
-                  השם העברי משמש לחישובי גימטריה
+                  Hebrew name is used for Gematria calculations
                 </p>
               </div>
             )}
@@ -169,7 +181,7 @@ export default function OnboardingPage() {
                   disabled={loading}
                   className="flex-1"
                 >
-                  חזור
+                  Back
                 </Button>
               )}
               <Button
@@ -177,7 +189,7 @@ export default function OnboardingPage() {
                 disabled={loading}
                 className="flex-1"
               >
-                {loading ? 'שומר...' : step === 3 ? 'סיום' : 'המשך'}
+                {loading ? 'Saving...' : step === 3 ? 'Finish' : 'Continue'}
               </Button>
             </div>
 
@@ -192,7 +204,7 @@ export default function OnboardingPage() {
                 className="w-full"
                 disabled={loading}
               >
-                דלג
+                Skip
               </Button>
             )}
           </form>

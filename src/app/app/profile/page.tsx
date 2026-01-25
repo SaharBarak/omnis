@@ -48,7 +48,7 @@ export default function ProfilePage() {
       })
       setEditing(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'שגיאה בעדכון הפרופיל')
+      setError(err instanceof Error ? err.message : 'Error updating profile')
     } finally {
       setLoading(false)
     }
@@ -57,7 +57,7 @@ export default function ProfilePage() {
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">טוען...</div>
+        <div className="text-center">Loading...</div>
       </div>
     )
   }
@@ -65,9 +65,9 @@ export default function ProfilePage() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">הפרופיל שלי</h1>
+        <h1 className="text-3xl font-bold tracking-tight">My Profile</h1>
         <p className="text-muted-foreground">
-          צפייה ועריכת הפרטים האישיים שלך
+          View and edit your personal details
         </p>
       </div>
 
@@ -75,10 +75,10 @@ export default function ProfilePage() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>פרטים אישיים</CardTitle>
+            <CardTitle>Personal Details</CardTitle>
             {!editing && (
               <Button variant="outline" onClick={() => setEditing(true)}>
-                ערוך
+                Edit
               </Button>
             )}
           </div>
@@ -87,7 +87,7 @@ export default function ProfilePage() {
           {editing ? (
             <>
               <div className="space-y-2">
-                <Label htmlFor="display_name">שם תצוגה</Label>
+                <Label htmlFor="display_name">Display Name</Label>
                 <Input
                   id="display_name"
                   value={formData.display_name}
@@ -97,24 +97,23 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="birth_date">תאריך לידה</Label>
+                <Label htmlFor="birth_date">Birth Date</Label>
                 <Input
                   id="birth_date"
                   type="date"
                   value={formData.birth_date}
                   onChange={(e) => setFormData(prev => ({ ...prev, birth_date: e.target.value }))}
-                  dir="ltr"
                   max={new Date().toISOString().split('T')[0]}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="hebrew_name">שם עברי</Label>
+                <Label htmlFor="hebrew_name">Hebrew Name</Label>
                 <Input
                   id="hebrew_name"
                   value={formData.hebrew_name}
                   onChange={(e) => setFormData(prev => ({ ...prev, hebrew_name: e.target.value }))}
-                  placeholder="אופציונלי"
+                  placeholder="Optional"
                 />
               </div>
 
@@ -124,7 +123,7 @@ export default function ProfilePage() {
 
               <div className="flex gap-2">
                 <Button onClick={handleSave} disabled={loading}>
-                  {loading ? 'שומר...' : 'שמור'}
+                  {loading ? 'Saving...' : 'Save'}
                 </Button>
                 <Button variant="outline" onClick={() => {
                   setEditing(false)
@@ -134,35 +133,35 @@ export default function ProfilePage() {
                     hebrew_name: profile?.hebrew_name || '',
                   })
                 }}>
-                  ביטול
+                  Cancel
                 </Button>
               </div>
             </>
           ) : (
             <>
               <div>
-                <div className="text-sm text-muted-foreground">שם תצוגה</div>
+                <div className="text-sm text-muted-foreground">Display Name</div>
                 <div className="font-medium">{profile?.display_name}</div>
               </div>
 
               <div>
-                <div className="text-sm text-muted-foreground">אימייל</div>
-                <div className="font-medium" dir="ltr">{user?.email}</div>
+                <div className="text-sm text-muted-foreground">Email</div>
+                <div className="font-medium">{user?.email}</div>
               </div>
 
               <div>
-                <div className="text-sm text-muted-foreground">תאריך לידה</div>
+                <div className="text-sm text-muted-foreground">Birth Date</div>
                 <div className="font-medium">
                   {profile?.birth_date
-                    ? new Date(profile.birth_date).toLocaleDateString('he-IL')
-                    : 'לא הוגדר'}
+                    ? new Date(profile.birth_date).toLocaleDateString('en-US')
+                    : 'Not set'}
                 </div>
               </div>
 
               <div>
-                <div className="text-sm text-muted-foreground">שם עברי</div>
+                <div className="text-sm text-muted-foreground">Hebrew Name</div>
                 <div className="font-medium">
-                  {profile?.hebrew_name || 'לא הוגדר'}
+                  {profile?.hebrew_name || 'Not set'}
                 </div>
               </div>
             </>
@@ -175,13 +174,13 @@ export default function ProfilePage() {
         <>
           <Card>
             <CardHeader>
-              <CardTitle>לפי הדרימספל</CardTitle>
-              <CardDescription>המפה הסימבולית שלך לפי מערכת הדרימספל</CardDescription>
+              <CardTitle>Dreamspell</CardTitle>
+              <CardDescription>Your symbolic map according to the Dreamspell system</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <div className="text-sm text-muted-foreground">קין</div>
-                <div className="text-2xl font-bold">קין {dreamspellKin}</div>
+                <div className="text-sm text-muted-foreground">Kin</div>
+                <div className="text-2xl font-bold">Kin {dreamspellKin}</div>
                 <div className="text-lg">
                   {dreamspellTone.name} {dreamspellSeal.english}
                 </div>
@@ -209,8 +208,8 @@ export default function ProfilePage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>לפי הצולקין</CardTitle>
-              <CardDescription>המפה הסימבולית שלך לפי הצולקין המסורתי</CardDescription>
+              <CardTitle>Tzolkin</CardTitle>
+              <CardDescription>Your symbolic map according to the traditional Tzolkin</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>

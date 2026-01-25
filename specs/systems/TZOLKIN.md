@@ -9,35 +9,35 @@ The Tzolkin is the traditional 260-day Mesoamerican sacred calendar. Unlike the 
 ## Core Concepts
 
 ### Day Count
-- 260-day cycle (13 × 20)
+- 260-day cycle (13 x 20)
 - Continuous count, no leap day adjustment
 - Each day has a Tone (1-13) and Day Sign (1-20)
 
 ### Day Signs (Nawales)
 20 sacred day signs in the traditional Mayan count.
 
-| # | Mayan | Yucatec | English | Hebrew |
-|---|-------|---------|---------|--------|
-| 1 | Imix | Imix' | Crocodile/Dragon | תנין |
-| 2 | Ik' | Ik' | Wind | רוח |
-| 3 | Ak'b'al | Ak'bal | Night/House | לילה |
-| 4 | K'an | K'an | Corn/Seed | תירס |
-| 5 | Chikchan | Chicchan | Serpent | נחש |
-| 6 | Kimi | Cimi | Death | מוות |
-| 7 | Manik' | Manik | Deer/Hand | צבי |
-| 8 | Lamat | Lamat | Rabbit/Star | ארנב |
-| 9 | Muluk | Muluc | Water/Moon | מים |
-| 10 | Ok | Oc | Dog | כלב |
-| 11 | Chuwen | Chuen | Monkey | קוף |
-| 12 | Eb' | Eb | Road/Grass | דרך |
-| 13 | B'en | Ben | Reed/Corn | קנה |
-| 14 | Ix | Ix | Jaguar | יגואר |
-| 15 | Men | Men | Eagle | נשר |
-| 16 | K'ib' | Cib | Owl/Vulture | ינשוף |
-| 17 | Kab'an | Caban | Earth | אדמה |
-| 18 | Etz'nab' | Etznab | Flint/Mirror | צור |
-| 19 | Kawak | Cauac | Storm/Rain | גשם |
-| 20 | Ajpu | Ahau | Lord/Sun | אדון |
+| # | Mayan | Yucatec | English |
+|---|-------|---------|---------|
+| 1 | Imix | Imix' | Crocodile/Dragon |
+| 2 | Ik' | Ik' | Wind |
+| 3 | Ak'b'al | Ak'bal | Night/House |
+| 4 | K'an | K'an | Corn/Seed |
+| 5 | Chikchan | Chicchan | Serpent |
+| 6 | Kimi | Cimi | Death |
+| 7 | Manik' | Manik | Deer/Hand |
+| 8 | Lamat | Lamat | Rabbit/Star |
+| 9 | Muluk | Muluc | Water/Moon |
+| 10 | Ok | Oc | Dog |
+| 11 | Chuwen | Chuen | Monkey |
+| 12 | Eb' | Eb | Road/Grass |
+| 13 | B'en | Ben | Reed/Corn |
+| 14 | Ix | Ix | Jaguar |
+| 15 | Men | Men | Eagle |
+| 16 | K'ib' | Cib | Owl/Vulture |
+| 17 | Kab'an | Caban | Earth |
+| 18 | Etz'nab' | Etznab | Flint/Mirror |
+| 19 | Kawak | Cauac | Storm/Rain |
+| 20 | Ajpu | Ahau | Lord/Sun |
 
 ### Tones (Numbers)
 13 numbers cycle with the 20 day signs.
@@ -140,7 +140,7 @@ function tzolkinFromJDN(jdn: number): TzolkinDay {
 
 | Aspect | Tzolkin | Dreamspell |
 |--------|---------|------------|
-| Origin | Ancient Mayan | 1987 (José Argüelles) |
+| Origin | Ancient Mayan | 1987 (Jose Arguelles) |
 | Leap Days | Counts normally | Skips Feb 29 |
 | Correlation | GMT (584283) | July 26, 1987 epoch |
 | Day Signs | Traditional names | Modified names |
@@ -160,7 +160,6 @@ interface DaySignData {
   mayanName: string;
   yucatecName: string;
   englishName: string;
-  hebrewName: string;
   element: 'fire' | 'earth' | 'air' | 'water';
   direction: 'east' | 'south' | 'west' | 'north';
   color: 'red' | 'yellow' | 'black' | 'white';
@@ -321,7 +320,6 @@ const daySignData: DaySignData[] = [
     mayanName: 'Imix',
     yucatecName: "Imix'",
     englishName: 'Crocodile',
-    hebrewName: 'תנין',
     element: 'water',
     direction: 'east',
     color: 'red',
@@ -394,17 +392,15 @@ const testCases = [
 
 When displaying both systems:
 ```
-┌─────────────────────────────────────────┐
-│         ליאור • 23.9.1966               │
-├─────────────────────────────────────────┤
-│  Dreamspell:    Kin 123                 │
-│                 Blue Rhythmic Night     │
-│                 לילה קצבי כחול          │
-├─────────────────────────────────────────┤
-│  Tzolkin:       7 Muluk                 │
-│                 7 Moon                  │
-│                 7 ירח                   │
-└─────────────────────────────────────────┘
++------------------------------------------+
+|         Lior - 23.9.1966                 |
++------------------------------------------+
+|  Dreamspell:    Kin 123                  |
+|                 Blue Rhythmic Night      |
++------------------------------------------+
+|  Tzolkin:       7 Muluk                  |
+|                 7 Moon                   |
++------------------------------------------+
 ```
 
 Note: The same person will have **different** signs in each system. Both are valid within their respective traditions.

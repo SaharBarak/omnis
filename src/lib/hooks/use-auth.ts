@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { User, Session } from '@supabase/supabase-js'
 import type { Profile } from '@/lib/supabase/database.types'
@@ -20,52 +20,39 @@ export function useAuth() {
     loading: true,
   })
 
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   // Fetch user profile from database
-  const fetchProfile = useCallback(async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .single()
+  const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
 
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error fetching profile:', error)
+      if (error) {
+        if (error.code !== 'PGRST116') {
+          console.error('Error fetching profile:', error)
+        }
+        return null
+      }
+
+      return data
+    } catch (err) {
+      console.error('Exception fetching profile:', err)
+      return null
     }
-
-    return data
   }, [supabase])
 
-  // Initialize auth state
   useEffect(() => {
-    const initAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-
-      if (session?.user) {
-        const profile = await fetchProfile(session.user.id)
-        setState({
-          user: session.user,
-          session,
-          profile,
-          loading: false,
-        })
-      } else {
-        setState({
-          user: null,
-          session: null,
-          profile: null,
-          loading: false,
-        })
-      }
-    }
-
-    initAuth()
-
-    // Listen for auth changes
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('[useAuth] Auth state changed:', event, !!session)
+
         if (session?.user) {
+          // Defer profile fetch to avoid blocking
           const profile = await fetchProfile(session.user.id)
           setState({
             user: session.user,
@@ -84,7 +71,22 @@ export function useAuth() {
       }
     )
 
-    return () => subscription.unsubscribe()
+    // After setting up listener, set loading to false after a short delay
+    // This handles the case where there's no session
+    const timeout = setTimeout(() => {
+      setState(prev => {
+        if (prev.loading) {
+          console.log('[useAuth] Timeout - setting loading to false')
+          return { ...prev, loading: false }
+        }
+        return prev
+      })
+    }, 2000)
+
+    return () => {
+      subscription.unsubscribe()
+      clearTimeout(timeout)
+    }
   }, [supabase.auth, fetchProfile])
 
   // Sign in with Google OAuth
@@ -93,10 +95,6 @@ export function useAuth() {
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ''}`,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
       },
     })
     if (error) throw error

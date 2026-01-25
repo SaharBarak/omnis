@@ -64,7 +64,7 @@ function PersonCard({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
-                <span className="sr-only">תפריט</span>
+                <span className="sr-only">Menu</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="1" />
                   <circle cx="12" cy="5" r="1" />
@@ -72,20 +72,20 @@ function PersonCard({
                 </svg>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
+            <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
                 <Link href={`/app/people/${person.id}`}>
-                  👁️ צפייה מלאה
+                  View Details
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => onEdit(person)}>
-                ערוך
+                Edit
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/app/relationships">
-                  🔗 קשרים ({relationshipCount})
+                  Relationships ({relationshipCount})
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -93,7 +93,7 @@ function PersonCard({
                 className="text-destructive"
                 onClick={() => onDelete(person.id)}
               >
-                מחק
+                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -101,11 +101,11 @@ function PersonCard({
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="text-sm text-muted-foreground">
-          תאריך לידה: {new Date(person.birth_date).toLocaleDateString('he-IL')}
+          Birth date: {new Date(person.birth_date).toLocaleDateString('en-US')}
         </div>
 
         <div className="text-sm">
-          <span className="font-medium">קין {kin}: </span>
+          <span className="font-medium">Kin {kin}: </span>
           <span>{tone.name} {seal.english}</span>
         </div>
 
@@ -116,12 +116,12 @@ function PersonCard({
               variant="secondary"
               style={{ backgroundColor: tag.color + '20', color: tag.color }}
             >
-              {tag.hebrew_name}
+              {tag.name}
             </Badge>
           ))}
           {relationshipCount > 0 && (
             <Badge variant="outline" className="text-muted-foreground">
-              🔗 {relationshipCount} קשרים
+              {relationshipCount} relationships
             </Badge>
           )}
         </div>
@@ -165,7 +165,7 @@ function PersonForm({
     try {
       await onSave(formData)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'שגיאה בשמירה')
+      setError(err instanceof Error ? err.message : 'Error saving')
     } finally {
       setLoading(false)
     }
@@ -183,41 +183,40 @@ function PersonForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="name">שם *</Label>
+        <Label htmlFor="name">Name *</Label>
         <Input
           id="name"
           value={formData.name}
           onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
           required
-          placeholder="שם מלא"
+          placeholder="Full name"
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="hebrew_name">שם עברי</Label>
+        <Label htmlFor="hebrew_name">Hebrew Name</Label>
         <Input
           id="hebrew_name"
           value={formData.hebrew_name}
           onChange={(e) => setFormData(prev => ({ ...prev, hebrew_name: e.target.value }))}
-          placeholder="שם עברי (אופציונלי)"
+          placeholder="Hebrew name (optional)"
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="birth_date">תאריך לידה *</Label>
+        <Label htmlFor="birth_date">Birth Date *</Label>
         <Input
           id="birth_date"
           type="date"
           value={formData.birth_date}
           onChange={(e) => setFormData(prev => ({ ...prev, birth_date: e.target.value }))}
           required
-          dir="ltr"
           max={new Date().toISOString().split('T')[0]}
         />
       </div>
 
       <div className="space-y-2">
-        <Label>תגיות</Label>
+        <Label>Tags</Label>
         <div className="flex flex-wrap gap-2">
           {tags.map(tag => (
             <Badge
@@ -233,19 +232,19 @@ function PersonForm({
               }}
               onClick={() => toggleTag(tag.id)}
             >
-              {tag.hebrew_name}
+              {tag.name}
             </Badge>
           ))}
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes">הערות</Label>
+        <Label htmlFor="notes">Notes</Label>
         <Input
           id="notes"
           value={formData.notes}
           onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-          placeholder="הערות (אופציונלי)"
+          placeholder="Notes (optional)"
         />
       </div>
 
@@ -255,10 +254,10 @@ function PersonForm({
 
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>
-          ביטול
+          Cancel
         </Button>
         <Button type="submit" disabled={loading}>
-          {loading ? 'שומר...' : person ? 'עדכן' : 'הוסף'}
+          {loading ? 'Saving...' : person ? 'Update' : 'Add'}
         </Button>
       </div>
     </form>
@@ -343,12 +342,12 @@ export default function PeoplePage() {
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const handleDeletePerson = async (id: string) => {
-    if (confirm('האם למחוק את האדם הזה?')) {
+    if (confirm('Are you sure you want to delete this person?')) {
       setDeleteError(null)
       try {
         await deletePerson(id)
       } catch (err) {
-        setDeleteError(err instanceof Error ? err.message : 'שגיאה במחיקה')
+        setDeleteError(err instanceof Error ? err.message : 'Error deleting')
       }
     }
   }
@@ -356,7 +355,7 @@ export default function PeoplePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">טוען...</div>
+        <div className="text-center">Loading...</div>
       </div>
     )
   }
@@ -373,21 +372,21 @@ export default function PeoplePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">האנשים שלי</h1>
+          <h1 className="text-3xl font-bold tracking-tight">My People</h1>
           <p className="text-muted-foreground">
-            {people.length} אנשים
+            {people.length} people
           </p>
         </div>
 
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button>+ הוסף אדם</Button>
+            <Button>+ Add Person</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>הוסף אדם חדש</DialogTitle>
+              <DialogTitle>Add New Person</DialogTitle>
               <DialogDescription>
-                הזן את הפרטים של האדם שברצונך להוסיף
+                Enter the details of the person you want to add
               </DialogDescription>
             </DialogHeader>
             <PersonForm
@@ -409,7 +408,7 @@ export default function PeoplePage() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <Input
-          placeholder="חיפוש לפי שם..."
+          placeholder="Search by name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="sm:max-w-xs"
@@ -420,7 +419,7 @@ export default function PeoplePage() {
             className="cursor-pointer"
             onClick={() => setSelectedTag(null)}
           >
-            הכל
+            All
           </Badge>
           {tags.map(tag => (
             <Badge
@@ -436,7 +435,7 @@ export default function PeoplePage() {
               }}
               onClick={() => setSelectedTag(selectedTag === tag.id ? null : tag.id)}
             >
-              {tag.hebrew_name}
+              {tag.name}
             </Badge>
           ))}
         </div>
@@ -447,11 +446,11 @@ export default function PeoplePage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <p className="text-muted-foreground mb-4">
-              {search || selectedTag ? 'לא נמצאו תוצאות' : 'עדיין לא הוספת אנשים'}
+              {search || selectedTag ? 'No results found' : "You haven't added any people yet"}
             </p>
             {!search && !selectedTag && (
               <Button onClick={() => setIsAddDialogOpen(true)}>
-                + הוסף אדם ראשון
+                + Add First Person
               </Button>
             )}
           </CardContent>
@@ -477,9 +476,9 @@ export default function PeoplePage() {
       }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>עריכת {editingPerson?.name}</DialogTitle>
+            <DialogTitle>Edit {editingPerson?.name}</DialogTitle>
             <DialogDescription>
-              עדכן את הפרטים
+              Update the details
             </DialogDescription>
           </DialogHeader>
           {editingPerson && (

@@ -1,8 +1,8 @@
 -- Omnis Phase 1 Database Schema
 -- Run this in your Supabase SQL Editor
 
--- Enable UUID extension (usually already enabled in Supabase)
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
 
 -- ============================================================================
 -- PROFILES TABLE
@@ -32,7 +32,7 @@ CREATE INDEX IF NOT EXISTS idx_profiles_locale ON public.profiles(locale);
 -- People entries owned by users
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.people (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   hebrew_name TEXT,
@@ -62,7 +62,7 @@ CREATE INDEX IF NOT EXISTS idx_people_search ON public.people
 -- System and custom tags for organizing people
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.tags (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   hebrew_name TEXT NOT NULL,
@@ -100,7 +100,7 @@ CREATE INDEX IF NOT EXISTS idx_person_tags_tag ON public.person_tags(tag_id);
 -- Cached calculation results for people
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.computed_results (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   person_id UUID NOT NULL REFERENCES public.people(id) ON DELETE CASCADE,
   system TEXT NOT NULL CHECK (system IN ('dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria')),
   version TEXT NOT NULL,

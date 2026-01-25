@@ -11,10 +11,10 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
-          שלום, {profile?.display_name}
+          Hello, {profile?.display_name}
         </h1>
         <p className="text-muted-foreground">
-          ברוכים הבאים למערכת המיפוי הסימבולי שלך
+          Welcome to your personal symbolic mapping system
         </p>
       </div>
 
@@ -24,15 +24,15 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <span>👥</span>
-                <span>האנשים שלי</span>
+                <span>My People</span>
               </CardTitle>
               <CardDescription>
-                נהל את רשימת האנשים ותוצאות החישוב שלהם
+                Manage your list of people and their calculation results
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                הוסף אנשים חדשים, ערוך פרטים קיימים וצפה במפות הסימבוליות שלהם
+                Add new people, edit existing details and view their symbolic maps
               </p>
             </CardContent>
           </Card>
@@ -43,36 +43,38 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <span>👤</span>
-                <span>הפרופיל שלי</span>
+                <span>My Profile</span>
               </CardTitle>
               <CardDescription>
-                צפה וערוך את הפרטים האישיים שלך
+                View and edit your personal details
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                עדכן את תאריך הלידה, השם העברי וההגדרות שלך
+                Update your birth date, Hebrew name and settings
               </p>
             </CardContent>
           </Card>
         </Link>
 
-        <Card className="opacity-60">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span>🔮</span>
-              <span>תחזיות</span>
-            </CardTitle>
-            <CardDescription>
-              בקרוב
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              תחזיות יומיות, שבועיות וחודשיות בהתאם למערכות השונות
-            </p>
-          </CardContent>
-        </Card>
+        <Link href="/app/predictions">
+          <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <span>🔮</span>
+                <span>Predictions</span>
+              </CardTitle>
+              <CardDescription>
+                Daily, weekly and monthly forecasts
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                View Dreamspell calendar predictions and cycle information
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
     </div>
   )

@@ -2,58 +2,54 @@
 
 ## Dimensions
 
-- **Size:** A5 (148mm × 210mm) or equivalent screen ratio (1:1.414)
+- **Size:** A5 (148mm x 210mm) or equivalent screen ratio (1:1.414)
 - **Orientation:** Portrait
-- **Direction:** RTL (Hebrew primary)
+- **Direction:** LTR (English)
 
 ---
 
 ## Visual Structure
 
 ```
-┌─────────────────────────────────────────┐
-│                                         │
-│              [NAME - Large]             │
-│                  ליאור                   │
-│                                         │
-├─────────────────────────────────────────┤
-│                                         │
-│     לפי הדרימספל / According to the     │
-│              Dreamspell                 │
-│                                         │
-│              ┌─────────┐                │
-│              │  Guide  │                │
-│              │   🔴    │                │
-│              └─────────┘                │
-│                   ↑                     │
-│  ┌─────────┐ ┌─────────┐ ┌─────────┐   │
-│  │Antipode │ │   KIN   │ │ Analog  │   │
-│  │   🟡    │←│   🔵    │→│   🟢    │   │
-│  └─────────┘ └─────────┘ └─────────┘   │
-│                   ↓                     │
-│              ┌─────────┐                │
-│              │ Occult  │                │
-│              │   🟣    │                │
-│              └─────────┘                │
-│                                         │
-│  "I unify in order to dream..."         │
-│  "אני מאחד כדי לחלום..."                │
-│                                         │
-├─────────────────────────────────────────┤
-│                                         │
-│      לפי הצולקין / According to the     │
-│               Tzolkin                   │
-│                                         │
-│         ┌───────────────────┐           │
-│         │                   │           │
-│         │       🌙  7       │           │
-│         │                   │           │
-│         │  Muluc — Moon     │           │
-│         │       ירח         │           │
-│         │                   │           │
-│         └───────────────────┘           │
-│                                         │
-└─────────────────────────────────────────┘
++------------------------------------------+
+|                                          |
+|              [NAME - Large]              |
+|                  Lior                    |
+|                                          |
++------------------------------------------+
+|                                          |
+|        According to the Dreamspell       |
+|                                          |
+|              +-----------+               |
+|              |   Guide   |               |
+|              |     R     |               |
+|              +-----------+               |
+|                    |                     |
+|  +-----------+ +-----------+ +-----------+
+|  | Antipode  | |    KIN    | |  Analog   |
+|  |     Y     |<|     B     |>|     G     |
+|  +-----------+ +-----------+ +-----------+
+|                    |                     |
+|              +-----------+               |
+|              |  Occult   |               |
+|              |     P     |               |
+|              +-----------+               |
+|                                          |
+|  "I unify in order to dream..."          |
+|                                          |
++------------------------------------------+
+|                                          |
+|         According to the Tzolkin         |
+|                                          |
+|         +---------------------+          |
+|         |                     |          |
+|         |       Moon  7       |          |
+|         |                     |          |
+|         |    Muluc - Moon     |          |
+|         |                     |          |
+|         +---------------------+          |
+|                                          |
++------------------------------------------+
 ```
 
 ---
@@ -61,28 +57,26 @@
 ## Sections
 
 ### 1. Header (Top ~15%)
-- Person's name in large Hebrew text
+- Person's name in large text
 - Centered
 - Font: Bold, ~32px equivalent
 
 ### 2. Dreamspell Section (~55%)
-- Section title (bilingual)
+- Section title
 - Oracle map in cross pattern:
   - Central icon: ~64px
   - Oracle icons: ~48px each
   - Connection lines/arrows optional
 - Mantra text below map:
-  - Hebrew (primary, larger)
-  - English (secondary, smaller, italics)
+  - English text
 
 ### 3. Tzolkin Section (~30%)
-- Section title (bilingual)
+- Section title
 - Sign icon: ~64px
 - Tone number: displayed next to icon
-- Trilingual name stack:
+- Name stack:
   - Mayan (e.g., "Muluc")
   - English (e.g., "Moon")
-  - Hebrew (e.g., "ירח")
 
 ---
 
@@ -92,8 +86,7 @@
 |---------|------|--------|-----------|
 | Name | 32px | Bold | Center |
 | Section title | 14px | Medium | Center |
-| Mantra (HE) | 16px | Regular | Center |
-| Mantra (EN) | 12px | Light/Italic | Center |
+| Mantra | 16px | Regular | Center |
 | Sign name | 18px | Medium | Center |
 
 ---
@@ -110,15 +103,15 @@
 ## Component Hierarchy (Web Components)
 
 ```html
-<person-card name="ליאור" birth-date="1966-09-23">
+<person-card name="Lior" birth-date="1966-09-23">
   <!-- Shadow DOM renders: -->
   <div class="card">
     <header class="card-header">
-      <h1>ליאור</h1>
+      <h1>Lior</h1>
     </header>
 
     <section class="dreamspell-section">
-      <h2>לפי הדרימספל / According to the Dreamspell</h2>
+      <h2>According to the Dreamspell</h2>
       <oracle-map kin="123">
         <seal-icon slot="guide" seal="5"></seal-icon>
         <seal-icon slot="antipode" seal="15"></seal-icon>
@@ -130,7 +123,7 @@
     </section>
 
     <section class="tzolkin-section">
-      <h2>לפי הצולקין / According to the Tzolkin</h2>
+      <h2>According to the Tzolkin</h2>
       <tzolkin-sign seal="9" tone="7"></tzolkin-sign>
     </section>
   </div>
@@ -159,7 +152,7 @@ person-card {
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  direction: rtl;
+  direction: ltr;
 }
 
 .card-header {
@@ -201,17 +194,10 @@ mantra-display {
   padding-block: var(--space-2);
 }
 
-.mantra-hebrew {
+.mantra-text {
   font-family: var(--font-body);
   font-size: var(--text-base);
   color: var(--text-primary);
-}
-
-.mantra-english {
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  font-style: italic;
 }
 ```
 

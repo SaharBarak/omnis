@@ -6,7 +6,7 @@
 -- Models connections between people
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.relationships (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   person1_id UUID NOT NULL REFERENCES public.people(id) ON DELETE CASCADE,
   person2_id UUID NOT NULL REFERENCES public.people(id) ON DELETE CASCADE,
@@ -42,7 +42,7 @@ CREATE TRIGGER update_relationships_updated_at
 -- Named collections of people
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.groups (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT,
@@ -77,7 +77,7 @@ CREATE INDEX IF NOT EXISTS idx_group_members_person ON public.group_members(pers
 -- Share links for public viewing
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.shared_views (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   share_type TEXT NOT NULL CHECK (share_type IN ('person', 'relationship', 'group', 'graph')),
   options JSONB NOT NULL DEFAULT '{}',

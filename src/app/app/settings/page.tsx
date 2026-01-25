@@ -13,10 +13,8 @@ type SystemKey = 'dreamspell' | 'tzolkin' | 'longcount' | 'astrology' | 'humande
 interface SystemInfo {
   key: SystemKey
   label: string
-  labelHe: string
   icon: string
   description: string
-  descriptionHe: string
   requiresTime?: boolean
   requiresLocation?: boolean
 }
@@ -25,54 +23,42 @@ const SYSTEMS: SystemInfo[] = [
   {
     key: 'dreamspell',
     label: 'Dreamspell',
-    labelHe: 'דרימספל',
     icon: '🌈',
-    description: 'Modern Mayan calendar system by José Argüelles',
-    descriptionHe: 'לוח השנה המאיה המודרני מבית חוסה ארגואיז',
+    description: 'Modern Mayan calendar system by Jose Arguelles',
   },
   {
     key: 'tzolkin',
     label: 'Tzolkin',
-    labelHe: 'צולקין',
     icon: '🗓️',
     description: 'Traditional Mayan 260-day sacred calendar',
-    descriptionHe: 'הלוח המאיה המסורתי בן 260 הימים',
   },
   {
     key: 'longcount',
     label: 'Long Count',
-    labelHe: 'לונג קאונט',
     icon: '🏛️',
     description: 'Ancient Mayan long count calendar system',
-    descriptionHe: 'מערכת הספירה הארוכה של המאיה העתיקים',
   },
   {
     key: 'astrology',
     label: 'Astrology',
-    labelHe: 'אסטרולוגיה',
     icon: '⭐',
     description: 'Western natal chart astrology',
-    descriptionHe: 'אסטרולוגיה מערבית - מפת לידה',
     requiresTime: true,
     requiresLocation: true,
   },
   {
     key: 'humandesign',
     label: 'Human Design',
-    labelHe: 'עיצוב אנושי',
     icon: '🧬',
     description: 'Bodygraph analysis combining multiple systems',
-    descriptionHe: 'ניתוח הבודיגרף המשלב מערכות רבות',
     requiresTime: true,
     requiresLocation: true,
   },
   {
     key: 'gematria',
     label: 'Gematria',
-    labelHe: 'גימטריה',
     icon: '🔢',
     description: 'Hebrew numerology based on letter values',
-    descriptionHe: 'נומרולוגיה עברית מבוססת ערכי אותיות',
   },
 ]
 
@@ -146,7 +132,7 @@ export default function SettingsPage() {
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">טוען...</div>
+        <div className="text-center">Loading...</div>
       </div>
     )
   }
@@ -154,17 +140,17 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">הגדרות</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
         <p className="text-muted-foreground">
-          התאם אישית את המערכות המוצגות
+          Customize the systems displayed
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>מערכות סימבוליות</CardTitle>
+          <CardTitle>Symbolic Systems</CardTitle>
           <CardDescription>
-            בחר אילו מערכות יוצגו בדף הפרופיל האישי
+            Choose which systems will be displayed on your profile page
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -177,16 +163,16 @@ export default function SettingsPage() {
                 <span className="text-2xl">{system.icon}</span>
                 <div>
                   <Label htmlFor={system.key} className="text-base font-medium cursor-pointer">
-                    {system.labelHe}
+                    {system.label}
                   </Label>
                   <p className="text-sm text-muted-foreground mt-0.5">
-                    {system.descriptionHe}
+                    {system.description}
                   </p>
                   {(system.requiresTime || system.requiresLocation) && (
                     <p className="text-xs text-amber-600 mt-1">
-                      {system.requiresTime && system.requiresLocation && 'דורש שעת ומקום לידה לדיוק מלא'}
-                      {system.requiresTime && !system.requiresLocation && 'דורש שעת לידה לדיוק מלא'}
-                      {!system.requiresTime && system.requiresLocation && 'דורש מקום לידה לדיוק מלא'}
+                      {system.requiresTime && system.requiresLocation && 'Requires birth time and location for full accuracy'}
+                      {system.requiresTime && !system.requiresLocation && 'Requires birth time for full accuracy'}
+                      {!system.requiresTime && system.requiresLocation && 'Requires birth location for full accuracy'}
                     </p>
                   )}
                 </div>
@@ -201,10 +187,10 @@ export default function SettingsPage() {
 
           <div className="flex items-center gap-4 pt-4">
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? 'שומר...' : saved ? '✓ נשמר' : 'שמור שינויים'}
+              {saving ? 'Saving...' : saved ? 'Saved' : 'Save Changes'}
             </Button>
             <Button variant="outline" onClick={handleResetDefaults}>
-              איפוס לברירת מחדל
+              Reset to Defaults
             </Button>
           </div>
         </CardContent>
@@ -213,14 +199,14 @@ export default function SettingsPage() {
       {/* Future sections placeholder */}
       <Card>
         <CardHeader>
-          <CardTitle>הגדרות תצוגה</CardTitle>
+          <CardTitle>Display Settings</CardTitle>
           <CardDescription>
-            עוד בקרוב...
+            Coming soon...
           </CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-sm">
-            הגדרות נוספות יתווספו בגרסאות הבאות
+            Additional settings will be added in future versions
           </p>
         </CardContent>
       </Card>

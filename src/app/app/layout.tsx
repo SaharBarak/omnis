@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { Button } from '@/components/ui/button'
@@ -16,14 +17,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const navItems = [
-  { href: '/app', label: 'ראשי', icon: '🏠' },
-  { href: '/app/people', label: 'אנשים', icon: '👥' },
-  { href: '/app/relationships', label: 'קשרים', icon: '🔗' },
-  { href: '/app/groups', label: 'קבוצות', icon: '👨‍👩‍👧‍👦' },
-  { href: '/app/graph', label: 'מפת קשרים', icon: '🕸️' },
-  { href: '/app/boards', label: 'לוחות', icon: '🎨' },
-  { href: '/app/cards', label: 'כרטיסים', icon: '🎴' },
-  { href: '/app/profile', label: 'פרופיל', icon: '👤' },
+  { href: '/app', label: 'Home', icon: '🏠' },
+  { href: '/app/people', label: 'People', icon: '👥' },
+  { href: '/app/relationships', label: 'Relationships', icon: '🔗' },
+  { href: '/app/groups', label: 'Groups', icon: '👨‍👩‍👧‍👦' },
+  { href: '/app/graph', label: 'Relationship Map', icon: '🕸️' },
+  { href: '/app/boards', label: 'Boards', icon: '🎨' },
+  { href: '/app/cards', label: 'Cards', icon: '🎴' },
+  { href: '/app/profile', label: 'Profile', icon: '👤' },
 ]
 
 function Sidebar({ className = '' }: { className?: string }) {
@@ -53,22 +54,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const { user, profile, signOut, loading } = useAuth()
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login')
+    }
+  }, [loading, user, router])
+
   const handleSignOut = async () => {
     await signOut()
     router.push('/login')
   }
 
-  if (loading) {
+  if (loading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center" dir="rtl">
-        <div className="text-center">טוען...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">Loading...</div>
       </div>
     )
-  }
-
-  if (!user) {
-    router.push('/login')
-    return null
   }
 
   const initials = profile?.display_name
@@ -79,7 +82,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     .toUpperCase() || user.email?.slice(0, 2).toUpperCase() || '??'
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex h-14 items-center px-4">
@@ -104,7 +107,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </svg>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-64 p-0">
+            <SheetContent side="left" className="w-64 p-0">
               <div className="p-4 border-b">
                 <Link href="/app" className="font-bold text-xl">Omnis</Link>
               </div>
@@ -113,7 +116,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </Sheet>
 
           {/* Logo */}
-          <Link href="/app" className="font-bold text-xl mr-4 lg:mr-0">
+          <Link href="/app" className="font-bold text-xl ml-4 lg:ml-0">
             Omnis
           </Link>
 
@@ -130,14 +133,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="start" forceMount>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
               <div className="flex items-center justify-start gap-2 p-2">
                 <div className="flex flex-col space-y-1 leading-none">
                   {profile?.display_name && (
                     <p className="font-medium">{profile.display_name}</p>
                   )}
                   {user.email && (
-                    <p className="text-sm text-muted-foreground" dir="ltr">
+                    <p className="text-sm text-muted-foreground">
                       {user.email}
                     </p>
                   )}
@@ -145,14 +148,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/app/profile">פרופיל</Link>
+                <Link href="/app/profile">Profile</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/app/settings">הגדרות</Link>
+                <Link href="/app/settings">Settings</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut}>
-                התנתק
+                Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -161,7 +164,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       <div className="flex">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:block w-64 border-l min-h-[calc(100vh-3.5rem)] sticky top-14">
+        <aside className="hidden lg:block w-64 border-r min-h-[calc(100vh-3.5rem)] sticky top-14">
           <Sidebar />
         </aside>
 

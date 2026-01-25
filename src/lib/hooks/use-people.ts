@@ -101,7 +101,7 @@ export function usePeople() {
     }
 
     // Compute and store symbolic results for the new person
-    await computeAndStore(data.id, data.birth_date)
+    await computeAndStore(data.id, { birthDate: data.birth_date, hebrewName: data.hebrew_name })
 
     await fetchPeople()
     return data
@@ -134,7 +134,7 @@ export function usePeople() {
     // If birth_date was updated, recompute symbolic results
     if (updates.birth_date) {
       await invalidateResults(id)
-      await computeAndStore(id, data.birth_date)
+      await computeAndStore(id, { birthDate: data.birth_date, hebrewName: data.hebrew_name })
     }
 
     await fetchPeople()

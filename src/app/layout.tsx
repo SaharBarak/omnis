@@ -1,22 +1,22 @@
 import type { Metadata } from "next";
-import { Heebo, Assistant } from "next/font/google";
+import { Plus_Jakarta_Sans, DM_Sans } from "next/font/google";
 import "./globals.css";
 
-const heebo = Heebo({
-  subsets: ["hebrew", "latin"],
-  variable: "--font-heebo",
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
   display: "swap",
 });
 
-const assistant = Assistant({
-  subsets: ["hebrew", "latin"],
-  variable: "--font-assistant",
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-heading",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Omnis - מערכת מיפוי סימבולי",
-  description: "מערכת מיפוי סימבולי אישי המבוססת על מערכות עתיקות ומודרניות",
+  title: "Omnis - Personal Symbolic Mapping",
+  description: "Personal symbolic mapping system based on ancient and modern systems",
 };
 
 export default function RootLayout({
@@ -25,9 +25,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl">
+    <html lang="en">
       <body
-        className={`${heebo.variable} ${assistant.variable} font-sans antialiased`}
+        className={`${plusJakarta.variable} ${dmSans.variable} font-sans antialiased`}
       >
         {children}
       </body>

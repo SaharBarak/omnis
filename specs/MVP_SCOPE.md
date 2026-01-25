@@ -1,6 +1,6 @@
 # Omnis — MVP Scope Document
 
-## Status: 🟢 MVP COMPLETE
+## Status: MVP COMPLETE
 
 **Last Updated:** 2026-01-21
 
@@ -22,9 +22,9 @@ Each card includes **only**:
 - **Person's name** (large, at the top)
 
 ### 2) Dreamspell Section
-**Title:** "According to the Dreamspell" / "לפי הדרימספל"
+**Title:** "According to the Dreamspell"
 
-- **Mantra** (bilingual: Hebrew + English)
+- **Mantra** (English)
 - **Dreamspell Map** (Cross pattern):
   ```
            [Guide]
@@ -38,11 +38,11 @@ Each card includes **only**:
   - All symbols rendered as **icons/images**
 
 ### 3) Tzolkin Section
-**Title:** "According to the Tzolkin" / "לפי הצולקין"
+**Title:** "According to the Tzolkin"
 
-- **Sign + trilingual name**, format:
-  - `Imix — Dragon — תנין`
-  - `Muluc — Moon — ירח`
+- **Sign + name**, format:
+  - `Imix — Dragon`
+  - `Muluc — Moon`
 - **Tone number** (1-13)
 - **Sign icon**
 
@@ -51,19 +51,19 @@ Each card includes **only**:
 ## MVP Inputs
 
 For each person:
-- ✅ Name (Hebrew)
-- ✅ Birth date (DD.MM.YY format)
+- Name
+- Birth date (DD.MM.YY format)
 
 **Explicitly OUT for MVP:**
-- ❌ Birth time
-- ❌ Birth location
-- ❌ Relationships
+- Birth time
+- Birth location
+- Relationships
 
 ---
 
 ## Locked Decisions
 
-### 1) Dreamspell Oracle Symbols ✅
+### 1) Dreamspell Oracle Symbols
 | Position | Name | Location |
 |----------|------|----------|
 | Center | Kin | Middle |
@@ -72,31 +72,30 @@ For each person:
 | Left | Antipode | Left of center |
 | Bottom | Occult | Below center |
 
-### 2) Mantra Source ✅
-- **Source:** José Argüelles / Dreamspell Kit
+### 2) Mantra Source
+- **Source:** Jose Arguelles / Dreamspell Kit
 - **Count:** 260 mantras (one per Kin)
-- **Language:** Bilingual (Hebrew + English)
-- **Note:** Hebrew translations needed
+- **Language:** English
 
-### 3) Tzolkin Scope ✅
+### 3) Tzolkin Scope
 - **Includes:** Seal + Tone
 - **Format:** `[Tone] [Seal]` e.g., "7 Imix"
-- **Names:** Trilingual (Mayan / English / Hebrew)
+- **Names:** Mayan / English
 
-### 4) Icon Source ✅
+### 4) Icon Source
 - **Source:** Law of Time official icons
 - **Format:** SVG preferred, PNG fallback
 - **License:** Need to verify usage rights
 - **Storage:** `public/icons/dreamspell/` and `public/icons/tzolkin/`
 
-### 5) Map Layout ✅
+### 5) Map Layout
 - **Pattern:** Cross (standard Dreamspell oracle)
 - **Visual:** Central Kin with 4 directional oracles
 
-### 6) Language ✅
-- **Mantras:** Bilingual (Hebrew primary, English secondary)
-- **Sign names:** Trilingual (Mayan, English, Hebrew)
-- **UI labels:** Bilingual (Hebrew + English)
+### 6) Language
+- **Mantras:** English
+- **Sign names:** Mayan + English
+- **UI labels:** English
 
 ---
 
@@ -104,22 +103,22 @@ For each person:
 
 | Name | Birth Date | Full Date |
 |------|------------|-----------|
-| ליאור | 23.9.66 | 1966-09-23 |
-| ילנה | 11.6.55 | 1955-06-11 |
-| אביטל | 26.3.67 | 1967-03-26 |
-| איתן | 19.2.57 | 1957-02-19 |
-| יפעת | 10.8.71 | 1971-08-10 |
-| מיכל | 9.7.68 | 1968-07-09 |
-| אויה | 27.3.67 | 1967-03-27 |
-| קרן | 28.11.76 | 1976-11-28 |
-| עינת | 21.6.65 | 1965-06-21 |
-| גניה | 25.2.66 | 1966-02-25 |
-| גדי | 10.10.60 | 1960-10-10 |
-| דינה | 2.4.77 | 1977-04-02 |
-| סיגל | 1.10.68 | 1968-10-01 |
-| מיטל | 1.11.78 | 1978-11-01 |
-| אלנה | 19.7.56 | 1956-07-19 |
-| ענת | 21.9.61 | 1961-09-21 |
+| Lior | 23.9.66 | 1966-09-23 |
+| Yelena | 11.6.55 | 1955-06-11 |
+| Avital | 26.3.67 | 1967-03-26 |
+| Eitan | 19.2.57 | 1957-02-19 |
+| Yifat | 10.8.71 | 1971-08-10 |
+| Michal | 9.7.68 | 1968-07-09 |
+| Oya | 27.3.67 | 1967-03-27 |
+| Keren | 28.11.76 | 1976-11-28 |
+| Einat | 21.6.65 | 1965-06-21 |
+| Genia | 25.2.66 | 1966-02-25 |
+| Gadi | 10.10.60 | 1960-10-10 |
+| Dina | 2.4.77 | 1977-04-02 |
+| Sigal | 1.10.68 | 1968-10-01 |
+| Meital | 1.11.78 | 1978-11-01 |
+| Elena | 19.7.56 | 1956-07-19 |
+| Anat | 21.9.61 | 1961-09-21 |
 
 ---
 
@@ -173,12 +172,12 @@ For each person:
 The MVP is **DONE** - ALL requirements met:
 - [x] A page renders one A5 card per person (16 cards)
 - [x] Each card contains:
-  - [x] Name (Hebrew)
-  - [x] Dreamspell mantra (Hebrew + English)
+  - [x] Name
+  - [x] Dreamspell mantra (English)
   - [x] Dreamspell map (5 icons in cross pattern)
-  - [x] Tzolkin sign + trilingual name + tone + icon
+  - [x] Tzolkin sign + name + tone + icon
 - [x] All icons load locally (colored SVG circles with seal numbers)
-- [x] RTL layout (Hebrew primary)
+- [x] LTR layout (English primary)
 - [x] No runtime errors
 - [x] TypeScript clean (strict mode)
 - [x] No external calls
@@ -188,26 +187,26 @@ The MVP is **DONE** - ALL requirements met:
 ## Required Assets
 
 ### 20 Dreamspell Seals
-1. Dragon (Imix) — תנין
-2. Wind (Ik) — רוח
-3. Night (Akbal) — לילה
-4. Seed (Kan) — זרע
-5. Serpent (Chicchan) — נחש
-6. World-Bridger (Cimi) — מגשר עולמות
-7. Hand (Manik) — יד
-8. Star (Lamat) — כוכב
-9. Moon (Muluc) — ירח
-10. Dog (Oc) — כלב
-11. Monkey (Chuen) — קוף
-12. Human (Eb) — אדם
-13. Skywalker (Ben) — הולך שמיים
-14. Wizard (Ix) — קוסם
-15. Eagle (Men) — נשר
-16. Warrior (Cib) — לוחם
-17. Earth (Caban) — אדמה
-18. Mirror (Etznab) — מראה
-19. Storm (Cauac) — סערה
-20. Sun (Ahau) — שמש
+1. Dragon (Imix)
+2. Wind (Ik)
+3. Night (Akbal)
+4. Seed (Kan)
+5. Serpent (Chicchan)
+6. World-Bridger (Cimi)
+7. Hand (Manik)
+8. Star (Lamat)
+9. Moon (Muluc)
+10. Dog (Oc)
+11. Monkey (Chuen)
+12. Human (Eb)
+13. Skywalker (Ben)
+14. Wizard (Ix)
+15. Eagle (Men)
+16. Warrior (Cib)
+17. Earth (Caban)
+18. Mirror (Etznab)
+19. Storm (Cauac)
+20. Sun (Ahau)
 
 ### 13 Tone Icons
 1-13 (may use numbers or distinct symbols)
@@ -217,7 +216,7 @@ The MVP is **DONE** - ALL requirements met:
 ## Completed Implementation
 
 1. [x] Icon implementation: Colored SVG circles with seal numbers (Red/White/Blue/Yellow by family)
-2. [x] Hebrew mantras: Template-based placeholders ("I [tone-action] in order to [seal-action]...")
+2. [x] English mantras: Template-based placeholders ("I [tone-action] in order to [seal-action]...")
 3. [x] Dreamspell calculation logic: Complete with leap day handling
 4. [x] Tzolkin calculation logic: Complete with GMT correlation 584283
 5. [x] Lookup tables: 20 seals, 13 tones, oracle relationships

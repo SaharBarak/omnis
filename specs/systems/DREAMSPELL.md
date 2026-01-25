@@ -2,61 +2,61 @@
 
 ## Overview
 
-The Dreamspell is a modern calendar system created by José Argüelles, based on Mayan concepts but with its own distinct calculations. It assigns each day a Kin (1-260) composed of a Seal (1-20) and Tone (1-13).
+The Dreamspell is a modern calendar system created by Jose Arguelles, based on Mayan concepts but with its own distinct calculations. It assigns each day a Kin (1-260) composed of a Seal (1-20) and Tone (1-13).
 
 ---
 
 ## Core Concepts
 
 ### Kin (Daily Energy)
-- Range: 1–260
+- Range: 1-260
 - Combination of Seal + Tone
 - Formula: `kin = ((seal - 1) + ((tone - 1) * 20)) % 260 + 1`
 
 ### Seals (Solar Tribes)
 20 archetypal energies that cycle through the calendar.
 
-| # | Mayan | English | Hebrew | Color |
-|---|-------|---------|--------|-------|
-| 1 | Imix | Dragon | דרקון | Red |
-| 2 | Ik | Wind | רוח | White |
-| 3 | Akbal | Night | לילה | Blue |
-| 4 | Kan | Seed | זרע | Yellow |
-| 5 | Chicchan | Serpent | נחש | Red |
-| 6 | Cimi | Worldbridger | גשר העולמות | White |
-| 7 | Manik | Hand | יד | Blue |
-| 8 | Lamat | Star | כוכב | Yellow |
-| 9 | Muluc | Moon | ירח | Red |
-| 10 | Oc | Dog | כלב | White |
-| 11 | Chuen | Monkey | קוף | Blue |
-| 12 | Eb | Human | אדם | Yellow |
-| 13 | Ben | Skywalker | הולך שמיים | Red |
-| 14 | Ix | Wizard | קוסם | White |
-| 15 | Men | Eagle | נשר | Blue |
-| 16 | Cib | Warrior | לוחם | Yellow |
-| 17 | Caban | Earth | אדמה | Red |
-| 18 | Etznab | Mirror | מראה | White |
-| 19 | Cauac | Storm | סערה | Blue |
-| 20 | Ahau | Sun | שמש | Yellow |
+| # | Mayan | English | Color |
+|---|-------|---------|-------|
+| 1 | Imix | Dragon | Red |
+| 2 | Ik | Wind | White |
+| 3 | Akbal | Night | Blue |
+| 4 | Kan | Seed | Yellow |
+| 5 | Chicchan | Serpent | Red |
+| 6 | Cimi | Worldbridger | White |
+| 7 | Manik | Hand | Blue |
+| 8 | Lamat | Star | Yellow |
+| 9 | Muluc | Moon | Red |
+| 10 | Oc | Dog | White |
+| 11 | Chuen | Monkey | Blue |
+| 12 | Eb | Human | Yellow |
+| 13 | Ben | Skywalker | Red |
+| 14 | Ix | Wizard | White |
+| 15 | Men | Eagle | Blue |
+| 16 | Cib | Warrior | Yellow |
+| 17 | Caban | Earth | Red |
+| 18 | Etznab | Mirror | White |
+| 19 | Cauac | Storm | Blue |
+| 20 | Ahau | Sun | Yellow |
 
 ### Tones (Galactic Tones)
 13 tones representing different qualities of expression.
 
-| # | Name | Hebrew | Keyword | Power |
-|---|------|--------|---------|-------|
-| 1 | Magnetic | מגנטי | Unify | Attraction |
-| 2 | Lunar | ירחי | Polarize | Challenge |
-| 3 | Electric | חשמלי | Activate | Service |
-| 4 | Self-Existing | עצמי | Define | Form |
-| 5 | Overtone | על-טונלי | Empower | Radiance |
-| 6 | Rhythmic | קצבי | Organize | Balance |
-| 7 | Resonant | מהוד | Channel | Attunement |
-| 8 | Galactic | גלקטי | Harmonize | Integrity |
-| 9 | Solar | שמשי | Pulse | Intention |
-| 10 | Planetary | כוכבי | Perfect | Manifestation |
-| 11 | Spectral | ספקטרלי | Dissolve | Liberation |
-| 12 | Crystal | קריסטלי | Dedicate | Cooperation |
-| 13 | Cosmic | קוסמי | Endure | Presence |
+| # | Name | Keyword | Power |
+|---|------|---------|-------|
+| 1 | Magnetic | Unify | Attraction |
+| 2 | Lunar | Polarize | Challenge |
+| 3 | Electric | Activate | Service |
+| 4 | Self-Existing | Define | Form |
+| 5 | Overtone | Empower | Radiance |
+| 6 | Rhythmic | Organize | Balance |
+| 7 | Resonant | Channel | Attunement |
+| 8 | Galactic | Harmonize | Integrity |
+| 9 | Solar | Pulse | Intention |
+| 10 | Planetary | Perfect | Manifestation |
+| 11 | Spectral | Dissolve | Liberation |
+| 12 | Crystal | Dedicate | Cooperation |
+| 13 | Cosmic | Endure | Presence |
 
 ### Color Families
 ```typescript
@@ -119,7 +119,7 @@ function kinToSealTone(kin: number): { seal: number; tone: number } {
 ```
 
 ### Leap Day Handling
-**Critical**: Dreamspell operates on a 365-day year. February 29 is **not counted** — it shares the Kin of February 28.
+**Critical**: Dreamspell operates on a 365-day year. February 29 is **not counted** - it shares the Kin of February 28.
 
 ```typescript
 function isLeapDaySkipped(date: Date): boolean {
@@ -144,20 +144,20 @@ The Oracle shows five related Kins that form a person's energetic pattern.
 ### Oracle Positions
 
 ```
-           ┌─────────┐
-           │  Guide  │
-           │   (G)   │
-           └────┬────┘
-                │
-┌─────────┐ ┌───┴───┐ ┌─────────┐
-│Antipode │─│  Kin  │─│ Analog  │
-│   (A)   │ │  (K)  │ │  (An)   │
-└─────────┘ └───┬───┘ └─────────┘
-                │
-           ┌────┴────┐
-           │ Occult  │
-           │   (O)   │
-           └─────────┘
+           +-----------+
+           |   Guide   |
+           |    (G)    |
+           +-----+-----+
+                 |
++-----------+ +--+--+ +-----------+
+| Antipode  |-| Kin |-|  Analog   |
+|    (A)    | | (K) | |   (An)    |
++-----------+ +--+--+ +-----------+
+                 |
+           +-----+-----+
+           |  Occult   |
+           |    (O)    |
+           +-----------+
 ```
 
 ### Oracle Calculation Rules
@@ -353,15 +353,6 @@ With the rhythmic tone of equality
 I am guided by my own power doubled
 ```
 
-### Hebrew Translation
-```
-אני מארגן כדי לחלום
-מאזן אינטואיציה
-אני חותם את הקלט של שפע
-עם הטון הקצבי של שוויון
-אני מודרך על ידי הכוח שלי עצמו מוכפל
-```
-
 ---
 
 ## Yearly Kin (Galactic Signature)
@@ -389,7 +380,6 @@ interface SealData {
   number: number;
   mayanName: string;
   englishName: string;
-  hebrewName: string;
   color: ColorFamily;
   action: string;
   essence: string;
@@ -405,7 +395,6 @@ interface SealData {
 interface ToneData {
   number: number;
   name: string;
-  hebrewName: string;
   action: string;
   power: string;
   essence: string;

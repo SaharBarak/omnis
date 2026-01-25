@@ -118,11 +118,11 @@ specs/
 ## Key Design Decisions
 
 ### Locked for MVP
-1. A5 card format (148mm × 210mm)
-2. RTL direction (Hebrew primary)
+1. A5 card format (148mm x 210mm)
+2. LTR direction (English primary)
 3. Dreamspell + Tzolkin shown separately
 4. Oracle cross pattern layout
-5. Bilingual mantras (Hebrew + English)
+5. English mantras
 6. Law of Time official icons
 
 ### Technical Principles

@@ -6,7 +6,7 @@
 -- Visual workspace for creating and arranging symbolic system outputs
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.boards (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT,
@@ -49,7 +49,7 @@ CREATE TRIGGER update_boards_updated_at
 -- Separate table for sharing boards (extends shared_views concept)
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.board_shares (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   board_id UUID NOT NULL REFERENCES public.boards(id) ON DELETE CASCADE,
   url_token TEXT NOT NULL UNIQUE,
   permissions TEXT NOT NULL DEFAULT 'view' CHECK (permissions IN ('view', 'comment', 'edit')),

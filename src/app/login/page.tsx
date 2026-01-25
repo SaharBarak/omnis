@@ -25,7 +25,7 @@ function LoginForm() {
     try {
       await signInWithGoogle(redirectTo)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'שגיאה בהתחברות עם Google')
+      setError(err instanceof Error ? err.message : 'Error signing in with Google')
       setLoading(false)
     }
   }
@@ -40,7 +40,7 @@ function LoginForm() {
       await signInWithEmail(email, redirectTo)
       setEmailSent(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'שגיאה בשליחת הקישור')
+      setError(err instanceof Error ? err.message : 'Error sending login link')
     } finally {
       setLoading(false)
     }
@@ -50,23 +50,23 @@ function LoginForm() {
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
         <CardTitle className="text-3xl font-bold">Omnis</CardTitle>
-        <CardDescription>מערכת מיפוי סימבולי אישי</CardDescription>
+        <CardDescription>Personal Symbolic Mapping System</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {emailSent ? (
           <div className="text-center space-y-4">
             <div className="text-lg font-medium text-green-600">
-              הקישור נשלח!
+              Link sent!
             </div>
             <p className="text-muted-foreground">
-              בדוק את תיבת הדואר שלך ב-{email}
+              Check your inbox at {email}
             </p>
             <Button
               variant="outline"
               onClick={() => setEmailSent(false)}
               className="w-full"
             >
-              שלח קישור חדש
+              Send new link
             </Button>
           </div>
         ) : (
@@ -97,7 +97,7 @@ function LoginForm() {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
                 </svg>
-                התחבר עם Google
+                Sign in with Google
               </Button>
             </div>
 
@@ -107,7 +107,7 @@ function LoginForm() {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">
-                  או באמצעות אימייל
+                  or with email
                 </span>
               </div>
             </div>
@@ -115,7 +115,7 @@ function LoginForm() {
             {/* Email Magic Link Form */}
             <form onSubmit={handleEmailSignIn} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">כתובת אימייל</Label>
+                <Label htmlFor="email">Email address</Label>
                 <Input
                   id="email"
                   type="email"
@@ -123,8 +123,6 @@ function LoginForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  dir="ltr"
-                  className="text-left"
                 />
               </div>
               <Button
@@ -132,7 +130,7 @@ function LoginForm() {
                 className="w-full"
                 disabled={loading || !email}
               >
-                {loading ? 'שולח...' : 'שלח קישור התחברות'}
+                {loading ? 'Sending...' : 'Send login link'}
               </Button>
             </form>
 
@@ -143,10 +141,10 @@ function LoginForm() {
             )}
 
             <p className="text-xs text-center text-muted-foreground">
-              בהתחברות אתה מסכים ל
-              <a href="/terms" className="underline">תנאי השימוש</a>
-              {' '}ו
-              <a href="/privacy" className="underline">מדיניות הפרטיות</a>
+              By signing in, you agree to our{' '}
+              <a href="/terms" className="underline">Terms of Service</a>
+              {' '}and{' '}
+              <a href="/privacy" className="underline">Privacy Policy</a>
             </p>
           </>
         )}
@@ -160,10 +158,10 @@ function LoginFallback() {
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
         <CardTitle className="text-3xl font-bold">Omnis</CardTitle>
-        <CardDescription>מערכת מיפוי סימבולי אישי</CardDescription>
+        <CardDescription>Personal Symbolic Mapping System</CardDescription>
       </CardHeader>
       <CardContent className="flex items-center justify-center py-8">
-        <div className="text-muted-foreground">טוען...</div>
+        <div className="text-muted-foreground">Loading...</div>
       </CardContent>
     </Card>
   )
@@ -171,7 +169,7 @@ function LoginFallback() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4" dir="rtl">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Suspense fallback={<LoginFallback />}>
         <LoginForm />
       </Suspense>
