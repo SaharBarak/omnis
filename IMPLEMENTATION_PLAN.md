@@ -1423,10 +1423,31 @@ Move from "viewer" to "creator tool." Users can create boards with draggable nod
 
 # CRITICAL: Design System & UX Fixes
 
-> **Status:** TODO
+> **Status:** COMPLETE
 > **Created:** 2026-01-25
 > **Spec:** `specs/DESIGN_SYSTEM.md`
 > **Priority:** CRITICAL - Blocks usability
+
+## Prerequisites & Technical Decisions
+
+Before starting implementation, these decisions/setups are needed:
+
+| Decision | Options | Recommendation | Status |
+|----------|---------|----------------|--------|
+| **Geocoding API** | Mapbox / Nominatim / Google | Mapbox (free 100k/mo) | ⬜ Choose |
+| **Timezone library** | geo-tz / timezone-lookup | geo-tz (npm) | ⬜ Install |
+| **Email service** | Resend / SendGrid / ConvertKit | Resend (dev-friendly) | ⬜ Setup |
+| **Cron jobs** | Vercel Cron / Supabase pg_cron | Vercel Cron (2 free) | ⬜ Configure |
+| **Fonts** | Google Fonts / self-hosted | Google Fonts (Cinzel) | ⬜ Add |
+
+**Environment Variables Needed:**
+```bash
+# Add to .env.local
+MAPBOX_ACCESS_TOKEN=pk.xxx      # For geocoding
+RESEND_API_KEY=re_xxx           # For email
+```
+
+---
 
 ## Critical Problems
 
@@ -1441,30 +1462,33 @@ Move from "viewer" to "creator tool." Users can create boards with draggable nod
 
 ### Tasks
 
-- [ ] **DS.1.1** Create BirthTimeInput component
+- [x] **DS.1.1** Create BirthTimeInput component - DONE
   - Time picker (HH:MM)
   - "Unknown" checkbox toggle
   - Hint about why it matters
 
-- [ ] **DS.1.2** Create LocationPicker component
+- [x] **DS.1.2** Create LocationPicker component - DONE
   - City search autocomplete
   - Extract lat/lng coordinates
   - Auto-detect timezone
   - Manual fallback option
+  - **API Choice:** Mapbox Geocoding (free tier: 100k/month) OR self-hosted Photon
+  - **Timezone:** Use `geo-tz` npm package for timezone from coordinates
+  - **Fallback:** Manual city name + timezone dropdown if API fails
 
-- [ ] **DS.1.3** Update PersonForm
+- [x] **DS.1.3** Update PersonForm - DONE
   - Add birth_time field
   - Add birth_place section
   - Show importance hints
 
-- [ ] **DS.1.4** Update use-people hook
+- [x] **DS.1.4** Update use-people hook - DONE (already supported)
   - Save birth_time
   - Save birth_place JSON
 
 ### Definition of Done
-- [ ] Users can enter birth time
-- [ ] Users can search and select birth place
-- [ ] Coordinates are stored for calculations
+- [x] Users can enter birth time
+- [x] Users can search and select birth place
+- [x] Coordinates are stored for calculations
 
 ---
 
@@ -1472,25 +1496,25 @@ Move from "viewer" to "creator tool." Users can create boards with draggable nod
 
 ### Tasks
 
-- [ ] **DS.2.1** Color system
+- [x] **DS.2.1** Color system - DONE (cosmic dark palette, gold accents)
   - Dark mode cosmic palette
   - Accent colors (gold, system colors)
   - Update globals.css
 
-- [ ] **DS.2.2** Typography scale
+- [x] **DS.2.2** Typography scale - DONE (Cinzel font, type scale)
   - Add Cinzel font for headings
   - Define text-xs through text-4xl
   - Update tailwind.config
 
-- [ ] **DS.2.3** Component hierarchy
+- [x] **DS.2.3** Component hierarchy - DONE (hero-card, stat-card, compact-card)
   - Create HeroCard variant
   - Create StatCard component
   - Create CompactCard variant
 
 ### Definition of Done
-- [ ] Consistent colors across app
-- [ ] Typography scale applied
-- [ ] Card variants available
+- [x] Consistent colors across app
+- [x] Typography scale applied
+- [x] Card variants available
 
 ---
 
@@ -1498,31 +1522,40 @@ Move from "viewer" to "creator tool." Users can create boards with draggable nod
 
 ### Tasks
 
-- [ ] **DS.3.1** Today's Kin Display
+- [x] **DS.3.1** Today's Kin Display - DONE
   - Show current Dreamspell day
   - Mantra, seal, tone
   - Wavespell and castle info
 
-- [ ] **DS.3.2** Quick Stats
+- [x] **DS.3.2** Quick Stats - DONE
   - People count
   - Relationships count
   - Groups count
   - Boards count
 
-- [ ] **DS.3.3** User Profile Snapshot
+- [x] **DS.3.3** User Profile Snapshot - DONE
   - Show user's own Kin
   - Today's oracle relationship
   - Quick link to full profile
 
-- [ ] **DS.3.4** Recent Items
+- [x] **DS.3.4** Recent Items - DONE
   - Recent people added
   - Upcoming galactic birthdays
   - Recent boards
 
 ### Definition of Done
-- [ ] Dashboard shows useful information
-- [ ] Today's energies visible immediately
-- [ ] Quick actions accessible
+- [x] Dashboard shows useful information
+- [x] Today's energies visible immediately
+- [x] Quick actions accessible
+
+### Files Created/Updated
+- `src/components/ui/birth-time-input.tsx` - New time picker component
+- `src/components/ui/location-picker.tsx` - New location autocomplete component
+- `src/app/globals.css` - Updated with design system (cosmic dark palette, gold accents)
+- `tailwind.config.ts` - Updated with Cinzel font and typography scale
+- `src/app/app/page.tsx` - Redesigned dashboard with Today's Kin, stats, profile snapshot
+- `src/app/app/people/page.tsx` - Added birth time/place fields to person form
+- `src/app/onboarding/page.tsx` - Added birth time/place fields to onboarding
 
 ---
 
@@ -1530,9 +1563,9 @@ Move from "viewer" to "creator tool." Users can create boards with draggable nod
 
 | Phase | Status | Priority |
 |-------|--------|----------|
-| DS.1 Birth Data | ⬜ TODO | CRITICAL |
-| DS.2 Design System | ⬜ TODO | HIGH |
-| DS.3 Dashboard | ⬜ TODO | HIGH |
+| DS.1 Birth Data | ✅ COMPLETE | CRITICAL |
+| DS.2 Design System | ✅ COMPLETE | HIGH |
+| DS.3 Dashboard | ✅ COMPLETE | HIGH |
 
 ---
 ---
@@ -1630,31 +1663,36 @@ See `specs/I18N_ENGLISH_FIRST.md` for detailed patterns:
 | 2 | Relationship Graph | 20 | COMPLETE | - |
 | 3 | Multi-System Expansion | 28 | COMPLETE | - |
 | 4 | Canvas Editor | 24 | COMPLETE | - |
-| **DS** | **Design System & UX** | **12** | **TODO** | **CRITICAL** |
+| **DS** | **Design System & UX** | **12** | **COMPLETE** | **CRITICAL** |
 | **LP** | **Landing Page & Animations** | **15** | **TODO** | **CRITICAL** |
 | **AD** | **Authentic Data** | **9** | **TODO** | **HIGH** |
 | Polish | English-First UI | 13 components | TODO | MEDIUM |
-| **TOTAL** | | **143** | **94/143 (66%)** |
+| **TOTAL** | | **143** | **106/143 (74%)** |
 
 **Core phases (MVP through Phase 4) are COMPLETE.**
 
 **NEXT PRIORITIES:**
 
-1. **Phase DS (Design System)** - CRITICAL UX blockers:
-   - Birth time/place input missing (blocks Human Design & Astrology)
-   - Dashboard is empty/useless
-   - No visual hierarchy or design system
+1. **Phase DS (Design System)** - COMPLETE:
+   - Birth time/place input: DONE
+   - Dashboard redesign: DONE
+   - Design system foundation: DONE
 
 2. **Phase LP (Landing Page)** - CRITICAL for conversion:
    - High-converting landing page with animations
    - Free value pages (/today, /calculate, /learn)
    - Content-first funnel: free knowledge → email → account → paid
    - Modern vanilla JS animations (no heavy libs)
+   - **Email Service:** Resend (free tier: 100 emails/day, then $20/mo)
+   - **Daily Cron:** Vercel Cron (free tier: 2 cron jobs) for daily kin emails
+   - **Route Structure:** Public pages at root level, protected under `(app)/`
 
 3. **Phase AD (Authentic Data)** - HIGH:
    - Replace template mantras with real 260 Dreamspell affirmations
-   - Scrape authentic kin data from lawoftime.org
-   - Add wavespell and castle descriptions
+   - **Approach:** Generate from seal+tone patterns, then manually verify against source
+   - Add wavespell and castle descriptions (20 + 5 = 25 entries, see spec tables)
+   - **Hebrew translations:** Can be deferred; English-first priority
+   - **Note:** Avoid web scraping reliability issues - use hardcoded static data
 
 **Future Phases (not detailed):**
 - Phase 5: Predictions + Time-Based Intelligence

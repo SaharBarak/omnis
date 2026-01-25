@@ -10,8 +10,23 @@ const config: Config = {
   theme: {
   	extend: {
   		fontFamily: {
-  			sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
-  			heading: ['var(--font-heading)', 'system-ui', 'sans-serif'],
+  			sans: ['Inter', 'Heebo', 'system-ui', 'sans-serif'],
+  			heading: ['Cinzel', 'Heebo', 'serif'],
+  			mono: ['JetBrains Mono', 'monospace'],
+  			hebrew: ['Heebo', 'Assistant', 'system-ui', 'sans-serif'],
+  		},
+  		fontSize: {
+  			// Typography scale (1.25 ratio - Major Third)
+  			'xs': ['0.75rem', { lineHeight: '1rem' }],        // 12px
+  			'sm': ['0.875rem', { lineHeight: '1.25rem' }],    // 14px
+  			'base': ['1rem', { lineHeight: '1.5rem' }],       // 16px
+  			'lg': ['1.125rem', { lineHeight: '1.75rem' }],    // 18px
+  			'xl': ['1.25rem', { lineHeight: '1.75rem' }],     // 20px
+  			'2xl': ['1.5rem', { lineHeight: '2rem' }],        // 24px
+  			'3xl': ['1.875rem', { lineHeight: '2.25rem' }],   // 30px
+  			'4xl': ['2.25rem', { lineHeight: '2.5rem' }],     // 36px
+  			'5xl': ['3rem', { lineHeight: '1.2' }],           // 48px
+  			'6xl': ['3.75rem', { lineHeight: '1.1' }],        // 60px
   		},
   		colors: {
   			background: 'hsl(var(--background))',
@@ -53,13 +68,54 @@ const config: Config = {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
-  			}
+  			},
+  			// Seal colors
+  			seal: {
+  				red: 'hsl(var(--seal-red))',
+  				white: 'hsl(var(--seal-white))',
+  				blue: 'hsl(var(--seal-blue))',
+  				yellow: 'hsl(var(--seal-yellow))',
+  			},
+  			// Gold accent
+  			gold: {
+  				DEFAULT: 'hsl(var(--gold))',
+  				dark: 'hsl(var(--gold-dark))',
+  			},
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
-  		}
+  		},
+  		spacing: {
+  			// Additional spacing values
+  			'18': '4.5rem',
+  			'22': '5.5rem',
+  		},
+  		animation: {
+  			'fade-in': 'fadeIn 0.3s ease-out',
+  			'slide-up': 'slideUp 0.3s ease-out',
+  			'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
+  		},
+  		keyframes: {
+  			fadeIn: {
+  				'0%': { opacity: '0' },
+  				'100%': { opacity: '1' },
+  			},
+  			slideUp: {
+  				'0%': { opacity: '0', transform: 'translateY(10px)' },
+  				'100%': { opacity: '1', transform: 'translateY(0)' },
+  			},
+  			pulseSoft: {
+  				'0%, 100%': { opacity: '1' },
+  				'50%': { opacity: '0.7' },
+  			},
+  		},
+  		transitionDuration: {
+  			'fast': '150ms',
+  			'normal': '200ms',
+  			'slow': '300ms',
+  		},
   	}
   },
   plugins: [require("tailwindcss-animate")],

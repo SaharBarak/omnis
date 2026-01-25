@@ -6,7 +6,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
+import { BirthTimeInput } from '@/components/ui/birth-time-input'
+import { LocationPicker, type BirthPlace } from '@/components/ui/location-picker'
 import { useAuth } from '@/lib/hooks/use-auth'
+import type { Json } from '@/lib/supabase/database.types'
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -18,6 +21,8 @@ export default function OnboardingPage() {
   const [formData, setFormData] = useState({
     displayName: '',
     birthDate: '',
+    birthTime: null as string | null,
+    birthPlace: null as BirthPlace | null,
     hebrewName: '',
   })
 
@@ -27,6 +32,8 @@ export default function OnboardingPage() {
       setFormData({
         displayName: profile?.display_name || user?.user_metadata?.full_name || '',
         birthDate: profile?.birth_date || '',
+        birthTime: profile?.birth_time || null,
+        birthPlace: profile?.birth_place as unknown as BirthPlace | null,
         hebrewName: profile?.hebrew_name || '',
       })
     }
@@ -69,10 +76,26 @@ export default function OnboardingPage() {
         return
       }
 
+      if (step === 3) {
+        // Birth time is optional, move to next step
+        setStep(4)
+        setLoading(false)
+        return
+      }
+
+      if (step === 4) {
+        // Birth place is optional, move to next step
+        setStep(5)
+        setLoading(false)
+        return
+      }
+
       // Final step - save profile and complete onboarding
       await updateProfile({
         display_name: formData.displayName,
         birth_date: formData.birthDate,
+        birth_time: formData.birthTime,
+        birth_place: formData.birthPlace as Json | null,
         hebrew_name: formData.hebrewName || null,
         onboarding_completed: true,
       })
@@ -101,10 +124,12 @@ export default function OnboardingPage() {
           <CardDescription>
             {step === 1 && "Let's get to know you - what's your name?"}
             {step === 2 && 'When were you born?'}
-            {step === 3 && 'Do you have a Hebrew name? (optional)'}
+            {step === 3 && 'What time were you born? (optional)'}
+            {step === 4 && 'Where were you born? (optional)'}
+            {step === 5 && 'Do you have a Hebrew name? (optional)'}
           </CardDescription>
           <div className="flex justify-center gap-2 mt-4">
-            {[1, 2, 3].map((s) => (
+            {[1, 2, 3, 4, 5].map((s) => (
               <div
                 key={s}
                 className={`h-2 w-8 rounded-full ${
@@ -151,6 +176,26 @@ export default function OnboardingPage() {
 
             {step === 3 && (
               <div className="space-y-2">
+                <Label>Birth Time</Label>
+                <BirthTimeInput
+                  value={formData.birthTime}
+                  onChange={(value) => setFormData(prev => ({ ...prev, birthTime: value }))}
+                />
+              </div>
+            )}
+
+            {step === 4 && (
+              <div className="space-y-2">
+                <Label>Birth Place</Label>
+                <LocationPicker
+                  value={formData.birthPlace}
+                  onChange={(value) => setFormData(prev => ({ ...prev, birthPlace: value }))}
+                />
+              </div>
+            )}
+
+            {step === 5 && (
+              <div className="space-y-2">
                 <Label htmlFor="hebrewName">Hebrew Name (optional)</Label>
                 <Input
                   id="hebrewName"
@@ -189,16 +234,22 @@ export default function OnboardingPage() {
                 disabled={loading}
                 className="flex-1"
               >
-                {loading ? 'Saving...' : step === 3 ? 'Finish' : 'Continue'}
+                {loading ? 'Saving...' : step === 5 ? 'Finish' : 'Continue'}
               </Button>
             </div>
 
-            {step === 3 && (
+            {(step === 3 || step === 4 || step === 5) && (
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => {
-                  setFormData(prev => ({ ...prev, hebrewName: '' }))
+                  if (step === 3) {
+                    setFormData(prev => ({ ...prev, birthTime: null }))
+                  } else if (step === 4) {
+                    setFormData(prev => ({ ...prev, birthPlace: null }))
+                  } else if (step === 5) {
+                    setFormData(prev => ({ ...prev, hebrewName: '' }))
+                  }
                   handleSubmit(new Event('submit') as unknown as React.FormEvent)
                 }}
                 className="w-full"

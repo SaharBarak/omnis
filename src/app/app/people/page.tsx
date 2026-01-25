@@ -24,7 +24,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Label } from '@/components/ui/label'
-import type { Person, Tag } from '@/lib/supabase/database.types'
+import { BirthTimeInput } from '@/components/ui/birth-time-input'
+import { LocationPicker, type BirthPlace } from '@/components/ui/location-picker'
+import type { Person, Tag, Json } from '@/lib/supabase/database.types'
 import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
 import { getSeal } from '@/lib/data/seals'
 import { getTone } from '@/lib/data/tones'
@@ -142,15 +144,24 @@ function PersonForm({
     name: string
     hebrew_name: string
     birth_date: string
+    birth_time: string | null
+    birth_place: BirthPlace | null
     notes: string
     tagIds: string[]
   }) => Promise<void>
   onCancel: () => void
 }) {
+  // Parse existing birth_place if present
+  const existingBirthPlace = person?.birth_place
+    ? (person.birth_place as unknown as BirthPlace)
+    : null
+
   const [formData, setFormData] = useState({
     name: person?.name || '',
     hebrew_name: person?.hebrew_name || '',
     birth_date: person?.birth_date || '',
+    birth_time: person?.birth_time || null as string | null,
+    birth_place: existingBirthPlace,
     notes: person?.notes || '',
     tagIds: person?.tags.map(t => t.id) || [],
   })
@@ -212,6 +223,22 @@ function PersonForm({
           onChange={(e) => setFormData(prev => ({ ...prev, birth_date: e.target.value }))}
           required
           max={new Date().toISOString().split('T')[0]}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Birth Time</Label>
+        <BirthTimeInput
+          value={formData.birth_time}
+          onChange={(value) => setFormData(prev => ({ ...prev, birth_time: value }))}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Birth Place</Label>
+        <LocationPicker
+          value={formData.birth_place}
+          onChange={(value) => setFormData(prev => ({ ...prev, birth_place: value }))}
         />
       </div>
 
@@ -303,6 +330,8 @@ export default function PeoplePage() {
     name: string
     hebrew_name: string
     birth_date: string
+    birth_time: string | null
+    birth_place: BirthPlace | null
     notes: string
     tagIds: string[]
   }) => {
@@ -310,6 +339,8 @@ export default function PeoplePage() {
       name: data.name,
       hebrew_name: data.hebrew_name || null,
       birth_date: data.birth_date,
+      birth_time: data.birth_time,
+      birth_place: data.birth_place as Json | null,
       notes: data.notes || null,
     }, data.tagIds)
     setIsAddDialogOpen(false)
@@ -319,6 +350,8 @@ export default function PeoplePage() {
     name: string
     hebrew_name: string
     birth_date: string
+    birth_time: string | null
+    birth_place: BirthPlace | null
     notes: string
     tagIds: string[]
   }) => {
@@ -328,6 +361,8 @@ export default function PeoplePage() {
       name: data.name,
       hebrew_name: data.hebrew_name || null,
       birth_date: data.birth_date,
+      birth_time: data.birth_time,
+      birth_place: data.birth_place as Json | null,
       notes: data.notes || null,
     }, data.tagIds)
     setIsEditDialogOpen(false)
