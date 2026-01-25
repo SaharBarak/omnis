@@ -31,33 +31,72 @@ Based on industry leaders in the astrology/spiritual niche:
 
 ### Above the Fold (Hero Section)
 
+**Design Goals:**
+- Instant clarity on what the product does
+- Evoke wonder and curiosity
+- Clear CTA above the fold
+- Premium, mystical aesthetic
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  [Logo: Omnis]                    [Features] [Pricing] [Login]  │
+│                                                                  │
+│  ✦ OMNIS                      Today's Kin  Features  [Sign In]  │
+│                                                                  │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
-│        ✨ Animated starfield/constellation background ✨         │
+│  ░░░░░░░░░░░░ Animated starfield with subtle parallax ░░░░░░░░  │
+│  ░░░░░░░░░░░░ Constellation lines connecting stars ░░░░░░░░░░░  │
+│                                                                  │
+│                                                                  │
+│           ┌─────────────────────────────────────┐               │
+│           │  🌟 Small animated seal icon        │               │
+│           └─────────────────────────────────────┘               │
 │                                                                  │
 │                    DISCOVER YOUR                                 │
 │                  COSMIC BLUEPRINT                                │
 │                                                                  │
-│     Dreamspell • Human Design • Astrology • Gematria            │
-│              All your symbolic systems, unified.                 │
+│      Dreamspell · Human Design · Astrology · Gematria           │
 │                                                                  │
-│              ┌─────────────────────────┐                        │
-│              │   Get Started Free →    │                        │
-│              └─────────────────────────┘                        │
+│   Finally, all your symbolic systems in one beautiful place.    │
+│     Know yourself deeper. Understand your relationships.        │
 │                                                                  │
-│              No credit card required                             │
+│        ┌─────────────────────────────────────────┐              │
+│        │  ✨  Start Your Free Reading  →        │  ← Gold      │
+│        └─────────────────────────────────────────┘    button   │
 │                                                                  │
-│     ┌─────────────────────────────────────────────┐             │
-│     │  [Floating animated card preview showing    │             │
-│     │   a sample person card with kin, chart]     │             │
-│     └─────────────────────────────────────────────┘             │
+│               No credit card · Free forever tier                 │
 │                                                                  │
-│                         ↓ Scroll                                 │
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │                                                         │   │
+│  │   [Floating glassmorphism card with:                   │   │
+│  │    - Person name "Sarah"                               │   │
+│  │    - Kin 169 - Cosmic Moon                            │   │
+│  │    - Seal icon with glow                              │   │
+│  │    - Mini oracle map                                   │   │
+│  │    - "Generator 4/6" badge                            │   │
+│  │    - Astro: ♈ Sun ♋ Moon ♎ Rising                     │   │
+│  │   ]                                                     │   │
+│  │                                                         │   │
+│  │   Animation: Gentle float + rotate, occasional         │   │
+│  │   particle sparkle on the kin number                   │   │
+│  │                                                         │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                  │
+│                          ↓                                       │
+│                    Scroll to explore                             │
+│                                                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+**Hero Copy Alternatives (A/B test):**
+
+| Version | Headline | Subheadline |
+|---------|----------|-------------|
+| A | Discover Your Cosmic Blueprint | All your symbolic systems, unified |
+| B | Know Yourself at the Deepest Level | Dreamspell, Human Design, Astrology & more |
+| C | Your Personal Symbolic Map | Ancient wisdom meets modern technology |
+| D | The Universe Has a Message For You | Decode it with Omnis |
 
 ### Social Proof Bar
 
@@ -191,21 +230,224 @@ Based on industry leaders in the astrology/spiritual niche:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+### How It Works Section
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│                    HOW IT WORKS                                  │
+│                  In 3 simple steps                               │
+│                                                                  │
+│  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐        │
+│  │              │   │              │   │              │        │
+│  │     ①       │   │     ②       │   │     ③       │        │
+│  │              │   │              │   │              │        │
+│  │  📅 ENTER   │   │  ✨ WE      │   │  🔮 EXPLORE │        │
+│  │  BIRTH DATA │   │  CALCULATE  │   │  INSIGHTS   │        │
+│  │              │   │              │   │              │        │
+│  │  Date, time, │   │  6 systems  │   │  Save people│        │
+│  │  location    │   │  computed   │   │  Track      │        │
+│  │              │   │  instantly  │   │  Share      │        │
+│  │              │   │              │   │              │        │
+│  └──────────────┘   └──────────────┘   └──────────────┘        │
+│        │                   │                   │                │
+│        └───────────────────┴───────────────────┘                │
+│                    Animated connecting line                     │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Comparison Table Section
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│              WHY OMNIS VS. CHECKING 5 DIFFERENT SITES            │
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │                                                         │    │
+│  │            │ OTHER SITES │   OMNIS                     │    │
+│  │  ─────────────────────────────────────────────────────│    │
+│  │  Dreamspell│   Site A    │   ✅ Included              │    │
+│  │  Astrology │   Site B    │   ✅ Included              │    │
+│  │  Human Des │   Site C    │   ✅ Included              │    │
+│  │  Gematria  │   Site D    │   ✅ Included              │    │
+│  │  Tzolkin   │   Site E    │   ✅ Included              │    │
+│  │  ─────────────────────────────────────────────────────│    │
+│  │  Save ppl  │   ❌ No     │   ✅ Unlimited             │    │
+│  │  Offline   │   ❌ No     │   ✅ Yes (PWA)             │    │
+│  │  Combined  │   ❌ No     │   ✅ Cross-system          │    │
+│  │   insights │             │     correlations           │    │
+│  │  ─────────────────────────────────────────────────────│    │
+│  │  Price     │   $0-50/mo  │   $0 - $9/mo               │    │
+│  │            │   combined  │                            │    │
+│  │                                                         │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### FAQ Section
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│                 FREQUENTLY ASKED QUESTIONS                       │
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │  ▸ What if I don't know my birth time?                  │    │
+│  │                                                         │    │
+│  │    No problem! Dreamspell, Tzolkin, and Gematria only   │    │
+│  │    need your birth date. Human Design and precise       │    │
+│  │    Astrology (Moon sign, Rising) need time—you can      │    │
+│  │    add it later when you find out.                      │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │  ▸ Is this based on real Dreamspell/Human Design?       │    │
+│  │                                                         │    │
+│  │    Yes! We use authentic calculations from original     │    │
+│  │    source materials. Dreamspell follows the José        │    │
+│  │    Argüelles system with leap-day correction.           │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │  ▸ Can I use this for clients/workshops?                │    │
+│  │                                                         │    │
+│  │    Absolutely! Our Pro plan lets you save unlimited     │    │
+│  │    people, create groups, and export beautiful PDFs.    │    │
+│  │    Perfect for practitioners and facilitators.          │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │  ▸ What's the difference between Dreamspell & Tzolkin?  │    │
+│  │                                                         │    │
+│  │    Great question! Dreamspell is José Argüelles'        │    │
+│  │    modern interpretation (1987). Traditional Tzolkin    │    │
+│  │    is the ancient Mayan count. We show you both!        │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │  ▸ Is my data private?                                  │    │
+│  │                                                         │    │
+│  │    100%. Your data is encrypted and never shared.       │    │
+│  │    We don't sell data or show ads. You can export       │    │
+│  │    or delete your data anytime.                         │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Video/Demo Section (Optional)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│                   SEE OMNIS IN ACTION                            │
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │                                                         │    │
+│  │                    ▶                                   │    │
+│  │                                                         │    │
+│  │          [Video thumbnail with play button]            │    │
+│  │           2-minute walkthrough video                   │    │
+│  │                                                         │    │
+│  │                                                         │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                                                                  │
+│               "Watch how Sarah discovers her kin"                │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 ### Footer
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                  │
-│   Omnis          Features    Company     Legal                  │
-│   ───────        ────────    ───────     ─────                  │
-│   Your cosmic    Dreamspell  About       Privacy               │
-│   blueprint      Astrology   Blog        Terms                  │
-│                  Human Des   Contact     Cookies               │
-│   [Social icons] Gematria                                       │
+│  ░░░░░░░░░░░░░░░░░ Subtle gradient background ░░░░░░░░░░░░░░░░  │
 │                                                                  │
-│   © 2026 Omnis. All rights reserved.                           │
+│   ✦ OMNIS                                                        │
+│   Your cosmic blueprint                                          │
+│                                                                  │
+│   Made with ♡ for seekers                                       │
+│   by seekers                                                     │
+│                                                                  │
+│   ────────────────────────────────────────────────────────────  │
+│                                                                  │
+│   Product          Learn           Company        Legal          │
+│   ────────         ─────           ───────        ─────          │
+│   Features         Dreamspell      About          Privacy        │
+│   Pricing          Human Design    Blog           Terms          │
+│   Today's Kin      Astrology       Contact        Cookies        │
+│   Calculator       Gematria        Careers                       │
+│   API (coming)     Wavespells                                    │
+│                                                                  │
+│   ────────────────────────────────────────────────────────────  │
+│                                                                  │
+│   📧 Get daily kin: [email         ] [Subscribe]                 │
+│                                                                  │
+│   ────────────────────────────────────────────────────────────  │
+│                                                                  │
+│   [Twitter] [Instagram] [TikTok] [YouTube]                       │
+│                                                                  │
+│   © 2026 Omnis. All rights reserved.                            │
+│                                                                  │
+│   Built during Mercury Retrograde ☿℞ (just kidding)             │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Mobile-First Considerations
+
+### Mobile Hero (Priority)
+
+```
+┌─────────────────────┐
+│ ✦ OMNIS    [≡]     │
+├─────────────────────┤
+│                     │
+│   DISCOVER YOUR     │
+│     COSMIC          │
+│   BLUEPRINT         │
+│                     │
+│ All your symbolic   │
+│ systems, unified.   │
+│                     │
+│ ┌─────────────────┐ │
+│ │ Start Free →    │ │
+│ └─────────────────┘ │
+│                     │
+│ ┌─────────────────┐ │
+│ │  [Mini card     │ │
+│ │   preview]      │ │
+│ └─────────────────┘ │
+│                     │
+│        ↓            │
+└─────────────────────┘
+```
+
+### Mobile Sticky CTA
+
+```css
+/* Fixed bottom CTA on mobile */
+.mobile-sticky-cta {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  background: rgba(3, 0, 20, 0.95);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 50;
+}
+
+@media (min-width: 768px) {
+  .mobile-sticky-cta { display: none; }
+}
 ```
 
 ---

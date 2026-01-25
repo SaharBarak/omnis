@@ -42,47 +42,121 @@
 - Subtle gradients and glows
 - Sacred geometry undertones
 - Not cluttered or "new age tacky"
+- **Glassmorphism** for depth without heaviness
 
 ### 2. Information Dense but Readable
 - Clear hierarchy: Primary > Secondary > Tertiary
 - Whitespace as a design element
 - Progressive disclosure
+- **Breathing room** between sections
 
 ### 3. Data-Driven Dashboard
 - Show TODAY's energies prominently
 - Personal highlights
 - Quick actions
+- **Real-time feel** with subtle animations
+
+### 4. Delight Through Motion
+- Smooth transitions (200-400ms)
+- Meaningful micro-interactions
+- Loading states that feel alive
+- Never jarring or distracting
 
 ---
 
 ## Color System
 
-### Semantic Colors
+### Core Palette
 
 ```css
-/* Primary Palette - Cosmic */
---primary: hsl(270, 50%, 50%);      /* Deep purple */
---primary-foreground: hsl(0, 0%, 100%);
+:root {
+  /* ═══════════════════════════════════════════════════════════════
+     PRIMARY - Deep Violet (Mystical, Wise)
+     ═══════════════════════════════════════════════════════════════ */
+  --primary-50: #f5f3ff;
+  --primary-100: #ede9fe;
+  --primary-200: #ddd6fe;
+  --primary-300: #c4b5fd;
+  --primary-400: #a78bfa;
+  --primary-500: #8b5cf6;   /* Main */
+  --primary-600: #7c3aed;
+  --primary-700: #6d28d9;
+  --primary-800: #5b21b6;
+  --primary-900: #4c1d95;
+  --primary-950: #2e1065;
 
-/* Accent - Gold/Amber (mystical highlight) */
---accent: hsl(38, 92%, 50%);         /* Gold */
---accent-foreground: hsl(0, 0%, 0%);
+  /* ═══════════════════════════════════════════════════════════════
+     ACCENT - Gold (Sacred, Illumination)
+     ═══════════════════════════════════════════════════════════════ */
+  --accent-50: #fffbeb;
+  --accent-100: #fef3c7;
+  --accent-200: #fde68a;
+  --accent-300: #fcd34d;
+  --accent-400: #fbbf24;   /* Main */
+  --accent-500: #f59e0b;
+  --accent-600: #d97706;
+  --accent-700: #b45309;
+  --accent-800: #92400e;
+  --accent-900: #78350f;
 
-/* Background - Dark mode */
---background: hsl(240, 10%, 4%);     /* Near black */
---foreground: hsl(0, 0%, 95%);
+  /* ═══════════════════════════════════════════════════════════════
+     BACKGROUND - Deep Space
+     ═══════════════════════════════════════════════════════════════ */
+  --bg-base: #030014;      /* Deepest - page background */
+  --bg-raised: #0a0a1a;    /* Cards, dialogs */
+  --bg-elevated: #12122a;  /* Hover states, dropdowns */
+  --bg-overlay: #1a1a3a;   /* Active states */
 
-/* Card surfaces */
---card: hsl(240, 10%, 8%);           /* Slightly lighter */
---card-foreground: hsl(0, 0%, 95%);
+  /* ═══════════════════════════════════════════════════════════════
+     TEXT
+     ═══════════════════════════════════════════════════════════════ */
+  --text-primary: #f8fafc;     /* Headings, important */
+  --text-secondary: #cbd5e1;   /* Body text */
+  --text-muted: #64748b;       /* Captions, hints */
+  --text-disabled: #475569;    /* Disabled states */
 
-/* Muted */
---muted: hsl(240, 5%, 15%);
---muted-foreground: hsl(240, 5%, 60%);
+  /* ═══════════════════════════════════════════════════════════════
+     BORDERS & DIVIDERS
+     ═══════════════════════════════════════════════════════════════ */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --border-focus: rgba(139, 92, 246, 0.5);
 
-/* Borders */
---border: hsl(240, 5%, 20%);
+  /* ═══════════════════════════════════════════════════════════════
+     GLASSMORPHISM
+     ═══════════════════════════════════════════════════════════════ */
+  --glass-bg: rgba(10, 10, 26, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: 12px;
+}
 ```
+
+### Semantic CSS Variables (shadcn compatible)
+
+```css
+:root {
+  --background: 240 50% 3%;
+  --foreground: 210 40% 98%;
+  --card: 240 30% 6%;
+  --card-foreground: 210 40% 98%;
+  --popover: 240 30% 8%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 263 70% 50%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 240 10% 15%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 240 10% 15%;
+  --muted-foreground: 215 20% 55%;
+  --accent: 38 92% 50%;
+  --accent-foreground: 0 0% 0%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 240 10% 15%;
+  --input: 240 10% 15%;
+  --ring: 263 70% 50%;
+  --radius: 0.75rem;
+}
 
 ### System Colors (Dreamspell)
 
@@ -102,44 +176,232 @@
 --hd-design: hsl(0, 72%, 51%);       /* Red */
 ```
 
-### Astrology Colors
+### System Colors (Dreamspell Four Colors)
 
 ```css
---fire: hsl(15, 90%, 55%);           /* Aries, Leo, Sag */
---earth: hsl(120, 30%, 40%);         /* Taurus, Virgo, Cap */
---air: hsl(200, 80%, 60%);           /* Gemini, Libra, Aqua */
---water: hsl(230, 60%, 50%);         /* Cancer, Scorpio, Pisces */
+:root {
+  /* Dreamspell Seal Colors */
+  --seal-red: #ef4444;      /* Initiating - East */
+  --seal-white: #f8fafc;    /* Refining - North */
+  --seal-blue: #3b82f6;     /* Transforming - West */
+  --seal-yellow: #eab308;   /* Ripening - South */
+
+  /* Semantic variants for backgrounds */
+  --seal-red-bg: rgba(239, 68, 68, 0.15);
+  --seal-white-bg: rgba(248, 250, 252, 0.1);
+  --seal-blue-bg: rgba(59, 130, 246, 0.15);
+  --seal-yellow-bg: rgba(234, 179, 8, 0.15);
+
+  /* Glow effects */
+  --seal-red-glow: 0 0 20px rgba(239, 68, 68, 0.4);
+  --seal-white-glow: 0 0 20px rgba(248, 250, 252, 0.3);
+  --seal-blue-glow: 0 0 20px rgba(59, 130, 246, 0.4);
+  --seal-yellow-glow: 0 0 20px rgba(234, 179, 8, 0.4);
+}
+```
+
+### Human Design Colors
+
+```css
+:root {
+  /* Center States */
+  --hd-defined: #8b5cf6;        /* Purple - Defined/Active */
+  --hd-undefined: #1e1e3f;      /* Dark - Open/Receptive */
+
+  /* Activation Colors */
+  --hd-personality: #1a1a2e;    /* Black - Conscious */
+  --hd-design: #dc2626;         /* Red - Unconscious */
+
+  /* Center-specific colors (when defined) */
+  --hd-head: #fbbf24;           /* Yellow - Inspiration */
+  --hd-ajna: #22c55e;           /* Green - Conceptualization */
+  --hd-throat: #f97316;         /* Orange - Communication */
+  --hd-g-center: #eab308;       /* Gold - Identity */
+  --hd-heart: #ef4444;          /* Red - Willpower */
+  --hd-spleen: #854d0e;         /* Brown - Intuition */
+  --hd-sacral: #dc2626;         /* Deep Red - Life Force */
+  --hd-solar: #d97706;          /* Amber - Emotions */
+  --hd-root: #92400e;           /* Earth - Pressure */
+}
+```
+
+### Astrology Element Colors
+
+```css
+:root {
+  /* Four Elements */
+  --element-fire: #f97316;      /* Orange-Red - Aries, Leo, Sag */
+  --element-earth: #22c55e;     /* Green - Taurus, Virgo, Cap */
+  --element-air: #38bdf8;       /* Sky Blue - Gemini, Libra, Aqua */
+  --element-water: #6366f1;     /* Indigo - Cancer, Scorpio, Pisces */
+
+  /* Background variants */
+  --element-fire-bg: rgba(249, 115, 22, 0.15);
+  --element-earth-bg: rgba(34, 197, 94, 0.15);
+  --element-air-bg: rgba(56, 189, 248, 0.15);
+  --element-water-bg: rgba(99, 102, 241, 0.15);
+}
+```
+
+### Gradients
+
+```css
+:root {
+  /* Hero/Feature Gradients */
+  --gradient-cosmic: linear-gradient(135deg, #1a1a3a 0%, #0a0a1a 50%, #030014 100%);
+  --gradient-aurora: linear-gradient(135deg, #7c3aed 0%, #3b82f6 50%, #06b6d4 100%);
+  --gradient-gold: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #fcd34d 100%);
+  --gradient-mystical: linear-gradient(180deg, rgba(139, 92, 246, 0.2) 0%, transparent 50%);
+
+  /* Card Gradients */
+  --gradient-card-hover: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, transparent 100%);
+  --gradient-card-active: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%);
+
+  /* Border Gradients */
+  --gradient-border: linear-gradient(135deg, rgba(139, 92, 246, 0.5) 0%, rgba(59, 130, 246, 0.3) 100%);
+}
 ```
 
 ---
 
 ## Typography Scale
 
+### Font Stack
+
 ```css
-/* Font families */
---font-display: 'Cinzel', serif;     /* Headings - elegant/mystical */
---font-body: 'Inter', sans-serif;    /* Body text */
---font-mono: 'JetBrains Mono', monospace;  /* Numbers/data */
+:root {
+  /* Display - Elegant serif for headings */
+  --font-display: 'Cinzel', 'Playfair Display', Georgia, serif;
 
-/* Scale (based on 1.25 ratio) */
---text-xs: 0.64rem;     /* 10px */
---text-sm: 0.8rem;      /* 13px */
---text-base: 1rem;      /* 16px */
---text-lg: 1.25rem;     /* 20px */
---text-xl: 1.563rem;    /* 25px */
---text-2xl: 1.953rem;   /* 31px */
---text-3xl: 2.441rem;   /* 39px */
---text-4xl: 3.052rem;   /* 49px */
+  /* Body - Clean sans-serif for readability */
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-/* Line heights */
---leading-tight: 1.2;
---leading-normal: 1.5;
---leading-relaxed: 1.75;
+  /* Mono - For numbers, data, kin numbers */
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
 
-/* Letter spacing */
---tracking-tight: -0.02em;
---tracking-normal: 0;
---tracking-wide: 0.05em;
+  /* Hebrew - Right-to-left support */
+  --font-hebrew: 'Heebo', 'Assistant', 'Arial Hebrew', sans-serif;
+}
+```
+
+### Type Scale (1.25 ratio - Major Third)
+
+```css
+:root {
+  /* Size scale */
+  --text-xs: 0.75rem;     /* 12px - Captions, badges */
+  --text-sm: 0.875rem;    /* 14px - Secondary text, labels */
+  --text-base: 1rem;      /* 16px - Body text */
+  --text-lg: 1.125rem;    /* 18px - Lead paragraphs */
+  --text-xl: 1.25rem;     /* 20px - Card titles */
+  --text-2xl: 1.5rem;     /* 24px - Section headers */
+  --text-3xl: 1.875rem;   /* 30px - Page titles */
+  --text-4xl: 2.25rem;    /* 36px - Hero subhead */
+  --text-5xl: 3rem;       /* 48px - Hero headline */
+  --text-6xl: 3.75rem;    /* 60px - Landing hero */
+
+  /* Line heights */
+  --leading-none: 1;
+  --leading-tight: 1.2;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+
+  /* Letter spacing */
+  --tracking-tighter: -0.05em;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+  --tracking-widest: 0.1em;
+
+  /* Font weights */
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+}
+```
+
+### Typography Classes
+
+```css
+/* Display headings - Cinzel */
+.heading-hero {
+  font-family: var(--font-display);
+  font-size: var(--text-6xl);
+  font-weight: var(--font-bold);
+  line-height: var(--leading-none);
+  letter-spacing: var(--tracking-tight);
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.heading-1 {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+}
+
+.heading-2 {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  line-height: var(--leading-tight);
+  color: var(--text-primary);
+}
+
+.heading-3 {
+  font-family: var(--font-body);
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  line-height: var(--leading-snug);
+  color: var(--text-primary);
+}
+
+/* Body text */
+.body-large {
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+}
+
+.body-default {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+.body-small {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-muted);
+}
+
+/* Special - Kin numbers, data */
+.kin-number {
+  font-family: var(--font-mono);
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-wider);
+  color: var(--accent-400);
+}
+
+/* Hebrew text */
+.hebrew-text {
+  font-family: var(--font-hebrew);
+  direction: rtl;
+  color: var(--text-muted);
+}
 ```
 
 ---
@@ -147,19 +409,150 @@
 ## Spacing Scale
 
 ```css
-/* Based on 4px unit */
---space-1: 0.25rem;   /* 4px */
---space-2: 0.5rem;    /* 8px */
---space-3: 0.75rem;   /* 12px */
---space-4: 1rem;      /* 16px */
---space-5: 1.25rem;   /* 20px */
---space-6: 1.5rem;    /* 24px */
---space-8: 2rem;      /* 32px */
---space-10: 2.5rem;   /* 40px */
---space-12: 3rem;     /* 48px */
---space-16: 4rem;     /* 64px */
---space-20: 5rem;     /* 80px */
+:root {
+  /* Based on 4px unit - matches Tailwind */
+  --space-0: 0;
+  --space-px: 1px;
+  --space-0.5: 0.125rem;  /* 2px */
+  --space-1: 0.25rem;     /* 4px */
+  --space-1.5: 0.375rem;  /* 6px */
+  --space-2: 0.5rem;      /* 8px */
+  --space-2.5: 0.625rem;  /* 10px */
+  --space-3: 0.75rem;     /* 12px */
+  --space-3.5: 0.875rem;  /* 14px */
+  --space-4: 1rem;        /* 16px */
+  --space-5: 1.25rem;     /* 20px */
+  --space-6: 1.5rem;      /* 24px */
+  --space-7: 1.75rem;     /* 28px */
+  --space-8: 2rem;        /* 32px */
+  --space-9: 2.25rem;     /* 36px */
+  --space-10: 2.5rem;     /* 40px */
+  --space-11: 2.75rem;    /* 44px */
+  --space-12: 3rem;       /* 48px */
+  --space-14: 3.5rem;     /* 56px */
+  --space-16: 4rem;       /* 64px */
+  --space-20: 5rem;       /* 80px */
+  --space-24: 6rem;       /* 96px */
+  --space-28: 7rem;       /* 112px */
+  --space-32: 8rem;       /* 128px */
+}
 ```
+
+### Spacing Usage Guidelines
+
+| Context | Spacing |
+|---------|---------|
+| Icon to text | space-2 (8px) |
+| Input padding | space-3 (12px) |
+| Card padding | space-4 to space-6 (16-24px) |
+| Between form fields | space-4 (16px) |
+| Between sections | space-8 to space-12 (32-48px) |
+| Page margins (mobile) | space-4 (16px) |
+| Page margins (desktop) | space-6 to space-8 (24-32px) |
+
+---
+
+## Shadows & Effects
+
+```css
+:root {
+  /* ═══════════════════════════════════════════════════════════════
+     SHADOWS - Layered depth system
+     ═══════════════════════════════════════════════════════════════ */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 16px 32px rgba(0, 0, 0, 0.5);
+  --shadow-2xl: 0 24px 48px rgba(0, 0, 0, 0.6);
+
+  /* Colored shadows for glow effects */
+  --shadow-primary: 0 8px 24px rgba(139, 92, 246, 0.3);
+  --shadow-accent: 0 8px 24px rgba(251, 191, 36, 0.3);
+  --shadow-error: 0 8px 24px rgba(239, 68, 68, 0.3);
+
+  /* Inner shadows for depth */
+  --shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-inner-glow: inset 0 0 20px rgba(139, 92, 246, 0.1);
+
+  /* ═══════════════════════════════════════════════════════════════
+     BLUR EFFECTS
+     ═══════════════════════════════════════════════════════════════ */
+  --blur-sm: 4px;
+  --blur-md: 8px;
+  --blur-lg: 12px;
+  --blur-xl: 24px;
+
+  /* ═══════════════════════════════════════════════════════════════
+     TRANSITIONS
+     ═══════════════════════════════════════════════════════════════ */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+  --transition-slower: 500ms ease;
+
+  /* Cubic bezier for bouncy feel */
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* ═══════════════════════════════════════════════════════════════
+     BORDER RADIUS
+     ═══════════════════════════════════════════════════════════════ */
+  --radius-none: 0;
+  --radius-sm: 0.25rem;   /* 4px */
+  --radius-md: 0.5rem;    /* 8px */
+  --radius-lg: 0.75rem;   /* 12px */
+  --radius-xl: 1rem;      /* 16px */
+  --radius-2xl: 1.5rem;   /* 24px */
+  --radius-full: 9999px;
+}
+```
+
+### Glassmorphism Component
+
+```css
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+}
+
+.glass-card-hover:hover {
+  background: rgba(10, 10, 26, 0.8);
+  border-color: rgba(139, 92, 246, 0.3);
+  box-shadow: var(--shadow-primary);
+}
+```
+
+### Glow Effects
+
+```css
+/* Subtle ambient glow */
+.glow-ambient {
+  box-shadow:
+    0 0 20px rgba(139, 92, 246, 0.1),
+    0 0 40px rgba(139, 92, 246, 0.05);
+}
+
+/* Active/focus glow */
+.glow-active {
+  box-shadow:
+    0 0 0 2px rgba(139, 92, 246, 0.3),
+    0 0 20px rgba(139, 92, 246, 0.2);
+}
+
+/* Pulsing glow animation */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(139, 92, 246, 0.4); }
+}
+
+.glow-pulse {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
 
 ---
 
