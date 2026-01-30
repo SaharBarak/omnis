@@ -25,7 +25,7 @@ The Omnis platform is a complete symbolic systems web application featuring:
 | **MVP Functionality** | COMPLETE | All 16 cards render at `/app/cards` |
 | **Build Status** | PASSING | Production build succeeds |
 | **TypeScript** | CLEAN | No type errors (strict mode) |
-| **Tests** | 502 PASSING | 13 test files (11 calculations + 2 component test files) |
+| **Tests** | 641 PASSING | 16 test files (11 calculations + 3 services + 2 component test files) |
 | **Icons** | COMPLETE | 40 SVG icons (20 dreamspell seals, 20 tzolkin signs) |
 | **Components** | 76 FILES | `src/lib/` fully production-ready, no TODOs |
 | **Specs** | 30+ FILES | All system specs complete, 3 marked TODO |
@@ -113,17 +113,20 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 **Note:** Canvas components retain RTL for Hebrew content in the canvas editor UI.
 
 ### P2.3: Test Coverage Expansion
-**Current:** 502 tests across 13 test files (2026-01-30)
+**Current:** 641 tests across 16 test files (2026-01-30)
 
 **Test File Distribution:**
 | File | Tests | Coverage |
 |------|-------|----------|
 | `human-design.test.ts` | 98 | Gates, channels, centers, bodygraph |
 | `gematria.test.ts` | 78 | 7 calculation methods, letter values |
+| `predictions.test.ts` | 55 | Daily/weekly/monthly predictions, timelines, date utilities |
 | `astrology.test.ts` | 51 | Zodiac, planets, houses, aspects |
+| `compatibility.test.ts` | 47 | Dreamspell/Tzolkin compatibility, oracle relationships, score colors |
 | `long-count.test.ts` | 47 | Mayan calendar, Haab, Calendar Round |
-| `cards.test.tsx` | 36 | PersonCard, DreamspellSection, TzolkinSection, OracleMap, MantraDisplay, SealIcon |
 | `display-components.test.tsx` | 45 | WavespellDisplay, CastleDisplay, YearlyDisplay (all variants) |
+| `group-analysis.test.ts` | 37 | Group member analysis, distributions, compatibility matrix, insights |
+| `cards.test.tsx` | 36 | PersonCard, DreamspellSection, TzolkinSection, OracleMap, MantraDisplay, SealIcon |
 | `oracle.test.ts` | 32 | Guide/analog/antipode/occult pairs + occultTone |
 | `cycles.test.ts` | 30 | Castles, families, harmonics |
 | `wavespell.test.ts` | 24 | 13-day wave cycles |
@@ -132,16 +135,23 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 | `tzolkin.test.ts` | 11 | Day signs, GMT correlation |
 | `julian.test.ts` | 5 | JDN conversions |
 
-**Component Test Infrastructure (NEW):**
-- Vitest + @testing-library/react + jsdom environment
+**Test Infrastructure:**
+- Vitest 4.0 + @testing-library/react + jsdom environment
 - Mock for Next.js Image component
 - Configuration: `vitest.config.ts` with React plugin
+
+**Completed Test Categories (2026-01-30):**
+| Category | Status | Tests Added |
+|----------|--------|-------------|
+| Service tests: predictions.ts | ✅ COMPLETE | 55 tests |
+| Service tests: compatibility.ts | ✅ COMPLETE | 47 tests |
+| Service tests: group-analysis.ts | ✅ COMPLETE | 37 tests |
 
 **Remaining Test Categories:**
 | Category | Files Needing Tests | Priority |
 |----------|---------------------|----------|
 | API route tests | `/api/ai/*`, `/api/predictions/*`, `/api/cron/*` | MEDIUM |
-| Service tests | `compatibility.ts`, `group-analysis.ts`, `canvas-export.ts` | LOW |
+| Service tests | `canvas-export.ts` | LOW |
 | Hook tests | `use-people.ts`, `use-boards.ts`, `use-auth.ts` | LOW |
 
 ### P2.4: Specification Cleanup
@@ -233,7 +243,7 @@ Per `/specs/DESIGN_SYSTEM.md`:
 ```bash
 npm run dev           # Start dev server
 npm run build         # Production build (PASSING)
-npm run test          # Run tests (487 tests)
+npm run test          # Run tests (641 tests)
 npm run typecheck     # TypeScript check (CLEAN)
 ```
 
@@ -258,7 +268,7 @@ npm run typecheck     # TypeScript check (CLEAN)
 - [x] No runtime errors
 - [x] TypeScript clean (strict mode)
 - [x] Print CSS produces proper A5 layout
-- [x] 487 tests passing
+- [x] 641 tests passing
 - [x] Production build succeeds
 
 ---
