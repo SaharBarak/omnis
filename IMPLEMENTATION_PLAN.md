@@ -25,7 +25,7 @@ The Omnis platform is a complete symbolic systems web application featuring:
 | **MVP Functionality** | COMPLETE | All 16 cards render at `/app/cards` |
 | **Build Status** | PASSING | Production build succeeds |
 | **TypeScript** | CLEAN | No type errors (strict mode) |
-| **Tests** | 487 PASSING | 15 test files total (11 in `src/lib/calculations/`, 4 in `src-mvp/`) |
+| **Tests** | 502 PASSING | 13 test files (11 calculations + 2 component test files) |
 | **Icons** | COMPLETE | 40 SVG icons (20 dreamspell seals, 20 tzolkin signs) |
 | **Components** | 76 FILES | `src/lib/` fully production-ready, no TODOs |
 | **Specs** | 30+ FILES | All system specs complete, 3 marked TODO |
@@ -113,34 +113,33 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 **Note:** Canvas components retain RTL for Hebrew content in the canvas editor UI.
 
 ### P2.3: Test Coverage Expansion
-**Current:** 484 tests across 11 test files in `src/lib/calculations/`
+**Current:** 502 tests across 13 test files (2026-01-30)
 
-**Test File Distribution (VERIFIED):**
+**Test File Distribution:**
 | File | Tests | Coverage |
 |------|-------|----------|
 | `human-design.test.ts` | 98 | Gates, channels, centers, bodygraph |
 | `gematria.test.ts` | 78 | 7 calculation methods, letter values |
 | `astrology.test.ts` | 51 | Zodiac, planets, houses, aspects |
 | `long-count.test.ts` | 47 | Mayan calendar, Haab, Calendar Round |
-| `cycles.test.ts` | 30 | Castles, families, harmonics |
+| `cards.test.tsx` | 36 | PersonCard, DreamspellSection, TzolkinSection, OracleMap, MantraDisplay, SealIcon |
+| `display-components.test.tsx` | 45 | WavespellDisplay, CastleDisplay, YearlyDisplay (all variants) |
 | `oracle.test.ts` | 32 | Guide/analog/antipode/occult pairs + occultTone |
+| `cycles.test.ts` | 30 | Castles, families, harmonics |
 | `wavespell.test.ts` | 24 | 13-day wave cycles |
 | `yearly.test.ts` | 24 | Year bearers, galactic birthdays |
 | `dreamspell.test.ts` | 21 | Kin calculations, epoch |
 | `tzolkin.test.ts` | 11 | Day signs, GMT correlation |
 | `julian.test.ts` | 5 | JDN conversions |
 
-**TEST_PEOPLE Usage (VERIFIED):**
-- Only **2 of 16** birth dates used in assertions:
-  - `1966-09-23` (ליאור) - astrology, long-count
-  - `1955-06-11` (ילנה) - long-count, human-design
-- **14 people untested:** אביטל, איתן, יפעת, מיכל, אויה, קרן, עינת, גניה, גדי, דינה, סיגל, מיטל, אלנה, ענת
+**Component Test Infrastructure (NEW):**
+- Vitest + @testing-library/react + jsdom environment
+- Mock for Next.js Image component
+- Configuration: `vitest.config.ts` with React plugin
 
-**Missing Test Categories:**
+**Remaining Test Categories:**
 | Category | Files Needing Tests | Priority |
 |----------|---------------------|----------|
-| Component tests | PersonCard, OracleMap, DreamspellSection, etc. | HIGH |
-| Integration tests | End-to-end card rendering flows | MEDIUM |
 | API route tests | `/api/ai/*`, `/api/predictions/*`, `/api/cron/*` | MEDIUM |
 | Service tests | `compatibility.ts`, `group-analysis.ts`, `canvas-export.ts` | LOW |
 | Hook tests | `use-people.ts`, `use-boards.ts`, `use-auth.ts` | LOW |
