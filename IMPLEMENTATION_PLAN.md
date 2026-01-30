@@ -25,7 +25,7 @@ The Omnis platform is a complete symbolic systems web application featuring:
 | **MVP Functionality** | COMPLETE | All 16 cards render at `/app/cards` |
 | **Build Status** | PASSING | Production build succeeds |
 | **TypeScript** | CLEAN | No type errors (strict mode) |
-| **Tests** | 641 PASSING | 16 test files (11 calculations + 3 services + 2 component test files) |
+| **Tests** | 713 PASSING | 19 test files (11 calculations + 3 services + 3 API routes + 2 components) |
 | **Icons** | COMPLETE | 40 SVG icons (20 dreamspell seals, 20 tzolkin signs) |
 | **Components** | 76 FILES | `src/lib/` fully production-ready, no TODOs |
 | **Specs** | 30+ FILES | All system specs complete, 3 marked TODO |
@@ -113,7 +113,7 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 **Note:** Canvas components retain RTL for Hebrew content in the canvas editor UI.
 
 ### P2.3: Test Coverage Expansion
-**Current:** 641 tests across 16 test files (2026-01-30)
+**Current:** 713 tests across 19 test files (2026-01-30)
 
 **Test File Distribution:**
 | File | Tests | Coverage |
@@ -125,6 +125,7 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 | `compatibility.test.ts` | 47 | Dreamspell/Tzolkin compatibility, oracle relationships, score colors |
 | `long-count.test.ts` | 47 | Mayan calendar, Haab, Calendar Round |
 | `display-components.test.tsx` | 45 | WavespellDisplay, CastleDisplay, YearlyDisplay (all variants) |
+| `predictions.test.ts` (API) | 42 | GET/POST predictions endpoints, caching, validation |
 | `group-analysis.test.ts` | 37 | Group member analysis, distributions, compatibility matrix, insights |
 | `cards.test.tsx` | 36 | PersonCard, DreamspellSection, TzolkinSection, OracleMap, MantraDisplay, SealIcon |
 | `oracle.test.ts` | 32 | Guide/analog/antipode/occult pairs + occultTone |
@@ -132,6 +133,8 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 | `wavespell.test.ts` | 24 | 13-day wave cycles |
 | `yearly.test.ts` | 24 | Year bearers, galactic birthdays |
 | `dreamspell.test.ts` | 21 | Kin calculations, epoch |
+| `interpret.test.ts` (API) | 16 | AI interpretation endpoint, input validation, error handling |
+| `timeline.test.ts` (API) | 14 | Timeline API endpoint, date range queries |
 | `tzolkin.test.ts` | 11 | Day signs, GMT correlation |
 | `julian.test.ts` | 5 | JDN conversions |
 
@@ -146,11 +149,14 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 | Service tests: predictions.ts | ✅ COMPLETE | 55 tests |
 | Service tests: compatibility.ts | ✅ COMPLETE | 47 tests |
 | Service tests: group-analysis.ts | ✅ COMPLETE | 37 tests |
+| API route tests: /api/ai/interpret | ✅ COMPLETE | 16 tests |
+| API route tests: /api/predictions | ✅ COMPLETE | 42 tests |
+| API route tests: /api/predictions/timeline | ✅ COMPLETE | 14 tests |
 
 **Remaining Test Categories:**
 | Category | Files Needing Tests | Priority |
 |----------|---------------------|----------|
-| API route tests | `/api/ai/*`, `/api/predictions/*`, `/api/cron/*` | MEDIUM |
+| API route tests | `/api/cron/*` | LOW |
 | Service tests | `canvas-export.ts` | LOW |
 | Hook tests | `use-people.ts`, `use-boards.ts`, `use-auth.ts` | LOW |
 
@@ -268,7 +274,7 @@ npm run typecheck     # TypeScript check (CLEAN)
 - [x] No runtime errors
 - [x] TypeScript clean (strict mode)
 - [x] Print CSS produces proper A5 layout
-- [x] 641 tests passing
+- [x] 713 tests passing
 - [x] Production build succeeds
 
 ---
@@ -284,7 +290,7 @@ npm run typecheck     # TypeScript check (CLEAN)
 
 ### Quick Reference - Next Actions
 
-1. **P2.3** - Test Coverage Expansion (component tests, integration tests, API tests)
+1. **P2.3** - Test Coverage Expansion (cron API tests, service tests, hook tests - all LOW priority)
 
 2. **P2.5** - PDF Export Enhancement (html2canvas + jspdf)
 
