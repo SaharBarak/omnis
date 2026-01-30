@@ -10,8 +10,6 @@ export async function GET(request: NextRequest) {
   const redirectTo = requestUrl.searchParams.get('redirectTo') || '/app'
   const origin = requestUrl.origin
 
-  console.log('[AuthCallback Route] Starting, code present:', !!code)
-
   if (code) {
     const cookieStore = await cookies()
 
@@ -44,8 +42,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`)
     }
 
-    console.log('[AuthCallback Route] Session created for:', data.user?.email)
-
     // Check if user has completed onboarding
     if (data.user) {
       const { data: profile } = await supabase
@@ -56,7 +52,6 @@ export async function GET(request: NextRequest) {
 
       // Create profile if it doesn't exist
       if (!profile) {
-        console.log('[AuthCallback Route] Creating profile')
         const displayName =
           (data.user.user_metadata?.full_name as string) ||
           (data.user.user_metadata?.name as string) ||

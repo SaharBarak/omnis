@@ -1,4 +1,4 @@
-import type { Kin, SealNumber } from '../../core/types'
+import type { Kin, SealNumber, ToneNumber } from '../../core/types'
 import type { Seal } from './seal'
 import type { Tone } from './tone'
 
@@ -13,4 +13,5 @@ export interface Oracle {
   analog: SealNumber
   antipode: SealNumber
   occult: SealNumber
+  occultTone: ToneNumber
 }

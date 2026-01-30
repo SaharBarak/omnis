@@ -49,8 +49,6 @@ export function useAuth() {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('[useAuth] Auth state changed:', event, !!session)
-
         if (session?.user) {
           // Defer profile fetch to avoid blocking
           const profile = await fetchProfile(session.user.id)
@@ -76,7 +74,6 @@ export function useAuth() {
     const timeout = setTimeout(() => {
       setState(prev => {
         if (prev.loading) {
-          console.log('[useAuth] Timeout - setting loading to false')
           return { ...prev, loading: false }
         }
         return prev

@@ -1,6 +1,6 @@
 import type { Kin, SealNumber, ToneNumber } from '../../core/types'
 import type { Oracle } from '../types/dreamspell'
-import { getAnalog, getAntipode, getOccult, getGuide } from '../data/oracle-tables'
+import { getAnalog, getAntipode, getOccult, getGuide, getOccultTone } from '../data/oracle-tables'
 import { kinToSeal, kinToTone } from './dreamspell'
 
 export function calculateOracle(kin: Kin): Oracle {
@@ -12,5 +12,6 @@ export function calculateOracle(kin: Kin): Oracle {
     analog: getAnalog(seal),
     antipode: getAntipode(seal),
     occult: getOccult(seal),
+    occultTone: getOccultTone(tone) as ToneNumber,
   }
 }

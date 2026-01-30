@@ -1,5 +1,7 @@
 import type { Seal } from '../types/seal'
 import type { Tone } from '../types/tone'
+import type { SealNumber } from '../../core/types'
+import { getGuide } from './oracle-tables'
 
 // Seal data for Dreamspell affirmations (from José Argüelles' Dreamspell)
 const SEAL_DATA: Record<number, { power: string; action: string; essence: string }> = {
@@ -55,13 +57,25 @@ export function generateMantra(seal: Seal, tone: Tone): string {
   const toneData = TONE_DATA[tone.number]
   const wavespell = WAVESPELL_TYPE[seal.color]
 
+  // Line 5: Guide reference per DREAMSPELL_SPEC.md lines 180, 198, 207
+  // For tones 1, 6, 11: Guide = Kin, so say "my own power doubled"
+  // For other tones: Reference Guide seal's power
+  let guideLine: string
+  if (tone.number === 1 || tone.number === 6 || tone.number === 11) {
+    guideLine = 'I am guided by my own power doubled'
+  } else {
+    const guideSeal = getGuide(seal.number as SealNumber, tone.number)
+    const guideData = SEAL_DATA[guideSeal]
+    guideLine = `I am guided by the power of ${guideData.power.toLowerCase()}`
+  }
+
   // Standard Dreamspell 5-line affirmation format
   const lines = [
     `I ${toneData.action.toLowerCase()} in order to ${sealData.action}`,
     `${toneData.essence} ${sealData.essence.toLowerCase()}`,
     `I seal the ${wavespell.toLowerCase()} of ${sealData.power.toLowerCase()}`,
     `With the ${tone.name.toLowerCase()} tone of ${toneData.power.toLowerCase()}`,
-    `I am guided by the power of ${sealData.power.toLowerCase()}`
+    guideLine
   ]
 
   return lines.join('\n')

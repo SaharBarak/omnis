@@ -31,6 +31,13 @@ export function getOccult(seal: SealNumber): SealNumber {
   return (21 - seal) as SealNumber
 }
 
+// Occult tone formula per DREAMSPELL_SPEC.md line 151:
+// Tone = 14 - originalTone (if 0, use 13)
+export function getOccultTone(tone: number): number {
+  const result = 14 - tone
+  return result === 0 ? 13 : result
+}
+
 // Guide offset by tone group
 // Tones 1, 6, 11 -> offset 0 (same seal)
 // Tones 2, 7, 12 -> offset 12

@@ -208,3 +208,37 @@ export {
   STICKY_COLORS,
   TOOLS,
 } from './board'
+
+// Phase 3.2: Prediction system types
+export type {
+  PredictionSystem,
+  PredictionType,
+  PredictionIntensity,
+  PredictionEvent,
+  PredictionEventData,
+  DailyPrediction,
+  WeeklyPrediction,
+  MonthlyPrediction,
+  PersonalTimeline,
+  TimelineMilestone,
+  GalacticReturnMilestone,
+  TunBirthdayMilestone,
+  KatunBirthdayMilestone,
+  CalendarRoundMilestone,
+  NotificationChannel,
+  NotificationSettings,
+  CalendarEvent,
+  ICSEvent,
+  AIInterpretationRequest,
+  AIInterpretationResponse,
+  PredictionAPIResponse,
+  DailyPredictionResponse,
+  WeeklyPredictionResponse,
+  MonthlyPredictionResponse,
+  TimelineResponse,
+} from './prediction'
+export {
+  INTENSITY_WEIGHTS,
+  DEFAULT_NOTIFICATION_SETTINGS,
+  calculateIntensity,
+} from './prediction'

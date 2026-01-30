@@ -1,16 +1,17 @@
 import { describe, it, expect } from 'vitest'
 import { calculateOracle } from './oracle'
 import { asKin } from '../../core/types'
-import { getAnalog, getAntipode, getOccult, getGuide } from '../data/oracle-tables'
+import { getAnalog, getAntipode, getOccult, getGuide, getOccultTone } from '../data/oracle-tables'
 
 describe('Oracle Calculations', () => {
   describe('calculateOracle', () => {
-    it('should return all four oracle positions', () => {
+    it('should return all five oracle positions including occultTone', () => {
       const oracle = calculateOracle(asKin(34))
       expect(oracle).toHaveProperty('guide')
       expect(oracle).toHaveProperty('analog')
       expect(oracle).toHaveProperty('antipode')
       expect(oracle).toHaveProperty('occult')
+      expect(oracle).toHaveProperty('occultTone')
     })
 
     // Kin 34 = Seal 14 (Wizard), Tone 8
@@ -24,6 +25,8 @@ describe('Oracle Calculations', () => {
       expect(oracle.antipode).toBe(4)
       // Occult: 21-14 = 7 (Hand)
       expect(oracle.occult).toBe(7)
+      // Occult Tone: 14-8 = 6
+      expect(oracle.occultTone).toBe(6)
     })
   })
 
@@ -70,6 +73,30 @@ describe('Oracle Calculations', () => {
       expect(getOccult(10 as any)).toBe(11) // 21-10 = 11
       expect(getOccult(11 as any)).toBe(10) // 21-11 = 10
       expect(getOccult(20 as any)).toBe(1)  // 21-20 = 1
+    })
+  })
+
+  describe('getOccultTone', () => {
+    it('should calculate occult tone as 14 - tone', () => {
+      expect(getOccultTone(1)).toBe(13)   // 14-1 = 13
+      expect(getOccultTone(2)).toBe(12)   // 14-2 = 12
+      expect(getOccultTone(7)).toBe(7)    // 14-7 = 7
+      expect(getOccultTone(8)).toBe(6)    // 14-8 = 6
+      expect(getOccultTone(13)).toBe(1)   // 14-13 = 1
+    })
+
+    it('should return 13 when result would be 0 (tone 14 case)', () => {
+      // This tests the edge case: 14-14=0 should be 13
+      // Although valid tones are 1-13, the formula handles the edge case
+      expect(getOccultTone(14)).toBe(13)
+    })
+
+    it('should be complementary: tone + occultTone = 14 (or 27 when one is 13)', () => {
+      for (let tone = 1; tone <= 13; tone++) {
+        const occultTone = getOccultTone(tone)
+        // Either sums to 14, or when tone=1, occultTone=13 (special case)
+        expect(tone + occultTone).toBe(14)
+      }
     })
   })
 

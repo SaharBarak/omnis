@@ -157,7 +157,7 @@ export function OracleWheel({ kin, sealNumber, size = 'md', showGuides = false, 
         }}
       >
         <img
-          src={`/icons/dreamspell/seals/${String(seal.number).padStart(2, '0')}-${seal.mayan.toLowerCase()}.svg`}
+          src={`/icons/dreamspell/seals/${String(seal.number).padStart(2, '0')}-${seal.english.toLowerCase()}.svg`}
           alt={seal.english}
           className="w-full h-full drop-shadow-md"
           style={{
@@ -202,7 +202,7 @@ export function OracleWheelMini({ sealNumber, className = '' }: { sealNumber: nu
         }}
       />
       <img
-        src={`/icons/dreamspell/seals/${String(seal.number).padStart(2, '0')}-${seal.mayan.toLowerCase()}.svg`}
+        src={`/icons/dreamspell/seals/${String(seal.number).padStart(2, '0')}-${seal.english.toLowerCase()}.svg`}
         alt={seal.english}
         className="w-6 h-6 relative z-10"
       />
