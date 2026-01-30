@@ -25,7 +25,7 @@ The Omnis platform is a complete symbolic systems web application featuring:
 | **MVP Functionality** | COMPLETE | All 16 cards render at `/app/cards` |
 | **Build Status** | PASSING | Production build succeeds |
 | **TypeScript** | CLEAN | No type errors (strict mode) |
-| **Tests** | 713 PASSING | 19 test files (11 calculations + 3 services + 3 API routes + 2 components) |
+| **Tests** | 820 PASSING | 24 test files (11 calculations + 4 services + 6 API routes + 2 components + 1 hook) |
 | **Icons** | COMPLETE | 40 SVG icons (20 dreamspell seals, 20 tzolkin signs) |
 | **Components** | 76 FILES | `src/lib/` fully production-ready, no TODOs |
 | **Specs** | 30+ FILES | All system specs complete, 3 marked TODO |
@@ -113,7 +113,7 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 **Note:** Canvas components retain RTL for Hebrew content in the canvas editor UI.
 
 ### P2.3: Test Coverage Expansion
-**Current:** 713 tests across 19 test files (2026-01-30)
+**Current:** 820 tests across 24 test files (2026-01-30)
 
 **Test File Distribution:**
 | File | Tests | Coverage |
@@ -121,17 +121,22 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 | `human-design.test.ts` | 98 | Gates, channels, centers, bodygraph |
 | `gematria.test.ts` | 78 | 7 calculation methods, letter values |
 | `predictions.test.ts` | 55 | Daily/weekly/monthly predictions, timelines, date utilities |
+| `send-notifications.test.ts` (API) | 52 | Cron auth, time windows, notification processing |
 | `astrology.test.ts` | 51 | Zodiac, planets, houses, aspects |
 | `compatibility.test.ts` | 47 | Dreamspell/Tzolkin compatibility, oracle relationships, score colors |
 | `long-count.test.ts` | 47 | Mayan calendar, Haab, Calendar Round |
+| `daily-predictions.test.ts` (API) | 45 | Cron auth, people processing, error handling |
 | `display-components.test.tsx` | 45 | WavespellDisplay, CastleDisplay, YearlyDisplay (all variants) |
 | `predictions.test.ts` (API) | 42 | GET/POST predictions endpoints, caching, validation |
 | `group-analysis.test.ts` | 37 | Group member analysis, distributions, compatibility matrix, insights |
 | `cards.test.tsx` | 36 | PersonCard, DreamspellSection, TzolkinSection, OracleMap, MantraDisplay, SealIcon |
+| `canvas-export.test.ts` | 34 | PNG/JPEG/SVG export, download, data URL conversion |
 | `oracle.test.ts` | 32 | Guide/analog/antipode/occult pairs + occultTone |
 | `cycles.test.ts` | 30 | Castles, families, harmonics |
+| `daily-kin.test.ts` (API) | 25 | Cron auth, email sending, error handling |
 | `wavespell.test.ts` | 24 | 13-day wave cycles |
 | `yearly.test.ts` | 24 | Year bearers, galactic birthdays |
+| `use-auth.test.ts` | 21 | Auth hook: OAuth, OTP, sign out, state changes |
 | `dreamspell.test.ts` | 21 | Kin calculations, epoch |
 | `interpret.test.ts` (API) | 16 | AI interpretation endpoint, input validation, error handling |
 | `timeline.test.ts` (API) | 14 | Timeline API endpoint, date range queries |
@@ -149,15 +154,19 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 | Service tests: predictions.ts | ✅ COMPLETE | 55 tests |
 | Service tests: compatibility.ts | ✅ COMPLETE | 47 tests |
 | Service tests: group-analysis.ts | ✅ COMPLETE | 37 tests |
+| Service tests: canvas-export.ts | ✅ COMPLETE | 34 tests |
 | API route tests: /api/ai/interpret | ✅ COMPLETE | 16 tests |
 | API route tests: /api/predictions | ✅ COMPLETE | 42 tests |
 | API route tests: /api/predictions/timeline | ✅ COMPLETE | 14 tests |
+| API route tests: /api/cron/daily-predictions | ✅ COMPLETE | 45 tests |
+| API route tests: /api/cron/daily-kin | ✅ COMPLETE | 25 tests |
+| API route tests: /api/cron/send-notifications | ✅ COMPLETE | 52 tests |
+| Hook tests: use-auth.ts | ✅ COMPLETE | 21 tests |
 
 **Remaining Test Categories:**
 | Category | Files Needing Tests | Priority |
 |----------|---------------------|----------|
-| API route tests | `/api/cron/*` | LOW |
-| Service tests | `canvas-export.ts` | LOW |
+| Hook tests | `use-people.ts`, `use-boards.ts` | LOW (memory-intensive mocking required) |
 | Hook tests | `use-people.ts`, `use-boards.ts`, `use-auth.ts` | LOW |
 
 ### P2.4: Specification Cleanup
@@ -249,7 +258,7 @@ Per `/specs/DESIGN_SYSTEM.md`:
 ```bash
 npm run dev           # Start dev server
 npm run build         # Production build (PASSING)
-npm run test          # Run tests (641 tests)
+npm run test          # Run tests (820 tests)
 npm run typecheck     # TypeScript check (CLEAN)
 ```
 
@@ -274,7 +283,7 @@ npm run typecheck     # TypeScript check (CLEAN)
 - [x] No runtime errors
 - [x] TypeScript clean (strict mode)
 - [x] Print CSS produces proper A5 layout
-- [x] 713 tests passing
+- [x] 820 tests passing
 - [x] Production build succeeds
 
 ---
