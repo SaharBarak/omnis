@@ -1,28 +1,68 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, Suspense } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
+import { motion } from 'framer-motion'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { usePeople } from '@/lib/hooks/use-people'
 import { useRelationships } from '@/lib/hooks/use-relationships'
 import { useGroups } from '@/lib/hooks/use-groups'
 import { useBoards } from '@/lib/hooks/use-boards'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
 import { calculateOracle } from '@/lib/calculations/oracle'
 import { getSeal } from '@/lib/data/seals'
 import { getTone } from '@/lib/data/tones'
 import { generateMantra } from '@/lib/data/mantras'
-import { getWavespell } from '@/lib/calculations/wavespell'
+import { kinToWavespell } from '@/lib/calculations/wavespell'
 import { kinToCastle } from '@/lib/calculations/cycles'
 
-// Today's date
-function getTodayDateString(): string {
-  const today = new Date()
-  return today.toISOString().split('T')[0]
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Users,
+  Heart,
+  UsersRound,
+  LayoutGrid,
+  Sparkles,
+  Network,
+  CreditCard,
+  Plus,
+  ArrowRight,
+  ChevronRight,
+  Calendar,
+  Zap,
+} from 'lucide-react'
+
+// Dynamic imports for Three.js components
+const ThreeBackground = dynamic(
+  () => import('@/components/dashboard/three-background').then((mod) => mod.ThreeBackground),
+  { ssr: false }
+)
+
+const OracleCanvas = dynamic(
+  () => import('@/components/dashboard/oracle-canvas').then((mod) => mod.OracleCanvas),
+  { ssr: false }
+)
+
+// Animation variants
+const fadeIn = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
 }
 
-// Get greeting based on time of day
+const stagger = {
+  visible: { transition: { staggerChildren: 0.1 } },
+}
+
+// Utility functions
+function getTodayDateString(): string {
+  return new Date().toISOString().split('T')[0]
+}
+
 function getGreeting(): string {
   const hour = new Date().getHours()
   if (hour < 12) return 'Good morning'
@@ -30,14 +70,123 @@ function getGreeting(): string {
   return 'Good evening'
 }
 
-// Format date for display
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+// Stat card component - uses p-4 for compact cards, with touch feedback
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+  href,
+  color,
+}: {
+  label: string
+  value: number
+  icon: React.ComponentType<{ className?: string }>
+  href: string
+  color: string
+}) {
+  return (
+    <Link href={href}>
+      <Card className="group cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 border-border/50 bg-card/80 backdrop-blur-sm active:scale-[0.98]">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-3xl font-bold tabular-nums">{value}</p>
+              <p className="text-sm text-muted-foreground">{label}</p>
+            </div>
+            <div className={`p-3 rounded-xl ${color} transition-transform group-hover:scale-110`}>
+              <Icon className="w-5 h-5" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
+  )
+}
+
+// Quick action card - uses p-6 for feature cards, with hover:hover media query pattern
+function QuickAction({
+  title,
+  description,
+  icon: Icon,
+  href,
+}: {
+  title: string
+  description: string
+  icon: React.ComponentType<{ className?: string }>
+  href: string
+}) {
+  return (
+    <Link href={href}>
+      <Card className="group cursor-pointer h-full transition-all hover:shadow-lg hover:border-primary/50 border-border/50 bg-card/80 backdrop-blur-sm active:scale-[0.98]">
+        <CardContent className="p-6 flex items-start gap-4">
+          <div className="p-2.5 rounded-lg bg-muted group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+            <Icon className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+              {title}
+            </h3>
+            <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
+          </div>
+          <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+        </CardContent>
+      </Card>
+    </Link>
+  )
+}
+
+// Person card - uses p-4 for compact cards, with touch feedback
+function PersonCard({
+  person,
+  kin,
+  seal,
+  tone,
+}: {
+  person: any
+  kin: number
+  seal: any
+  tone: any
+}) {
+  return (
+    <Link href={`/app/people/${person.id}`}>
+      <Card className="group cursor-pointer transition-all hover:shadow-lg hover:border-primary/50 border-border/50 bg-card/80 backdrop-blur-sm active:scale-[0.98]">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center shrink-0">
+              <span className="text-lg font-bold text-primary">{kin}</span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-medium truncate group-hover:text-primary transition-colors">
+                {person.name}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                {tone.name} {seal.english}
+              </p>
+            </div>
+          </div>
+          {person.tags?.length > 0 && (
+            <div className="flex gap-1.5 mt-3 flex-wrap">
+              {person.tags.slice(0, 2).map((tag: any) => (
+                <Badge
+                  key={tag.id}
+                  variant="secondary"
+                  className="text-[10px]"
+                  style={{ backgroundColor: `${tag.color}20`, color: tag.color }}
+                >
+                  {tag.name}
+                </Badge>
+              ))}
+              {person.tags.length > 2 && (
+                <Badge variant="secondary" className="text-[10px]">
+                  +{person.tags.length - 2}
+                </Badge>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </Link>
+  )
 }
 
 export default function DashboardPage() {
@@ -47,7 +196,6 @@ export default function DashboardPage() {
   const { groups, loading: groupsLoading } = useGroups()
   const { boards, loading: boardsLoading } = useBoards()
 
-  // Calculate today's Kin
   const todayKin = useMemo(() => {
     const today = getTodayDateString()
     const kin = dateToKin(today)
@@ -55,37 +203,22 @@ export default function DashboardPage() {
     const tone = getTone(kinToTone(kin))
     const oracle = calculateOracle(kin)
     const mantra = generateMantra(seal, tone)
-    const wavespell = getWavespell(kin)
+    const wavespell = kinToWavespell(kin)
     const wavespellSeal = getSeal(wavespell.sealNumber)
     const castle = kinToCastle(kin)
-
-    return {
-      kin,
-      seal,
-      tone,
-      oracle,
-      mantra,
-      wavespell,
-      wavespellSealName: wavespellSeal.english,
-      castleName: castle.name,
-    }
+    return { kin, seal, tone, oracle, mantra, wavespellSealName: wavespellSeal.english, castleName: castle.name, sealNumber: seal.number }
   }, [])
 
-  // Calculate user's personal Kin (if they have birth date)
   const userKin = useMemo(() => {
     if (!profile?.birth_date) return null
-
     const kin = dateToKin(profile.birth_date)
     const seal = getSeal(kinToSeal(kin))
     const tone = getTone(kinToTone(kin))
-
-    return { kin, seal, tone }
+    return { kin, seal, tone, sealNumber: seal.number }
   }, [profile?.birth_date])
 
-  // Get relationship between today's Kin and user's Kin
   const todayRelationship = useMemo(() => {
     if (!userKin) return null
-
     const todaySealNum = kinToSeal(todayKin.kin)
     const userSealNum = kinToSeal(userKin.kin)
     const userOracle = calculateOracle(userKin.kin)
@@ -95,268 +228,358 @@ export default function DashboardPage() {
     if (todaySealNum === userOracle.analog) return { type: 'Analog', description: 'A supportive and harmonious day' }
     if (todaySealNum === userOracle.antipode) return { type: 'Antipode', description: 'A day of challenge and growth' }
     if (todaySealNum === userOracle.occult) return { type: 'Occult', description: 'A day of hidden gifts and magic' }
-
     return null
   }, [todayKin, userKin])
 
-  // Recent people (last 4 added)
   const recentPeople = useMemo(() => {
     return [...people]
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .slice(0, 4)
+      .map((person) => {
+        const kin = dateToKin(person.birth_date)
+        return { person, kin, seal: getSeal(kinToSeal(kin)), tone: getTone(kinToTone(kin)) }
+      })
   }, [people])
 
-  // Counts
-  const counts = {
+  const counts = useMemo(() => ({
     people: people.length,
     relationships: relationships.length,
     groups: groups.length,
     boards: boards.length,
-  }
+  }), [people.length, relationships.length, groups.length, boards.length])
 
   const isLoading = peopleLoading || relationshipsLoading || groupsLoading || boardsLoading
 
+  // Detect new user state (0 people and 0 relationships)
+  const isNewUser = counts.people === 0 && counts.relationships === 0
+
+  const profileCompletion = useMemo(() => {
+    let score = 0
+    if (profile?.display_name) score++
+    if (profile?.birth_date) score++
+    if (profile?.hebrew_name) score++
+    if (counts.people > 0) score++
+    if (counts.relationships > 0) score++
+    return Math.round((score / 5) * 100)
+  }, [profile, counts])
+
+  if (isLoading) {
+    return <DashboardSkeleton />
+  }
+
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight font-heading">
-          {getGreeting()}, {profile?.display_name || 'Explorer'}
-        </h1>
-        <p className="text-muted-foreground">
-          {formatDate(new Date())}
-        </p>
-      </div>
+    <div className="relative min-h-[calc(100vh-8rem)]">
+      {/* Three.js Background */}
+      <Suspense fallback={null}>
+        <ThreeBackground />
+      </Suspense>
 
-      {/* Today's Kin - Hero Card */}
-      <div className="hero-card p-6 md:p-8">
-        <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start md:items-center">
-          {/* Seal Icon */}
-          <div className="flex-shrink-0">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-card/50 flex items-center justify-center border border-border">
-              <img
-                src={`/icons/dreamspell/seals/${String(todayKin.seal.number).padStart(2, '0')}-${todayKin.seal.mayan.toLowerCase()}.svg`}
-                alt={todayKin.seal.english}
-                className="w-14 h-14 md:w-16 md:h-16"
-              />
+      <motion.div
+        className="relative z-10 space-y-8"
+        initial="hidden"
+        animate="visible"
+        variants={stagger}
+      >
+        {/* Header */}
+        <motion.div variants={fadeIn} className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+              <Calendar className="w-4 h-4" />
+              <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
             </div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              {getGreeting()},{' '}
+              <span className="text-primary">{profile?.display_name || 'Explorer'}</span>
+            </h1>
           </div>
-
-          {/* Kin Info */}
-          <div className="flex-1 space-y-3">
-            <div>
-              <p className="text-sm text-muted-foreground uppercase tracking-wider">Today&apos;s Energy</p>
-              <h2 className="text-2xl md:text-3xl font-heading font-bold">
-                Kin <span className="text-gold-gradient">{todayKin.kin}</span>
-              </h2>
-              <p className="text-lg md:text-xl text-foreground/90">
-                {todayKin.tone.name} {todayKin.seal.english}
-              </p>
-            </div>
-
-            {/* Mantra */}
-            {todayKin.mantra && (
-              <p className="text-sm md:text-base text-muted-foreground italic">
-                &ldquo;{todayKin.mantra}&rdquo;
-              </p>
-            )}
-
-            {/* Context */}
-            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-card/50 border border-border">
-                Wavespell: {todayKin.wavespellSealName}
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-card/50 border border-border">
-                Castle: {todayKin.castleName}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Stats + Profile Snapshot */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Quick Stats */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-heading">Quick Stats</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <Link href="/app/people" className="stat-card">
-                <div className="stat-value">{isLoading ? '...' : counts.people}</div>
-                <div className="stat-label">People</div>
+          {!isNewUser && (
+            <Button asChild size="lg" className="gap-2">
+              <Link href="/app/people">
+                <Plus className="w-4 h-4" />
+                Add Person
               </Link>
-              <Link href="/app/relationships" className="stat-card">
-                <div className="stat-value">{isLoading ? '...' : counts.relationships}</div>
-                <div className="stat-label">Relationships</div>
-              </Link>
-              <Link href="/app/groups" className="stat-card">
-                <div className="stat-value">{isLoading ? '...' : counts.groups}</div>
-                <div className="stat-label">Groups</div>
-              </Link>
-              <Link href="/app/boards" className="stat-card">
-                <div className="stat-value">{isLoading ? '...' : counts.boards}</div>
-                <div className="stat-label">Boards</div>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+            </Button>
+          )}
+        </motion.div>
 
-        {/* Profile Snapshot */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-heading">Your Signature</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {userKin ? (
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
-                    <img
-                      src={`/icons/dreamspell/seals/${String(userKin.seal.number).padStart(2, '0')}-${userKin.seal.mayan.toLowerCase()}.svg`}
-                      alt={userKin.seal.english}
-                      className="w-10 h-10"
-                    />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Your Galactic Signature</p>
-                    <p className="font-medium">
-                      Kin {userKin.kin} — {userKin.tone.name} {userKin.seal.english}
+        {/* Welcome CTA for new users - prominent position above stats */}
+        {isNewUser && (
+          <motion.div variants={fadeIn}>
+            <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-card/80 to-secondary/5 backdrop-blur-sm">
+              <CardContent className="p-6 sm:p-8">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkles className="w-5 h-5 text-primary" />
+                      <span className="text-sm font-medium text-primary">Welcome to Omnis</span>
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-bold mb-2">
+                      Begin your symbolic journey
+                    </h2>
+                    <p className="text-muted-foreground max-w-lg">
+                      Start by adding yourself and the people in your life to discover your unique Galactic Signatures and explore the connections between you.
                     </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <Button asChild size="lg" className="gap-2">
+                      <Link href="/app/people">
+                        <Plus className="w-4 h-4" />
+                        Add Your First Person
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" size="lg">
+                      <Link href="/app/profile">
+                        Complete Profile
+                      </Link>
+                    </Button>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
-                {/* Today's relationship to user */}
-                {todayRelationship && (
-                  <div className="p-3 rounded-lg bg-muted/50 border border-border">
-                    <p className="text-sm font-medium text-accent">
-                      Today is your {todayRelationship.type} day
+        {/* Main Grid */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Today's Energy Card - Spans 2 cols on large screens */}
+          <motion.div variants={fadeIn} className="lg:col-span-2">
+            <Card className="overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm">
+              <div className="grid md:grid-cols-2">
+                {/* Oracle Visualization */}
+                <div className="h-[280px] md:h-[320px] bg-gradient-to-br from-primary/5 to-secondary/5">
+                  <Suspense fallback={<div className="w-full h-full flex items-center justify-center"><Skeleton className="w-32 h-32 rounded-full" /></div>}>
+                    <OracleCanvas kin={todayKin.kin} sealNumber={todayKin.sealNumber} className="w-full h-full" />
+                  </Suspense>
+                </div>
+
+                {/* Kin Info */}
+                <div className="p-6 flex flex-col justify-center">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+                    </span>
+                    <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Today's Energy
+                    </span>
+                  </div>
+
+                  <h2 className="text-4xl font-bold mb-1">
+                    Kin <span className="text-primary">{todayKin.kin}</span>
+                  </h2>
+                  <p className="text-xl text-muted-foreground mb-4">
+                    {todayKin.tone.name} {todayKin.seal.english}
+                  </p>
+
+                  {todayKin.mantra && (
+                    <blockquote className="text-sm italic text-muted-foreground border-l-2 border-primary/30 pl-3 mb-4">
+                      "{todayKin.mantra}"
+                    </blockquote>
+                  )}
+
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <Badge variant="secondary">{todayKin.wavespellSealName} Wavespell</Badge>
+                    <Badge variant="outline">{todayKin.castleName} Castle</Badge>
+                  </div>
+
+                  {todayRelationship && (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
+                      <Zap className="w-5 h-5 text-primary shrink-0" />
+                      <div>
+                        <p className="font-medium text-sm">Your {todayRelationship.type} Day</p>
+                        <p className="text-xs text-muted-foreground">{todayRelationship.description}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+
+          {/* Profile / Progress Card */}
+          <motion.div variants={fadeIn}>
+            <Card className="h-full border-border/50 bg-card/80 backdrop-blur-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">
+                  {profileCompletion < 100 ? 'Complete Your Profile' : 'Your Signature'}
+                </CardTitle>
+                {profileCompletion < 100 && (
+                  <CardDescription>{profileCompletion}% complete</CardDescription>
+                )}
+              </CardHeader>
+              <CardContent>
+                {profileCompletion < 100 ? (
+                  <div className="space-y-4">
+                    <Progress value={profileCompletion} className="h-2" />
+                    <div className="space-y-2">
+                      {[
+                        { done: !!profile?.display_name, label: 'Set display name', href: '/app/profile' },
+                        { done: !!profile?.birth_date, label: 'Add birth date', href: '/app/profile' },
+                        { done: counts.people > 0, label: 'Add first person', href: '/app/people' },
+                      ].map((item, i) => (
+                        <Link key={i} href={item.href} className="block">
+                          <div className={`flex items-center gap-2 p-2 rounded-lg transition-colors ${item.done ? 'opacity-50' : 'hover:bg-muted'}`}>
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${item.done ? 'bg-primary text-primary-foreground' : 'border-2 border-muted-foreground'}`}>
+                              {item.done && '✓'}
+                            </div>
+                            <span className={`text-sm ${item.done ? 'line-through text-muted-foreground' : ''}`}>
+                              {item.label}
+                            </span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ) : userKin ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                        <span className="text-2xl font-bold text-primary">{userKin.kin}</span>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Galactic Signature</p>
+                        <p className="font-semibold">{userKin.tone.name} {userKin.seal.english}</p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="sm" asChild className="p-0 h-auto">
+                      <Link href="/app/profile" className="flex items-center gap-1 text-primary">
+                        View profile <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-lg bg-muted/50 text-center">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Add your birth date to discover your Galactic Signature
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {todayRelationship.description}
-                    </p>
+                    <Button asChild size="sm">
+                      <Link href="/app/profile">Complete Profile</Link>
+                    </Button>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
 
-                <Link
-                  href="/app/profile"
-                  className="inline-flex text-sm text-primary hover:underline"
-                >
-                  View full profile →
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <p className="text-muted-foreground text-sm">
-                  Add your birth date to see your Galactic Signature
+        {/* Stats Row */}
+        <motion.div variants={fadeIn} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard label="People" value={counts.people} icon={Users} href="/app/people" color="bg-blue-500/10 text-blue-500" />
+          <StatCard label="Relationships" value={counts.relationships} icon={Heart} href="/app/relationships" color="bg-rose-500/10 text-rose-500" />
+          <StatCard label="Groups" value={counts.groups} icon={UsersRound} href="/app/groups" color="bg-amber-500/10 text-amber-500" />
+          <StatCard label="Boards" value={counts.boards} icon={LayoutGrid} href="/app/boards" color="bg-emerald-500/10 text-emerald-500" />
+        </motion.div>
+
+        {/* Recent People */}
+        {recentPeople.length > 0 && (
+          <motion.div variants={fadeIn}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">Recent People</h2>
+              {people.length > 4 && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/app/people" className="flex items-center gap-1">
+                    View all <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </Button>
+              )}
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {recentPeople.map(({ person, kin, seal, tone }) => (
+                <PersonCard key={person.id} person={person} kin={kin} seal={seal} tone={tone} />
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Secondary empty state - only shown if not a new user but no recent people */}
+        {recentPeople.length === 0 && !isNewUser && (
+          <motion.div variants={fadeIn}>
+            <Card className="border-dashed border-2 border-border/50 bg-card/50">
+              <CardContent className="py-12 text-center">
+                <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No people yet</h3>
+                <p className="text-muted-foreground mb-4 max-w-sm mx-auto">
+                  Start by adding yourself and the people in your life to explore their symbolic maps.
                 </p>
-                <Link
-                  href="/app/profile"
-                  className="inline-flex text-sm text-primary hover:underline"
-                >
-                  Complete profile →
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                <Button asChild>
+                  <Link href="/app/people">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Your First Person
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Quick Actions */}
+        <motion.div variants={fadeIn}>
+          <h2 className="text-xl font-semibold mb-4">Explore</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <QuickAction
+              title="Predictions"
+              description="Daily, weekly, and monthly forecasts"
+              icon={Sparkles}
+              href="/app/predictions"
+            />
+            <QuickAction
+              title="Relationship Map"
+              description="Visualize connections between people"
+              icon={Network}
+              href="/app/graph"
+            />
+            <QuickAction
+              title="Print Cards"
+              description="Generate beautiful person cards"
+              icon={CreditCard}
+              href="/app/cards"
+            />
+          </div>
+        </motion.div>
+
+        {/* Footer hint */}
+        <motion.div variants={fadeIn} className="hidden md:flex justify-center py-4">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            Press
+            <kbd className="px-2 py-1 rounded bg-muted border text-[10px] font-mono">⌘K</kbd>
+            to search
+          </div>
+        </motion.div>
+      </motion.div>
+    </div>
+  )
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <Skeleton className="h-4 w-40 mb-2" />
+          <Skeleton className="h-10 w-64" />
+        </div>
+        <Skeleton className="h-10 w-32" />
       </div>
 
-      {/* Recent People */}
-      {recentPeople.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-heading font-semibold">Recent People</h2>
-            <Link href="/app/people" className="text-sm text-primary hover:underline">
-              View all →
-            </Link>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {recentPeople.map((person) => {
-              const kin = dateToKin(person.birth_date)
-              const seal = getSeal(kinToSeal(kin))
-              const tone = getTone(kinToTone(kin))
-
-              return (
-                <Link key={person.id} href={`/app/people/${person.id}`}>
-                  <Card className="hover:border-primary/30 transition-colors cursor-pointer h-full">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                          <img
-                            src={`/icons/dreamspell/seals/${String(seal.number).padStart(2, '0')}-${seal.mayan.toLowerCase()}.svg`}
-                            alt={seal.english}
-                            className="w-7 h-7"
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-medium truncate">{person.name}</p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            Kin {kin} — {tone.name} {seal.english}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              )
-            })}
-          </div>
+      <div className="grid lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Skeleton className="h-[320px] rounded-xl" />
         </div>
-      )}
+        <Skeleton className="h-[320px] rounded-xl" />
+      </div>
 
-      {/* Quick Actions */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <Skeleton key={i} className="h-24 rounded-xl" />
+        ))}
+      </div>
+
       <div>
-        <h2 className="text-lg font-heading font-semibold mb-4">Quick Actions</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Link href="/app/people">
-            <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <span className="text-xl">👥</span>
-                  <span>My People</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Add new people and view their symbolic maps
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link href="/app/predictions">
-            <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <span className="text-xl">🔮</span>
-                  <span>Predictions</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Daily, weekly and monthly forecasts
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link href="/app/cards">
-            <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <span className="text-xl">🎴</span>
-                  <span>Print Cards</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Generate printable A5 person cards
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
+        <Skeleton className="h-6 w-32 mb-4" />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-28 rounded-xl" />
+          ))}
         </div>
       </div>
     </div>

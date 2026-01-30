@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { BirthTimeInput } from '@/components/ui/birth-time-input'
 import { LocationPicker, type BirthPlace } from '@/components/ui/location-picker'
@@ -110,36 +110,54 @@ export default function OnboardingPage() {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center text-muted-foreground">Loading...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Welcome to Omnis</CardTitle>
-          <CardDescription>
-            {step === 1 && "Let's get to know you - what's your name?"}
-            {step === 2 && 'When were you born?'}
-            {step === 3 && 'What time were you born? (optional)'}
-            {step === 4 && 'Where were you born? (optional)'}
-            {step === 5 && 'Do you have a Hebrew name? (optional)'}
-          </CardDescription>
-          <div className="flex justify-center gap-2 mt-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <Link href="/" className="inline-flex items-center gap-2.5 mb-2">
+            <div className="w-8 h-8 flex items-center justify-center">
+              <svg viewBox="0 0 32 32" className="w-7 h-7">
+                <circle cx="16" cy="16" r="14" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.3" />
+                <circle cx="16" cy="16" r="9" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.5" />
+                <circle cx="16" cy="16" r="4" fill="hsl(var(--primary))" />
+              </svg>
+            </div>
+            <span className="text-xl font-heading text-foreground">Omnis</span>
+          </Link>
+        </div>
+
+        <div className="earth-card bg-card p-8">
+          {/* Header */}
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-heading text-foreground mb-2">Welcome to Omnis</h1>
+            <p className="text-muted-foreground">
+              {step === 1 && "Let's get to know you - what's your name?"}
+              {step === 2 && 'When were you born?'}
+              {step === 3 && 'What time were you born? (optional)'}
+              {step === 4 && 'Where were you born? (optional)'}
+              {step === 5 && 'Do you have a Hebrew name? (optional)'}
+            </p>
+          </div>
+
+          {/* Progress */}
+          <div className="flex justify-center gap-2 mb-8">
             {[1, 2, 3, 4, 5].map((s) => (
               <div
                 key={s}
-                className={`h-2 w-8 rounded-full ${
+                className={`h-2 w-8 rounded-full transition-colors ${
                   s <= step ? 'bg-primary' : 'bg-muted'
                 }`}
               />
             ))}
           </div>
-        </CardHeader>
-        <CardContent>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {step === 1 && (
               <div className="space-y-2">
@@ -152,6 +170,7 @@ export default function OnboardingPage() {
                   onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
                   required
                   autoFocus
+                  className="h-11 bg-background border-border"
                 />
               </div>
             )}
@@ -167,6 +186,7 @@ export default function OnboardingPage() {
                   required
                   autoFocus
                   max={new Date().toISOString().split('T')[0]}
+                  className="h-11 bg-background border-border"
                 />
                 <p className="text-sm text-muted-foreground">
                   Birth date is required to calculate your symbolic maps
@@ -204,6 +224,7 @@ export default function OnboardingPage() {
                   value={formData.hebrewName}
                   onChange={(e) => setFormData(prev => ({ ...prev, hebrewName: e.target.value }))}
                   autoFocus
+                  className="h-11 bg-background border-border"
                 />
                 <p className="text-sm text-muted-foreground">
                   Hebrew name is used for Gematria calculations
@@ -232,7 +253,7 @@ export default function OnboardingPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="flex-1"
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {loading ? 'Saving...' : step === 5 ? 'Finish' : 'Continue'}
               </Button>
@@ -252,15 +273,15 @@ export default function OnboardingPage() {
                   }
                   handleSubmit(new Event('submit') as unknown as React.FormEvent)
                 }}
-                className="w-full"
+                className="w-full text-muted-foreground"
                 disabled={loading}
               >
                 Skip
               </Button>
             )}
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

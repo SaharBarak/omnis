@@ -6,7 +6,6 @@ import { usePeople } from '@/lib/hooks/use-people'
 import { useRelationships } from '@/lib/hooks/use-relationships'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
 import { getSeal } from '@/lib/data/seals'
@@ -126,7 +125,7 @@ function PersonDetails({
     <Sheet open={!!person} onOpenChange={() => onClose()}>
       <SheetContent side="right" className="w-80">
         <SheetHeader>
-          <SheetTitle>{person.name}</SheetTitle>
+          <SheetTitle className="font-heading">{person.name}</SheetTitle>
         </SheetHeader>
         <div className="space-y-4 mt-4">
           {person.hebrew_name && (
@@ -138,14 +137,14 @@ function PersonDetails({
               Birth Date: {new Date(person.birth_date).toLocaleDateString('en-US')}
             </p>
             <p className="text-sm">
-              <span className="font-medium">Kin {kin}: </span>
-              <span>{tone.name} {seal.english}</span>
+              <span className="font-medium text-primary">Kin {kin}: </span>
+              <span className="text-foreground">{tone.name} {seal.english}</span>
             </p>
           </div>
 
           {personRelationships.length > 0 && (
             <div className="space-y-2">
-              <h4 className="font-medium">Relationships ({personRelationships.length})</h4>
+              <h4 className="font-heading text-foreground">Relationships ({personRelationships.length})</h4>
               <div className="space-y-1">
                 {personRelationships.map(rel => {
                   const otherPerson = rel.person1_id === person.id ? rel.person2 : rel.person1
@@ -153,7 +152,7 @@ function PersonDetails({
                   return (
                     <div
                       key={rel.id}
-                      className="flex items-center gap-2 text-sm p-2 rounded bg-muted/50"
+                      className="flex items-center gap-2 text-sm p-2 rounded-lg bg-muted/50"
                     >
                       <Badge
                         variant="secondary"
@@ -162,7 +161,7 @@ function PersonDetails({
                       >
                         {typeInfo.label}
                       </Badge>
-                      <span>{otherPerson.name}</span>
+                      <span className="text-foreground">{otherPerson.name}</span>
                     </div>
                   )
                 })}
@@ -271,7 +270,7 @@ export default function GraphPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">Loading...</div>
+        <div className="text-center text-muted-foreground">Loading...</div>
       </div>
     )
   }
@@ -282,7 +281,7 @@ export default function GraphPage() {
     <div className="space-y-4 h-[calc(100vh-8rem)]">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Relationship Map</h1>
+          <h1 className="text-3xl font-heading text-foreground">Relationship Map</h1>
           <p className="text-muted-foreground">
             {people.length} people, {relationships.length} relationships
           </p>
@@ -333,28 +332,26 @@ export default function GraphPage() {
       {/* Graph container */}
       <div
         ref={containerRef}
-        className="border rounded-lg bg-white dark:bg-gray-900 flex-1 min-h-[500px]"
+        className="earth-card bg-card flex-1 min-h-[500px] overflow-hidden"
         style={{ height: 'calc(100vh - 16rem)' }}
       >
         {!hasData ? (
-          <Card className="h-full">
-            <CardContent className="flex flex-col items-center justify-center h-full">
-              <p className="text-muted-foreground mb-4 text-center">
-                {people.length === 0
-                  ? 'Add people to see the relationship map'
-                  : 'Create relationships between people to see the map'}
-              </p>
-              {people.length === 0 ? (
-                <Button onClick={() => window.location.href = '/app/people'}>
-                  + Add People
-                </Button>
-              ) : (
-                <Button onClick={() => window.location.href = '/app/relationships'}>
-                  + Create Relationships
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+          <div className="flex flex-col items-center justify-center h-full p-12 text-center">
+            <p className="text-muted-foreground mb-4">
+              {people.length === 0
+                ? 'Add people to see the relationship map'
+                : 'Create relationships between people to see the map'}
+            </p>
+            {people.length === 0 ? (
+              <Button onClick={() => window.location.href = '/app/people'} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                + Add People
+              </Button>
+            ) : (
+              <Button onClick={() => window.location.href = '/app/relationships'} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                + Create Relationships
+              </Button>
+            )}
+          </div>
         ) : (
           <ForceGraph2D
             ref={graphRef}

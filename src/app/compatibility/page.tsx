@@ -62,7 +62,7 @@ function calculateCompatibility(p1: PersonData, p2: PersonData): CompatibilityRe
   if (p1.oracle.analog === p2.seal.number) {
     connections.push({
       type: 'Analog',
-      description: `${p2.name} is ${p1.name}'s Analog — natural allies and support partners.`,
+      description: `${p2.name || 'Person 2'} is ${p1.name || 'Person 1'}'s Analog — natural allies and support partners.`,
       strength: 'strong',
     })
     score += 15
@@ -70,7 +70,7 @@ function calculateCompatibility(p1: PersonData, p2: PersonData): CompatibilityRe
   if (p2.oracle.analog === p1.seal.number) {
     connections.push({
       type: 'Analog',
-      description: `${p1.name} is ${p2.name}'s Analog — natural allies and support partners.`,
+      description: `${p1.name || 'Person 1'} is ${p2.name || 'Person 2'}'s Analog — natural allies and support partners.`,
       strength: 'strong',
     })
     score += 15
@@ -80,7 +80,7 @@ function calculateCompatibility(p1: PersonData, p2: PersonData): CompatibilityRe
   if (p1.oracle.antipode === p2.seal.number) {
     connections.push({
       type: 'Antipode',
-      description: `${p2.name} is ${p1.name}'s Antipode — challenging but growth-inducing.`,
+      description: `${p2.name || 'Person 2'} is ${p1.name || 'Person 1'}'s Antipode — challenging but growth-inducing.`,
       strength: 'moderate',
     })
     score += 5
@@ -88,7 +88,7 @@ function calculateCompatibility(p1: PersonData, p2: PersonData): CompatibilityRe
   if (p2.oracle.antipode === p1.seal.number) {
     connections.push({
       type: 'Antipode',
-      description: `${p1.name} is ${p2.name}'s Antipode — challenging but growth-inducing.`,
+      description: `${p1.name || 'Person 1'} is ${p2.name || 'Person 2'}'s Antipode — challenging but growth-inducing.`,
       strength: 'moderate',
     })
     score += 5
@@ -98,7 +98,7 @@ function calculateCompatibility(p1: PersonData, p2: PersonData): CompatibilityRe
   if (p1.oracle.occult === p2.seal.number) {
     connections.push({
       type: 'Occult',
-      description: `${p2.name} is ${p1.name}'s Occult — hidden power and unexpected gifts.`,
+      description: `${p2.name || 'Person 2'} is ${p1.name || 'Person 1'}'s Occult — hidden power and unexpected gifts.`,
       strength: 'strong',
     })
     score += 12
@@ -106,7 +106,7 @@ function calculateCompatibility(p1: PersonData, p2: PersonData): CompatibilityRe
   if (p2.oracle.occult === p1.seal.number) {
     connections.push({
       type: 'Occult',
-      description: `${p1.name} is ${p2.name}'s Occult — hidden power and unexpected gifts.`,
+      description: `${p1.name || 'Person 1'} is ${p2.name || 'Person 2'}'s Occult — hidden power and unexpected gifts.`,
       strength: 'strong',
     })
     score += 12
@@ -116,7 +116,7 @@ function calculateCompatibility(p1: PersonData, p2: PersonData): CompatibilityRe
   if (p1.oracle.guide === p2.seal.number) {
     connections.push({
       type: 'Guide',
-      description: `${p2.name} is ${p1.name}'s Guide — a natural mentor and inspiration.`,
+      description: `${p2.name || 'Person 2'} is ${p1.name || 'Person 1'}'s Guide — a natural mentor and inspiration.`,
       strength: 'strong',
     })
     score += 15
@@ -124,7 +124,7 @@ function calculateCompatibility(p1: PersonData, p2: PersonData): CompatibilityRe
   if (p2.oracle.guide === p1.seal.number) {
     connections.push({
       type: 'Guide',
-      description: `${p1.name} is ${p2.name}'s Guide — a natural mentor and inspiration.`,
+      description: `${p1.name || 'Person 1'} is ${p2.name || 'Person 2'}'s Guide — a natural mentor and inspiration.`,
       strength: 'strong',
     })
     score += 15
@@ -164,14 +164,16 @@ function calculateCompatibility(p1: PersonData, p2: PersonData): CompatibilityRe
 
   // Generate summary
   let summary = ''
+  const name1 = p1.name || 'Person 1'
+  const name2 = p2.name || 'Person 2'
   if (score >= 80) {
-    summary = `Strong cosmic alignment! ${p1.name} and ${p2.name} share powerful oracle connections that support growth and harmony.`
+    summary = `Strong cosmic alignment! ${name1} and ${name2} share powerful oracle connections that support growth and harmony.`
   } else if (score >= 60) {
-    summary = `Good compatibility. ${p1.name} and ${p2.name} have meaningful connections that create balance and mutual benefit.`
+    summary = `Good compatibility. ${name1} and ${name2} have meaningful connections that create balance and mutual benefit.`
   } else if (score >= 40) {
-    summary = `Moderate connection. ${p1.name} and ${p2.name} bring different energies that can create interesting dynamics.`
+    summary = `Moderate connection. ${name1} and ${name2} bring different energies that can create interesting dynamics.`
   } else {
-    summary = `Independent energies. ${p1.name} and ${p2.name} offer fresh perspectives to each other through their differences.`
+    summary = `Independent energies. ${name1} and ${name2} offer fresh perspectives to each other through their differences.`
   }
 
   return {
@@ -216,34 +218,38 @@ export default function CompatibilityPage() {
 
   const getSealColorClass = (color: string) => {
     const colors: Record<string, string> = {
-      red: 'bg-red-500/20 text-red-400 border-red-500/30',
-      white: 'bg-slate-100/10 text-slate-200 border-slate-300/30',
-      blue: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-      yellow: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+      red: 'bg-seal-red/15 text-seal-red border-seal-red/30',
+      white: 'bg-seal-white text-foreground border-border',
+      blue: 'bg-seal-blue/15 text-seal-blue border-seal-blue/30',
+      yellow: 'bg-seal-yellow/15 text-seal-yellow border-seal-yellow/30',
     }
     return colors[color] || ''
   }
 
   const getStrengthColor = (strength: string) => {
     switch (strength) {
-      case 'strong': return 'bg-green-500/20 text-green-400 border-green-500/30'
-      case 'moderate': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-      default: return 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+      case 'strong': return 'bg-secondary/15 text-secondary border-secondary/30'
+      case 'moderate': return 'bg-amber/15 text-amber border-amber/30'
+      default: return 'bg-accent/15 text-accent border-accent/30'
     }
   }
 
   return (
-    <div className="min-h-screen bg-background dark">
+    <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="pt-20 pb-16 px-4">
+      <main className="pt-24 pb-16 px-6">
         <div className="max-w-3xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-4">
-              <span className="text-gold-gradient">Compatibility</span> Check
+            <div className="earth-badge inline-flex mb-4">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+              <span>Oracle Relationships</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-heading text-foreground mb-4">
+              <span className="text-earth-gradient">Compatibility</span> Check
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Discover the Dreamspell oracle connections between two people.
               See how your galactic signatures relate and support each other.
             </p>
@@ -252,8 +258,8 @@ export default function CompatibilityPage() {
           {/* Input Form */}
           <div className="grid md:grid-cols-2 gap-6 mb-8">
             {/* Person 1 */}
-            <div className="glass rounded-xl p-6">
-              <h3 className="font-semibold mb-4">Person 1</h3>
+            <div className="earth-card bg-card p-6">
+              <h3 className="font-heading text-lg mb-4">Person 1</h3>
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="name1">Name (optional)</Label>
@@ -262,6 +268,7 @@ export default function CompatibilityPage() {
                     placeholder="Enter name"
                     value={person1.name}
                     onChange={(e) => setPerson1({ ...person1, name: e.target.value })}
+                    className="bg-background border-border"
                   />
                 </div>
                 <div>
@@ -272,14 +279,15 @@ export default function CompatibilityPage() {
                     value={person1.birthDate}
                     onChange={(e) => setPerson1({ ...person1, birthDate: e.target.value })}
                     required
+                    className="bg-background border-border"
                   />
                 </div>
               </div>
             </div>
 
             {/* Person 2 */}
-            <div className="glass rounded-xl p-6">
-              <h3 className="font-semibold mb-4">Person 2</h3>
+            <div className="earth-card bg-card p-6">
+              <h3 className="font-heading text-lg mb-4">Person 2</h3>
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="name2">Name (optional)</Label>
@@ -288,6 +296,7 @@ export default function CompatibilityPage() {
                     placeholder="Enter name"
                     value={person2.name}
                     onChange={(e) => setPerson2({ ...person2, name: e.target.value })}
+                    className="bg-background border-border"
                   />
                 </div>
                 <div>
@@ -298,6 +307,7 @@ export default function CompatibilityPage() {
                     value={person2.birthDate}
                     onChange={(e) => setPerson2({ ...person2, birthDate: e.target.value })}
                     required
+                    className="bg-background border-border"
                   />
                 </div>
               </div>
@@ -310,7 +320,7 @@ export default function CompatibilityPage() {
               size="lg"
               onClick={calculateResults}
               disabled={!person1.birthDate || !person2.birthDate || isCalculating}
-              className="bg-accent hover:bg-accent/90 text-accent-foreground"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {isCalculating ? (
                 <>
@@ -325,25 +335,25 @@ export default function CompatibilityPage() {
 
           {/* Results */}
           {result && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="space-y-6 animate-fade-up">
               {/* Score */}
-              <div className="glass rounded-xl p-8 text-center">
-                <div className="kin-number text-6xl mb-4">{result.overallScore}%</div>
+              <div className="earth-card bg-card p-8 text-center">
+                <div className="text-6xl font-heading text-primary mb-4">{result.overallScore}%</div>
                 <p className="text-lg text-muted-foreground">{result.summary}</p>
               </div>
 
               {/* Kin Cards */}
               <div className="grid md:grid-cols-2 gap-4">
                 {[result.person1, result.person2].map((person, i) => (
-                  <div key={i} className="hero-card p-6 text-center">
+                  <div key={i} className="earth-card bg-card p-6 text-center">
                     <div className="text-sm text-muted-foreground mb-2">
                       {person.name || `Person ${i + 1}`}
                     </div>
                     <div className={`w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center border ${getSealColorClass(person.seal?.color || '')}`}>
-                      <span className="text-lg font-bold">{person.seal?.number}</span>
+                      <span className="text-lg font-medium">{person.seal?.number}</span>
                     </div>
-                    <div className="kin-number text-3xl mb-1">{person.kin}</div>
-                    <div className="font-semibold">
+                    <div className="text-3xl font-heading text-primary mb-1">{person.kin}</div>
+                    <div className="font-heading">
                       {person.tone?.name} {person.seal?.english}
                     </div>
                     <div className="text-sm text-muted-foreground">
@@ -354,17 +364,17 @@ export default function CompatibilityPage() {
               </div>
 
               {/* Connections */}
-              <div className="glass rounded-xl p-6">
-                <h3 className="text-xl font-semibold mb-4">Oracle Connections</h3>
+              <div className="earth-card bg-card p-6">
+                <h3 className="text-xl font-heading mb-4">Oracle Connections</h3>
                 <div className="space-y-3">
                   {result.connections.map((connection, i) => (
                     <div
                       key={i}
-                      className={`p-4 rounded-lg border ${getStrengthColor(connection.strength)}`}
+                      className={`p-4 rounded-xl border ${getStrengthColor(connection.strength)}`}
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-semibold">{connection.type}</span>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 capitalize">
+                        <span className="font-medium">{connection.type}</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-muted capitalize">
                           {connection.strength}
                         </span>
                       </div>
@@ -380,7 +390,7 @@ export default function CompatibilityPage() {
                   Want to track relationships and explore deeper connections?
                 </p>
                 <div className="flex flex-col sm:flex-row justify-center gap-3">
-                  <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
+                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground" asChild>
                     <Link href="/login">Create Free Account</Link>
                   </Button>
                   <Button variant="outline" size="lg" asChild>
@@ -393,25 +403,25 @@ export default function CompatibilityPage() {
 
           {/* How It Works */}
           {!result && (
-            <div className="glass rounded-xl p-6">
-              <h3 className="text-xl font-semibold mb-4">How Oracle Compatibility Works</h3>
+            <div className="earth-card bg-card p-6">
+              <h3 className="text-xl font-heading mb-4">How Oracle Compatibility Works</h3>
               <div className="space-y-4 text-muted-foreground">
                 <p>
                   In the Dreamspell system, each person has an <strong className="text-foreground">oracle</strong> —
                   four seals that relate to their galactic signature in specific ways:
                 </p>
                 <div className="grid sm:grid-cols-2 gap-4 text-sm">
-                  <div className="p-3 rounded-lg bg-white/5">
-                    <strong className="text-amber-400">Guide</strong>: Natural mentor, leads and inspires
+                  <div className="p-3 rounded-xl bg-muted/50">
+                    <strong className="text-amber">Guide</strong>: Natural mentor, leads and inspires
                   </div>
-                  <div className="p-3 rounded-lg bg-white/5">
-                    <strong className="text-green-400">Analog</strong>: Support partner, complementary ally
+                  <div className="p-3 rounded-xl bg-muted/50">
+                    <strong className="text-secondary">Analog</strong>: Support partner, complementary ally
                   </div>
-                  <div className="p-3 rounded-lg bg-white/5">
-                    <strong className="text-red-400">Antipode</strong>: Challenge and gift, creates balance
+                  <div className="p-3 rounded-xl bg-muted/50">
+                    <strong className="text-seal-red">Antipode</strong>: Challenge and gift, creates balance
                   </div>
-                  <div className="p-3 rounded-lg bg-white/5">
-                    <strong className="text-purple-400">Occult</strong>: Hidden power, unexpected gifts
+                  <div className="p-3 rounded-xl bg-muted/50">
+                    <strong className="text-accent">Occult</strong>: Hidden power, unexpected gifts
                   </div>
                 </div>
                 <p>

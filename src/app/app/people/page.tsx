@@ -7,7 +7,6 @@ import { useRelationships } from '@/lib/hooks/use-relationships'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -52,62 +51,61 @@ function PersonCard({
   const tone = getTone(kinToTone(kin))
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between">
-          <div>
-            <Link href={`/app/people/${person.id}`} className="hover:underline">
-              <CardTitle className="text-lg">{person.name}</CardTitle>
-            </Link>
-            {person.hebrew_name && (
-              <CardDescription>{person.hebrew_name}</CardDescription>
-            )}
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <span className="sr-only">Menu</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="1" />
-                  <circle cx="12" cy="5" r="1" />
-                  <circle cx="12" cy="19" r="1" />
-                </svg>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link href={`/app/people/${person.id}`}>
-                  View Details
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onEdit(person)}>
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/app/relationships">
-                  Relationships ({relationshipCount})
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive"
-                onClick={() => onDelete(person.id)}
-              >
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+    <div className="earth-card bg-card p-5">
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <Link href={`/app/people/${person.id}`} className="hover:underline">
+            <h3 className="text-lg font-heading text-foreground">{person.name}</h3>
+          </Link>
+          {person.hebrew_name && (
+            <p className="text-sm text-muted-foreground">{person.hebrew_name}</p>
+          )}
         </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <span className="sr-only">Menu</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="1" />
+                <circle cx="12" cy="5" r="1" />
+                <circle cx="12" cy="19" r="1" />
+              </svg>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link href={`/app/people/${person.id}`}>
+                View Details
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => onEdit(person)}>
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/app/relationships">
+                Relationships ({relationshipCount})
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-destructive"
+              onClick={() => onDelete(person.id)}
+            >
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <div className="space-y-3">
         <div className="text-sm text-muted-foreground">
           Birth date: {new Date(person.birth_date).toLocaleDateString('en-US')}
         </div>
 
         <div className="text-sm">
-          <span className="font-medium">Kin {kin}: </span>
+          <span className="font-medium text-primary">Kin {kin}: </span>
           <span>{tone.name} {seal.english}</span>
         </div>
 
@@ -127,8 +125,8 @@ function PersonCard({
             </Badge>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 
@@ -201,6 +199,7 @@ function PersonForm({
           onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
           required
           placeholder="Full name"
+          className="bg-background border-border"
         />
       </div>
 
@@ -211,6 +210,7 @@ function PersonForm({
           value={formData.hebrew_name}
           onChange={(e) => setFormData(prev => ({ ...prev, hebrew_name: e.target.value }))}
           placeholder="Hebrew name (optional)"
+          className="bg-background border-border"
         />
       </div>
 
@@ -223,6 +223,7 @@ function PersonForm({
           onChange={(e) => setFormData(prev => ({ ...prev, birth_date: e.target.value }))}
           required
           max={new Date().toISOString().split('T')[0]}
+          className="bg-background border-border"
         />
       </div>
 
@@ -272,6 +273,7 @@ function PersonForm({
           value={formData.notes}
           onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
           placeholder="Notes (optional)"
+          className="bg-background border-border"
         />
       </div>
 
@@ -283,7 +285,7 @@ function PersonForm({
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
           {loading ? 'Saving...' : person ? 'Update' : 'Add'}
         </Button>
       </div>
@@ -390,7 +392,7 @@ export default function PeoplePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">Loading...</div>
+        <div className="text-center text-muted-foreground">Loading...</div>
       </div>
     )
   }
@@ -407,19 +409,19 @@ export default function PeoplePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">My People</h1>
+          <h1 className="text-3xl font-heading text-foreground">My People</h1>
           <p className="text-muted-foreground">
-            {people.length} people
+            {people.length} people in your circle
           </p>
         </div>
 
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button>+ Add Person</Button>
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">+ Add Person</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="earth-card">
             <DialogHeader>
-              <DialogTitle>Add New Person</DialogTitle>
+              <DialogTitle className="font-heading">Add New Person</DialogTitle>
               <DialogDescription>
                 Enter the details of the person you want to add
               </DialogDescription>
@@ -435,7 +437,7 @@ export default function PeoplePage() {
 
       {/* Delete error message */}
       {deleteError && (
-        <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
+        <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg">
           {deleteError}
         </div>
       )}
@@ -446,7 +448,7 @@ export default function PeoplePage() {
           placeholder="Search by name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="sm:max-w-xs"
+          className="sm:max-w-xs bg-background border-border"
         />
         <div className="flex flex-wrap gap-2">
           <Badge
@@ -478,18 +480,16 @@ export default function PeoplePage() {
 
       {/* People grid */}
       {filteredPeople.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-muted-foreground mb-4">
-              {search || selectedTag ? 'No results found' : "You haven't added any people yet"}
-            </p>
-            {!search && !selectedTag && (
-              <Button onClick={() => setIsAddDialogOpen(true)}>
-                + Add First Person
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+        <div className="earth-card bg-card p-12 text-center">
+          <p className="text-muted-foreground mb-4">
+            {search || selectedTag ? 'No results found' : "You haven't added any people yet"}
+          </p>
+          {!search && !selectedTag && (
+            <Button onClick={() => setIsAddDialogOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              + Add First Person
+            </Button>
+          )}
+        </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredPeople.map(person => (
@@ -509,9 +509,9 @@ export default function PeoplePage() {
         setIsEditDialogOpen(open)
         if (!open) setEditingPerson(null)
       }}>
-        <DialogContent>
+        <DialogContent className="earth-card">
           <DialogHeader>
-            <DialogTitle>Edit {editingPerson?.name}</DialogTitle>
+            <DialogTitle className="font-heading">Edit {editingPerson?.name}</DialogTitle>
             <DialogDescription>
               Update the details
             </DialogDescription>

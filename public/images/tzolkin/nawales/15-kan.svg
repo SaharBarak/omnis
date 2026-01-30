@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="currentColor">
+  <title>Kan - Serpent, Energy, Kundalini</title>
+  <!-- Stylized serpent glyph -->
+  <circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="3"/>
+  <!-- Coiled serpent -->
+  <path d="M30 70 Q25 50, 40 45 Q55 40, 50 55 Q45 70, 60 65 Q75 60, 70 45 Q65 30, 50 25" fill="none" stroke="currentColor" stroke-width="3"/>
+  <!-- Serpent head -->
+  <circle cx="50" cy="25" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
+  <circle cx="47" cy="23" r="2"/>
+  <circle cx="53" cy="23" r="2"/>
+  <!-- Forked tongue -->
+  <path d="M50 30 L48 38 M50 30 L52 38" stroke="currentColor" stroke-width="1.5"/>
+</svg>

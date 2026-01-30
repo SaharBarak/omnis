@@ -14,10 +14,10 @@ import { Header, Footer } from '@/components/landing'
 
 function getSealColorClass(color: string): string {
   const colors: Record<string, string> = {
-    red: 'bg-red-500/20 text-red-400 border-red-500/30',
-    white: 'bg-slate-100/10 text-slate-200 border-slate-300/30',
-    blue: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-    yellow: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+    red: 'bg-seal-red/15 text-seal-red border-seal-red/30',
+    white: 'bg-seal-white text-foreground border-border',
+    blue: 'bg-seal-blue/15 text-seal-blue border-seal-blue/30',
+    yellow: 'bg-seal-yellow/15 text-seal-yellow border-seal-yellow/30',
   }
   return colors[color] || ''
 }
@@ -82,15 +82,19 @@ export default function CalculatePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background dark">
+    <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="pt-20 pb-16 px-4">
+      <main className="pt-24 pb-16 px-6">
         <div className="max-w-3xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl sm:text-4xl font-bold mb-4">
-              Dreamspell Kin <span className="text-gold-gradient">Calculator</span>
+            <div className="earth-badge inline-flex mb-4">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+              <span>Free Calculator</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-heading text-foreground mb-4">
+              Dreamspell Kin <span className="text-earth-gradient">Calculator</span>
             </h1>
             <p className="text-muted-foreground max-w-xl mx-auto">
               Enter any birth date to discover the Dreamspell galactic signature.
@@ -99,7 +103,7 @@ export default function CalculatePage() {
           </div>
 
           {/* Calculator Form */}
-          <div className="glass rounded-xl p-6 sm:p-8 mb-8">
+          <div className="earth-card bg-card p-6 sm:p-8 mb-8">
             {!result ? (
               <div className="max-w-md mx-auto">
                 <div className="space-y-4">
@@ -112,14 +116,14 @@ export default function CalculatePage() {
                       type="date"
                       value={birthDate}
                       onChange={(e) => setBirthDate(e.target.value)}
-                      className="h-12 text-base"
+                      className="h-12 text-base bg-background border-border"
                     />
                   </div>
 
                   <Button
                     onClick={handleCalculate}
                     disabled={!birthDate || isCalculating}
-                    className="w-full h-12 bg-accent hover:bg-accent/90 text-accent-foreground font-semibold"
+                    className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                   >
                     {isCalculating ? (
                       <span className="flex items-center gap-2">
@@ -162,8 +166,8 @@ export default function CalculatePage() {
                   </div>
 
                   {/* Kin Number & Name */}
-                  <div className="kin-number text-5xl mb-2">{result.kin}</div>
-                  <h2 className="text-3xl font-bold mb-1">
+                  <div className="text-5xl font-heading text-primary mb-2">{result.kin}</div>
+                  <h2 className="text-3xl font-heading text-foreground mb-1">
                     {result.tone.name} {result.seal.english}
                   </h2>
                   <p className="text-muted-foreground mb-6">
@@ -175,7 +179,7 @@ export default function CalculatePage() {
                     <span className={`px-4 py-1.5 rounded-full text-sm font-medium border ${getSealColorClass(result.seal.color)}`}>
                       {result.seal.color.charAt(0).toUpperCase() + result.seal.color.slice(1)} {result.seal.english}
                     </span>
-                    <span className="px-4 py-1.5 rounded-full text-sm font-medium bg-primary/20 text-primary border border-primary/30">
+                    <span className="px-4 py-1.5 rounded-full text-sm font-medium bg-primary/10 text-primary border border-primary/20">
                       Tone {result.tone.number}: {result.tone.name}
                     </span>
                   </div>
@@ -190,21 +194,21 @@ export default function CalculatePage() {
 
                 {/* Oracle */}
                 <div className="border-t border-border pt-6">
-                  <h3 className="text-lg font-semibold text-center mb-4">Oracle Map</h3>
+                  <h3 className="text-lg font-heading text-center mb-4">Oracle Map</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div className="text-center p-3 rounded-lg bg-white/5">
+                    <div className="text-center p-3 rounded-xl bg-muted/50">
                       <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Guide</div>
                       <div className="font-medium text-sm">{result.oracle.guide.english}</div>
                     </div>
-                    <div className="text-center p-3 rounded-lg bg-white/5">
+                    <div className="text-center p-3 rounded-xl bg-muted/50">
                       <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Analog</div>
                       <div className="font-medium text-sm">{result.oracle.analog.english}</div>
                     </div>
-                    <div className="text-center p-3 rounded-lg bg-white/5">
+                    <div className="text-center p-3 rounded-xl bg-muted/50">
                       <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Antipode</div>
                       <div className="font-medium text-sm">{result.oracle.antipode.english}</div>
                     </div>
-                    <div className="text-center p-3 rounded-lg bg-white/5">
+                    <div className="text-center p-3 rounded-xl bg-muted/50">
                       <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Occult</div>
                       <div className="font-medium text-sm">{result.oracle.occult.english}</div>
                     </div>
@@ -217,7 +221,7 @@ export default function CalculatePage() {
                     Calculate Another
                   </Button>
                   <Button
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
                     asChild
                   >
                     <Link href="/login">
@@ -230,8 +234,8 @@ export default function CalculatePage() {
           </div>
 
           {/* Info Section */}
-          <div className="glass rounded-xl p-6">
-            <h3 className="text-lg font-semibold mb-4">About Dreamspell</h3>
+          <div className="earth-card bg-card p-6">
+            <h3 className="text-lg font-heading mb-4">About Dreamspell</h3>
             <div className="space-y-3 text-sm text-muted-foreground">
               <p>
                 The Dreamspell is a calendar system created by José Argüelles in 1987, inspired

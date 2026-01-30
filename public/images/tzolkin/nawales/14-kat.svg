@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="currentColor">
+  <title>K'at - Net, Lizard, Harvest</title>
+  <!-- Stylized net/harvest glyph -->
+  <circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="3"/>
+  <!-- Net pattern -->
+  <line x1="25" y1="25" x2="75" y2="75" stroke="currentColor" stroke-width="2"/>
+  <line x1="75" y1="25" x2="25" y2="75" stroke="currentColor" stroke-width="2"/>
+  <line x1="50" y1="20" x2="50" y2="80" stroke="currentColor" stroke-width="2"/>
+  <line x1="20" y1="50" x2="80" y2="50" stroke="currentColor" stroke-width="2"/>
+  <!-- Circular bindings -->
+  <circle cx="50" cy="50" r="15" fill="none" stroke="currentColor" stroke-width="2"/>
+  <circle cx="50" cy="50" r="5"/>
+</svg>

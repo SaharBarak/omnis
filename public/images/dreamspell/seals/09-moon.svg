@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="currentColor">
+  <title>Red Moon - Muluc</title>
+  <path d="M65 50 A25 25 0 1 1 65 50.01" fill="currentColor"/>
+  <path d="M55 50 A15 15 0 1 0 55 50.01" fill="none" stroke="currentColor" stroke-width="0"/>
+  <circle cx="50" cy="50" r="25" fill="none" stroke="currentColor" stroke-width="3"/>
+  <path d="M62 35 A20 20 0 0 1 62 65" fill="var(--bg, #1C1917)" stroke="none"/>
+</svg>

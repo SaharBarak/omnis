@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="currentColor">
+  <title>Generator - Sustainable life force energy</title>
+  <!-- Circle with rotating energy representing sustainable sacral energy -->
+  <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" stroke-width="2"/>
+  <circle cx="50" cy="50" r="25" fill="none" stroke="currentColor" stroke-width="2"/>
+  <circle cx="50" cy="50" r="15" fill="currentColor"/>
+
+  <!-- Energy waves emanating -->
+  <path d="M50 10 Q60 20, 50 30" fill="none" stroke="currentColor" stroke-width="2"/>
+  <path d="M90 50 Q80 60, 70 50" fill="none" stroke="currentColor" stroke-width="2"/>
+  <path d="M50 90 Q40 80, 50 70" fill="none" stroke="currentColor" stroke-width="2"/>
+  <path d="M10 50 Q20 40, 30 50" fill="none" stroke="currentColor" stroke-width="2"/>
+</svg>

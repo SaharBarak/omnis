@@ -1,24 +1,23 @@
-export function SocialProof() {
-  return (
-    <section className="py-8 border-y border-border/50 bg-card/30">
-      <div className="max-w-5xl mx-auto px-4">
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12 text-center">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-accent">10,000+</span>
-            <span className="text-muted-foreground">seekers exploring</span>
-          </div>
+'use client'
 
-          <div className="flex items-center gap-2">
-            <div className="flex">
-              {[1,2,3,4,5].map((i) => (
-                <svg key={i} className="w-4 h-4 text-accent" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              ))}
+export function SocialProof() {
+  const stats = [
+    { value: '10,847+', label: 'Profiles saved' },
+    { value: '6', label: 'Systems calculated' },
+    { value: 'Verified', label: 'Algorithms' },
+    { value: '<2s', label: 'Full calculation' },
+  ]
+
+  return (
+    <section className="py-8 border-y border-border bg-muted/30">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16">
+          {stats.map((stat, index) => (
+            <div key={index} className="text-center">
+              <span className="text-xl font-heading text-primary">{stat.value}</span>
+              <span className="block text-xs text-muted-foreground mt-0.5">{stat.label}</span>
             </div>
-            <span className="font-medium">4.9/5</span>
-            <span className="text-muted-foreground">from 500+ reviews</span>
-          </div>
+          ))}
         </div>
       </div>
     </section>

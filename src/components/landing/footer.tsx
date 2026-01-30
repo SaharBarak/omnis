@@ -63,31 +63,80 @@ export function Footer() {
   }
 
   return (
-    <footer className="border-t border-border bg-card/50">
-      <div className="max-w-5xl mx-auto px-4 py-12">
-        {/* Top section */}
+    <footer className="bg-muted/30 border-t border-border">
+      <div className="max-w-6xl mx-auto px-6 py-14 lg:py-16">
+        {/* Newsletter */}
+        <div className="mb-12 pb-12 border-b border-border">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            <div>
+              <h3 className="text-xl font-heading text-foreground mb-2">Daily galactic signature</h3>
+              <p className="text-muted-foreground">The day&apos;s kin, seal, tone, and affirmation in your inbox each morning. Free.</p>
+            </div>
+
+            {subscribed ? (
+              <div className="flex items-center gap-3 px-5 py-2.5 bg-primary/10 rounded-lg border border-primary/20">
+                <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-primary font-medium">Subscribed. Check your inbox tomorrow morning.</span>
+              </div>
+            ) : (
+              <form onSubmit={handleSubscribe} className="flex flex-col gap-2 w-full lg:w-auto">
+                <div className="flex gap-3">
+                  <Input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full lg:w-64 h-11 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 rounded-lg"
+                    required
+                    disabled={loading}
+                  />
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="h-11 px-5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
+                  >
+                    {loading ? 'Subscribing...' : 'Subscribe'}
+                  </Button>
+                </div>
+                {error && (
+                  <p className="text-destructive text-sm">{error}</p>
+                )}
+              </form>
+            )}
+          </div>
+        </div>
+
+        {/* Links grid */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-accent text-xl">*</span>
-              <span className="font-bold">OMNIS</span>
-            </div>
+            <Link href="/" className="group flex items-center gap-2.5 mb-4">
+              <div className="w-8 h-8 flex items-center justify-center">
+                <svg viewBox="0 0 32 32" className="w-7 h-7">
+                  <circle cx="16" cy="16" r="14" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.3" />
+                  <circle cx="16" cy="16" r="9" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.5" />
+                  <circle cx="16" cy="16" r="4" fill="hsl(var(--primary))" />
+                </svg>
+              </div>
+              <span className="text-lg font-heading text-foreground group-hover:text-primary transition-colors">Omnis</span>
+            </Link>
             <p className="text-sm text-muted-foreground">
-              Your cosmic blueprint
+              Six wisdom systems. One view.
             </p>
           </div>
 
           {/* Links */}
           {Object.entries(footerLinks).map(([category, links]) => (
             <div key={category}>
-              <h4 className="font-semibold mb-4 text-sm">{category}</h4>
-              <ul className="space-y-2">
+              <h4 className="text-sm font-medium text-foreground mb-4">{category}</h4>
+              <ul className="space-y-2.5">
                 {links.map((link) => (
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -98,51 +147,10 @@ export function Footer() {
           ))}
         </div>
 
-        {/* Email signup */}
-        <div className="glass rounded-xl p-6 mb-12">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div>
-              <h4 className="font-semibold mb-1">Get Daily Kin in Your Inbox</h4>
-              <p className="text-sm text-muted-foreground">
-                Start your day with cosmic guidance. Free forever.
-              </p>
-            </div>
-
-            {subscribed ? (
-              <div className="text-green-500 font-medium">
-                You&apos;re subscribed! Check your inbox.
-              </div>
-            ) : (
-              <form onSubmit={handleSubscribe} className="flex flex-col gap-2 w-full md:w-auto">
-                <div className="flex gap-2">
-                  <Input
-                    type="email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full md:w-64"
-                    required
-                    disabled={loading}
-                  />
-                  <Button type="submit" variant="outline" disabled={loading}>
-                    {loading ? 'Subscribing...' : 'Subscribe'}
-                  </Button>
-                </div>
-                {error && (
-                  <p className="text-red-500 text-sm">{error}</p>
-                )}
-              </form>
-            )}
-          </div>
-        </div>
-
-        {/* Bottom section */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <p>&copy; 2026 Omnis. All rights reserved.</p>
-
-          <div className="flex items-center gap-4">
-            <span>Made with ♡ for seekers</span>
-          </div>
+        {/* Bottom */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-border">
+          <p className="text-sm text-muted-foreground">&copy; 2026 Omnis. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground italic">Time is not money. Time is Art.</p>
         </div>
       </div>
     </footer>

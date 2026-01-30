@@ -1,0 +1,9 @@
+{
+  "name": "image-sourcing",
+  "version": "1.0.0",
+  "description": "Image sourcing and orchestration system - finds high-quality images from online sources and manages their placement in the codebase",
+  "agents": [
+    "agents/image-sourcer.md",
+    "agents/image-orchestrator.md"
+  ]
+}

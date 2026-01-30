@@ -78,7 +78,7 @@ export default function BoardsPage() {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="text-muted-foreground">Loading...</div>
         </div>
       </div>
     )
@@ -96,11 +96,11 @@ export default function BoardsPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Boards</h1>
+          <h1 className="text-3xl font-heading text-foreground">Boards</h1>
           <p className="text-muted-foreground">
             Create and edit visual boards
           </p>
@@ -108,14 +108,14 @@ export default function BoardsPage() {
 
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
               <Plus className="h-4 w-4 mr-2" />
               New Board
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
+          <DialogContent className="earth-card sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle>Create New Board</DialogTitle>
+              <DialogTitle className="font-heading">Create New Board</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 mt-4">
               {/* Board name */}
@@ -126,7 +126,7 @@ export default function BoardsPage() {
                   value={newBoardName}
                   onChange={(e) => setNewBoardName(e.target.value)}
                   placeholder="New Board"
-                  className="w-full px-3 py-2 border rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                   autoFocus
                 />
               </div>
@@ -144,14 +144,14 @@ export default function BoardsPage() {
                           p-3 border rounded-lg text-left transition-all
                           ${selectedTemplate === key
                             ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                            : 'hover:border-primary/50'
+                            : 'border-border hover:border-primary/50'
                           }
                         `}
                         onClick={() => setSelectedTemplate(key)}
                       >
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-xl">{template.icon}</span>
-                          <span className="font-medium text-sm">{template.name}</span>
+                          <span className="font-medium text-sm text-foreground">{template.name}</span>
                         </div>
                         <p className="text-xs text-muted-foreground">
                           {template.description}
@@ -173,6 +173,7 @@ export default function BoardsPage() {
                 <Button
                   onClick={handleCreateBoard}
                   disabled={!newBoardName.trim() || isCreating}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   {isCreating ? 'Creating...' : 'Create Board'}
                 </Button>
@@ -184,13 +185,13 @@ export default function BoardsPage() {
 
       {/* Boards grid */}
       {boards.length === 0 ? (
-        <div className="text-center py-16">
+        <div className="earth-card bg-card p-16 text-center">
           <LayoutTemplate className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">No boards yet</h3>
+          <h3 className="text-lg font-heading text-foreground mb-2">No boards yet</h3>
           <p className="text-muted-foreground mb-4">
             Create a new board to get started
           </p>
-          <Button onClick={() => setIsCreateOpen(true)}>
+          <Button onClick={() => setIsCreateOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
             <Plus className="h-4 w-4 mr-2" />
             Create First Board
           </Button>
@@ -222,10 +223,10 @@ function BoardCard({ board, onDelete, onDuplicate }: BoardCardProps) {
   const template = board.template ? BOARD_TEMPLATES[board.template as BoardTemplate] : null
 
   return (
-    <div className="group relative bg-card border rounded-xl overflow-hidden hover:shadow-md transition-shadow">
+    <div className="group relative earth-card bg-card overflow-hidden hover:shadow-earth-lg transition-shadow">
       {/* Thumbnail / Preview */}
       <Link href={`/app/boards/${board.id}`}>
-        <div className="aspect-video bg-muted flex items-center justify-center">
+        <div className="aspect-video bg-muted/30 flex items-center justify-center">
           {board.thumbnail ? (
             <img
               src={board.thumbnail}
@@ -244,7 +245,7 @@ function BoardCard({ board, onDelete, onDuplicate }: BoardCardProps) {
       <div className="p-4">
         <div className="flex items-start justify-between">
           <Link href={`/app/boards/${board.id}`} className="flex-1 min-w-0">
-            <h3 className="font-medium truncate">{board.name}</h3>
+            <h3 className="font-heading text-foreground truncate">{board.name}</h3>
             {board.description && (
               <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
                 {board.description}

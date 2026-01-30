@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="currentColor">
+  <title>Manifestor - Initiating energy type</title>
+  <!-- Arrow pointing outward representing initiating/impacting energy -->
+  <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="3"/>
+  <polygon points="50,15 60,35 55,35 55,55 45,55 45,35 40,35" />
+  <polygon points="85,50 65,60 65,55 45,55 45,45 65,45 65,40" />
+  <polygon points="50,85 40,65 45,65 45,45 55,45 55,65 60,65" />
+  <polygon points="15,50 35,40 35,45 55,45 55,55 35,55 35,60" />
+</svg>

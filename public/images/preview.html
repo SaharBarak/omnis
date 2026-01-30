@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Assets Preview - Omnis</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #1C1917;
+      color: #FAF8F5;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 0.5rem;
+      font-weight: 300;
+      font-size: 2rem;
+      color: #E94E77;
+    }
+    .subtitle {
+      text-align: center;
+      color: #78716C;
+      margin-bottom: 3rem;
+    }
+    .section {
+      margin-bottom: 3rem;
+    }
+    .section h2 {
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #78716C;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #333;
+    }
+    .section h2 span {
+      color: #E94E77;
+      font-size: 0.875rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 1rem;
+    }
+    .grid.large {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+    .card {
+      background: #292524;
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+    }
+    .card img {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 0.5rem;
+      object-fit: contain;
+    }
+    .card.wide img {
+      width: 100%;
+      height: auto;
+      max-height: 200px;
+    }
+    .card p {
+      font-size: 0.75rem;
+      color: #78716C;
+      word-break: break-word;
+    }
+    .toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: #292524;
+      border: none;
+      color: #FAF8F5;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    body.light {
+      background: #FAF8F5;
+      color: #1C1917;
+    }
+    body.light .card {
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    body.light .toggle {
+      background: #fff;
+      color: #1C1917;
+    }
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    .stat {
+      text-align: center;
+    }
+    .stat .num {
+      font-size: 2rem;
+      font-weight: 300;
+      color: #E94E77;
+    }
+    .stat .label {
+      font-size: 0.75rem;
+      color: #78716C;
+    }
+    .license {
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #333;
+      color: #aaa;
+      margin-top: 0.25rem;
+      display: inline-block;
+    }
+    body.light .license {
+      background: #eee;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <button class="toggle" onclick="document.body.classList.toggle('light')">Toggle Light/Dark</button>
+
+  <h1>Image Assets Preview</h1>
+  <p class="subtitle">Sourced for Omnis Documentation</p>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="num">129</div>
+      <div class="label">Total SVGs</div>
+    </div>
+    <div class="stat">
+      <div class="num">8</div>
+      <div class="label">Categories</div>
+    </div>
+    <div class="stat">
+      <div class="num">3</div>
+      <div class="label">Licenses</div>
+    </div>
+  </div>
+
+  <!-- Zodiac Signs -->
+  <div class="section">
+    <h2>Zodiac Signs <span>(12 icons - Public Domain)</span></h2>
+    <div class="grid">
+      <div class="card"><img src="astrology/signs/01-aries.svg" alt="Aries"><p>Aries</p></div>
+      <div class="card"><img src="astrology/signs/02-taurus.svg" alt="Taurus"><p>Taurus</p></div>
+      <div class="card"><img src="astrology/signs/03-gemini.svg" alt="Gemini"><p>Gemini</p></div>
+      <div class="card"><img src="astrology/signs/04-cancer.svg" alt="Cancer"><p>Cancer</p></div>
+      <div class="card"><img src="astrology/signs/05-leo.svg" alt="Leo"><p>Leo</p></div>
+      <div class="card"><img src="astrology/signs/06-virgo.svg" alt="Virgo"><p>Virgo</p></div>
+      <div class="card"><img src="astrology/signs/07-libra.svg" alt="Libra"><p>Libra</p></div>
+      <div class="card"><img src="astrology/signs/08-scorpio.svg" alt="Scorpio"><p>Scorpio</p></div>
+      <div class="card"><img src="astrology/signs/09-sagittarius.svg" alt="Sagittarius"><p>Sagittarius</p></div>
+      <div class="card"><img src="astrology/signs/10-capricorn.svg" alt="Capricorn"><p>Capricorn</p></div>
+      <div class="card"><img src="astrology/signs/11-aquarius.svg" alt="Aquarius"><p>Aquarius</p></div>
+      <div class="card"><img src="astrology/signs/12-pisces.svg" alt="Pisces"><p>Pisces</p></div>
+    </div>
+  </div>
+
+  <!-- Planet Symbols -->
+  <div class="section">
+    <h2>Planet Symbols <span>(10 icons - Public Domain)</span></h2>
+    <div class="grid">
+      <div class="card"><img src="astrology/planets/sun.svg" alt="Sun"><p>Sun</p></div>
+      <div class="card"><img src="astrology/planets/moon.svg" alt="Moon"><p>Moon</p></div>
+      <div class="card"><img src="astrology/planets/mercury.svg" alt="Mercury"><p>Mercury</p></div>
+      <div class="card"><img src="astrology/planets/venus.svg" alt="Venus"><p>Venus</p></div>
+      <div class="card"><img src="astrology/planets/mars.svg" alt="Mars"><p>Mars</p></div>
+      <div class="card"><img src="astrology/planets/jupiter.svg" alt="Jupiter"><p>Jupiter</p></div>
+      <div class="card"><img src="astrology/planets/saturn.svg" alt="Saturn"><p>Saturn</p></div>
+      <div class="card"><img src="astrology/planets/uranus.svg" alt="Uranus"><p>Uranus</p></div>
+      <div class="card"><img src="astrology/planets/neptune.svg" alt="Neptune"><p>Neptune</p></div>
+      <div class="card"><img src="astrology/planets/pluto.svg" alt="Pluto"><p>Pluto</p></div>
+    </div>
+  </div>
+
+  <!-- Elemental Symbols -->
+  <div class="section">
+    <h2>Elemental Symbols <span>(4 icons - MIT)</span></h2>
+    <div class="grid">
+      <div class="card"><img src="astrology/elements/fire.svg" alt="Fire"><p>Fire</p></div>
+      <div class="card"><img src="astrology/elements/water.svg" alt="Water"><p>Water</p></div>
+      <div class="card"><img src="astrology/elements/air.svg" alt="Air"><p>Air</p></div>
+      <div class="card"><img src="astrology/elements/earth.svg" alt="Earth"><p>Earth</p></div>
+    </div>
+  </div>
+
+  <!-- Mayan Day Signs -->
+  <div class="section">
+    <h2>Dreamspell Seals / Mayan Day Signs <span>(20 icons - CC-BY-SA)</span></h2>
+    <div class="grid">
+      <div class="card"><img src="dreamspell/seals/01-dragon.svg" alt="Dragon"><p>1. Dragon<br><small>Imix</small></p></div>
+      <div class="card"><img src="dreamspell/seals/02-wind.svg" alt="Wind"><p>2. Wind<br><small>Ik</small></p></div>
+      <div class="card"><img src="dreamspell/seals/03-night.svg" alt="Night"><p>3. Night<br><small>Akbal</small></p></div>
+      <div class="card"><img src="dreamspell/seals/04-seed.svg" alt="Seed"><p>4. Seed<br><small>Kan</small></p></div>
+      <div class="card"><img src="dreamspell/seals/05-serpent.svg" alt="Serpent"><p>5. Serpent<br><small>Chicchan</small></p></div>
+      <div class="card"><img src="dreamspell/seals/06-worldbridger.svg" alt="Worldbridger"><p>6. Worldbridger<br><small>Cimi</small></p></div>
+      <div class="card"><img src="dreamspell/seals/07-hand.svg" alt="Hand"><p>7. Hand<br><small>Manik</small></p></div>
+      <div class="card"><img src="dreamspell/seals/08-star.svg" alt="Star"><p>8. Star<br><small>Lamat</small></p></div>
+      <div class="card"><img src="dreamspell/seals/09-moon.svg" alt="Moon"><p>9. Moon<br><small>Muluc</small></p></div>
+      <div class="card"><img src="dreamspell/seals/10-dog.svg" alt="Dog"><p>10. Dog<br><small>Oc</small></p></div>
+      <div class="card"><img src="dreamspell/seals/11-monkey.svg" alt="Monkey"><p>11. Monkey<br><small>Chuen</small></p></div>
+      <div class="card"><img src="dreamspell/seals/12-human.svg" alt="Human"><p>12. Human<br><small>Eb</small></p></div>
+      <div class="card"><img src="dreamspell/seals/13-skywalker.svg" alt="Skywalker"><p>13. Skywalker<br><small>Ben</small></p></div>
+      <div class="card"><img src="dreamspell/seals/14-wizard.svg" alt="Wizard"><p>14. Wizard<br><small>Ix</small></p></div>
+      <div class="card"><img src="dreamspell/seals/15-eagle.svg" alt="Eagle"><p>15. Eagle<br><small>Men</small></p></div>
+      <div class="card"><img src="dreamspell/seals/16-warrior.svg" alt="Warrior"><p>16. Warrior<br><small>Cib</small></p></div>
+      <div class="card"><img src="dreamspell/seals/17-earth.svg" alt="Earth"><p>17. Earth<br><small>Caban</small></p></div>
+      <div class="card"><img src="dreamspell/seals/18-mirror.svg" alt="Mirror"><p>18. Mirror<br><small>Etznab</small></p></div>
+      <div class="card"><img src="dreamspell/seals/19-storm.svg" alt="Storm"><p>19. Storm<br><small>Cauac</small></p></div>
+      <div class="card"><img src="dreamspell/seals/20-sun.svg" alt="Sun"><p>20. Sun<br><small>Ahau</small></p></div>
+    </div>
+  </div>
+
+  <!-- Dreamspell Tones -->
+  <div class="section">
+    <h2>Dreamspell Tones <span>(13 icons - MIT)</span></h2>
+    <div class="grid">
+      <div class="card"><img src="dreamspell/tones/01-magnetic.svg" alt="Magnetic"><p>1. Magnetic</p></div>
+      <div class="card"><img src="dreamspell/tones/02-lunar.svg" alt="Lunar"><p>2. Lunar</p></div>
+      <div class="card"><img src="dreamspell/tones/03-electric.svg" alt="Electric"><p>3. Electric</p></div>
+      <div class="card"><img src="dreamspell/tones/04-self-existing.svg" alt="Self-Existing"><p>4. Self-Existing</p></div>
+      <div class="card"><img src="dreamspell/tones/05-overtone.svg" alt="Overtone"><p>5. Overtone</p></div>
+      <div class="card"><img src="dreamspell/tones/06-rhythmic.svg" alt="Rhythmic"><p>6. Rhythmic</p></div>
+      <div class="card"><img src="dreamspell/tones/07-resonant.svg" alt="Resonant"><p>7. Resonant</p></div>
+      <div class="card"><img src="dreamspell/tones/08-galactic.svg" alt="Galactic"><p>8. Galactic</p></div>
+      <div class="card"><img src="dreamspell/tones/09-solar.svg" alt="Solar"><p>9. Solar</p></div>
+      <div class="card"><img src="dreamspell/tones/10-planetary.svg" alt="Planetary"><p>10. Planetary</p></div>
+      <div class="card"><img src="dreamspell/tones/11-spectral.svg" alt="Spectral"><p>11. Spectral</p></div>
+      <div class="card"><img src="dreamspell/tones/12-crystal.svg" alt="Crystal"><p>12. Crystal</p></div>
+      <div class="card"><img src="dreamspell/tones/13-cosmic.svg" alt="Cosmic"><p>13. Cosmic</p></div>
+    </div>
+  </div>
+
+  <!-- Dreamspell Decorative -->
+  <div class="section">
+    <h2>Dreamspell Decorative <span>(3 diagrams - MIT)</span></h2>
+    <div class="grid large">
+      <div class="card wide"><img src="dreamspell/decorative/wavespell.svg" alt="Wavespell"><p>Wavespell (13-day cycle)</p></div>
+      <div class="card wide"><img src="dreamspell/decorative/castle.svg" alt="Castle"><p>Castle (52-day cycle)</p></div>
+      <div class="card wide"><img src="dreamspell/decorative/tzolkin-grid.svg" alt="Tzolkin Grid"><p>Tzolkin Grid (260-day)</p></div>
+    </div>
+  </div>
+
+  <!-- Hebrew Letters -->
+  <div class="section">
+    <h2>Hebrew Letters <span>(22 icons - CC-BY-SA)</span></h2>
+    <div class="grid">
+      <div class="card"><img src="gematria/letters/01-aleph.svg" alt="Aleph"><p>Aleph</p></div>
+      <div class="card"><img src="gematria/letters/02-bet.svg" alt="Bet"><p>Bet</p></div>
+      <div class="card"><img src="gematria/letters/03-gimel.svg" alt="Gimel"><p>Gimel</p></div>
+      <div class="card"><img src="gematria/letters/04-dalet.svg" alt="Dalet"><p>Dalet</p></div>
+      <div class="card"><img src="gematria/letters/05-he.svg" alt="He"><p>He</p></div>
+      <div class="card"><img src="gematria/letters/06-vav.svg" alt="Vav"><p>Vav</p></div>
+      <div class="card"><img src="gematria/letters/07-zayin.svg" alt="Zayin"><p>Zayin</p></div>
+      <div class="card"><img src="gematria/letters/08-chet.svg" alt="Chet"><p>Chet</p></div>
+      <div class="card"><img src="gematria/letters/09-tet.svg" alt="Tet"><p>Tet</p></div>
+      <div class="card"><img src="gematria/letters/10-yod.svg" alt="Yod"><p>Yod</p></div>
+      <div class="card"><img src="gematria/letters/11-kaf.svg" alt="Kaf"><p>Kaf</p></div>
+      <div class="card"><img src="gematria/letters/12-lamed.svg" alt="Lamed"><p>Lamed</p></div>
+      <div class="card"><img src="gematria/letters/13-mem.svg" alt="Mem"><p>Mem</p></div>
+      <div class="card"><img src="gematria/letters/14-nun.svg" alt="Nun"><p>Nun</p></div>
+      <div class="card"><img src="gematria/letters/15-samech.svg" alt="Samech"><p>Samech</p></div>
+      <div class="card"><img src="gematria/letters/16-ayin.svg" alt="Ayin"><p>Ayin</p></div>
+      <div class="card"><img src="gematria/letters/17-pe.svg" alt="Pe"><p>Pe</p></div>
+      <div class="card"><img src="gematria/letters/18-tzadi.svg" alt="Tzadi"><p>Tzadi</p></div>
+      <div class="card"><img src="gematria/letters/19-qof.svg" alt="Qof"><p>Qof</p></div>
+      <div class="card"><img src="gematria/letters/20-resh.svg" alt="Resh"><p>Resh</p></div>
+      <div class="card"><img src="gematria/letters/21-shin.svg" alt="Shin"><p>Shin</p></div>
+      <div class="card"><img src="gematria/letters/22-tav.svg" alt="Tav"><p>Tav</p></div>
+    </div>
+  </div>
+
+  <!-- Tree of Life -->
+  <div class="section">
+    <h2>Tree of Life / Sefirot <span>(1 illustration - CC-BY-SA)</span></h2>
+    <div class="grid large">
+      <div class="card wide"><img src="gematria/sefirot/tree-of-life.svg" alt="Tree of Life"><p>Kabbalistic Tree of Life</p></div>
+    </div>
+  </div>
+
+  <!-- Human Design Centers -->
+  <div class="section">
+    <h2>Human Design Centers <span>(18 icons - MIT)</span></h2>
+    <p style="color: #78716C; font-size: 0.875rem; margin-bottom: 1rem;">Undefined (white) and Defined (terracotta) states</p>
+    <div class="grid">
+      <div class="card"><img src="human-design/centers/head.svg" alt="Head"><p>Head<br><small>undefined</small></p></div>
+      <div class="card"><img src="human-design/centers/head-defined.svg" alt="Head Defined"><p>Head<br><small>defined</small></p></div>
+      <div class="card"><img src="human-design/centers/ajna.svg" alt="Ajna"><p>Ajna<br><small>undefined</small></p></div>
+      <div class="card"><img src="human-design/centers/ajna-defined.svg" alt="Ajna Defined"><p>Ajna<br><small>defined</small></p></div>
+      <div class="card"><img src="human-design/centers/throat.svg" alt="Throat"><p>Throat<br><small>undefined</small></p></div>
+      <div class="card"><img src="human-design/centers/throat-defined.svg" alt="Throat Defined"><p>Throat<br><small>defined</small></p></div>
+      <div class="card"><img src="human-design/centers/g-center.svg" alt="G Center"><p>G Center<br><small>undefined</small></p></div>
+      <div class="card"><img src="human-design/centers/g-center-defined.svg" alt="G Center Defined"><p>G Center<br><small>defined</small></p></div>
+      <div class="card"><img src="human-design/centers/heart.svg" alt="Heart"><p>Heart<br><small>undefined</small></p></div>
+      <div class="card"><img src="human-design/centers/heart-defined.svg" alt="Heart Defined"><p>Heart<br><small>defined</small></p></div>
+      <div class="card"><img src="human-design/centers/sacral.svg" alt="Sacral"><p>Sacral<br><small>undefined</small></p></div>
+      <div class="card"><img src="human-design/centers/sacral-defined.svg" alt="Sacral Defined"><p>Sacral<br><small>defined</small></p></div>
+      <div class="card"><img src="human-design/centers/solar-plexus.svg" alt="Solar Plexus"><p>Solar Plexus<br><small>undefined</small></p></div>
+      <div class="card"><img src="human-design/centers/solar-plexus-defined.svg" alt="Solar Plexus Defined"><p>Solar Plexus<br><small>defined</small></p></div>
+      <div class="card"><img src="human-design/centers/spleen.svg" alt="Spleen"><p>Spleen<br><small>undefined</small></p></div>
+      <div class="card"><img src="human-design/centers/spleen-defined.svg" alt="Spleen Defined"><p>Spleen<br><small>defined</small></p></div>
+      <div class="card"><img src="human-design/centers/root.svg" alt="Root"><p>Root<br><small>undefined</small></p></div>
+      <div class="card"><img src="human-design/centers/root-defined.svg" alt="Root Defined"><p>Root<br><small>defined</small></p></div>
+    </div>
+  </div>
+
+  <!-- Human Design Types -->
+  <div class="section">
+    <h2>Human Design Types <span>(5 icons - MIT)</span></h2>
+    <div class="grid">
+      <div class="card"><img src="human-design/types/manifestor.svg" alt="Manifestor"><p>Manifestor</p></div>
+      <div class="card"><img src="human-design/types/generator.svg" alt="Generator"><p>Generator</p></div>
+      <div class="card"><img src="human-design/types/manifesting-generator.svg" alt="Manifesting Generator"><p>Manifesting Generator</p></div>
+      <div class="card"><img src="human-design/types/projector.svg" alt="Projector"><p>Projector</p></div>
+      <div class="card"><img src="human-design/types/reflector.svg" alt="Reflector"><p>Reflector</p></div>
+    </div>
+  </div>
+
+  <!-- Human Design Bodygraph -->
+  <div class="section">
+    <h2>Human Design Bodygraph <span>(1 diagram - MIT)</span></h2>
+    <div class="grid large">
+      <div class="card wide"><img src="human-design/bodygraph/bodygraph.svg" alt="Bodygraph"><p>Full Bodygraph</p></div>
+    </div>
+  </div>
+
+  <!-- Tzolkin Nawales -->
+  <div class="section">
+    <h2>Tzolkin Nawales / Mayan Day Signs <span>(20 icons - MIT)</span></h2>
+    <div class="grid">
+      <div class="card"><img src="tzolkin/nawales/01-batz.svg" alt="B'atz'"><p>1. B'atz'<br><small>Monkey</small></p></div>
+      <div class="card"><img src="tzolkin/nawales/02-e.svg" alt="E"><p>2. E<br><small>Road</small></p></div>
+      <div class="card"><img src="tzolkin/nawales/03-aj.svg" alt="Aj"><p>3. Aj<br><small>Cane</small></p></div>
+      <div class="card"><img src="tzolkin/nawales/04-ix.svg" alt="I'x"><p>4. I'x<br><small>Jaguar</small></p></div>
+      <div class="card"><img src="tzolkin/nawales/05-tzikin.svg" alt="Tz'ikin"><p>5. Tz'ikin<br><small>Bird</small></p></div>
+      <div class="card"><img src="tzolkin/nawales/06-ajmaq.svg" alt="Ajmaq"><p>6. Ajmaq<br><small>Owl</small></p></div>
+      <div class="card"><img src="tzolkin/nawales/07-noj.svg" alt="No'j"><p>7. No'j<br><small>Wisdom</small></p></div>
+      <div class="card"><img src="tzolkin/nawales/08-tijax.svg" alt="Tijax"><p>8. Tijax<br><small>Blade</small></p></div>
+      <div class="card"><img src="tzolkin/nawales/09-kawoq.svg" alt="Kawoq"><p>9. Kawoq<br><small>Storm</small></p></div>
+      <div class="card"><img src="tzolkin/nawales/10-ajpu.svg" alt="Ajpu"><p>10. Ajpu<br><small>Sun Lord</small></p></div>
+      <div class="card"><img src="tzolkin/nawales/11-imox.svg" alt="Imox"><p>11. Imox<br><small>Crocodile</small></p></div>
+      <div class="card"><img src="tzolkin/nawales/12-iq.svg" alt="Iq'"><p>12. Iq'<br><small>Wind</small></p></div>
+      <div class="card"><img src="tzolkin/nawales/13-aqabal.svg" alt="Aq'ab'al"><p>13. Aq'ab'al<br><small>Night</small></p></div>
+      <div class="card"><img src="tzolkin/nawales/14-kat.svg" alt="K'at"><p>14. K'at<br><small>Net</small></p></div>
+      <div class="card"><img src="tzolkin/nawales/15-kan.svg" alt="Kan"><p>15. Kan<br><small>Serpent</small></p></div>
+      <div class="card"><img src="tzolkin/nawales/16-kame.svg" alt="Kame"><p>16. Kame<br><small>Death</small></p></div>
+      <div class="card"><img src="tzolkin/nawales/17-kej.svg" alt="Kej"><p>17. Kej<br><small>Deer</small></p></div>
+      <div class="card"><img src="tzolkin/nawales/18-qanil.svg" alt="Q'anil"><p>18. Q'anil<br><small>Seed</small></p></div>
+      <div class="card"><img src="tzolkin/nawales/19-toj.svg" alt="Toj"><p>19. Toj<br><small>Offering</small></p></div>
+      <div class="card"><img src="tzolkin/nawales/20-tzi.svg" alt="Tz'i'"><p>20. Tz'i'<br><small>Dog</small></p></div>
+    </div>
+  </div>
+
+</body>
+</html>

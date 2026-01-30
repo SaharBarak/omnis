@@ -8,7 +8,14 @@
       "Bash(npm run dev:*)",
       "WebSearch",
       "WebFetch(domain:nebula.tv)",
-      "WebFetch(domain:www.asknebula.com)"
+      "WebFetch(domain:www.asknebula.com)",
+      "Bash(npm run build:*)",
+      "Bash(ls:*)",
+      "WebFetch(domain:www.flaticon.com)",
+      "WebFetch(domain:www.reshot.com)",
+      "WebFetch(domain:www.svgrepo.com)",
+      "WebFetch(domain:commons.wikimedia.org)",
+      "Bash(npm install:*)"
     ]
   }
 }

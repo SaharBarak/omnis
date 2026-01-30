@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="currentColor">
+  <title>Tz'ikin - Bird, Vision, Fortune</title>
+  <!-- Stylized eagle/bird glyph -->
+  <circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="3"/>
+  <!-- Bird head and beak -->
+  <circle cx="50" cy="40" r="15" fill="none" stroke="currentColor" stroke-width="2"/>
+  <circle cx="50" cy="38" r="5"/>
+  <polygon points="50,50 40,60 50,55 60,60"/>
+  <!-- Wings spread -->
+  <path d="M20 50 Q35 40, 35 55" fill="none" stroke="currentColor" stroke-width="2"/>
+  <path d="M80 50 Q65 40, 65 55" fill="none" stroke="currentColor" stroke-width="2"/>
+  <!-- Tail feathers -->
+  <path d="M40 70 L50 65 L60 70" fill="none" stroke="currentColor" stroke-width="2"/>
+</svg>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="currentColor">
+  <title>Earth Element - Downward triangle with horizontal line</title>
+  <!-- Traditional alchemical symbol for earth -->
+  <polygon points="50,85 85,15 15,15" fill="none" stroke="currentColor" stroke-width="4"/>
+  <line x1="25" y1="40" x2="75" y2="40" stroke="currentColor" stroke-width="4"/>
+</svg>

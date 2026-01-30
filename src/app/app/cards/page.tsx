@@ -13,13 +13,13 @@ export default function CardsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">כרטיסים</h1>
+          <h1 className="text-3xl font-heading text-foreground">Cards</h1>
           <p className="text-muted-foreground">
-            {TEST_PEOPLE.length} כרטיסי A5 להדפסה
+            {TEST_PEOPLE.length} A5 cards for printing
           </p>
         </div>
-        <Button onClick={handlePrint} className="no-print">
-          הדפס כרטיסים
+        <Button onClick={handlePrint} className="no-print bg-primary hover:bg-primary/90 text-primary-foreground">
+          Print Cards
         </Button>
       </div>
 

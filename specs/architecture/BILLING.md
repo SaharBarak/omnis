@@ -2,7 +2,7 @@
 
 ## Overview
 
-Subscription-based SaaS billing with Stripe integration. $30/month target price point with free tier for basic usage.
+Subscription-based SaaS billing with Stripe integration. Three tiers designed to convert free users to paying customers through meaningful feature restrictions.
 
 ---
 
@@ -10,18 +10,41 @@ Subscription-based SaaS billing with Stripe integration. $30/month target price 
 
 ### Plans
 
-| Feature | Free | Pro ($30/mo) |
-|---------|------|--------------|
-| People | 10 | Unlimited |
-| Systems | Dreamspell, Tzolkin | All 6 systems |
-| Exports | 5/month | Unlimited |
-| AI Interpretations | 10/month | 100/month |
-| Boards | 3 | Unlimited |
-| Sharing | Basic links | Password-protected, analytics |
-| Predictions | Daily only | Full timeline |
-| Group Analysis | No | Yes |
-| API Access | No | Yes |
-| Support | Community | Priority |
+| Feature | Free | Complete ($9/mo) | Practitioner ($29/mo) |
+|---------|------|------------------|----------------------|
+| Profiles | 1 (self only) | 10 | Unlimited |
+| Systems | Dreamspell only | All 6 systems | All 6 systems |
+| Exports | None | Unlimited | Unlimited |
+| AI Interpretations | None | 30/month | Unlimited |
+| Boards | None | 5 | Unlimited |
+| Sharing | None | Basic links | Password-protected, analytics |
+| Timeline | None | Full access | Full access |
+| Relationship Analysis | None | Basic compatibility | Advanced matrix |
+| Group Analysis | No | No | Yes |
+| Oracle Mapping | No | Basic | Advanced |
+| API Access | No | No | Yes |
+| Support | Community | Email | Priority |
+
+### Key Restrictions (Free Tier)
+
+The free tier is intentionally limited to demonstrate value while pushing users to upgrade:
+
+1. **Single profile**: Users can only save themselves, not family/friends
+2. **Dreamspell only**: No Tzolkin, Long Count, Human Design, Astrology, or Gematria
+3. **No AI**: Zero AI interpretations - just raw calculations
+4. **No exports**: Cannot save or share results
+5. **No timeline**: Cannot see past/future dates or galactic returns
+6. **No relationships**: Cannot compare profiles or see compatibility
+
+### Upgrade Triggers
+
+These moments should prompt upgrade CTAs:
+- Attempting to add a 2nd profile
+- Clicking on any locked system tab
+- Clicking "Get AI Interpretation"
+- Clicking "Export PDF" or "Share"
+- Clicking on timeline or relationship features
+- Viewing daily kin without interpretation
 
 ### Pricing
 ```typescript
@@ -29,20 +52,41 @@ const pricing = {
   free: {
     price: 0,
     limits: {
-      people: 10,
-      exports: 5,
-      aiTokens: 10000,
-      boards: 3,
+      profiles: 1,
+      systems: ['dreamspell'],
+      exports: 0,
+      aiInterpretations: 0,
+      boards: 0,
+      timeline: false,
+      relationships: false,
     },
   },
-  pro: {
-    price: 30,                   // USD/month
-    priceILS: 110,               // ILS/month (approximate)
+  complete: {
+    price: 9,                    // USD/month
+    priceILS: 33,                // ILS/month (approximate)
     limits: {
-      people: Infinity,
+      profiles: 10,
+      systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria'],
       exports: Infinity,
-      aiTokens: 100000,
+      aiInterpretations: 30,
+      boards: 5,
+      timeline: true,
+      relationships: 'basic',
+    },
+  },
+  practitioner: {
+    price: 29,                   // USD/month
+    priceILS: 107,               // ILS/month (approximate)
+    limits: {
+      profiles: Infinity,
+      systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria'],
+      exports: Infinity,
+      aiInterpretations: Infinity,
       boards: Infinity,
+      timeline: true,
+      relationships: 'advanced',
+      groupAnalysis: true,
+      apiAccess: true,
     },
   },
 };
@@ -59,11 +103,14 @@ const stripeConfig = {
   secretKey: process.env.STRIPE_SECRET_KEY,
   webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
   products: {
-    pro: process.env.STRIPE_PRODUCT_PRO_ID,
+    complete: process.env.STRIPE_PRODUCT_COMPLETE_ID,
+    practitioner: process.env.STRIPE_PRODUCT_PRACTITIONER_ID,
   },
   prices: {
-    proMonthly: process.env.STRIPE_PRICE_PRO_MONTHLY_ID,
-    proYearly: process.env.STRIPE_PRICE_PRO_YEARLY_ID,
+    completeMonthly: process.env.STRIPE_PRICE_COMPLETE_MONTHLY_ID,
+    completeYearly: process.env.STRIPE_PRICE_COMPLETE_YEARLY_ID,
+    practitionerMonthly: process.env.STRIPE_PRICE_PRACTITIONER_MONTHLY_ID,
+    practitionerYearly: process.env.STRIPE_PRICE_PRACTITIONER_YEARLY_ID,
   },
 };
 ```
@@ -158,18 +205,22 @@ interface StripeSubscription {
 ```typescript
 async function createCheckoutSession(
   userId: UserId,
-  plan: 'pro',
+  plan: 'complete' | 'practitioner',
   successUrl: string,
   cancelUrl: string
 ): Promise<{ url: string }> {
   const customerId = await getOrCreateCustomer(userId);
+
+  const priceId = plan === 'complete'
+    ? stripeConfig.prices.completeMonthly
+    : stripeConfig.prices.practitionerMonthly;
 
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
     mode: 'subscription',
     line_items: [
       {
-        price: stripeConfig.prices.proMonthly,
+        price: priceId,
         quantity: 1,
       },
     ],
@@ -185,6 +236,7 @@ async function createCheckoutSession(
     },
     metadata: {
       omnis_user_id: userId,
+      omnis_plan: plan,
     },
   });
 
@@ -204,7 +256,7 @@ async function handleCheckoutSuccess(sessionId: string): Promise<void> {
 
   await upsertSubscription({
     userId,
-    plan: 'pro',
+    plan: 'complete',
     status: 'active',
     stripeSubscriptionId: subscription.id,
     stripeCustomerId: session.customer as string,
@@ -436,7 +488,7 @@ async function requireLimit(
       metric,
       current,
       limit,
-      message: `You've reached your ${metric} limit. Upgrade to Pro for unlimited access.`,
+      message: `You've reached your ${metric} limit. Upgrade to Complete or Practitioner for more access.`,
     });
   }
 }
@@ -459,16 +511,25 @@ async function createPerson(userId: UserId, data: PersonInput): Promise<Person> 
 ### Trial Configuration
 ```typescript
 const trialConfig = {
-  enabled: true,
-  durationDays: 14,
-  features: 'pro',               // Full Pro features during trial
-  requirePaymentMethod: false,   // No card required
+  complete: {
+    enabled: true,
+    durationDays: 7,              // 7-day trial for Complete plan
+    requirePaymentMethod: false,  // No card required
+  },
+  practitioner: {
+    enabled: true,
+    durationDays: 14,             // 14-day trial for Practitioner plan
+    requirePaymentMethod: false,  // No card required
+  },
 };
 ```
 
 ### Start Trial
 ```typescript
-async function startTrial(userId: UserId): Promise<Subscription> {
+async function startTrial(
+  userId: UserId,
+  plan: 'complete' | 'practitioner' = 'complete'
+): Promise<Subscription> {
   const existing = await db.subscriptions.findUnique({
     where: { user_id: userId },
   });
@@ -477,19 +538,20 @@ async function startTrial(userId: UserId): Promise<Subscription> {
     throw new Error('User already has a subscription or had a trial');
   }
 
-  const trialEnd = addDays(new Date(), trialConfig.durationDays);
+  const config = trialConfig[plan];
+  const trialEnd = addDays(new Date(), config.durationDays);
 
   return await db.subscriptions.upsert({
     where: { user_id: userId },
     create: {
       user_id: userId,
-      plan: 'pro',
+      plan,
       status: 'trialing',
       current_period_start: new Date(),
       current_period_end: trialEnd,
     },
     update: {
-      plan: 'pro',
+      plan,
       status: 'trialing',
       current_period_start: new Date(),
       current_period_end: trialEnd,
@@ -530,27 +592,25 @@ async function handleExpiredTrials(): Promise<void> {
 ### Invoice Display
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  חשבונית                                                       │
+│  Invoice                                                        │
 │  Invoice #INV-2025-001                                         │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  מאת / From:                     אל / To:                      │
-│  Omnis Ltd.                      ליאור כהן                      │
-│  contact@omnis.co.il             lior@example.com              │
+│  From:                           To:                            │
+│  Omnis Ltd.                      John Doe                       │
+│  billing@omnis.app              john@example.com               │
 │                                                                 │
 ├─────────────────────────────────────────────────────────────────┤
-│  תיאור                           סכום                          │
+│  Description                     Amount                         │
 │  ──────────────────────────────────────────────────────────────│
-│  Omnis Pro - Monthly             ₪110.00                       │
+│  Omnis Complete - Monthly        $9.00                         │
 │  (Jan 1 - Jan 31, 2025)                                        │
 │                                                                 │
 │  ──────────────────────────────────────────────────────────────│
-│  סה"כ / Total                    ₪110.00                       │
-│  מע"מ / VAT (17%)                ₪18.70                        │
-│  סה"כ לתשלום                     ₪128.70                       │
+│  Total                           $9.00                         │
 │                                                                 │
 ├─────────────────────────────────────────────────────────────────┤
-│  שולם ב-1.1.2025 | Visa ****4242                               │
+│  Paid on Jan 1, 2025 | Visa ****4242                           │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -632,28 +692,52 @@ async function processRefund(
 
 ## UI Components
 
-### Upgrade Prompt
+### Upgrade Prompt (Free -> Complete)
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  🚀 שדרג ל-Pro                                                 │
+│  Upgrade to Complete                                            │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  הגעת למגבלה של 10 אנשים בחשבון החינמי.                        │
+│  You've reached the limit of the free plan.                    │
 │                                                                 │
-│  עם Pro תקבל:                                                  │
-│  ✓ אנשים ללא הגבלה                                             │
-│  ✓ כל 6 המערכות הסמליות                                       │
-│  ✓ ניתוח קבוצתי וקשרים                                        │
-│  ✓ פרשנויות AI                                                 │
-│  ✓ ייצוא ושיתוף מתקדם                                         │
+│  With Complete you get:                                         │
+│  ✓ Up to 10 profiles (not just yourself)                       │
+│  ✓ All 6 symbolic systems                                      │
+│  ✓ 30 AI interpretations per month                             │
+│  ✓ Export to PDF & share                                       │
+│  ✓ Full timeline access                                        │
 │                                                                 │
-│  ₪110/חודש                                                     │
+│  $9/month                                                       │
 │                                                                 │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │                    שדרג עכשיו                             │  │
+│  │                    Upgrade Now                            │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                                                                 │
-│  או נסה 14 יום חינם →                                          │
+│  or try 7 days free →                                          │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Upgrade Prompt (Complete -> Practitioner)
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Upgrade to Practitioner                                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Need more profiles or unlimited AI?                           │
+│                                                                 │
+│  With Practitioner you get:                                    │
+│  ✓ Unlimited profiles                                          │
+│  ✓ Unlimited AI interpretations                                │
+│  ✓ Advanced relationship matrix                                │
+│  ✓ Group dynamics analysis                                     │
+│  ✓ Priority support                                            │
+│                                                                 │
+│  $29/month                                                      │
+│                                                                 │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │                    Upgrade Now                            │  │
+│  └───────────────────────────────────────────────────────────┘  │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -661,28 +745,28 @@ async function processRefund(
 ### Billing Page
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  חיוב והגדרות                                                  │
+│  Billing & Settings                                             │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  תוכנית נוכחית                                                 │
+│  Current Plan                                                   │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │  Pro                                        ₪110/חודש    │  │
-│  │  החידוש הבא: 1 בפברואר 2025                              │  │
+│  │  Complete                                     $9/month    │  │
+│  │  Next renewal: February 1, 2025                          │  │
 │  │                                                           │  │
-│  │  [שנה תוכנית]  [בטל מנוי]                                │  │
+│  │  [Change Plan]  [Cancel Subscription]                    │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                                                                 │
-│  אמצעי תשלום                                                   │
+│  Payment Method                                                 │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │  💳 Visa ****4242 | תוקף 12/26                           │  │
-│  │  [עדכן אמצעי תשלום]                                      │  │
+│  │  Visa ****4242 | Expires 12/26                           │  │
+│  │  [Update Payment Method]                                 │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                                                                 │
-│  היסטוריית חשבוניות                                            │
+│  Invoice History                                                │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │  ינואר 2025    ₪128.70    שולם ✓    [הורד PDF]          │  │
-│  │  דצמבר 2024    ₪128.70    שולם ✓    [הורד PDF]          │  │
-│  │  נובמבר 2024   ₪128.70    שולם ✓    [הורד PDF]          │  │
+│  │  Jan 2025    $9.00    Paid ✓    [Download PDF]           │  │
+│  │  Dec 2024    $9.00    Paid ✓    [Download PDF]           │  │
+│  │  Nov 2024    $9.00    Paid ✓    [Download PDF]           │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘

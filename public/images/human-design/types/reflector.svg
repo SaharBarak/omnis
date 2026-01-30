@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="currentColor">
+  <title>Reflector - Lunar reflective energy</title>
+  <!-- Moon phases representing lunar cycle connection -->
+  <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" stroke-width="2"/>
+
+  <!-- Open/undefined center (hollow circle) -->
+  <circle cx="50" cy="50" r="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5,3"/>
+
+  <!-- Moon phase crescents around -->
+  <path d="M50 12 A18 18 0 0 1 50 48 A14 14 0 0 0 50 12" fill="currentColor" opacity="0.3"/>
+  <path d="M88 50 A18 18 0 0 1 52 50 A14 14 0 0 0 88 50" fill="currentColor" opacity="0.5"/>
+  <path d="M50 88 A18 18 0 0 1 50 52 A14 14 0 0 0 50 88" fill="currentColor" opacity="0.7"/>
+  <path d="M12 50 A18 18 0 0 1 48 50 A14 14 0 0 0 12 50" fill="currentColor" opacity="0.9"/>
+</svg>

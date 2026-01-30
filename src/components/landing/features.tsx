@@ -1,107 +1,126 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
-
 const systems = [
   {
-    icon: '🌀',
     name: 'Dreamspell',
-    description: 'Your galactic signature, kin number, and oracle map',
-    color: 'from-violet-500/20 to-blue-500/20',
+    subtitle: 'Galactic Signature',
+    description: 'Your kin, seal, tone, wavespell, castle, and complete oracle map. The synchronic order that Arguelles returned us to - where synchronicity can be mapped daily.',
+    color: 'primary',
+    icon: (
+      <svg viewBox="0 0 32 32" className="w-7 h-7">
+        <circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.3" />
+        <circle cx="16" cy="16" r="7" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.6" />
+        <circle cx="16" cy="16" r="2.5" fill="currentColor" />
+      </svg>
+    ),
   },
   {
-    icon: '⭐',
     name: 'Astrology',
-    description: 'Natal chart with all planets, houses, and aspects',
-    color: 'from-orange-500/20 to-yellow-500/20',
+    subtitle: 'Natal Chart',
+    description: 'Sun, Moon, Rising, and planetary placements. The ancient language of celestial positions at the moment of your birth.',
+    color: 'secondary',
+    icon: (
+      <svg viewBox="0 0 32 32" className="w-7 h-7">
+        <circle cx="16" cy="16" r="10" fill="none" stroke="currentColor" strokeWidth="1" />
+        <path d="M16 6v4M16 22v4M6 16h4M22 16h4" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+        <circle cx="16" cy="16" r="3" fill="currentColor" opacity="0.4" />
+      </svg>
+    ),
   },
   {
-    icon: '🔮',
     name: 'Human Design',
-    description: 'Your energetic blueprint and decision strategy',
-    color: 'from-purple-500/20 to-pink-500/20',
+    subtitle: 'Bodygraph',
+    description: 'Type, strategy, authority, and profile. As Ra Uru Hu said: not a belief system - a practical tool for living as yourself, free from conditioning.',
+    color: 'accent',
+    icon: (
+      <svg viewBox="0 0 32 32" className="w-7 h-7">
+        <circle cx="16" cy="8" r="4" fill="none" stroke="currentColor" strokeWidth="1" />
+        <circle cx="10" cy="18" r="3" fill="none" stroke="currentColor" strokeWidth="1" />
+        <circle cx="22" cy="18" r="3" fill="none" stroke="currentColor" strokeWidth="1" />
+        <circle cx="16" cy="26" r="3" fill="none" stroke="currentColor" strokeWidth="1" />
+        <path d="M16 12v11M13 18h6" stroke="currentColor" strokeWidth="1" />
+      </svg>
+    ),
   },
   {
-    icon: '🔢',
     name: 'Gematria',
-    description: 'Hebrew name numerology and hidden meanings',
-    color: 'from-green-500/20 to-teal-500/20',
+    subtitle: 'Hebrew Numerology',
+    description: 'Seven calculation methods from the Kabbalistic tradition. Words with the same numerical value reveal hidden connections in reality.',
+    color: 'primary',
+    icon: (
+      <svg viewBox="0 0 32 32" className="w-7 h-7">
+        <rect x="6" y="6" width="20" height="20" rx="2" fill="none" stroke="currentColor" strokeWidth="1" />
+        <text x="16" y="21" textAnchor="middle" fontSize="12" fill="currentColor" fontFamily="serif">א</text>
+      </svg>
+    ),
   },
 ]
 
 const additionalSystems = [
-  'Long Count',
-  'Wavespells',
-  'Traditional Tzolkin',
-  'Castles & Harmonics',
+  { name: 'Long Count', desc: 'Your position in the great cycle' },
+  { name: 'Tzolkin', desc: 'Traditional Mayan (GMT correlation)' },
+  { name: 'Personal Timeline', desc: 'Galactic returns, tun & katun' },
+  { name: 'Relationships', desc: 'Oracle connections between profiles' },
 ]
 
 export function Features() {
-  const sectionRef = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('animate-in')
-          }
-        })
-      },
-      { threshold: 0.1 }
-    )
-
-    const cards = sectionRef.current?.querySelectorAll('.feature-card')
-    cards?.forEach((card) => observer.observe(card))
-
-    return () => observer.disconnect()
-  }, [])
-
   return (
-    <section ref={sectionRef} className="py-20 px-4" id="features">
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Four Systems. <span className="text-gold-gradient">One Truth.</span>
+    <section className="py-20 lg:py-28 px-6 bg-background" id="features">
+      <div className="max-w-6xl mx-auto">
+        {/* Section header */}
+        <div className="max-w-2xl mb-14">
+          <div className="earth-badge mb-5">
+            <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
+            <span>Close those 4 browser tabs</span>
+          </div>
+
+          <h2 className="text-3xl sm:text-4xl font-heading text-foreground mb-4">
+            Six systems, <span className="text-earth-gradient">one unified view</span>
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Stop checking multiple sites. Get all your symbolic readings in one place, calculated instantly.
+
+          <p className="text-lg text-muted-foreground leading-relaxed">
+            Each tradition offers a different lens. Omnis calculates all of them and displays them together so you can see the connections.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {systems.map((system, index) => (
+        {/* Feature cards */}
+        <div className="grid md:grid-cols-2 gap-5">
+          {systems.map((system) => (
             <div
               key={system.name}
-              className={`feature-card group p-6 rounded-xl bg-card border border-border hover:border-primary/30 transition-all duration-300 opacity-0 translate-y-4`}
-              style={{ transitionDelay: `${index * 100}ms` }}
+              className="group feature-card-earth"
             >
-              <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${system.color} flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform`}>
+              {/* Icon */}
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 bg-${system.color}/10 text-${system.color} border border-${system.color}/20`}>
                 {system.icon}
               </div>
-              <h3 className="font-semibold text-lg mb-2">{system.name}</h3>
-              <p className="text-sm text-muted-foreground">{system.description}</p>
+
+              {/* Content */}
+              <div className="flex items-baseline gap-2 mb-2">
+                <h3 className="text-xl font-heading text-foreground">{system.name}</h3>
+                <span className="text-xs uppercase tracking-wider text-muted-foreground">{system.subtitle}</span>
+              </div>
+              <p className="text-muted-foreground leading-relaxed">{system.description}</p>
             </div>
           ))}
         </div>
 
-        <div className="text-center text-muted-foreground">
-          <span className="font-medium">Plus:</span>{' '}
-          {additionalSystems.map((system, index) => (
-            <span key={system}>
-              {system}
-              {index < additionalSystems.length - 1 && ' · '}
-            </span>
-          ))}
+        {/* Additional systems */}
+        <div className="mt-12 pt-10 border-t border-border">
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <span className="text-sm text-muted-foreground">Also included:</span>
+            {additionalSystems.map((system) => (
+              <div
+                key={system.name}
+                className="earth-badge"
+              >
+                <span className="text-sm font-medium text-foreground">{system.name}</span>
+                <span className="text-xs text-muted-foreground hidden sm:inline">/ {system.desc}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-
-      <style jsx>{`
-        .feature-card.animate-in {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      `}</style>
     </section>
   )
 }

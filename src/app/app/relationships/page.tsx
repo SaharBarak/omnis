@@ -2,11 +2,10 @@
 
 import { useState, useMemo } from 'react'
 import { usePeople } from '@/lib/hooks/use-people'
-import { useRelationships, getRelationshipColor } from '@/lib/hooks/use-relationships'
+import { useRelationships } from '@/lib/hooks/use-relationships'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -44,48 +43,47 @@ function RelationshipCard({
   const strengthInfo = STRENGTH_LABELS[relationship.strength as 1 | 2 | 3 | 4 | 5]
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-lg">{relationship.person1.name}</CardTitle>
-              <span className="text-muted-foreground">↔</span>
-              <CardTitle className="text-lg">{relationship.person2.name}</CardTitle>
-            </div>
-            <Badge
-              variant="secondary"
-              style={{ backgroundColor: typeInfo.color + '20', color: typeInfo.color }}
-            >
-              {typeInfo.label}
-            </Badge>
+    <div className="earth-card bg-card p-5">
+      <div className="flex items-start justify-between mb-3">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-heading text-foreground">{relationship.person1.name}</h3>
+            <span className="text-muted-foreground">↔</span>
+            <h3 className="text-lg font-heading text-foreground">{relationship.person2.name}</h3>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <span className="sr-only">Menu</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="1" />
-                  <circle cx="12" cy="5" r="1" />
-                  <circle cx="12" cy="19" r="1" />
-                </svg>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              <DropdownMenuItem onClick={() => onEdit(relationship)}>
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-destructive"
-                onClick={() => onDelete(relationship.id)}
-              >
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Badge
+            variant="secondary"
+            style={{ backgroundColor: typeInfo.color + '20', color: typeInfo.color }}
+          >
+            {typeInfo.label}
+          </Badge>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <span className="sr-only">Menu</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="1" />
+                <circle cx="12" cy="5" r="1" />
+                <circle cx="12" cy="19" r="1" />
+              </svg>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem onClick={() => onEdit(relationship)}>
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive"
+              onClick={() => onDelete(relationship.id)}
+            >
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <div className="space-y-2">
         {relationship.subtype && (
           <div className="text-sm text-muted-foreground">
             {RELATIONSHIP_SUBTYPES[relationship.type as RelationshipType]?.find(
@@ -122,8 +120,8 @@ function RelationshipCard({
         {relationship.notes && (
           <p className="text-sm text-muted-foreground">{relationship.notes}</p>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 
@@ -202,7 +200,7 @@ function RelationshipForm({
         <Label htmlFor="person1">Person 1 *</Label>
         <select
           id="person1"
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
           value={formData.person1Id}
           onChange={(e) => setFormData(prev => ({ ...prev, person1Id: e.target.value }))}
           required
@@ -221,7 +219,7 @@ function RelationshipForm({
         <Label htmlFor="person2">Person 2 *</Label>
         <select
           id="person2"
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
           value={formData.person2Id}
           onChange={(e) => setFormData(prev => ({ ...prev, person2Id: e.target.value }))}
           required
@@ -267,7 +265,7 @@ function RelationshipForm({
           <Label htmlFor="subtype">Subtype</Label>
           <select
             id="subtype"
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
             value={formData.subtype}
             onChange={(e) => setFormData(prev => ({ ...prev, subtype: e.target.value }))}
           >
@@ -312,7 +310,7 @@ function RelationshipForm({
           id="bidirectional"
           checked={formData.bidirectional}
           onChange={(e) => setFormData(prev => ({ ...prev, bidirectional: e.target.checked }))}
-          className="rounded border-input"
+          className="rounded border-border"
         />
         <Label htmlFor="bidirectional" className="font-normal">
           Bidirectional relationship (both sides see the relationship)
@@ -328,6 +326,7 @@ function RelationshipForm({
           value={formData.startDate}
           onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
           dir="ltr"
+          className="bg-background border-border"
         />
       </div>
 
@@ -339,6 +338,7 @@ function RelationshipForm({
           value={formData.notes}
           onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
           placeholder="Notes (optional)"
+          className="bg-background border-border"
         />
       </div>
 
@@ -350,7 +350,7 @@ function RelationshipForm({
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
           {loading ? 'Saving...' : relationship ? 'Update' : 'Add'}
         </Button>
       </div>
@@ -437,7 +437,7 @@ export default function RelationshipsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">Loading...</div>
+        <div className="text-center text-muted-foreground">Loading...</div>
       </div>
     )
   }
@@ -457,21 +457,21 @@ export default function RelationshipsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Relationships</h1>
+          <h1 className="text-3xl font-heading text-foreground">Relationships</h1>
           <p className="text-muted-foreground">
-            {relationships.length} relationships
+            {relationships.length} connections mapped
           </p>
         </div>
 
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button disabled={!canAddRelationship}>
+            <Button disabled={!canAddRelationship} className="bg-primary hover:bg-primary/90 text-primary-foreground">
               + Add Relationship
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="earth-card max-w-md">
             <DialogHeader>
-              <DialogTitle>Add New Relationship</DialogTitle>
+              <DialogTitle className="font-heading">Add New Relationship</DialogTitle>
               <DialogDescription>
                 Create a relationship between two people
               </DialogDescription>
@@ -486,13 +486,13 @@ export default function RelationshipsPage() {
       </div>
 
       {!canAddRelationship && (
-        <div className="p-4 text-sm text-amber-600 bg-amber-50 dark:bg-amber-900/20 rounded-md">
+        <div className="p-4 text-sm text-amber-700 bg-amber-50 rounded-lg border border-amber-200">
           You need to add at least 2 people before you can create relationships
         </div>
       )}
 
       {deleteError && (
-        <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
+        <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg">
           {deleteError}
         </div>
       )}
@@ -503,7 +503,7 @@ export default function RelationshipsPage() {
           placeholder="Search by name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="sm:max-w-xs"
+          className="sm:max-w-xs bg-background border-border"
         />
         <div className="flex flex-wrap gap-2">
           <Badge
@@ -535,18 +535,16 @@ export default function RelationshipsPage() {
 
       {/* Relationships grid */}
       {filteredRelationships.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-muted-foreground mb-4">
-              {search || selectedType ? 'No results found' : 'You haven\'t created any relationships yet'}
-            </p>
-            {!search && !selectedType && canAddRelationship && (
-              <Button onClick={() => setIsAddDialogOpen(true)}>
-                + Create First Relationship
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+        <div className="earth-card bg-card p-12 text-center">
+          <p className="text-muted-foreground mb-4">
+            {search || selectedType ? 'No results found' : 'You haven\'t created any relationships yet'}
+          </p>
+          {!search && !selectedType && canAddRelationship && (
+            <Button onClick={() => setIsAddDialogOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              + Create First Relationship
+            </Button>
+          )}
+        </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredRelationships.map(relationship => (
@@ -565,9 +563,9 @@ export default function RelationshipsPage() {
         setIsEditDialogOpen(open)
         if (!open) setEditingRelationship(null)
       }}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="earth-card max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Relationship</DialogTitle>
+            <DialogTitle className="font-heading">Edit Relationship</DialogTitle>
             <DialogDescription>
               Update the relationship details
             </DialogDescription>

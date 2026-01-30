@@ -1,12 +1,11 @@
 'use client'
 
 import { Suspense, useState } from 'react'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/lib/hooks/use-auth'
 
 function LoginForm() {
@@ -47,19 +46,35 @@ function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <CardTitle className="text-3xl font-bold">Omnis</CardTitle>
-        <CardDescription>Personal Symbolic Mapping System</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+    <div className="w-full max-w-md">
+      {/* Logo */}
+      <div className="text-center mb-8">
+        <Link href="/" className="inline-flex items-center gap-2.5 mb-4">
+          <div className="w-10 h-10 flex items-center justify-center">
+            <svg viewBox="0 0 32 32" className="w-9 h-9">
+              <circle cx="16" cy="16" r="14" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.3" />
+              <circle cx="16" cy="16" r="9" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.5" />
+              <circle cx="16" cy="16" r="4" fill="hsl(var(--primary))" />
+            </svg>
+          </div>
+          <span className="text-2xl font-heading text-foreground">Omnis</span>
+        </Link>
+        <p className="text-muted-foreground">Personal Symbolic Mapping System</p>
+      </div>
+
+      <div className="earth-card bg-card p-8">
         {emailSent ? (
           <div className="text-center space-y-4">
-            <div className="text-lg font-medium text-green-600">
+            <div className="w-14 h-14 mx-auto rounded-full bg-secondary/10 flex items-center justify-center">
+              <svg className="w-7 h-7 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div className="text-lg font-heading text-secondary">
               Link sent!
             </div>
             <p className="text-muted-foreground">
-              Check your inbox at {email}
+              Check your inbox at <strong className="text-foreground">{email}</strong>
             </p>
             <Button
               variant="outline"
@@ -72,10 +87,10 @@ function LoginForm() {
         ) : (
           <>
             {/* OAuth Buttons */}
-            <div className="space-y-3">
+            <div className="space-y-3 mb-6">
               <Button
                 variant="outline"
-                className="w-full gap-2"
+                className="w-full h-11 gap-2 border-border hover:bg-muted/50"
                 onClick={handleGoogleSignIn}
                 disabled={loading}
               >
@@ -101,12 +116,12 @@ function LoginForm() {
               </Button>
             </div>
 
-            <div className="relative">
+            <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full" />
+                <div className="earth-divider w-full" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
+                <span className="bg-card px-2 text-muted-foreground">
                   or with email
                 </span>
               </div>
@@ -123,11 +138,12 @@ function LoginForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  className="h-11 bg-background border-border"
                 />
               </div>
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground"
                 disabled={loading || !email}
               >
                 {loading ? 'Sending...' : 'Send login link'}
@@ -135,41 +151,48 @@ function LoginForm() {
             </form>
 
             {error && (
-              <div className="text-sm text-destructive text-center">
+              <div className="mt-4 text-sm text-destructive text-center">
                 {error}
               </div>
             )}
 
-            <p className="text-xs text-center text-muted-foreground">
+            <p className="mt-6 text-xs text-center text-muted-foreground">
               By signing in, you agree to our{' '}
-              <a href="/terms" className="underline">Terms of Service</a>
+              <a href="/terms" className="text-primary hover:underline">Terms of Service</a>
               {' '}and{' '}
-              <a href="/privacy" className="underline">Privacy Policy</a>
+              <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>
             </p>
           </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 
 function LoginFallback() {
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <CardTitle className="text-3xl font-bold">Omnis</CardTitle>
-        <CardDescription>Personal Symbolic Mapping System</CardDescription>
-      </CardHeader>
-      <CardContent className="flex items-center justify-center py-8">
+    <div className="w-full max-w-md">
+      <div className="text-center mb-8">
+        <div className="w-10 h-10 mx-auto mb-4">
+          <svg viewBox="0 0 32 32" className="w-9 h-9">
+            <circle cx="16" cy="16" r="14" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.3" />
+            <circle cx="16" cy="16" r="9" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.5" />
+            <circle cx="16" cy="16" r="4" fill="hsl(var(--primary))" />
+          </svg>
+        </div>
+        <h1 className="text-2xl font-heading text-foreground">Omnis</h1>
+        <p className="text-muted-foreground">Personal Symbolic Mapping System</p>
+      </div>
+      <div className="earth-card bg-card p-8 flex items-center justify-center">
         <div className="text-muted-foreground">Loading...</div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-6">
       <Suspense fallback={<LoginFallback />}>
         <LoginForm />
       </Suspense>

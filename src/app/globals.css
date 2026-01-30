@@ -2,8 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+/* Grounded Cosmos Typography - Editorial, trustworthy */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
 @layer utilities {
   .text-balance {
@@ -13,81 +13,104 @@
 
 @layer base {
   :root {
-    /* Light mode - clean and readable */
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 262 83% 58%; /* Deep violet */
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 43 96% 56%; /* Gold */
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 262 83% 58%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    /* Grounded Cosmos - Warm Earth Theme */
+    --background: 40 30% 96%; /* Warm parchment #F7F4EF */
+    --foreground: 25 25% 15%; /* Deep brown #2D2519 */
+    --card: 40 35% 98%;
+    --card-foreground: 25 25% 15%;
+    --popover: 40 35% 98%;
+    --popover-foreground: 25 25% 15%;
+
+    /* Primary - Terracotta Earth */
+    --primary: 18 55% 45%; /* Terracotta #B35A3A */
+    --primary-foreground: 40 30% 96%;
+
+    /* Secondary - Sage Green */
+    --secondary: 140 20% 40%; /* Muted sage #4F6B58 */
+    --secondary-foreground: 40 30% 96%;
+
+    /* Muted */
+    --muted: 35 20% 90%;
+    --muted-foreground: 25 15% 45%;
+
+    /* Accent - Deep Indigo */
+    --accent: 230 35% 35%; /* Night sky #3D4A6B */
+    --accent-foreground: 40 30% 96%;
+
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 40 30% 96%;
+    --border: 35 20% 85%;
+    --input: 35 20% 88%;
+    --ring: 18 55% 45%;
+
+    /* Chart colors */
+    --chart-1: 18 55% 45%;
+    --chart-2: 140 20% 40%;
+    --chart-3: 230 35% 35%;
+    --chart-4: 35 60% 50%;
+    --chart-5: 200 30% 45%;
+
     --radius: 0.75rem;
 
-    /* Dreamspell seal colors */
-    --seal-red: 0 84% 60%;
-    --seal-white: 0 0% 98%;
-    --seal-blue: 217 91% 60%;
-    --seal-yellow: 48 96% 53%;
+    /* Grounded Palette */
+    --earth: 25 25% 15%;
+    --clay: 18 55% 45%;
+    --terracotta: 15 50% 50%;
+    --sand: 40 30% 85%;
+    --parchment: 40 30% 96%;
+    --sage: 140 20% 40%;
+    --forest: 150 25% 30%;
+    --indigo: 230 35% 35%;
+    --midnight: 230 40% 20%;
+    --amber: 35 70% 50%;
+    --cream: 45 40% 94%;
 
-    /* Gold accent for special elements */
-    --gold: 43 96% 56%;
-    --gold-dark: 38 92% 50%;
+    /* Dreamspell seal colors - earthy variant */
+    --seal-red: 5 65% 50%;
+    --seal-white: 40 25% 92%;
+    --seal-blue: 215 50% 45%;
+    --seal-yellow: 42 80% 50%;
+    /* Sidebar - warm earth tones */
+    --sidebar-background: 40 35% 98%;
+    --sidebar-foreground: 25 25% 15%;
+    --sidebar-primary: 18 55% 45%;
+    --sidebar-primary-foreground: 40 30% 96%;
+    --sidebar-accent: 35 20% 92%;
+    --sidebar-accent-foreground: 25 25% 15%;
+    --sidebar-border: 35 20% 88%;
+    --sidebar-ring: 18 55% 45%;
   }
 
   .dark {
-    /* Cosmic dark mode palette */
-    --background: 252 88% 3%; /* Deep space #030014 */
-    --foreground: 210 40% 98%;
-    --card: 252 60% 5%; /* Slightly lighter #0a0a1a */
-    --card-foreground: 210 40% 98%;
-    --popover: 252 60% 5%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 262 83% 58%; /* Deep violet #8b5cf6 */
-    --primary-foreground: 210 40% 98%;
-    --secondary: 252 40% 10%; /* Elevated #12122a */
-    --secondary-foreground: 210 40% 98%;
-    --muted: 252 40% 10%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 43 96% 56%; /* Gold #fbbf24 */
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 62.8% 40%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 252 30% 15%;
-    --input: 252 30% 15%;
-    --ring: 262 83% 58%;
-    --chart-1: 262 70% 60%;
-    --chart-2: 43 90% 55%;
-    --chart-3: 180 60% 45%;
-    --chart-4: 340 75% 55%;
-    --chart-5: 120 60% 45%;
-
-    /* Dreamspell seal colors (adjusted for dark mode) */
-    --seal-red: 0 84% 60%;
-    --seal-white: 0 0% 95%;
-    --seal-blue: 217 91% 65%;
-    --seal-yellow: 48 96% 58%;
-
-    /* Overlay and glassmorphism */
-    --overlay: 252 50% 12%;
-    --glass-bg: 252 60% 5% / 0.7;
-    --glass-border: 0 0% 100% / 0.08;
+    /* Dark mode - Deep earth at night */
+    --background: 25 20% 10%;
+    --foreground: 40 20% 90%;
+    --card: 25 18% 14%;
+    --card-foreground: 40 20% 90%;
+    --popover: 25 18% 14%;
+    --popover-foreground: 40 20% 90%;
+    --primary: 18 50% 55%;
+    --primary-foreground: 25 20% 10%;
+    --secondary: 140 18% 50%;
+    --secondary-foreground: 25 20% 10%;
+    --muted: 25 15% 20%;
+    --muted-foreground: 35 15% 55%;
+    --accent: 230 30% 55%;
+    --accent-foreground: 25 20% 10%;
+    --destructive: 0 55% 55%;
+    --destructive-foreground: 40 20% 90%;
+    --border: 25 15% 22%;
+    --input: 25 15% 20%;
+    --ring: 18 50% 55%;
+    /* Sidebar - dark earth tones */
+    --sidebar-background: 25 18% 12%;
+    --sidebar-foreground: 40 20% 90%;
+    --sidebar-primary: 18 50% 55%;
+    --sidebar-primary-foreground: 25 20% 10%;
+    --sidebar-accent: 25 15% 18%;
+    --sidebar-accent-foreground: 40 20% 90%;
+    --sidebar-border: 25 15% 18%;
+    --sidebar-ring: 18 50% 55%;
   }
 }
 
@@ -97,109 +120,106 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', 'Heebo', system-ui, sans-serif;
+    font-family: 'Source Sans 3', system-ui, sans-serif;
+    font-feature-settings: 'kern' 1, 'liga' 1;
   }
 
-  /* Typography styles */
+  /* Typography - Cormorant Garamond for headings (editorial gravitas) */
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Cinzel', 'Heebo', serif;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.01em;
   }
 
-  /* Mono for numbers/kin */
   .font-mono {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', monospace;
   }
 }
 
-/* Component styles */
 @layer components {
-  /* Hero Card - featured content with gradient */
-  .hero-card {
-    @apply relative overflow-hidden rounded-xl;
-    background: linear-gradient(
-      135deg,
-      hsl(var(--primary) / 0.15) 0%,
-      hsl(var(--accent) / 0.1) 50%,
-      hsl(var(--primary) / 0.1) 100%
-    );
+  /* Earth Card - subtle paper texture feel */
+  .earth-card {
+    @apply relative overflow-hidden rounded-2xl bg-card;
+    box-shadow:
+      0 1px 3px rgba(45, 37, 25, 0.06),
+      0 4px 12px rgba(45, 37, 25, 0.04);
     border: 1px solid hsl(var(--border));
   }
 
-  .dark .hero-card {
-    background: linear-gradient(
-      135deg,
-      hsl(252 60% 8%) 0%,
-      hsl(252 50% 12%) 50%,
-      hsl(262 40% 10%) 100%
-    );
-    border: 1px solid hsl(var(--glass-border));
+  .earth-card:hover {
+    box-shadow:
+      0 2px 6px rgba(45, 37, 25, 0.08),
+      0 8px 24px rgba(45, 37, 25, 0.06);
   }
 
-  .hero-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      hsl(var(--accent) / 0.5),
-      transparent
-    );
+  /* Feature Card - clean editorial style */
+  .feature-card-earth {
+    @apply relative overflow-hidden rounded-2xl bg-card p-8;
+    border: 1px solid hsl(var(--border));
+    transition: all 0.3s ease;
   }
 
-  /* Stat Card - compact stats display */
+  .feature-card-earth:hover {
+    border-color: hsl(var(--primary) / 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(179, 90, 58, 0.08);
+  }
+
+  /* Stat Card */
   .stat-card {
-    @apply p-4 rounded-lg bg-card border border-border;
-    @apply transition-colors duration-200;
-  }
-
-  .stat-card:hover {
-    @apply border-primary/30;
+    @apply p-5 rounded-xl bg-card border border-border transition-all duration-300;
   }
 
   .stat-card .stat-value {
-    @apply text-3xl font-bold font-mono tracking-tight;
-    color: hsl(var(--accent));
+    @apply text-3xl font-semibold tracking-tight;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    color: hsl(var(--primary));
   }
 
   .stat-card .stat-label {
     @apply text-sm text-muted-foreground;
   }
 
-  /* Compact Card - minimal padding */
-  .compact-card {
-    @apply p-3 rounded-md bg-card border border-border;
-  }
-
   /* Kin number display */
   .kin-number {
     @apply font-mono text-4xl font-bold tracking-wider;
-    color: hsl(var(--accent));
+    color: hsl(var(--primary));
   }
 
-  /* Gold gradient text for headings */
-  .text-gold-gradient {
+  /* Terracotta gradient text */
+  .text-earth-gradient {
     background: linear-gradient(
       135deg,
-      hsl(var(--accent)) 0%,
-      hsl(var(--gold-dark)) 100%
+      hsl(18 55% 45%) 0%,
+      hsl(25 50% 40%) 50%,
+      hsl(15 45% 35%) 100%
     );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* Glassmorphism effect */
-  .glass {
-    background: hsl(var(--glass-bg));
-    backdrop-filter: blur(12px);
-    border: 1px solid hsl(var(--glass-border));
+  /* Sage gradient text */
+  .text-sage-gradient {
+    background: linear-gradient(
+      135deg,
+      hsl(140 25% 45%) 0%,
+      hsl(150 20% 35%) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
-  /* Seal color utilities */
+  /* Badge style */
+  .earth-badge {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm;
+    background: hsl(var(--sand));
+    color: hsl(var(--muted-foreground));
+    border: 1px solid hsl(var(--border));
+  }
+
+  /* Seal colors */
   .seal-red { color: hsl(var(--seal-red)); }
   .seal-white { color: hsl(var(--seal-white)); }
   .seal-blue { color: hsl(var(--seal-blue)); }
@@ -210,19 +230,481 @@
   .bg-seal-blue { background-color: hsl(var(--seal-blue)); }
   .bg-seal-yellow { background-color: hsl(var(--seal-yellow)); }
 
-  /* Section dividers */
-  .section-divider {
-    @apply border-t border-border my-8;
-    border-image: linear-gradient(
+  /* Subtle animations - purposeful, not flashy */
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes gentlePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  .animate-fade-up {
+    animation: fadeUp 0.6s ease-out forwards;
+  }
+
+  .animate-gentle-pulse {
+    animation: gentlePulse 3s ease-in-out infinite;
+  }
+
+  /* Paper grain texture - very subtle */
+  .paper-grain::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E");
+    opacity: 0.015;
+    pointer-events: none;
+  }
+
+  /* Sacred geometry - subtle background pattern */
+  .sacred-pattern {
+    background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23B35A3A' stroke-width='0.3' opacity='0.06'%3E%3Ccircle cx='40' cy='40' r='30'/%3E%3Ccircle cx='40' cy='40' r='20'/%3E%3Ccircle cx='40' cy='40' r='10'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 80px 80px;
+  }
+
+  /* Divider line */
+  .earth-divider {
+    height: 1px;
+    background: linear-gradient(
       90deg,
-      transparent,
-      hsl(var(--border)),
-      transparent
-    ) 1;
+      transparent 0%,
+      hsl(var(--border)) 20%,
+      hsl(var(--border)) 80%,
+      transparent 100%
+    );
   }
 }
 
-/* Print styles for A5 person cards */
+/* ============================================
+   EDITORIAL DOCUMENTATION SYSTEM
+   ============================================ */
+
+/* Editorial Typography for Documentation */
+.doc-body {
+  @apply text-base leading-relaxed;
+  max-width: 70ch;
+  font-feature-settings: 'kern' 1, 'liga' 1, 'onum' 1;
+}
+
+/* Drop cap for article intros */
+.doc-dropcap::first-letter {
+  float: left;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 4rem;
+  line-height: 0.8;
+  font-weight: 600;
+  color: hsl(var(--primary));
+  margin-right: 0.75rem;
+  margin-top: 0.15rem;
+}
+
+/* Section headings with editorial style */
+.doc-h1 {
+  @apply text-4xl sm:text-5xl font-heading text-foreground tracking-tight;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+}
+
+.doc-h2 {
+  @apply text-2xl sm:text-3xl font-heading text-foreground;
+  line-height: 1.2;
+  margin-top: 3.5rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid hsl(var(--border));
+  scroll-margin-top: 6rem;
+}
+
+.doc-h3 {
+  @apply text-xl font-heading text-foreground;
+  line-height: 1.3;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.doc-h4 {
+  @apply text-lg font-medium text-foreground;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Lead paragraph - larger intro text */
+.doc-lead {
+  @apply text-lg sm:text-xl text-muted-foreground leading-relaxed;
+  max-width: 65ch;
+}
+
+/* Pull quote - editorial style */
+.doc-pullquote {
+  @apply relative py-6 px-8 my-8;
+  border-left: 3px solid hsl(var(--primary));
+  background: linear-gradient(
+    90deg,
+    hsl(var(--primary) / 0.05) 0%,
+    transparent 100%
+  );
+}
+
+.doc-pullquote blockquote {
+  @apply text-xl sm:text-2xl font-heading italic text-foreground/90 leading-relaxed;
+  margin: 0;
+}
+
+.doc-pullquote cite {
+  @apply block text-sm text-muted-foreground not-italic mt-4;
+}
+
+/* Info box variants */
+.doc-infobox {
+  @apply p-5 rounded-xl my-6;
+  border: 1px solid transparent;
+}
+
+.doc-infobox-default {
+  @apply bg-muted/30;
+  border-color: hsl(var(--border));
+}
+
+.doc-infobox-primary {
+  background: hsl(var(--primary) / 0.08);
+  border-color: hsl(var(--primary) / 0.2);
+}
+
+.doc-infobox-secondary {
+  background: hsl(var(--secondary) / 0.08);
+  border-color: hsl(var(--secondary) / 0.2);
+}
+
+.doc-infobox-accent {
+  background: hsl(var(--accent) / 0.08);
+  border-color: hsl(var(--accent) / 0.2);
+}
+
+.doc-infobox-warning {
+  background: hsl(35 80% 50% / 0.08);
+  border-color: hsl(35 80% 50% / 0.2);
+}
+
+/* Doc card - elevated content blocks */
+.doc-card {
+  @apply rounded-2xl bg-card overflow-hidden;
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 1px 3px rgba(45, 37, 25, 0.04);
+  transition: all 0.25s ease;
+}
+
+.doc-card:hover {
+  box-shadow: 0 4px 16px rgba(45, 37, 25, 0.08);
+  border-color: hsl(var(--border) / 0.8);
+}
+
+.doc-card-header {
+  @apply px-6 py-4 border-b border-border bg-muted/30;
+}
+
+.doc-card-body {
+  @apply p-6;
+}
+
+/* Grid layouts for doc content */
+.doc-grid-2 {
+  @apply grid gap-4 sm:grid-cols-2;
+}
+
+.doc-grid-3 {
+  @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-3;
+}
+
+.doc-grid-4 {
+  @apply grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4;
+}
+
+/* Stats display */
+.doc-stat {
+  @apply p-5 rounded-xl text-center;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+}
+
+.doc-stat-value {
+  @apply text-4xl font-heading;
+  color: hsl(var(--primary));
+  line-height: 1.1;
+}
+
+.doc-stat-label {
+  @apply text-sm text-muted-foreground mt-2;
+}
+
+/* Table of contents - floating */
+.doc-toc {
+  @apply space-y-1;
+}
+
+.doc-toc-item {
+  @apply block px-3 py-2 text-sm rounded-lg transition-all;
+  color: hsl(var(--muted-foreground));
+}
+
+.doc-toc-item:hover {
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted) / 0.5);
+}
+
+.doc-toc-item.active {
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.08);
+  font-weight: 500;
+}
+
+.doc-toc-item-nested {
+  @apply pl-6;
+}
+
+/* Reading progress bar */
+.doc-progress {
+  @apply fixed top-0 left-0 right-0 h-1 z-50;
+  background: hsl(var(--muted));
+}
+
+.doc-progress-bar {
+  @apply h-full transition-all duration-150;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--primary)) 0%,
+    hsl(var(--secondary)) 100%
+  );
+}
+
+/* Mobile sidebar drawer */
+.doc-drawer-overlay {
+  @apply fixed inset-0 bg-black/50 z-40;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+
+.doc-drawer {
+  @apply fixed bottom-0 left-0 right-0 bg-card rounded-t-3xl z-50;
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+  max-height: 85vh;
+  animation: slideUp 0.3s ease;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.doc-drawer-handle {
+  @apply w-12 h-1.5 bg-muted-foreground/30 rounded-full mx-auto my-4;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Section color accents */
+.doc-accent-dreamspell { --doc-accent: 5 65% 50%; }
+.doc-accent-human-design { --doc-accent: 270 50% 50%; }
+.doc-accent-astrology { --doc-accent: 35 70% 50%; }
+.doc-accent-gematria { --doc-accent: 230 50% 50%; }
+.doc-accent-tzolkin { --doc-accent: 150 40% 40%; }
+.doc-accent-integration { --doc-accent: 18 55% 45%; }
+
+/* Accent border for sections */
+.doc-section-accent {
+  border-left: 3px solid hsl(var(--doc-accent, var(--primary)));
+  padding-left: 1.5rem;
+}
+
+/* Improved list styles */
+.doc-list {
+  @apply space-y-2 my-4;
+}
+
+.doc-list li {
+  @apply flex items-start gap-3;
+}
+
+.doc-list li::before {
+  content: '';
+  @apply w-1.5 h-1.5 rounded-full mt-2.5 flex-shrink-0;
+  background: hsl(var(--primary));
+}
+
+/* Numbered steps */
+.doc-steps {
+  @apply space-y-4 my-6;
+  counter-reset: step-counter;
+}
+
+.doc-step {
+  @apply flex items-start gap-4;
+  counter-increment: step-counter;
+}
+
+.doc-step::before {
+  content: counter(step-counter);
+  @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0;
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+}
+
+/* Keyboard shortcuts / code inline */
+.doc-kbd {
+  @apply inline-flex items-center px-2 py-0.5 text-xs font-mono rounded;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 1px 0 hsl(var(--border));
+}
+
+/* Navigation between docs */
+.doc-nav {
+  @apply flex justify-between items-stretch gap-4 mt-16 pt-8 border-t border-border;
+}
+
+.doc-nav-link {
+  @apply flex-1 p-4 rounded-xl transition-all;
+  border: 1px solid hsl(var(--border));
+  max-width: 50%;
+}
+
+.doc-nav-link:hover {
+  border-color: hsl(var(--primary) / 0.3);
+  background: hsl(var(--primary) / 0.03);
+}
+
+.doc-nav-link-label {
+  @apply text-xs text-muted-foreground uppercase tracking-wider mb-1;
+}
+
+.doc-nav-link-title {
+  @apply font-heading text-lg text-foreground;
+}
+
+/* Badge variants for doc content */
+.doc-badge {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+}
+
+.doc-badge-default {
+  @apply bg-muted text-muted-foreground;
+}
+
+.doc-badge-primary {
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+}
+
+.doc-badge-secondary {
+  background: hsl(var(--secondary) / 0.1);
+  color: hsl(var(--secondary));
+}
+
+/* Responsive table wrapper */
+.doc-table-wrapper {
+  @apply overflow-x-auto my-6 -mx-4 px-4 sm:mx-0 sm:px-0;
+}
+
+.doc-table {
+  @apply w-full text-sm;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.doc-table th {
+  @apply text-left py-3 px-4 font-medium text-foreground bg-muted/50;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.doc-table th:first-child {
+  @apply rounded-tl-lg;
+}
+
+.doc-table th:last-child {
+  @apply rounded-tr-lg;
+}
+
+.doc-table td {
+  @apply py-3 px-4 text-muted-foreground;
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+}
+
+.doc-table tr:last-child td {
+  border-bottom: none;
+}
+
+.doc-table tr:hover td {
+  background: hsl(var(--muted) / 0.3);
+}
+
+/* Mobile safe area support */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Fade animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Slide up animation for modals */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.2s ease-out;
+}
+
+/* Focus visible styles */
+:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.3);
+}
+
+/* Print styles */
 @media print {
   @page {
     size: 148mm 210mm;
@@ -230,24 +712,19 @@
   }
 
   body {
-    background: transparent !important;
+    background: white !important;
+    color: black !important;
   }
 
-  /* Hide navigation and non-printable elements */
-  nav,
-  header,
-  aside,
-  .no-print {
+  nav, header, aside, .no-print {
     display: none !important;
   }
 
-  /* Card grid - switch from grid to block for printing */
   .card-grid {
     display: block !important;
     padding: 0 !important;
   }
 
-  /* Person card print settings */
   .person-card {
     width: 148mm !important;
     height: 210mm !important;
@@ -261,7 +738,6 @@
     page-break-inside: avoid;
   }
 
-  /* Last card doesn't need page break after */
   .person-card:last-child {
     page-break-after: auto;
   }

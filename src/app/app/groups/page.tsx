@@ -7,7 +7,6 @@ import { useGroups } from '@/lib/hooks/use-groups'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -25,7 +24,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { ShareDialog } from '@/components/share-dialog'
 import type { Group, Person } from '@/lib/supabase/database.types'
-import type { GroupWithMembers, CreateGroupInput, ShareOptions } from '@/lib/types/relationship'
+import type { GroupWithMembers, CreateGroupInput } from '@/lib/types/relationship'
 
 // Group Card Component
 function GroupCard({
@@ -46,55 +45,53 @@ function GroupCard({
   onShare: (group: Group) => void
 }) {
   return (
-    <Card className="cursor-pointer hover:border-primary/50 transition-colors">
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between">
-          <div onClick={() => onViewMembers(group)}>
-            <CardTitle className="text-lg">{group.name}</CardTitle>
-            {group.description && (
-              <CardDescription>{group.description}</CardDescription>
-            )}
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <span className="sr-only">Menu</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="1" />
-                  <circle cx="12" cy="5" r="1" />
-                  <circle cx="12" cy="19" r="1" />
-                </svg>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              <DropdownMenuItem onClick={() => onViewMembers(group)}>
-                View Members
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onAnalyze(group)}>
-                Group Analysis
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onShare(group)}>
-                Share
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(group)}>
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-destructive"
-                onClick={() => onDelete(group.id)}
-              >
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+    <div className="earth-card bg-card p-5 cursor-pointer hover:shadow-earth-lg transition-shadow">
+      <div className="flex items-start justify-between mb-3">
+        <div onClick={() => onViewMembers(group)}>
+          <h3 className="text-lg font-heading text-foreground">{group.name}</h3>
+          {group.description && (
+            <p className="text-sm text-muted-foreground">{group.description}</p>
+          )}
         </div>
-      </CardHeader>
-      <CardContent onClick={() => onViewMembers(group)}>
-        <Badge variant="secondary">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <span className="sr-only">Menu</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="1" />
+                <circle cx="12" cy="5" r="1" />
+                <circle cx="12" cy="19" r="1" />
+              </svg>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem onClick={() => onViewMembers(group)}>
+              View Members
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onAnalyze(group)}>
+              Group Analysis
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onShare(group)}>
+              Share
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onEdit(group)}>
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive"
+              onClick={() => onDelete(group.id)}
+            >
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      <div onClick={() => onViewMembers(group)}>
+        <Badge variant="secondary" className="bg-secondary/20 text-secondary">
           {memberCount} members
         </Badge>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 
@@ -158,6 +155,7 @@ function GroupForm({
           onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
           required
           placeholder="e.g., Nuclear Family, Friends"
+          className="bg-background border-border"
         />
       </div>
 
@@ -168,12 +166,13 @@ function GroupForm({
           value={formData.description}
           onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
           placeholder="Short description of the group (optional)"
+          className="bg-background border-border"
         />
       </div>
 
       <div className="space-y-2">
         <Label>Group Members</Label>
-        <div className="max-h-48 overflow-y-auto border rounded-md p-2">
+        <div className="max-h-48 overflow-y-auto border border-border rounded-lg p-2">
           {people.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
               You haven&apos;t added any people yet
@@ -183,13 +182,13 @@ function GroupForm({
               {people.map(person => (
                 <label
                   key={person.id}
-                  className="flex items-center gap-2 p-2 rounded hover:bg-muted cursor-pointer"
+                  className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
                 >
                   <input
                     type="checkbox"
                     checked={formData.memberIds.includes(person.id)}
                     onChange={() => toggleMember(person.id)}
-                    className="rounded border-input"
+                    className="rounded border-border"
                   />
                   <span>{person.name}</span>
                   {person.hebrew_name && (
@@ -215,7 +214,7 @@ function GroupForm({
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
           {loading ? 'Saving...' : group ? 'Update' : 'Create Group'}
         </Button>
       </div>
@@ -262,7 +261,7 @@ function GroupMembersView({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-medium">Group Members ({members.length})</h3>
+        <h3 className="font-heading text-foreground">Group Members ({members.length})</h3>
         {!isEditing && (
           <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
             Edit Members
@@ -272,17 +271,17 @@ function GroupMembersView({
 
       {isEditing ? (
         <>
-          <div className="max-h-64 overflow-y-auto border rounded-md p-2">
+          <div className="max-h-64 overflow-y-auto border border-border rounded-lg p-2">
             {people.map(person => (
               <label
                 key={person.id}
-                className="flex items-center gap-2 p-2 rounded hover:bg-muted cursor-pointer"
+                className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
               >
                 <input
                   type="checkbox"
                   checked={selectedIds.includes(person.id)}
                   onChange={() => toggleMember(person.id)}
-                  className="rounded border-input"
+                  className="rounded border-border"
                 />
                 <span>{person.name}</span>
               </label>
@@ -299,7 +298,7 @@ function GroupMembersView({
             >
               Cancel
             </Button>
-            <Button size="sm" onClick={handleSave} disabled={loading}>
+            <Button size="sm" onClick={handleSave} disabled={loading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
               {loading ? 'Saving...' : 'Save'}
             </Button>
           </div>
@@ -314,9 +313,9 @@ function GroupMembersView({
             members.map(member => (
               <div
                 key={member.id}
-                className="flex items-center gap-2 p-2 rounded bg-muted/50"
+                className="flex items-center gap-2 p-2 rounded-lg bg-muted/50"
               >
-                <span className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-sm">
+                <span className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-sm text-primary font-medium">
                   {member.name[0]}
                 </span>
                 <span>{member.name}</span>
@@ -461,7 +460,7 @@ export default function GroupsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">Loading...</div>
+        <div className="text-center text-muted-foreground">Loading...</div>
       </div>
     )
   }
@@ -478,19 +477,19 @@ export default function GroupsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Groups</h1>
+          <h1 className="text-3xl font-heading text-foreground">Groups</h1>
           <p className="text-muted-foreground">
-            {groups.length} groups
+            {groups.length} groups created
           </p>
         </div>
 
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button>+ Create Group</Button>
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">+ Create Group</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="earth-card max-w-md">
             <DialogHeader>
-              <DialogTitle>Create New Group</DialogTitle>
+              <DialogTitle className="font-heading">Create New Group</DialogTitle>
               <DialogDescription>
                 Create a group of people for group analysis
               </DialogDescription>
@@ -505,7 +504,7 @@ export default function GroupsPage() {
       </div>
 
       {deleteError && (
-        <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
+        <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg">
           {deleteError}
         </div>
       )}
@@ -515,23 +514,21 @@ export default function GroupsPage() {
         placeholder="Search groups..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="max-w-xs"
+        className="max-w-xs bg-background border-border"
       />
 
       {/* Groups grid */}
       {filteredGroups.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-muted-foreground mb-4">
-              {search ? 'No results found' : 'You haven\'t created any groups yet'}
-            </p>
-            {!search && (
-              <Button onClick={() => setIsAddDialogOpen(true)}>
-                + Create First Group
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+        <div className="earth-card bg-card p-12 text-center">
+          <p className="text-muted-foreground mb-4">
+            {search ? 'No results found' : 'You haven\'t created any groups yet'}
+          </p>
+          {!search && (
+            <Button onClick={() => setIsAddDialogOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              + Create First Group
+            </Button>
+          )}
+        </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredGroups.map(group => (
@@ -554,9 +551,9 @@ export default function GroupsPage() {
         setIsEditDialogOpen(open)
         if (!open) setEditingGroup(null)
       }}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="earth-card max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Group</DialogTitle>
+            <DialogTitle className="font-heading">Edit Group</DialogTitle>
             <DialogDescription>
               Update the group details
             </DialogDescription>
@@ -580,9 +577,9 @@ export default function GroupsPage() {
         setIsViewDialogOpen(open)
         if (!open) setViewingGroup(null)
       }}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="earth-card max-w-md">
           <DialogHeader>
-            <DialogTitle>{viewingGroup?.group.name}</DialogTitle>
+            <DialogTitle className="font-heading">{viewingGroup?.group.name}</DialogTitle>
             {viewingGroup?.group.description && (
               <DialogDescription>
                 {viewingGroup.group.description}

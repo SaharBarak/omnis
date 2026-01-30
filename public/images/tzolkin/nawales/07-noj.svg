@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="currentColor">
+  <title>No'j - Wisdom, Knowledge, Mind</title>
+  <!-- Stylized brain/mind glyph -->
+  <circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="3"/>
+  <!-- Brain/mind symbol -->
+  <ellipse cx="50" cy="45" rx="25" ry="20" fill="none" stroke="currentColor" stroke-width="2"/>
+  <path d="M35 35 Q50 45, 35 55" fill="none" stroke="currentColor" stroke-width="2"/>
+  <path d="M65 35 Q50 45, 65 55" fill="none" stroke="currentColor" stroke-width="2"/>
+  <line x1="50" y1="30" x2="50" y2="60" stroke="currentColor" stroke-width="2"/>
+  <!-- Base/stem -->
+  <line x1="50" y1="65" x2="50" y2="75" stroke="currentColor" stroke-width="3"/>
+</svg>

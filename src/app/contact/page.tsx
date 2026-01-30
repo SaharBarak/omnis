@@ -38,35 +38,42 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="pt-24 pb-16">
-        <div className="max-w-2xl mx-auto px-4">
+      <main className="pt-24 pb-16 px-6">
+        <div className="max-w-2xl mx-auto">
           {/* Hero */}
-          <div className="text-center mb-12">
-            <span className="text-accent text-3xl">*</span>
-            <h1 className="text-4xl font-bold mt-4 mb-4">Contact Us</h1>
+          <div className="text-center mb-10">
+            <div className="earth-badge inline-flex mb-4">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+              <span>Get in Touch</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-heading text-foreground mb-4">Contact Us</h1>
             <p className="text-lg text-muted-foreground">
-              Have questions? We'd love to hear from you.
+              Have questions? We&apos;d love to hear from you.
             </p>
           </div>
 
           {submitted ? (
             /* Success Message */
-            <div className="glass rounded-xl p-8 text-center">
-              <div className="text-4xl mb-4 text-green-500">✓</div>
-              <h2 className="text-2xl font-bold mb-4">Message Sent!</h2>
+            <div className="earth-card bg-card p-8 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-secondary/10 flex items-center justify-center">
+                <svg className="w-8 h-8 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-heading mb-4">Message Sent!</h2>
               <p className="text-muted-foreground mb-6">
-                Thank you for reaching out. We'll get back to you as soon as possible.
+                Thank you for reaching out. We&apos;ll get back to you as soon as possible.
               </p>
               <Link
                 href="/"
-                className="inline-flex items-center justify-center rounded-lg border border-border px-6 py-3 text-sm font-medium hover:bg-accent/10 transition-colors"
+                className="inline-flex items-center justify-center rounded-lg border border-border px-6 py-3 font-medium hover:bg-muted/50 transition-colors"
               >
                 Return to Home
               </Link>
             </div>
           ) : (
             /* Contact Form */
-            <div className="glass rounded-xl p-8">
+            <div className="earth-card bg-card p-8">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -79,6 +86,7 @@ export default function ContactPage() {
                       value={formData.name}
                       onChange={handleChange}
                       placeholder="Your name"
+                      className="bg-background border-border"
                     />
                   </div>
                   <div className="space-y-2">
@@ -91,6 +99,7 @@ export default function ContactPage() {
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="your@email.com"
+                      className="bg-background border-border"
                     />
                   </div>
                 </div>
@@ -105,6 +114,7 @@ export default function ContactPage() {
                     value={formData.subject}
                     onChange={handleChange}
                     placeholder="What's this about?"
+                    className="bg-background border-border"
                   />
                 </div>
 
@@ -118,11 +128,15 @@ export default function ContactPage() {
                     onChange={handleChange}
                     placeholder="Tell us more..."
                     rows={5}
-                    className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex min-h-[80px] w-full rounded-lg border border-border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </div>
 
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button
+                  type="submit"
+                  className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground"
+                  disabled={loading}
+                >
                   {loading ? 'Sending...' : 'Send Message'}
                 </Button>
               </form>
@@ -130,23 +144,23 @@ export default function ContactPage() {
           )}
 
           {/* Alternative Contact */}
-          <div className="mt-12 text-center">
+          <div className="mt-10 text-center">
             <p className="text-muted-foreground mb-4">
               You can also reach us directly at:
             </p>
             <a
               href="mailto:hello@omnis.app"
-              className="text-accent hover:underline"
+              className="text-primary hover:underline font-medium"
             >
               hello@omnis.app
             </a>
           </div>
 
           {/* FAQ Link */}
-          <div className="mt-8 text-center">
+          <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               Looking for answers? Check our{' '}
-              <Link href="/#faq" className="text-accent hover:underline">
+              <Link href="/#faq" className="text-primary hover:underline">
                 FAQ section
               </Link>
             </p>

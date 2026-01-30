@@ -1,0 +1,311 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-01-26T20:20:00Z",
+  "license_summary": {
+    "MIT": [
+      "dreamspell/tones/*",
+      "dreamspell/decorative/*",
+      "human-design/types/*",
+      "human-design/bodygraph/*",
+      "astrology/elements/*",
+      "tzolkin/nawales/*"
+    ],
+    "CC0": [
+      "astrology/signs/*",
+      "astrology/planets/*"
+    ],
+    "CC-BY": [],
+    "CC-BY-SA": [
+      "gematria/sefirot/tree-of-life.svg",
+      "gematria/letters/*",
+      "dreamspell/seals/*"
+    ],
+    "Attribution-Required": [],
+    "Custom": [
+      "human-design/centers/*"
+    ]
+  },
+  "attributions": [
+    {
+      "file": "gematria/sefirot/tree-of-life.svg",
+      "source": "Wikimedia Commons",
+      "author": "Elborgo",
+      "license": "CC-BY-SA 3.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Kabbalistic_Tree_of_Life_(Sephiroth).svg"
+    },
+    {
+      "files": "dreamspell/seals/*",
+      "source": "Wikimedia Commons",
+      "author": "Various contributors",
+      "license": "CC-BY-SA 3.0",
+      "url": "https://commons.wikimedia.org/wiki/Category:SVG_Maya_glyphs"
+    },
+    {
+      "files": "gematria/letters/*",
+      "source": "Wikimedia Commons",
+      "author": "Various contributors",
+      "license": "CC-BY-SA 3.0",
+      "url": "https://commons.wikimedia.org/wiki/Category:Hebrew_letters"
+    },
+    {
+      "files": "astrology/signs/*",
+      "source": "Wikimedia Commons",
+      "author": "Various contributors",
+      "license": "Public Domain",
+      "url": "https://commons.wikimedia.org/wiki/Category:SVG_astrological_symbols"
+    },
+    {
+      "files": "astrology/planets/*",
+      "source": "Wikimedia Commons",
+      "author": "Various contributors",
+      "license": "Public Domain",
+      "url": "https://commons.wikimedia.org/wiki/Category:SVG_astrological_symbols"
+    },
+    {
+      "files": "human-design/centers/*",
+      "source": "Created for Omnis",
+      "author": "Omnis Project",
+      "license": "MIT",
+      "notes": "Simple geometric shapes based on traditional Human Design bodygraph"
+    },
+    {
+      "files": "dreamspell/tones/*",
+      "source": "Created for Omnis",
+      "author": "Omnis Project",
+      "license": "MIT",
+      "notes": "Dot/circle patterns representing the 13 Dreamspell tones"
+    },
+    {
+      "files": "dreamspell/decorative/*",
+      "source": "Created for Omnis",
+      "author": "Omnis Project",
+      "license": "MIT",
+      "notes": "Wavespell, Castle, and Tzolkin grid diagrams"
+    },
+    {
+      "files": "human-design/types/*",
+      "source": "Created for Omnis",
+      "author": "Omnis Project",
+      "license": "MIT",
+      "notes": "Abstract geometric icons representing the 5 Human Design energy types"
+    },
+    {
+      "files": "human-design/bodygraph/*",
+      "source": "Created for Omnis",
+      "author": "Omnis Project",
+      "license": "MIT",
+      "notes": "Full bodygraph outline showing 9 centers and channels"
+    },
+    {
+      "files": "astrology/elements/*",
+      "source": "Created for Omnis",
+      "author": "Omnis Project",
+      "license": "MIT",
+      "notes": "Traditional alchemical elemental triangles"
+    },
+    {
+      "files": "tzolkin/nawales/*",
+      "source": "Created for Omnis",
+      "author": "Omnis Project",
+      "license": "MIT",
+      "notes": "Stylized representations of 20 traditional Mayan day signs"
+    }
+  ],
+  "categories": {
+    "dreamspell": {
+      "seals": { "needed": 20, "found": 20 },
+      "tones": { "needed": 13, "found": 13 },
+      "decorative": { "needed": 3, "found": 3 }
+    },
+    "human-design": {
+      "types": { "needed": 5, "found": 5 },
+      "centers": { "needed": 9, "found": 18 },
+      "bodygraph": { "needed": 1, "found": 1 }
+    },
+    "astrology": {
+      "signs": { "needed": 12, "found": 12 },
+      "planets": { "needed": 10, "found": 10 },
+      "elements": { "needed": 4, "found": 4 }
+    },
+    "gematria": {
+      "letters": { "needed": 22, "found": 22 },
+      "sefirot": { "needed": 1, "found": 1 }
+    },
+    "tzolkin": {
+      "nawales": { "needed": 20, "found": 20 }
+    },
+    "docs": {
+      "headers": { "needed": 6, "found": 0 },
+      "illustrations": { "needed": 5, "found": 0 }
+    },
+    "landing": {
+      "hero": { "needed": 1, "found": 0 },
+      "features": { "needed": 4, "found": 0 }
+    }
+  },
+  "assets": {
+    "astrology": {
+      "signs": [
+        "01-aries.svg",
+        "02-taurus.svg",
+        "03-gemini.svg",
+        "04-cancer.svg",
+        "05-leo.svg",
+        "06-virgo.svg",
+        "07-libra.svg",
+        "08-scorpio.svg",
+        "09-sagittarius.svg",
+        "10-capricorn.svg",
+        "11-aquarius.svg",
+        "12-pisces.svg"
+      ],
+      "planets": [
+        "sun.svg",
+        "moon.svg",
+        "mercury.svg",
+        "venus.svg",
+        "mars.svg",
+        "jupiter.svg",
+        "saturn.svg",
+        "uranus.svg",
+        "neptune.svg",
+        "pluto.svg"
+      ],
+      "elements": [
+        "fire.svg",
+        "water.svg",
+        "air.svg",
+        "earth.svg"
+      ]
+    },
+    "gematria": {
+      "letters": [
+        "01-aleph.svg",
+        "02-bet.svg",
+        "03-gimel.svg",
+        "04-dalet.svg",
+        "05-he.svg",
+        "06-vav.svg",
+        "07-zayin.svg",
+        "08-chet.svg",
+        "09-tet.svg",
+        "10-yod.svg",
+        "11-kaf.svg",
+        "12-lamed.svg",
+        "13-mem.svg",
+        "14-nun.svg",
+        "15-samech.svg",
+        "16-ayin.svg",
+        "17-pe.svg",
+        "18-tzadi.svg",
+        "19-qof.svg",
+        "20-resh.svg",
+        "21-shin.svg",
+        "22-tav.svg"
+      ],
+      "sefirot": [
+        "tree-of-life.svg"
+      ]
+    },
+    "dreamspell": {
+      "seals": [
+        "01-dragon.svg",
+        "02-wind.svg",
+        "03-night.svg",
+        "04-seed.svg",
+        "05-serpent.svg",
+        "06-worldbridger.svg",
+        "07-hand.svg",
+        "08-star.svg",
+        "09-moon.svg",
+        "10-dog.svg",
+        "11-monkey.svg",
+        "12-human.svg",
+        "13-skywalker.svg",
+        "14-wizard.svg",
+        "15-eagle.svg",
+        "16-warrior.svg",
+        "17-earth.svg",
+        "18-mirror.svg",
+        "19-storm.svg",
+        "20-sun.svg"
+      ],
+      "tones": [
+        "01-magnetic.svg",
+        "02-lunar.svg",
+        "03-electric.svg",
+        "04-self-existing.svg",
+        "05-overtone.svg",
+        "06-rhythmic.svg",
+        "07-resonant.svg",
+        "08-galactic.svg",
+        "09-solar.svg",
+        "10-planetary.svg",
+        "11-spectral.svg",
+        "12-crystal.svg",
+        "13-cosmic.svg"
+      ],
+      "decorative": [
+        "wavespell.svg",
+        "castle.svg",
+        "tzolkin-grid.svg"
+      ]
+    },
+    "human-design": {
+      "centers": [
+        "head.svg",
+        "head-defined.svg",
+        "ajna.svg",
+        "ajna-defined.svg",
+        "throat.svg",
+        "throat-defined.svg",
+        "g-center.svg",
+        "g-center-defined.svg",
+        "heart.svg",
+        "heart-defined.svg",
+        "sacral.svg",
+        "sacral-defined.svg",
+        "solar-plexus.svg",
+        "solar-plexus-defined.svg",
+        "spleen.svg",
+        "spleen-defined.svg",
+        "root.svg",
+        "root-defined.svg"
+      ],
+      "types": [
+        "manifestor.svg",
+        "generator.svg",
+        "manifesting-generator.svg",
+        "projector.svg",
+        "reflector.svg"
+      ],
+      "bodygraph": [
+        "bodygraph.svg"
+      ]
+    },
+    "tzolkin": {
+      "nawales": [
+        "01-batz.svg",
+        "02-e.svg",
+        "03-aj.svg",
+        "04-ix.svg",
+        "05-tzikin.svg",
+        "06-ajmaq.svg",
+        "07-noj.svg",
+        "08-tijax.svg",
+        "09-kawoq.svg",
+        "10-ajpu.svg",
+        "11-imox.svg",
+        "12-iq.svg",
+        "13-aqabal.svg",
+        "14-kat.svg",
+        "15-kan.svg",
+        "16-kame.svg",
+        "17-kej.svg",
+        "18-qanil.svg",
+        "19-toj.svg",
+        "20-tzi.svg"
+      ]
+    }
+  }
+}

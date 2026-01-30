@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
+import Link from 'next/link'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -12,47 +13,381 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarRail,
+  SidebarTrigger,
+  useSidebar,
+} from '@/components/ui/sidebar'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import { Skeleton } from '@/components/ui/skeleton'
+import { CommandPalette } from '@/components/dashboard/command-palette'
+import { ConfirmProvider } from '@/components/dashboard/confirm-dialog'
+import { Toaster } from 'sonner'
+import {
+  Home,
+  Users,
+  Heart,
+  UsersRound,
+  Network,
+  LayoutGrid,
+  CreditCard,
+  Sparkles,
+  Search,
+  User,
+  Settings,
+  LogOut,
+  ChevronRight,
+} from 'lucide-react'
 
-const navItems = [
-  { href: '/app', label: 'Home', icon: '🏠' },
-  { href: '/app/people', label: 'People', icon: '👥' },
-  { href: '/app/relationships', label: 'Relationships', icon: '🔗' },
-  { href: '/app/groups', label: 'Groups', icon: '👨‍👩‍👧‍👦' },
-  { href: '/app/graph', label: 'Relationship Map', icon: '🕸️' },
-  { href: '/app/boards', label: 'Boards', icon: '🎨' },
-  { href: '/app/cards', label: 'Cards', icon: '🎴' },
-  { href: '/app/profile', label: 'Profile', icon: '👤' },
+// Navigation structure with groups
+const navGroups = [
+  {
+    label: 'Overview',
+    items: [
+      { href: '/app', label: 'Home', icon: Home },
+    ],
+  },
+  {
+    label: 'My Data',
+    items: [
+      { href: '/app/people', label: 'People', icon: Users },
+      { href: '/app/relationships', label: 'Relationships', icon: Heart },
+      { href: '/app/groups', label: 'Groups', icon: UsersRound },
+    ],
+  },
+  {
+    label: 'Tools',
+    items: [
+      { href: '/app/graph', label: 'Relationship Map', icon: Network },
+      { href: '/app/boards', label: 'Boards', icon: LayoutGrid },
+      { href: '/app/cards', label: 'Cards', icon: CreditCard },
+    ],
+  },
+  {
+    label: 'Insights',
+    items: [
+      { href: '/app/predictions', label: 'Predictions', icon: Sparkles },
+    ],
+  },
 ]
 
-function Sidebar({ className = '' }: { className?: string }) {
+// Mobile bottom nav items (subset)
+const mobileNavItems = [
+  { href: '/app', label: 'Home', icon: Home },
+  { href: '/app/people', label: 'People', icon: Users },
+  { href: '/app/predictions', label: 'Insights', icon: Sparkles },
+  { href: '/app/boards', label: 'Boards', icon: LayoutGrid },
+]
+
+function AppSidebar() {
+  const pathname = usePathname()
+  const { state } = useSidebar()
+  const collapsed = state === 'collapsed'
+
+  return (
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+      <SidebarHeader className="border-b border-sidebar-border">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild>
+              <Link href="/app" className="flex items-center gap-3">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                  <svg viewBox="0 0 32 32" className="size-5">
+                    <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.3" />
+                    <circle cx="16" cy="16" r="9" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.5" />
+                    <circle cx="16" cy="16" r="4" fill="currentColor" />
+                  </svg>
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-heading font-semibold">Omnis</span>
+                  <span className="truncate text-xs text-muted-foreground">Symbolic Life OS</span>
+                </div>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+
+      <SidebarContent>
+        {navGroups.map((group) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel className="text-xs font-medium text-sidebar-foreground/70">
+              {group.label}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => {
+                  const isActive = pathname === item.href || (item.href !== '/app' && pathname.startsWith(item.href))
+                  const Icon = item.icon
+                  return (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        tooltip={item.label}
+                      >
+                        <Link href={item.href}>
+                          <Icon className="size-4" />
+                          <span>{item.label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
+      </SidebarContent>
+
+      <SidebarFooter className="border-t border-sidebar-border">
+        <NavUser />
+      </SidebarFooter>
+      <SidebarRail />
+    </Sidebar>
+  )
+}
+
+function NavUser() {
+  const router = useRouter()
+  const { user, profile, signOut } = useAuth()
+  const { state } = useSidebar()
+  const collapsed = state === 'collapsed'
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.push('/login')
+  }
+
+  const initials = profile?.display_name
+    ?.split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase() || user?.email?.slice(0, 2).toUpperCase() || '??'
+
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            >
+              <Avatar className="h-8 w-8 rounded-lg">
+                <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.display_name || 'User'} />
+                <AvatarFallback className="rounded-lg bg-primary/10 text-primary text-xs font-medium">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold">{profile?.display_name || 'User'}</span>
+                <span className="truncate text-xs text-muted-foreground">{user?.email}</span>
+              </div>
+              <ChevronRight className="ml-auto size-4" />
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            side={collapsed ? "right" : "top"}
+            align="end"
+            sideOffset={4}
+          >
+            <div className="flex items-center gap-2 p-2">
+              <Avatar className="h-8 w-8 rounded-lg">
+                <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.display_name || 'User'} />
+                <AvatarFallback className="rounded-lg bg-primary/10 text-primary text-xs font-medium">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold">{profile?.display_name || 'User'}</span>
+                <span className="truncate text-xs text-muted-foreground">{user?.email}</span>
+              </div>
+            </div>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/app/profile" className="flex items-center gap-2">
+                <User className="size-4" />
+                Profile
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/app/settings" className="flex items-center gap-2">
+                <Settings className="size-4" />
+                Settings
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+              <LogOut className="size-4 mr-2" />
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    </SidebarMenu>
+  )
+}
+
+function MobileBottomNav() {
   const pathname = usePathname()
 
   return (
-    <nav className={`flex flex-col gap-2 p-4 ${className}`}>
-      {navItems.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors
-            ${pathname === item.href
-              ? 'bg-primary text-primary-foreground'
-              : 'hover:bg-muted'
-            }`}
-        >
-          <span>{item.icon}</span>
-          <span>{item.label}</span>
-        </Link>
-      ))}
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-md border-t border-border pb-safe" role="navigation" aria-label="Mobile navigation">
+      <div className="flex items-center justify-around h-16 px-2">
+        {mobileNavItems.map((item) => {
+          const isActive = pathname === item.href || (item.href !== '/app' && pathname.startsWith(item.href))
+          const Icon = item.icon
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={isActive ? 'page' : undefined}
+              aria-label={item.label}
+              className={`flex flex-col items-center justify-center gap-1 min-w-[56px] min-h-[48px] px-3 py-2 rounded-xl transition-all active:scale-95 ${
+                isActive
+                  ? 'text-primary bg-primary/5'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Icon className="size-5" aria-hidden="true" />
+              <span className="text-xs font-medium">{item.label}</span>
+            </Link>
+          )
+        })}
+
+        {/* More menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="flex flex-col items-center justify-center gap-1 min-w-[56px] min-h-[48px] px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground transition-all active:scale-95"
+              aria-label="More options"
+            >
+              <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+              </svg>
+              <span className="text-xs font-medium">More</span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48 mb-2 rounded-xl">
+            <DropdownMenuItem asChild>
+              <Link href="/app/relationships" className="flex items-center gap-2">
+                <Heart className="size-4" />
+                Relationships
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/app/groups" className="flex items-center gap-2">
+                <UsersRound className="size-4" />
+                Groups
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/app/graph" className="flex items-center gap-2">
+                <Network className="size-4" />
+                Relationship Map
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/app/cards" className="flex items-center gap-2">
+                <CreditCard className="size-4" />
+                Cards
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/app/profile" className="flex items-center gap-2">
+                <User className="size-4" />
+                Profile
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/app/settings" className="flex items-center gap-2">
+                <Settings className="size-4" />
+                Settings
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </nav>
+  )
+}
+
+function AppHeader() {
+  const openCommandPalette = () => {
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))
+  }
+
+  return (
+    <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-4" role="banner">
+      <SidebarTrigger className="-ml-1" aria-label="Toggle sidebar" />
+
+      {/* Search / Command Palette trigger - Desktop */}
+      <button
+        onClick={openCommandPalette}
+        className="hidden sm:flex items-center gap-3 h-9 px-4 rounded-lg bg-muted/50 border border-border text-muted-foreground text-sm hover:bg-muted/80 transition-colors ml-2 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        aria-label="Search and navigate (Command+K)"
+      >
+        <Search className="size-4" aria-hidden="true" />
+        <span>Search...</span>
+        <kbd className="hidden md:inline-flex h-5 items-center gap-1 rounded border border-border bg-background px-1.5 text-[10px] font-medium text-muted-foreground" aria-hidden="true">
+          <span className="text-xs">⌘</span>K
+        </kbd>
+      </button>
+
+      {/* Search button - Mobile only */}
+      <button
+        onClick={openCommandPalette}
+        className="sm:hidden ml-auto flex items-center justify-center w-9 h-9 rounded-lg bg-muted/50 border border-border text-muted-foreground hover:bg-muted/80 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        aria-label="Search"
+      >
+        <Search className="size-4" aria-hidden="true" />
+      </button>
+    </header>
+  )
+}
+
+function LoadingState() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="flex flex-col items-center gap-4">
+        {/* Animated logo */}
+        <div className="relative w-16 h-16">
+          <svg viewBox="0 0 64 64" className="w-full h-full animate-pulse">
+            <circle cx="32" cy="32" r="28" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.2" />
+            <circle cx="32" cy="32" r="18" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.4" />
+            <circle cx="32" cy="32" r="8" fill="hsl(var(--primary))" />
+          </svg>
+          <div className="absolute inset-0 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+        </div>
+        <p className="text-muted-foreground text-sm">Loading your dashboard...</p>
+      </div>
+    </div>
   )
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const { user, profile, signOut, loading } = useAuth()
+  const { user, loading } = useAuth()
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -61,118 +396,41 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [loading, user, router])
 
-  const handleSignOut = async () => {
-    await signOut()
-    router.push('/login')
-  }
-
   if (loading || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">Loading...</div>
-      </div>
-    )
+    return <LoadingState />
   }
-
-  const initials = profile?.display_name
-    ?.split(' ')
-    .map(n => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase() || user.email?.slice(0, 2).toUpperCase() || '??'
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex h-14 items-center px-4">
-          {/* Mobile menu */}
-          <Sheet>
-            <SheetTrigger asChild className="lg:hidden">
-              <Button variant="ghost" size="icon">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="3" y1="12" x2="21" y2="12" />
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <line x1="3" y1="18" x2="21" y2="18" />
-                </svg>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-64 p-0">
-              <div className="p-4 border-b">
-                <Link href="/app" className="font-bold text-xl">Omnis</Link>
-              </div>
-              <Sidebar />
-            </SheetContent>
-          </Sheet>
+    <ConfirmProvider>
+      <SidebarProvider>
+        {/* Command Palette */}
+        <CommandPalette />
 
-          {/* Logo */}
-          <Link href="/app" className="font-bold text-xl ml-4 lg:ml-0">
-            Omnis
-          </Link>
+        {/* Toast notifications */}
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            className: '!bg-card !border-border !text-foreground',
+            duration: 4000,
+          }}
+        />
 
-          {/* Spacer */}
-          <div className="flex-1" />
+        <AppSidebar />
 
-          {/* User menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.display_name || 'User'} />
-                  <AvatarFallback>{initials}</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <div className="flex items-center justify-start gap-2 p-2">
-                <div className="flex flex-col space-y-1 leading-none">
-                  {profile?.display_name && (
-                    <p className="font-medium">{profile.display_name}</p>
-                  )}
-                  {user.email && (
-                    <p className="text-sm text-muted-foreground">
-                      {user.email}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/app/profile">Profile</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/app/settings">Settings</Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut}>
-                Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
+        <SidebarInset>
+          <AppHeader />
 
-      <div className="flex">
-        {/* Desktop Sidebar */}
-        <aside className="hidden lg:block w-64 border-r min-h-[calc(100vh-3.5rem)] sticky top-14">
-          <Sidebar />
-        </aside>
+          {/* Main content */}
+          <main className="flex-1 p-4 lg:p-8 pb-24 md:pb-8">
+            <div className="max-w-6xl mx-auto">
+              {children}
+            </div>
+          </main>
+        </SidebarInset>
 
-        {/* Main content */}
-        <main className="flex-1 p-6">
-          {children}
-        </main>
-      </div>
-    </div>
+        {/* Mobile Bottom Navigation */}
+        <MobileBottomNav />
+      </SidebarProvider>
+    </ConfirmProvider>
   )
 }

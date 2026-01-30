@@ -1,230 +1,223 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { Header, Footer } from '@/components/landing'
+import { DocLayout, DocHeader, DocSection, DocNav, DocStats, DocInfoBox, DocPullQuote } from '@/components/docs'
+import { gematriaDocs, docStructure } from '@/lib/docs/content'
 
 export const metadata: Metadata = {
-  title: 'Learn Gematria - Hebrew Letter Numerology | Omnis',
-  description: 'Discover Gematria: Hebrew letter numerology revealing hidden meanings in names and words. Free educational guide.',
-  keywords: 'gematria, hebrew numerology, kabbalah, hebrew letters, mispar, numerology, jewish mysticism',
+  title: 'Gematria Documentation',
+  description: 'Complete guide to Gematria: Hebrew letter numerology, calculation methods, significant numbers, and Kabbalistic context.',
+  keywords: 'gematria guide, hebrew numerology, kabbalah, hebrew letters, mispar, jewish mysticism, name analysis',
 }
 
-const hebrewLetters = [
-  { letter: 'א', name: 'Aleph', value: 1, meaning: 'Ox, strength, leadership' },
-  { letter: 'ב', name: 'Bet', value: 2, meaning: 'House, dwelling, family' },
-  { letter: 'ג', name: 'Gimel', value: 3, meaning: 'Camel, journey, reward' },
-  { letter: 'ד', name: 'Dalet', value: 4, meaning: 'Door, pathway, poverty' },
-  { letter: 'ה', name: 'He', value: 5, meaning: 'Window, revelation, breath' },
-  { letter: 'ו', name: 'Vav', value: 6, meaning: 'Hook, connection, add' },
-  { letter: 'ז', name: 'Zayin', value: 7, meaning: 'Sword, cut, weapon' },
-  { letter: 'ח', name: 'Chet', value: 8, meaning: 'Fence, private, life' },
-  { letter: 'ט', name: 'Tet', value: 9, meaning: 'Serpent, surround, good' },
-  { letter: 'י', name: 'Yod', value: 10, meaning: 'Hand, work, worship' },
-  { letter: 'כ', name: 'Kaf', value: 20, meaning: 'Palm, open, bless' },
-  { letter: 'ל', name: 'Lamed', value: 30, meaning: 'Staff, teach, learn' },
-  { letter: 'מ', name: 'Mem', value: 40, meaning: 'Water, chaos, mighty' },
-  { letter: 'נ', name: 'Nun', value: 50, meaning: 'Fish, activity, life' },
-  { letter: 'ס', name: 'Samekh', value: 60, meaning: 'Support, prop, trust' },
-  { letter: 'ע', name: 'Ayin', value: 70, meaning: 'Eye, see, experience' },
-  { letter: 'פ', name: 'Pe', value: 80, meaning: 'Mouth, word, speak' },
-  { letter: 'צ', name: 'Tsade', value: 90, meaning: 'Fish hook, desire, need' },
-  { letter: 'ק', name: 'Qof', value: 100, meaning: 'Back of head, last, least' },
-  { letter: 'ר', name: 'Resh', value: 200, meaning: 'Head, first, top' },
-  { letter: 'ש', name: 'Shin', value: 300, meaning: 'Tooth, sharp, press' },
-  { letter: 'ת', name: 'Tav', value: 400, meaning: 'Cross, mark, sign' },
-]
-
-const methods = [
-  {
-    name: 'Standard (Mispar Hechrachi)',
-    description: 'The basic method. Each letter has its standard value (1-400).',
-    example: 'שלום = 300 + 30 + 6 + 40 = 376',
-  },
-  {
-    name: 'Full (Mispar Gadol)',
-    description: 'Final letters (ך,ם,ן,ף,ץ) have values 500-900 instead of their regular forms.',
-    example: 'Final Mem (ם) = 600 instead of 40',
-  },
-  {
-    name: 'Small (Mispar Katan)',
-    description: 'Reduce each letter to single digit (10→1, 200→2). Quicker pattern recognition.',
-    example: 'שלום = 3 + 3 + 6 + 4 = 16 → 1 + 6 = 7',
-  },
-  {
-    name: 'Ordinal (Mispar Siduri)',
-    description: 'Letters valued by position in alphabet (1-22).',
-    example: 'א=1, ב=2... ת=22',
-  },
-  {
-    name: 'AtBash',
-    description: 'Cipher substituting first letter with last, second with second-to-last.',
-    example: 'א↔ת, ב↔ש, ג↔ר, etc.',
-  },
-]
-
-const notableNumbers = [
-  { number: 18, hebrew: 'חי', meaning: 'Life', description: 'Chet (8) + Yod (10) = 18. Symbol of life and good fortune.' },
-  { number: 26, hebrew: 'יהוה', meaning: 'YHVH', description: 'The Tetragrammaton, the ineffable name of God.' },
-  { number: 72, hebrew: 'חסד', meaning: 'Chesed', description: 'Loving-kindness. Also the 72 names of God.' },
-  { number: 137, hebrew: 'קבלה', meaning: 'Kabbalah', description: 'Reception, tradition. Also the fine-structure constant!' },
-  { number: 358, hebrew: 'משיח', meaning: 'Mashiach', description: 'Messiah. Same value as נחש (serpent).' },
-  { number: 541, hebrew: 'ישראל', meaning: 'Israel', description: 'One who wrestles with God.' },
-]
-
-export default function GematriaLearnPage() {
+export default function GematriaDocsPage() {
   return (
-    <div className="min-h-screen bg-background dark">
+    <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="pt-20 pb-16 px-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Hero Section */}
-          <div className="text-center mb-12">
-            <Link href="/learn" className="text-sm text-muted-foreground hover:text-accent mb-4 inline-block">
-              ← Back to Learn
-            </Link>
-            <h1 className="text-4xl font-bold mb-4">
-              <span className="text-gold-gradient">Gematria</span>
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              The ancient Jewish practice of assigning numeric values to letters,
-              revealing hidden connections between words and concepts.
-            </p>
-          </div>
+      <DocLayout
+        sections={docStructure.sections}
+        currentSection="gematria"
+      >
+        {/* Header */}
+        <DocHeader
+          badge="Gematria"
+          title={gematriaDocs.overview.title}
+          subtitle={gematriaDocs.overview.subtitle}
+          badgeColor="primary"
+        />
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-            <div className="glass rounded-xl p-4 text-center">
-              <div className="kin-number text-3xl">22</div>
-              <div className="text-sm text-muted-foreground">Hebrew Letters</div>
-            </div>
-            <div className="glass rounded-xl p-4 text-center">
-              <div className="kin-number text-3xl">5</div>
-              <div className="text-sm text-muted-foreground">Final Forms</div>
-            </div>
-            <div className="glass rounded-xl p-4 text-center">
-              <div className="kin-number text-3xl">7+</div>
-              <div className="text-sm text-muted-foreground">Methods</div>
-            </div>
-            <div className="glass rounded-xl p-4 text-center">
-              <div className="kin-number text-3xl">∞</div>
-              <div className="text-sm text-muted-foreground">Connections</div>
-            </div>
-          </div>
+        {/* Introduction */}
+        <section className="mb-12">
+          <p className="doc-dropcap text-muted-foreground leading-relaxed text-lg">
+            {gematriaDocs.overview.introduction.trim()}
+          </p>
+        </section>
 
-          {/* What is Gematria */}
-          <section className="glass rounded-xl p-8 mb-8">
-            <h2 className="text-2xl font-bold mb-4">What is Gematria?</h2>
-            <div className="space-y-4 text-muted-foreground">
-              <p>
-                Gematria is an alphanumeric code of assigning numerical values to Hebrew letters, words, and phrases.
-                It&apos;s one of the primary tools of Kabbalistic interpretation, revealing hidden connections
-                and deeper meanings in sacred texts.
-              </p>
-              <p>
-                When two words share the same numerical value, they are considered to have a deep connection —
-                a hidden relationship that reveals spiritual truths. This is called &quot;gematria equivalence.&quot;
-              </p>
-              <p>
-                Beyond mystical applications, gematria is used to understand one&apos;s Hebrew name,
-                find connections between concepts, and explore the mathematical beauty of Hebrew texts.
-              </p>
-            </div>
-          </section>
+        {/* Quick Stats */}
+        <DocStats
+          stats={[
+            { value: '22', label: 'Hebrew Letters' },
+            { value: '5', label: 'Final Forms' },
+            { value: '7+', label: 'Methods' },
+            { value: '∞', label: 'Connections' },
+          ]}
+        />
 
-          {/* Hebrew Letters */}
-          <section className="glass rounded-xl p-8 mb-8">
-            <h2 className="text-2xl font-bold mb-4">The 22 Hebrew Letters</h2>
-            <p className="text-muted-foreground mb-6">
-              Each letter carries a numeric value and symbolic meaning.
-            </p>
+        {/* 22 Hebrew Letters */}
+        <DocSection id="gem-letters" title={gematriaDocs.hebrewAlphabet.title}>
+          <p className="text-muted-foreground leading-relaxed mb-8">
+            {gematriaDocs.hebrewAlphabet.introduction.trim()}
+          </p>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {hebrewLetters.map((item) => (
-                <div key={item.name} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-2xl font-bold">{item.letter}</span>
-                    <span className="kin-number text-lg">{item.value}</span>
-                  </div>
-                  <div className="text-sm font-medium">{item.name}</div>
-                  <div className="text-xs text-muted-foreground">{item.meaning}</div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-8">
+            {gematriaDocs.hebrewAlphabet.letters.map((item) => (
+              <div key={item.name} className="doc-card p-4 hover:shadow-earth transition-shadow">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-3xl font-serif">{item.letter}</span>
+                  <span className="text-lg font-heading text-indigo-600 dark:text-indigo-400">{item.value}</span>
                 </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Calculation Methods */}
-          <section className="glass rounded-xl p-8 mb-8">
-            <h2 className="text-2xl font-bold mb-4">Calculation Methods</h2>
-            <p className="text-muted-foreground mb-6">
-              Different methods reveal different aspects of a word&apos;s meaning.
-            </p>
-
-            <div className="space-y-4">
-              {methods.map((method) => (
-                <div key={method.name} className="p-4 rounded-lg bg-white/5">
-                  <h3 className="font-semibold text-accent mb-2">{method.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">{method.description}</p>
-                  <div className="text-sm bg-black/20 p-2 rounded font-mono">{method.example}</div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Notable Numbers */}
-          <section className="glass rounded-xl p-8 mb-8">
-            <h2 className="text-2xl font-bold mb-4">Notable Numbers</h2>
-            <p className="text-muted-foreground mb-6">
-              Certain numbers carry special significance in Jewish tradition.
-            </p>
-
-            <div className="grid sm:grid-cols-2 gap-4">
-              {notableNumbers.map((item) => (
-                <div key={item.number} className="p-4 rounded-lg border border-accent/30 bg-accent/5">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="kin-number text-2xl">{item.number}</span>
-                    <span className="text-xl">{item.hebrew}</span>
-                    <span className="text-sm text-accent">{item.meaning}</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Digital Root */}
-          <section className="glass rounded-xl p-8 mb-8">
-            <h2 className="text-2xl font-bold mb-4">Digital Root</h2>
-            <div className="space-y-4 text-muted-foreground">
-              <p>
-                The digital root reduces any number to a single digit by summing its digits repeatedly.
-                This reveals the essential &quot;vibration&quot; of a number.
-              </p>
-              <div className="bg-black/20 p-4 rounded-lg font-mono text-sm">
-                <p>Example: 358 (Mashiach)</p>
-                <p>3 + 5 + 8 = 16</p>
-                <p>1 + 6 = 7</p>
-                <p>Digital root: 7 (completion, spiritual perfection)</p>
+                <div className="text-sm font-medium text-foreground">{item.name}</div>
+                <div className="text-xs text-muted-foreground">{item.meaning}</div>
+                {item.element && (
+                  <div className="text-xs text-secondary mt-1">Element: {item.element}</div>
+                )}
+                {item.planet && (
+                  <div className="text-xs text-secondary mt-1">Planet: {item.planet}</div>
+                )}
               </div>
-            </div>
-          </section>
+            ))}
+          </div>
 
-          {/* CTA */}
-          <div className="text-center">
-            <p className="text-muted-foreground mb-4">
-              Calculate the gematria of your Hebrew name.
-            </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-3">
-              <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
-                <Link href="/login">Calculate Your Name</Link>
-              </Button>
-              <Button variant="outline" size="lg" asChild>
-                <Link href="/learn">Explore Other Systems</Link>
-              </Button>
+          {/* Final Forms */}
+          <h3 className="doc-h3">Final Letter Forms (Sofit)</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Five letters have special forms when they appear at the end of a word.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {gematriaDocs.hebrewAlphabet.finalForms.map((item) => (
+              <div key={item.name} className="px-4 py-3 rounded-xl bg-indigo-500/5 border border-indigo-500/20">
+                <span className="text-2xl font-serif mr-3">{item.letter}</span>
+                <span className="text-sm text-muted-foreground">{item.name}</span>
+                <span className="text-sm text-indigo-600 dark:text-indigo-400 ml-2">= {item.value}</span>
+              </div>
+            ))}
+          </div>
+        </DocSection>
+
+        {/* Calculation Methods */}
+        <DocSection id="gem-methods" title={gematriaDocs.methods.title}>
+          <p className="text-muted-foreground leading-relaxed mb-8">
+            {gematriaDocs.methods.introduction}
+          </p>
+
+          <div className="space-y-4">
+            {gematriaDocs.methods.methodDetails.map((method) => (
+              <div key={method.name} className="doc-card p-5">
+                <h4 className="font-heading text-lg text-foreground mb-2">{method.name}</h4>
+                <p className="text-sm text-muted-foreground mb-3 leading-relaxed">{method.description}</p>
+                <div className="p-3 rounded-lg bg-muted/50 font-mono text-sm text-muted-foreground mb-2">
+                  {method.example}
+                </div>
+                <div className="text-xs text-secondary">Use: {method.use}</div>
+              </div>
+            ))}
+          </div>
+        </DocSection>
+
+        {/* Significant Numbers */}
+        <DocSection id="gem-numbers" title={gematriaDocs.significantNumbers.title}>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {gematriaDocs.significantNumbers.numbers.map((item) => (
+              <div
+                key={item.value}
+                className="doc-card p-5"
+                style={{ borderLeftWidth: '4px', borderLeftColor: '#6366f1' }}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl font-heading text-indigo-600 dark:text-indigo-400">{item.value}</span>
+                  <span className="text-xl font-serif">{item.hebrew}</span>
+                  <span className="text-sm text-secondary">{item.meaning}</span>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.significance}</p>
+              </div>
+            ))}
+          </div>
+        </DocSection>
+
+        {/* Working with Your Name */}
+        <DocSection id="gem-practice" title={gematriaDocs.practicalApplication.title}>
+          <p className="text-muted-foreground leading-relaxed mb-8">
+            {gematriaDocs.practicalApplication.content.trim()}
+          </p>
+
+          <div className="doc-card p-6 mb-6">
+            <h4 className="font-heading text-lg text-foreground mb-4">How to Calculate</h4>
+            <div className="space-y-3">
+              {gematriaDocs.practicalApplication.steps.map((item) => (
+                <div key={item.step} className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center text-sm font-medium text-indigo-600 dark:text-indigo-400 flex-shrink-0">
+                    {item.step}
+                  </div>
+                  <span className="text-sm text-muted-foreground pt-1">{item.instruction}</span>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-      </main>
+
+          <div className="p-5 rounded-xl bg-muted/30 border border-border">
+            <h4 className="font-medium text-foreground mb-2">Example: דָּוִד (David)</h4>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {gematriaDocs.practicalApplication.example.trim()}
+            </p>
+          </div>
+        </DocSection>
+
+        {/* Kabbalistic Context */}
+        <DocSection id="gem-kabbalah" title={gematriaDocs.kabbalisticContext.title}>
+          <p className="text-muted-foreground leading-relaxed mb-8">
+            {gematriaDocs.kabbalisticContext.content.trim()}
+          </p>
+
+          <h3 className="doc-h3">The Ten Sefirot</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            The Sefirot are the ten divine attributes through which God manifests in creation.
+          </p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {gematriaDocs.kabbalisticContext.sefirot.map((s) => (
+              <div key={s.number} className="p-4 rounded-xl bg-muted/30 border border-border">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-6 h-6 rounded-full bg-indigo-500/10 flex items-center justify-center text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                    {s.number}
+                  </div>
+                  <span className="font-medium text-foreground">{s.name}</span>
+                  <span className="text-xs text-secondary">({s.meaning})</span>
+                </div>
+                <p className="text-xs text-muted-foreground pl-8">{s.description}</p>
+              </div>
+            ))}
+          </div>
+        </DocSection>
+
+        {/* Tip */}
+        <section className="mb-12">
+          <DocInfoBox variant="secondary" title="Hebrew Name Tip">
+            <p className="leading-relaxed">
+              If you have a Hebrew name, enter it in your Omnis profile to see its gematria value and
+              discover words and phrases that share your number. If you don&apos;t have a Hebrew name,
+              you can transliterate your English name, though the connections may be less meaningful.
+            </p>
+          </DocInfoBox>
+        </section>
+
+        {/* CTA */}
+        <section className="doc-card p-8 sm:p-10 text-center mt-16">
+          <h3 className="text-2xl font-heading text-foreground mb-4">Calculate Your Name</h3>
+          <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
+            Enter your Hebrew name in your profile to discover its numerical signature.
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-3">
+            <Link
+              href="/login"
+              className="inline-flex items-center justify-center px-8 py-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-600/90 transition-colors"
+            >
+              Calculate Gematria
+            </Link>
+            <Link
+              href="/learn/tzolkin"
+              className="inline-flex items-center justify-center px-8 py-4 rounded-xl border border-border hover:bg-muted/50 transition-colors"
+            >
+              Traditional Tzolkin
+            </Link>
+          </div>
+        </section>
+
+        {/* Navigation */}
+        <DocNav
+          prev={{ href: '/learn/astrology', title: 'Astrology' }}
+          next={{ href: '/learn/tzolkin', title: 'Traditional Tzolkin' }}
+        />
+      </DocLayout>
 
       <Footer />
     </div>
