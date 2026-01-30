@@ -1,6 +1,6 @@
 # Landing Page & Animations Specification
 
-> **Status:** TODO
+> **Status:** PARTIAL (basic landing page implemented, animations pending)
 > **Created:** 2026-01-25
 > **Priority:** HIGH
 > **Goal:** Create a high-converting, modern landing page with smooth animations

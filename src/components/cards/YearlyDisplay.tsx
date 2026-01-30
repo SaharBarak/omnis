@@ -28,9 +28,9 @@ export function DreamspellYearDisplay({
   const tone = getTone(dreamspellYear.yearBearer.tone)
 
   return (
-    <div className={cn('dreamspell-year-display p-4 rounded-lg bg-muted/50', className)} dir="rtl">
+    <div className={cn('dreamspell-year-display p-4 rounded-lg bg-muted/50', className)}>
       <h3 className="text-lg font-semibold text-center mb-3">
-        שנת הדרימספל / Dreamspell Year
+        Dreamspell Year <span className="text-muted-foreground text-sm">(שנת הדרימספל)</span>
       </h3>
 
       <div className="flex items-center justify-center gap-4">
@@ -38,22 +38,19 @@ export function DreamspellYearDisplay({
 
         <div className="text-center">
           <p className="font-bold text-xl">
-            {seal.hebrew} {tone.nameHebrew}
-          </p>
-          <p className="text-muted-foreground">
             {dreamspellYear.yearName}
           </p>
+          <p className="text-muted-foreground">
+            {seal.hebrew} {tone.nameHebrew}
+          </p>
           <p className="text-sm text-muted-foreground mt-1">
-            קין {dreamspellYear.yearBearer.kin}
+            Kin {dreamspellYear.yearBearer.kin}
           </p>
         </div>
       </div>
 
       <div className="mt-4 text-center text-sm text-muted-foreground">
         <p>
-          {formatDateHebrew(dreamspellYear.startDate)} — {formatDateHebrew(dreamspellYear.endDate)}
-        </p>
-        <p className="text-xs mt-1">
           {dreamspellYear.startDate} — {dreamspellYear.endDate}
         </p>
       </div>
@@ -78,9 +75,9 @@ export function GalacticBirthdayDisplay({
   const birthKin = dateToKin(birthDate)
 
   return (
-    <div className={cn('galactic-birthday-display p-4 rounded-lg bg-muted/50', className)} dir="rtl">
+    <div className={cn('galactic-birthday-display p-4 rounded-lg bg-muted/50', className)}>
       <h3 className="text-lg font-semibold text-center mb-3">
-        יום הולדת גלקטי / Galactic Birthday
+        Galactic Birthday <span className="text-muted-foreground text-sm">(יום הולדת גלקטי)</span>
       </h3>
 
       <div className="flex items-center justify-center gap-4">
@@ -88,30 +85,30 @@ export function GalacticBirthdayDisplay({
 
         <div className="text-center">
           <p className="font-bold text-xl">
-            {seal.hebrew} {tone.nameHebrew}
-          </p>
-          <p className="text-muted-foreground">
             {getSealColorName(galacticBirthday.seal)} {tone.name} {seal.english}
           </p>
+          <p className="text-muted-foreground">
+            {seal.hebrew} {tone.nameHebrew}
+          </p>
           <p className="text-sm text-muted-foreground mt-1">
-            קין {galacticBirthday.kin}
+            Kin {galacticBirthday.kin}
           </p>
         </div>
       </div>
 
       <div className="mt-4 text-center">
         <p className="text-sm">
-          <span className="text-muted-foreground">תאריך: </span>
-          <span className="font-medium">{formatDateHebrew(galacticBirthday.date)}</span>
+          <span className="text-muted-foreground">Date: </span>
+          <span className="font-medium">{galacticBirthday.date}</span>
         </p>
 
         {galacticBirthday.isGalacticReturn && (
           <div className="mt-2 p-2 bg-primary/20 rounded-lg">
             <p className="text-primary font-semibold text-sm">
-              🌟 חזרה גלקטית! / Galactic Return!
+              🌟 Galactic Return!
             </p>
             <p className="text-xs text-muted-foreground">
-              הקין שלך בתאריך זה זהה לקין הלידה ({birthKin})
+              Your kin on this date matches your birth kin ({birthKin})
             </p>
           </div>
         )}
@@ -137,9 +134,9 @@ export function PersonalYearDisplay({
   const tone = getTone(personalYear.tone)
 
   return (
-    <div className={cn('personal-year-display p-4 rounded-lg bg-muted/50', className)} dir="rtl">
+    <div className={cn('personal-year-display p-4 rounded-lg bg-muted/50', className)}>
       <h3 className="text-lg font-semibold text-center mb-3">
-        השנה האישית / Personal Year
+        Personal Year <span className="text-muted-foreground text-sm">(השנה האישית)</span>
       </h3>
 
       <div className="flex items-center justify-center gap-4">
@@ -147,26 +144,26 @@ export function PersonalYearDisplay({
 
         <div className="text-center">
           <p className="font-bold text-xl">
-            {seal.hebrew} {tone.nameHebrew}
-          </p>
-          <p className="text-muted-foreground">
             {getSealColorName(personalYear.seal)} {tone.name} {seal.english}
           </p>
+          <p className="text-muted-foreground">
+            {seal.hebrew} {tone.nameHebrew}
+          </p>
           <p className="text-sm text-muted-foreground mt-1">
-            קין {personalYear.kin} • גיל {personalYear.age}
+            Kin {personalYear.kin} • Age {personalYear.age}
           </p>
         </div>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-4 text-center text-sm">
         <div className="p-2 bg-background rounded">
-          <p className="text-muted-foreground">מחזור 13 שנים</p>
+          <p className="text-muted-foreground">13-Year Cycle</p>
           <p className="font-semibold">
-            שנה {cyclePosition.cycleYear} מתוך 13
+            Year {cyclePosition.cycleYear} of 13
           </p>
         </div>
         <div className="p-2 bg-background rounded">
-          <p className="text-muted-foreground">מחזורים שלמים</p>
+          <p className="text-muted-foreground">Complete Cycles</p>
           <p className="font-semibold">
             {cyclePosition.totalCycles}
           </p>
@@ -176,8 +173,8 @@ export function PersonalYearDisplay({
       {/* 13-year cycle progress */}
       <div className="mt-3">
         <div className="flex justify-between text-xs text-muted-foreground mb-1">
-          <span>שנה 1</span>
-          <span>שנה 13</span>
+          <span>Year 1</span>
+          <span>Year 13</span>
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">
           <div
@@ -186,7 +183,7 @@ export function PersonalYearDisplay({
           />
         </div>
         <p className="text-center text-xs text-muted-foreground mt-1">
-          {cyclePosition.yearsUntilCycleEnd} שנים עד סוף המחזור
+          {cyclePosition.yearsUntilCycleEnd} years until cycle end
         </p>
       </div>
     </div>

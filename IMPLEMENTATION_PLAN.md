@@ -76,34 +76,31 @@ The Omnis platform is a complete symbolic systems web application featuring:
 | Issue | Resolution |
 |-------|------------|
 | P2.1: Debug Statements | Removed 5 console.log from auth/callback/route.ts and use-auth.ts |
+| P2.2: I18N English-First RTL Cleanup | Removed RTL from GematriaDisplay (4×), CastleDisplay (1×), YearlyDisplay (3×), PersonCard (1×) - all now English-first LTR |
+| P2.4: Specification Cleanup | Updated 3 spec files (DESIGN_SYSTEM, LANDING_PAGE, AUTHENTIC_DATA) to PARTIAL status |
 | P2.7: Oracle Wheel Icon Paths | Changed `seal.mayan.toLowerCase()` to `seal.english.toLowerCase()` |
+| P2.8: PersonCard Direction | Changed `dir="rtl"` to `dir="ltr"` per CARD_LAYOUT.md spec (English-first) |
 
 ### P2.2: I18N English-First (Display Components)
-**Status:** MVP components DONE, non-MVP components have RTL cleanup remaining.
+**Status:** COMPLETE - All card components now English-first LTR.
 
 Per `/specs/I18N_ENGLISH_FIRST.md`:
 
-**Priority 1 Components (Core Display) - VERIFIED COMPLETE:**
+**All Card Components - VERIFIED COMPLETE:**
 | Component | File | Status |
 |-----------|------|--------|
+| PersonCard | `src/components/cards/PersonCard.tsx` | ✅ DONE (LTR) |
 | DreamspellSection | `src/components/cards/DreamspellSection.tsx` | ✅ DONE |
 | TzolkinSection | `src/components/cards/TzolkinSection.tsx` | ✅ DONE |
 | OracleMap | `src/components/cards/OracleMap.tsx` | ✅ DONE |
 | MantraDisplay | `src/components/cards/MantraDisplay.tsx` | ✅ DONE |
 | HumanDesignDisplay | `src/components/cards/HumanDesignDisplay.tsx` | ✅ DONE |
 | AstrologyDisplay | `src/components/cards/AstrologyDisplay.tsx` | ✅ DONE |
+| GematriaDisplay | `src/components/cards/GematriaDisplay.tsx` | ✅ DONE (RTL kept for Hebrew letter display only) |
+| CastleDisplay | `src/components/cards/CastleDisplay.tsx` | ✅ DONE |
+| YearlyDisplay | `src/components/cards/YearlyDisplay.tsx` | ✅ DONE |
 
-**Remaining RTL Cleanup (VERIFIED - Non-MVP):**
-
-*Card Components:*
-| Component | Count | Notes |
-|-----------|-------|-------|
-| GematriaDisplay | 5× | Lines 176, 214, 269, 300, 407 |
-| CastleDisplay | 1× | Line 53 |
-| YearlyDisplay | 3× | Lines 31, 81, 140 |
-| PersonCard | 1× | Line 13 (INTENTIONAL for Hebrew names) |
-
-*Canvas Components (Lower Priority - 22 total):*
+**Remaining RTL (Canvas Components - Lower Priority - 22 total):**
 | Component | Count |
 |-----------|-------|
 | layers-panel.tsx | 3× |
@@ -113,7 +110,7 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 | export-dialog.tsx | 2× |
 | Various node/edge components | 5× |
 
-**Note:** PersonCard's `dir="rtl"` is intentional - TEST_PEOPLE have Hebrew names.
+**Note:** Canvas components retain RTL for Hebrew content in the canvas editor UI.
 
 ### P2.3: Test Coverage Expansion
 **Current:** 484 tests across 11 test files in `src/lib/calculations/`
@@ -149,12 +146,13 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 | Hook tests | `use-people.ts`, `use-boards.ts`, `use-auth.ts` | LOW |
 
 ### P2.4: Specification Cleanup
-3 spec files marked `Status: TODO`:
-- `/specs/DESIGN_SYSTEM.md` - Design system partially implemented
-- `/specs/LANDING_PAGE.md` - Landing page implemented but spec says TODO
-- `/specs/AUTHENTIC_DATA.md` - Template mantras in use, not authentic 260
+**Status:** COMPLETE - All 3 spec files updated to PARTIAL status.
 
-**Action:** Update spec status to match implementation reality.
+| Spec File | New Status |
+|-----------|------------|
+| `/specs/DESIGN_SYSTEM.md` | PARTIAL (basic implementation complete, advanced features pending) |
+| `/specs/LANDING_PAGE.md` | PARTIAL (basic landing page implemented, animations pending) |
+| `/specs/AUTHENTIC_DATA.md` | PARTIAL (template mantras in use, authentic 260 mantras pending) |
 
 ### P2.5: PDF Export Enhancement
 **Current:** Falls back to PNG for export.
@@ -167,15 +165,9 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 - Create expanded `mantras-full.ts` with complete data
 
 ### P2.8: PersonCard Direction Attribute
-**Note:** The current plan says PersonCard's `dir="rtl"` is "intentional for Hebrew names". However, this **contradicts** `/specs/CARD_LAYOUT.md` line 155 which specifies `direction: ltr`.
+**Status:** COMPLETE - Changed to LTR per CARD_LAYOUT.md spec (English-first).
 
-**Current state:** `PersonCard.tsx` line 13 has `dir="rtl"` hardcoded.
-
-**Resolution needed:** Clarify intended behavior:
-- If RTL is correct (Hebrew-primary), update spec
-- If LTR is correct (English-primary per spec), update PersonCard
-
-**Complexity:** Trivial (~5 minutes once decision made)
+**Resolution:** PersonCard.tsx line 13 changed from `dir="rtl"` to `dir="ltr"` to match the CARD_LAYOUT.md specification which defines `direction: ltr` for English-primary display.
 
 ---
 
@@ -224,7 +216,7 @@ Per `/specs/DESIGN_SYSTEM.md`:
 | DS | Design System & UX | PARTIAL (basic implementation) |
 | LP | Landing Page | PARTIAL (basic implementation) |
 | AD | Authentic Data | PARTIAL (template mantras only) |
-| UI | English-First Translation | MOSTLY DONE (MVP components complete, RTL cleanup pending) |
+| UI | English-First Translation | COMPLETE (all card components LTR, canvas RTL pending) |
 
 ---
 
@@ -278,24 +270,18 @@ npm run typecheck     # TypeScript check (CLEAN)
 |----------|-------|----------|
 | **P0** | 0 | Critical blockers |
 | **P1** | 0 | Important (all resolved) |
-| **P2** | 6 | Post-MVP enhancements |
+| **P2** | 3 | Post-MVP enhancements (P2.2, P2.4, P2.8 resolved) |
 | **P3** | 4 | Future nice-to-haves |
 
 ### Quick Reference - Next Actions
 
-1. **P2.2** - RTL Cleanup in non-MVP components (GematriaDisplay, CastleDisplay, YearlyDisplay)
+1. **P2.3** - Test Coverage Expansion (component tests, integration tests, API tests)
 
-2. **P2.3** - Test Coverage Expansion (component tests, integration tests, API tests)
+2. **P2.5** - PDF Export Enhancement (html2canvas + jspdf)
 
-3. **P2.4** - Specification Cleanup (update 3 spec files to match implementation)
+3. **P2.6** - Authentic Mantras (source 260 authentic mantras, translate to Hebrew)
 
-4. **P2.5** - PDF Export Enhancement (html2canvas + jspdf)
-
-5. **P2.6** - Authentic Mantras (source 260 authentic mantras, translate to Hebrew)
-
-6. **P2.8** - Resolve PersonCard direction attribute
-   - File: `src/components/cards/PersonCard.tsx` line 13
-   - Clarify: spec says LTR, code has RTL
+4. **Canvas RTL Cleanup** - Lower priority: Remove RTL from 22 canvas components
 
 ---
 

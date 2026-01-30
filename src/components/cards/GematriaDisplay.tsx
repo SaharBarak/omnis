@@ -211,7 +211,7 @@ export function GematriaSummaryCard({
   const digitalRootMeaning = DIGITAL_ROOT_LABELS[summary.digitalRoot]
 
   return (
-    <div className={cn('bg-card border rounded-lg p-4', className)} dir="rtl">
+    <div className={cn('bg-card border rounded-lg p-4', className)}>
       <h4 className="text-sm font-medium mb-3 text-center">
         Gematria of &quot;{result.cleanedText}&quot;
       </h4>
@@ -266,7 +266,7 @@ export function MethodValuesDisplay({
   ]
 
   return (
-    <div className={cn('bg-card border rounded-lg p-4', className)} dir="rtl">
+    <div className={cn('bg-card border rounded-lg p-4', className)}>
       <h4 className="text-sm font-medium mb-3 text-center">Calculation Methods (שיטות חישוב)</h4>
       <div className="space-y-1">
         {methods.map(method => (
@@ -297,7 +297,7 @@ export function NameComparisonDisplay({
   const comparison = compareNames(name1, name2)
 
   return (
-    <div className={cn('bg-card border rounded-lg p-4', className)} dir="rtl">
+    <div className={cn('bg-card border rounded-lg p-4', className)}>
       <h4 className="text-sm font-medium mb-4 text-center">Name Comparison (השוואת שמות)</h4>
 
       {/* Two names side by side */}
@@ -404,7 +404,7 @@ export function GematriaDisplay({
   }
 
   return (
-    <div className={cn('space-y-4', className)} dir="rtl">
+    <div className={cn('space-y-4', className)}>
       {/* Summary card */}
       <GematriaSummaryCard result={result} showNotable={showNotable} />
 

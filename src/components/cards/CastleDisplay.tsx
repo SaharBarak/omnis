@@ -50,10 +50,10 @@ export function CastleDisplay({
   const castles = showAllCastles ? getAllCastles() : [currentCastle]
 
   return (
-    <div className={cn('castle-display', className)} dir="rtl">
+    <div className={cn('castle-display', className)}>
       {showAllCastles && (
         <h3 className="text-lg font-semibold text-center mb-4">
-          חמש הטירות / The Five Castles
+          The Five Castles <span className="text-muted-foreground text-sm">(חמש הטירות)</span>
         </h3>
       )}
 
@@ -79,10 +79,10 @@ export function CastleDisplay({
                   'font-bold text-lg',
                   CASTLE_TEXT_COLORS[castle.color]
                 )}>
-                  {CASTLE_NAMES_HEBREW[castle.number]}
+                  {castle.name}
                 </span>
                 <p className="text-sm text-muted-foreground">
-                  {castle.name}
+                  {CASTLE_NAMES_HEBREW[castle.number]}
                 </p>
               </div>
 
@@ -94,7 +94,6 @@ export function CastleDisplay({
 
                   <div className="mt-3">
                     <p className="text-xs text-muted-foreground mb-2 text-center">
-                      גלים {castle.wavespells[0]}-{castle.wavespells[3]} /
                       Wavespells {castle.wavespells[0]}-{castle.wavespells[3]}
                     </p>
 
@@ -119,11 +118,11 @@ export function CastleDisplay({
                   </div>
 
                   <div className="mt-3 text-center text-sm">
-                    <span className="text-muted-foreground">קין </span>
+                    <span className="text-muted-foreground">Kin </span>
                     <span className="font-semibold">{kin}</span>
-                    <span className="text-muted-foreground"> — יום </span>
+                    <span className="text-muted-foreground"> — Day </span>
                     <span className="font-semibold">{kin - castle.startKin + 1}</span>
-                    <span className="text-muted-foreground"> מתוך 52</span>
+                    <span className="text-muted-foreground"> of 52</span>
                   </div>
                 </>
               )}
@@ -131,11 +130,11 @@ export function CastleDisplay({
               {showAllCastles && (
                 <div className="text-center mt-2">
                   <span className="text-xs text-muted-foreground">
-                    קין {castle.startKin}-{castle.endKin}
+                    Kin {castle.startKin}-{castle.endKin}
                   </span>
                   {isCurrent && (
                     <p className="text-xs text-primary font-medium mt-1">
-                      ← אתה פה
+                      ← You are here
                     </p>
                   )}
                 </div>
@@ -171,7 +170,7 @@ export function CastleMini({ kin, className = '' }: CastleMiniProps) {
         )}
       />
       <span className="text-sm">
-        <span className="font-medium">{CASTLE_NAMES_HEBREW[castle.number]}</span>
+        <span className="font-medium">{castle.name}</span>
         <span className="text-muted-foreground mx-1">•</span>
         <span>{position}/52</span>
       </span>

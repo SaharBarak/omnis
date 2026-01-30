@@ -1,6 +1,6 @@
 # Authentic Dreamspell & Symbolic Data Specification
 
-> **Status:** TODO
+> **Status:** PARTIAL (template mantras in use, authentic 260 mantras pending)
 > **Created:** 2026-01-25
 > **Priority:** HIGH
 > **Goal:** Replace template/placeholder data with authentic source data

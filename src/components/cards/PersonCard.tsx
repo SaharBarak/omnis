@@ -10,7 +10,7 @@ export function PersonCard({ name, birthDate }: PersonCardProps) {
   return (
     <article
       className="person-card w-[148mm] h-[210mm] bg-card border rounded-lg shadow-sm flex flex-col p-6"
-      dir="rtl"
+      dir="ltr"
     >
       {/* Header with name */}
       <header className="border-t-4 border-primary pt-4 mb-4">

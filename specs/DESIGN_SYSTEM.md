@@ -1,6 +1,6 @@
 # Omnis Design System Specification
 
-> **Status:** TODO
+> **Status:** PARTIAL (basic implementation complete, advanced features pending)
 > **Created:** 2026-01-25
 > **Priority:** CRITICAL
 > **Goal:** Establish a cohesive, modern design system with clear visual hierarchy
