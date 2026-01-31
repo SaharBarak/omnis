@@ -470,7 +470,9 @@ function getRelationshipColor(type: string): string {
   return colors[type] || '#6B7280'
 }
 
-export default {
+const boardTemplates = {
   BOARD_TEMPLATE_CONFIGS,
   generateCanvasFromTemplate,
 }
+
+export default boardTemplates

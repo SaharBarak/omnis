@@ -328,10 +328,12 @@ export const EXPORT_SCALE_OPTIONS: { value: number; label: string }[] = [
   { value: 3, label: '300%' },
 ]
 
-export default {
+const canvasExport = {
   exportCanvas,
   downloadExport,
   exportToDataUrl,
   EXPORT_FORMAT_OPTIONS,
   EXPORT_SCALE_OPTIONS,
 }
+
+export default canvasExport
