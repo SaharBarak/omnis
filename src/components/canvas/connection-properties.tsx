@@ -9,17 +9,17 @@ import { useCanvas } from './canvas-context'
 import type { ConnectionType, Marker } from '@/lib/types/board'
 
 const CONNECTION_TYPES: { value: ConnectionType; label: string }[] = [
-  { value: 'line', label: 'קו' },
-  { value: 'curve', label: 'עקומה' },
-  { value: 'flow', label: 'זרימה (חץ)' },
-  { value: 'relationship', label: 'קשר' },
+  { value: 'line', label: 'Line' },
+  { value: 'curve', label: 'Curve' },
+  { value: 'flow', label: 'Flow (Arrow)' },
+  { value: 'relationship', label: 'Relationship' },
 ]
 
 const MARKER_OPTIONS: { value: Marker; label: string }[] = [
-  { value: 'none', label: 'ללא' },
-  { value: 'arrow', label: 'חץ' },
-  { value: 'circle', label: 'עיגול' },
-  { value: 'diamond', label: 'מעוין' },
+  { value: 'none', label: 'None' },
+  { value: 'arrow', label: 'Arrow' },
+  { value: 'circle', label: 'Circle' },
+  { value: 'diamond', label: 'Diamond' },
 ]
 
 const PRESET_COLORS = [
@@ -106,14 +106,14 @@ export function ConnectionPropertiesPanel({ connectionId }: ConnectionProperties
     <div className="w-64 p-4 bg-card rounded-lg shadow-md border max-h-[80vh] overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-sm" dir="rtl">קשר</h3>
+        <h3 className="font-semibold text-sm" dir="ltr">Connection</h3>
         <div className="flex gap-1">
           <Button
             variant="ghost"
             size="icon"
             className="h-8 w-8"
             onClick={handleDelete}
-            title="מחק"
+            title="Delete"
           >
             <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
@@ -122,12 +122,12 @@ export function ConnectionPropertiesPanel({ connectionId }: ConnectionProperties
 
       {/* Connection Type */}
       <div className="space-y-2 mb-4">
-        <Label className="text-xs text-muted-foreground">סוג חיבור</Label>
+        <Label className="text-xs text-muted-foreground">Connection Type</Label>
         <select
           value={connection.type}
           onChange={(e) => handleTypeChange(e.target.value as ConnectionType)}
           className="w-full px-2 py-1.5 text-sm border rounded"
-          dir="rtl"
+          dir="ltr"
         >
           {CONNECTION_TYPES.map(option => (
             <option key={option.value} value={option.value}>
@@ -139,16 +139,16 @@ export function ConnectionPropertiesPanel({ connectionId }: ConnectionProperties
 
       {/* Label */}
       <div className="space-y-2 mb-4">
-        <Label className="text-xs text-muted-foreground">תווית</Label>
+        <Label className="text-xs text-muted-foreground">Label</Label>
         <div className="flex gap-2">
           <input
             type="text"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             onBlur={handleLabelChange}
-            placeholder="הוסף תווית..."
+            placeholder="Add label..."
             className="flex-1 px-2 py-1 text-sm border rounded"
-            dir="rtl"
+            dir="ltr"
           />
         </div>
       </div>
@@ -159,7 +159,7 @@ export function ConnectionPropertiesPanel({ connectionId }: ConnectionProperties
       <div className="space-y-4">
         {/* Color */}
         <div className="space-y-2">
-          <Label className="text-xs text-muted-foreground">צבע</Label>
+          <Label className="text-xs text-muted-foreground">Color</Label>
           <div className="flex flex-wrap gap-2">
             {PRESET_COLORS.map(color => (
               <button
@@ -183,7 +183,7 @@ export function ConnectionPropertiesPanel({ connectionId }: ConnectionProperties
 
         {/* Width */}
         <div className="space-y-2">
-          <Label className="text-xs text-muted-foreground">עובי</Label>
+          <Label className="text-xs text-muted-foreground">Width</Label>
           <div className="flex items-center gap-2">
             <input
               type="range"
@@ -194,7 +194,7 @@ export function ConnectionPropertiesPanel({ connectionId }: ConnectionProperties
               onChange={(e) => handleWidthChange(Number(e.target.value))}
               className="flex-1"
             />
-            <span className="text-sm w-8 text-right">{connection.style.width}px</span>
+            <span className="text-sm w-8 text-left">{connection.style.width}px</span>
           </div>
         </div>
 
@@ -207,20 +207,20 @@ export function ConnectionPropertiesPanel({ connectionId }: ConnectionProperties
             onChange={(e) => handleDashChange(e.target.checked)}
             className="rounded border"
           />
-          <Label htmlFor="dashed" className="text-sm">קו מקווקו</Label>
+          <Label htmlFor="dashed" className="text-sm">Dashed line</Label>
         </div>
 
         {/* Markers */}
         <div className="space-y-2">
-          <Label className="text-xs text-muted-foreground">סמנים</Label>
+          <Label className="text-xs text-muted-foreground">Markers</Label>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label className="text-xs">התחלה</Label>
+              <Label className="text-xs">Start</Label>
               <select
                 value={connection.style.startMarker || 'none'}
                 onChange={(e) => handleStartMarkerChange(e.target.value as Marker)}
                 className="w-full px-2 py-1 text-sm border rounded"
-                dir="rtl"
+                dir="ltr"
               >
                 {MARKER_OPTIONS.map(option => (
                   <option key={option.value} value={option.value}>
@@ -230,12 +230,12 @@ export function ConnectionPropertiesPanel({ connectionId }: ConnectionProperties
               </select>
             </div>
             <div>
-              <Label className="text-xs">סוף</Label>
+              <Label className="text-xs">End</Label>
               <select
                 value={connection.style.endMarker || 'none'}
                 onChange={(e) => handleEndMarkerChange(e.target.value as Marker)}
                 className="w-full px-2 py-1 text-sm border rounded"
-                dir="rtl"
+                dir="ltr"
               >
                 {MARKER_OPTIONS.map(option => (
                   <option key={option.value} value={option.value}>

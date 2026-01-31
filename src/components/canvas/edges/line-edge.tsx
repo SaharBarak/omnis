@@ -56,7 +56,7 @@ export const LineEdge = memo(function LineEdge({
             style={{
               transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
             }}
-            dir="rtl"
+            dir="ltr"
           >
             {label}
           </div>

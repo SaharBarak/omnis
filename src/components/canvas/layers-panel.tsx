@@ -42,7 +42,7 @@ export function LayersPanel() {
     const newId = `layer-${Date.now()}`
     addLayer({
       id: newId,
-      name: `שכבה ${layers.length + 1}`,
+      name: `Layer ${layers.length + 1}`,
       visible: true,
       locked: false,
       opacity: 1,
@@ -88,7 +88,7 @@ export function LayersPanel() {
           className="px-4"
           onClick={() => setIsExpanded(true)}
         >
-          שכבות ({layers.length})
+          Layers ({layers.length})
           <ChevronUp className="h-4 w-4 mr-2" />
         </Button>
       </div>
@@ -103,7 +103,7 @@ export function LayersPanel() {
           size="sm"
           onClick={() => setIsExpanded(false)}
         >
-          שכבות
+          Layers
           <ChevronDown className="h-4 w-4 mr-2" />
         </Button>
         <Button
@@ -111,7 +111,7 @@ export function LayersPanel() {
           size="icon"
           className="h-8 w-8"
           onClick={handleAddLayer}
-          title="הוסף שכבה"
+          title="Add layer"
         >
           <Plus className="h-4 w-4" />
         </Button>
@@ -137,7 +137,7 @@ export function LayersPanel() {
             {/* Layer name */}
             <span
               className="text-sm font-medium"
-              dir="rtl"
+              dir="ltr"
               style={{ opacity: layer.opacity }}
             >
               {layer.name}
@@ -160,7 +160,7 @@ export function LayersPanel() {
                   e.stopPropagation()
                   toggleLayerVisibility(layer.id)
                 }}
-                title={layer.visible ? 'הסתר שכבה' : 'הצג שכבה'}
+                title={layer.visible ? 'Hide layer' : 'Show layer'}
               >
                 {layer.visible ? (
                   <Eye className="h-3 w-3" />
@@ -176,7 +176,7 @@ export function LayersPanel() {
                   e.stopPropagation()
                   toggleLayerLock(layer.id)
                 }}
-                title={layer.locked ? 'בטל נעילה' : 'נעל שכבה'}
+                title={layer.locked ? 'Unlock' : 'Lock layer'}
               >
                 {layer.locked ? (
                   <Lock className="h-3 w-3 text-amber-600" />
@@ -193,7 +193,7 @@ export function LayersPanel() {
                   handleMoveUp(layer.id)
                 }}
                 disabled={index === 0}
-                title="העבר למעלה"
+                title="Move up"
               >
                 <ChevronUp className="h-3 w-3" />
               </Button>
@@ -206,7 +206,7 @@ export function LayersPanel() {
                   handleMoveDown(layer.id)
                 }}
                 disabled={index === sortedLayers.length - 1}
-                title="העבר למטה"
+                title="Move down"
               >
                 <ChevronDown className="h-3 w-3" />
               </Button>
@@ -219,28 +219,28 @@ export function LayersPanel() {
                     size="icon"
                     className="h-6 w-6"
                     onClick={(e) => e.stopPropagation()}
-                    title="הגדרות שכבה"
+                    title="Layer settings"
                   >
                     <Settings className="h-3 w-3" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-56" dir="rtl" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                <PopoverContent className="w-56" dir="ltr" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                   <div className="space-y-3">
                     {/* Name */}
                     <div className="space-y-1">
-                      <Label className="text-xs">שם</Label>
+                      <Label className="text-xs">Name</Label>
                       <input
                         type="text"
                         value={layer.name}
                         onChange={(e) => handleNameChange(layer.id, e.target.value)}
                         className="w-full px-2 py-1 text-sm border rounded"
-                        dir="rtl"
+                        dir="ltr"
                       />
                     </div>
 
                     {/* Opacity */}
                     <div className="space-y-1">
-                      <Label className="text-xs">שקיפות</Label>
+                      <Label className="text-xs">Opacity</Label>
                       <div className="flex items-center gap-2">
                         <input
                           type="range"
@@ -251,7 +251,7 @@ export function LayersPanel() {
                           onChange={(e) => handleOpacityChange(layer.id, Number(e.target.value))}
                           className="flex-1"
                         />
-                        <span className="text-xs w-10 text-right">
+                        <span className="text-xs w-10 text-left">
                           {Math.round(layer.opacity * 100)}%
                         </span>
                       </div>
@@ -259,7 +259,7 @@ export function LayersPanel() {
 
                     {/* Color */}
                     <div className="space-y-1">
-                      <Label className="text-xs">צבע</Label>
+                      <Label className="text-xs">Color</Label>
                       <input
                         type="color"
                         value={layer.color}
@@ -280,7 +280,7 @@ export function LayersPanel() {
                     e.stopPropagation()
                     deleteLayer(layer.id)
                   }}
-                  title="מחק שכבה"
+                  title="Delete layer"
                 >
                   <Trash2 className="h-3 w-3 text-destructive" />
                 </Button>

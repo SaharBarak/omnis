@@ -80,8 +80,8 @@ export const StickyCanvasNode = memo(function StickyCanvasNode({
             fontSize: 14,
             color: '#1F2937',
           }}
-          dir="rtl"
-          placeholder="כתוב הערה..."
+          dir="ltr"
+          placeholder="Write a note..."
         />
       ) : (
         <div
@@ -90,9 +90,9 @@ export const StickyCanvasNode = memo(function StickyCanvasNode({
             fontFamily: "'Heebo', sans-serif",
             color: '#1F2937',
           }}
-          dir="rtl"
+          dir="ltr"
         >
-          {content || 'לחץ פעמיים לעריכה'}
+          {content || 'Double-click to edit'}
         </div>
       )}
 

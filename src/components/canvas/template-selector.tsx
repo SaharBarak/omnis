@@ -18,7 +18,7 @@ export function TemplateSelector({
   open,
   onClose,
   onSelect,
-  title = 'בחר תבנית',
+  title = 'Select Template',
 }: TemplateSelectorProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<BoardTemplate>('blank')
 
@@ -36,7 +36,7 @@ export function TemplateSelector({
       <div className="bg-card rounded-lg shadow-xl border w-[600px] max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold" dir="rtl">{title}</h2>
+          <h2 className="text-lg font-semibold" dir="ltr">{title}</h2>
           <Button
             variant="ghost"
             size="icon"
@@ -48,7 +48,7 @@ export function TemplateSelector({
         </div>
 
         {/* Content */}
-        <div className="p-4" dir="rtl">
+        <div className="p-4" dir="ltr">
           <div className="grid grid-cols-2 gap-4">
             {templates.map(template => (
               <TemplateCard
@@ -64,11 +64,11 @@ export function TemplateSelector({
         {/* Footer */}
         <div className="flex justify-end gap-2 p-4 border-t">
           <Button variant="outline" onClick={onClose}>
-            ביטול
+            Cancel
           </Button>
           <Button onClick={handleConfirm}>
-            <Check className="h-4 w-4 ml-2" />
-            צור לוח
+            <Check className="h-4 w-4 mr-2" />
+            Create Board
           </Button>
         </div>
       </div>
@@ -86,7 +86,7 @@ function TemplateCard({ template, selected, onSelect }: TemplateCardProps) {
   return (
     <button
       type="button"
-      className={`relative p-4 text-right border rounded-lg transition-all hover:shadow-md ${
+      className={`relative p-4 text-left border rounded-lg transition-all hover:shadow-md ${
         selected
           ? 'border-primary bg-primary/5 ring-2 ring-primary'
           : 'border-border hover:border-primary/50'
@@ -95,7 +95,7 @@ function TemplateCard({ template, selected, onSelect }: TemplateCardProps) {
     >
       {/* Selection indicator */}
       {selected && (
-        <div className="absolute top-2 left-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+        <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
           <Check className="h-3 w-3 text-primary-foreground" />
         </div>
       )}
@@ -104,23 +104,23 @@ function TemplateCard({ template, selected, onSelect }: TemplateCardProps) {
       <div className="text-4xl mb-3">{template.icon}</div>
 
       {/* Name */}
-      <h3 className="font-semibold text-base mb-1">{template.nameHebrew}</h3>
+      <h3 className="font-semibold text-base mb-1">{template.name}</h3>
 
       {/* Description */}
-      <p className="text-sm text-muted-foreground">{template.descriptionHebrew}</p>
+      <p className="text-sm text-muted-foreground">{template.description}</p>
 
       {/* Features */}
       <div className="mt-3 flex flex-wrap gap-1.5">
         {template.autoPopulate && (
           <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">
-            אוטומטי
+            Auto
           </span>
         )}
         {template.layout && template.layout !== 'free' && (
           <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded-full">
-            {template.layout === 'hierarchical' ? 'היררכי' :
-             template.layout === 'circular' ? 'מעגלי' :
-             template.layout === 'force-directed' ? 'דינמי' : template.layout}
+            {template.layout === 'hierarchical' ? 'Hierarchical' :
+             template.layout === 'circular' ? 'Circular' :
+             template.layout === 'force-directed' ? 'Dynamic' : template.layout}
           </span>
         )}
       </div>
@@ -138,8 +138,8 @@ export function InlineTemplateSelector({ value, onChange }: InlineTemplateSelect
   const templates = Object.values(BOARD_TEMPLATE_CONFIGS)
 
   return (
-    <div className="space-y-3" dir="rtl">
-      <Label className="text-sm font-medium">תבנית</Label>
+    <div className="space-y-3" dir="ltr">
+      <Label className="text-sm font-medium">Template</Label>
       <div className="grid grid-cols-3 gap-2">
         {templates.map(template => (
           <button
@@ -153,7 +153,7 @@ export function InlineTemplateSelector({ value, onChange }: InlineTemplateSelect
             onClick={() => onChange(template.id)}
           >
             <div className="text-2xl mb-1">{template.icon}</div>
-            <div className="text-xs font-medium">{template.nameHebrew}</div>
+            <div className="text-xs font-medium">{template.name}</div>
           </button>
         ))}
       </div>

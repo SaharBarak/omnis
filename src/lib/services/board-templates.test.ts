@@ -582,7 +582,7 @@ describe('Board Templates Service', () => {
         const positions = result.canvas.nodes.map(n => n.position)
 
         // Check that Y positions form rows
-        const uniqueYs = [...new Set(positions.map(p => p.y))]
+        const uniqueYs = Array.from(new Set(positions.map(p => p.y)))
         expect(uniqueYs.length).toBeGreaterThanOrEqual(2) // At least 2 rows for 6 people
       })
     })

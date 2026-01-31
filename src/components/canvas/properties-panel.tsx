@@ -34,40 +34,40 @@ import { STICKY_COLORS } from '@/lib/types/board'
 
 // Display mode options
 const DISPLAY_MODES: { value: PersonDisplayMode; label: string }[] = [
-  { value: 'avatar', label: 'תמונה' },
-  { value: 'mini', label: 'מינימלי' },
-  { value: 'card', label: 'כרטיס' },
-  { value: 'detailed', label: 'מפורט' },
+  { value: 'avatar', label: 'Avatar' },
+  { value: 'mini', label: 'Mini' },
+  { value: 'card', label: 'Card' },
+  { value: 'detailed', label: 'Detailed' },
 ]
 
 // System types for checkboxes
 const SYSTEM_TYPES: { value: SystemType; label: string }[] = [
-  { value: 'dreamspell', label: 'דרימספל' },
-  { value: 'tzolkin', label: 'צולקין' },
-  { value: 'longcount', label: 'ספירה ארוכה' },
-  { value: 'astrology', label: 'אסטרולוגיה' },
-  { value: 'humandesign', label: 'עיצוב אנושי' },
-  { value: 'gematria', label: 'גימטריה' },
+  { value: 'dreamspell', label: 'Dreamspell' },
+  { value: 'tzolkin', label: 'Tzolkin' },
+  { value: 'longcount', label: 'Long Count' },
+  { value: 'astrology', label: 'Astrology' },
+  { value: 'humandesign', label: 'Human Design' },
+  { value: 'gematria', label: 'Gematria' },
 ]
 
 // Shape type options
 const SHAPE_TYPES: { value: ShapeType; label: string }[] = [
-  { value: 'rectangle', label: 'מלבן' },
-  { value: 'ellipse', label: 'אליפסה' },
-  { value: 'triangle', label: 'משולש' },
-  { value: 'diamond', label: 'מעוין' },
-  { value: 'star', label: 'כוכב' },
-  { value: 'arrow', label: 'חץ' },
-  { value: 'line', label: 'קו' },
+  { value: 'rectangle', label: 'Rectangle' },
+  { value: 'ellipse', label: 'Ellipse' },
+  { value: 'triangle', label: 'Triangle' },
+  { value: 'diamond', label: 'Diamond' },
+  { value: 'star', label: 'Star' },
+  { value: 'arrow', label: 'Arrow' },
+  { value: 'line', label: 'Line' },
 ]
 
 // Sticky note color options
 const STICKY_COLOR_OPTIONS: { value: StickyColor; label: string }[] = [
-  { value: 'yellow', label: 'צהוב' },
-  { value: 'pink', label: 'ורוד' },
-  { value: 'blue', label: 'כחול' },
-  { value: 'green', label: 'ירוק' },
-  { value: 'purple', label: 'סגול' },
+  { value: 'yellow', label: 'Yellow' },
+  { value: 'pink', label: 'Pink' },
+  { value: 'blue', label: 'Blue' },
+  { value: 'green', label: 'Green' },
+  { value: 'purple', label: 'Purple' },
 ]
 
 // Preset colors for various color pickers
@@ -84,9 +84,9 @@ const PRESET_COLORS = [
 
 // Text alignment options
 const TEXT_ALIGNMENTS: { value: 'right' | 'center' | 'left'; label: string; icon: 'right' | 'center' | 'left' }[] = [
-  { value: 'right', label: 'ימין', icon: 'right' },
-  { value: 'center', label: 'מרכז', icon: 'center' },
-  { value: 'left', label: 'שמאל', icon: 'left' },
+  { value: 'left', label: 'Left', icon: 'left' },
+  { value: 'center', label: 'Center', icon: 'center' },
+  { value: 'right', label: 'Right', icon: 'right' },
 ]
 
 // Helper type guards
@@ -268,21 +268,21 @@ export function PropertiesPanel() {
     <div className="w-64 p-4 bg-card rounded-lg shadow-md border max-h-[80vh] overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-sm" dir="rtl">
+        <h3 className="font-semibold text-sm" dir="ltr">
           {isMultiSelect
-            ? `${selectedNodes.length} פריטים נבחרו`
-            : firstNode.type === 'person' ? 'אדם'
-            : firstNode.type === 'text' ? 'טקסט'
-            : firstNode.type === 'shape' ? 'צורה'
-            : firstNode.type === 'sticky' ? 'פתק'
-            : 'פריט'
+            ? `${selectedNodes.length} items selected`
+            : firstNode.type === 'person' ? 'Person'
+            : firstNode.type === 'text' ? 'Text'
+            : firstNode.type === 'shape' ? 'Shape'
+            : firstNode.type === 'sticky' ? 'Sticky'
+            : 'Item'
           }
         </h3>
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleDuplicate} title="שכפל">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleDuplicate} title="Duplicate">
             <Copy className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleDelete} title="מחק">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleDelete} title="Delete">
             <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
         </div>
@@ -292,7 +292,7 @@ export function PropertiesPanel() {
       {!isMultiSelect && (
         <>
           <div className="space-y-2 mb-4">
-            <Label className="text-xs text-muted-foreground">מיקום</Label>
+            <Label className="text-xs text-muted-foreground">Position</Label>
             <div className="flex gap-2">
               <div className="flex-1">
                 <Label className="text-xs">X</Label>
@@ -316,10 +316,10 @@ export function PropertiesPanel() {
           </div>
 
           <div className="space-y-2 mb-4">
-            <Label className="text-xs text-muted-foreground">גודל</Label>
+            <Label className="text-xs text-muted-foreground">Size</Label>
             <div className="flex gap-2">
               <div className="flex-1">
-                <Label className="text-xs">רוחב</Label>
+                <Label className="text-xs">Width</Label>
                 <input
                   type="number"
                   value={Math.round(firstNode.size.width)}
@@ -328,7 +328,7 @@ export function PropertiesPanel() {
                 />
               </div>
               <div className="flex-1">
-                <Label className="text-xs">גובה</Label>
+                <Label className="text-xs">Height</Label>
                 <input
                   type="number"
                   value={Math.round(firstNode.size.height)}
@@ -347,25 +347,25 @@ export function PropertiesPanel() {
       {isMultiSelect && (
         <>
           <div className="space-y-2 mb-4">
-            <Label className="text-xs text-muted-foreground">יישור</Label>
+            <Label className="text-xs text-muted-foreground">Alignment</Label>
             <div className="flex gap-1">
-              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => alignNodes('left')} title="יישר שמאלה">
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => alignNodes('left')} title="Align left">
                 <AlignLeft className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => alignNodes('center')} title="יישר למרכז (אופקי)">
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => alignNodes('center')} title="Align center (horizontal)">
                 <AlignCenter className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => alignNodes('right')} title="יישר ימינה">
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => alignNodes('right')} title="Align right">
                 <AlignRight className="h-4 w-4" />
               </Button>
               <div className="w-px bg-border mx-1" />
-              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => alignNodes('top')} title="יישר למעלה">
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => alignNodes('top')} title="Align top">
                 <AlignStartVertical className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => alignNodes('middle')} title="יישר למרכז (אנכי)">
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => alignNodes('middle')} title="Align middle (vertical)">
                 <AlignCenterVertical className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => alignNodes('bottom')} title="יישר למטה">
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => alignNodes('bottom')} title="Align bottom">
                 <AlignEndVertical className="h-4 w-4" />
               </Button>
             </div>
@@ -377,7 +377,7 @@ export function PropertiesPanel() {
 
       {/* Opacity */}
       <div className="space-y-2 mb-4">
-        <Label className="text-xs text-muted-foreground">שקיפות</Label>
+        <Label className="text-xs text-muted-foreground">Opacity</Label>
         <div className="flex items-center gap-2">
           <input
             type="range"
@@ -388,7 +388,7 @@ export function PropertiesPanel() {
             onChange={(e) => handleOpacityChange(Number(e.target.value))}
             className="flex-1"
           />
-          <span className="text-sm w-12 text-right">
+          <span className="text-sm w-12 text-left">
             {Math.round(firstNode.style.opacity * 100)}%
           </span>
         </div>
@@ -396,12 +396,12 @@ export function PropertiesPanel() {
 
       {/* Layer */}
       <div className="space-y-2 mb-4">
-        <Label className="text-xs text-muted-foreground">שכבה</Label>
+        <Label className="text-xs text-muted-foreground">Layer</Label>
         <select
           value={firstNode.layerId}
           onChange={(e) => handleLayerChange(e.target.value)}
           className="w-full px-2 py-1.5 text-sm border rounded"
-          dir="rtl"
+          dir="ltr"
         >
           {layers.map(layer => (
             <option key={layer.id} value={layer.id}>
@@ -420,12 +420,12 @@ export function PropertiesPanel() {
           <div className="space-y-4">
             {/* Display Mode */}
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">מצב תצוגה</Label>
+              <Label className="text-xs text-muted-foreground">Display Mode</Label>
               <select
                 value={firstNode.display || 'card'}
                 onChange={(e) => handleDisplayModeChange(e.target.value as PersonDisplayMode)}
                 className="w-full px-2 py-1.5 text-sm border rounded"
-                dir="rtl"
+                dir="ltr"
               >
                 {DISPLAY_MODES.map(option => (
                   <option key={option.value} value={option.value}>
@@ -437,7 +437,7 @@ export function PropertiesPanel() {
 
             {/* Show Systems */}
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">הצג מערכות</Label>
+              <Label className="text-xs text-muted-foreground">Show Systems</Label>
               <div className="space-y-1.5">
                 {SYSTEM_TYPES.map(system => (
                   <label key={system.value} className="flex items-center gap-2 cursor-pointer">
@@ -463,7 +463,7 @@ export function PropertiesPanel() {
           <div className="space-y-4">
             {/* Font Size */}
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">גודל גופן</Label>
+              <Label className="text-xs text-muted-foreground">Font Size</Label>
               <div className="flex items-center gap-2">
                 <input
                   type="range"
@@ -474,30 +474,30 @@ export function PropertiesPanel() {
                   onChange={(e) => handleFontSizeChange(Number(e.target.value))}
                   className="flex-1"
                 />
-                <span className="text-sm w-12 text-right">{firstNode.textStyle.fontSize}px</span>
+                <span className="text-sm w-12 text-left">{firstNode.textStyle.fontSize}px</span>
               </div>
             </div>
 
             {/* Font Weight */}
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">משקל גופן</Label>
+              <Label className="text-xs text-muted-foreground">Font Weight</Label>
               <select
                 value={firstNode.textStyle.fontWeight}
                 onChange={(e) => handleFontWeightChange(Number(e.target.value))}
                 className="w-full px-2 py-1.5 text-sm border rounded"
-                dir="rtl"
+                dir="ltr"
               >
-                <option value={300}>קל</option>
-                <option value={400}>רגיל</option>
-                <option value={500}>בינוני</option>
-                <option value={600}>חצי מודגש</option>
-                <option value={700}>מודגש</option>
+                <option value={300}>Light</option>
+                <option value={400}>Regular</option>
+                <option value={500}>Medium</option>
+                <option value={600}>Semibold</option>
+                <option value={700}>Bold</option>
               </select>
             </div>
 
             {/* Text Color */}
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">צבע טקסט</Label>
+              <Label className="text-xs text-muted-foreground">Text Color</Label>
               <div className="flex flex-wrap gap-2">
                 {PRESET_COLORS.map(color => (
                   <button
@@ -521,7 +521,7 @@ export function PropertiesPanel() {
 
             {/* Text Alignment */}
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">יישור טקסט</Label>
+              <Label className="text-xs text-muted-foreground">Text Alignment</Label>
               <div className="flex gap-1">
                 {TEXT_ALIGNMENTS.map(align => (
                   <Button
@@ -550,12 +550,12 @@ export function PropertiesPanel() {
           <div className="space-y-4">
             {/* Shape Type */}
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">סוג צורה</Label>
+              <Label className="text-xs text-muted-foreground">Shape Type</Label>
               <select
                 value={firstNode.shape}
                 onChange={(e) => handleShapeTypeChange(e.target.value as ShapeType)}
                 className="w-full px-2 py-1.5 text-sm border rounded"
-                dir="rtl"
+                dir="ltr"
               >
                 {SHAPE_TYPES.map(option => (
                   <option key={option.value} value={option.value}>
@@ -567,7 +567,7 @@ export function PropertiesPanel() {
 
             {/* Fill Color */}
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">צבע מילוי</Label>
+              <Label className="text-xs text-muted-foreground">Fill Color</Label>
               <div className="flex flex-wrap gap-2">
                 {PRESET_COLORS.map(color => (
                   <button
@@ -591,7 +591,7 @@ export function PropertiesPanel() {
 
             {/* Stroke Color */}
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">צבע קו מתאר</Label>
+              <Label className="text-xs text-muted-foreground">Stroke Color</Label>
               <div className="flex flex-wrap gap-2">
                 {PRESET_COLORS.map(color => (
                   <button
@@ -615,7 +615,7 @@ export function PropertiesPanel() {
 
             {/* Stroke Width */}
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">עובי קו מתאר</Label>
+              <Label className="text-xs text-muted-foreground">Stroke Width</Label>
               <div className="flex items-center gap-2">
                 <input
                   type="range"
@@ -626,7 +626,7 @@ export function PropertiesPanel() {
                   onChange={(e) => handleStrokeWidthChange(Number(e.target.value))}
                   className="flex-1"
                 />
-                <span className="text-sm w-12 text-right">{firstNode.stroke.width}px</span>
+                <span className="text-sm w-12 text-left">{firstNode.stroke.width}px</span>
               </div>
             </div>
           </div>
@@ -640,7 +640,7 @@ export function PropertiesPanel() {
           <div className="space-y-4">
             {/* Sticky Color */}
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">צבע פתק</Label>
+              <Label className="text-xs text-muted-foreground">Sticky Color</Label>
               <div className="flex flex-wrap gap-2">
                 {STICKY_COLOR_OPTIONS.map(option => (
                   <button
@@ -672,13 +672,13 @@ export function PropertiesPanel() {
         >
           {firstNode.locked ? (
             <>
-              <Unlock className="h-4 w-4 ml-2" />
-              בטל נעילה
+              <Unlock className="h-4 w-4 mr-2" />
+              Unlock
             </>
           ) : (
             <>
-              <Lock className="h-4 w-4 ml-2" />
-              נעל
+              <Lock className="h-4 w-4 mr-2" />
+              Lock
             </>
           )}
         </Button>
@@ -690,13 +690,13 @@ export function PropertiesPanel() {
         >
           {firstNode.visible ? (
             <>
-              <EyeOff className="h-4 w-4 ml-2" />
-              הסתר
+              <EyeOff className="h-4 w-4 mr-2" />
+              Hide
             </>
           ) : (
             <>
-              <Eye className="h-4 w-4 ml-2" />
-              הצג
+              <Eye className="h-4 w-4 mr-2" />
+              Show
             </>
           )}
         </Button>

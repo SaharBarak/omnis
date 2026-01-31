@@ -61,8 +61,8 @@ export const TextCanvasNode = memo(function TextCanvasNode({
     fontSize: textStyle?.fontSize || 16,
     fontWeight: textStyle?.fontWeight || 400,
     color: textStyle?.color || 'inherit',
-    textAlign: textStyle?.alignment || 'right',
-    direction: textStyle?.direction || 'rtl',
+    textAlign: textStyle?.alignment || 'left',
+    direction: textStyle?.direction || 'ltr',
     lineHeight: textStyle?.lineHeight || 1.5,
   }
 
@@ -84,15 +84,15 @@ export const TextCanvasNode = memo(function TextCanvasNode({
           autoFocus
           className="w-full h-full min-h-[100px] bg-transparent border-none outline-none resize-none"
           style={style}
-          dir={textStyle?.direction || 'rtl'}
+          dir={textStyle?.direction || 'ltr'}
         />
       ) : (
         <div
           className="whitespace-pre-wrap"
           style={style}
-          dir={textStyle?.direction || 'rtl'}
+          dir={textStyle?.direction || 'ltr'}
         >
-          {content || 'לחץ פעמיים לעריכה'}
+          {content || 'Double-click to edit'}
         </div>
       )}
 

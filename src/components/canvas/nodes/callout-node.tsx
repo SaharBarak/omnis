@@ -116,16 +116,16 @@ export const CalloutCanvasNode = memo(function CalloutCanvasNode({
           autoFocus
           className="w-full h-full min-h-[40px] bg-transparent border-none outline-none resize-none text-sm"
           style={{ color: textColor }}
-          dir="rtl"
-          placeholder="הוסף הערה..."
+          dir="ltr"
+          placeholder="Add a note..."
         />
       ) : (
         <div
           className="text-sm whitespace-pre-wrap"
           style={{ color: textColor }}
-          dir="rtl"
+          dir="ltr"
         >
-          {content || 'לחץ פעמיים לעריכה'}
+          {content || 'Double-click to edit'}
         </div>
       )}
 

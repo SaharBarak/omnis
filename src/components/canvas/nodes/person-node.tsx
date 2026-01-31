@@ -67,8 +67,8 @@ export const PersonCanvasNode = memo(function PersonCanvasNode({
             )}
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-medium truncate" dir="rtl">
-              {hebrewName || personName}
+            <p className="text-sm font-medium truncate" dir="ltr">
+              {personName || hebrewName}
             </p>
           </div>
         </div>
@@ -101,8 +101,8 @@ export const PersonCanvasNode = memo(function PersonCanvasNode({
 
         {/* Name */}
         <div className="text-center">
-          <h3 className="font-semibold text-lg" dir="rtl">
-            {hebrewName || personName || 'אדם חדש'}
+          <h3 className="font-semibold text-lg" dir="ltr">
+            {personName || hebrewName || 'New person'}
           </h3>
           {hebrewName && personName && hebrewName !== personName && (
             <p className="text-sm text-muted-foreground">{personName}</p>
@@ -113,19 +113,19 @@ export const PersonCanvasNode = memo(function PersonCanvasNode({
         {showSystems && showSystems.length > 0 && (
           <div className="flex flex-wrap gap-1 justify-center">
             {showSystems.includes('dreamspell') && (
-              <span className="px-2 py-0.5 text-xs rounded bg-red-100 text-red-800">דרימספל</span>
+              <span className="px-2 py-0.5 text-xs rounded bg-red-100 text-red-800">Dreamspell</span>
             )}
             {showSystems.includes('tzolkin') && (
-              <span className="px-2 py-0.5 text-xs rounded bg-orange-100 text-orange-800">צולקין</span>
+              <span className="px-2 py-0.5 text-xs rounded bg-orange-100 text-orange-800">Tzolkin</span>
             )}
             {showSystems.includes('astrology') && (
-              <span className="px-2 py-0.5 text-xs rounded bg-purple-100 text-purple-800">אסטרו</span>
+              <span className="px-2 py-0.5 text-xs rounded bg-purple-100 text-purple-800">Astro</span>
             )}
             {showSystems.includes('humandesign') && (
               <span className="px-2 py-0.5 text-xs rounded bg-pink-100 text-pink-800">HD</span>
             )}
             {showSystems.includes('gematria') && (
-              <span className="px-2 py-0.5 text-xs rounded bg-cyan-100 text-cyan-800">גימטריה</span>
+              <span className="px-2 py-0.5 text-xs rounded bg-cyan-100 text-cyan-800">Gematria</span>
             )}
           </div>
         )}

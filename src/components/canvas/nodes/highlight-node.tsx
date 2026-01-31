@@ -37,7 +37,7 @@ export const HighlightCanvasNode = memo(function HighlightCanvasNode({
             backgroundColor: color,
             color: 'white',
           }}
-          dir="rtl"
+          dir="ltr"
         >
           {label}
         </div>

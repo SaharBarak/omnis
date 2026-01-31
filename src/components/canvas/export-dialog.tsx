@@ -29,7 +29,7 @@ export function ExportDialog({ open, onClose, canvasRef, boardName }: ExportDial
 
   const handleExport = useCallback(async () => {
     if (!canvasRef.current) {
-      setError('לא נמצא אלמנט הקנבס')
+      setError('Canvas element not found')
       return
     }
 
@@ -50,7 +50,7 @@ export function ExportDialog({ open, onClose, canvasRef, boardName }: ExportDial
       onClose()
     } catch (err) {
       console.error('Export failed:', err)
-      setError(err instanceof Error ? err.message : 'שגיאה בייצוא')
+      setError(err instanceof Error ? err.message : 'Export error')
     } finally {
       setIsExporting(false)
     }
@@ -63,7 +63,7 @@ export function ExportDialog({ open, onClose, canvasRef, boardName }: ExportDial
       <div className="bg-card rounded-lg shadow-xl border w-[400px] max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold" dir="rtl">ייצוא קנבס</h2>
+          <h2 className="text-lg font-semibold" dir="ltr">Export Canvas</h2>
           <Button
             variant="ghost"
             size="icon"
@@ -75,16 +75,16 @@ export function ExportDialog({ open, onClose, canvasRef, boardName }: ExportDial
         </div>
 
         {/* Content */}
-        <div className="p-4 space-y-6" dir="rtl">
+        <div className="p-4 space-y-6" dir="ltr">
           {/* Format Selection */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">פורמט</Label>
+            <Label className="text-sm font-medium">Format</Label>
             <div className="grid grid-cols-2 gap-2">
               {EXPORT_FORMAT_OPTIONS.map(option => (
                 <button
                   key={option.value}
                   type="button"
-                  className={`p-3 text-right border rounded-lg transition-all ${
+                  className={`p-3 text-left border rounded-lg transition-all ${
                     format === option.value
                       ? 'border-primary bg-primary/5 ring-1 ring-primary'
                       : 'border-border hover:border-primary/50'
@@ -95,7 +95,7 @@ export function ExportDialog({ open, onClose, canvasRef, boardName }: ExportDial
                   <div className="font-medium">{option.label}</div>
                   <div className="text-xs text-muted-foreground">{option.description}</div>
                   {option.value === 'pdf' && (
-                    <div className="text-xs text-amber-500 mt-1">בקרוב</div>
+                    <div className="text-xs text-amber-500 mt-1">Coming soon</div>
                   )}
                 </button>
               ))}
@@ -104,7 +104,7 @@ export function ExportDialog({ open, onClose, canvasRef, boardName }: ExportDial
 
           {/* Scale Selection */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">רזולוציה</Label>
+            <Label className="text-sm font-medium">Resolution</Label>
             <div className="flex gap-2">
               {EXPORT_SCALE_OPTIONS.map(option => (
                 <button
@@ -122,7 +122,7 @@ export function ExportDialog({ open, onClose, canvasRef, boardName }: ExportDial
               ))}
             </div>
             <p className="text-xs text-muted-foreground">
-              רזולוציה גבוהה יותר = איכות טובה יותר, קובץ גדול יותר
+              Higher resolution = better quality, larger file
             </p>
           </div>
 
@@ -136,14 +136,14 @@ export function ExportDialog({ open, onClose, canvasRef, boardName }: ExportDial
               className="rounded border"
             />
             <Label htmlFor="include-background" className="text-sm cursor-pointer">
-              כלול רקע לבן
+              Include white background
             </Label>
           </div>
 
           {/* Quality Slider (JPEG only) */}
           {format === 'jpeg' && (
             <div className="space-y-3">
-              <Label className="text-sm font-medium">איכות</Label>
+              <Label className="text-sm font-medium">Quality</Label>
               <div className="flex items-center gap-3">
                 <input
                   type="range"
@@ -170,18 +170,18 @@ export function ExportDialog({ open, onClose, canvasRef, boardName }: ExportDial
         {/* Footer */}
         <div className="flex justify-end gap-2 p-4 border-t">
           <Button variant="outline" onClick={onClose} disabled={isExporting}>
-            ביטול
+            Cancel
           </Button>
           <Button onClick={handleExport} disabled={isExporting}>
             {isExporting ? (
               <>
-                <Loader2 className="h-4 w-4 ml-2 animate-spin" />
-                מייצא...
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Exporting...
               </>
             ) : (
               <>
-                <Download className="h-4 w-4 ml-2" />
-                ייצא
+                <Download className="h-4 w-4 mr-2" />
+                Export
               </>
             )}
           </Button>

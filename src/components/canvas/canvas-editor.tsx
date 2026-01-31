@@ -265,8 +265,8 @@ export function CanvasEditor({ className, readOnly = false, onSave, onExport }: 
             fontSize: 16,
             fontWeight: 400,
             color: '#1F2937',
-            alignment: 'right',
-            direction: 'rtl',
+            alignment: 'left',
+            direction: 'ltr',
             lineHeight: 1.5,
           },
         }

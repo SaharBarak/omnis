@@ -100,17 +100,27 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 | CastleDisplay | `src/components/cards/CastleDisplay.tsx` | ✅ DONE |
 | YearlyDisplay | `src/components/cards/YearlyDisplay.tsx` | ✅ DONE |
 
-**Remaining RTL (Canvas Components - Lower Priority - 22 total):**
-| Component | Count |
-|-----------|-------|
-| layers-panel.tsx | 3× |
-| properties-panel.tsx | 4× |
-| connection-properties.tsx | 5× |
-| template-selector.tsx | 3× |
-| export-dialog.tsx | 2× |
-| Various node/edge components | 5× |
+**Canvas Components RTL Cleanup - COMPLETE (2026-01-31):**
+All 15 canvas components updated to LTR with English UI:
+| Component | Changes |
+|-----------|---------|
+| text-node.tsx | Changed defaults to LTR, English placeholder |
+| sticky-node.tsx | Changed to LTR, English placeholder |
+| callout-node.tsx | Changed to LTR, English placeholder |
+| person-node.tsx | Changed to LTR, English system labels |
+| highlight-node.tsx | Changed to LTR |
+| line-edge.tsx | Changed to LTR |
+| curve-edge.tsx | Changed to LTR |
+| flow-edge.tsx | Changed to LTR |
+| relationship-edge.tsx | Changed to LTR |
+| canvas-editor.tsx | Changed default text style to LTR |
+| layers-panel.tsx | Changed to LTR, English UI labels |
+| properties-panel.tsx | Changed to LTR, English UI labels |
+| connection-properties.tsx | Changed to LTR, English UI labels |
+| template-selector.tsx | Changed to LTR, English UI labels |
+| export-dialog.tsx | Changed to LTR, English UI labels |
 
-**Note:** Canvas components retain RTL for Hebrew content in the canvas editor UI.
+**Note:** All canvas components now use English-first LTR layout.
 
 ### P2.3: Test Coverage Expansion
 **Current:** 895 tests across 27 test files (2026-01-31)
@@ -302,16 +312,14 @@ npm run typecheck     # TypeScript check (CLEAN)
 |----------|-------|----------|
 | **P0** | 0 | Critical blockers |
 | **P1** | 0 | Important (all resolved) |
-| **P2** | 2 | Post-MVP enhancements (P2.2, P2.4, P2.5, P2.8 resolved) |
+| **P2** | 1 | Post-MVP enhancements (P2.2, P2.4, P2.5, P2.8, Canvas RTL resolved) |
 | **P3** | 4 | Future nice-to-haves |
 
 ### Quick Reference - Next Actions
 
-1. **P2.3** - Test Coverage Expansion (cron API tests, service tests, hook tests - all LOW priority)
+1. **P2.3** - Test Coverage Expansion (hook tests for use-people.ts, use-boards.ts - LOW priority, blocked by vitest worker timeouts)
 
-2. **P2.6** - Authentic Mantras (source 260 authentic mantras, translate to Hebrew)
-
-3. **Canvas RTL Cleanup** - Lower priority: Remove RTL from 22 canvas components
+2. **P2.6** - Authentic Mantras (source 260 authentic mantras, translate to Hebrew - blocked on external content sourcing)
 
 ---
 
