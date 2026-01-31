@@ -235,11 +235,10 @@ All 15 canvas components updated to LTR with English UI:
 ## P3: Future Nice-to-Haves
 
 ### P3.1: Direction Consistency (RTL/LTR Toggle)
-Cards currently use `dir="rtl"` (Hebrew primary).
-If LTR is desired for English users:
-- Remove `dir="rtl"` from PersonCard and sub-components
-- Reorder text elements (English first, Hebrew secondary)
-- Consider user locale preference setting
+**Status:** COMPLETE (merged into P2.2)
+- All components converted to English-first LTR layout
+- Hebrew text preserved where appropriate (names, gematria letters)
+- See P2.2 I18N English-First for full details
 
 ### P3.2: Design System Polish (Per DESIGN_SYSTEM.md)
 - Implement consistent spacing scale
@@ -316,7 +315,7 @@ npm run typecheck     # TypeScript check (CLEAN)
 
 ### Technical Requirements
 - [x] All 40 icons load from local SVG files
-- [x] RTL layout (Hebrew primary)
+- [x] LTR layout (English-first, Hebrew preserved where appropriate)
 - [x] No runtime errors
 - [x] TypeScript clean (strict mode)
 - [x] Print CSS produces proper A5 layout
@@ -331,8 +330,8 @@ npm run typecheck     # TypeScript check (CLEAN)
 |----------|-------|----------|
 | **P0** | 0 | Critical blockers |
 | **P1** | 0 | Important (all resolved) |
-| **P2** | 1 | Post-MVP enhancements (P2.2, P2.4, P2.5, P2.8, Canvas RTL resolved) |
-| **P3** | 4 | Future nice-to-haves |
+| **P2** | 2 | Post-MVP enhancements (P2.3 tests blocked, P2.6 mantras blocked) |
+| **P3** | 3 | Future nice-to-haves (P3.1 completed, P3.2-P3.4 remaining) |
 
 ### Quick Reference - Next Actions
 

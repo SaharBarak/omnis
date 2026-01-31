@@ -30,11 +30,8 @@ services:
       - no-new-privileges:true
 
     # Resource limits
-    deploy:
-      resources:
-        limits:
-          cpus: '4'
-          memory: 8G
+    cpus: 4
+    mem_limit: 4g
 
     # Keep container running
     stdin_open: true

@@ -416,19 +416,6 @@ echo "All pre-flight checks passed! Starting loop..."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-# Check if truly out of tokens (hard limit, not soft throttle)
-is_hard_rate_limited() {
-    local output_file=$1
-
-    if [ -f "$output_file" ]; then
-        # Only stop for hard errors that mean we literally cannot continue
-        if grep -qiE 'rate_limit_error.*429|overloaded_error|account.*suspended|api.*key.*invalid' "$output_file" 2>/dev/null; then
-            return 0  # true - hard rate limited
-        fi
-    fi
-    return 1  # false - keep going
-}
-
 while true; do
     if [ $MAX_ITERATIONS -gt 0 ] && [ $ITERATION -ge $MAX_ITERATIONS ]; then
         echo "Reached max iterations: $MAX_ITERATIONS"
@@ -462,16 +449,6 @@ while true; do
     END_DATETIME=$(date '+%Y-%m-%d %H:%M:%S')
     DURATION=$((END_TIME - START_TIME))
     echo "🕐 Finished at: $END_DATETIME (duration: $(format_duration $DURATION))"
-
-    # Only stop for hard rate limit errors (429, suspended, invalid key)
-    if is_hard_rate_limited "$TEMP_OUTPUT"; then
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "🛑 HARD RATE LIMIT - API returned 429 or account error"
-        echo "🛑 Stopping loop. Re-run when tokens refresh."
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        log_metrics $START_TIME $END_TIME "rate_limited"
-        break
-    fi
 
     # Set status
     if [ $CLAUDE_EXIT_CODE -eq 0 ]; then

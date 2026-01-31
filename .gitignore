@@ -37,3 +37,7 @@ src-mvp/
 # Logs
 *.log
 npm-debug.log*
+
+# Core dumps
+core
+core.*
