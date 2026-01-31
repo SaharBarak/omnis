@@ -30,7 +30,7 @@ export default function BoardEditorPage() {
       try {
         const data = await getBoard(boardId)
         if (!data) {
-          setError('לוח לא נמצא')
+          setError('Board not found')
           return
         }
         setBoard({
@@ -40,7 +40,7 @@ export default function BoardEditorPage() {
           layers: data.layers as unknown as Layer[],
         })
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'שגיאה בטעינת הלוח')
+        setError(err instanceof Error ? err.message : 'Error loading board')
       } finally {
         setLoading(false)
       }
@@ -60,10 +60,10 @@ export default function BoardEditorPage() {
   if (error || !board) {
     return (
       <div className="h-screen flex flex-col items-center justify-center">
-        <p className="text-destructive mb-4">{error || 'לוח לא נמצא'}</p>
+        <p className="text-destructive mb-4">{error || 'Board not found'}</p>
         <Button variant="outline" onClick={() => router.push('/boards')}>
-          <ArrowRight className="h-4 w-4 ml-2" />
-          חזרה ללוחות
+          <ArrowRight className="h-4 w-4 mr-2" />
+          Back to Boards
         </Button>
       </div>
     )
@@ -140,14 +140,14 @@ function BoardEditorContent({ boardId, boardName }: BoardEditorContentProps) {
         <div className="flex items-center gap-4">
           <Link href="/boards">
             <Button variant="ghost" size="sm">
-              <ArrowRight className="h-4 w-4 ml-2" />
-              חזרה
+              <ArrowRight className="h-4 w-4 mr-2" />
+              Back
             </Button>
           </Link>
           <div className="h-6 w-px bg-border" />
-          <h1 className="font-semibold" dir="rtl">{boardName}</h1>
+          <h1 className="font-semibold">{boardName}</h1>
           {isDirty && (
-            <span className="text-xs text-muted-foreground">(שינויים לא נשמרו)</span>
+            <span className="text-xs text-muted-foreground">(unsaved changes)</span>
           )}
         </div>
 
@@ -158,8 +158,8 @@ function BoardEditorContent({ boardId, boardName }: BoardEditorContentProps) {
             onClick={handleSave}
             disabled={saving || !isDirty}
           >
-            <Save className="h-4 w-4 ml-2" />
-            {saving ? 'שומר...' : 'שמור'}
+            <Save className="h-4 w-4 mr-2" />
+            {saving ? 'Saving...' : 'Save'}
           </Button>
         </div>
       </header>

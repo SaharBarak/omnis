@@ -60,12 +60,12 @@ function PasswordForm({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4" dir="rtl">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle>תוכן מוגן בסיסמה</CardTitle>
+          <CardTitle>Password Protected Content</CardTitle>
           <CardDescription>
-            הזן את הסיסמה כדי לצפות בתוכן
+            Enter the password to view this content
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -75,7 +75,7 @@ function PasswordForm({
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="הזן סיסמה"
+                placeholder="Enter password"
                 required
               />
             </div>
@@ -83,7 +83,7 @@ function PasswordForm({
               <div className="text-sm text-destructive">{error}</div>
             )}
             <Button type="submit" className="w-full">
-              כניסה
+              Submit
             </Button>
           </form>
         </CardContent>
@@ -100,7 +100,7 @@ function GroupShareView({ analysis }: { analysis: FullGroupAnalysis }) {
       <div className="text-center">
         <h1 className="text-3xl font-bold tracking-tight">{analysis.groupName}</h1>
         <p className="text-muted-foreground mt-2">
-          {analysis.memberCount} חברים • ניתוח קבוצתי
+          {analysis.memberCount} members • Group Analysis
         </p>
       </div>
 
@@ -108,7 +108,7 @@ function GroupShareView({ analysis }: { analysis: FullGroupAnalysis }) {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">חברים</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Members</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analysis.memberCount}</div>
@@ -116,7 +116,7 @@ function GroupShareView({ analysis }: { analysis: FullGroupAnalysis }) {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">תאימות ממוצעת</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Average Compatibility</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analysis.compatibility.averageScore}%</div>
@@ -124,11 +124,11 @@ function GroupShareView({ analysis }: { analysis: FullGroupAnalysis }) {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">חותם נפוץ</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Common Seal</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-lg font-bold">
-              {analysis.dreamspell.sealDistribution.find(d => d.count > 0)?.nameHebrew || '-'}
+              {analysis.dreamspell.sealDistribution.find(d => d.count > 0)?.name || '-'}
             </div>
           </CardContent>
         </Card>
@@ -138,12 +138,12 @@ function GroupShareView({ analysis }: { analysis: FullGroupAnalysis }) {
       {analysis.insights.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>תובנות</CardTitle>
+            <CardTitle>Insights</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {analysis.insights.map((insight, idx) => (
               <div key={idx} className="p-3 bg-muted/50 rounded-lg">
-                <p className="font-medium">{insight.hebrew}</p>
+                <p className="font-medium">{insight.english}</p>
               </div>
             ))}
           </CardContent>
@@ -153,8 +153,8 @@ function GroupShareView({ analysis }: { analysis: FullGroupAnalysis }) {
       {/* Color Balance */}
       <Card>
         <CardHeader>
-          <CardTitle>מאזן צבעים</CardTitle>
-          <CardDescription>התפלגות ארבעת הצבעים הכיווניים</CardDescription>
+          <CardTitle>Color Balance</CardTitle>
+          <CardDescription>Distribution of the four directional colors</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -166,8 +166,8 @@ function GroupShareView({ analysis }: { analysis: FullGroupAnalysis }) {
                     className="w-6 h-6 rounded-full border-2"
                     style={{ backgroundColor: COLOR_LABELS[color].hex, borderColor: color === 'white' ? '#D1D5DB' : COLOR_LABELS[color].hex }}
                   />
-                  <div className="w-16 text-sm font-medium">
-                    {COLOR_LABELS[color].hebrew}
+                  <div className="w-16 text-sm font-medium capitalize">
+                    {color}
                   </div>
                   <div className="flex-1 bg-muted rounded-full h-4 overflow-hidden">
                     <div
@@ -188,7 +188,7 @@ function GroupShareView({ analysis }: { analysis: FullGroupAnalysis }) {
       {/* Members */}
       <Card>
         <CardHeader>
-          <CardTitle>חברי הקבוצה</CardTitle>
+          <CardTitle>Group Members</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -232,21 +232,21 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
         .single()
 
       if (shareError || !share) {
-        setError('קישור לא נמצא או לא פעיל')
+        setError('Link not found or inactive')
         setLoading(false)
         return
       }
 
       // Check expiration
       if (share.expires_at && new Date(share.expires_at) < new Date()) {
-        setError('קישור פג תוקף')
+        setError('Link has expired')
         setLoading(false)
         return
       }
 
       // Check max views
       if (share.max_views !== null && share.view_count >= share.max_views) {
-        setError('קישור הגיע למקסימום צפיות')
+        setError('Link has reached maximum views')
         setLoading(false)
         return
       }
@@ -265,7 +265,7 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
         const hashArray = Array.from(new Uint8Array(hashBuffer))
         const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
         if (hash !== share.password_hash) {
-          setPasswordError('סיסמה שגויה')
+          setPasswordError('Incorrect password')
           setLoading(false)
           return
         }
@@ -283,7 +283,7 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
           .rpc('get_group_with_members', { p_group_id: options.groupId })
 
         if (groupError || !groupData) {
-          setError('לא ניתן לטעון את נתוני הקבוצה')
+          setError('Unable to load group data')
           setLoading(false)
           return
         }
@@ -313,7 +313,7 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
         })
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'שגיאה בטעינה')
+      setError(err instanceof Error ? err.message : 'Error loading')
     } finally {
       setLoading(false)
     }
@@ -329,8 +329,8 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" dir="rtl">
-        <div className="text-center">טוען...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">Loading...</div>
       </div>
     )
   }
@@ -341,15 +341,15 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4" dir="rtl">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md text-center">
           <CardHeader>
-            <CardTitle className="text-destructive">שגיאה</CardTitle>
+            <CardTitle className="text-destructive">Error</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">{error}</p>
             <Link href="/login">
-              <Button>התחבר ל-Omnis</Button>
+              <Button>Sign in to Omnis</Button>
             </Link>
           </CardContent>
         </Card>
@@ -358,7 +358,7 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
   }
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex h-14 items-center px-4 max-w-7xl mx-auto">
@@ -368,7 +368,7 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
           <div className="flex-1" />
           <Link href="/login">
             <Button variant="outline" size="sm">
-              התחבר
+              Sign In
             </Button>
           </Link>
         </div>
@@ -382,7 +382,7 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
 
         {shareData?.type !== 'group' && (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">סוג שיתוף זה עדיין לא נתמך בתצוגה הציבורית</p>
+            <p className="text-muted-foreground">This share type is not yet supported in public view</p>
           </div>
         )}
 
@@ -390,11 +390,11 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
         <Card className="mt-8 bg-primary/5 border-primary/20">
           <CardContent className="flex flex-col md:flex-row items-center justify-between py-6 gap-4">
             <div>
-              <h3 className="font-bold text-lg">רוצים ליצור ניתוח משלכם?</h3>
-              <p className="text-muted-foreground">הצטרפו ל-Omnis וגלו את החיבורים הסמליים שלכם</p>
+              <h3 className="font-bold text-lg">Want to create your own analysis?</h3>
+              <p className="text-muted-foreground">Join Omnis and discover your symbolic connections</p>
             </div>
             <Link href="/login">
-              <Button size="lg">התחילו עכשיו</Button>
+              <Button size="lg">Get Started</Button>
             </Link>
           </CardContent>
         </Card>

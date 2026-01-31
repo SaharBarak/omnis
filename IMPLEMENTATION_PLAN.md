@@ -76,7 +76,7 @@ The Omnis platform is a complete symbolic systems web application featuring:
 | Issue | Resolution |
 |-------|------------|
 | P2.1: Debug Statements | Removed 5 console.log from auth/callback/route.ts and use-auth.ts |
-| P2.2: I18N English-First RTL Cleanup | Removed RTL from GematriaDisplay (4×), CastleDisplay (1×), YearlyDisplay (3×), PersonCard (1×) - all now English-first LTR |
+| P2.2: I18N English-First RTL Cleanup | Removed RTL from GematriaDisplay (4×), CastleDisplay (1×), YearlyDisplay (3×), PersonCard (1×), share/[token]/page.tsx (4×), boards/[id]/page.tsx (1×) - all now English-first LTR |
 | P2.4: Specification Cleanup | Updated 3 spec files (DESIGN_SYSTEM, LANDING_PAGE, AUTHENTIC_DATA) to PARTIAL status |
 | P2.7: Oracle Wheel Icon Paths | Changed `seal.mayan.toLowerCase()` to `seal.english.toLowerCase()` |
 | P2.8: PersonCard Direction | Changed `dir="rtl"` to `dir="ltr"` per CARD_LAYOUT.md spec (English-first) |
@@ -121,6 +121,12 @@ All 15 canvas components updated to LTR with English UI:
 | export-dialog.tsx | Changed to LTR, English UI labels |
 
 **Note:** All canvas components now use English-first LTR layout.
+
+**Additional Pages RTL Cleanup - COMPLETE (2026-01-31):**
+| Page | Changes |
+|------|---------|
+| share/[token]/page.tsx | Changed all 4 `dir="rtl"` to LTR, translated Hebrew UI to English |
+| boards/[id]/page.tsx | Changed `dir="rtl"` to LTR, translated Hebrew UI to English |
 
 ### P2.3: Test Coverage Expansion
 **Current:** 895 tests across 27 test files (2026-01-31)
@@ -258,7 +264,7 @@ Per `/specs/DESIGN_SYSTEM.md`:
 | DS | Design System & UX | PARTIAL (basic implementation) |
 | LP | Landing Page | PARTIAL (basic implementation) |
 | AD | Authentic Data | PARTIAL (template mantras only) |
-| UI | English-First Translation | COMPLETE (all card components LTR, canvas RTL pending) |
+| UI | English-First Translation | COMPLETE (all components LTR, share/boards pages converted) |
 
 ---
 
