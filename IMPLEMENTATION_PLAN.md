@@ -248,11 +248,13 @@ All 15 canvas components updated to LTR with English UI:
 - Move from "generic admin template" to "mystical but clean" aesthetic
 
 ### P3.3: Birth Time/Place Input UI Integration
-Per `/specs/DESIGN_SYSTEM.md`:
-- Database has `birth_time` and `birth_place` columns
-- UI components exist: `src/components/ui/birth-time-input.tsx`, `src/components/ui/location-picker.tsx`
-- **Gap:** Components not yet integrated into People create/edit forms
-- Human Design and Astrology calculations incomplete without this data
+**Status:** COMPLETE - Components fully integrated into People forms.
+
+**Resolution:** The `BirthTimeInput` and `LocationPicker` components are integrated into the `PersonForm` component in `/src/app/app/people/page.tsx`:
+- Lines 232-235: BirthTimeInput for birth_time
+- Lines 240-243: LocationPicker for birth_place
+- Database columns exist and work correctly
+- Form data flows through usePeople hook to Supabase
 
 ### P3.4: Landing Page Animations (Per LANDING_PAGE.md)
 - Animated starfield with parallax
@@ -331,7 +333,7 @@ npm run typecheck     # TypeScript check (CLEAN)
 | **P0** | 0 | Critical blockers |
 | **P1** | 0 | Important (all resolved) |
 | **P2** | 2 | Post-MVP enhancements (P2.3 tests blocked, P2.6 mantras blocked) |
-| **P3** | 3 | Future nice-to-haves (P3.1 completed, P3.2-P3.4 remaining) |
+| **P3** | 2 | Future nice-to-haves (P3.1, P3.3 completed, P3.2, P3.4 remaining) |
 
 ### Quick Reference - Next Actions
 

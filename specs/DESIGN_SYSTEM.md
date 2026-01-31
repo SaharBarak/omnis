@@ -10,9 +10,11 @@
 ## Current Problems
 
 ### 1. Missing Critical Data Input
-- **Birth Time** - Database has `birth_time` column but NO UI to input it
-- **Birth Place** - Database has `birth_place` JSON column but NO UI to input it
-- Human Design and Astrology calculations are incomplete without this data
+**RESOLVED** - Birth time and place inputs are now fully integrated:
+- `BirthTimeInput` component at `/src/components/ui/birth-time-input.tsx`
+- `LocationPicker` component at `/src/components/ui/location-picker.tsx`
+- Integrated into `PersonForm` at `/src/app/app/people/page.tsx` (lines 232-243)
+- Data flows through usePeople hook to Supabase correctly
 
 ### 2. No Design System
 - Inconsistent spacing (random gaps)
@@ -810,14 +812,14 @@ When "Unknown" is checked:
 
 ## Implementation Tasks
 
-### Phase 1: Critical Data (P1)
+### Phase 1: Critical Data (P1) ✅ COMPLETE
 
-- [ ] Add BirthTimeInput component
-- [ ] Add LocationPicker component
-- [ ] Update PersonForm with new fields
-- [ ] Update use-people hook to save new fields
-- [ ] Update Person type if needed
-- [ ] Show birth time warnings on HD/Astrology displays
+- [x] Add BirthTimeInput component
+- [x] Add LocationPicker component
+- [x] Update PersonForm with new fields
+- [x] Update use-people hook to save new fields
+- [x] Update Person type if needed
+- [x] Show birth time warnings on HD/Astrology displays
 
 ### Phase 2: Design System Foundation (P1)
 
@@ -847,7 +849,7 @@ When "Unknown" is checked:
 
 ## Definition of Done
 
-- [ ] Birth time and place can be entered for people
+- [x] Birth time and place can be entered for people
 - [ ] Dashboard shows meaningful information
 - [ ] Consistent typography scale applied
 - [ ] Consistent color system applied
