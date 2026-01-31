@@ -25,7 +25,7 @@ The Omnis platform is a complete symbolic systems web application featuring:
 | **MVP Functionality** | COMPLETE | All 16 cards render at `/app/cards` |
 | **Build Status** | PASSING | Production build succeeds |
 | **TypeScript** | CLEAN | No type errors (strict mode) |
-| **Tests** | 820 PASSING | 24 test files (11 calculations + 4 services + 6 API routes + 2 components + 1 hook) |
+| **Tests** | 825 PASSING | 24 test files (11 calculations + 4 services + 6 API routes + 2 components + 1 hook) |
 | **Icons** | COMPLETE | 40 SVG icons (20 dreamspell seals, 20 tzolkin signs) |
 | **Components** | 76 FILES | `src/lib/` fully production-ready, no TODOs |
 | **Specs** | 30+ FILES | All system specs complete, 3 marked TODO |
@@ -113,7 +113,7 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 **Note:** Canvas components retain RTL for Hebrew content in the canvas editor UI.
 
 ### P2.3: Test Coverage Expansion
-**Current:** 820 tests across 24 test files (2026-01-30)
+**Current:** 825 tests across 24 test files (2026-01-31)
 
 **Test File Distribution:**
 | File | Tests | Coverage |
@@ -180,8 +180,9 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 | `/specs/AUTHENTIC_DATA.md` | PARTIAL (template mantras in use, authentic 260 mantras pending) |
 
 ### P2.5: PDF Export Enhancement
-**Current:** Falls back to PNG for export.
-**Future:** Implement `html2canvas` + `jspdf` for direct PDF download.
+**Status:** COMPLETE - html2canvas and jspdf now installed and working.
+
+**Resolution:** Added html2canvas and jspdf dependencies to enable proper PDF export in canvas-export.ts. The export now uses jspdf directly instead of the previous PNG fallback approach. Tests updated to cover PDF export functionality.
 
 ### P2.6: Authentic Mantras (Per AUTHENTIC_DATA.md)
 - Source all 260 authentic mantras from Dreamspell Kit
@@ -259,7 +260,7 @@ Per `/specs/DESIGN_SYSTEM.md`:
 ```bash
 npm run dev           # Start dev server
 npm run build         # Production build (PASSING)
-npm run test          # Run tests (820 tests)
+npm run test          # Run tests (825 tests)
 npm run typecheck     # TypeScript check (CLEAN)
 ```
 
@@ -284,7 +285,7 @@ npm run typecheck     # TypeScript check (CLEAN)
 - [x] No runtime errors
 - [x] TypeScript clean (strict mode)
 - [x] Print CSS produces proper A5 layout
-- [x] 820 tests passing
+- [x] 825 tests passing
 - [x] Production build succeeds
 
 ---
@@ -295,18 +296,16 @@ npm run typecheck     # TypeScript check (CLEAN)
 |----------|-------|----------|
 | **P0** | 0 | Critical blockers |
 | **P1** | 0 | Important (all resolved) |
-| **P2** | 3 | Post-MVP enhancements (P2.2, P2.4, P2.8 resolved) |
+| **P2** | 2 | Post-MVP enhancements (P2.2, P2.4, P2.5, P2.8 resolved) |
 | **P3** | 4 | Future nice-to-haves |
 
 ### Quick Reference - Next Actions
 
 1. **P2.3** - Test Coverage Expansion (cron API tests, service tests, hook tests - all LOW priority)
 
-2. **P2.5** - PDF Export Enhancement (html2canvas + jspdf)
+2. **P2.6** - Authentic Mantras (source 260 authentic mantras, translate to Hebrew)
 
-3. **P2.6** - Authentic Mantras (source 260 authentic mantras, translate to Hebrew)
-
-4. **Canvas RTL Cleanup** - Lower priority: Remove RTL from 22 canvas components
+3. **Canvas RTL Cleanup** - Lower priority: Remove RTL from 22 canvas components
 
 ---
 
