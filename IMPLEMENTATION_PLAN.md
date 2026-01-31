@@ -77,7 +77,7 @@ The Omnis platform is a complete symbolic systems web application featuring:
 |-------|------------|
 | P2.1: Debug Statements | Removed 5 console.log from auth/callback/route.ts and use-auth.ts |
 | P2.2: I18N English-First RTL Cleanup | Removed RTL from GematriaDisplay (4×), CastleDisplay (1×), YearlyDisplay (3×), PersonCard (1×), share/[token]/page.tsx (4×), boards/[id]/page.tsx (1×) - all now English-first LTR |
-| P2.4: Specification Cleanup | Updated 3 spec files (DESIGN_SYSTEM, LANDING_PAGE, AUTHENTIC_DATA) to PARTIAL status |
+| P2.4: Specification Cleanup | Updated 3 spec files (DESIGN_SYSTEM, LANDING_PAGE, AUTHENTIC_DATA) to PARTIAL status; Added status headers to 8 component specs (2026-01-31) |
 | P2.7: Oracle Wheel Icon Paths | Changed `seal.mayan.toLowerCase()` to `seal.english.toLowerCase()` |
 | P2.8: PersonCard Direction | Changed `dir="rtl"` to `dir="ltr"` per CARD_LAYOUT.md spec (English-first) |
 
@@ -193,13 +193,26 @@ All 15 canvas components updated to LTR with English UI:
 **Note (2026-01-31):** A draft `use-people.test.ts` was removed due to vitest worker fork timeout issues. Hook tests with complex Supabase mocking require careful async handling to avoid infinite loops during component mount. Consider using `@testing-library/react`'s `waitFor` with explicit timeout controls or running these tests in isolation with `pool: 'forks'` and extended timeouts.
 
 ### P2.4: Specification Cleanup
-**Status:** COMPLETE - All 3 spec files updated to PARTIAL status.
+**Status:** COMPLETE - All specs now have proper status headers.
 
+**Phase 1 (2026-01-30):** Updated 3 spec files to PARTIAL status:
 | Spec File | New Status |
 |-----------|------------|
 | `/specs/DESIGN_SYSTEM.md` | PARTIAL (basic implementation complete, advanced features pending) |
 | `/specs/LANDING_PAGE.md` | PARTIAL (basic landing page implemented, animations pending) |
 | `/specs/AUTHENTIC_DATA.md` | PARTIAL (template mantras in use, authentic 260 mantras pending) |
+
+**Phase 2 (2026-01-31):** Added status headers to component and layout specs:
+| Spec File | Status Added |
+|-----------|--------------|
+| `/specs/components/AUTHENTICATION.md` | COMPLETE (Phase 1) |
+| `/specs/components/PEOPLE_DIRECTORY.md` | COMPLETE (Phase 1) |
+| `/specs/components/RELATIONSHIPS.md` | COMPLETE (Phase 2) |
+| `/specs/components/CANVAS_EDITOR.md` | COMPLETE (Phase 4) |
+| `/specs/components/PREDICTIONS.md` | COMPLETE (Phase 5) |
+| `/specs/components/AI_LAYER.md` | COMPLETE (Phase 6) |
+| `/specs/CARD_LAYOUT.md` | COMPLETE (Phase 0/MVP) |
+| `/specs/I18N_ENGLISH_FIRST.md` | Updated to COMPLETE, DOD boxes checked |
 
 ### P2.5: PDF Export Enhancement
 **Status:** COMPLETE - html2canvas and jspdf now installed and working.

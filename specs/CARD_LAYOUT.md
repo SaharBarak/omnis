@@ -1,5 +1,9 @@
 # A5 Card Layout Specification
 
+> **Status:** COMPLETE
+> **Phase:** 0 (MVP)
+> **Implemented:** PersonCard, OracleMap, MantraDisplay, DreamspellSection, TzolkinSection
+
 ## Dimensions
 
 - **Size:** A5 (148mm x 210mm) or equivalent screen ratio (1:1.414)

@@ -1,7 +1,8 @@
 # English-First UI Translation Specification
 
-> **Status:** IN PROGRESS
+> **Status:** COMPLETE
 > **Created:** 2026-01-25
+> **Completed:** 2026-01-31
 > **Goal:** Make English the primary display language while preserving Hebrew as secondary
 
 ---
@@ -259,9 +260,21 @@ src/components/cards/CastleDisplay.tsx
 
 ## Definition of Done
 
-- [ ] All P1 components translated to English-first
-- [ ] All P2 components translated to English-first
-- [ ] All P3 components translated to English-first
-- [ ] TypeScript compiles without errors
-- [ ] Visual review confirms English is primary
-- [ ] Hebrew still appears as secondary where appropriate
+- [x] All P1 components translated to English-first
+- [x] All P2 components translated to English-first
+- [x] All P3 components translated to English-first
+- [x] TypeScript compiles without errors
+- [x] Visual review confirms English is primary
+- [x] Hebrew still appears as secondary where appropriate
+
+---
+
+## Completion Notes (2026-01-31)
+
+All components have been converted to English-first LTR layout:
+
+**Card Components:** PersonCard, DreamspellSection, TzolkinSection, OracleMap, MantraDisplay, HumanDesignDisplay, AstrologyDisplay, GematriaDisplay, CastleDisplay, YearlyDisplay
+
+**Canvas Components:** text-node, sticky-node, callout-node, person-node, highlight-node, line-edge, curve-edge, flow-edge, relationship-edge, canvas-editor, layers-panel, properties-panel, connection-properties, template-selector, export-dialog
+
+**Pages:** share/[token]/page.tsx, boards/[id]/page.tsx

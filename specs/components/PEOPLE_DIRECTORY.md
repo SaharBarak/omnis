@@ -1,5 +1,9 @@
 # People Directory Component Specification
 
+> **Status:** COMPLETE
+> **Phase:** 1 (Core Web App)
+> **Implemented:** CRUD operations, tags, search, RLS policies
+
 ## Overview
 
 The People Directory allows users to manage a list of people (family, friends, partners) with their birth data for symbolic system calculations.

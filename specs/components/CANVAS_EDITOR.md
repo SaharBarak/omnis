@@ -1,5 +1,9 @@
 # Canvas Editor Component Specification
 
+> **Status:** COMPLETE
+> **Phase:** 4 (Canvas Editor + Dashboard)
+> **Implemented:** Drag-and-drop boards, templates, PNG/SVG/PDF export
+
 ## Overview
 
 The Canvas Editor is a full-featured visual workspace for creating, arranging, and annotating symbolic system outputs. Users can build "boards" with draggable nodes, layers, annotations, and multiple views.

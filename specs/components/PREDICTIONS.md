@@ -1,5 +1,9 @@
 # Predictions Component Specification
 
+> **Status:** COMPLETE
+> **Phase:** 5 (Predictions + Time Intelligence)
+> **Implemented:** Daily/weekly/monthly forecasts, timelines, notifications
+
 ## Overview
 
 The Predictions component provides time-based forecasting and cycle awareness across symbolic systems. It surfaces relevant transits, cycles, and windows for personal planning.
