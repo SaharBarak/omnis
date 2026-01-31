@@ -25,7 +25,7 @@ The Omnis platform is a complete symbolic systems web application featuring:
 | **MVP Functionality** | COMPLETE | All 16 cards render at `/app/cards` |
 | **Build Status** | PASSING | Production build succeeds |
 | **TypeScript** | CLEAN | No type errors (strict mode) |
-| **Tests** | 825 PASSING | 24 test files (11 calculations + 4 services + 6 API routes + 2 components + 1 hook) |
+| **Tests** | 895 PASSING | 27 test files (11 calculations + 4 services + 6 API routes + 2 components + 4 hooks/utils) |
 | **Icons** | COMPLETE | 40 SVG icons (20 dreamspell seals, 20 tzolkin signs) |
 | **Components** | 76 FILES | `src/lib/` fully production-ready, no TODOs |
 | **Specs** | 30+ FILES | All system specs complete, 3 marked TODO |
@@ -113,7 +113,7 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 **Note:** Canvas components retain RTL for Hebrew content in the canvas editor UI.
 
 ### P2.3: Test Coverage Expansion
-**Current:** 825 tests across 24 test files (2026-01-31)
+**Current:** 895 tests across 27 test files (2026-01-31)
 
 **Test File Distribution:**
 | File | Tests | Coverage |
@@ -141,6 +141,9 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 | `interpret.test.ts` (API) | 16 | AI interpretation endpoint, input validation, error handling |
 | `timeline.test.ts` (API) | 14 | Timeline API endpoint, date range queries |
 | `tzolkin.test.ts` | 11 | Day signs, GMT correlation |
+| `board-templates.test.ts` | 41 | Template configs, canvas generation, layouts, connections |
+| `use-system-preferences.test.ts` | 17 | System preferences merging, isSystemEnabled, loading state |
+| `utils.test.ts` | 12 | cn() className utility, Tailwind class merging |
 | `julian.test.ts` | 5 | JDN conversions |
 
 **Test Infrastructure:**
@@ -162,6 +165,9 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 | API route tests: /api/cron/daily-kin | ✅ COMPLETE | 25 tests |
 | API route tests: /api/cron/send-notifications | ✅ COMPLETE | 52 tests |
 | Hook tests: use-auth.ts | ✅ COMPLETE | 21 tests |
+| Hook tests: use-system-preferences.ts | ✅ COMPLETE | 17 tests |
+| Service tests: board-templates.ts | ✅ COMPLETE | 41 tests |
+| Utility tests: utils.ts | ✅ COMPLETE | 12 tests |
 
 **Remaining Test Categories:**
 | Category | Files Needing Tests | Priority |
@@ -260,7 +266,7 @@ Per `/specs/DESIGN_SYSTEM.md`:
 ```bash
 npm run dev           # Start dev server
 npm run build         # Production build (PASSING)
-npm run test          # Run tests (825 tests)
+npm run test          # Run tests (895 tests)
 npm run typecheck     # TypeScript check (CLEAN)
 ```
 
@@ -285,7 +291,7 @@ npm run typecheck     # TypeScript check (CLEAN)
 - [x] No runtime errors
 - [x] TypeScript clean (strict mode)
 - [x] Print CSS produces proper A5 layout
-- [x] 825 tests passing
+- [x] 895 tests passing
 - [x] Production build succeeds
 
 ---
