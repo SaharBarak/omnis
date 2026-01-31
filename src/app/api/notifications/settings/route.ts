@@ -6,6 +6,8 @@ import {
 } from '@/lib/services/notifications'
 import type { NotificationSettings } from '@/lib/types/prediction'
 
+export const dynamic = 'force-dynamic'
+
 // Default notification settings
 const defaultSettings: Omit<NotificationSettings, 'userId'> = {
   enabled: true,

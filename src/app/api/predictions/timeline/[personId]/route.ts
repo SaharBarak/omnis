@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 import { getPersonalTimeline } from '@/lib/services/predictions'
 import type { TimelineResponse } from '@/lib/types/prediction'
 
+export const dynamic = 'force-dynamic'
+
 // Create Supabase client for server-side operations
 function getSupabaseClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL

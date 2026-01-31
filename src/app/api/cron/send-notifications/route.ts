@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { processDailyDigestNotifications } from '@/lib/services/notifications'
 
+export const dynamic = 'force-dynamic'
+
 // This endpoint is called by Vercel Cron every hour
 // Configure in vercel.json: {"crons": [{"path": "/api/cron/send-notifications", "schedule": "0 * * * *"}]}
 

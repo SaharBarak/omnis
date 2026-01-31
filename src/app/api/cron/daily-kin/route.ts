@@ -6,6 +6,8 @@ import { getSeal } from '@/lib/data/seals'
 import { getTone } from '@/lib/data/tones'
 import { generateMantra } from '@/lib/data/mantras'
 
+export const dynamic = 'force-dynamic'
+
 // This endpoint is called by Vercel Cron
 // Configure in vercel.json: {"crons": [{"path": "/api/cron/daily-kin", "schedule": "0 6 * * *"}]}
 

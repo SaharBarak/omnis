@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 import { getDailyPrediction, getPersonalDailyPrediction } from '@/lib/services/predictions'
 import type { PredictionEvent } from '@/lib/types/prediction'
 
+export const dynamic = 'force-dynamic'
+
 // This endpoint is called by Vercel Cron at 4am UTC daily
 // Configure in vercel.json: {"crons": [{"path": "/api/cron/daily-predictions", "schedule": "0 4 * * *"}]}
 

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDailyPrediction, getPersonalDailyPrediction } from '@/lib/services/predictions'
 import type { DailyPredictionResponse } from '@/lib/types/prediction'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/predictions/daily
  *

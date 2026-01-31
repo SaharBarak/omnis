@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getRangePredictions } from '@/lib/services/predictions'
 import type { PredictionAPIResponse, DailyPrediction } from '@/lib/types/prediction'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/predictions/range
  *

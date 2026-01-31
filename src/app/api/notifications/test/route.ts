@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { sendTestNotificationEmail } from '@/lib/services/notifications'
 
+export const dynamic = 'force-dynamic'
+
 // Get authenticated user from server-side Supabase client
 async function getAuthenticatedUser() {
   const supabase = await createClient()

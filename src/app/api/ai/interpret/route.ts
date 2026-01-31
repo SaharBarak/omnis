@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { generateInterpretation, generateQuickInterpretation } from '@/lib/services/ai-interpretations'
 import type { AIInterpretationRequest, PredictionEvent } from '@/lib/types/prediction'
 
+export const dynamic = 'force-dynamic'
+
 // Get authenticated user from server-side Supabase client
 async function getAuthenticatedUser() {
   const supabase = await createClient()
