@@ -86,7 +86,7 @@ describe('GET /api/cron/send-notifications', () => {
 
   describe('Authentication', () => {
     it('should return 401 in production without valid cron secret', async () => {
-      process.env.NODE_ENV = 'production'
+      vi.stubEnv('NODE_ENV', 'production')
       const request = createRequest('/api/cron/send-notifications')
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -96,7 +96,7 @@ describe('GET /api/cron/send-notifications', () => {
     })
 
     it('should return 401 in production with invalid cron secret', async () => {
-      process.env.NODE_ENV = 'production'
+      vi.stubEnv('NODE_ENV', 'production')
       const request = createRequest('/api/cron/send-notifications', {
         authorization: 'Bearer wrong-secret'
       })
@@ -108,7 +108,7 @@ describe('GET /api/cron/send-notifications', () => {
     })
 
     it('should succeed in production with valid cron secret', async () => {
-      process.env.NODE_ENV = 'production'
+      vi.stubEnv('NODE_ENV', 'production')
       // Mock time to be in digest window
       vi.useFakeTimers()
       vi.setSystemTime(new Date('2024-06-15T07:00:00Z'))
@@ -124,7 +124,7 @@ describe('GET /api/cron/send-notifications', () => {
     })
 
     it('should succeed in development without cron secret', async () => {
-      process.env.NODE_ENV = 'development'
+      vi.stubEnv('NODE_ENV', 'development')
       vi.useFakeTimers()
       vi.setSystemTime(new Date('2024-06-15T07:00:00Z'))
 

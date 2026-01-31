@@ -1,7 +1,9 @@
 // Canvas Export Service for Omnis Phase 4
-// Provides functionality to export canvas to PNG, JPEG, SVG
+// Provides functionality to export canvas to PNG, JPEG, SVG, PDF
 
 import type { ExportFormat, ExportOptions } from '@/lib/types/board'
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
 
 // ============================================================================
 // TYPES
@@ -13,7 +15,11 @@ interface ExportResult {
   mimeType: string
 }
 
-interface CanvasExportOptions extends ExportOptions {
+interface CanvasExportOptions {
+  format: ExportFormat
+  scale?: number
+  background?: boolean
+  quality?: number
   canvasElement?: HTMLElement | null
   filename?: string
 }
@@ -56,10 +62,7 @@ export async function exportCanvas(options: CanvasExportOptions): Promise<Export
     case 'svg':
       return exportToSvg(viewport, bounds, background, filename)
     case 'pdf':
-      // PDF export requires additional libraries (jspdf, html2canvas)
-      // For now, fallback to PNG
-      console.warn('PDF export not yet implemented, falling back to PNG')
-      return exportToPng(viewport, bounds, scale, background, filename)
+      return exportToPdf(viewport, bounds, scale, background, filename)
     default:
       throw new Error(`Unsupported export format: ${format}`)
   }
@@ -256,50 +259,55 @@ async function exportToSvg(
   }
 }
 
+async function exportToPdf(
+  viewport: HTMLElement,
+  bounds: Bounds,
+  scale: number,
+  background: boolean,
+  filename: string
+): Promise<ExportResult> {
+  const canvas = await renderToCanvas(viewport, bounds, scale, background)
+
+  // Determine PDF orientation based on canvas dimensions
+  const orientation = bounds.width > bounds.height ? 'landscape' : 'portrait'
+
+  // Create PDF with dimensions matching the canvas
+  const pdf = new jsPDF({
+    orientation,
+    unit: 'px',
+    format: [bounds.width * scale, bounds.height * scale],
+  })
+
+  // Add the canvas as an image to the PDF
+  const imgData = canvas.toDataURL('image/png')
+  pdf.addImage(imgData, 'PNG', 0, 0, bounds.width * scale, bounds.height * scale)
+
+  // Get PDF as blob
+  const blob = pdf.output('blob')
+
+  return {
+    blob,
+    filename: `${filename}.pdf`,
+    mimeType: 'application/pdf',
+  }
+}
+
 async function renderToCanvas(
   viewport: HTMLElement,
   bounds: Bounds,
   scale: number,
   background: boolean
 ): Promise<HTMLCanvasElement> {
-  // Use html2canvas if available, otherwise use a basic approach
-  if (typeof window !== 'undefined' && 'html2canvas' in window) {
-    const html2canvas = (window as { html2canvas?: (el: HTMLElement, opts: object) => Promise<HTMLCanvasElement> }).html2canvas
-    if (html2canvas) {
-      return html2canvas(viewport, {
-        scale,
-        backgroundColor: background ? '#ffffff' : null,
-        x: bounds.x,
-        y: bounds.y,
-        width: bounds.width,
-        height: bounds.height,
-        useCORS: true,
-        allowTaint: true,
-      })
-    }
-  }
-
-  // Basic canvas rendering fallback
-  const canvas = document.createElement('canvas')
-  canvas.width = bounds.width * scale
-  canvas.height = bounds.height * scale
-
-  const ctx = canvas.getContext('2d')
-  if (!ctx) {
-    throw new Error('Failed to get canvas context')
-  }
-
-  // Fill background
-  if (background) {
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-  }
-
-  // Note: This basic fallback won't properly render React components
-  // For full support, install html2canvas: npm install html2canvas
-  console.warn('html2canvas not found. For better export quality, install html2canvas.')
-
-  return canvas
+  return html2canvas(viewport, {
+    scale,
+    backgroundColor: background ? '#ffffff' : null,
+    x: bounds.x,
+    y: bounds.y,
+    width: bounds.width,
+    height: bounds.height,
+    useCORS: true,
+    allowTaint: true,
+  })
 }
 
 // ============================================================================

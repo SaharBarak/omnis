@@ -7,6 +7,27 @@ import {
   EXPORT_SCALE_OPTIONS,
 } from './canvas-export'
 
+// Mock html2canvas - returns a mock canvas
+import html2canvas from 'html2canvas'
+vi.mock('html2canvas', () => ({
+  default: vi.fn(),
+}))
+
+// Mock jsPDF
+import jsPDF from 'jspdf'
+const mockJsPDFInstance = {
+  addImage: vi.fn(),
+  output: vi.fn().mockReturnValue(new Blob(['pdf-content'], { type: 'application/pdf' })),
+}
+vi.mock('jspdf', () => {
+  return {
+    default: class MockJsPDF {
+      addImage = vi.fn()
+      output = vi.fn().mockReturnValue(new Blob(['pdf-content'], { type: 'application/pdf' }))
+    },
+  }
+})
+
 // Mock URL API
 const mockCreateObjectURL = vi.fn(() => 'blob:mock-url')
 const mockRevokeObjectURL = vi.fn()
@@ -48,6 +69,17 @@ describe('Canvas Export Service', () => {
     // Save original createElement
     originalCreateElement = document.createElement.bind(document)
 
+    // Setup html2canvas mock to return a canvas element
+    const mockCanvas = originalCreateElement('canvas')
+    mockCanvas.width = 800
+    mockCanvas.height = 600
+    mockCanvas.toBlob = vi.fn((callback: BlobCallback, type?: string) => {
+      const blobType = type || 'image/png'
+      callback(new Blob(['mock-image-data'], { type: blobType }))
+    })
+    mockCanvas.toDataURL = vi.fn().mockReturnValue('data:image/png;base64,mockbase64data')
+    vi.mocked(html2canvas).mockResolvedValue(mockCanvas)
+
     // Create mock DOM structure
     mockNode = document.createElement('div')
     mockNode.className = 'react-flow__node'
@@ -78,14 +110,14 @@ describe('Canvas Export Service', () => {
     vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
       const element = originalCreateElement(tagName)
       if (tagName === 'canvas') {
-        const mockBlob = new Blob(['mock-image-data'], { type: 'image/png' })
-        element.getContext = vi.fn().mockReturnValue(mockCanvasContext)
-        element.toBlob = vi.fn((callback: BlobCallback, type?: string) => {
+        const canvasElement = element as HTMLCanvasElement
+        canvasElement.getContext = vi.fn().mockReturnValue(mockCanvasContext)
+        canvasElement.toBlob = vi.fn((callback: BlobCallback, type?: string) => {
           const blobType = type || 'image/png'
           callback(new Blob(['mock-image-data'], { type: blobType }))
         })
-        element.width = 800
-        element.height = 600
+        canvasElement.width = 800
+        canvasElement.height = 600
       }
       return element
     })
@@ -226,18 +258,47 @@ describe('Canvas Export Service', () => {
     })
 
     describe('PDF Export', () => {
-      it('should fall back to PNG for PDF (not yet implemented)', async () => {
-        const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
+      it('should export to PDF', async () => {
         const result = await exportCanvas({
           format: 'pdf',
           canvasElement: mockCanvasElement,
         })
 
-        expect(consoleSpy).toHaveBeenCalledWith(
-          'PDF export not yet implemented, falling back to PNG'
-        )
-        expect(result.mimeType).toBe('image/png')
+        expect(result.filename).toMatch(/board-export-\d+\.pdf/)
+        expect(result.mimeType).toBe('application/pdf')
+        expect(result.blob).toBeInstanceOf(Blob)
+      })
+
+      it('should export to PDF with custom filename', async () => {
+        const result = await exportCanvas({
+          format: 'pdf',
+          canvasElement: mockCanvasElement,
+          filename: 'my-pdf-export',
+        })
+
+        expect(result.filename).toBe('my-pdf-export.pdf')
+        expect(result.mimeType).toBe('application/pdf')
+      })
+
+      it('should export PDF with scale option', async () => {
+        const result = await exportCanvas({
+          format: 'pdf',
+          canvasElement: mockCanvasElement,
+          scale: 2,
+        })
+
+        expect(result.mimeType).toBe('application/pdf')
+        expect(result.blob).toBeInstanceOf(Blob)
+      })
+
+      it('should return data URL for PDF export', async () => {
+        const dataUrl = await exportToDataUrl({
+          format: 'pdf',
+          canvasElement: mockCanvasElement,
+        })
+
+        expect(dataUrl).toContain('data:')
+        expect(dataUrl).toContain('base64')
       })
     })
 
@@ -461,51 +522,81 @@ describe('Canvas Export Service', () => {
   })
 
   describe('html2canvas Integration', () => {
-    it('should use html2canvas when available', async () => {
-      const mockCanvas = originalCreateElement('canvas')
-      mockCanvas.toBlob = vi.fn((callback) => {
-        callback(new Blob(['test'], { type: 'image/png' }))
-      })
-
-      const mockHtml2Canvas = vi.fn().mockResolvedValue(mockCanvas)
-      ;(window as { html2canvas?: typeof mockHtml2Canvas }).html2canvas = mockHtml2Canvas
-
+    it('should use html2canvas for PNG export', async () => {
       const result = await exportCanvas({
         format: 'png',
         canvasElement: mockCanvasElement,
         scale: 2,
       })
 
-      expect(mockHtml2Canvas).toHaveBeenCalled()
+      expect(html2canvas).toHaveBeenCalled()
       expect(result.mimeType).toBe('image/png')
-
-      // Cleanup
-      delete (window as { html2canvas?: typeof mockHtml2Canvas }).html2canvas
     })
 
-    it('should log warning when using basic canvas fallback', async () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
+    it('should pass correct options to html2canvas', async () => {
       await exportCanvas({
         format: 'png',
         canvasElement: mockCanvasElement,
+        scale: 2,
+        background: true,
       })
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'html2canvas not found. For better export quality, install html2canvas.'
+      expect(html2canvas).toHaveBeenCalledWith(
+        expect.any(HTMLElement),
+        expect.objectContaining({
+          scale: 2,
+          backgroundColor: '#ffffff',
+          useCORS: true,
+          allowTaint: true,
+        })
+      )
+    })
+
+    it('should pass null background when background is false', async () => {
+      await exportCanvas({
+        format: 'png',
+        canvasElement: mockCanvasElement,
+        background: false,
+      })
+
+      expect(html2canvas).toHaveBeenCalledWith(
+        expect.any(HTMLElement),
+        expect.objectContaining({
+          backgroundColor: null,
+        })
       )
     })
   })
 
   describe('Background Option', () => {
-    it('should fill background when background option is true', async () => {
+    it('should pass background color to html2canvas when background is true', async () => {
       await exportCanvas({
         format: 'png',
         canvasElement: mockCanvasElement,
         background: true,
       })
 
-      expect(mockCanvasContext.fillRect).toHaveBeenCalled()
+      expect(html2canvas).toHaveBeenCalledWith(
+        expect.any(HTMLElement),
+        expect.objectContaining({
+          backgroundColor: '#ffffff',
+        })
+      )
+    })
+
+    it('should pass null background to html2canvas when background is false', async () => {
+      await exportCanvas({
+        format: 'png',
+        canvasElement: mockCanvasElement,
+        background: false,
+      })
+
+      expect(html2canvas).toHaveBeenCalledWith(
+        expect.any(HTMLElement),
+        expect.objectContaining({
+          backgroundColor: null,
+        })
+      )
     })
   })
 })

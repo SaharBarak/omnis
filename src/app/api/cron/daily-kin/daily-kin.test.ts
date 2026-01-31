@@ -122,7 +122,7 @@ describe('GET /api/cron/daily-kin', () => {
 
   describe('Authentication', () => {
     it('should return 401 in production without valid cron secret', async () => {
-      process.env.NODE_ENV = 'production'
+      vi.stubEnv('NODE_ENV', 'production')
       const request = createRequest('/api/cron/daily-kin')
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -132,7 +132,7 @@ describe('GET /api/cron/daily-kin', () => {
     })
 
     it('should return 401 in production with invalid cron secret', async () => {
-      process.env.NODE_ENV = 'production'
+      vi.stubEnv('NODE_ENV', 'production')
       const request = createRequest('/api/cron/daily-kin', {
         authorization: 'Bearer wrong-secret'
       })
@@ -144,7 +144,7 @@ describe('GET /api/cron/daily-kin', () => {
     })
 
     it('should succeed in production with valid cron secret', async () => {
-      process.env.NODE_ENV = 'production'
+      vi.stubEnv('NODE_ENV', 'production')
       const request = createRequest('/api/cron/daily-kin', {
         authorization: 'Bearer test-cron-secret'
       })
@@ -156,7 +156,7 @@ describe('GET /api/cron/daily-kin', () => {
     })
 
     it('should succeed in development without cron secret', async () => {
-      process.env.NODE_ENV = 'development'
+      vi.stubEnv('NODE_ENV', 'development')
       const request = createRequest('/api/cron/daily-kin')
       const response = await GET(request)
       const data = await parseResponse(response)

@@ -103,7 +103,7 @@ describe('useAuth Hook', () => {
       mockSingle.mockResolvedValue({
         data: {
           user_id: 'user-123',
-          first_name: 'Test',
+          display_name: 'Test',
           email: 'test@example.com',
           onboarding_completed: true,
         },
@@ -314,7 +314,7 @@ describe('useAuth Hook', () => {
 
       await expect(
         act(async () => {
-          await result.current.updateProfile({ first_name: 'Updated' })
+          await result.current.updateProfile({ display_name: 'Updated' })
         })
       ).rejects.toThrow('Not authenticated')
     })
@@ -337,7 +337,7 @@ describe('useAuth Hook', () => {
       mockSingle.mockResolvedValue({
         data: {
           user_id: 'user-123',
-          first_name: 'Original',
+          display_name: 'Original',
           email: 'test@example.com',
         },
         error: null,
@@ -359,11 +359,11 @@ describe('useAuth Hook', () => {
 
       // Update profile - verify the update mock is called
       await act(async () => {
-        await result.current.updateProfile({ first_name: 'Updated' })
+        await result.current.updateProfile({ display_name: 'Updated' })
       })
 
       // Verify update was called with the right data
-      expect(mockUpdate).toHaveBeenCalledWith({ first_name: 'Updated' })
+      expect(mockUpdate).toHaveBeenCalledWith({ display_name: 'Updated' })
     })
   })
 
