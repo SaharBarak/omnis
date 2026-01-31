@@ -54,6 +54,7 @@ The Omnis platform is a complete symbolic systems web application featuring:
 |-------|------------|
 | P0.1: Auth Route Conflict | Deleted `page.tsx`, kept `route.ts` |
 | P0.2: TypeScript Violations | Added proper type imports |
+| P0.3: Build Warnings - Dynamic API Routes | 13 API routes were attempting static generation during build, causing `DYNAMIC_SERVER_USAGE` warnings and build instability. Added `export const dynamic = 'force-dynamic'` to all API routes that use request.url, cookies, or authentication |
 
 ---
 
