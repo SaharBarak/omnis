@@ -360,7 +360,7 @@ export default function DashboardPage() {
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
                     </span>
                     <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Today's Energy
+                      Today&apos;s Energy
                     </span>
                   </div>
 
@@ -373,7 +373,7 @@ export default function DashboardPage() {
 
                   {todayKin.mantra && (
                     <blockquote className="text-sm italic text-muted-foreground border-l-2 border-primary/30 pl-3 mb-4">
-                      "{todayKin.mantra}"
+                      &ldquo;{todayKin.mantra}&rdquo;
                     </blockquote>
                   )}
 

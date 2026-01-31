@@ -121,12 +121,90 @@ export function PropertiesPanel() {
     return canvas.nodes.filter(n => selectedIds.has(n.id))
   }, [canvas.nodes, selectedIds])
 
+  const firstNode = selectedNodes[0]
+  const isMultiSelect = selectedNodes.length > 1
+
+  // === Person Node Handlers ===
+  const handleDisplayModeChange = useCallback((display: PersonDisplayMode) => {
+    if (!firstNode || isMultiSelect || !isPersonNode(firstNode)) return
+    updateNode(firstNode.id, { display } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  const handleSystemToggle = useCallback((system: SystemType) => {
+    if (!firstNode || isMultiSelect || !isPersonNode(firstNode)) return
+    const currentSystems = firstNode.showSystems || []
+    const newSystems = currentSystems.includes(system)
+      ? currentSystems.filter(s => s !== system)
+      : [...currentSystems, system]
+    updateNode(firstNode.id, { showSystems: newSystems } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  // === Text Node Handlers ===
+  const handleFontSizeChange = useCallback((fontSize: number) => {
+    if (!firstNode || isMultiSelect || !isTextNode(firstNode)) return
+    updateNode(firstNode.id, {
+      textStyle: { ...firstNode.textStyle, fontSize }
+    } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  const handleFontWeightChange = useCallback((fontWeight: number) => {
+    if (!firstNode || isMultiSelect || !isTextNode(firstNode)) return
+    updateNode(firstNode.id, {
+      textStyle: { ...firstNode.textStyle, fontWeight }
+    } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  const handleTextColorChange = useCallback((color: string) => {
+    if (!firstNode || isMultiSelect || !isTextNode(firstNode)) return
+    updateNode(firstNode.id, {
+      textStyle: { ...firstNode.textStyle, color }
+    } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  const handleTextAlignmentChange = useCallback((alignment: 'right' | 'center' | 'left') => {
+    if (!firstNode || isMultiSelect || !isTextNode(firstNode)) return
+    updateNode(firstNode.id, {
+      textStyle: { ...firstNode.textStyle, alignment }
+    } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  // === Shape Node Handlers ===
+  const handleShapeTypeChange = useCallback((shape: ShapeType) => {
+    if (!firstNode || isMultiSelect || !isShapeNode(firstNode)) return
+    updateNode(firstNode.id, { shape } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  const handleFillColorChange = useCallback((color: string) => {
+    if (!firstNode || isMultiSelect || !isShapeNode(firstNode)) return
+    updateNode(firstNode.id, {
+      fill: { ...firstNode.fill, type: 'solid', color }
+    } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  const handleStrokeColorChange = useCallback((color: string) => {
+    if (!firstNode || isMultiSelect || !isShapeNode(firstNode)) return
+    updateNode(firstNode.id, {
+      stroke: { ...firstNode.stroke, color }
+    } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  const handleStrokeWidthChange = useCallback((width: number) => {
+    if (!firstNode || isMultiSelect || !isShapeNode(firstNode)) return
+    updateNode(firstNode.id, {
+      stroke: { ...firstNode.stroke, width }
+    } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  // === Sticky Note Handler ===
+  const handleStickyColorChange = useCallback((color: StickyColor) => {
+    if (!firstNode || isMultiSelect || !isStickyNote(firstNode)) return
+    updateNode(firstNode.id, { color } as Partial<CanvasNode>)
+  }, [firstNode, isMultiSelect, updateNode])
+
+  // Early return must come AFTER all hooks
   if (selectedNodes.length === 0) {
     return null
   }
-
-  const firstNode = selectedNodes[0]
-  const isMultiSelect = selectedNodes.length > 1
 
   const handlePositionChange = (axis: 'x' | 'y', value: number) => {
     if (isMultiSelect) return
@@ -186,83 +264,6 @@ export function PropertiesPanel() {
       updateNode(node.id, { layerId })
     })
   }
-
-  // === Person Node Handlers ===
-  const handleDisplayModeChange = useCallback((display: PersonDisplayMode) => {
-    if (isMultiSelect || !isPersonNode(firstNode)) return
-    updateNode(firstNode.id, { display } as Partial<CanvasNode>)
-  }, [firstNode, isMultiSelect, updateNode])
-
-  const handleSystemToggle = useCallback((system: SystemType) => {
-    if (isMultiSelect || !isPersonNode(firstNode)) return
-    const currentSystems = firstNode.showSystems || []
-    const newSystems = currentSystems.includes(system)
-      ? currentSystems.filter(s => s !== system)
-      : [...currentSystems, system]
-    updateNode(firstNode.id, { showSystems: newSystems } as Partial<CanvasNode>)
-  }, [firstNode, isMultiSelect, updateNode])
-
-  // === Text Node Handlers ===
-  const handleFontSizeChange = useCallback((fontSize: number) => {
-    if (isMultiSelect || !isTextNode(firstNode)) return
-    updateNode(firstNode.id, {
-      textStyle: { ...firstNode.textStyle, fontSize }
-    } as Partial<CanvasNode>)
-  }, [firstNode, isMultiSelect, updateNode])
-
-  const handleFontWeightChange = useCallback((fontWeight: number) => {
-    if (isMultiSelect || !isTextNode(firstNode)) return
-    updateNode(firstNode.id, {
-      textStyle: { ...firstNode.textStyle, fontWeight }
-    } as Partial<CanvasNode>)
-  }, [firstNode, isMultiSelect, updateNode])
-
-  const handleTextColorChange = useCallback((color: string) => {
-    if (isMultiSelect || !isTextNode(firstNode)) return
-    updateNode(firstNode.id, {
-      textStyle: { ...firstNode.textStyle, color }
-    } as Partial<CanvasNode>)
-  }, [firstNode, isMultiSelect, updateNode])
-
-  const handleTextAlignmentChange = useCallback((alignment: 'right' | 'center' | 'left') => {
-    if (isMultiSelect || !isTextNode(firstNode)) return
-    updateNode(firstNode.id, {
-      textStyle: { ...firstNode.textStyle, alignment }
-    } as Partial<CanvasNode>)
-  }, [firstNode, isMultiSelect, updateNode])
-
-  // === Shape Node Handlers ===
-  const handleShapeTypeChange = useCallback((shape: ShapeType) => {
-    if (isMultiSelect || !isShapeNode(firstNode)) return
-    updateNode(firstNode.id, { shape } as Partial<CanvasNode>)
-  }, [firstNode, isMultiSelect, updateNode])
-
-  const handleFillColorChange = useCallback((color: string) => {
-    if (isMultiSelect || !isShapeNode(firstNode)) return
-    updateNode(firstNode.id, {
-      fill: { ...firstNode.fill, type: 'solid', color }
-    } as Partial<CanvasNode>)
-  }, [firstNode, isMultiSelect, updateNode])
-
-  const handleStrokeColorChange = useCallback((color: string) => {
-    if (isMultiSelect || !isShapeNode(firstNode)) return
-    updateNode(firstNode.id, {
-      stroke: { ...firstNode.stroke, color }
-    } as Partial<CanvasNode>)
-  }, [firstNode, isMultiSelect, updateNode])
-
-  const handleStrokeWidthChange = useCallback((width: number) => {
-    if (isMultiSelect || !isShapeNode(firstNode)) return
-    updateNode(firstNode.id, {
-      stroke: { ...firstNode.stroke, width }
-    } as Partial<CanvasNode>)
-  }, [firstNode, isMultiSelect, updateNode])
-
-  // === Sticky Note Handler ===
-  const handleStickyColorChange = useCallback((color: StickyColor) => {
-    if (isMultiSelect || !isStickyNote(firstNode)) return
-    updateNode(firstNode.id, { color } as Partial<CanvasNode>)
-  }, [firstNode, isMultiSelect, updateNode])
 
   return (
     <div className="w-64 p-4 bg-card rounded-lg shadow-md border max-h-[80vh] overflow-y-auto">

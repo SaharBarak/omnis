@@ -339,13 +339,25 @@ function findHouseForLongitude(longitude: number, houseCusps: number[]): number 
 /**
  * Extract aspects from horoscope results
  */
+// Type for raw aspect data from the horoscope library
+interface RawAspectData {
+  point1Key?: string
+  point1?: { key?: string }
+  point2Key?: string
+  point2?: { key?: string }
+  aspectKey?: string
+  label?: string
+  orb?: number
+  isApplying?: boolean
+  applying?: boolean
+}
+
 function extractAspects(horoscope: Horoscope): AspectInstance[] {
   const aspects: AspectInstance[] = []
   const seenPairs = new Set<string>()
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const allAspects = (horoscope.Aspects?.all ?? []) as any[]
+    const allAspects = (horoscope.Aspects?.all ?? []) as RawAspectData[]
 
     for (const aspectData of allAspects) {
       // The library uses point1Key/point2Key as direct properties

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, useCallback, use } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { analyzeGroup } from '@/lib/services/group-analysis'
@@ -217,7 +217,7 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
 
   const supabase = createClient()
 
-  const loadShare = async (password?: string) => {
+  const loadShare = useCallback(async (password?: string) => {
     setLoading(true)
     setError(null)
     setPasswordError(null)
@@ -317,11 +317,11 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
     } finally {
       setLoading(false)
     }
-  }
+  }, [supabase, token])
 
   useEffect(() => {
     loadShare()
-  }, [token])
+  }, [loadShare])
 
   const handlePasswordSubmit = (password: string) => {
     loadShare(password)

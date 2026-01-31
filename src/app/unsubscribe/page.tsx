@@ -55,7 +55,7 @@ function UnsubscribeContent() {
           </Link>
           <h1 className="text-2xl font-bold mb-2">Unsubscribe</h1>
           <p className="text-muted-foreground">
-            We're sorry to see you go.
+            We&apos;re sorry to see you go.
           </p>
         </div>
 

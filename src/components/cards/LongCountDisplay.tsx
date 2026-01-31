@@ -188,7 +188,7 @@ export function HaabDisplay({ dateStr, showMonthIndex = false, className = '' }:
   return (
     <div className={cn('haab-display text-center', className)}>
       <div className="text-sm text-muted-foreground mb-1">
-        Haab' (האאב)
+        Haab&apos; (האאב)
       </div>
       <div className="text-lg font-semibold">
         {haab.day} {haab.monthName}
@@ -227,7 +227,7 @@ export function CalendarRoundDisplay({ dateStr, className = '' }: CalendarRoundD
         {/* Tzolkin Section */}
         <div className="bg-muted/30 rounded-lg p-3 text-center">
           <div className="text-xs text-muted-foreground mb-1">
-            Tzolk'in (צולקין)
+            Tzolk&apos;in (צולקין)
           </div>
           <div className="text-lg font-semibold">
             {tzolkin.tone} {tzolkin.daySign.yucatec}
@@ -240,7 +240,7 @@ export function CalendarRoundDisplay({ dateStr, className = '' }: CalendarRoundD
         {/* Haab Section */}
         <div className="bg-muted/30 rounded-lg p-3 text-center">
           <div className="text-xs text-muted-foreground mb-1">
-            Haab' (האאב)
+            Haab&apos; (האאב)
           </div>
           <div className="text-lg font-semibold">
             {haab.day} {haab.monthName}

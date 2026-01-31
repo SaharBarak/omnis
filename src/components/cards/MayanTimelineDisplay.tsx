@@ -86,7 +86,7 @@ export function MayanTimelineDisplay({
         <div className="mb-4">
           <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-purple-500"></span>
-            K'atun Birthdays (ימי הולדת קאטון)
+            K&apos;atun Birthdays (ימי הולדת קאטון)
             <span className="text-xs text-muted-foreground font-normal">(~19.7 years)</span>
           </h4>
           <div className="space-y-2">
@@ -152,7 +152,7 @@ function KatunBirthdayCard({ katun }: KatunBirthdayCardProps) {
       <div className="flex items-center justify-between">
         <div>
           <span className="text-sm font-semibold">
-            K'atun {katun.katunNumber}
+            K&apos;atun {katun.katunNumber}
           </span>
           <span className="text-xs text-muted-foreground ml-2">
             (age ~{katun.ageAtKatun})
@@ -297,7 +297,7 @@ export function MayanTimelineMini({ birthDateStr, className = '' }: MayanTimelin
         {nextKatun && (
           <div className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-            <span className="text-muted-foreground">Next K'atun:</span>
+            <span className="text-muted-foreground">Next K&apos;atun:</span>
             <span className="text-xs">{nextKatun.gregorianDate}</span>
           </div>
         )}
