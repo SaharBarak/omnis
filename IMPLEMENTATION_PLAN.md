@@ -1,7 +1,7 @@
 # Omnis Implementation Plan
 
 > **Status:** MVP COMPLETE — P1 Issues Resolved, P2 Work Remaining
-> **Last Updated:** 2026-01-30
+> **Last Updated:** 2026-01-31
 > **Last Verified:** 2026-01-30 (comprehensive codebase analysis with 8 parallel agents)
 > **Goal:** Full-featured symbolic systems platform with 6 calculation systems
 
@@ -166,8 +166,9 @@ Per `/specs/I18N_ENGLISH_FIRST.md`:
 **Remaining Test Categories:**
 | Category | Files Needing Tests | Priority |
 |----------|---------------------|----------|
-| Hook tests | `use-people.ts`, `use-boards.ts` | LOW (memory-intensive mocking required) |
-| Hook tests | `use-people.ts`, `use-boards.ts`, `use-auth.ts` | LOW |
+| Hook tests | `use-people.ts`, `use-boards.ts` | LOW (memory-intensive mocking causes vitest worker timeouts) |
+
+**Note (2026-01-31):** A draft `use-people.test.ts` was removed due to vitest worker fork timeout issues. Hook tests with complex Supabase mocking require careful async handling to avoid infinite loops during component mount. Consider using `@testing-library/react`'s `waitFor` with explicit timeout controls or running these tests in isolation with `pool: 'forks'` and extended timeouts.
 
 ### P2.4: Specification Cleanup
 **Status:** COMPLETE - All 3 spec files updated to PARTIAL status.
