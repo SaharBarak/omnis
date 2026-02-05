@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDailyPrediction, getPersonalDailyPrediction } from '@/lib/services/predictions'
+import { rateLimiters, rateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limit'
 import type { DailyPredictionResponse } from '@/lib/types/prediction'
 
 export const dynamic = 'force-dynamic'
@@ -14,6 +15,12 @@ export const dynamic = 'force-dynamic'
  */
 export async function GET(request: NextRequest) {
   try {
+    // Rate limiting check
+    const rateLimitResult = await rateLimiters.publicApi.check(request, 'predictions-daily')
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult)
+    }
+
     const { searchParams } = new URL(request.url)
 
     // Get date parameter or use today
@@ -48,11 +55,12 @@ export async function GET(request: NextRequest) {
       prediction = getDailyPrediction(date)
     }
 
-    return NextResponse.json<DailyPredictionResponse>({
+    const response = NextResponse.json<DailyPredictionResponse>({
       success: true,
       data: prediction,
       computedAt: new Date().toISOString(),
     })
+    return addRateLimitHeaders(response, rateLimitResult)
   } catch (error) {
     console.error('Daily prediction error:', error)
     return NextResponse.json<DailyPredictionResponse>(
