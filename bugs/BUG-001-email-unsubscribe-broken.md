@@ -2,7 +2,7 @@
 
 **Severity:** 🔴 Critical  
 **Component:** Daily Kin Cron / Email Newsletter  
-**Status:** Open  
+**Status:** ✅ Fixed (commit 7d4d896)  
 **Found:** 2026-02-05  
 **Reporter:** QA Agent  
 
