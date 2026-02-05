@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
           from: 'Omnis <noreply@omnis.app>',
           to: subscriber.email,
           subject: `Today's Kin: ${kinData.seal.name} - Kin ${kinData.kin}`,
-          html: getDailyKinEmailHtml(kinData)
+          html: getDailyKinEmailHtml(kinData, subscriber.email)
         })
 
         if (sendError) {
@@ -166,7 +166,7 @@ interface KinData {
   }
 }
 
-function getDailyKinEmailHtml(kinData: KinData): string {
+function getDailyKinEmailHtml(kinData: KinData, subscriberEmail: string): string {
   const sealColors: Record<string, string> = {
     red: '#ef4444',
     white: '#f5f5f5',
@@ -250,7 +250,7 @@ ${kinData.mantra}
     <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
       <p style="color: #666; font-size: 12px; margin: 0 0 10px;">Daily Kin from Omnis</p>
       <p style="color: #666; font-size: 12px; margin: 0;">
-        <a href="https://omnis.app/api/newsletter/unsubscribe?email=RECIPIENT" style="color: #888;">Unsubscribe</a>
+        <a href="https://omnis.app/api/newsletter/unsubscribe?email=${encodeURIComponent(subscriberEmail)}" style="color: #888;">Unsubscribe</a>
       </p>
     </div>
   </div>

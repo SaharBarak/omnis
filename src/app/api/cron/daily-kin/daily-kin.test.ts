@@ -286,6 +286,20 @@ describe('GET /api/cron/daily-kin', () => {
       expect(emailCall.subject).toContain('Wind')
       expect(emailCall.subject).toContain('Kin 42')
     })
+
+    it('should include correct unsubscribe link with subscriber email', async () => {
+      const testEmail = 'test@example.com'
+      const request = createRequest('/api/cron/daily-kin', {
+        authorization: 'Bearer test-cron-secret'
+      })
+      await GET(request)
+
+      // Verify email contains personalized unsubscribe link
+      expect(mockResendSend).toHaveBeenCalled()
+      const emailCall = mockResendSend.mock.calls[0][0]
+      expect(emailCall.html).toContain(`email=${encodeURIComponent(testEmail)}`)
+      expect(emailCall.html).not.toContain('email=RECIPIENT')
+    })
   })
 
   describe('Error Handling', () => {
