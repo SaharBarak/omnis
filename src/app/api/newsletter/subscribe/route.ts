@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
+import { z } from 'zod'
+import { rateLimiters, rateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
+
+// Zod schema for request validation
+const subscribeSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Invalid email format')
+    .transform((val) => val.toLowerCase().trim()),
+})
 
 // Create server-side Supabase client
 function getSupabaseAdmin() {
@@ -22,27 +33,24 @@ function getSupabaseAdmin() {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting check
+    const rateLimitResult = await rateLimiters.newsletter.check(request, 'subscribe')
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult)
+    }
+
     const body = await request.json()
-    const { email } = body
 
-    if (!email || typeof email !== 'string') {
-      return NextResponse.json(
-        { error: 'Email is required' },
-        { status: 400 }
-      )
+    // Validate with Zod
+    const parseResult = subscribeSchema.safeParse(body)
+    if (!parseResult.success) {
+      const errors = parseResult.error.errors.map((e) => e.message).join(', ')
+      return NextResponse.json({ error: errors }, { status: 400 })
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 }
-      )
-    }
+    const { email: normalizedEmail } = parseResult.data
 
     const supabase = getSupabaseAdmin()
-    const normalizedEmail = email.toLowerCase().trim()
 
     // Check if already subscribed
     const { data: existing } = await supabase
@@ -59,45 +67,40 @@ export async function POST(request: NextRequest) {
           .update({
             unsubscribed_at: null,
             subscribed_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
           .eq('id', existing.id)
 
         if (error) {
           console.error('Error re-subscribing:', error)
-          return NextResponse.json(
-            { error: 'Failed to re-subscribe' },
-            { status: 500 }
-          )
+          return NextResponse.json({ error: 'Failed to re-subscribe' }, { status: 500 })
         }
 
-        return NextResponse.json({ success: true, message: 'Welcome back!' })
+        const response = NextResponse.json({ success: true, message: 'Welcome back!' })
+        return addRateLimitHeaders(response, rateLimitResult)
       }
 
       // Already subscribed
-      return NextResponse.json({ success: true, message: 'Already subscribed' })
+      const response = NextResponse.json({ success: true, message: 'Already subscribed' })
+      return addRateLimitHeaders(response, rateLimitResult)
     }
 
     // New subscriber
-    const { error: insertError } = await supabase
-      .from('newsletter_subscribers')
-      .insert({
-        email: normalizedEmail,
-        confirmed: true,
-        confirmed_at: new Date().toISOString(),
-        preferences: { daily_kin: true }
-      })
+    const { error: insertError } = await supabase.from('newsletter_subscribers').insert({
+      email: normalizedEmail,
+      confirmed: true,
+      confirmed_at: new Date().toISOString(),
+      preferences: { daily_kin: true },
+    })
 
     if (insertError) {
       // Handle unique constraint violation
       if (insertError.code === '23505') {
-        return NextResponse.json({ success: true, message: 'Already subscribed' })
+        const response = NextResponse.json({ success: true, message: 'Already subscribed' })
+        return addRateLimitHeaders(response, rateLimitResult)
       }
       console.error('Error inserting subscriber:', insertError)
-      return NextResponse.json(
-        { error: 'Failed to subscribe' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to subscribe' }, { status: 500 })
     }
 
     // Send welcome email if Resend is configured
@@ -108,7 +111,7 @@ export async function POST(request: NextRequest) {
           from: 'Omnis <noreply@omnis.app>',
           to: normalizedEmail,
           subject: 'Welcome to Omnis - Your Cosmic Journey Begins',
-          html: getWelcomeEmailHtml()
+          html: getWelcomeEmailHtml(),
         })
       } catch (emailError) {
         // Log but don't fail the subscription
@@ -116,13 +119,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, message: 'Subscribed successfully' })
+    const response = NextResponse.json({ success: true, message: 'Subscribed successfully' })
+    return addRateLimitHeaders(response, rateLimitResult)
   } catch (error) {
     console.error('Newsletter subscription error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { generateInterpretation, generateQuickInterpretation } from '@/lib/services/ai-interpretations'
+import {
+  generateInterpretation,
+  generateQuickInterpretation,
+} from '@/lib/services/ai-interpretations'
+import { rateLimiters, rateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limit'
 import type { AIInterpretationRequest, PredictionEvent } from '@/lib/types/prediction'
 
 export const dynamic = 'force-dynamic'
@@ -39,10 +43,13 @@ export async function POST(request: NextRequest) {
     const { user } = await getAuthenticatedUser()
 
     if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Rate limiting check (using user ID for more accurate limiting)
+    const rateLimitResult = await rateLimiters.ai.check(request, 'interpret', user.id)
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult)
     }
 
     const body = await request.json()
@@ -68,7 +75,7 @@ export async function POST(request: NextRequest) {
         locale
       )
 
-      return NextResponse.json({
+      const response = NextResponse.json({
         success: true,
         data: {
           interpretation,
@@ -76,6 +83,7 @@ export async function POST(request: NextRequest) {
           cachedAt: new Date().toISOString(),
         },
       })
+      return addRateLimitHeaders(response, rateLimitResult)
     }
 
     // Full interpretation mode
@@ -87,10 +95,11 @@ export async function POST(request: NextRequest) {
 
     const interpretation = await generateInterpretation(interpretationRequest)
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: interpretation,
     })
+    return addRateLimitHeaders(response, rateLimitResult)
   } catch (error) {
     console.error('AI interpretation error:', error)
     return NextResponse.json(
