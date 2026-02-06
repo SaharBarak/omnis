@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 
 // Sample reading card - editorial, clean
@@ -50,13 +50,20 @@ function ReadingCard() {
   )
 }
 
+const fadeInUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
+}
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.15, delayChildren: 0.1 }
+  }
+}
+
 export function Hero() {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
   return (
     <section className="relative min-h-[90vh] flex items-center bg-background">
       {/* Subtle background pattern */}
@@ -64,31 +71,48 @@ export function Hero() {
 
       {/* Content */}
       <div className="relative z-10 w-full max-w-6xl mx-auto px-6 pt-24 pb-16">
-        <div className={`grid lg:grid-cols-12 gap-12 lg:gap-16 items-center transition-opacity duration-700 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
+        <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
 
           {/* Left column - Text */}
-          <div className="lg:col-span-7 space-y-6">
+          <motion.div 
+            className="lg:col-span-7 space-y-6"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+          >
             {/* Badge */}
-            <div className="earth-badge">
+            <motion.div className="earth-badge" variants={fadeInUp} transition={{ duration: 0.5 }}>
               <span className="w-1.5 h-1.5 rounded-full bg-primary" />
               <span>Six systems. One place. No more tab chaos.</span>
-            </div>
+            </motion.div>
 
             {/* Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading text-foreground leading-tight">
+            <motion.h1 
+              className="text-4xl sm:text-5xl lg:text-6xl font-heading text-foreground leading-tight"
+              variants={fadeInUp}
+              transition={{ duration: 0.6 }}
+            >
               Time is Art.
               <br />
               <span className="text-earth-gradient">Know your place in it.</span>
-            </h1>
+            </motion.h1>
 
             {/* Description */}
-            <p className="text-lg text-muted-foreground max-w-xl leading-relaxed">
+            <motion.p 
+              className="text-lg text-muted-foreground max-w-xl leading-relaxed"
+              variants={fadeInUp}
+              transition={{ duration: 0.5 }}
+            >
               Dreamspell, Tzolkin, Human Design, Astrology, Gematria, and Long Count.
               <span className="text-foreground"> Everything calculated. Everything in one view.</span>
-            </p>
+            </motion.p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-start gap-3 pt-2">
+            <motion.div 
+              className="flex flex-col sm:flex-row items-start gap-3 pt-2"
+              variants={fadeInUp}
+              transition={{ duration: 0.5 }}
+            >
               <Button
                 size="lg"
                 className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-7 h-12 text-base rounded-lg transition-colors"
@@ -106,10 +130,14 @@ export function Hero() {
               >
                 <Link href="/today">See Today&apos;s Galactic Signature</Link>
               </Button>
-            </div>
+            </motion.div>
 
             {/* Stats */}
-            <div className="flex flex-wrap items-center gap-8 pt-6">
+            <motion.div 
+              className="flex flex-wrap items-center gap-8 pt-6"
+              variants={fadeInUp}
+              transition={{ duration: 0.5 }}
+            >
               <div>
                 <div className="text-2xl font-heading text-primary">10,847+</div>
                 <div className="text-xs text-muted-foreground">Profiles saved</div>
@@ -124,13 +152,18 @@ export function Hero() {
                 <div className="text-2xl font-heading text-primary">&lt;2s</div>
                 <div className="text-xs text-muted-foreground">Full calculation</div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Right column - Visual */}
-          <div className="lg:col-span-5 flex justify-center lg:justify-end">
+          <motion.div 
+            className="lg:col-span-5 flex justify-center lg:justify-end"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, delay: 0.3 }}
+          >
             <ReadingCard />
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>
