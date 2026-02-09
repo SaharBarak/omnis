@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 
 const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, y: 16 },
   visible: { opacity: 1, y: 0 }
 }
 
@@ -11,7 +11,7 @@ const staggerContainer = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.1 }
+    transition: { staggerChildren: 0.08 }
   }
 }
 
@@ -65,7 +65,7 @@ const systems = [
     icon: (
       <svg viewBox="0 0 32 32" className="w-7 h-7">
         <rect x="6" y="6" width="20" height="20" rx="2" fill="none" stroke="currentColor" strokeWidth="1" />
-        <text x="16" y="21" textAnchor="middle" fontSize="12" fill="currentColor" fontFamily="serif">א</text>
+        <text x="16" y="21" textAnchor="middle" fontSize="12" fill="currentColor" fontFamily="serif">&#x05D0;</text>
       </svg>
     ),
   },
@@ -80,44 +80,44 @@ const additionalSystems = [
 
 export function Features() {
   return (
-    <section className="py-20 lg:py-28 px-6 bg-background" id="features">
-      <div className="max-w-6xl mx-auto">
+    <section className="py-28 lg:py-36 px-6 bg-background" id="features">
+      <div className="max-w-content mx-auto">
         {/* Section header */}
-        <motion.div 
-          className="max-w-2xl mb-14"
+        <motion.div
+          className="max-w-2xl mb-16"
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: true, margin: "-80px" }}
           variants={staggerContainer}
         >
-          <motion.div className="earth-badge mb-5" variants={fadeInUp} transition={{ duration: 0.5 }}>
+          <motion.div className="earth-badge mb-5" variants={fadeInUp} transition={{ duration: 0.4 }}>
             <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
             <span>Close those 4 browser tabs</span>
           </motion.div>
 
-          <motion.h2 
-            className="text-3xl sm:text-4xl font-heading text-foreground mb-4"
+          <motion.h2
+            className="text-3xl sm:text-4xl font-heading text-foreground mb-5"
             variants={fadeInUp}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.4 }}
           >
             Six systems, <span className="text-earth-gradient">one unified view</span>
           </motion.h2>
 
-          <motion.p 
+          <motion.p
             className="text-lg text-muted-foreground leading-relaxed"
             variants={fadeInUp}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.4 }}
           >
             Each tradition offers a different lens. Omnis calculates all of them and displays them together so you can see the connections.
           </motion.p>
         </motion.div>
 
         {/* Feature cards */}
-        <motion.div 
-          className="grid md:grid-cols-2 gap-5"
+        <motion.div
+          className="grid md:grid-cols-2 gap-6"
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
+          viewport={{ once: true, margin: "-40px" }}
           variants={staggerContainer}
         >
           {systems.map((system, index) => (
@@ -125,15 +125,15 @@ export function Features() {
               key={system.name}
               className="group feature-card-earth"
               variants={fadeInUp}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              transition={{ duration: 0.4, delay: index * 0.08 }}
             >
               {/* Icon */}
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 bg-${system.color}/10 text-${system.color} border border-${system.color}/20`}>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 bg-${system.color}/10 text-${system.color} border border-${system.color}/20 transition-transform duration-300 group-hover:scale-105`}>
                 {system.icon}
               </div>
 
               {/* Content */}
-              <div className="flex items-baseline gap-2 mb-2">
+              <div className="flex items-baseline gap-2 mb-3">
                 <h3 className="text-xl font-heading text-foreground">{system.name}</h3>
                 <span className="text-xs uppercase tracking-wider text-muted-foreground">{system.subtitle}</span>
               </div>
@@ -143,15 +143,15 @@ export function Features() {
         </motion.div>
 
         {/* Additional systems */}
-        <motion.div 
-          className="mt-12 pt-10 border-t border-border"
-          initial={{ opacity: 0, y: 20 }}
+        <motion.div
+          className="mt-14 pt-10 border-t border-border/50"
+          initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
         >
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            <span className="text-sm text-muted-foreground">Also included:</span>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <span className="text-sm text-muted-foreground mr-1">Also included:</span>
             {additionalSystems.map((system) => (
               <div
                 key={system.name}

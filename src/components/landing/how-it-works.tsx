@@ -42,8 +42,8 @@ const steps = [
 
 export function HowItWorks() {
   return (
-    <section className="py-20 lg:py-28 px-6 bg-background" id="how-it-works">
-      <div className="max-w-5xl mx-auto">
+    <section className="py-28 lg:py-36 px-6 bg-background" id="how-it-works">
+      <div className="max-w-content mx-auto">
         {/* Section header */}
         <div className="text-center mb-14">
           <div className="earth-badge inline-flex mb-5">

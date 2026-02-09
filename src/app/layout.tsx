@@ -1,19 +1,28 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, DM_Sans } from "next/font/google";
+import { Barlow, Rubik, IBM_Plex_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 
-const plusJakarta = Plus_Jakarta_Sans({
+const barlow = Barlow({
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-sans",
   display: "swap",
 });
 
-const dmSans = DM_Sans({
+const rubik = Rubik({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-heading",
+  display: "swap",
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -21,7 +30,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#0a0a0f",
+  themeColor: "#5938C8",
 };
 
 export const metadata: Metadata = {
@@ -102,7 +111,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://va.vercel-scripts.com" />
       </head>
       <body
-        className={`${plusJakarta.variable} ${dmSans.variable} font-sans antialiased`}
+        className={`${barlow.variable} ${rubik.variable} ${ibmPlexMono.variable} font-sans antialiased`}
       >
         {children}
         <Analytics />

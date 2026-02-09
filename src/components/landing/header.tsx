@@ -27,11 +27,11 @@ export function Header() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? 'bg-background/95 backdrop-blur-sm border-b border-border shadow-earth'
+          ? 'bg-background/95 backdrop-blur-md border-b border-border/50 shadow-subtle'
           : 'bg-transparent'
       }`}
     >
-      <div className="max-w-6xl mx-auto px-6">
+      <div className="max-w-content mx-auto px-6">
         <div className="flex items-center justify-between h-16 lg:h-18">
           {/* Logo */}
           <Link href="/" className="group flex items-center gap-2.5">
@@ -72,7 +72,7 @@ export function Header() {
             </Link>
             <Button
               size="sm"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-5 h-9 rounded-lg transition-colors"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-5 h-9 rounded-lg transition-all duration-200 hover:shadow-elevated active:scale-[0.98]"
               asChild
             >
               <Link href="/login">Get Started</Link>

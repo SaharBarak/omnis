@@ -1,10 +1,11 @@
 services:
-  - type: worker
+  - type: cron
     name: omnis-scraper
     runtime: docker
     dockerfilePath: ./Dockerfile.scraper
     plan: starter
     region: oregon
+    schedule: "0 3 * * 0"
     envVars:
       - key: SUPABASE_URL
         sync: false
@@ -12,4 +13,3 @@ services:
         sync: false
       - key: SCRAPER_MAX_PAGES
         value: "500"
-    schedule: "0 3 * * 0"  # Weekly: Sunday 3 AM UTC

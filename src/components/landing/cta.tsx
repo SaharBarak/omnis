@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 
 export function CTA() {
   return (
-    <section className="py-20 lg:py-28 px-6 bg-background">
+    <section className="py-28 lg:py-36 px-6 bg-background">
       <div className="max-w-3xl mx-auto text-center">
         {/* Badge */}
         <div className="earth-badge inline-flex mb-6">
@@ -31,7 +31,7 @@ export function CTA() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
           <Button
             size="lg"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 h-12 text-base rounded-lg transition-colors"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 h-12 text-base rounded-lg transition-all duration-200 hover:shadow-float active:scale-[0.98]"
             asChild
           >
             <Link href="/login">

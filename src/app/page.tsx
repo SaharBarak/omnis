@@ -44,7 +44,7 @@ const jsonLd = {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background dark">
+    <div className="min-h-screen bg-background">
       <Script
         id="json-ld"
         type="application/ld+json"

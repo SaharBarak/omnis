@@ -64,7 +64,7 @@ export function Footer() {
 
   return (
     <footer className="bg-muted/30 border-t border-border">
-      <div className="max-w-6xl mx-auto px-6 py-14 lg:py-16">
+      <div className="max-w-content mx-auto px-6 py-14 lg:py-16">
         {/* Newsletter */}
         <div className="mb-12 pb-12 border-b border-border">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">

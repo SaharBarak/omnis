@@ -11,87 +11,35 @@ const config: Config = {
   	extend: {
   		fontFamily: {
   			sans: [
-  				'Source Sans 3',
+  				'var(--font-sans)',
+  				'Barlow',
   				'system-ui',
   				'sans-serif'
   			],
   			heading: [
-  				'Cormorant Garamond',
-  				'Georgia',
-  				'serif'
+  				'var(--font-heading)',
+  				'Rubik',
+  				'system-ui',
+  				'sans-serif'
   			],
   			mono: [
+  				'var(--font-mono)',
   				'IBM Plex Mono',
   				'monospace'
   			]
   		},
   		fontSize: {
-  			xs: [
-  				'0.75rem',
-  				{
-  					lineHeight: '1rem'
-  				}
-  			],
-  			sm: [
-  				'0.875rem',
-  				{
-  					lineHeight: '1.25rem'
-  				}
-  			],
-  			base: [
-  				'1rem',
-  				{
-  					lineHeight: '1.6'
-  				}
-  			],
-  			lg: [
-  				'1.125rem',
-  				{
-  					lineHeight: '1.7'
-  				}
-  			],
-  			xl: [
-  				'1.25rem',
-  				{
-  					lineHeight: '1.6'
-  				}
-  			],
-  			'2xl': [
-  				'1.5rem',
-  				{
-  					lineHeight: '1.4'
-  				}
-  			],
-  			'3xl': [
-  				'1.875rem',
-  				{
-  					lineHeight: '1.3'
-  				}
-  			],
-  			'4xl': [
-  				'2.25rem',
-  				{
-  					lineHeight: '1.2'
-  				}
-  			],
-  			'5xl': [
-  				'3rem',
-  				{
-  					lineHeight: '1.15'
-  				}
-  			],
-  			'6xl': [
-  				'3.75rem',
-  				{
-  					lineHeight: '1.1'
-  				}
-  			],
-  			'7xl': [
-  				'4.5rem',
-  				{
-  					lineHeight: '1.05'
-  				}
-  			]
+  			xs: ['0.75rem', { lineHeight: '1rem' }],
+  			sm: ['0.875rem', { lineHeight: '1.25rem' }],
+  			base: ['1rem', { lineHeight: '1.6' }],
+  			lg: ['1.125rem', { lineHeight: '1.7' }],
+  			xl: ['1.25rem', { lineHeight: '1.6' }],
+  			'2xl': ['1.5rem', { lineHeight: '1.4' }],
+  			'3xl': ['1.875rem', { lineHeight: '1.3' }],
+  			'4xl': ['2.25rem', { lineHeight: '1.2' }],
+  			'5xl': ['3rem', { lineHeight: '1.1' }],
+  			'6xl': ['3.75rem', { lineHeight: '1.05' }],
+  			'7xl': ['4.5rem', { lineHeight: '1' }]
   		},
   		colors: {
   			background: 'hsl(var(--background))',
@@ -174,60 +122,121 @@ const config: Config = {
   			'18': '4.5rem',
   			'22': '5.5rem'
   		},
+  		maxWidth: {
+  			'content': '1180px',
+  		},
   		boxShadow: {
-  			earth: '0 1px 3px rgba(45, 37, 25, 0.06), 0 4px 12px rgba(45, 37, 25, 0.04)',
-  			'earth-md': '0 2px 6px rgba(45, 37, 25, 0.08), 0 8px 24px rgba(45, 37, 25, 0.06)',
-  			'earth-lg': '0 4px 12px rgba(45, 37, 25, 0.1), 0 16px 48px rgba(45, 37, 25, 0.08)',
-  			'inner-earth': 'inset 0 1px 2px rgba(45, 37, 25, 0.06)'
+  			'subtle': '0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px rgba(0, 0, 0, 0.02)',
+  			'elevated': '0 4px 16px rgba(89, 56, 200, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04)',
+  			'float': '0 8px 24px rgba(89, 56, 200, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)',
+  			'glow': '0 0 0 3px hsl(257 55% 50% / 0.1), 0 4px 16px hsl(257 55% 50% / 0.08)',
+  			'inner-subtle': 'inset 0 1px 2px rgba(0, 0, 0, 0.04)',
+  			// Legacy aliases
+  			'earth': '0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px rgba(0, 0, 0, 0.02)',
+  			'earth-md': '0 4px 16px rgba(89, 56, 200, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04)',
+  			'earth-lg': '0 8px 24px rgba(89, 56, 200, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)',
+  			'inner-earth': 'inset 0 1px 2px rgba(0, 0, 0, 0.04)'
   		},
   		animation: {
-  			'fade-in': 'fadeIn 0.5s ease-out',
-  			'fade-up': 'fadeUp 0.6s ease-out forwards',
-  			'slide-up': 'slideUp 0.6s ease-out',
-  			'gentle-pulse': 'gentlePulse 3s ease-in-out infinite'
+  			'fade-in': 'fadeIn 0.3s ease-out forwards',
+  			'fade-up': 'fadeUp 0.4s ease-out forwards',
+  			'fade-down': 'fadeDown 0.35s ease-out forwards',
+  			'slide-up': 'slideUp 0.3s ease-out forwards',
+  			'slide-in-right': 'slideInRight 0.35s ease-out forwards',
+  			'slide-in-left': 'slideInLeft 0.35s ease-out forwards',
+  			'scale-in': 'scaleIn 0.3s ease-out forwards',
+  			'scale-up': 'scaleUp 0.4s ease-out forwards',
+  			'gentle-pulse': 'gentlePulse 2.5s ease-in-out infinite',
+  			'shimmer': 'shimmer 2s linear infinite',
+  			'float': 'float 3s ease-in-out infinite',
+  			'breathe': 'breathe 4s ease-in-out infinite',
+  			'spin-slow': 'spin-slow 20s linear infinite',
+  			'gradient': 'gradient-shift 6s ease infinite',
+  			'reveal-line': 'reveal-line 0.8s ease-out forwards',
+  			'blur-in': 'blur-in 0.5s ease-out forwards',
+  			'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
   		},
   		keyframes: {
   			fadeIn: {
-  				'0%': {
-  					opacity: '0'
-  				},
-  				'100%': {
-  					opacity: '1'
-  				}
+  				'0%': { opacity: '0' },
+  				'100%': { opacity: '1' }
   			},
   			fadeUp: {
-  				'0%': {
-  					opacity: '0',
-  					transform: 'translateY(16px)'
-  				},
-  				'100%': {
-  					opacity: '1',
-  					transform: 'translateY(0)'
-  				}
+  				'0%': { opacity: '0', transform: 'translateY(12px)' },
+  				'100%': { opacity: '1', transform: 'translateY(0)' }
+  			},
+  			fadeDown: {
+  				'0%': { opacity: '0', transform: 'translateY(-8px)' },
+  				'100%': { opacity: '1', transform: 'translateY(0)' }
   			},
   			slideUp: {
-  				'0%': {
-  					opacity: '0',
-  					transform: 'translateY(20px)'
-  				},
-  				'100%': {
-  					opacity: '1',
-  					transform: 'translateY(0)'
-  				}
+  				'0%': { opacity: '0', transform: 'translateY(100%)' },
+  				'100%': { opacity: '1', transform: 'translateY(0)' }
+  			},
+  			slideInRight: {
+  				'0%': { opacity: '0', transform: 'translateX(16px)' },
+  				'100%': { opacity: '1', transform: 'translateX(0)' }
+  			},
+  			slideInLeft: {
+  				'0%': { opacity: '0', transform: 'translateX(-16px)' },
+  				'100%': { opacity: '1', transform: 'translateX(0)' }
+  			},
+  			scaleIn: {
+  				'0%': { opacity: '0', transform: 'scale(0.95)' },
+  				'100%': { opacity: '1', transform: 'scale(1)' }
+  			},
+  			scaleUp: {
+  				'0%': { opacity: '0', transform: 'scale(0.9)' },
+  				'100%': { opacity: '1', transform: 'scale(1)' }
   			},
   			gentlePulse: {
-  				'0%, 100%': {
-  					opacity: '1'
-  				},
-  				'50%': {
-  					opacity: '0.7'
-  				}
-  			}
+  				'0%, 100%': { opacity: '1' },
+  				'50%': { opacity: '0.6' }
+  			},
+  			shimmer: {
+  				'0%': { backgroundPosition: '-200% 0' },
+  				'100%': { backgroundPosition: '200% 0' }
+  			},
+  			float: {
+  				'0%, 100%': { transform: 'translateY(0)' },
+  				'50%': { transform: 'translateY(-6px)' }
+  			},
+  			breathe: {
+  				'0%, 100%': { transform: 'scale(1)', opacity: '0.8' },
+  				'50%': { transform: 'scale(1.03)', opacity: '1' }
+  			},
+  			'spin-slow': {
+  				'0%': { transform: 'rotate(0deg)' },
+  				'360%': { transform: 'rotate(360deg)' }
+  			},
+  			'gradient-shift': {
+  				'0%': { backgroundPosition: '0% 50%' },
+  				'50%': { backgroundPosition: '100% 50%' },
+  				'100%': { backgroundPosition: '0% 50%' }
+  			},
+  			'reveal-line': {
+  				'0%': { width: '0' },
+  				'100%': { width: '100%' }
+  			},
+  			'blur-in': {
+  				'0%': { opacity: '0', filter: 'blur(8px)' },
+  				'100%': { opacity: '1', filter: 'blur(0)' }
+  			},
+  			'glow-pulse': {
+  				'0%, 100%': { boxShadow: '0 0 0 0 hsl(257 55% 50% / 0)' },
+  				'50%': { boxShadow: '0 0 20px 4px hsl(257 55% 50% / 0.15)' }
+  			},
+  		},
+  		transitionTimingFunction: {
+  			'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
+  			'spring': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+  			'bounce': 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
   		},
   		transitionDuration: {
-  			fast: '150ms',
-  			normal: '200ms',
-  			slow: '300ms'
+  			'fast': '120ms',
+  			'normal': '200ms',
+  			'slow': '300ms',
+  			'slower': '500ms',
   		}
   	}
   },
