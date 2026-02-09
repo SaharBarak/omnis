@@ -369,17 +369,17 @@ function AppHeader() {
 function LoadingState() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="flex flex-col items-center gap-4">
+      <div className="flex flex-col items-center gap-5 animate-fade-up">
         {/* Animated logo */}
         <div className="relative w-16 h-16">
-          <svg viewBox="0 0 64 64" className="w-full h-full animate-pulse">
-            <circle cx="32" cy="32" r="28" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.2" />
-            <circle cx="32" cy="32" r="18" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.4" />
+          <svg viewBox="0 0 64 64" className="w-full h-full animate-breathe">
+            <circle cx="32" cy="32" r="28" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.15" />
+            <circle cx="32" cy="32" r="18" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.3" />
             <circle cx="32" cy="32" r="8" fill="hsl(var(--primary))" />
           </svg>
-          <div className="absolute inset-0 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+          <div className="absolute inset-0 rounded-full border-2 border-primary/15 border-t-primary animate-spin" style={{ animationDuration: '1.2s' }} />
         </div>
-        <p className="text-muted-foreground text-sm">Loading your dashboard...</p>
+        <p className="text-muted-foreground text-sm animate-gentle-pulse">Loading your dashboard...</p>
       </div>
     </div>
   )
@@ -421,8 +421,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <AppHeader />
 
           {/* Main content */}
-          <main className="flex-1 p-4 lg:p-8 pb-24 md:pb-8">
-            <div className="max-w-6xl mx-auto">
+          <main className="flex-1 p-5 lg:p-10 pb-24 md:pb-10">
+            <div className="max-w-content mx-auto page-enter">
               {children}
             </div>
           </main>

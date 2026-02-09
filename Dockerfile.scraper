@@ -13,5 +13,7 @@ COPY tsconfig.json ./
 # Create data directory
 RUN mkdir -p data/knowledge
 
-# Run the pipeline
+# Default: run the pipeline
 CMD ["npx", "tsx", "scripts/run-scraper.ts"]
+
+# For Render cron jobs, set Command to: npx tsx scripts/run-scraper.ts

@@ -111,7 +111,7 @@ export default function LearnPage() {
 
         {/* Main Sections Grid */}
         <section className="px-4 sm:px-6 mb-16 sm:mb-24">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-content mx-auto">
             <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
               {docStructure.sections.map((section, index) => {
                 const colors = sectionColors[section.id] || sectionColors.integration

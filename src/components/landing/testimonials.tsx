@@ -40,7 +40,7 @@ export function Testimonials() {
   }, [])
 
   return (
-    <section className="py-20 lg:py-28 px-6 bg-muted/30" id="testimonials">
+    <section className="py-28 lg:py-36 px-6 bg-muted/30" id="testimonials">
       <div className="max-w-3xl mx-auto">
         {/* Section header */}
         <div className="text-center mb-12">

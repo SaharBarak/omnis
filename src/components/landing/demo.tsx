@@ -56,7 +56,7 @@ export function Demo() {
   }
 
   return (
-    <section className="py-20 lg:py-28 px-6 bg-muted/20" id="demo">
+    <section className="py-28 lg:py-36 px-6 bg-muted/20" id="demo">
       <div className="max-w-2xl mx-auto">
         {/* Section header */}
         <div className="text-center mb-10">
