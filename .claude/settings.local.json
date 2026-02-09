@@ -15,7 +15,30 @@
       "WebFetch(domain:www.reshot.com)",
       "WebFetch(domain:www.svgrepo.com)",
       "WebFetch(domain:commons.wikimedia.org)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(git -C /Users/moon/workspace/copywrite-think-tank log --oneline --since=\"midnight\" --all)",
+      "Bash(git -C /Users/moon/workspace/whatshappaning log --oneline --since=\"midnight\" --all)",
+      "Bash(git -C /Users/moon/workspace/wessley.ai log --oneline --since=\"midnight\" --all)",
+      "Bash(git -C /Users/moon/workspace/copywrite-think-tank log --oneline --since=\"24 hours ago\" --all)",
+      "Bash(git -C /Users/moon/workspace/whatshappaning log --oneline --since=\"24 hours ago\" --all)",
+      "Bash(git -C /Users/moon/workspace/wessley.ai log --oneline --since=\"24 hours ago\" --all)",
+      "Bash(git -C /Users/moon/workspace/wessley.ai log --oneline -10 --all)",
+      "Bash(git -C /Users/moon/workspace/whatshappaning log --oneline -10 --all)",
+      "Bash(git -C /Users/moon/workspace/copywrite-think-tank log --pretty=format:\"%h %ad %s\" --date=format:\"%H:%M\" --since=\"24 hours ago\")",
+      "Bash(git -C /Users/moon/workspace/wessley.ai log --pretty=format:\"%h %ad %s\" --date=format:\"%H:%M\" --since=\"48 hours ago\")",
+      "Bash(git -C /Users/moon/workspace/wessley.ai log --pretty=format:\"%h %ad %s\" --date=format:\"%m-%d %H:%M\" -15)",
+      "Bash(colima status:*)",
+      "Bash(osascript:*)",
+      "Bash(brew install:*)",
+      "Bash(colima start:*)",
+      "Bash(docker info:*)",
+      "Bash(vercel logs:*)",
+      "Bash(vercel inspect:*)",
+      "Bash(vercel:*)",
+      "Bash(git config:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nchore: Add npmrc for legacy peer deps and fix cron schedule\n\n- Add .npmrc with legacy-peer-deps=true to resolve React 18/19 conflict\n- Change send-notifications cron from hourly to daily \\(Hobby plan limit\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(npm run test:*)"
     ]
   }
 }

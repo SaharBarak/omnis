@@ -7,8 +7,22 @@ type CookieToSet = { name: string; value: string; options?: CookieOptions }
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
+  const error = requestUrl.searchParams.get('error')
+  const errorDescription = requestUrl.searchParams.get('error_description')
   const redirectTo = requestUrl.searchParams.get('redirectTo') || '/app'
   const origin = requestUrl.origin
+
+  console.log('[AuthCallback] Request URL:', request.url)
+  console.log('[AuthCallback] Code:', code ? 'present' : 'missing')
+  console.log('[AuthCallback] Error:', error)
+  console.log('[AuthCallback] Error Description:', errorDescription)
+  console.log('[AuthCallback] RedirectTo:', redirectTo)
+
+  // Handle OAuth errors
+  if (error) {
+    console.error('[AuthCallback] OAuth error:', error, errorDescription)
+    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(errorDescription || error)}`)
+  }
 
   if (code) {
     const cookieStore = await cookies()

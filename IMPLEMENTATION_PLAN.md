@@ -1,7 +1,7 @@
 # Omnis Implementation Plan
 
 > **Status:** MVP COMPLETE — P1 Issues Resolved, P2 Work Remaining
-> **Last Updated:** 2026-01-31
+> **Last Updated:** 2026-02-04
 > **Last Verified:** 2026-01-30 (comprehensive codebase analysis with 8 parallel agents)
 > **Goal:** Full-featured symbolic systems platform with 6 calculation systems
 
@@ -25,7 +25,7 @@ The Omnis platform is a complete symbolic systems web application featuring:
 | **MVP Functionality** | COMPLETE | All 16 cards render at `/app/cards` |
 | **Build Status** | PASSING | Production build succeeds |
 | **TypeScript** | CLEAN | No type errors (strict mode) |
-| **Tests** | 895 PASSING | 27 test files (11 calculations + 4 services + 6 API routes + 2 components + 4 hooks/utils) |
+| **Tests** | 937 PASSING | 28 test files (11 calculations + 4 services + 6 API routes + 3 components + 4 hooks/utils) |
 | **Icons** | COMPLETE | 40 SVG icons (20 dreamspell seals, 20 tzolkin signs) |
 | **Components** | 76 FILES | `src/lib/` fully production-ready, no TODOs |
 | **Specs** | 30+ FILES | All system specs complete, 3 marked TODO |
@@ -130,7 +130,7 @@ All 15 canvas components updated to LTR with English UI:
 | boards/[id]/page.tsx | Changed `dir="rtl"` to LTR, translated Hebrew UI to English |
 
 ### P2.3: Test Coverage Expansion
-**Current:** 895 tests across 27 test files (2026-01-31)
+**Current:** 937 tests across 28 test files (2026-02-04)
 
 **Test File Distribution:**
 | File | Tests | Coverage |
@@ -144,6 +144,7 @@ All 15 canvas components updated to LTR with English UI:
 | `long-count.test.ts` | 47 | Mayan calendar, Haab, Calendar Round |
 | `daily-predictions.test.ts` (API) | 45 | Cron auth, people processing, error handling |
 | `display-components.test.tsx` | 45 | WavespellDisplay, CastleDisplay, YearlyDisplay (all variants) |
+| `long-count-display.test.tsx` | 42 | LongCountDisplay, LongCountMini, BaktunProgress, HaabDisplay, CalendarRoundDisplay |
 | `predictions.test.ts` (API) | 42 | GET/POST predictions endpoints, caching, validation |
 | `group-analysis.test.ts` | 37 | Group member analysis, distributions, compatibility matrix, insights |
 | `cards.test.tsx` | 36 | PersonCard, DreamspellSection, TzolkinSection, OracleMap, MantraDisplay, SealIcon |
@@ -168,7 +169,7 @@ All 15 canvas components updated to LTR with English UI:
 - Mock for Next.js Image component
 - Configuration: `vitest.config.ts` with React plugin
 
-**Completed Test Categories (2026-01-30):**
+**Completed Test Categories (2026-02-04):**
 | Category | Status | Tests Added |
 |----------|--------|-------------|
 | Service tests: predictions.ts | ✅ COMPLETE | 55 tests |
@@ -185,6 +186,7 @@ All 15 canvas components updated to LTR with English UI:
 | Hook tests: use-system-preferences.ts | ✅ COMPLETE | 17 tests |
 | Service tests: board-templates.ts | ✅ COMPLETE | 41 tests |
 | Utility tests: utils.ts | ✅ COMPLETE | 12 tests |
+| Component tests: LongCountDisplay | ✅ COMPLETE | 42 tests |
 
 **Remaining Test Categories:**
 | Category | Files Needing Tests | Priority |
@@ -297,7 +299,7 @@ All 15 canvas components updated to LTR with English UI:
 ```bash
 npm run dev           # Start dev server
 npm run build         # Production build (PASSING)
-npm run test          # Run tests (895 tests)
+npm run test          # Run tests (937 tests)
 npm run typecheck     # TypeScript check (CLEAN)
 ```
 
@@ -322,7 +324,7 @@ npm run typecheck     # TypeScript check (CLEAN)
 - [x] No runtime errors
 - [x] TypeScript clean (strict mode)
 - [x] Print CSS produces proper A5 layout
-- [x] 895 tests passing
+- [x] 937 tests passing
 - [x] Production build succeeds
 
 ---

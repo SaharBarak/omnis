@@ -7,6 +7,7 @@ import { useGroups } from '@/lib/hooks/use-groups'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Dialog,
   DialogContent,
@@ -23,6 +24,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Label } from '@/components/ui/label'
 import { ShareDialog } from '@/components/share-dialog'
+import { PageHeader, EmptyState } from '@/components/dashboard'
+import { Plus, MoreVertical, Search, Users, AlertTriangle, Share2, BarChart3 } from 'lucide-react'
 import type { Group, Person } from '@/lib/supabase/database.types'
 import type { GroupWithMembers, CreateGroupInput } from '@/lib/types/relationship'
 
@@ -45,33 +48,32 @@ function GroupCard({
   onShare: (group: Group) => void
 }) {
   return (
-    <div className="earth-card bg-card p-5 cursor-pointer hover:shadow-earth-lg transition-shadow">
+    <div className="surface-card p-5 hover:border-primary/20 transition-colors">
       <div className="flex items-start justify-between mb-3">
-        <div onClick={() => onViewMembers(group)}>
-          <h3 className="text-lg font-heading text-foreground">{group.name}</h3>
+        <div className="cursor-pointer flex-1" onClick={() => onViewMembers(group)}>
+          <h3 className="font-semibold text-foreground">{group.name}</h3>
           {group.description && (
-            <p className="text-sm text-muted-foreground">{group.description}</p>
+            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{group.description}</p>
           )}
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
               <span className="sr-only">Menu</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="1" />
-                <circle cx="12" cy="5" r="1" />
-                <circle cx="12" cy="19" r="1" />
-              </svg>
+              <MoreVertical className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
+          <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onViewMembers(group)}>
+              <Users className="w-4 h-4 mr-2" />
               View Members
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onAnalyze(group)}>
+              <BarChart3 className="w-4 h-4 mr-2" />
               Group Analysis
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onShare(group)}>
+              <Share2 className="w-4 h-4 mr-2" />
               Share
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onEdit(group)}>
@@ -86,9 +88,10 @@ function GroupCard({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div onClick={() => onViewMembers(group)}>
-        <Badge variant="secondary" className="bg-secondary/20 text-secondary">
-          {memberCount} members
+      <div className="cursor-pointer" onClick={() => onViewMembers(group)}>
+        <Badge variant="secondary" className="bg-secondary/10 text-secondary-foreground">
+          <Users className="w-3 h-3 mr-1" />
+          {memberCount} member{memberCount !== 1 ? 's' : ''}
         </Badge>
       </div>
     </div>
@@ -458,79 +461,94 @@ export default function GroupsPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center text-muted-foreground">Loading...</div>
-      </div>
-    )
+    return <GroupsSkeleton />
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center text-destructive">{error}</div>
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+          <AlertTriangle className="w-6 h-6 text-destructive" />
+        </div>
+        <div className="text-center">
+          <p className="font-medium text-foreground">Error loading groups</p>
+          <p className="text-sm text-muted-foreground mt-1">{error}</p>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-heading text-foreground">Groups</h1>
-          <p className="text-muted-foreground">
-            {groups.length} groups created
-          </p>
-        </div>
-
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">+ Create Group</Button>
-          </DialogTrigger>
-          <DialogContent className="earth-card max-w-md">
-            <DialogHeader>
-              <DialogTitle className="font-heading">Create New Group</DialogTitle>
-              <DialogDescription>
-                Create a group of people for group analysis
-              </DialogDescription>
-            </DialogHeader>
-            <GroupForm
-              people={people}
-              onSave={handleAddGroup}
-              onCancel={() => setIsAddDialogOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
+      <PageHeader
+        title="Groups"
+        subtitle={`${groups.length} group${groups.length !== 1 ? 's' : ''} created`}
+        actions={
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Group
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Create New Group</DialogTitle>
+                <DialogDescription>
+                  Create a group of people for group analysis
+                </DialogDescription>
+              </DialogHeader>
+              <GroupForm
+                people={people}
+                onSave={handleAddGroup}
+                onCancel={() => setIsAddDialogOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
       {deleteError && (
-        <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg">
-          {deleteError}
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
+          <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+          <p className="text-sm text-destructive">{deleteError}</p>
         </div>
       )}
 
       {/* Search */}
-      <Input
-        placeholder="Search groups..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="max-w-xs bg-background border-border"
-      />
+      <div className="relative max-w-xs">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search groups..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
 
       {/* Groups grid */}
       {filteredGroups.length === 0 ? (
-        <div className="earth-card bg-card p-12 text-center">
-          <p className="text-muted-foreground mb-4">
-            {search ? 'No results found' : 'You haven\'t created any groups yet'}
-          </p>
-          {!search && (
-            <Button onClick={() => setIsAddDialogOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              + Create First Group
-            </Button>
-          )}
-        </div>
+        search ? (
+          <div className="surface-card p-12 text-center">
+            <Search className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
+            <p className="font-medium text-foreground">No results found</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Try adjusting your search term
+            </p>
+          </div>
+        ) : (
+          <EmptyState
+            icon="groups"
+            title="No groups yet"
+            description="Create groups to analyze collective patterns and dynamics."
+            action={{
+              label: 'Create First Group',
+              onClick: () => setIsAddDialogOpen(true),
+            }}
+          />
+        )
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredGroups.map(group => (
             <GroupCard
               key={group.id}
@@ -551,9 +569,9 @@ export default function GroupsPage() {
         setIsEditDialogOpen(open)
         if (!open) setEditingGroup(null)
       }}>
-        <DialogContent className="earth-card max-w-md">
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-heading">Edit Group</DialogTitle>
+            <DialogTitle>Edit Group</DialogTitle>
             <DialogDescription>
               Update the group details
             </DialogDescription>
@@ -577,9 +595,9 @@ export default function GroupsPage() {
         setIsViewDialogOpen(open)
         if (!open) setViewingGroup(null)
       }}>
-        <DialogContent className="earth-card max-w-md">
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-heading">{viewingGroup?.group.name}</DialogTitle>
+            <DialogTitle>{viewingGroup?.group.name}</DialogTitle>
             {viewingGroup?.group.description && (
               <DialogDescription>
                 {viewingGroup.group.description}
@@ -618,6 +636,41 @@ export default function GroupsPage() {
           }}
         />
       )}
+    </div>
+  )
+}
+
+// Loading skeleton
+function GroupsSkeleton() {
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <Skeleton className="h-8 w-32 mb-2" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+        <Skeleton className="h-10 w-36 mt-3 sm:mt-0" />
+      </div>
+
+      {/* Search */}
+      <Skeleton className="h-10 w-64" />
+
+      {/* Grid */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="rounded-xl border border-border bg-card p-5">
+            <div className="flex items-start justify-between mb-3">
+              <div className="space-y-2 flex-1">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-4 w-48" />
+              </div>
+              <Skeleton className="h-8 w-8 rounded-lg" />
+            </div>
+            <Skeleton className="h-5 w-24 rounded-full" />
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

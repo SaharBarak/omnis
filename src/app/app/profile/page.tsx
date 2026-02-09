@@ -5,6 +5,9 @@ import { useAuth } from '@/lib/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
+import { PageHeader } from '@/components/dashboard'
+import { Pencil, Save, X } from 'lucide-react'
 import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
 import { getSeal } from '@/lib/data/seals'
 import { getTone } from '@/lib/data/tones'
@@ -53,28 +56,23 @@ export default function ProfilePage() {
   }
 
   if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center text-muted-foreground">Loading...</div>
-      </div>
-    )
+    return <ProfileSkeleton />
   }
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <div>
-        <h1 className="text-3xl font-heading text-foreground">My Profile</h1>
-        <p className="text-muted-foreground">
-          View and edit your personal details
-        </p>
-      </div>
+      <PageHeader
+        title="My Profile"
+        subtitle="View and edit your personal details"
+      />
 
       {/* Profile Info Card */}
-      <div className="earth-card bg-card p-6">
+      <div className="surface-card p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-heading text-foreground">Personal Details</h2>
+          <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Personal Details</h2>
           {!editing && (
-            <Button variant="outline" onClick={() => setEditing(true)}>
+            <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+              <Pencil className="w-4 h-4 mr-2" />
               Edit
             </Button>
           )}
@@ -117,12 +115,13 @@ export default function ProfilePage() {
             </div>
 
             {error && (
-              <div className="text-sm text-destructive">{error}</div>
+              <div className="p-3 rounded-lg bg-destructive/10 text-sm text-destructive">{error}</div>
             )}
 
-            <div className="flex gap-2">
-              <Button onClick={handleSave} disabled={loading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                {loading ? 'Saving...' : 'Save'}
+            <div className="flex gap-2 pt-2">
+              <Button onClick={handleSave} disabled={loading}>
+                <Save className="w-4 h-4 mr-2" />
+                {loading ? 'Saving...' : 'Save Changes'}
               </Button>
               <Button variant="outline" onClick={() => {
                 setEditing(false)
@@ -132,35 +131,36 @@ export default function ProfilePage() {
                   hebrew_name: profile?.hebrew_name || '',
                 })
               }}>
+                <X className="w-4 h-4 mr-2" />
                 Cancel
               </Button>
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <div className="text-sm text-muted-foreground">Display Name</div>
+              <div className="text-sm text-muted-foreground mb-1">Display Name</div>
               <div className="font-medium text-foreground">{profile?.display_name}</div>
             </div>
 
             <div>
-              <div className="text-sm text-muted-foreground">Email</div>
+              <div className="text-sm text-muted-foreground mb-1">Email</div>
               <div className="font-medium text-foreground">{user?.email}</div>
             </div>
 
             <div>
-              <div className="text-sm text-muted-foreground">Birth Date</div>
+              <div className="text-sm text-muted-foreground mb-1">Birth Date</div>
               <div className="font-medium text-foreground">
                 {profile?.birth_date
-                  ? new Date(profile.birth_date).toLocaleDateString('en-US')
-                  : 'Not set'}
+                  ? new Date(profile.birth_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+                  : <span className="text-muted-foreground italic">Not set</span>}
               </div>
             </div>
 
             <div>
-              <div className="text-sm text-muted-foreground">Hebrew Name</div>
+              <div className="text-sm text-muted-foreground mb-1">Hebrew Name</div>
               <div className="font-medium text-foreground">
-                {profile?.hebrew_name || 'Not set'}
+                {profile?.hebrew_name || <span className="text-muted-foreground italic">Not set</span>}
               </div>
             </div>
           </div>
@@ -169,33 +169,32 @@ export default function ProfilePage() {
 
       {/* Symbolic Data Cards */}
       {hasBirthDate && dreamspellKin && dreamspellSeal && dreamspellTone && tzolkinDay && (
-        <>
-          <div className="earth-card bg-card p-6">
-            <h2 className="text-xl font-heading text-foreground mb-2">Dreamspell</h2>
-            <p className="text-sm text-muted-foreground mb-4">Your symbolic map according to the Dreamspell system</p>
+        <div className="grid gap-6 sm:grid-cols-2">
+          <div className="surface-card p-6">
+            <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-1">Dreamspell</h2>
+            <p className="text-xs text-muted-foreground mb-4">Galactic Signature</p>
 
             <div className="space-y-4">
               <div>
-                <div className="text-sm text-muted-foreground">Kin</div>
-                <div className="text-2xl font-heading text-primary">Kin {dreamspellKin}</div>
+                <div className="text-3xl font-bold text-primary">Kin {dreamspellKin}</div>
                 <div className="text-lg text-foreground">
                   {dreamspellTone.name} {dreamspellSeal.english}
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 pt-4 border-t border-border">
                 <img
                   src={`/icons/dreamspell/seals/${String(dreamspellSeal.number).padStart(2, '0')}-${dreamspellSeal.english.toLowerCase().replace(' ', '-').replace('-', '-')}.svg`}
                   alt={dreamspellSeal.english}
-                  className="h-16 w-16"
+                  className="h-14 w-14"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none'
                   }}
                 />
                 <div>
                   <div className="font-medium text-foreground">{dreamspellSeal.mayan}</div>
-                  <div className="text-muted-foreground">{dreamspellSeal.english}</div>
-                  <div className="text-sm capitalize" style={{ color: dreamspellSeal.color === 'white' ? '#666' : dreamspellSeal.color }}>
+                  <div className="text-sm text-muted-foreground">{dreamspellSeal.english}</div>
+                  <div className="text-xs capitalize mt-1" style={{ color: dreamspellSeal.color === 'white' ? '#666' : dreamspellSeal.color }}>
                     {dreamspellSeal.color}
                   </div>
                 </div>
@@ -203,13 +202,13 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="earth-card bg-card p-6">
-            <h2 className="text-xl font-heading text-foreground mb-2">Tzolkin</h2>
-            <p className="text-sm text-muted-foreground mb-4">Your symbolic map according to the traditional Tzolkin</p>
+          <div className="surface-card p-6">
+            <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-1">Tzolkin</h2>
+            <p className="text-xs text-muted-foreground mb-4">Traditional Mayan Calendar</p>
 
             <div className="space-y-4">
               <div>
-                <div className="text-2xl font-heading text-primary">
+                <div className="text-3xl font-bold text-primary">
                   {tzolkinDay.tone} {tzolkinDay.daySign.yucatec}
                 </div>
                 <div className="text-lg text-muted-foreground">
@@ -218,8 +217,43 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-        </>
+        </div>
       )}
+    </div>
+  )
+}
+
+// Loading skeleton
+function ProfileSkeleton() {
+  return (
+    <div className="space-y-6 max-w-2xl">
+      {/* Header */}
+      <div>
+        <Skeleton className="h-8 w-40 mb-2" />
+        <Skeleton className="h-4 w-56" />
+      </div>
+
+      {/* Profile card */}
+      <div className="rounded-xl border border-border bg-card p-6">
+        <div className="flex items-center justify-between mb-6">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-9 w-20" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i}>
+              <Skeleton className="h-3 w-24 mb-2" />
+              <Skeleton className="h-5 w-40" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Symbolic cards */}
+      <div className="grid gap-6 sm:grid-cols-2">
+        <Skeleton className="h-48 rounded-xl" />
+        <Skeleton className="h-48 rounded-xl" />
+      </div>
     </div>
   )
 }

@@ -7,6 +7,7 @@ import { useRelationships } from '@/lib/hooks/use-relationships'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Dialog,
   DialogContent,
@@ -25,10 +26,12 @@ import {
 import { Label } from '@/components/ui/label'
 import { BirthTimeInput } from '@/components/ui/birth-time-input'
 import { LocationPicker, type BirthPlace } from '@/components/ui/location-picker'
+import { PageHeader, EmptyState } from '@/components/dashboard'
 import type { Person, Tag, Json } from '@/lib/supabase/database.types'
 import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
 import { getSeal } from '@/lib/data/seals'
 import { getTone } from '@/lib/data/tones'
+import { Plus, MoreVertical, Search } from 'lucide-react'
 
 interface PersonWithTags extends Person {
   tags: Tag[]
@@ -45,86 +48,76 @@ function PersonCard({
   onEdit: (person: PersonWithTags) => void
   onDelete: (id: string) => void
 }) {
-  // Calculate Dreamspell Kin
   const kin = dateToKin(person.birth_date)
   const seal = getSeal(kinToSeal(kin))
   const tone = getTone(kinToTone(kin))
 
   return (
-    <div className="earth-card bg-card p-5">
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <Link href={`/app/people/${person.id}`} className="hover:underline">
-            <h3 className="text-lg font-heading text-foreground">{person.name}</h3>
+    <div className="surface-card p-4">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="min-w-0 flex-1">
+          <Link href={`/app/people/${person.id}`} className="hover:text-primary transition-colors">
+            <h3 className="font-semibold text-foreground truncate">{person.name}</h3>
           </Link>
           {person.hebrew_name && (
-            <p className="text-sm text-muted-foreground">{person.hebrew_name}</p>
+            <p className="text-sm text-muted-foreground truncate">{person.hebrew_name}</p>
           )}
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+              <MoreVertical className="h-4 w-4" />
               <span className="sr-only">Menu</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="1" />
-                <circle cx="12" cy="5" r="1" />
-                <circle cx="12" cy="19" r="1" />
-              </svg>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link href={`/app/people/${person.id}`}>
-                View Details
-              </Link>
+              <Link href={`/app/people/${person.id}`}>View Details</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => onEdit(person)}>
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => onEdit(person)}>Edit</DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/app/relationships">
-                Relationships ({relationshipCount})
-              </Link>
+              <Link href="/app/relationships">Relationships ({relationshipCount})</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="text-destructive"
-              onClick={() => onDelete(person.id)}
-            >
+            <DropdownMenuItem className="text-destructive" onClick={() => onDelete(person.id)}>
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      <div className="space-y-3">
-        <div className="text-sm text-muted-foreground">
-          Birth date: {new Date(person.birth_date).toLocaleDateString('en-US')}
+      <div className="space-y-2.5">
+        <p className="text-sm text-muted-foreground">
+          {new Date(person.birth_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+        </p>
+
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary text-sm font-bold">
+            {kin}
+          </span>
+          <span className="text-sm text-foreground">{tone.name} {seal.english}</span>
         </div>
 
-        <div className="text-sm">
-          <span className="font-medium text-primary">Kin {kin}: </span>
-          <span>{tone.name} {seal.english}</span>
-        </div>
-
-        <div className="flex flex-wrap gap-1">
-          {person.tags.length > 0 && person.tags.map(tag => (
-            <Badge
-              key={tag.id}
-              variant="secondary"
-              style={{ backgroundColor: tag.color + '20', color: tag.color }}
-            >
-              {tag.name}
-            </Badge>
-          ))}
-          {relationshipCount > 0 && (
-            <Badge variant="outline" className="text-muted-foreground">
-              {relationshipCount} relationships
-            </Badge>
-          )}
-        </div>
+        {(person.tags.length > 0 || relationshipCount > 0) && (
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {person.tags.map(tag => (
+              <Badge
+                key={tag.id}
+                variant="secondary"
+                className="text-xs"
+                style={{ backgroundColor: `${tag.color}15`, color: tag.color }}
+              >
+                {tag.name}
+              </Badge>
+            ))}
+            {relationshipCount > 0 && (
+              <Badge variant="outline" className="text-xs text-muted-foreground">
+                {relationshipCount} connections
+              </Badge>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -149,7 +142,6 @@ function PersonForm({
   }) => Promise<void>
   onCancel: () => void
 }) {
-  // Parse existing birth_place if present
   const existingBirthPlace = person?.birth_place
     ? (person.birth_place as unknown as BirthPlace)
     : null
@@ -170,7 +162,6 @@ function PersonForm({
     e.preventDefault()
     setLoading(true)
     setError(null)
-
     try {
       await onSave(formData)
     } catch (err) {
@@ -199,7 +190,6 @@ function PersonForm({
           onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
           required
           placeholder="Full name"
-          className="bg-background border-border"
         />
       </div>
 
@@ -209,8 +199,7 @@ function PersonForm({
           id="hebrew_name"
           value={formData.hebrew_name}
           onChange={(e) => setFormData(prev => ({ ...prev, hebrew_name: e.target.value }))}
-          placeholder="Hebrew name (optional)"
-          className="bg-background border-border"
+          placeholder="Optional"
         />
       </div>
 
@@ -223,7 +212,6 @@ function PersonForm({
           onChange={(e) => setFormData(prev => ({ ...prev, birth_date: e.target.value }))}
           required
           max={new Date().toISOString().split('T')[0]}
-          className="bg-background border-border"
         />
       </div>
 
@@ -243,28 +231,30 @@ function PersonForm({
         />
       </div>
 
-      <div className="space-y-2">
-        <Label>Tags</Label>
-        <div className="flex flex-wrap gap-2">
-          {tags.map(tag => (
-            <Badge
-              key={tag.id}
-              variant={formData.tagIds.includes(tag.id) ? 'default' : 'outline'}
-              className="cursor-pointer"
-              style={formData.tagIds.includes(tag.id) ? {
-                backgroundColor: tag.color,
-                borderColor: tag.color,
-              } : {
-                borderColor: tag.color,
-                color: tag.color,
-              }}
-              onClick={() => toggleTag(tag.id)}
-            >
-              {tag.name}
-            </Badge>
-          ))}
+      {tags.length > 0 && (
+        <div className="space-y-2">
+          <Label>Tags</Label>
+          <div className="flex flex-wrap gap-2">
+            {tags.map(tag => (
+              <Badge
+                key={tag.id}
+                variant={formData.tagIds.includes(tag.id) ? 'default' : 'outline'}
+                className="cursor-pointer"
+                style={formData.tagIds.includes(tag.id) ? {
+                  backgroundColor: tag.color,
+                  borderColor: tag.color,
+                } : {
+                  borderColor: tag.color,
+                  color: tag.color,
+                }}
+                onClick={() => toggleTag(tag.id)}
+              >
+                {tag.name}
+              </Badge>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="notes">Notes</Label>
@@ -272,21 +262,16 @@ function PersonForm({
           id="notes"
           value={formData.notes}
           onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-          placeholder="Notes (optional)"
-          className="bg-background border-border"
+          placeholder="Optional"
         />
       </div>
 
-      {error && (
-        <div className="text-sm text-destructive">{error}</div>
-      )}
+      {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={loading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-          {loading ? 'Saving...' : person ? 'Update' : 'Add'}
+      <div className="flex justify-end gap-2 pt-2">
+        <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+        <Button type="submit" disabled={loading}>
+          {loading ? 'Saving...' : person ? 'Update' : 'Add Person'}
         </Button>
       </div>
     </form>
@@ -301,8 +286,8 @@ export default function PeoplePage() {
   const [editingPerson, setEditingPerson] = useState<PersonWithTags | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
-  // Compute relationship counts per person
   const relationshipCounts = useMemo(() => {
     const counts: Record<string, number> = {}
     relationships.forEach(rel => {
@@ -314,17 +299,14 @@ export default function PeoplePage() {
     return counts
   }, [relationships])
 
-  // Filter people by search and tag
   const filteredPeople = people.filter(person => {
     const matchesSearch = search
       ? person.name.toLowerCase().includes(search.toLowerCase()) ||
         person.hebrew_name?.toLowerCase().includes(search.toLowerCase())
       : true
-
     const matchesTag = selectedTag
       ? person.tags.some(t => t.id === selectedTag)
       : true
-
     return matchesSearch && matchesTag
   })
 
@@ -358,7 +340,6 @@ export default function PeoplePage() {
     tagIds: string[]
   }) => {
     if (!editingPerson) return
-
     await updatePerson(editingPerson.id, {
       name: data.name,
       hebrew_name: data.hebrew_name || null,
@@ -370,13 +351,6 @@ export default function PeoplePage() {
     setIsEditDialogOpen(false)
     setEditingPerson(null)
   }
-
-  const handleEditPerson = (person: PersonWithTags) => {
-    setEditingPerson(person)
-    setIsEditDialogOpen(true)
-  }
-
-  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const handleDeletePerson = async (id: string) => {
     if (confirm('Are you sure you want to delete this person?')) {
@@ -391,8 +365,22 @@ export default function PeoplePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center text-muted-foreground">Loading...</div>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-8 w-32 mb-1" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <Skeleton className="h-10 w-28" />
+        </div>
+        <div className="flex gap-4">
+          <Skeleton className="h-10 w-64" />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <Skeleton key={i} className="h-40 rounded-xl" />
+          ))}
+        </div>
       </div>
     )
   }
@@ -400,104 +388,108 @@ export default function PeoplePage() {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center text-destructive">{error}</div>
+        <p className="text-destructive">{error}</p>
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-heading text-foreground">My People</h1>
-          <p className="text-muted-foreground">
-            {people.length} people in your circle
-          </p>
-        </div>
+      <PageHeader
+        title="People"
+        subtitle={`${people.length} people in your circle`}
+        actions={
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Person
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Person</DialogTitle>
+                <DialogDescription>Enter the details of the person you want to add</DialogDescription>
+              </DialogHeader>
+              <PersonForm
+                tags={tags}
+                onSave={handleAddPerson}
+                onCancel={() => setIsAddDialogOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">+ Add Person</Button>
-          </DialogTrigger>
-          <DialogContent className="earth-card">
-            <DialogHeader>
-              <DialogTitle className="font-heading">Add New Person</DialogTitle>
-              <DialogDescription>
-                Enter the details of the person you want to add
-              </DialogDescription>
-            </DialogHeader>
-            <PersonForm
-              tags={tags}
-              onSave={handleAddPerson}
-              onCancel={() => setIsAddDialogOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Delete error message */}
       {deleteError && (
-        <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg">
+        <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg border border-destructive/20">
           {deleteError}
         </div>
       )}
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <Input
-          placeholder="Search by name..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="sm:max-w-xs bg-background border-border"
-        />
-        <div className="flex flex-wrap gap-2">
-          <Badge
-            variant={selectedTag === null ? 'default' : 'outline'}
-            className="cursor-pointer"
-            onClick={() => setSelectedTag(null)}
-          >
-            All
-          </Badge>
-          {tags.map(tag => (
-            <Badge
-              key={tag.id}
-              variant={selectedTag === tag.id ? 'default' : 'outline'}
-              className="cursor-pointer"
-              style={selectedTag === tag.id ? {
-                backgroundColor: tag.color,
-                borderColor: tag.color,
-              } : {
-                borderColor: tag.color,
-                color: tag.color,
-              }}
-              onClick={() => setSelectedTag(selectedTag === tag.id ? null : tag.id)}
-            >
-              {tag.name}
-            </Badge>
-          ))}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative sm:max-w-xs flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search people..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
         </div>
+        {tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            <Badge
+              variant={selectedTag === null ? 'default' : 'outline'}
+              className="cursor-pointer"
+              onClick={() => setSelectedTag(null)}
+            >
+              All
+            </Badge>
+            {tags.map(tag => (
+              <Badge
+                key={tag.id}
+                variant={selectedTag === tag.id ? 'default' : 'outline'}
+                className="cursor-pointer"
+                style={selectedTag === tag.id ? {
+                  backgroundColor: tag.color,
+                  borderColor: tag.color,
+                } : {
+                  borderColor: tag.color,
+                  color: tag.color,
+                }}
+                onClick={() => setSelectedTag(selectedTag === tag.id ? null : tag.id)}
+              >
+                {tag.name}
+              </Badge>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* People grid */}
       {filteredPeople.length === 0 ? (
-        <div className="earth-card bg-card p-12 text-center">
-          <p className="text-muted-foreground mb-4">
-            {search || selectedTag ? 'No results found' : "You haven't added any people yet"}
-          </p>
-          {!search && !selectedTag && (
-            <Button onClick={() => setIsAddDialogOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              + Add First Person
-            </Button>
-          )}
-        </div>
+        <EmptyState
+          icon={search || selectedTag ? 'general' : 'people'}
+          title={search || selectedTag ? 'No results found' : "No people yet"}
+          description={search || selectedTag ? 'Try adjusting your search or filters' : "Start by adding yourself and the people in your life"}
+          action={!search && !selectedTag ? {
+            label: 'Add First Person',
+            onClick: () => setIsAddDialogOpen(true),
+          } : undefined}
+        />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredPeople.map(person => (
             <PersonCard
               key={person.id}
               person={person}
               relationshipCount={relationshipCounts[person.id] || 0}
-              onEdit={handleEditPerson}
+              onEdit={(p) => {
+                setEditingPerson(p)
+                setIsEditDialogOpen(true)
+              }}
               onDelete={handleDeletePerson}
             />
           ))}
@@ -509,12 +501,10 @@ export default function PeoplePage() {
         setIsEditDialogOpen(open)
         if (!open) setEditingPerson(null)
       }}>
-        <DialogContent className="earth-card">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-heading">Edit {editingPerson?.name}</DialogTitle>
-            <DialogDescription>
-              Update the details
-            </DialogDescription>
+            <DialogTitle>Edit {editingPerson?.name}</DialogTitle>
+            <DialogDescription>Update the details</DialogDescription>
           </DialogHeader>
           {editingPerson && (
             <PersonForm

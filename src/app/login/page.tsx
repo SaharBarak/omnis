@@ -19,11 +19,14 @@ function LoginForm() {
   const { signInWithGoogle, signInWithEmail } = useAuth()
 
   const handleGoogleSignIn = async () => {
+    console.log('[Login] handleGoogleSignIn called, redirectTo:', redirectTo)
     setLoading(true)
     setError(null)
     try {
       await signInWithGoogle(redirectTo)
+      console.log('[Login] signInWithGoogle completed - should redirect now')
     } catch (err) {
+      console.error('[Login] Google sign-in error:', err)
       setError(err instanceof Error ? err.message : 'Error signing in with Google')
       setLoading(false)
     }

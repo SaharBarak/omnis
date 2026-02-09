@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Select,
   SelectContent,
@@ -12,6 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { PageHeader } from '@/components/dashboard'
+import { RotateCcw, Save } from 'lucide-react'
 
 // System definitions
 type SystemKey = 'dreamspell' | 'tzolkin' | 'longcount' | 'astrology' | 'humandesign' | 'gematria'
@@ -164,26 +167,20 @@ export default function SettingsPage() {
   }
 
   if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center text-muted-foreground">Loading...</div>
-      </div>
-    )
+    return <SettingsSkeleton />
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-heading text-foreground">Settings</h1>
-        <p className="text-muted-foreground">
-          Customize the systems displayed
-        </p>
-      </div>
+    <div className="space-y-6 max-w-2xl">
+      <PageHeader
+        title="Settings"
+        subtitle="Customize the systems displayed"
+      />
 
-      <div className="earth-card bg-card p-6">
-        <h2 className="text-xl font-heading text-foreground mb-2">Symbolic Systems</h2>
+      <div className="surface-card p-6">
+        <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-1">Symbolic Systems</h2>
         <p className="text-sm text-muted-foreground mb-6">
-          Choose which systems will be displayed on your profile page
+          Choose which systems will be displayed on profile pages
         </p>
 
         <div className="space-y-4">
@@ -218,11 +215,13 @@ export default function SettingsPage() {
             </div>
           ))}
 
-          <div className="flex items-center gap-4 pt-4">
-            <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              {saving ? 'Saving...' : saved ? 'Saved' : 'Save Changes'}
+          <div className="flex items-center gap-3 pt-4 border-t border-border mt-6">
+            <Button onClick={handleSave} disabled={saving}>
+              <Save className="w-4 h-4 mr-2" />
+              {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Changes'}
             </Button>
             <Button variant="outline" onClick={handleResetDefaults}>
+              <RotateCcw className="w-4 h-4 mr-2" />
               Reset to Defaults
             </Button>
           </div>
@@ -230,8 +229,8 @@ export default function SettingsPage() {
       </div>
 
       {/* Display Settings */}
-      <div className="earth-card bg-card p-6">
-        <h2 className="text-xl font-heading text-foreground mb-2">Display Settings</h2>
+      <div className="surface-card p-6">
+        <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-1">Display Settings</h2>
         <p className="text-sm text-muted-foreground mb-6">
           Configure language and timezone preferences
         </p>
@@ -284,7 +283,7 @@ export default function SettingsPage() {
             </Select>
           </div>
 
-          <div className="flex items-center gap-4 pt-4 border-t border-border">
+          <div className="flex items-center gap-4 pt-4 border-t border-border mt-6">
             <Button
               onClick={async () => {
                 setSavingDisplay(true)
@@ -299,10 +298,65 @@ export default function SettingsPage() {
                 }
               }}
               disabled={savingDisplay}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
-              {savingDisplay ? 'Saving...' : savedDisplay ? 'Saved' : 'Save Display Settings'}
+              <Save className="w-4 h-4 mr-2" />
+              {savingDisplay ? 'Saving...' : savedDisplay ? 'Saved!' : 'Save Display Settings'}
             </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Loading skeleton
+function SettingsSkeleton() {
+  return (
+    <div className="space-y-6 max-w-2xl">
+      {/* Header */}
+      <div>
+        <Skeleton className="h-8 w-32 mb-2" />
+        <Skeleton className="h-4 w-56" />
+      </div>
+
+      {/* Systems card */}
+      <div className="rounded-xl border border-border bg-card p-6">
+        <Skeleton className="h-4 w-36 mb-1" />
+        <Skeleton className="h-4 w-64 mb-6" />
+        <div className="space-y-4">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="flex items-center justify-between py-4 border-b border-border last:border-0">
+              <div className="flex items-start gap-3">
+                <Skeleton className="h-8 w-8 rounded" />
+                <div>
+                  <Skeleton className="h-5 w-24 mb-1" />
+                  <Skeleton className="h-4 w-48" />
+                </div>
+              </div>
+              <Skeleton className="h-6 w-11 rounded-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Display settings card */}
+      <div className="rounded-xl border border-border bg-card p-6">
+        <Skeleton className="h-4 w-36 mb-1" />
+        <Skeleton className="h-4 w-64 mb-6" />
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <Skeleton className="h-5 w-20 mb-1" />
+              <Skeleton className="h-4 w-48" />
+            </div>
+            <Skeleton className="h-10 w-44" />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <Skeleton className="h-5 w-20 mb-1" />
+              <Skeleton className="h-4 w-56" />
+            </div>
+            <Skeleton className="h-10 w-56" />
           </div>
         </div>
       </div>

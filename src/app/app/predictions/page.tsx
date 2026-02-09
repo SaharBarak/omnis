@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { PageHeader } from '@/components/dashboard'
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
 import {
   PredictionCard,
   PredictionTimeline,
@@ -109,17 +111,15 @@ export default function PredictionsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-heading text-foreground">Predictions</h1>
-        <p className="text-muted-foreground">
-          {userBirthDate
-            ? 'Personalized forecasts based on your birth date'
-            : 'Daily, weekly, and monthly forecasts based on Dreamspell calendar'}
-        </p>
-      </div>
+      <PageHeader
+        title="Predictions"
+        subtitle={userBirthDate
+          ? 'Personalized forecasts based on your birth date'
+          : 'Daily, weekly, and monthly forecasts based on Dreamspell calendar'}
+      />
 
       {/* Today's Quick View */}
-      <div className="earth-card bg-card p-6 border-2 border-primary/20">
+      <div className="surface-card p-6 border-primary/20">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-heading text-foreground">Today - {formatDate(new Date())}</h2>
           {today.events.length > 0 && (
@@ -181,13 +181,14 @@ export default function PredictionsPage() {
                 <CalendarExport events={allEvents} title="Export" />
               )}
               <Button variant="outline" size="sm" onClick={() => navigateDate('prev')}>
-                Previous
+                <ChevronLeft className="w-4 h-4" />
               </Button>
               <Button variant="outline" size="sm" onClick={goToToday}>
+                <Calendar className="w-4 h-4 mr-1" />
                 Today
               </Button>
               <Button variant="outline" size="sm" onClick={() => navigateDate('next')}>
-                Next
+                <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
           </div>
@@ -199,7 +200,7 @@ export default function PredictionsPage() {
 
           {/* Weekly View */}
           {forecastView === 'weekly' && (
-            <div className="earth-card bg-card p-6">
+            <div className="surface-card p-6">
               <div className="mb-4">
                 <h3 className="text-xl font-heading text-foreground">
                   Week of {formatShortDate(new Date(weeklyPrediction.startDate))} - {formatShortDate(new Date(weeklyPrediction.endDate))}
@@ -270,7 +271,7 @@ export default function PredictionsPage() {
 
           {/* Monthly View */}
           {forecastView === 'monthly' && (
-            <div className="earth-card bg-card p-6">
+            <div className="surface-card p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-heading text-foreground">
                   {selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
@@ -376,7 +377,7 @@ export default function PredictionsPage() {
           {timeline ? (
             <div className="space-y-6">
               {/* Current Personal Year */}
-              <div className="earth-card bg-card p-6">
+              <div className="surface-card p-6">
                 <h3 className="text-xl font-heading text-foreground mb-2">Current Personal Year</h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   Age {timeline.currentPersonalYear.age} - {new Date(timeline.currentPersonalYear.startDate).toLocaleDateString()} to {new Date(timeline.currentPersonalYear.endDate).toLocaleDateString()}
@@ -400,7 +401,7 @@ export default function PredictionsPage() {
               <PredictionTimeline timeline={timeline} maxItems={15} />
             </div>
           ) : (
-            <div className="earth-card bg-card p-8 text-center">
+            <div className="surface-card p-8 text-center">
               <p className="text-muted-foreground">
                 Add your birth date in your profile to see your personal timeline.
               </p>

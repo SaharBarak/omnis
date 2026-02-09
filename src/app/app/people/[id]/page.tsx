@@ -6,9 +6,10 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import type { Person, Tag } from '@/lib/supabase/database.types'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ArrowLeft, AlertTriangle, Settings } from 'lucide-react'
 import { DreamspellSection, TzolkinSection } from '@/components/cards'
 import { WavespellDisplay, CastleDisplay, PersonalYearDisplay, GalacticBirthdayDisplay } from '@/components/cards'
 import { LongCountDisplay, HaabDisplay, CalendarRoundDisplay, MayanTimelineDisplay } from '@/components/cards'
@@ -41,15 +42,6 @@ const SYSTEMS: { key: TabKey; label: string; labelHe: string; icon: string; requ
   { key: 'gematria', label: 'Gematria', labelHe: 'גימטריה', icon: '🔢' },
   { key: 'insights', label: 'Insights', labelHe: 'תובנות', icon: '✨' },
 ]
-
-function BackArrow() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M19 12H5" />
-      <path d="M12 19l7-7-7-7" />
-    </svg>
-  )
-}
 
 export default function PersonDetailPage() {
   const params = useParams()
@@ -115,19 +107,24 @@ export default function PersonDetailPage() {
   }, [personId])
 
   if (loading || prefsLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">Loading...</div>
-      </div>
-    )
+    return <PersonDetailSkeleton />
   }
 
   if (error || !person) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <div className="text-center text-destructive">{error || 'Person not found'}</div>
-        <Button variant="outline" onClick={() => router.push('/app/people')}>
-          Back to List
+        <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+          <AlertTriangle className="w-6 h-6 text-destructive" />
+        </div>
+        <div className="text-center">
+          <p className="font-medium text-foreground">{error || 'Person not found'}</p>
+          <p className="text-sm text-muted-foreground mt-1">The person you&apos;re looking for doesn&apos;t exist or was deleted.</p>
+        </div>
+        <Button variant="outline" asChild>
+          <Link href="/app/people">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to People
+          </Link>
         </Button>
       </div>
     )
@@ -252,105 +249,99 @@ export default function PersonDetailPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/app/people">
-            <Button variant="ghost" size="icon">
-              <BackArrow />
-            </Button>
-          </Link>
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/app/people">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+          </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{person.name}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">{person.name}</h1>
             {person.hebrew_name && person.hebrew_name !== person.name && (
               <p className="text-lg text-muted-foreground">{person.hebrew_name}</p>
             )}
           </div>
         </div>
-        <Link href={`/app/people`}>
-          <Button variant="outline" onClick={() => router.push('/app/people')}>
-            <span className="mr-2">←</span>
-            Back
-          </Button>
-        </Link>
+        <Badge variant="secondary" className="text-sm">
+          Kin {kin}
+        </Badge>
       </div>
 
       {/* Person Info Card */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Personal Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <span className="text-sm text-muted-foreground">Birth Date: </span>
-              <span>{new Date(person.birth_date).toLocaleDateString('en-US')}</span>
-            </div>
-            {person.birth_time && (
-              <div>
-                <span className="text-sm text-muted-foreground">Birth Time: </span>
-                <span>{person.birth_time}</span>
-              </div>
-            )}
-            {birthPlace?.name && (
-              <div>
-                <span className="text-sm text-muted-foreground">Birth Place: </span>
-                <span>{birthPlace.name}</span>
-              </div>
-            )}
+      <div className="surface-card p-5">
+        <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4">Personal Details</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div>
+            <span className="text-sm text-muted-foreground block mb-1">Birth Date</span>
+            <span className="font-medium text-foreground">{new Date(person.birth_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
           </div>
-          {person.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 pt-2">
-              {person.tags.map(tag => (
-                <Badge
-                  key={tag.id}
-                  variant="secondary"
-                  style={{ backgroundColor: tag.color + '20', color: tag.color }}
-                >
-                  {tag.name}
-                </Badge>
-              ))}
+          {person.birth_time && (
+            <div>
+              <span className="text-sm text-muted-foreground block mb-1">Birth Time</span>
+              <span className="font-medium text-foreground">{person.birth_time}</span>
             </div>
           )}
-          {person.notes && (
-            <div className="pt-2 text-sm text-muted-foreground">
-              {person.notes}
+          {birthPlace?.name && (
+            <div>
+              <span className="text-sm text-muted-foreground block mb-1">Birth Place</span>
+              <span className="font-medium text-foreground">{birthPlace.name}</span>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+        {person.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 pt-4 mt-4 border-t border-border">
+            {person.tags.map(tag => (
+              <Badge
+                key={tag.id}
+                variant="secondary"
+                style={{ backgroundColor: tag.color + '20', color: tag.color }}
+              >
+                {tag.name}
+              </Badge>
+            ))}
+          </div>
+        )}
+        {person.notes && (
+          <div className="pt-4 mt-4 border-t border-border text-sm text-muted-foreground">
+            {person.notes}
+          </div>
+        )}
+      </div>
 
       {/* Missing data warnings */}
       {(!hasBirthTime || !hasLocation) && (
-        <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
-          <CardContent className="py-3">
-            <div className="flex items-start gap-2">
-              <span className="text-amber-600">⚠️</span>
-              <div className="text-sm">
-                {!hasBirthTime && !hasLocation && (
-                  <p>Birth time and place not specified. Astrology and Human Design will be shown as approximations only.</p>
-                )}
-                {!hasBirthTime && hasLocation && (
-                  <p>Birth time not specified. Astrology and Human Design will be shown as approximations only.</p>
-                )}
-                {hasBirthTime && !hasLocation && (
-                  <p>Birth place not specified. Astrology and Human Design will use default location (Tel Aviv).</p>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800">
+          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="text-sm text-amber-800 dark:text-amber-200">
+            {!hasBirthTime && !hasLocation && (
+              <p>Birth time and place not specified. Astrology and Human Design will be shown as approximations only.</p>
+            )}
+            {!hasBirthTime && hasLocation && (
+              <p>Birth time not specified. Astrology and Human Design will be shown as approximations only.</p>
+            )}
+            {hasBirthTime && !hasLocation && (
+              <p>Birth place not specified. Astrology and Human Design will use default location (Tel Aviv).</p>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Systems Tabs */}
       {visibleSystems.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground mb-4">
-              No systems selected for display. You can enable systems in settings.
-            </p>
-            <Button variant="outline" onClick={() => router.push('/app/settings')}>
+        <div className="surface-card p-12 text-center">
+          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+            <Settings className="w-6 h-6 text-muted-foreground" />
+          </div>
+          <p className="font-medium text-foreground mb-1">No systems enabled</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Enable symbolic systems in settings to see this person&apos;s readings.
+          </p>
+          <Button variant="outline" asChild>
+            <Link href="/app/settings">
+              <Settings className="w-4 h-4 mr-2" />
               System Settings
-            </Button>
-          </CardContent>
-        </Card>
+            </Link>
+          </Button>
+        </div>
       ) : (
       <Tabs value={visibleSystems.some(s => s.key === activeTab) ? activeTab : visibleSystems[0]?.key || 'dreamspell'} onValueChange={(v) => setActiveTab(v as TabKey)} className="w-full">
         <TabsList className="w-full flex flex-wrap h-auto gap-1 p-1">
@@ -369,198 +360,143 @@ export default function PersonDetailPage() {
         {/* Dreamspell Tab */}
         <TabsContent value="dreamspell" className="space-y-6 mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Birthday Kin</CardTitle>
-                <CardDescription>Your Galactic Signature according to the Dreamspell</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <DreamspellSection date={person.birth_date} />
-              </CardContent>
-            </Card>
+            <div className="surface-card p-5">
+              <h3 className="font-semibold text-foreground mb-1">Birthday Kin</h3>
+              <p className="text-sm text-muted-foreground mb-4">Galactic Signature according to the Dreamspell</p>
+              <DreamspellSection date={person.birth_date} />
+            </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Wavespell</CardTitle>
-                <CardDescription>Position in the 13-day wave</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <WavespellDisplay kin={kin} showLabels />
-              </CardContent>
-            </Card>
+            <div className="surface-card p-5">
+              <h3 className="font-semibold text-foreground mb-1">Wavespell</h3>
+              <p className="text-sm text-muted-foreground mb-4">Position in the 13-day wave</p>
+              <WavespellDisplay kin={kin} showLabels />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Castle</CardTitle>
-                <CardDescription>Position in the 52-day cycle</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CastleDisplay kin={kin} />
-              </CardContent>
-            </Card>
+            <div className="surface-card p-5">
+              <h3 className="font-semibold text-foreground mb-1">Castle</h3>
+              <p className="text-sm text-muted-foreground mb-4">Position in the 52-day cycle</p>
+              <CastleDisplay kin={kin} />
+            </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Personal Year</CardTitle>
-                <CardDescription>Your annual Kin</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <PersonalYearDisplay birthDate={person.birth_date} />
-              </CardContent>
-            </Card>
+            <div className="surface-card p-5">
+              <h3 className="font-semibold text-foreground mb-1">Personal Year</h3>
+              <p className="text-sm text-muted-foreground mb-4">Annual Kin</p>
+              <PersonalYearDisplay birthDate={person.birth_date} />
+            </div>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Galactic Birthday</CardTitle>
-              <CardDescription>Date of your next Galactic Birthday</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <GalacticBirthdayDisplay birthDate={person.birth_date} />
-            </CardContent>
-          </Card>
+          <div className="surface-card p-5">
+            <h3 className="font-semibold text-foreground mb-1">Galactic Birthday</h3>
+            <p className="text-sm text-muted-foreground mb-4">Date of the next Galactic Birthday</p>
+            <GalacticBirthdayDisplay birthDate={person.birth_date} />
+          </div>
         </TabsContent>
 
         {/* Tzolkin Tab */}
         <TabsContent value="tzolkin" className="space-y-6 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Traditional Tzolkin</CardTitle>
-              <CardDescription>The traditional Mayan calendar (260 days)</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <TzolkinSection date={person.birth_date} />
-            </CardContent>
-          </Card>
+          <div className="surface-card p-5">
+            <h3 className="font-semibold text-foreground mb-1">Traditional Tzolkin</h3>
+            <p className="text-sm text-muted-foreground mb-4">The traditional Mayan calendar (260 days)</p>
+            <TzolkinSection date={person.birth_date} />
+          </div>
         </TabsContent>
 
         {/* Long Count Tab */}
         <TabsContent value="longcount" className="space-y-6 mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Long Count</CardTitle>
-                <CardDescription>Birth date in the Mayan Long Count</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <LongCountDisplay dateStr={person.birth_date} showLabels showDaysSinceCreation />
-              </CardContent>
-            </Card>
+            <div className="surface-card p-5">
+              <h3 className="font-semibold text-foreground mb-1">Long Count</h3>
+              <p className="text-sm text-muted-foreground mb-4">Birth date in the Mayan Long Count</p>
+              <LongCountDisplay dateStr={person.birth_date} showLabels showDaysSinceCreation />
+            </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Haab (Solar Year)</CardTitle>
-                <CardDescription>The 365-day solar calendar</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <HaabDisplay dateStr={person.birth_date} showMonthIndex />
-              </CardContent>
-            </Card>
+            <div className="surface-card p-5">
+              <h3 className="font-semibold text-foreground mb-1">Haab (Solar Year)</h3>
+              <p className="text-sm text-muted-foreground mb-4">The 365-day solar calendar</p>
+              <HaabDisplay dateStr={person.birth_date} showMonthIndex />
+            </div>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Calendar Round</CardTitle>
-              <CardDescription>Combination of Tzolkin and Haab - 52-year cycle</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <CalendarRoundDisplay dateStr={person.birth_date} />
-            </CardContent>
-          </Card>
+          <div className="surface-card p-5">
+            <h3 className="font-semibold text-foreground mb-1">Calendar Round</h3>
+            <p className="text-sm text-muted-foreground mb-4">Combination of Tzolkin and Haab - 52-year cycle</p>
+            <CalendarRoundDisplay dateStr={person.birth_date} />
+          </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Mayan Timeline</CardTitle>
-              <CardDescription>Significant events in the Mayan calendar</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <MayanTimelineDisplay
-                birthDateStr={person.birth_date}
-                showTunBirthdays
-                showKatunBirthdays
-                showCalendarRoundReturn
-              />
-            </CardContent>
-          </Card>
+          <div className="surface-card p-5">
+            <h3 className="font-semibold text-foreground mb-1">Mayan Timeline</h3>
+            <p className="text-sm text-muted-foreground mb-4">Significant events in the Mayan calendar</p>
+            <MayanTimelineDisplay
+              birthDateStr={person.birth_date}
+              showTunBirthdays
+              showKatunBirthdays
+              showCalendarRoundReturn
+            />
+          </div>
         </TabsContent>
 
         {/* Astrology Tab */}
         <TabsContent value="astrology" className="space-y-6 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Birth Chart</CardTitle>
-              <CardDescription>
-                Western Astrology - Planet positions at birth
-                {!hasBirthTime && <span className="text-amber-600 ml-2">(without birth time - approximate)</span>}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AstrologyDisplay
-                date={person.birth_date}
-                time={person.birth_time || undefined}
-                latitude={latitude}
-                longitude={longitude}
-                showPlanets
-                showAspects
-                showBalance
-              />
-            </CardContent>
-          </Card>
+          <div className="surface-card p-5">
+            <h3 className="font-semibold text-foreground mb-1">Birth Chart</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Western Astrology - Planet positions at birth
+              {!hasBirthTime && <span className="text-amber-600 ml-2">(without birth time - approximate)</span>}
+            </p>
+            <AstrologyDisplay
+              date={person.birth_date}
+              time={person.birth_time || undefined}
+              latitude={latitude}
+              longitude={longitude}
+              showPlanets
+              showAspects
+              showBalance
+            />
+          </div>
         </TabsContent>
 
         {/* Human Design Tab */}
         <TabsContent value="humandesign" className="space-y-6 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Human Design</CardTitle>
-              <CardDescription>
-                Your Type, Strategy, and Authority
-                {!hasBirthTime && <span className="text-amber-600 ml-2">(without birth time - approximate)</span>}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <HumanDesignDisplay
-                date={person.birth_date}
-                time={person.birth_time || undefined}
-                latitude={latitude}
-                longitude={longitude}
-                showActivations
-                showChannels
-                showCenters
-              />
-            </CardContent>
-          </Card>
+          <div className="surface-card p-5">
+            <h3 className="font-semibold text-foreground mb-1">Human Design</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Type, Strategy, and Authority
+              {!hasBirthTime && <span className="text-amber-600 ml-2">(without birth time - approximate)</span>}
+            </p>
+            <HumanDesignDisplay
+              date={person.birth_date}
+              time={person.birth_time || undefined}
+              latitude={latitude}
+              longitude={longitude}
+              showActivations
+              showChannels
+              showCenters
+            />
+          </div>
         </TabsContent>
 
         {/* Gematria Tab */}
         <TabsContent value="gematria" className="space-y-6 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gematria</CardTitle>
-              <CardDescription>Numerical values of the Hebrew name</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <GematriaDisplay
-                text={hebrewName}
-                showBreakdown
-                showAllMethods
-                showNotable
-              />
-            </CardContent>
-          </Card>
+          <div className="surface-card p-5">
+            <h3 className="font-semibold text-foreground mb-1">Gematria</h3>
+            <p className="text-sm text-muted-foreground mb-4">Numerical values of the Hebrew name</p>
+            <GematriaDisplay
+              text={hebrewName}
+              showBreakdown
+              showAllMethods
+              showNotable
+            />
+          </div>
         </TabsContent>
 
         {/* Cross-System Insights Tab */}
         <TabsContent value="insights" className="space-y-6 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Cross-System Insights</CardTitle>
-              <CardDescription>Connections and patterns across different systems</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <CrossSystemInsights
+          <div className="surface-card p-5">
+            <h3 className="font-semibold text-foreground mb-1">Cross-System Insights</h3>
+            <p className="text-sm text-muted-foreground mb-4">Connections and patterns across different systems</p>
+            <CrossSystemInsights
                 dreamspell={{
                   kin,
                   seal: sealNumber,
@@ -598,11 +534,61 @@ export default function PersonDetailPage() {
                   daysSinceCreation: longCountData.daysSinceCreation,
                 }}
               />
-            </CardContent>
-          </Card>
+          </div>
         </TabsContent>
       </Tabs>
       )}
+    </div>
+  )
+}
+
+// Loading skeleton
+function PersonDetailSkeleton() {
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-10 w-10 rounded-lg" />
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-5 w-32" />
+          </div>
+        </div>
+        <Skeleton className="h-6 w-16 rounded-full" />
+      </div>
+
+      {/* Info card */}
+      <div className="rounded-xl border border-border bg-card p-5">
+        <Skeleton className="h-4 w-32 mb-4" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-5 w-40" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-5 w-24" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-5 w-32" />
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="space-y-4">
+        <div className="flex gap-2">
+          {[...Array(6)].map((_, i) => (
+            <Skeleton key={i} className="h-10 w-24 rounded-lg" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Skeleton className="h-64 rounded-xl" />
+          <Skeleton className="h-64 rounded-xl" />
+        </div>
+      </div>
     </div>
   )
 }

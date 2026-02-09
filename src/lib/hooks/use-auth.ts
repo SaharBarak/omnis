@@ -46,12 +46,17 @@ export function useAuth() {
   }, [supabase])
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+    let cancelled = false
+
+    // Get the initial session explicitly
+    const initSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (cancelled) return
+
         if (session?.user) {
-          // Defer profile fetch to avoid blocking
           const profile = await fetchProfile(session.user.id)
+          if (cancelled) return
           setState({
             user: session.user,
             session,
@@ -66,35 +71,69 @@ export function useAuth() {
             loading: false,
           })
         }
+      } catch (err) {
+        console.error('[Auth] Error getting initial session:', err)
+        if (!cancelled) {
+          setState(prev => ({ ...prev, loading: false }))
+        }
+      }
+    }
+
+    // Set up auth state listener for subsequent changes (token refresh, sign out, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        // Skip INITIAL_SESSION since we handle it above
+        if (event === 'INITIAL_SESSION') return
+
+        if (session?.user) {
+          const profile = await fetchProfile(session.user.id)
+          if (cancelled) return
+          setState({
+            user: session.user,
+            session,
+            profile,
+            loading: false,
+          })
+        } else {
+          if (cancelled) return
+          setState({
+            user: null,
+            session: null,
+            profile: null,
+            loading: false,
+          })
+        }
       }
     )
 
-    // After setting up listener, set loading to false after a short delay
-    // This handles the case where there's no session
-    const timeout = setTimeout(() => {
-      setState(prev => {
-        if (prev.loading) {
-          return { ...prev, loading: false }
-        }
-        return prev
-      })
-    }, 2000)
+    initSession()
 
     return () => {
+      cancelled = true
       subscription.unsubscribe()
-      clearTimeout(timeout)
     }
   }, [supabase.auth, fetchProfile])
 
   // Sign in with Google OAuth
   const signInWithGoogle = useCallback(async (redirectTo?: string) => {
-    const { error } = await supabase.auth.signInWithOAuth({
+    const callbackUrl = `${window.location.origin}/auth/callback${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ''}`
+    console.log('[Auth] signInWithGoogle called')
+    console.log('[Auth] Redirect URL:', callbackUrl)
+    console.log('[Auth] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ''}`,
+        redirectTo: callbackUrl,
       },
     })
-    if (error) throw error
+
+    console.log('[Auth] signInWithOAuth response:', { data, error })
+
+    if (error) {
+      console.error('[Auth] Google sign-in error:', error)
+      throw error
+    }
   }, [supabase.auth])
 
   // Sign in with Apple OAuth

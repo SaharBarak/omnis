@@ -13,104 +13,106 @@
 
 @layer base {
   :root {
-    /* Grounded Cosmos - Warm Earth Theme */
-    --background: 40 30% 96%; /* Warm parchment #F7F4EF */
-    --foreground: 25 25% 15%; /* Deep brown #2D2519 */
-    --card: 40 35% 98%;
-    --card-foreground: 25 25% 15%;
-    --popover: 40 35% 98%;
-    --popover-foreground: 25 25% 15%;
+    /* Clean Light Theme - High Contrast */
+    --background: 0 0% 100%; /* Pure white */
+    --foreground: 20 14% 12%; /* Near black, warm */
+    --card: 0 0% 100%; /* White cards */
+    --card-foreground: 20 14% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 14% 12%;
 
-    /* Primary - Terracotta Earth */
-    --primary: 18 55% 45%; /* Terracotta #B35A3A */
-    --primary-foreground: 40 30% 96%;
+    /* Primary - Terracotta (more saturated for contrast) */
+    --primary: 16 65% 42%; /* Rich terracotta #B54A2E */
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Sage Green */
-    --secondary: 140 20% 40%; /* Muted sage #4F6B58 */
-    --secondary-foreground: 40 30% 96%;
+    /* Secondary - Sage Green (darker for contrast) */
+    --secondary: 152 24% 32%; /* Deep sage #3D5E4A */
+    --secondary-foreground: 0 0% 100%;
 
-    /* Muted */
-    --muted: 35 20% 90%;
-    --muted-foreground: 25 15% 45%;
+    /* Muted - cleaner grays */
+    --muted: 40 10% 95%; /* Very light warm gray */
+    --muted-foreground: 20 10% 40%; /* Readable gray */
 
-    /* Accent - Deep Indigo */
-    --accent: 230 35% 35%; /* Night sky #3D4A6B */
-    --accent-foreground: 40 30% 96%;
+    /* Accent - Deep Indigo (more saturated) */
+    --accent: 230 45% 30%; /* Rich indigo #2A3A66 */
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 60% 50%;
-    --destructive-foreground: 40 30% 96%;
-    --border: 35 20% 85%;
-    --input: 35 20% 88%;
-    --ring: 18 55% 45%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 30 12% 88%; /* Visible but subtle */
+    --input: 30 12% 92%;
+    --ring: 16 65% 42%;
 
-    /* Chart colors */
-    --chart-1: 18 55% 45%;
-    --chart-2: 140 20% 40%;
-    --chart-3: 230 35% 35%;
-    --chart-4: 35 60% 50%;
-    --chart-5: 200 30% 45%;
+    /* Chart colors - higher saturation */
+    --chart-1: 16 65% 42%;
+    --chart-2: 152 24% 32%;
+    --chart-3: 230 45% 30%;
+    --chart-4: 38 75% 48%;
+    --chart-5: 200 45% 40%;
 
-    --radius: 0.75rem;
+    --radius: 0.625rem;
 
-    /* Grounded Palette */
-    --earth: 25 25% 15%;
-    --clay: 18 55% 45%;
-    --terracotta: 15 50% 50%;
-    --sand: 40 30% 85%;
-    --parchment: 40 30% 96%;
-    --sage: 140 20% 40%;
-    --forest: 150 25% 30%;
-    --indigo: 230 35% 35%;
-    --midnight: 230 40% 20%;
-    --amber: 35 70% 50%;
-    --cream: 45 40% 94%;
+    /* Grounded Palette - higher contrast variants */
+    --earth: 20 14% 12%;
+    --clay: 16 65% 42%;
+    --terracotta: 14 60% 45%;
+    --sand: 38 25% 88%;
+    --parchment: 40 20% 97%;
+    --sage: 152 24% 32%;
+    --forest: 155 30% 25%;
+    --indigo: 230 45% 30%;
+    --midnight: 230 50% 18%;
+    --amber: 38 85% 45%;
+    --cream: 45 30% 96%;
 
-    /* Dreamspell seal colors - earthy variant */
-    --seal-red: 5 65% 50%;
-    --seal-white: 40 25% 92%;
-    --seal-blue: 215 50% 45%;
-    --seal-yellow: 42 80% 50%;
-    /* Sidebar - warm earth tones */
-    --sidebar-background: 40 35% 98%;
-    --sidebar-foreground: 25 25% 15%;
-    --sidebar-primary: 18 55% 45%;
-    --sidebar-primary-foreground: 40 30% 96%;
-    --sidebar-accent: 35 20% 92%;
-    --sidebar-accent-foreground: 25 25% 15%;
-    --sidebar-border: 35 20% 88%;
-    --sidebar-ring: 18 55% 45%;
+    /* Dreamspell seal colors - vivid */
+    --seal-red: 4 72% 48%;
+    --seal-white: 0 0% 96%;
+    --seal-blue: 215 65% 45%;
+    --seal-yellow: 45 90% 48%;
+
+    /* Sidebar - clean white with subtle warmth */
+    --sidebar-background: 40 20% 99%;
+    --sidebar-foreground: 20 14% 12%;
+    --sidebar-primary: 16 65% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 40 15% 95%;
+    --sidebar-accent-foreground: 20 14% 12%;
+    --sidebar-border: 30 12% 90%;
+    --sidebar-ring: 16 65% 42%;
   }
 
   .dark {
-    /* Dark mode - Deep earth at night */
-    --background: 25 20% 10%;
-    --foreground: 40 20% 90%;
-    --card: 25 18% 14%;
-    --card-foreground: 40 20% 90%;
-    --popover: 25 18% 14%;
-    --popover-foreground: 40 20% 90%;
-    --primary: 18 50% 55%;
-    --primary-foreground: 25 20% 10%;
-    --secondary: 140 18% 50%;
-    --secondary-foreground: 25 20% 10%;
-    --muted: 25 15% 20%;
-    --muted-foreground: 35 15% 55%;
-    --accent: 230 30% 55%;
-    --accent-foreground: 25 20% 10%;
-    --destructive: 0 55% 55%;
-    --destructive-foreground: 40 20% 90%;
-    --border: 25 15% 22%;
-    --input: 25 15% 20%;
-    --ring: 18 50% 55%;
-    /* Sidebar - dark earth tones */
-    --sidebar-background: 25 18% 12%;
-    --sidebar-foreground: 40 20% 90%;
-    --sidebar-primary: 18 50% 55%;
-    --sidebar-primary-foreground: 25 20% 10%;
-    --sidebar-accent: 25 15% 18%;
-    --sidebar-accent-foreground: 40 20% 90%;
-    --sidebar-border: 25 15% 18%;
-    --sidebar-ring: 18 50% 55%;
+    /* Dark mode - Deep warm night */
+    --background: 20 15% 8%;
+    --foreground: 40 15% 92%;
+    --card: 20 12% 12%;
+    --card-foreground: 40 15% 92%;
+    --popover: 20 12% 12%;
+    --popover-foreground: 40 15% 92%;
+    --primary: 16 55% 55%;
+    --primary-foreground: 20 15% 8%;
+    --secondary: 152 22% 48%;
+    --secondary-foreground: 20 15% 8%;
+    --muted: 20 10% 18%;
+    --muted-foreground: 30 12% 58%;
+    --accent: 230 35% 55%;
+    --accent-foreground: 20 15% 8%;
+    --destructive: 0 60% 55%;
+    --destructive-foreground: 40 15% 92%;
+    --border: 20 10% 20%;
+    --input: 20 10% 18%;
+    --ring: 16 55% 55%;
+
+    /* Sidebar - dark warm tones */
+    --sidebar-background: 20 12% 10%;
+    --sidebar-foreground: 40 15% 92%;
+    --sidebar-primary: 16 55% 55%;
+    --sidebar-primary-foreground: 20 15% 8%;
+    --sidebar-accent: 20 10% 16%;
+    --sidebar-accent-foreground: 40 15% 92%;
+    --sidebar-border: 20 10% 18%;
+    --sidebar-ring: 16 55% 55%;
   }
 }
 
@@ -137,86 +139,55 @@
 }
 
 @layer components {
-  /* Earth Card - subtle paper texture feel */
+  /* Surface Card - clean elevated surface */
+  .surface-card {
+    @apply relative rounded-xl bg-card border border-border;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+
+  .surface-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Legacy earth-card alias */
   .earth-card {
-    @apply relative overflow-hidden rounded-2xl bg-card;
-    box-shadow:
-      0 1px 3px rgba(45, 37, 25, 0.06),
-      0 4px 12px rgba(45, 37, 25, 0.04);
-    border: 1px solid hsl(var(--border));
+    @apply surface-card;
   }
 
-  .earth-card:hover {
-    box-shadow:
-      0 2px 6px rgba(45, 37, 25, 0.08),
-      0 8px 24px rgba(45, 37, 25, 0.06);
+  /* Interactive Card - for clickable items */
+  .interactive-card {
+    @apply surface-card transition-all duration-200 cursor-pointer;
   }
 
-  /* Feature Card - clean editorial style */
-  .feature-card-earth {
-    @apply relative overflow-hidden rounded-2xl bg-card p-8;
-    border: 1px solid hsl(var(--border));
-    transition: all 0.3s ease;
+  .interactive-card:hover {
+    @apply border-primary/30;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
   }
 
-  .feature-card-earth:hover {
-    border-color: hsl(var(--primary) / 0.3);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(179, 90, 58, 0.08);
+  .interactive-card:active {
+    transform: translateY(0);
   }
 
-  /* Stat Card */
-  .stat-card {
-    @apply p-5 rounded-xl bg-card border border-border transition-all duration-300;
+  /* Feature Card - prominent display */
+  .feature-card {
+    @apply relative rounded-xl bg-card border border-border p-6;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   }
 
-  .stat-card .stat-value {
-    @apply text-3xl font-semibold tracking-tight;
+  /* Stat display */
+  .stat-value {
+    @apply text-3xl font-bold tracking-tight text-foreground;
     font-family: 'Cormorant Garamond', Georgia, serif;
-    color: hsl(var(--primary));
   }
 
-  .stat-card .stat-label {
+  .stat-label {
     @apply text-sm text-muted-foreground;
   }
 
   /* Kin number display */
   .kin-number {
-    @apply font-mono text-4xl font-bold tracking-wider;
-    color: hsl(var(--primary));
-  }
-
-  /* Terracotta gradient text */
-  .text-earth-gradient {
-    background: linear-gradient(
-      135deg,
-      hsl(18 55% 45%) 0%,
-      hsl(25 50% 40%) 50%,
-      hsl(15 45% 35%) 100%
-    );
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* Sage gradient text */
-  .text-sage-gradient {
-    background: linear-gradient(
-      135deg,
-      hsl(140 25% 45%) 0%,
-      hsl(150 20% 35%) 100%
-    );
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* Badge style */
-  .earth-badge {
-    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm;
-    background: hsl(var(--sand));
-    color: hsl(var(--muted-foreground));
-    border: 1px solid hsl(var(--border));
+    @apply font-mono text-4xl font-bold tracking-wider text-primary;
   }
 
   /* Seal colors */
@@ -230,57 +201,28 @@
   .bg-seal-blue { background-color: hsl(var(--seal-blue)); }
   .bg-seal-yellow { background-color: hsl(var(--seal-yellow)); }
 
-  /* Subtle animations - purposeful, not flashy */
+  /* Subtle animations */
   @keyframes fadeUp {
-    from {
-      opacity: 0;
-      transform: translateY(16px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   @keyframes gentlePulse {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
+    50% { opacity: 0.6; }
   }
 
   .animate-fade-up {
-    animation: fadeUp 0.6s ease-out forwards;
+    animation: fadeUp 0.4s ease-out forwards;
   }
 
   .animate-gentle-pulse {
-    animation: gentlePulse 3s ease-in-out infinite;
+    animation: gentlePulse 2.5s ease-in-out infinite;
   }
 
-  /* Paper grain texture - very subtle */
-  .paper-grain::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E");
-    opacity: 0.015;
-    pointer-events: none;
-  }
-
-  /* Sacred geometry - subtle background pattern */
-  .sacred-pattern {
-    background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23B35A3A' stroke-width='0.3' opacity='0.06'%3E%3Ccircle cx='40' cy='40' r='30'/%3E%3Ccircle cx='40' cy='40' r='20'/%3E%3Ccircle cx='40' cy='40' r='10'/%3E%3C/g%3E%3C/svg%3E");
-    background-size: 80px 80px;
-  }
-
-  /* Divider line */
-  .earth-divider {
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      hsl(var(--border)) 20%,
-      hsl(var(--border)) 80%,
-      transparent 100%
-    );
+  /* Divider */
+  .divider {
+    @apply h-px bg-border;
   }
 }
 

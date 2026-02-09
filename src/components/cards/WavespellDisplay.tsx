@@ -144,6 +144,7 @@ export interface WavespellProgressProps {
 
 export function WavespellProgress({ kin, className = '' }: WavespellProgressProps) {
   const wavespell = kinToWavespell(kin)
+  const wavespellSeal = getSeal(wavespell.sealNumber)
   const position = kinToTone(kin)
   const percentage = ((position - 1) / 12) * 100
 
@@ -153,13 +154,20 @@ export function WavespellProgress({ kin, className = '' }: WavespellProgressProp
         <span>Kin {wavespell.startKin}</span>
         <span>Kin {wavespell.endKin}</span>
       </div>
-      <div className="h-2 bg-muted rounded-full overflow-hidden">
+      <div
+        className="h-2 bg-muted rounded-full overflow-hidden"
+        role="progressbar"
+        aria-valuenow={position}
+        aria-valuemin={1}
+        aria-valuemax={13}
+        aria-label={`Progress through ${wavespellSeal.english} Wavespell: Day ${position} of 13`}
+      >
         <div
           className="h-full bg-primary transition-all"
           style={{ width: `${percentage}%` }}
         />
       </div>
-      <div className="text-center text-xs text-muted-foreground mt-1">
+      <div className="text-center text-xs text-muted-foreground mt-1" aria-hidden="true">
         Day {position} of 13
       </div>
     </div>
