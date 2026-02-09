@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -71,7 +71,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@vitejs/plugin-react": "^5.1.2",
-    "eslint": "^8",
+    "eslint": "^9.39.2",
     "eslint-config-next": "^16.1.6",
     "jsdom": "^27.4.0",
     "postcss": "^8",
