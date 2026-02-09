@@ -123,6 +123,15 @@ export function Hero() {
       ref={sectionRef}
       className="relative min-h-screen flex items-center overflow-hidden bg-background pt-16 lg:pt-18"
     >
+      {/* Hero background image */}
+      <img
+        src={landingImages.hero.background}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover opacity-[0.15] pointer-events-none"
+        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+      />
+
       {/* Content — fades and shifts on scroll */}
       <motion.div
         className="relative z-10 w-full max-w-content mx-auto px-6 py-20 lg:py-28"
