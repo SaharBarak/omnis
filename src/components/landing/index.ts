@@ -4,7 +4,6 @@ export { SystemsShowcase } from './systems-showcase'
 export { Features } from './features'
 export { Testimonials } from './testimonials'
 export { Pricing } from './pricing'
-export { HowItWorks } from './how-it-works'
 export { FAQ } from './faq'
 export { CTA } from './cta'
 export {

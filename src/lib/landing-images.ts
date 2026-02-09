@@ -29,11 +29,11 @@ export const landingImages = {
 
 /** Gradient placeholders for each system — used when image is missing */
 export const systemGradients: Record<string, string> = {
-  dreamspell: 'linear-gradient(135deg, hsl(175 30% 18%), hsl(175 40% 30%))',
+  dreamspell: 'linear-gradient(135deg, hsl(257 40% 20%), hsl(257 55% 35%))',
   astrology: 'linear-gradient(135deg, hsl(42 40% 20%), hsl(42 60% 35%))',
-  'human-design': 'linear-gradient(135deg, hsl(220 30% 18%), hsl(220 35% 28%))',
-  gematria: 'linear-gradient(135deg, hsl(200 25% 18%), hsl(200 35% 28%))',
-  tzolkin: 'linear-gradient(135deg, hsl(160 25% 18%), hsl(160 35% 28%))',
+  'human-design': 'linear-gradient(135deg, hsl(270 35% 18%), hsl(270 45% 30%))',
+  gematria: 'linear-gradient(135deg, hsl(230 35% 18%), hsl(230 50% 30%))',
+  tzolkin: 'linear-gradient(135deg, hsl(180 30% 18%), hsl(180 45% 30%))',
 }
 
 export const stepGradients: Record<string, string> = {

@@ -9,7 +9,7 @@ const faqs = [
   },
   {
     question: "I don't know my exact birth time. Can I still use Omnis?",
-    answer: "Yes. Your birth date alone gives you Dreamspell, Tzolkin, Long Count, and Kabbalah - four of the six systems. Human Design authority and astrology Moon/Rising require exact time. You can add it later if you find it (birth certificates often have it).",
+    answer: "Yes. Your birth date alone gives you Dreamspell, Tzolkin, Long Count, and Gematria - four of the six systems. Human Design authority and astrology Moon/Rising require exact time. You can add it later if you find it (birth certificates often have it).",
   },
   {
     question: "How accurate are the calculations?",
