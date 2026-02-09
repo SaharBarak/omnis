@@ -11,6 +11,7 @@ import { getTone } from '@/lib/data/tones'
 import { generateMantra } from '@/lib/data/mantras'
 import { kinToWavespell } from '@/lib/calculations/wavespell'
 import { kinToCastle } from '@/lib/calculations/cycles'
+import { getSealGlyphPath, getToneGlyphPath } from '@/lib/dreamspell-assets'
 
 interface TodayKinProps {
   className?: string
@@ -79,14 +80,26 @@ export function TodayKin({ className, userKin }: TodayKinProps) {
         </span>
       </div>
 
-      {/* Kin Display */}
-      <div className="mb-4">
-        <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
-          Kin <span className="text-primary">{data.kin}</span>
-        </h2>
-        <p className="text-lg text-muted-foreground mt-1">
-          {data.tone.name} {data.seal.english}
-        </p>
+      {/* Seal + Tone Glyphs */}
+      <div className="flex items-center gap-3 mb-4">
+        <img
+          src={getSealGlyphPath(data.seal.number)}
+          alt={data.seal.english}
+          className="w-14 h-14 object-contain"
+        />
+        <div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
+            Kin <span className="text-primary">{data.kin}</span>
+          </h2>
+          <p className="text-lg text-muted-foreground">
+            {data.tone.name} {data.seal.english}
+          </p>
+        </div>
+        <img
+          src={getToneGlyphPath(data.tone.number)}
+          alt={`Tone ${data.tone.number}`}
+          className="w-10 h-10 object-contain ml-auto"
+        />
       </div>
 
       {/* Mantra */}

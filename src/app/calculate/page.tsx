@@ -11,6 +11,7 @@ import { SEALS } from '@/lib/data/seals'
 import { TONES } from '@/lib/data/tones'
 import { generateMantra } from '@/lib/data/mantras'
 import { Header, Footer } from '@/components/landing'
+import { getSealGlyphPath, getToneGlyphPath, getSmallSealGlyphPath } from '@/lib/dreamspell-assets'
 
 function getSealColorClass(color: string): string {
   const colors: Record<string, string> = {
@@ -140,7 +141,7 @@ export default function CalculatePage() {
                 </div>
 
                 <p className="text-xs text-center text-muted-foreground mt-4">
-                  Calculations use the José Argüelles Dreamspell system (1987)
+                  Calculations use the Jos&eacute; Arg&uuml;elles Dreamspell system (1987)
                   with leap-day correction.
                 </p>
               </div>
@@ -156,12 +157,17 @@ export default function CalculatePage() {
                     })}
                   </p>
 
-                  {/* Seal Icon */}
-                  <div className={`w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center border-2 ${getSealColorClass(result.seal.color)}`}>
+                  {/* Seal + Tone Glyphs */}
+                  <div className="flex items-center justify-center gap-4 mb-4">
                     <img
-                      src={`/icons/dreamspell/seals/${result.seal.number.toString().padStart(2, '0')}-${result.seal.english.toLowerCase()}.svg`}
+                      src={getSealGlyphPath(result.seal.number)}
                       alt={result.seal.english}
-                      className="w-12 h-12"
+                      className="w-20 h-20 object-contain"
+                    />
+                    <img
+                      src={getToneGlyphPath(result.tone.number)}
+                      alt={`Tone ${result.tone.number}`}
+                      className="w-14 h-14 object-contain"
                     />
                   </div>
 
@@ -196,22 +202,22 @@ export default function CalculatePage() {
                 <div className="border-t border-border pt-6">
                   <h3 className="text-lg font-heading text-center mb-4">Oracle Map</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div className="text-center p-3 rounded-xl bg-muted/50">
-                      <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Guide</div>
-                      <div className="font-medium text-sm">{result.oracle.guide.english}</div>
-                    </div>
-                    <div className="text-center p-3 rounded-xl bg-muted/50">
-                      <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Analog</div>
-                      <div className="font-medium text-sm">{result.oracle.analog.english}</div>
-                    </div>
-                    <div className="text-center p-3 rounded-xl bg-muted/50">
-                      <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Antipode</div>
-                      <div className="font-medium text-sm">{result.oracle.antipode.english}</div>
-                    </div>
-                    <div className="text-center p-3 rounded-xl bg-muted/50">
-                      <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Occult</div>
-                      <div className="font-medium text-sm">{result.oracle.occult.english}</div>
-                    </div>
+                    {[
+                      { label: 'Guide', seal: result.oracle.guide },
+                      { label: 'Analog', seal: result.oracle.analog },
+                      { label: 'Antipode', seal: result.oracle.antipode },
+                      { label: 'Occult', seal: result.oracle.occult },
+                    ].map(({ label, seal }) => (
+                      <div key={label} className="text-center p-3 rounded-xl bg-muted/50">
+                        <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">{label}</div>
+                        <img
+                          src={getSmallSealGlyphPath(seal.number)}
+                          alt={seal.english}
+                          className="w-10 h-10 mx-auto mb-1 object-contain"
+                        />
+                        <div className="font-medium text-sm">{seal.english}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -238,7 +244,7 @@ export default function CalculatePage() {
             <h3 className="text-lg font-heading mb-4">About Dreamspell</h3>
             <div className="space-y-3 text-sm text-muted-foreground">
               <p>
-                The Dreamspell is a calendar system created by José Argüelles in 1987, inspired
+                The Dreamspell is a calendar system created by Jos&eacute; Arg&uuml;elles in 1987, inspired
                 by the Mayan calendar. It assigns a unique &ldquo;galactic signature&rdquo; to each day
                 based on 20 solar seals and 13 galactic tones.
               </p>

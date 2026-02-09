@@ -7,6 +7,7 @@ import { SEALS } from '@/lib/data/seals'
 import { TONES } from '@/lib/data/tones'
 import { generateMantra } from '@/lib/data/mantras'
 import { Header, Footer } from '@/components/landing'
+import { getSealGlyphPath, getToneGlyphPath, getSmallSealGlyphPath } from '@/lib/dreamspell-assets'
 
 export const metadata: Metadata = {
   title: "Today's Kin - Daily Dreamspell Reading | Omnis",
@@ -77,12 +78,17 @@ export default function TodayPage() {
           {/* Main Kin Card */}
           <div className="earth-card bg-card p-8 mb-8">
             <div className="text-center">
-              {/* Seal Icon */}
-              <div className={`w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center border-2 ${getSealColorClass(seal.color)}`}>
+              {/* Seal + Tone Glyph */}
+              <div className="flex items-center justify-center gap-4 mb-4">
                 <img
-                  src={`/icons/dreamspell/seals/${seal.number.toString().padStart(2, '0')}-${seal.english.toLowerCase()}.svg`}
+                  src={getSealGlyphPath(seal.number)}
                   alt={seal.english}
-                  className="w-12 h-12"
+                  className="w-20 h-20 object-contain"
+                />
+                <img
+                  src={getToneGlyphPath(tone.number)}
+                  alt={`Tone ${tone.number}`}
+                  className="w-14 h-14 object-contain"
                 />
               </div>
 
@@ -122,9 +128,11 @@ export default function TodayPage() {
               {/* Guide */}
               <div className="text-center p-4 rounded-xl bg-muted/50">
                 <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Guide</div>
-                <div className={`w-10 h-10 mx-auto mb-2 rounded-full flex items-center justify-center ${getSealColorClass(guideSeal.color)}`}>
-                  <span className="text-sm font-medium">{guideSeal.number}</span>
-                </div>
+                <img
+                  src={getSmallSealGlyphPath(guideSeal.number)}
+                  alt={guideSeal.english}
+                  className="w-10 h-10 mx-auto mb-2 object-contain"
+                />
                 <div className="font-medium text-sm">{guideSeal.english}</div>
                 <div className="text-xs text-muted-foreground">{guideSeal.hebrew}</div>
               </div>
@@ -132,9 +140,11 @@ export default function TodayPage() {
               {/* Analog */}
               <div className="text-center p-4 rounded-xl bg-muted/50">
                 <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Analog</div>
-                <div className={`w-10 h-10 mx-auto mb-2 rounded-full flex items-center justify-center ${getSealColorClass(analogSeal.color)}`}>
-                  <span className="text-sm font-medium">{analogSeal.number}</span>
-                </div>
+                <img
+                  src={getSmallSealGlyphPath(analogSeal.number)}
+                  alt={analogSeal.english}
+                  className="w-10 h-10 mx-auto mb-2 object-contain"
+                />
                 <div className="font-medium text-sm">{analogSeal.english}</div>
                 <div className="text-xs text-muted-foreground">{analogSeal.hebrew}</div>
               </div>
@@ -142,9 +152,11 @@ export default function TodayPage() {
               {/* Antipode */}
               <div className="text-center p-4 rounded-xl bg-muted/50">
                 <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Antipode</div>
-                <div className={`w-10 h-10 mx-auto mb-2 rounded-full flex items-center justify-center ${getSealColorClass(antipodeSeal.color)}`}>
-                  <span className="text-sm font-medium">{antipodeSeal.number}</span>
-                </div>
+                <img
+                  src={getSmallSealGlyphPath(antipodeSeal.number)}
+                  alt={antipodeSeal.english}
+                  className="w-10 h-10 mx-auto mb-2 object-contain"
+                />
                 <div className="font-medium text-sm">{antipodeSeal.english}</div>
                 <div className="text-xs text-muted-foreground">{antipodeSeal.hebrew}</div>
               </div>
@@ -152,9 +164,11 @@ export default function TodayPage() {
               {/* Occult */}
               <div className="text-center p-4 rounded-xl bg-muted/50">
                 <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Occult</div>
-                <div className={`w-10 h-10 mx-auto mb-2 rounded-full flex items-center justify-center ${getSealColorClass(occultSeal.color)}`}>
-                  <span className="text-sm font-medium">{occultSeal.number}</span>
-                </div>
+                <img
+                  src={getSmallSealGlyphPath(occultSeal.number)}
+                  alt={occultSeal.english}
+                  className="w-10 h-10 mx-auto mb-2 object-contain"
+                />
                 <div className="font-medium text-sm">{occultSeal.english}</div>
                 <div className="text-xs text-muted-foreground">{occultSeal.hebrew}</div>
               </div>

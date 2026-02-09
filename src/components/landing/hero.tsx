@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import { getSealGlyphPath, getToneGlyphPath, getHunabKuPath } from '@/lib/dreamspell-assets'
 
 // Sample reading card - editorial, clean
 function ReadingCard() {
@@ -21,6 +22,19 @@ function ReadingCard() {
 
           {/* Main display */}
           <div className="px-6 py-8 text-center">
+            {/* Seal + Tone Glyphs */}
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <img
+                src={getSealGlyphPath(9)}
+                alt="Moon seal"
+                className="w-16 h-16 object-contain"
+              />
+              <img
+                src={getToneGlyphPath(13)}
+                alt="Tone 13"
+                className="w-10 h-10 object-contain"
+              />
+            </div>
             <div className="text-6xl font-heading text-primary mb-2">169</div>
             <div className="text-xl font-heading text-foreground mb-2">Cosmic Moon</div>
             <p className="text-sm text-muted-foreground italic">
@@ -69,12 +83,17 @@ export function Hero() {
       {/* Subtle background pattern */}
       <div className="absolute inset-0 sacred-pattern opacity-30" />
 
+      {/* Hunab Ku watermark */}
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none">
+        <img src={getHunabKuPath()} alt="" className="w-[500px] h-[500px]" aria-hidden="true" />
+      </div>
+
       {/* Content */}
       <div className="relative z-10 w-full max-w-6xl mx-auto px-6 pt-24 pb-16">
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
 
           {/* Left column - Text */}
-          <motion.div 
+          <motion.div
             className="lg:col-span-7 space-y-6"
             variants={staggerContainer}
             initial="hidden"
@@ -87,7 +106,7 @@ export function Hero() {
             </motion.div>
 
             {/* Headline */}
-            <motion.h1 
+            <motion.h1
               className="text-4xl sm:text-5xl lg:text-6xl font-heading text-foreground leading-tight"
               variants={fadeInUp}
               transition={{ duration: 0.6 }}
@@ -98,7 +117,7 @@ export function Hero() {
             </motion.h1>
 
             {/* Description */}
-            <motion.p 
+            <motion.p
               className="text-lg text-muted-foreground max-w-xl leading-relaxed"
               variants={fadeInUp}
               transition={{ duration: 0.5 }}
@@ -108,7 +127,7 @@ export function Hero() {
             </motion.p>
 
             {/* CTA Buttons */}
-            <motion.div 
+            <motion.div
               className="flex flex-col sm:flex-row items-start gap-3 pt-2"
               variants={fadeInUp}
               transition={{ duration: 0.5 }}
@@ -133,7 +152,7 @@ export function Hero() {
             </motion.div>
 
             {/* Stats */}
-            <motion.div 
+            <motion.div
               className="flex flex-wrap items-center gap-8 pt-6"
               variants={fadeInUp}
               transition={{ duration: 0.5 }}
@@ -156,7 +175,7 @@ export function Hero() {
           </motion.div>
 
           {/* Right column - Visual */}
-          <motion.div 
+          <motion.div
             className="lg:col-span-5 flex justify-center lg:justify-end"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}

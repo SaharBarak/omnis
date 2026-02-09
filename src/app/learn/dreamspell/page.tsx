@@ -5,11 +5,12 @@ import { DocLayout, DocHeader, DocSection, DocNav, DocStats, DocInfoBox, DocPull
 import { dreamspellDocs, docStructure } from '@/lib/docs/content'
 import { SEALS } from '@/lib/data/seals'
 import { TONES } from '@/lib/data/tones'
+import { getSealGlyphPath, getToneGlyphPath, getHunabKuPath } from '@/lib/dreamspell-assets'
 
 export const metadata: Metadata = {
   title: 'Dreamspell Documentation',
   description: 'Complete guide to the Dreamspell system: 260 Kin cycle, 20 Solar Seals, 13 Galactic Tones, Wavespells, Oracle, and the Five Castles.',
-  keywords: 'dreamspell guide, galactic signature, kin, solar seals, galactic tones, wavespell, mayan calendar, 13:20, josé argüelles',
+  keywords: 'dreamspell guide, galactic signature, kin, solar seals, galactic tones, wavespell, mayan calendar, 13:20, jose arguelles',
 }
 
 // Color utilities
@@ -39,6 +40,11 @@ export default function DreamspellDocsPage() {
           subtitle={dreamspellDocs.overview.subtitle}
           badgeColor="primary"
         />
+
+        {/* Hunab Ku accent */}
+        <div className="flex justify-center mb-8">
+          <img src={getHunabKuPath()} alt="Hunab Ku" className="w-24 h-24 opacity-60" />
+        </div>
 
         {/* Introduction with drop cap */}
         <section className="mb-12">
@@ -110,7 +116,7 @@ export default function DreamspellDocsPage() {
                       'bg-yellow-500'
                     }`} />
                     <span className="font-heading text-lg text-foreground">{family.color}</span>
-                    <span className="text-sm text-muted-foreground">• {family.direction}</span>
+                    <span className="text-sm text-muted-foreground">&bull; {family.direction}</span>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
                     <span className="font-medium text-foreground">{family.function}:</span> {family.description}
@@ -127,7 +133,7 @@ export default function DreamspellDocsPage() {
             })}
           </div>
 
-          {/* All 20 Seals Grid */}
+          {/* All 20 Seals Grid - with glyph images */}
           <h3 id="seals-list" className="doc-h3">The 20 Seals</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
             {SEALS.map((seal) => {
@@ -137,7 +143,12 @@ export default function DreamspellDocsPage() {
                   key={seal.number}
                   className={`p-4 rounded-xl border text-center transition-all hover:shadow-earth ${colors.border} ${colors.bg}`}
                 >
-                  <div className={`text-2xl font-heading mb-1 ${colors.text}`}>{seal.number}</div>
+                  <img
+                    src={getSealGlyphPath(seal.number)}
+                    alt={seal.english}
+                    className="w-12 h-12 mx-auto mb-2 object-contain"
+                  />
+                  <div className={`text-lg font-heading mb-0.5 ${colors.text}`}>{seal.number}</div>
                   <div className="text-sm font-medium text-foreground">{seal.english}</div>
                   <div className="text-xs text-muted-foreground mt-0.5">{seal.hebrew}</div>
                 </div>
@@ -146,7 +157,7 @@ export default function DreamspellDocsPage() {
           </div>
         </DocSection>
 
-        {/* 13 Galactic Tones */}
+        {/* 13 Galactic Tones - with tone images */}
         <DocSection id="dreamspell-tones" title={dreamspellDocs.tones.title}>
           <p className="text-muted-foreground leading-relaxed mb-8">
             {dreamspellDocs.tones.introduction}
@@ -160,13 +171,16 @@ export default function DreamspellDocsPage() {
                   key={tone.number}
                   className="doc-card p-5 flex items-start gap-5"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center font-heading text-xl text-primary flex-shrink-0">
-                    {tone.number}
-                  </div>
+                  <img
+                    src={getToneGlyphPath(tone.number)}
+                    alt={`Tone ${tone.number}`}
+                    className="w-12 h-12 object-contain flex-shrink-0"
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 flex-wrap mb-2">
                       <span className="font-heading text-lg text-foreground">{tone.name}</span>
                       <span className="text-sm text-muted-foreground">({tone.nameHebrew})</span>
+                      <span className="text-xs font-mono text-primary">Tone {tone.number}</span>
                     </div>
                     {toneDoc && (
                       <>
@@ -198,12 +212,14 @@ export default function DreamspellDocsPage() {
               <div className="divide-y divide-border">
                 {dreamspellDocs.wavespells.structure.map((day) => (
                   <div key={day.day} className="flex items-center gap-4 px-6 py-4 hover:bg-muted/30 transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium text-primary flex-shrink-0">
-                      {day.day}
-                    </div>
+                    <img
+                      src={getToneGlyphPath(day.day)}
+                      alt={`Tone ${day.day}`}
+                      className="w-8 h-8 object-contain flex-shrink-0"
+                    />
                     <div className="flex-1 min-w-0">
                       <span className="font-medium text-foreground">{day.tone}</span>
-                      <span className="text-muted-foreground"> • {day.phase}</span>
+                      <span className="text-muted-foreground"> &bull; {day.phase}</span>
                     </div>
                     <div className="text-sm text-muted-foreground hidden md:block max-w-[200px] text-right">
                       {day.description}

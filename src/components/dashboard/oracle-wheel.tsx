@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { getSeal } from '@/lib/data/seals'
+import { getSealGlyphPath } from '@/lib/dreamspell-assets'
 
 interface OracleWheelProps {
   kin: number
@@ -31,9 +32,9 @@ export function OracleWheel({ kin, sealNumber, size = 'md', showGuides = false, 
   const sealColor = getSealColor(sealNumber)
 
   const dimensions = {
-    sm: { outer: 80, inner: 50, center: 28, iconSize: 20 },
-    md: { outer: 140, inner: 90, center: 50, iconSize: 36 },
-    lg: { outer: 200, inner: 130, center: 72, iconSize: 52 },
+    sm: { outer: 80, inner: 50, center: 28, iconSize: 24 },
+    md: { outer: 140, inner: 90, center: 50, iconSize: 40 },
+    lg: { outer: 200, inner: 130, center: 72, iconSize: 56 },
   }
 
   const d = dimensions[size]
@@ -146,7 +147,7 @@ export function OracleWheel({ kin, sealNumber, size = 'md', showGuides = false, 
         })}
       </svg>
 
-      {/* Center seal icon */}
+      {/* Center seal icon - using starroot glyph GIF */}
       <div
         className="absolute flex items-center justify-center"
         style={{
@@ -157,14 +158,9 @@ export function OracleWheel({ kin, sealNumber, size = 'md', showGuides = false, 
         }}
       >
         <img
-          src={`/icons/dreamspell/seals/${String(seal.number).padStart(2, '0')}-${seal.english.toLowerCase()}.svg`}
+          src={getSealGlyphPath(seal.number)}
           alt={seal.english}
-          className="w-full h-full drop-shadow-md"
-          style={{
-            filter: sealColor === 'white' || sealColor === 'yellow'
-              ? 'brightness(0.3)'
-              : 'brightness(1)'
-          }}
+          className="w-full h-full object-contain drop-shadow-md"
         />
       </div>
 
@@ -202,9 +198,9 @@ export function OracleWheelMini({ sealNumber, className = '' }: { sealNumber: nu
         }}
       />
       <img
-        src={`/icons/dreamspell/seals/${String(seal.number).padStart(2, '0')}-${seal.english.toLowerCase()}.svg`}
+        src={getSealGlyphPath(seal.number)}
         alt={seal.english}
-        className="w-6 h-6 relative z-10"
+        className="w-6 h-6 relative z-10 object-contain"
       />
     </div>
   )

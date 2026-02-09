@@ -9,6 +9,7 @@ import { SEALS } from '@/lib/data/seals'
 import { TONES } from '@/lib/data/tones'
 import { generateMantra } from '@/lib/data/mantras'
 import Link from 'next/link'
+import { getSealGlyphPath, getToneGlyphPath } from '@/lib/dreamspell-assets'
 
 interface DemoResult {
   kin: number
@@ -114,6 +115,20 @@ export function Demo() {
                     {/* Label */}
                     <div className="text-xs uppercase tracking-widest text-muted-foreground mb-6">
                       Your Galactic Signature
+                    </div>
+
+                    {/* Seal + Tone Glyphs */}
+                    <div className="flex items-center justify-center gap-4 mb-4">
+                      <img
+                        src={getSealGlyphPath(result.seal.number)}
+                        alt={result.seal.english}
+                        className="w-20 h-20 object-contain"
+                      />
+                      <img
+                        src={getToneGlyphPath(result.tone.number)}
+                        alt={`Tone ${result.tone.number}`}
+                        className="w-14 h-14 object-contain"
+                      />
                     </div>
 
                     {/* Kin number */}
