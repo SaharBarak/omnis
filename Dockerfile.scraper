@@ -1,0 +1,17 @@
+FROM node:20-slim
+
+WORKDIR /app
+
+# Install deps
+COPY package.json package-lock.json* ./
+RUN npm ci --omit=dev 2>/dev/null || npm install --omit=dev
+
+# Copy scripts and config
+COPY scripts/ ./scripts/
+COPY tsconfig.json ./
+
+# Create data directory
+RUN mkdir -p data/knowledge
+
+# Run the pipeline
+CMD ["npx", "tsx", "scripts/run-scraper.ts"]

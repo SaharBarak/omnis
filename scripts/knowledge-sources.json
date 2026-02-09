@@ -4,8 +4,24 @@
     "name": "Jovian Archive",
     "url": "https://jovianarchive.com",
     "category": "human-design",
-    "startPaths": ["/pages/about-human-design"],
-    "crawlPattern": "/pages/*",
+    "startPaths": [
+      "/pages/about-human-design"
+    ],
+    "allowPaths": [
+      "/pages",
+      "/blogs",
+      "/articles"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/products",
+      "/collections",
+      "/account",
+      "/checkout"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 1,
     "notes": "Official Ra Uru Hu archive"
   },
@@ -14,8 +30,26 @@
     "name": "HumanDesign.com",
     "url": "https://humandesign.com",
     "category": "human-design",
-    "startPaths": ["/human-design"],
-    "crawlPattern": "/human-design/*",
+    "startPaths": [
+      "/human-design"
+    ],
+    "allowPaths": [
+      "/human-design",
+      "/articles",
+      "/blog",
+      "/learn"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/products",
+      "/collections",
+      "/account",
+      "/checkout",
+      "/wishlist"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "General HD education and articles"
   },
@@ -24,8 +58,25 @@
     "name": "Genetic Matrix",
     "url": "https://www.geneticmatrix.com",
     "category": "human-design",
-    "startPaths": ["/human-design-education/"],
-    "crawlPattern": "/human-design-education/*",
+    "startPaths": [
+      "/human-design-education/"
+    ],
+    "allowPaths": [
+      "/human-design-education",
+      "/blog",
+      "/articles"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/products",
+      "/collections",
+      "/account",
+      "/checkout",
+      "/wishlist"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Detailed gate/channel/type descriptions"
   },
@@ -34,8 +85,25 @@
     "name": "myBodyGraph",
     "url": "https://www.mybodygraph.com",
     "category": "human-design",
-    "startPaths": ["/learn"],
-    "crawlPattern": "/learn/*",
+    "startPaths": [
+      "/learn"
+    ],
+    "allowPaths": [
+      "/learn",
+      "/articles",
+      "/blog"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/products",
+      "/collections",
+      "/account",
+      "/checkout",
+      "/wishlist"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Official IHDS charting tool with educational content"
   },
@@ -44,8 +112,24 @@
     "name": "Human Design America",
     "url": "https://humandesignamerica.com",
     "category": "human-design",
-    "startPaths": ["/articles/"],
-    "crawlPattern": "/articles/*",
+    "startPaths": [
+      "/articles/"
+    ],
+    "allowPaths": [
+      "/articles",
+      "/blog"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/products",
+      "/collections",
+      "/account",
+      "/checkout",
+      "/wishlist"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Articles on HD types, centers, channels"
   },
@@ -54,8 +138,24 @@
     "name": "Love Your Human Design",
     "url": "https://www.loveyourhumandesign.com",
     "category": "human-design",
-    "startPaths": ["/blog"],
-    "crawlPattern": "/blog/*",
+    "startPaths": [
+      "/blog"
+    ],
+    "allowPaths": [
+      "/blog",
+      "/articles"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/products",
+      "/collections",
+      "/account",
+      "/checkout",
+      "/wishlist"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Accessible HD education blog"
   },
@@ -64,8 +164,24 @@
     "name": "Human Design Blueprint",
     "url": "https://humandesignblueprint.com",
     "category": "human-design",
-    "startPaths": ["/blog/"],
-    "crawlPattern": "/blog/*",
+    "startPaths": [
+      "/blog/"
+    ],
+    "allowPaths": [
+      "/blog",
+      "/articles"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/products",
+      "/collections",
+      "/account",
+      "/checkout",
+      "/wishlist"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "HD education articles"
   },
@@ -74,8 +190,25 @@
     "name": "Pure Generators",
     "url": "https://puregenerators.com",
     "category": "human-design",
-    "startPaths": ["/human-design/"],
-    "crawlPattern": "/human-design/*",
+    "startPaths": [
+      "/human-design/"
+    ],
+    "allowPaths": [
+      "/human-design",
+      "/blog",
+      "/articles"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/products",
+      "/collections",
+      "/account",
+      "/checkout",
+      "/wishlist"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Detailed HD type descriptions"
   },
@@ -84,8 +217,25 @@
     "name": "HD Library (Ra Uru Hu)",
     "url": "https://www.ihdschool.com",
     "category": "human-design",
-    "startPaths": ["/library/"],
-    "crawlPattern": "/library/*",
+    "startPaths": [
+      "/library/"
+    ],
+    "allowPaths": [
+      "/library",
+      "/articles",
+      "/learn"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/products",
+      "/collections",
+      "/account",
+      "/checkout",
+      "/wishlist"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "IHDS official school library resources"
   },
@@ -94,8 +244,23 @@
     "name": "Human Design System",
     "url": "https://humandesignsystem.co",
     "category": "human-design",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/products",
+      "/collections",
+      "/account",
+      "/checkout",
+      "/wishlist"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "HD educational articles and type descriptions"
   },
@@ -104,8 +269,25 @@
     "name": "The Projector Movement",
     "url": "https://theprojectormovement.com",
     "category": "human-design",
-    "startPaths": ["/blog/"],
-    "crawlPattern": "/blog/*",
+    "startPaths": [
+      "/blog/"
+    ],
+    "allowPaths": [
+      "/blog",
+      "/articles",
+      "/learn"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/products",
+      "/collections",
+      "/account",
+      "/checkout",
+      "/wishlist"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "HD Projector-focused education with general HD content"
   },
@@ -114,18 +296,46 @@
     "name": "Law of Time",
     "url": "https://lawoftime.org",
     "category": "dreamspell",
-    "startPaths": ["/thirteenmoon/", "/dreamspell/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/thirteenmoon/",
+      "/dreamspell/"
+    ],
+    "allowPaths": [
+      "/",
+      "/thirteen-moon",
+      "/dreamspell",
+      "/learn",
+      "/articles",
+      "/blog"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 1,
-    "notes": "José Argüelles foundation — primary Dreamspell/13 Moon source"
+    "notes": "Jos\u00e9 Arg\u00fcelles foundation \u2014 primary Dreamspell/13 Moon source"
   },
   {
     "id": "13moon",
     "name": "13 Moon Calendar",
     "url": "https://www.13moon.com",
     "category": "dreamspell",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "13 Moon calendar education and resources"
   },
@@ -134,8 +344,19 @@
     "name": "SkyTime",
     "url": "https://www.skytime.org",
     "category": "dreamspell",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Dreamspell calendar and daily kin information"
   },
@@ -144,8 +365,19 @@
     "name": "Tortuga 13:20",
     "url": "https://www.tortuga.com",
     "category": "dreamspell",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Dreamspell and 13 Moon calendar resources"
   },
@@ -154,8 +386,19 @@
     "name": "Galactic Spacebook",
     "url": "https://www.galacticspacebook.com",
     "category": "dreamspell",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Community hub for Dreamspell/Galactic Maya"
   },
@@ -164,8 +407,19 @@
     "name": "13:20 Frequency Shift",
     "url": "https://1320frequencyshift.wordpress.com",
     "category": "dreamspell",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Blog on Dreamspell, synchronic order"
   },
@@ -174,8 +428,19 @@
     "name": "Foundation for the Law of Time",
     "url": "https://www.noosphereforum.org",
     "category": "dreamspell",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Noosphere and Dreamspell education"
   },
@@ -184,8 +449,19 @@
     "name": "Mayan Majix",
     "url": "https://www.mayanmajix.com",
     "category": "dreamspell",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Dreamspell and Mayan calendar education"
   },
@@ -194,8 +470,19 @@
     "name": "Space Station Plaza",
     "url": "https://www.spacestationplaza.com",
     "category": "dreamspell",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Dreamspell Tzolkin navigator and education"
   },
@@ -204,8 +491,19 @@
     "name": "Dreamspell Journey",
     "url": "https://dreamspelljourney.com",
     "category": "dreamspell",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Daily kin guidance and Dreamspell teachings"
   },
@@ -214,8 +512,19 @@
     "name": "Living Time Science",
     "url": "https://livingtimescience.com",
     "category": "dreamspell",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Deeper Dreamspell science and synchronic order"
   },
@@ -224,8 +533,19 @@
     "name": "Mayan Daykeeper",
     "url": "https://www.daykeeper.com",
     "category": "tzolkin",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Traditional Mayan day signs and Tzolkin education"
   },
@@ -234,8 +554,19 @@
     "name": "Mayan Kin",
     "url": "https://mayankin.com",
     "category": "tzolkin",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Mayan Tzolkin day signs and meanings"
   },
@@ -244,8 +575,19 @@
     "name": "Authentic Maya",
     "url": "https://www.authenticmaya.com",
     "category": "tzolkin",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Traditional Mayan calendar and Tzolkin education"
   },
@@ -254,8 +596,19 @@
     "name": "Mayan Calendar Portal",
     "url": "https://www.mayan-calendar.com",
     "category": "tzolkin",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Tzolkin education and Mayan calendar information"
   },
@@ -264,8 +617,19 @@
     "name": "Living Maya Time",
     "url": "https://livingmayatime.com",
     "category": "tzolkin",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 1,
     "notes": "Comprehensive Mayan calendar and Tzolkin education"
   },
@@ -274,8 +638,19 @@
     "name": "Maya Archaeologist",
     "url": "https://www.maya-archaeologist.co.uk",
     "category": "tzolkin",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Academic-leaning Mayan calendar research"
   },
@@ -284,8 +659,19 @@
     "name": "The Mayan Cross",
     "url": "https://themayancross.com",
     "category": "tzolkin",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Mayan cross astrology and Tzolkin"
   },
@@ -294,8 +680,19 @@
     "name": "Sacred Road",
     "url": "https://sacredroad.org",
     "category": "tzolkin",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Traditional Mayan spiritual teachings"
   },
@@ -304,8 +701,19 @@
     "name": "Jaguar Wisdom",
     "url": "https://jaguarwisdom.org",
     "category": "tzolkin",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Traditional Mayan Cholq'ij (Tzolkin) teachings"
   },
@@ -314,8 +722,19 @@
     "name": "K'iche' Maya Studies",
     "url": "https://mayaarchaeology.org",
     "category": "tzolkin",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Academic Mayan studies including calendar systems"
   },
@@ -324,28 +743,66 @@
     "name": "FAMSI",
     "url": "https://www.famsi.org",
     "category": "tzolkin",
-    "startPaths": ["/research/"],
-    "crawlPattern": "/research/*",
+    "startPaths": [
+      "/research/"
+    ],
+    "allowPaths": [
+      "/research",
+      "/reports"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
-    "notes": "Foundation for Mesoamerican studies — academic Mayan calendar research"
+    "notes": "Foundation for Mesoamerican studies \u2014 academic Mayan calendar research"
   },
   {
     "id": "kabbalah-info",
     "name": "Kabbalah Info",
     "url": "https://www.kabbalah.info",
     "category": "kabbalah",
-    "startPaths": ["/kabbalah/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/kabbalah/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/donate",
+      "/events"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 1,
-    "notes": "Bnei Baruch — largest Kabbalah education organization"
+    "notes": "Bnei Baruch \u2014 largest Kabbalah education organization"
   },
   {
     "id": "kabbalahcentre",
     "name": "Kabbalah Centre",
     "url": "https://www.kabbalah.com",
     "category": "kabbalah",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/donate",
+      "/events"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Kabbalah Centre teachings and articles"
   },
@@ -354,8 +811,21 @@
     "name": "Jewish Virtual Library - Kabbalah",
     "url": "https://www.jewishvirtuallibrary.org",
     "category": "kabbalah",
-    "startPaths": ["/jsource/Judaism/kabbalah.html"],
-    "crawlPattern": "/jsource/Judaism/*",
+    "startPaths": [
+      "/jsource/Judaism/kabbalah.html"
+    ],
+    "allowPaths": [
+      "/jsource"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/donate",
+      "/events"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Academic overview of Kabbalah traditions"
   },
@@ -364,8 +834,21 @@
     "name": "My Jewish Learning - Kabbalah",
     "url": "https://www.myjewishlearning.com",
     "category": "kabbalah",
-    "startPaths": ["/article/kabbalah-mysticism-101/"],
-    "crawlPattern": "/article/*kabbalah*",
+    "startPaths": [
+      "/article/kabbalah-mysticism-101/"
+    ],
+    "allowPaths": [
+      "/article"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/donate",
+      "/events"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Accessible Kabbalah education articles"
   },
@@ -374,8 +857,22 @@
     "name": "Sefaria",
     "url": "https://www.sefaria.org",
     "category": "kabbalah",
-    "startPaths": ["/topics/kabbalah"],
-    "crawlPattern": "/topics/*",
+    "startPaths": [
+      "/topics/kabbalah"
+    ],
+    "allowPaths": [
+      "/topics",
+      "/texts"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/donate",
+      "/events"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 1,
     "notes": "Open-source library of Jewish texts including Zohar, Sefer Yetzirah"
   },
@@ -384,8 +881,21 @@
     "name": "Digital Brilliance - Kabbalah",
     "url": "https://www.digital-brilliance.com",
     "category": "kabbalah",
-    "startPaths": ["/kab/"],
-    "crawlPattern": "/kab/*",
+    "startPaths": [
+      "/kab/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/donate",
+      "/events"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Tree of Life encyclopedic reference"
   },
@@ -394,8 +904,21 @@
     "name": "Hermetic Fellowship - Kabbalah",
     "url": "https://www.hermeticfellowship.org",
     "category": "kabbalah",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/donate",
+      "/events"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Hermetic Kabbalah tradition resources"
   },
@@ -404,8 +927,23 @@
     "name": "Chabad - Kabbalah",
     "url": "https://www.chabad.org",
     "category": "kabbalah",
-    "startPaths": ["/kabbalah/"],
-    "crawlPattern": "/kabbalah/*",
+    "startPaths": [
+      "/kabbalah/"
+    ],
+    "allowPaths": [
+      "/kabbalah",
+      "/library",
+      "/article"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/donate",
+      "/events"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Chassidic/Kabbalistic teachings"
   },
@@ -414,8 +952,21 @@
     "name": "Kabbala Online",
     "url": "https://www.kabbalaonline.org",
     "category": "kabbalah",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/donate",
+      "/events"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Zohar teachings and Kabbalistic articles"
   },
@@ -424,8 +975,21 @@
     "name": "Ariel Kabbalah",
     "url": "https://www.arielkabbalah.com",
     "category": "kabbalah",
-    "startPaths": ["/articles/"],
-    "crawlPattern": "/articles/*",
+    "startPaths": [
+      "/articles/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/donate",
+      "/events"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Practical Kabbalah education articles"
   },
@@ -434,8 +998,21 @@
     "name": "Kabbalah Society",
     "url": "https://www.kabbalahsociety.org",
     "category": "kabbalah",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/donate",
+      "/events"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Toledano Kabbalah tradition"
   },
@@ -444,8 +1021,19 @@
     "name": "Gematria Effect",
     "url": "https://gematriaeffect.news",
     "category": "gematria",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Gematria analysis and education"
   },
@@ -454,8 +1042,19 @@
     "name": "Gematrinator",
     "url": "https://www.gematrinator.com",
     "category": "gematria",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Gematria calculator with cipher education"
   },
@@ -464,8 +1063,19 @@
     "name": "Hebrew4Christians - Gematria",
     "url": "https://www.hebrew4christians.com",
     "category": "gematria",
-    "startPaths": ["/Grammar/Unit_Eight/Hebrew_Gematria/hebrew_gematria.html"],
-    "crawlPattern": "/Grammar/Unit_Eight/*",
+    "startPaths": [
+      "/Grammar/Unit_Eight/Hebrew_Gematria/hebrew_gematria.html"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Hebrew gematria fundamentals and letter meanings"
   },
@@ -474,18 +1084,40 @@
     "name": "Inner.org - Gematria",
     "url": "https://www.inner.org",
     "category": "gematria",
-    "startPaths": ["/gematria/"],
-    "crawlPattern": "/gematria/*",
+    "startPaths": [
+      "/gematria/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 1,
-    "notes": "Rabbi Ginsburgh's gematria teachings — deep Hebrew numerology"
+    "notes": "Rabbi Ginsburgh's gematria teachings \u2014 deep Hebrew numerology"
   },
   {
     "id": "shematria",
     "name": "Shematria",
     "url": "https://shematria.com",
     "category": "gematria",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Biblical gematria database and reference"
   },
@@ -494,8 +1126,19 @@
     "name": "Bill Heidrick - Gematria",
     "url": "https://www.billheidrick.com",
     "category": "gematria",
-    "startPaths": ["/works/hgm.htm"],
-    "crawlPattern": "/works/*",
+    "startPaths": [
+      "/works/hgm.htm"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Encyclopedic Hebrew/Greek gematria reference"
   },
@@ -504,8 +1147,19 @@
     "name": "Study Light - Hebrew Numbers",
     "url": "https://www.studylight.org",
     "category": "gematria",
-    "startPaths": ["/encyclopedias/eng/isb/g/gematria.html"],
-    "crawlPattern": "/encyclopedias/*",
+    "startPaths": [
+      "/encyclopedias/eng/isb/g/gematria.html"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Biblical encyclopedia gematria entries"
   },
@@ -514,8 +1168,19 @@
     "name": "Jewish Encyclopedia - Gematria",
     "url": "https://www.jewishencyclopedia.com",
     "category": "gematria",
-    "startPaths": ["/articles/6589-gematria"],
-    "crawlPattern": "/articles/*",
+    "startPaths": [
+      "/articles/6589-gematria"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Classic encyclopedia article on gematria"
   },
@@ -524,8 +1189,19 @@
     "name": "Torah Codes",
     "url": "https://www.torahcodes.net",
     "category": "gematria",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Torah codes and gematria research"
   },
@@ -534,8 +1210,19 @@
     "name": "Gematria Reference",
     "url": "https://www.gematrix.org",
     "category": "gematria",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Gematria database and reference tool"
   },
@@ -544,8 +1231,19 @@
     "name": "Wisdom Library - I Ching",
     "url": "https://www.wisdomlib.org",
     "category": "i-ching",
-    "startPaths": ["/iching/"],
-    "crawlPattern": "/iching/*",
+    "startPaths": [
+      "/iching/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Full I Ching text with commentary"
   },
@@ -554,8 +1252,19 @@
     "name": "I Ching Online",
     "url": "https://ichingonline.net",
     "category": "i-ching",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "All 64 hexagrams with interpretations"
   },
@@ -564,8 +1273,19 @@
     "name": "Akira Rabelais - I Ching",
     "url": "https://www.akirarabelais.com",
     "category": "i-ching",
-    "startPaths": ["/i-ching/"],
-    "crawlPattern": "/i-ching/*",
+    "startPaths": [
+      "/i-ching/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Beautiful I Ching hexagram reference"
   },
@@ -574,18 +1294,40 @@
     "name": "James DeKorne - I Ching",
     "url": "https://www.jamesdekorne.com",
     "category": "i-ching",
-    "startPaths": ["/GICindex.htm"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/GICindex.htm"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 1,
-    "notes": "Gnostic Book of Changes — multi-commentary I Ching reference"
+    "notes": "Gnostic Book of Changes \u2014 multi-commentary I Ching reference"
   },
   {
     "id": "sacredtexts-iching",
     "name": "Sacred Texts - I Ching",
     "url": "https://sacred-texts.com",
     "category": "i-ching",
-    "startPaths": ["/ich/index.htm"],
-    "crawlPattern": "/ich/*",
+    "startPaths": [
+      "/ich/index.htm"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 1,
     "notes": "Full Wilhelm/Baynes I Ching translation"
   },
@@ -594,8 +1336,19 @@
     "name": "I Ching Encyclopedic Reference",
     "url": "https://www.iching-encyclopedic.com",
     "category": "i-ching",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Detailed hexagram-by-hexagram reference"
   },
@@ -604,8 +1357,19 @@
     "name": "Yijing Dao",
     "url": "https://www.yijingdao.org",
     "category": "i-ching",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Scholarly I Ching translations and comparisons"
   },
@@ -614,8 +1378,19 @@
     "name": "Online Clarity - I Ching",
     "url": "https://www.onlineclarity.co.uk",
     "category": "i-ching",
-    "startPaths": ["/read/"],
-    "crawlPattern": "/read/*",
+    "startPaths": [
+      "/read/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "I Ching community and hexagram descriptions"
   },
@@ -624,8 +1399,19 @@
     "name": "Russell Cottrell - I Ching",
     "url": "https://www.russellcottrell.com",
     "category": "i-ching",
-    "startPaths": ["/VirtualYarrowStalks/VirtualYarrowStalks.htm"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/VirtualYarrowStalks/VirtualYarrowStalks.htm"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "I Ching resources and virtual consultation"
   },
@@ -634,8 +1420,19 @@
     "name": "Taoism.net - I Ching",
     "url": "https://www.taoism.net",
     "category": "i-ching",
-    "startPaths": ["/iching/"],
-    "crawlPattern": "/iching/*",
+    "startPaths": [
+      "/iching/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "I Ching education within Taoist context"
   },
@@ -644,8 +1441,19 @@
     "name": "Divination Foundation - I Ching",
     "url": "https://divination.com",
     "category": "i-ching",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "I Ching education and hexagram reference"
   },
@@ -654,28 +1462,77 @@
     "name": "Astro.com",
     "url": "https://www.astro.com",
     "category": "astrology",
-    "startPaths": ["/astrology/"],
-    "crawlPattern": "/astrology/*",
+    "startPaths": [
+      "/astrology/"
+    ],
+    "allowPaths": [
+      "/astrology",
+      "/astro-wiki"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/horoscope",
+      "/daily",
+      "/weekly",
+      "/monthly"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 1,
-    "notes": "Astrodienst — gold standard astrology resource with educational articles"
+    "notes": "Astrodienst \u2014 gold standard astrology resource with educational articles"
   },
   {
     "id": "cafeastrology",
     "name": "Cafe Astrology",
     "url": "https://cafeastrology.com",
     "category": "astrology",
-    "startPaths": ["/articles.html"],
-    "crawlPattern": "/articles/*",
+    "startPaths": [
+      "/articles.html"
+    ],
+    "allowPaths": [
+      "/articles",
+      "/natal",
+      "/astrology-signs",
+      "/astrology-of"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/horoscope",
+      "/daily",
+      "/weekly",
+      "/monthly"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 1,
-    "notes": "Comprehensive astrology education — signs, houses, aspects, transits"
+    "notes": "Comprehensive astrology education \u2014 signs, houses, aspects, transits"
   },
   {
     "id": "skyscript",
     "name": "Skyscript",
     "url": "https://www.skyscript.co.uk",
     "category": "astrology",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/horoscope",
+      "/daily",
+      "/weekly",
+      "/monthly"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Traditional astrology education and articles"
   },
@@ -684,8 +1541,23 @@
     "name": "Astrology King",
     "url": "https://astrologyking.com",
     "category": "astrology",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/horoscope",
+      "/daily",
+      "/weekly",
+      "/monthly"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Detailed aspect, transit, and fixed star interpretations"
   },
@@ -694,8 +1566,23 @@
     "name": "Bob Marks Astrologer",
     "url": "https://www.bobmarksastrologer.com",
     "category": "astrology",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/horoscope",
+      "/daily",
+      "/weekly",
+      "/monthly"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Classic astrology tutorials"
   },
@@ -704,8 +1591,23 @@
     "name": "Astrology Zodiac Signs",
     "url": "https://www.astrology-zodiac-signs.com",
     "category": "astrology",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/horoscope",
+      "/daily",
+      "/weekly",
+      "/monthly"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Zodiac signs, houses, and planets education"
   },
@@ -714,18 +1616,48 @@
     "name": "The Astrology Podcast",
     "url": "https://theastrologypodcast.com",
     "category": "astrology",
-    "startPaths": ["/episodes/"],
-    "crawlPattern": "/episodes/*",
+    "startPaths": [
+      "/episodes/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/horoscope",
+      "/daily",
+      "/weekly",
+      "/monthly"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
-    "notes": "Chris Brennan's podcast transcripts — deep astrology education"
+    "notes": "Chris Brennan's podcast transcripts \u2014 deep astrology education"
   },
   {
     "id": "astrostyle",
     "name": "AstroStyle",
     "url": "https://astrostyle.com",
     "category": "astrology",
-    "startPaths": ["/learn-astrology/"],
-    "crawlPattern": "/learn-astrology/*",
+    "startPaths": [
+      "/learn-astrology/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/horoscope",
+      "/daily",
+      "/weekly",
+      "/monthly"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Accessible astrology education"
   },
@@ -734,8 +1666,23 @@
     "name": "Astrology.com",
     "url": "https://www.astrology.com",
     "category": "astrology",
-    "startPaths": ["/us/home.aspx"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/us/home.aspx"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/horoscope",
+      "/daily",
+      "/weekly",
+      "/monthly"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "General astrology education and articles"
   },
@@ -744,8 +1691,23 @@
     "name": "Darkstar Astrology",
     "url": "https://darkstarastrology.com",
     "category": "astrology",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/horoscope",
+      "/daily",
+      "/weekly",
+      "/monthly"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Fixed stars, decans, and detailed aspect interpretations"
   },
@@ -754,8 +1716,23 @@
     "name": "Astrotheme",
     "url": "https://www.astrotheme.com",
     "category": "astrology",
-    "startPaths": ["/astrological_signs.php"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/astrological_signs.php"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/horoscope",
+      "/daily",
+      "/weekly",
+      "/monthly"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Astrology education and celebrity chart database"
   },
@@ -764,8 +1741,20 @@
     "name": "Numerologist.com",
     "url": "https://www.numerologist.com",
     "category": "numerology",
-    "startPaths": ["/numerology/"],
-    "crawlPattern": "/numerology/*",
+    "startPaths": [
+      "/numerology/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/calculator"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Numerology education and articles"
   },
@@ -774,8 +1763,20 @@
     "name": "Token Rock - Numerology",
     "url": "https://www.tokenrock.com",
     "category": "numerology",
-    "startPaths": ["/numerology/"],
-    "crawlPattern": "/numerology/*",
+    "startPaths": [
+      "/numerology/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/calculator"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Comprehensive numerology education"
   },
@@ -784,8 +1785,20 @@
     "name": "Numerology Secrets",
     "url": "https://numerologysecrets.net",
     "category": "numerology",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/calculator"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Numerology meanings and education"
   },
@@ -794,8 +1807,20 @@
     "name": "World Numerology",
     "url": "https://www.worldnumerology.com",
     "category": "numerology",
-    "startPaths": ["/numerology-articles/"],
-    "crawlPattern": "/numerology-articles/*",
+    "startPaths": [
+      "/numerology-articles/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/calculator"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Hans Decoz numerology education and articles"
   },
@@ -804,8 +1829,20 @@
     "name": "Numerology Basics",
     "url": "https://www.numerology.com",
     "category": "numerology",
-    "startPaths": ["/articles/"],
-    "crawlPattern": "/articles/*",
+    "startPaths": [
+      "/articles/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/calculator"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Comprehensive numerology articles and education"
   },
@@ -814,9 +1851,20 @@
     "name": "Affinity Numerology",
     "url": "https://affinitynumerology.com",
     "category": "numerology",
-    "startPaths": ["/numerology/"],
-    "crawlParameter": "/numerology/*",
-    "crawlPattern": "/numerology/*",
+    "startPaths": [
+      "/numerology/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/calculator"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Number meanings and numerology education"
   },
@@ -825,8 +1873,20 @@
     "name": "Sacred Scribes Angel Numbers",
     "url": "https://sacredscribesangelnumbers.blogspot.com",
     "category": "numerology",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/calculator"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Angel number meanings and numerology"
   },
@@ -835,8 +1895,20 @@
     "name": "Building Beautiful Souls - Numerology",
     "url": "https://www.buildingbeautifulsouls.com",
     "category": "numerology",
-    "startPaths": ["/numerology/"],
-    "crawlPattern": "/numerology/*",
+    "startPaths": [
+      "/numerology/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/calculator"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Numerology meanings, life path numbers, and education"
   },
@@ -845,8 +1917,20 @@
     "name": "Sun Signs - Numerology",
     "url": "https://www.sunsigns.org",
     "category": "numerology",
-    "startPaths": ["/numerology/"],
-    "crawlPattern": "/numerology/*",
+    "startPaths": [
+      "/numerology/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/calculator"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Numerology education articles"
   },
@@ -855,8 +1939,20 @@
     "name": "Seventh Life Path",
     "url": "https://seventhlifepath.com",
     "category": "numerology",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/calculator"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Pythagorean and Chaldean numerology education"
   },
@@ -865,8 +1961,22 @@
     "name": "Vedic Astrologer",
     "url": "https://www.vedicastrologer.org",
     "category": "vedic-astrology",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/horoscope",
+      "/daily",
+      "/weekly"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Vedic/Jyotish astrology education"
   },
@@ -875,8 +1985,22 @@
     "name": "AstroSage",
     "url": "https://www.astrosage.com",
     "category": "vedic-astrology",
-    "startPaths": ["/vedic-astrology/"],
-    "crawlPattern": "/vedic-astrology/*",
+    "startPaths": [
+      "/vedic-astrology/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/horoscope",
+      "/daily",
+      "/weekly"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 1,
     "notes": "Comprehensive Vedic astrology education"
   },
@@ -885,8 +2009,22 @@
     "name": "GaneshaSpeaks",
     "url": "https://www.ganeshaspeaks.com",
     "category": "vedic-astrology",
-    "startPaths": ["/vedic-astrology/"],
-    "crawlPattern": "/vedic-astrology/*",
+    "startPaths": [
+      "/vedic-astrology/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/horoscope",
+      "/daily",
+      "/weekly"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Vedic astrology articles and education"
   },
@@ -895,8 +2033,22 @@
     "name": "Vault of the Heavens",
     "url": "https://vaultoftheheavens.com",
     "category": "vedic-astrology",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/horoscope",
+      "/daily",
+      "/weekly"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Ernst Wilhelm's Jyotish education"
   },
@@ -905,18 +2057,46 @@
     "name": "Barbara Pijan - Jyotish",
     "url": "https://www.barbarapijan.com",
     "category": "vedic-astrology",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/horoscope",
+      "/daily",
+      "/weekly"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 1,
-    "notes": "Extensive Jyotish encyclopedia — nakshatras, dashas, yogas"
+    "notes": "Extensive Jyotish encyclopedia \u2014 nakshatras, dashas, yogas"
   },
   {
     "id": "jyotishvidya",
     "name": "Jyotish Vidya",
     "url": "https://jyotishvidya.com",
     "category": "vedic-astrology",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/horoscope",
+      "/daily",
+      "/weekly"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Vedic astrology fundamentals"
   },
@@ -925,8 +2105,23 @@
     "name": "Biddy Tarot",
     "url": "https://www.biddytarot.com",
     "category": "tarot",
-    "startPaths": ["/tarot-card-meanings/"],
-    "crawlPattern": "/tarot-card-meanings/*",
+    "startPaths": [
+      "/tarot-card-meanings/"
+    ],
+    "allowPaths": [
+      "/tarot-card-meanings",
+      "/blog",
+      "/learn-tarot"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/readings",
+      "/spread"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 1,
     "notes": "Comprehensive tarot card meanings and education"
   },
@@ -935,8 +2130,22 @@
     "name": "Labyrinthos - Tarot",
     "url": "https://labyrinthos.co",
     "category": "tarot",
-    "startPaths": ["/blogs/tarot-card-meanings-list"],
-    "crawlPattern": "/blogs/*",
+    "startPaths": [
+      "/blogs/tarot-card-meanings-list"
+    ],
+    "allowPaths": [
+      "/blogs",
+      "/tarot"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/readings",
+      "/spread"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 1,
     "notes": "Tarot education, card meanings, and spreads"
   },
@@ -945,18 +2154,44 @@
     "name": "Learn Tarot",
     "url": "https://www.learntarot.com",
     "category": "tarot",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/readings",
+      "/spread"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 1,
-    "notes": "Joan Bunning's complete tarot course — free and comprehensive"
+    "notes": "Joan Bunning's complete tarot course \u2014 free and comprehensive"
   },
   {
     "id": "thetarotguide",
     "name": "The Tarot Guide",
     "url": "https://www.thetarotguide.com",
     "category": "tarot",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/readings",
+      "/spread"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Tarot card meanings and spread guides"
   },
@@ -965,8 +2200,21 @@
     "name": "Aeclectic Tarot",
     "url": "https://www.aeclectic.net",
     "category": "tarot",
-    "startPaths": ["/tarot/"],
-    "crawlPattern": "/tarot/*",
+    "startPaths": [
+      "/tarot/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/readings",
+      "/spread"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Tarot encyclopedia and deck reviews"
   },
@@ -975,8 +2223,20 @@
     "name": "Sacred Geometry Academy",
     "url": "https://www.sacredgeometryacademy.com",
     "category": "sacred-geometry",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/products"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Sacred geometry education and articles"
   },
@@ -985,8 +2245,20 @@
     "name": "Sacred Geometry International",
     "url": "https://www.sacredgeometry.com",
     "category": "sacred-geometry",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/products"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Sacred geometry education and resources"
   },
@@ -995,8 +2267,20 @@
     "name": "Geometry Code",
     "url": "https://www.geometrycode.com",
     "category": "sacred-geometry",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/products"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Sacred geometry articles and encyclopedia"
   },
@@ -1005,8 +2289,20 @@
     "name": "Cosmic Core",
     "url": "https://www.cosmic-core.org",
     "category": "sacred-geometry",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/products"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 1,
     "notes": "Extensive sacred geometry, Platonic solids, and esoteric science"
   },
@@ -1015,8 +2311,20 @@
     "name": "Sacred Geometry Web",
     "url": "https://sacredgeometryweb.com",
     "category": "sacred-geometry",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store",
+      "/products"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 3,
     "notes": "Sacred geometry meanings and education"
   },
@@ -1025,8 +2333,23 @@
     "name": "Sacred Texts",
     "url": "https://sacred-texts.com",
     "category": "general-esoteric",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/ich",
+      "/jud",
+      "/eso",
+      "/nos",
+      "/tarot"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 1000,
     "priority": 1,
     "notes": "Massive archive of esoteric, religious, and occult texts"
   },
@@ -1035,18 +2358,40 @@
     "name": "Theosophical Society",
     "url": "https://www.theosophical.org",
     "category": "general-esoteric",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
-    "notes": "Theosophy — connecting all esoteric traditions"
+    "notes": "Theosophy \u2014 connecting all esoteric traditions"
   },
   {
     "id": "hermeticlibrary",
     "name": "Hermetic Library",
     "url": "https://hermetic.com",
     "category": "general-esoteric",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 1,
     "notes": "Large collection of Hermetic, alchemical, and esoteric texts"
   },
@@ -1055,8 +2400,19 @@
     "name": "Twilit Grotto - Esoteric Archives",
     "url": "https://www.esotericarchives.com",
     "category": "general-esoteric",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Historic esoteric texts and grimoires"
   },
@@ -1065,8 +2421,19 @@
     "name": "Occult World",
     "url": "https://occult-world.com",
     "category": "general-esoteric",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 500,
     "priority": 2,
     "notes": "Encyclopedia of the occult and esoteric"
   },
@@ -1075,8 +2442,19 @@
     "name": "Crystalinks",
     "url": "https://www.crystalinks.com",
     "category": "general-esoteric",
-    "startPaths": ["/"],
-    "crawlPattern": "/*",
+    "startPaths": [
+      "/"
+    ],
+    "allowPaths": [
+      "/"
+    ],
+    "denyPaths": [
+      "/cart",
+      "/shop",
+      "/store"
+    ],
+    "maxDepth": 5,
+    "maxPages": 1000,
     "priority": 2,
     "notes": "Encyclopedic metaphysical and esoteric reference site"
   }

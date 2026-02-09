@@ -29,7 +29,10 @@ interface KnowledgeSource {
   url: string
   category: string
   startPaths: string[]
-  crawlPattern: string
+  allowPaths: string[]
+  denyPaths: string[]
+  maxDepth: number
+  maxPages: number
   priority: number
   notes?: string
 }
@@ -194,7 +197,9 @@ async function generateEmbeddings(texts: string[]): Promise<number[][]> {
 // ---------------------------------------------------------------------------
 
 async function processSource(sourceId: string, dryRun: boolean): Promise<number> {
-  const sourceDir = path.join(DATA_DIR, sourceId)
+  // Check new structure (md/ subdir) first, fall back to flat
+  let sourceDir = path.join(DATA_DIR, sourceId, 'md')
+  try { await fs.access(sourceDir) } catch { sourceDir = path.join(DATA_DIR, sourceId) }
 
   let files: string[]
   try {

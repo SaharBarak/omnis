@@ -1,0 +1,15 @@
+services:
+  - type: worker
+    name: omnis-scraper
+    runtime: docker
+    dockerfilePath: ./Dockerfile.scraper
+    plan: starter
+    region: oregon
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SCRAPER_MAX_PAGES
+        value: "500"
+    schedule: "0 3 * * 0"  # Weekly: Sunday 3 AM UTC

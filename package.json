@@ -12,7 +12,9 @@
     "test:watch": "vitest",
     "scrape:knowledge": "npx tsx scripts/scrape-knowledge.ts",
     "embed:knowledge": "npx tsx scripts/embed-knowledge.ts",
-    "scrape:dry-run": "npx tsx scripts/scrape-knowledge.ts --dry-run"
+    "scrape:dry-run": "npx tsx scripts/scrape-knowledge.ts --dry-run",
+    "scrape:pipeline": "npx tsx scripts/run-scraper.ts",
+    "scrape:no-db": "npx tsx scripts/scrape-knowledge.ts --no-db"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
