@@ -39,7 +39,9 @@ const config: Config = {
   			'4xl': ['2.25rem', { lineHeight: '1.2' }],
   			'5xl': ['3rem', { lineHeight: '1.1' }],
   			'6xl': ['3.75rem', { lineHeight: '1.05' }],
-  			'7xl': ['4.5rem', { lineHeight: '1' }]
+  			'7xl': ['4.5rem', { lineHeight: '1' }],
+  			'8xl': ['6rem', { lineHeight: '0.95' }],
+  			'9xl': ['7rem', { lineHeight: '0.9' }]
   		},
   		colors: {
   			background: 'hsl(var(--background))',
@@ -114,9 +116,9 @@ const config: Config = {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)',
-  			xl: '0.875rem',
-  			'2xl': '1rem',
-  			'3xl': '1.5rem'
+  			xl: '0.5rem',
+  			'2xl': '0.625rem',
+  			'3xl': '0.75rem'
   		},
   		spacing: {
   			'18': '4.5rem',
@@ -126,15 +128,17 @@ const config: Config = {
   			'content': '1180px',
   		},
   		boxShadow: {
-  			'subtle': '0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px rgba(0, 0, 0, 0.02)',
-  			'elevated': '0 4px 16px rgba(89, 56, 200, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04)',
-  			'float': '0 8px 24px rgba(89, 56, 200, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)',
-  			'glow': '0 0 0 3px hsl(257 55% 50% / 0.1), 0 4px 16px hsl(257 55% 50% / 0.08)',
+  			// Flat design — minimal shadows, no purple tinting
+  			'subtle': '0 1px 2px rgba(0, 0, 0, 0.04)',
+  			'elevated': '0 2px 8px rgba(0, 0, 0, 0.06)',
+  			'float': '0 4px 12px rgba(0, 0, 0, 0.08)',
+  			'glow': '0 0 0 2px hsl(257 55% 50% / 0.15)',
   			'inner-subtle': 'inset 0 1px 2px rgba(0, 0, 0, 0.04)',
+  			'none': 'none',
   			// Legacy aliases
-  			'earth': '0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px rgba(0, 0, 0, 0.02)',
-  			'earth-md': '0 4px 16px rgba(89, 56, 200, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04)',
-  			'earth-lg': '0 8px 24px rgba(89, 56, 200, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)',
+  			'earth': '0 1px 2px rgba(0, 0, 0, 0.04)',
+  			'earth-md': '0 2px 8px rgba(0, 0, 0, 0.06)',
+  			'earth-lg': '0 4px 12px rgba(0, 0, 0, 0.08)',
   			'inner-earth': 'inset 0 1px 2px rgba(0, 0, 0, 0.04)'
   		},
   		animation: {

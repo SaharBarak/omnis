@@ -1,11 +1,20 @@
 export { Header } from './header'
 export { Hero } from './hero'
-export { SocialProof } from './social-proof'
+export { SystemsShowcase } from './systems-showcase'
 export { Features } from './features'
-export { Demo } from './demo'
-export { HowItWorks } from './how-it-works'
 export { Testimonials } from './testimonials'
 export { Pricing } from './pricing'
 export { FAQ } from './faq'
 export { CTA } from './cta'
+export {
+  ScrollProgressBar,
+  Parallax,
+  ScrollScale,
+  ScrollFade,
+  ScrollReveal,
+  StaggerGroup,
+  StaggerItem,
+  ScrollSize,
+  HeroParallax,
+} from './scroll-animations'
 export { Footer } from './footer'

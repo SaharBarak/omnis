@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 const testimonials = [
   {
@@ -31,80 +31,139 @@ const testimonials = [
 
 export function Testimonials() {
   const [activeIndex, setActiveIndex] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % testimonials.length)
-    }, 6000)
-    return () => clearInterval(interval)
+  const next = useCallback(() => {
+    setActiveIndex((prev) => (prev + 1) % testimonials.length)
   }, [])
 
+  const prev = useCallback(() => {
+    setActiveIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length)
+  }, [])
+
+  useEffect(() => {
+    if (isPaused) return
+    const interval = setInterval(next, 6000)
+    return () => clearInterval(interval)
+  }, [isPaused, next])
+
   return (
-    <section className="py-28 lg:py-36 px-6 bg-muted/30" id="testimonials">
-      <div className="max-w-3xl mx-auto">
-        {/* Section header */}
-        <div className="text-center mb-12">
-          <div className="earth-badge inline-flex mb-5">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent" />
-            <span>From practitioners and students</span>
+    <section
+      className="py-28 lg:py-36 px-6 bg-muted/20"
+      id="testimonials"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <div className="max-w-content mx-auto">
+        {/* Header row — title left, controls right */}
+        <div className="flex items-end justify-between mb-12">
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-3">
+              From practitioners and students
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading text-foreground">
+              How people actually use it
+            </h2>
           </div>
 
-          <h2 className="text-3xl sm:text-4xl font-heading text-foreground">
-            How people <span className="text-earth-gradient">actually use it</span>
-          </h2>
+          <div className="hidden sm:flex items-center gap-4">
+            {/* Counter */}
+            <span className="text-sm text-muted-foreground font-mono">
+              {activeIndex + 1}/{testimonials.length}
+            </span>
+
+            {/* Prev/Next arrows */}
+            <div className="flex gap-2">
+              <button
+                onClick={prev}
+                className="w-10 h-10 flex items-center justify-center border border-border hover:border-foreground/30 text-muted-foreground hover:text-foreground transition-all duration-200"
+                aria-label="Previous testimonial"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={next}
+                className="w-10 h-10 flex items-center justify-center border border-border hover:border-foreground/30 text-muted-foreground hover:text-foreground transition-all duration-200"
+                aria-label="Next testimonial"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Testimonial card */}
-        <div className="relative min-h-[320px]">
-          {testimonials.map((testimonial, index) => (
-            <div
-              key={index}
-              className={`absolute inset-0 transition-all duration-500 ${
-                index === activeIndex
-                  ? 'opacity-100 translate-y-0'
-                  : 'opacity-0 translate-y-4 pointer-events-none'
-              }`}
-            >
-              <div className="earth-card bg-card p-8 lg:p-10 text-center h-full flex flex-col justify-center">
-                {/* Quote mark */}
-                <div className="mb-6">
-                  <span className="text-5xl font-heading text-primary/30">&ldquo;</span>
-                </div>
+        {/* Progress bar */}
+        <div className="h-px bg-border mb-10 relative overflow-hidden">
+          <div
+            className="absolute top-0 left-0 h-full bg-foreground transition-all duration-500 ease-in-out"
+            style={{ width: `${((activeIndex + 1) / testimonials.length) * 100}%` }}
+          />
+        </div>
 
-                {/* Quote */}
-                <blockquote className="text-lg lg:text-xl font-heading text-foreground leading-relaxed mb-8">
-                  {testimonial.quote}
-                </blockquote>
-
-                {/* Author */}
-                <div className="flex items-center justify-center gap-4">
-                  <div className="w-12 h-12 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center text-primary font-medium">
-                    {testimonial.avatar}
+        {/* Testimonial cards — horizontal slider */}
+        <div className="overflow-hidden">
+          <div
+            className="flex transition-transform duration-500 ease-in-out"
+            style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+          >
+            {testimonials.map((testimonial, index) => (
+              <div
+                key={index}
+                className="w-full flex-shrink-0 px-0 sm:pr-8"
+              >
+                <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 items-start">
+                  {/* Quote */}
+                  <div className="lg:col-span-8">
+                    <blockquote className="text-2xl sm:text-3xl lg:text-4xl font-heading text-foreground leading-snug tracking-tight">
+                      &ldquo;{testimonial.quote}&rdquo;
+                    </blockquote>
                   </div>
-                  <div className="text-left">
-                    <div className="font-medium text-foreground">{testimonial.author}</div>
-                    <div className="text-sm text-muted-foreground">{testimonial.title}</div>
+
+                  {/* Author */}
+                  <div className="lg:col-span-4 flex items-start gap-4">
+                    <div className="w-12 h-12 bg-foreground/5 border border-border flex items-center justify-center text-foreground font-heading text-lg flex-shrink-0">
+                      {testimonial.avatar}
+                    </div>
+                    <div>
+                      <div className="font-medium text-foreground">{testimonial.author}</div>
+                      <div className="text-sm text-muted-foreground">{testimonial.title}</div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        {/* Navigation dots */}
-        <div className="flex justify-center gap-2 mt-8">
-          {testimonials.map((_, index) => (
+        {/* Mobile controls */}
+        <div className="flex sm:hidden items-center justify-between mt-8">
+          <span className="text-sm text-muted-foreground font-mono">
+            {activeIndex + 1}/{testimonials.length}
+          </span>
+          <div className="flex gap-2">
             <button
-              key={index}
-              onClick={() => setActiveIndex(index)}
-              className={`transition-all duration-300 rounded-full ${
-                index === activeIndex
-                  ? 'w-8 h-2 bg-primary'
-                  : 'w-2 h-2 bg-border hover:bg-primary/50'
-              }`}
-              aria-label={`View testimonial ${index + 1}`}
-            />
-          ))}
+              onClick={prev}
+              className="w-10 h-10 flex items-center justify-center border border-border text-muted-foreground"
+              aria-label="Previous testimonial"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={next}
+              className="w-10 h-10 flex items-center justify-center border border-border text-muted-foreground"
+              aria-label="Next testimonial"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </section>

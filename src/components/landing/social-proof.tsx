@@ -9,13 +9,13 @@ export function SocialProof() {
   ]
 
   return (
-    <section className="py-8 border-y border-border bg-muted/30">
+    <section className="py-8 border-y border-border bg-background">
       <div className="max-w-content mx-auto px-6">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16">
           {stats.map((stat, index) => (
             <div key={index} className="text-center">
-              <span className="text-xl font-heading text-primary">{stat.value}</span>
-              <span className="block text-xs text-muted-foreground mt-0.5">{stat.label}</span>
+              <span className="text-xl font-heading text-foreground">{stat.value}</span>
+              <span className="block text-[10px] uppercase tracking-[0.15em] text-muted-foreground mt-0.5">{stat.label}</span>
             </div>
           ))}
         </div>

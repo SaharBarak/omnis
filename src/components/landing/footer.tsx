@@ -63,7 +63,7 @@ export function Footer() {
   }
 
   return (
-    <footer className="bg-muted/30 border-t border-border">
+    <footer className="border-t border-border bg-background">
       <div className="max-w-content mx-auto px-6 py-14 lg:py-16">
         {/* Newsletter */}
         <div className="mb-12 pb-12 border-b border-border">
@@ -74,11 +74,8 @@ export function Footer() {
             </div>
 
             {subscribed ? (
-              <div className="flex items-center gap-3 px-5 py-2.5 bg-primary/10 rounded-lg border border-primary/20">
-                <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                <span className="text-primary font-medium">Subscribed. Check your inbox tomorrow morning.</span>
+              <div className="flex items-center gap-3 px-4 py-2.5 border border-border">
+                <span className="text-sm text-foreground">Subscribed. Check your inbox tomorrow morning.</span>
               </div>
             ) : (
               <form onSubmit={handleSubscribe} className="flex flex-col gap-2 w-full lg:w-auto">
@@ -88,14 +85,14 @@ export function Footer() {
                     placeholder="your@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full lg:w-64 h-11 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 rounded-lg"
+                    className="w-full lg:w-64 h-11 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary rounded-none"
                     required
                     disabled={loading}
                   />
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="h-11 px-5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
+                    className="h-11 px-5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-none transition-colors duration-200"
                   >
                     {loading ? 'Subscribing...' : 'Subscribe'}
                   </Button>
@@ -120,7 +117,7 @@ export function Footer() {
                   <circle cx="16" cy="16" r="4" fill="hsl(var(--primary))" />
                 </svg>
               </div>
-              <span className="text-lg font-heading text-foreground group-hover:text-primary transition-colors">Omnis</span>
+              <span className="text-lg font-heading text-foreground group-hover:text-primary transition-colors duration-200">Omnis</span>
             </Link>
             <p className="text-sm text-muted-foreground">
               Six wisdom systems. One view.
@@ -130,13 +127,13 @@ export function Footer() {
           {/* Links */}
           {Object.entries(footerLinks).map(([category, links]) => (
             <div key={category}>
-              <h4 className="text-sm font-medium text-foreground mb-4">{category}</h4>
+              <h4 className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-4">{category}</h4>
               <ul className="space-y-2.5">
                 {links.map((link) => (
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                      className="text-sm text-foreground/70 hover:text-foreground transition-colors duration-200"
                     >
                       {link.label}
                     </Link>

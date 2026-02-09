@@ -1,14 +1,13 @@
 import {
   Header,
   Hero,
-  SocialProof,
+  SystemsShowcase,
   Features,
-  Demo,
-  HowItWorks,
   Testimonials,
   Pricing,
   FAQ,
   CTA,
+  ScrollProgressBar,
   Footer,
 } from '@/components/landing'
 import Script from 'next/script'
@@ -19,21 +18,22 @@ const jsonLd = {
   "name": "Omnis",
   "applicationCategory": "LifestyleApplication",
   "operatingSystem": "Web",
-  "description": "Discover your cosmic blueprint with Omnis. Explore Dreamspell Kin, Human Design Bodygraph, Astrology Charts, and Hebrew Gematria.",
+  "description": "Professional chart viewer for five wisdom systems. Human Design bodygraph, Dreamspell oracle, astrology natal chart, Tzolkin day sign, and Hebrew gematria — calculated from your birth data and displayed in one interface.",
   "url": "https://omnis.app",
   "offers": {
     "@type": "Offer",
     "price": "0",
     "priceCurrency": "USD",
-    "description": "Free daily readings and personal analysis"
+    "description": "Free chart calculation and AI-powered insights"
   },
   "featureList": [
-    "Dreamspell Galactic Signature",
     "Human Design Bodygraph",
+    "Dreamspell Galactic Signature",
     "Astrology Natal Chart",
+    "Tzolkin Sacred Calendar",
     "Hebrew Gematria Analysis",
-    "Relationship Compatibility",
-    "Daily Cosmic Readings"
+    "AI Chart Companion",
+    "Interactive Relationship Board"
   ],
   "aggregateRating": {
     "@type": "AggregateRating",
@@ -50,13 +50,15 @@ export default function LandingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+
+      {/* Scroll progress indicator — fixed at top */}
+      <ScrollProgressBar />
+
       <Header />
       <main>
         <Hero />
-        <SocialProof />
+        <SystemsShowcase />
         <Features />
-        <Demo />
-        <HowItWorks />
         <Testimonials />
         <Pricing />
         <FAQ />

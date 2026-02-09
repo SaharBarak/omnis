@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -55,26 +56,34 @@ export function Demo() {
     return colors[color] || 'bg-primary text-primary-foreground'
   }
 
+  const sectionRef = useRef<HTMLElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'center center'],
+  })
+  // Card scales up as it enters viewport center
+  const cardScale = useTransform(scrollYProgress, [0, 1], [0.92, 1])
+  const cardOpacity = useTransform(scrollYProgress, [0, 0.4], [0, 1])
+
   return (
-    <section className="py-28 lg:py-36 px-6 bg-muted/20" id="demo">
+    <section ref={sectionRef} className="py-28 lg:py-36 px-6 bg-muted/20" id="demo">
       <div className="max-w-2xl mx-auto">
         {/* Section header */}
         <div className="text-center mb-10">
-          <div className="earth-badge inline-flex mb-5">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-            <span>No signup needed. Try it now.</span>
+          <div className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-4">
+            No signup needed. Try it now.
           </div>
 
-          <h2 className="text-3xl sm:text-4xl font-heading text-foreground mb-3">
-            Calculate your <span className="text-earth-gradient">Kin</span>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading text-foreground mb-3 tracking-tight">
+            Calculate your <span className="text-primary">Kin</span>
           </h2>
           <p className="text-muted-foreground">
             Your Dreamspell galactic signature - the seal, tone, and affirmation for your birth date.
           </p>
         </div>
 
-        {/* Calculator Card */}
-        <div className="earth-card bg-card">
+        {/* Calculator Card — scales up as it enters viewport */}
+        <motion.div className="bg-card border border-border" style={{ scale: cardScale, opacity: cardOpacity }}>
           <div className="p-6 sm:p-8">
             {/* Input Form */}
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -85,13 +94,13 @@ export function Demo() {
                   type="date"
                   value={birthDate}
                   onChange={(e) => setBirthDate(e.target.value)}
-                  className="h-12 text-base bg-background border-border text-foreground focus:border-primary focus:ring-primary/20 rounded-lg"
+                  className="h-12 text-base bg-background border-border text-foreground focus:border-primary focus:ring-primary/20 rounded-none"
                 />
               </div>
               <Button
                 onClick={handleCalculate}
                 disabled={!birthDate || isCalculating}
-                className="h-12 px-6 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors disabled:opacity-50"
+                className="h-12 px-6 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-none transition-colors disabled:opacity-50"
               >
                 {isCalculating ? (
                   <span className="flex items-center gap-2">
@@ -148,20 +157,20 @@ export function Demo() {
 
                     {/* Data pills */}
                     <div className="flex justify-center flex-wrap gap-2 mb-8">
-                      <div className={`px-3 py-1.5 rounded-lg text-sm font-medium ${getSealColorClass(result.seal.color)}`}>
+                      <div className={`px-3 py-1.5 rounded-none text-sm font-medium ${getSealColorClass(result.seal.color)}`}>
                         {result.seal.color} seal
                       </div>
-                      <div className="px-3 py-1.5 rounded-lg text-sm bg-muted text-muted-foreground">
+                      <div className="px-3 py-1.5 rounded-none text-sm bg-muted text-muted-foreground">
                         Tone {result.tone.number}
                       </div>
-                      <div className="px-3 py-1.5 rounded-lg text-sm bg-muted text-muted-foreground">
+                      <div className="px-3 py-1.5 rounded-none text-sm bg-muted text-muted-foreground">
                         Seal {result.seal.number}
                       </div>
                     </div>
 
                     {/* CTA */}
                     <Button
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 h-11 rounded-lg transition-colors"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 h-11 rounded-none transition-colors"
                       asChild
                     >
                       <Link href="/login">
@@ -173,7 +182,7 @@ export function Demo() {
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   )

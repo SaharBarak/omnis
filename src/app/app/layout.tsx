@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/hooks/use-auth'
@@ -385,9 +385,43 @@ function LoadingState() {
   )
 }
 
+function ErrorState() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="flex flex-col items-center gap-5 text-center max-w-sm px-6">
+        <div className="w-16 h-16 flex items-center justify-center">
+          <svg viewBox="0 0 64 64" className="w-full h-full">
+            <circle cx="32" cy="32" r="28" fill="none" stroke="hsl(var(--destructive))" strokeWidth="1" opacity="0.2" />
+            <circle cx="32" cy="32" r="18" fill="none" stroke="hsl(var(--destructive))" strokeWidth="1" opacity="0.3" />
+            <circle cx="32" cy="32" r="8" fill="hsl(var(--destructive))" opacity="0.5" />
+          </svg>
+        </div>
+        <h2 className="text-lg font-heading text-foreground">Something went wrong</h2>
+        <p className="text-sm text-muted-foreground">
+          The dashboard took too long to load. This might be a network issue.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-2 px-6 h-10 bg-primary text-primary-foreground text-sm font-medium rounded-none transition-colors duration-200 hover:bg-primary/90 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        >
+          Try Again
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const { user, loading } = useAuth()
+  const [timedOut, setTimedOut] = useState(false)
+
+  // Timeout: show error state after 12s of loading
+  useEffect(() => {
+    if (!loading) return
+    const timeout = setTimeout(() => setTimedOut(true), 12_000)
+    return () => clearTimeout(timeout)
+  }, [loading])
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -395,6 +429,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       router.push('/login')
     }
   }, [loading, user, router])
+
+  if (timedOut && loading) {
+    return <ErrorState />
+  }
 
   if (loading || !user) {
     return <LoadingState />

@@ -53,7 +53,7 @@
     --chart-4: 180 40% 48%;
     --chart-5: 340 60% 55%;
 
-    --radius: 0.75rem;
+    --radius: 0.375rem;
 
     /* Cosmic Palette — extended tokens */
     --earth: 230 15% 14%;
@@ -363,34 +363,33 @@
     transition: all 500ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 
-  /* === Hover Interaction Presets === */
+  /* === Hover Interaction Presets — Clean, minimal (jovianarchive-inspired) === */
 
   .hover-lift {
-    @apply transition-smooth;
+    transition: all 0.2s ease-in-out;
   }
   .hover-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(89, 56, 200, 0.08);
+    transform: translateY(-1px);
   }
   .hover-lift:active {
     transform: translateY(0);
   }
 
   .hover-glow {
-    @apply transition-smooth;
+    transition: all 0.2s ease-in-out;
   }
   .hover-glow:hover {
-    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1), 0 4px 16px hsl(var(--primary) / 0.08);
+    border-color: hsl(var(--primary) / 0.3);
   }
 
   .hover-scale {
-    @apply transition-spring;
+    transition: transform 0.2s ease-in-out;
   }
   .hover-scale:hover {
-    transform: scale(1.02);
+    transform: scale(1.01);
   }
   .hover-scale:active {
-    transform: scale(0.98);
+    transform: scale(0.99);
   }
 
   .hover-shine {
@@ -399,25 +398,24 @@
   .hover-shine::after {
     content: '';
     @apply absolute inset-0 opacity-0;
-    background: linear-gradient(105deg, transparent 40%, hsl(var(--primary) / 0.06) 50%, transparent 60%);
-    transition: opacity 0.3s ease;
+    background: linear-gradient(105deg, transparent 40%, hsl(var(--primary) / 0.04) 50%, transparent 60%);
+    transition: opacity 0.2s ease-in-out;
   }
   .hover-shine:hover::after {
     opacity: 1;
-    animation: shimmer 1s ease forwards;
   }
 
-  /* === Surface Cards === */
+  /* === Surface Cards — Flat, clean (jovianarchive-inspired) === */
 
   .surface-card {
-    @apply relative rounded-xl bg-card;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px rgba(0, 0, 0, 0.02);
-    transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
-    border: 1px solid hsl(var(--border) / 0.6);
+    @apply relative bg-card;
+    border: 1px solid hsl(var(--border) / 0.5);
+    border-radius: 2px;
+    transition: border-color 0.2s ease-in-out;
   }
 
   .surface-card:hover {
-    box-shadow: 0 4px 16px rgba(89, 56, 200, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+    border-color: hsl(var(--border));
   }
 
   /* Legacy alias */
@@ -425,64 +423,60 @@
     @apply surface-card;
   }
 
-  /* Interactive Card — clickable */
+  /* Interactive Card — clickable, flat */
   .interactive-card {
     @apply surface-card cursor-pointer;
   }
 
   .interactive-card:hover {
-    transform: translateY(-2px);
-    border-color: hsl(var(--primary) / 0.2);
-    box-shadow: 0 8px 24px rgba(89, 56, 200, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+    border-color: hsl(var(--primary) / 0.3);
   }
 
   .interactive-card:active {
-    transform: translateY(0);
+    background: hsl(var(--muted) / 0.3);
     transition-duration: 100ms;
   }
 
-  /* Feature Card — prominent display */
+  /* Feature Card — clean, no shadow */
   .feature-card {
-    @apply relative rounded-2xl bg-card p-7;
-    border: 1px solid hsl(var(--border) / 0.5);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    @apply relative bg-card p-7;
+    border: 1px solid hsl(var(--border) / 0.4);
+    border-radius: 2px;
+    transition: border-color 0.2s ease-in-out;
   }
 
   .feature-card:hover {
-    border-color: hsl(var(--primary) / 0.15);
-    box-shadow: 0 8px 32px rgba(89, 56, 200, 0.06);
-    transform: translateY(-2px);
+    border-color: hsl(var(--primary) / 0.25);
   }
 
   /* Feature Card Earth — referenced in landing components */
   .feature-card-earth {
-    @apply relative rounded-2xl bg-card p-7;
-    border: 1px solid hsl(var(--border) / 0.5);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    @apply relative bg-card p-7;
+    border: 1px solid hsl(var(--border) / 0.4);
+    border-radius: 2px;
+    transition: border-color 0.2s ease-in-out;
   }
 
   .feature-card-earth:hover {
-    border-color: hsl(var(--primary) / 0.2);
-    box-shadow: 0 8px 32px rgba(89, 56, 200, 0.08);
-    transform: translateY(-3px);
+    border-color: hsl(var(--primary) / 0.3);
   }
 
-  /* === Badges === */
+  /* === Badges — Clean, flat === */
 
-  /* Earth badge — referenced in landing components */
   .earth-badge {
-    @apply inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm;
-    background: hsl(var(--primary) / 0.06);
-    border: 1px solid hsl(var(--primary) / 0.1);
-    color: hsl(var(--foreground));
-    transition: all 0.2s ease;
+    @apply inline-flex items-center gap-2 px-3.5 py-1.5 text-sm;
+    border-radius: 0;
+    background: transparent;
+    border: 1px solid hsl(var(--border) / 0.6);
+    color: hsl(var(--muted-foreground));
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.75rem;
+    transition: border-color 0.2s ease-in-out;
   }
 
   .earth-badge:hover {
-    background: hsl(var(--primary) / 0.1);
-    border-color: hsl(var(--primary) / 0.2);
+    border-color: hsl(var(--foreground) / 0.3);
   }
 
   /* === Text Effects === */
@@ -594,6 +588,52 @@
 
   .modal-content {
     animation: scaleIn 0.25s ease-out;
+  }
+
+  /* === Scroll-Reveal Text (jovianarchive signature pattern) === */
+  /* Words start gray/faded and transition to bold black as user scrolls */
+
+  .scroll-reveal-text {
+    @apply relative;
+  }
+
+  .scroll-reveal-text .word {
+    display: inline-block;
+    color: hsl(var(--muted-foreground) / 0.25);
+    font-weight: 700;
+    transition: color 0.4s ease-in-out, opacity 0.4s ease-in-out;
+    margin-right: 0.25em;
+  }
+
+  .scroll-reveal-text .word.revealed {
+    color: hsl(var(--foreground));
+    opacity: 1;
+  }
+
+  .dark .scroll-reveal-text .word {
+    color: hsl(var(--foreground) / 0.15);
+  }
+
+  .dark .scroll-reveal-text .word.revealed {
+    color: hsl(var(--foreground));
+  }
+
+  /* Highlighted words within scroll-reveal */
+  .scroll-reveal-text .word.accent {
+    transition: color 0.4s ease-in-out;
+  }
+
+  .scroll-reveal-text .word.accent.revealed {
+    color: hsl(var(--primary));
+  }
+
+  /* === Dark Section Utility === */
+
+  .section-dark {
+    --section-bg: 230 15% 6%;
+    --section-fg: 0 0% 96%;
+    background: hsl(var(--section-bg));
+    color: hsl(var(--section-fg));
   }
 }
 
@@ -990,4 +1030,16 @@
   .person-card:last-child {
     page-break-after: auto;
   }
+}
+
+/* ============================================
+   LANDING PAGE UTILITIES
+   ============================================ */
+
+.scroll-hide::-webkit-scrollbar { display: none; }
+.scroll-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+.dotted-bg {
+  background-image: radial-gradient(circle, hsl(var(--border)) 1px, transparent 1px);
+  background-size: 20px 20px;
 }

@@ -1,9 +1,15 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { ScrollScale, ScrollReveal } from './scroll-animations'
+import { systemGradients } from '@/lib/landing-images'
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 16 },
+// ============================================
+// ANIMATION VARIANTS
+// ============================================
+
+const fadeIn = {
+  hidden: { opacity: 0, y: 12 },
   visible: { opacity: 1, y: 0 }
 }
 
@@ -11,158 +17,245 @@ const staggerContainer = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.08 }
+    transition: { staggerChildren: 0.06 }
   }
 }
 
-const systems = [
-  {
-    name: 'Dreamspell',
-    subtitle: 'Galactic Signature',
-    description: 'Your kin, seal, tone, wavespell, castle, and complete oracle map. The synchronic order that Arguelles returned us to - where synchronicity can be mapped daily.',
-    color: 'primary',
-    icon: (
-      <svg viewBox="0 0 32 32" className="w-7 h-7">
-        <circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.3" />
-        <circle cx="16" cy="16" r="7" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.6" />
-        <circle cx="16" cy="16" r="2.5" fill="currentColor" />
-      </svg>
-    ),
-  },
-  {
-    name: 'Astrology',
-    subtitle: 'Natal Chart',
-    description: 'Sun, Moon, Rising, and planetary placements. The ancient language of celestial positions at the moment of your birth.',
-    color: 'secondary',
-    icon: (
-      <svg viewBox="0 0 32 32" className="w-7 h-7">
-        <circle cx="16" cy="16" r="10" fill="none" stroke="currentColor" strokeWidth="1" />
-        <path d="M16 6v4M16 22v4M6 16h4M22 16h4" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
-        <circle cx="16" cy="16" r="3" fill="currentColor" opacity="0.4" />
-      </svg>
-    ),
-  },
-  {
-    name: 'Human Design',
-    subtitle: 'Bodygraph',
-    description: 'Type, strategy, authority, and profile. As Ra Uru Hu said: not a belief system - a practical tool for living as yourself, free from conditioning.',
-    color: 'accent',
-    icon: (
-      <svg viewBox="0 0 32 32" className="w-7 h-7">
-        <circle cx="16" cy="8" r="4" fill="none" stroke="currentColor" strokeWidth="1" />
-        <circle cx="10" cy="18" r="3" fill="none" stroke="currentColor" strokeWidth="1" />
-        <circle cx="22" cy="18" r="3" fill="none" stroke="currentColor" strokeWidth="1" />
-        <circle cx="16" cy="26" r="3" fill="none" stroke="currentColor" strokeWidth="1" />
-        <path d="M16 12v11M13 18h6" stroke="currentColor" strokeWidth="1" />
-      </svg>
-    ),
-  },
-  {
-    name: 'Gematria',
-    subtitle: 'Hebrew Numerology',
-    description: 'Seven calculation methods from the Kabbalistic tradition. Words with the same numerical value reveal hidden connections in reality.',
-    color: 'primary',
-    icon: (
-      <svg viewBox="0 0 32 32" className="w-7 h-7">
-        <rect x="6" y="6" width="20" height="20" rx="2" fill="none" stroke="currentColor" strokeWidth="1" />
-        <text x="16" y="21" textAnchor="middle" fontSize="12" fill="currentColor" fontFamily="serif">&#x05D0;</text>
-      </svg>
-    ),
-  },
-]
+// ============================================
+// MOCKUP VISUALS
+// ============================================
 
-const additionalSystems = [
-  { name: 'Long Count', desc: 'Your position in the great cycle' },
-  { name: 'Tzolkin', desc: 'Traditional Mayan (GMT correlation)' },
-  { name: 'Personal Timeline', desc: 'Galactic returns, tun & katun' },
-  { name: 'Relationships', desc: 'Oracle connections between profiles' },
+function ChartVisual() {
+  return (
+    <div
+      className="h-80 border border-border overflow-hidden"
+      style={{ background: systemGradients['human-design'] }}
+    >
+      <div className="h-full flex items-center justify-center p-8">
+        <svg viewBox="0 0 200 260" className="w-full h-full max-w-[180px] opacity-30">
+          {/* Simplified bodygraph shape */}
+          <circle cx="100" cy="30" r="18" fill="none" stroke="white" strokeWidth="1" />
+          <circle cx="100" cy="75" r="14" fill="none" stroke="white" strokeWidth="1" />
+          <circle cx="70" cy="110" r="12" fill="none" stroke="white" strokeWidth="1" />
+          <circle cx="130" cy="110" r="12" fill="none" stroke="white" strokeWidth="1" />
+          <circle cx="100" cy="140" r="14" fill="none" stroke="white" strokeWidth="1" />
+          <circle cx="100" cy="180" r="16" fill="none" stroke="white" strokeWidth="1" />
+          <circle cx="80" cy="215" r="12" fill="none" stroke="white" strokeWidth="1" />
+          <circle cx="120" cy="215" r="12" fill="none" stroke="white" strokeWidth="1" />
+          <circle cx="100" cy="245" r="10" fill="none" stroke="white" strokeWidth="1" />
+          {/* Channels */}
+          <line x1="100" y1="48" x2="100" y2="61" stroke="white" strokeWidth="1" opacity="0.5" />
+          <line x1="86" y1="82" x2="76" y2="100" stroke="white" strokeWidth="1" opacity="0.5" />
+          <line x1="114" y1="82" x2="124" y2="100" stroke="white" strokeWidth="1" opacity="0.5" />
+          <line x1="82" y1="116" x2="92" y2="130" stroke="white" strokeWidth="1" opacity="0.5" />
+          <line x1="118" y1="116" x2="108" y2="130" stroke="white" strokeWidth="1" opacity="0.5" />
+          <line x1="100" y1="154" x2="100" y2="164" stroke="white" strokeWidth="1" opacity="0.5" />
+          <line x1="88" y1="192" x2="84" y2="205" stroke="white" strokeWidth="1" opacity="0.5" />
+          <line x1="112" y1="192" x2="116" y2="205" stroke="white" strokeWidth="1" opacity="0.5" />
+        </svg>
+      </div>
+    </div>
+  )
+}
+
+function AIChatVisual() {
+  return (
+    <div className="h-80 border border-border bg-card overflow-hidden flex flex-col justify-end p-6 gap-3">
+      {/* User message */}
+      <motion.div
+        className="self-end max-w-[85%]"
+        initial={{ opacity: 0, y: 8 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+      >
+        <div className="bg-primary text-primary-foreground text-sm px-4 py-3 rounded-none">
+          What does it mean that I&apos;m a Generator with a 6/2 profile?
+        </div>
+        <div className="text-[10px] text-muted-foreground mt-1 text-right">You</div>
+      </motion.div>
+
+      {/* AI response */}
+      <motion.div
+        className="self-start max-w-[85%]"
+        initial={{ opacity: 0, y: 8 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.3, delay: 0.25 }}
+      >
+        <div className="bg-muted/50 border border-border text-foreground text-sm px-4 py-3 rounded-none">
+          <p className="leading-relaxed">As a Generator 6/2, your strategy is to <span className="font-medium">wait to respond</span>. The 6th line means you go through three life phases: experimentation until ~30, withdrawal and observation until ~50, then becoming a <span className="font-medium">role model</span>...</p>
+        </div>
+        <div className="text-[10px] text-muted-foreground mt-1">Omnis AI</div>
+      </motion.div>
+
+      {/* Typing indicator */}
+      <motion.div
+        className="self-start"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.3, delay: 0.4 }}
+      >
+        <div className="flex gap-1 px-4 py-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 animate-gentle-pulse" />
+          <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 animate-gentle-pulse" style={{ animationDelay: '0.2s' }} />
+          <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 animate-gentle-pulse" style={{ animationDelay: '0.4s' }} />
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+function BoardVisual() {
+  const nodes = [
+    { x: 60, y: 50, initials: 'SM', delay: 0.1 },
+    { x: 180, y: 40, initials: 'JK', delay: 0.2 },
+    { x: 120, y: 140, initials: 'AR', delay: 0.3 },
+    { x: 220, y: 130, initials: 'LM', delay: 0.4 },
+  ]
+
+  const lines = [
+    { x1: 60, y1: 50, x2: 180, y2: 40 },
+    { x1: 60, y1: 50, x2: 120, y2: 140 },
+    { x1: 180, y1: 40, x2: 220, y2: 130 },
+    { x1: 120, y1: 140, x2: 220, y2: 130 },
+    { x1: 180, y1: 40, x2: 120, y2: 140 },
+  ]
+
+  return (
+    <div className="h-80 border border-border bg-card overflow-hidden relative dotted-bg">
+      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 280 200">
+        {/* Connection lines */}
+        {lines.map((line, i) => (
+          <motion.line
+            key={i}
+            x1={line.x1}
+            y1={line.y1}
+            x2={line.x2}
+            y2={line.y2}
+            stroke="hsl(var(--primary))"
+            strokeWidth="1"
+            strokeDasharray="4 4"
+            opacity="0.3"
+            initial={{ pathLength: 0 }}
+            whileInView={{ pathLength: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.5 + i * 0.1 }}
+          />
+        ))}
+
+        {/* Avatar nodes */}
+        {nodes.map((node) => (
+          <motion.g
+            key={node.initials}
+            initial={{ opacity: 0, scale: 0.5 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.3, delay: node.delay }}
+          >
+            <circle cx={node.x} cy={node.y} r="20" fill="hsl(var(--card))" stroke="hsl(var(--border))" strokeWidth="1" />
+            <text
+              x={node.x}
+              y={node.y + 4}
+              textAnchor="middle"
+              fontSize="10"
+              fill="hsl(var(--foreground))"
+              fontFamily="var(--font-heading)"
+              fontWeight="500"
+            >
+              {node.initials}
+            </text>
+          </motion.g>
+        ))}
+      </svg>
+    </div>
+  )
+}
+
+// ============================================
+// FEATURES
+// ============================================
+
+const features = [
+  {
+    label: 'PERSONAL CHART',
+    heading: 'Your complete chart',
+    body: 'Human Design bodygraph, Dreamspell oracle, astrology natal chart, Tzolkin day sign, and Hebrew gematria — all calculated from your birth data and displayed in a single professional view. No more switching between four websites.',
+    visual: <ChartVisual />,
+    imageFirst: true,
+    slideVariant: 'slide-left' as const,
+  },
+  {
+    label: 'AI COMPANION',
+    heading: 'An AI that knows your chart',
+    body: 'Ask questions about your design, your kin, your planetary placements. The AI reads your complete profile and gives interpretations grounded in each system\'s framework. Not generic horoscopes — responses based on your actual data.',
+    visual: <AIChatVisual />,
+    imageFirst: false,
+    slideVariant: 'slide-right' as const,
+  },
+  {
+    label: 'RELATIONSHIP BOARD',
+    heading: 'See how people connect',
+    body: 'Add your family, friends, clients. See the dynamics across all systems — composite charts, oracle connections, type interactions. Filter by system. The interactive board visualizes connections as vector lines on a dotted canvas.',
+    visual: <BoardVisual />,
+    imageFirst: true,
+    slideVariant: 'slide-left' as const,
+  },
 ]
 
 export function Features() {
   return (
     <section className="py-28 lg:py-36 px-6 bg-background" id="features">
-      <div className="max-w-content mx-auto">
-        {/* Section header */}
-        <motion.div
-          className="max-w-2xl mb-16"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={staggerContainer}
-        >
-          <motion.div className="earth-badge mb-5" variants={fadeInUp} transition={{ duration: 0.4 }}>
-            <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
-            <span>Close those 4 browser tabs</span>
-          </motion.div>
-
-          <motion.h2
-            className="text-3xl sm:text-4xl font-heading text-foreground mb-5"
-            variants={fadeInUp}
-            transition={{ duration: 0.4 }}
+      <div className="max-w-content mx-auto space-y-28 lg:space-y-36">
+        {features.map((feature, index) => (
+          <div
+            key={feature.label}
+            className={`grid lg:grid-cols-2 gap-16 lg:gap-20 items-center ${
+              feature.imageFirst ? '' : 'lg:[direction:rtl] lg:[&>*]:![direction:ltr]'
+            }`}
           >
-            Six systems, <span className="text-earth-gradient">one unified view</span>
-          </motion.h2>
+            {/* Visual */}
+            <ScrollReveal variant={feature.slideVariant} once>
+              <ScrollScale>
+                {feature.visual}
+              </ScrollScale>
+            </ScrollReveal>
 
-          <motion.p
-            className="text-lg text-muted-foreground leading-relaxed"
-            variants={fadeInUp}
-            transition={{ duration: 0.4 }}
-          >
-            Each tradition offers a different lens. Omnis calculates all of them and displays them together so you can see the connections.
-          </motion.p>
-        </motion.div>
-
-        {/* Feature cards */}
-        <motion.div
-          className="grid md:grid-cols-2 gap-6"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-40px" }}
-          variants={staggerContainer}
-        >
-          {systems.map((system, index) => (
+            {/* Text */}
             <motion.div
-              key={system.name}
-              className="group feature-card-earth"
-              variants={fadeInUp}
-              transition={{ duration: 0.4, delay: index * 0.08 }}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-80px' }}
+              variants={staggerContainer}
+              className="space-y-6"
             >
-              {/* Icon */}
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 bg-${system.color}/10 text-${system.color} border border-${system.color}/20 transition-transform duration-300 group-hover:scale-105`}>
-                {system.icon}
-              </div>
-
-              {/* Content */}
-              <div className="flex items-baseline gap-2 mb-3">
-                <h3 className="text-xl font-heading text-foreground">{system.name}</h3>
-                <span className="text-xs uppercase tracking-wider text-muted-foreground">{system.subtitle}</span>
-              </div>
-              <p className="text-muted-foreground leading-relaxed">{system.description}</p>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Additional systems */}
-        <motion.div
-          className="mt-14 pt-10 border-t border-border/50"
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.15 }}
-        >
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <span className="text-sm text-muted-foreground mr-1">Also included:</span>
-            {additionalSystems.map((system) => (
-              <div
-                key={system.name}
-                className="earth-badge"
+              <motion.div
+                className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground font-sans"
+                variants={fadeIn}
+                transition={{ duration: 0.3 }}
               >
-                <span className="text-sm font-medium text-foreground">{system.name}</span>
-                <span className="text-xs text-muted-foreground hidden sm:inline">/ {system.desc}</span>
-              </div>
-            ))}
+                {feature.label}
+              </motion.div>
+
+              <motion.h2
+                className="text-3xl sm:text-4xl lg:text-5xl font-heading text-foreground tracking-tight"
+                variants={fadeIn}
+                transition={{ duration: 0.3 }}
+              >
+                {feature.heading}
+              </motion.h2>
+
+              <motion.p
+                className="text-lg text-muted-foreground leading-relaxed"
+                variants={fadeIn}
+                transition={{ duration: 0.3 }}
+              >
+                {feature.body}
+              </motion.p>
+            </motion.div>
           </div>
-        </motion.div>
+        ))}
       </div>
     </section>
   )

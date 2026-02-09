@@ -48,14 +48,29 @@ export function useAuth() {
   useEffect(() => {
     let cancelled = false
 
+    // Safety timeout — force loading: false if auth hangs
+    const safetyTimeout = setTimeout(() => {
+      setState(prev => {
+        if (prev.loading) {
+          console.warn('[Auth] Safety timeout: forcing loading=false after 10s')
+          return { ...prev, loading: false }
+        }
+        return prev
+      })
+    }, 10_000)
+
     // Get the initial session explicitly
     const initSession = async () => {
       try {
+        console.log('[Auth] initSession: calling getSession')
         const { data: { session } } = await supabase.auth.getSession()
+        console.log('[Auth] initSession: getSession returned', session ? 'session' : 'null')
         if (cancelled) return
 
         if (session?.user) {
+          console.log('[Auth] initSession: fetching profile for', session.user.id)
           const profile = await fetchProfile(session.user.id)
+          console.log('[Auth] initSession: fetchProfile returned', profile ? 'profile' : 'null')
           if (cancelled) return
           setState({
             user: session.user,
@@ -110,6 +125,7 @@ export function useAuth() {
 
     return () => {
       cancelled = true
+      clearTimeout(safetyTimeout)
       subscription.unsubscribe()
     }
   }, [supabase.auth, fetchProfile])
