@@ -20,7 +20,7 @@ knowledge-sources.json  →  scrape-knowledge.ts  →  data/knowledge/{source-id
 2. Set environment variables:
    - `NEXT_PUBLIC_SUPABASE_URL` — Supabase project URL
    - `SUPABASE_SERVICE_ROLE_KEY` — service role key (for writes)
-   - `OPENAI_API_KEY` — for generating embeddings
+   - No API keys needed for embeddings — they run locally via `@xenova/transformers`
 
 ### Sources Configuration
 
@@ -87,7 +87,7 @@ npm run embed:knowledge -- --dry-run
 The embedder:
 - Reads markdown files from `data/knowledge/{source-id}/`
 - Chunks content by headings/sections (~500-800 tokens per chunk)
-- Generates embeddings via OpenAI `text-embedding-3-small`
+- Generates 384-dim embeddings locally via `@xenova/transformers` (`all-MiniLM-L6-v2`) — no API key needed
 - Upserts into `knowledge_base` and `content_chunks` tables
 
 ### Using the Search

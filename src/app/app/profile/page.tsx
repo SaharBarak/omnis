@@ -184,12 +184,9 @@ export default function ProfilePage() {
 
               <div className="flex items-center gap-4 pt-4 border-t border-border">
                 <img
-                  src={`/icons/dreamspell/seals/${String(dreamspellSeal.number).padStart(2, '0')}-${dreamspellSeal.english.toLowerCase().replace(' ', '-').replace('-', '-')}.svg`}
+                  src={`/dreamspell/gifs/glyph${dreamspellSeal.number}.gif`}
                   alt={dreamspellSeal.english}
-                  className="h-14 w-14"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none'
-                  }}
+                  className="h-14 w-14 object-contain"
                 />
                 <div>
                   <div className="font-medium text-foreground">{dreamspellSeal.mayan}</div>

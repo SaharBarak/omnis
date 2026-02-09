@@ -1,12 +1,22 @@
 import { createClient } from '@supabase/supabase-js'
-import OpenAI from 'openai'
+import { pipeline, type FeatureExtractionPipeline } from '@xenova/transformers'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
+const EMBEDDING_MODEL = 'Xenova/all-MiniLM-L6-v2'
+
+// Lazy-loaded embedding pipeline (singleton)
+let embedder: FeatureExtractionPipeline | null = null
+
+async function getEmbedder(): Promise<FeatureExtractionPipeline> {
+  if (!embedder) {
+    embedder = await pipeline('feature-extraction', EMBEDDING_MODEL)
+  }
+  return embedder
+}
 
 export interface KnowledgeResult {
   id: string
@@ -20,20 +30,18 @@ export interface KnowledgeResult {
 
 /**
  * Search the knowledge base using semantic similarity.
- * Generates an embedding for the query and performs vector search.
+ * Generates an embedding locally and performs vector search.
+ * No API keys needed — runs entirely in-process.
  */
 export async function searchKnowledge(
   query: string,
   limit: number = 5,
   threshold: number = 0.7
 ): Promise<KnowledgeResult[]> {
-  // Generate embedding for the query
-  const embeddingResponse = await openai.embeddings.create({
-    model: 'text-embedding-3-small',
-    input: query,
-  })
-
-  const queryEmbedding = embeddingResponse.data[0].embedding
+  // Generate embedding locally
+  const model = await getEmbedder()
+  const output = await model(query, { pooling: 'mean', normalize: true })
+  const queryEmbedding = Array.from(output.data as Float32Array)
 
   // Call the Supabase RPC function
   const { data, error } = await supabase.rpc('search_knowledge', {

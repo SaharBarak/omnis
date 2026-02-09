@@ -3,7 +3,9 @@
  * Knowledge Embedding Pipeline
  *
  * Reads scraped markdown content from data/knowledge/{source-id}/,
- * chunks it, generates embeddings, and upserts into Supabase.
+ * chunks it, generates embeddings locally using transformers.js, and upserts into Supabase.
+ *
+ * No API keys needed for embeddings — runs entirely locally.
  *
  * Usage:
  *   npx tsx scripts/embed-knowledge.ts                         # Embed all sources
@@ -13,7 +15,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
-import OpenAI from 'openai'
+import { pipeline, type FeatureExtractionPipeline } from '@xenova/transformers'
 import * as fs from 'fs/promises'
 import * as path from 'path'
 
@@ -54,15 +56,26 @@ interface Chunk {
 const SOURCES_FILE = path.join(__dirname, 'knowledge-sources.json')
 const DATA_DIR = path.join(process.cwd(), 'data', 'knowledge')
 const CHUNK_MAX_CHARS = 3000
-const EMBEDDING_MODEL = 'text-embedding-3-small'
-const BATCH_SIZE = 20
+const EMBEDDING_MODEL = 'Xenova/all-MiniLM-L6-v2'
+const EMBEDDING_DIMS = 384
+const BATCH_SIZE = 32 // Local model can handle larger batches
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
+// Lazy-loaded embedding pipeline (singleton)
+let embedder: FeatureExtractionPipeline | null = null
+
+async function getEmbedder(): Promise<FeatureExtractionPipeline> {
+  if (!embedder) {
+    console.log(`🔄 Loading embedding model: ${EMBEDDING_MODEL}...`)
+    embedder = await pipeline('feature-extraction', EMBEDDING_MODEL)
+    console.log(`✅ Model loaded (${EMBEDDING_DIMS}-dim vectors)`)
+  }
+  return embedder
+}
 
 // ---------------------------------------------------------------------------
 // Argument parsing
@@ -161,15 +174,19 @@ function chunkContent(content: string, title: string): Chunk[] {
 }
 
 // ---------------------------------------------------------------------------
-// Embedding
+// Embedding (local)
 // ---------------------------------------------------------------------------
 
 async function generateEmbeddings(texts: string[]): Promise<number[][]> {
-  const response = await openai.embeddings.create({
-    model: EMBEDDING_MODEL,
-    input: texts,
-  })
-  return response.data.map((d) => d.embedding)
+  const model = await getEmbedder()
+  const results: number[][] = []
+
+  for (const text of texts) {
+    const output = await model(text, { pooling: 'mean', normalize: true })
+    results.push(Array.from(output.data as Float32Array))
+  }
+
+  return results
 }
 
 // ---------------------------------------------------------------------------
@@ -295,7 +312,8 @@ async function processSource(sourceId: string, dryRun: boolean): Promise<number>
 async function main() {
   const opts = parseArgs()
 
-  console.log('🧠 Omnis Knowledge Embedding Pipeline')
+  console.log('🧠 Omnis Knowledge Embedding Pipeline (local model)')
+  console.log(`   Model: ${EMBEDDING_MODEL} (${EMBEDDING_DIMS} dimensions)`)
   console.log(`   Mode: ${opts.dryRun ? 'DRY RUN' : 'LIVE'}`)
 
   // Load sources config
@@ -318,8 +336,6 @@ async function main() {
     }
   }
 
-  // Also handle legacy flat data/knowledge/ files (no subdirectory)
-  // by checking if source directories exist
   let grandTotal = 0
 
   for (const source of sources) {
