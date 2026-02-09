@@ -3,7 +3,7 @@
 import { useRef } from 'react'
 import Link from 'next/link'
 import { motion, useScroll, useTransform } from 'framer-motion'
-import { systemGradients } from '@/lib/landing-images'
+import { systemGradients, landingImages } from '@/lib/landing-images'
 
 // ============================================
 // SYSTEM DATA
@@ -68,14 +68,22 @@ const systems = [
     ),
   },
   {
-    name: 'Gematria',
+    name: 'Kabbalah',
     slug: 'gematria',
-    subtitle: 'HEBREW NUMEROLOGY',
-    description: 'The numbers behind words. Seven Hebrew calculation methods from the Kabbalistic tradition revealing hidden numerical connections.',
+    subtitle: 'HEBREW TEACHINGS',
+    description: 'The hidden structure of creation. Gematria calculations, Tree of Life correspondences, and the numerical wisdom behind Hebrew letters and words.',
     icon: (
       <svg viewBox="0 0 32 32" className="w-8 h-8">
-        <rect x="6" y="6" width="20" height="20" rx="2" fill="none" stroke="currentColor" strokeWidth="1" />
-        <text x="16" y="21" textAnchor="middle" fontSize="12" fill="currentColor" fontFamily="serif">&#x05D0;</text>
+        <circle cx="16" cy="6" r="2.5" fill="none" stroke="currentColor" strokeWidth="1" />
+        <circle cx="10" cy="14" r="2.5" fill="none" stroke="currentColor" strokeWidth="1" />
+        <circle cx="22" cy="14" r="2.5" fill="none" stroke="currentColor" strokeWidth="1" />
+        <circle cx="16" cy="22" r="2.5" fill="none" stroke="currentColor" strokeWidth="1" />
+        <circle cx="10" cy="28" r="2.5" fill="none" stroke="currentColor" strokeWidth="1" />
+        <circle cx="22" cy="28" r="2.5" fill="none" stroke="currentColor" strokeWidth="1" />
+        <line x1="16" y1="8.5" x2="10" y2="11.5" stroke="currentColor" strokeWidth="0.7" />
+        <line x1="16" y1="8.5" x2="22" y2="11.5" stroke="currentColor" strokeWidth="0.7" />
+        <line x1="10" y1="16.5" x2="16" y2="19.5" stroke="currentColor" strokeWidth="0.7" />
+        <line x1="22" y1="16.5" x2="16" y2="19.5" stroke="currentColor" strokeWidth="0.7" />
       </svg>
     ),
   },
@@ -205,9 +213,15 @@ function SystemCard({ system }: { system: typeof systems[number] }) {
 
   return (
     <>
-      {/* Gradient header */}
+      {/* Gradient header with image overlay */}
       <div className="relative h-40 overflow-hidden" style={{ background: gradient }}>
-        <div className="absolute bottom-4 left-4 text-white/70">
+        <img
+          src={landingImages.systems[system.slug as keyof typeof landingImages.systems]}
+          alt={system.name}
+          className="absolute inset-0 w-full h-full object-cover opacity-60"
+          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+        />
+        <div className="absolute bottom-4 left-4 text-white/70 z-10">
           {system.icon}
         </div>
       </div>

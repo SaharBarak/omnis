@@ -16,7 +16,7 @@ const footerLinks = {
     { label: 'Dreamspell', href: '/learn/dreamspell' },
     { label: 'Human Design', href: '/learn/human-design' },
     { label: 'Astrology', href: '/learn/astrology' },
-    { label: 'Gematria', href: '/learn/gematria' },
+    { label: 'Kabbalah', href: '/learn/gematria' },
   ],
   Company: [
     { label: 'About', href: '/about' },
@@ -85,14 +85,14 @@ export function Footer() {
                     placeholder="your@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full lg:w-64 h-11 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary rounded-none"
+                    className="w-full lg:w-64 h-11 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary rounded-lg"
                     required
                     disabled={loading}
                   />
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="h-11 px-5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-none transition-colors duration-200"
+                    className="h-11 px-5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors duration-200"
                   >
                     {loading ? 'Subscribing...' : 'Subscribe'}
                   </Button>

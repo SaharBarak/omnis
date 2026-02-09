@@ -18,7 +18,7 @@ const jsonLd = {
   "name": "Omnis",
   "applicationCategory": "LifestyleApplication",
   "operatingSystem": "Web",
-  "description": "Professional chart viewer for five wisdom systems. Human Design bodygraph, Dreamspell oracle, astrology natal chart, Tzolkin day sign, and Hebrew gematria — calculated from your birth data and displayed in one interface.",
+  "description": "Professional chart viewer for five wisdom systems. Human Design bodygraph, Dreamspell oracle, astrology natal chart, Tzolkin day sign, and Kabbalah numerology — calculated from your birth data and displayed in one interface.",
   "url": "https://omnis.app",
   "offers": {
     "@type": "Offer",
@@ -31,7 +31,7 @@ const jsonLd = {
     "Dreamspell Galactic Signature",
     "Astrology Natal Chart",
     "Tzolkin Sacred Calendar",
-    "Hebrew Gematria Analysis",
+    "Kabbalah & Hebrew Numerology",
     "AI Chart Companion",
     "Interactive Relationship Board"
   ],

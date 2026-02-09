@@ -57,15 +57,15 @@ export function HowItWorks() {
 
                 {/* Step image / gradient placeholder */}
                 <div className="relative h-32 mb-5 overflow-hidden border border-border">
-                  <img
-                    src={landingImages.steps[step.number as keyof typeof landingImages.steps]}
-                    alt={step.title}
-                    className="absolute inset-0 w-full h-full object-cover"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                  />
                   <div
                     className="absolute inset-0"
                     style={{ background: stepGradients[step.number] }}
+                  />
+                  <img
+                    src={landingImages.steps[step.number as keyof typeof landingImages.steps]}
+                    alt={step.title}
+                    className="absolute inset-0 w-full h-full object-cover z-10"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
                   />
                 </div>
 

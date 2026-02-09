@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { getSealGlyphPath, getToneGlyphPath } from '@/lib/dreamspell-assets'
+import { landingImages } from '@/lib/landing-images'
 
 // ============================================
 // READING CARD — light theme version
@@ -64,7 +65,7 @@ function ReadingCard() {
             {[
               { label: 'Type', value: 'Generator' },
               { label: 'Sun', value: 'Leo' },
-              { label: 'Gematria', value: '144' },
+              { label: 'Kabbalah', value: '144' },
             ].map((item, i) => (
               <motion.div
                 key={item.label}
@@ -122,6 +123,14 @@ export function Hero() {
       ref={sectionRef}
       className="relative min-h-screen flex items-center overflow-hidden bg-background pt-16 lg:pt-18"
     >
+      {/* Hero background image */}
+      <img
+        src={landingImages.hero.background}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover opacity-[0.12] pointer-events-none"
+        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+      />
       {/* Content — fades and shifts on scroll */}
       <motion.div
         className="relative z-10 w-full max-w-content mx-auto px-6 py-20 lg:py-28"
@@ -162,7 +171,7 @@ export function Hero() {
               variants={fadeIn}
               transition={{ duration: 0.3 }}
             >
-              Human Design bodygraph. Dreamspell oracle. Astrology natal chart. Tzolkin day sign. Hebrew gematria.{' '}
+              Human Design bodygraph. Dreamspell oracle. Astrology natal chart. Tzolkin day sign. Kabbalah numerology.{' '}
               <span className="text-foreground">Calculated from your birth data, displayed in a single professional interface.</span>
             </motion.p>
 
@@ -174,7 +183,7 @@ export function Hero() {
             >
               <Button
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 h-12 text-base rounded-none transition-all duration-200 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 h-12 text-base rounded-lg transition-all duration-200 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 asChild
               >
                 <Link href="/login">Get Your Chart</Link>

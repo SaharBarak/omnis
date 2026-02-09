@@ -32,8 +32,8 @@ const systemsItems = [
     href: '/learn/tzolkin',
   },
   {
-    name: 'Gematria',
-    description: 'Hebrew numerology & letter values',
+    name: 'Kabbalah',
+    description: 'Hebrew teachings & numerology',
     href: '/learn/gematria',
   },
 ]
@@ -99,7 +99,7 @@ function MegaMenuPanel({ activeDropdown, onClose }: { activeDropdown: DropdownKe
                   >
                     <div className="font-medium text-foreground mb-1">Five systems, one place</div>
                     <div className="text-sm text-muted-foreground mb-4">
-                      Explore how Human Design, Dreamspell, Astrology, Tzolkin, and Gematria work together.
+                      Explore how Human Design, Dreamspell, Astrology, Tzolkin, and Kabbalah work together.
                     </div>
                     <span className="text-sm text-primary group-hover:underline">Explore all systems &rarr;</span>
                   </Link>
@@ -306,7 +306,7 @@ function MobileMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
                   Sign In
                 </Link>
                 <Button
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium h-11 rounded-none transition-all duration-200 active:scale-[0.98]"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium h-11 rounded-lg transition-all duration-200 active:scale-[0.98]"
                   asChild
                 >
                   <Link href="/login" onClick={onClose}>Get Your Chart</Link>
@@ -430,7 +430,7 @@ export function Header() {
               </Link>
               <Button
                 size="sm"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-5 h-9 rounded-none transition-all duration-200 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-5 h-9 rounded-lg transition-all duration-200 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 asChild
               >
                 <Link href="/login">Get Your Chart</Link>

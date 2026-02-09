@@ -31,7 +31,7 @@ const plans = [
     description: 'Full access for personal use',
     features: [
       'Up to 10 profiles',
-      'All 6 systems: Dreamspell, Tzolkin, Long Count, Human Design, Astrology, Gematria',
+      'All 6 systems: Dreamspell, Tzolkin, Long Count, Human Design, Astrology, Kabbalah',
       'Complete oracle maps & wavespells',
       'Personal timeline with galactic returns',
       '30 AI interpretations/month',
@@ -138,7 +138,7 @@ export function Pricing() {
 
               {/* CTA */}
               <Button
-                className={`w-full h-11 rounded-none font-medium transition-all duration-200 ${
+                className={`w-full h-11 rounded-lg font-medium transition-all duration-200 ${
                   plan.highlighted
                     ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
                     : 'bg-foreground/5 hover:bg-foreground/10 text-foreground border border-border'
