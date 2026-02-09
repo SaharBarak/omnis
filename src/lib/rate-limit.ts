@@ -40,6 +40,11 @@ interface RateLimitEntry {
 // For production with multiple instances, use Upstash Redis or Vercel KV
 const store = new Map<string, RateLimitEntry>()
 
+/** Reset the in-memory rate limit store (for tests) */
+export function resetRateLimitStore() {
+  store.clear()
+}
+
 // Cleanup old entries periodically (every 5 minutes)
 let cleanupInterval: NodeJS.Timeout | null = null
 

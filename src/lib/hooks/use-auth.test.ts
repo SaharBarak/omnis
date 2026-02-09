@@ -7,6 +7,7 @@ const mockSignInWithOAuth = vi.fn()
 const mockSignInWithOtp = vi.fn()
 const mockSignOut = vi.fn()
 const mockGetUser = vi.fn()
+const mockGetSession = vi.fn()
 const mockUpdate = vi.fn()
 const mockSelect = vi.fn()
 const mockSingle = vi.fn()
@@ -21,6 +22,7 @@ vi.mock('@/lib/supabase/client', () => ({
       signInWithOtp: mockSignInWithOtp,
       signOut: mockSignOut,
       getUser: mockGetUser,
+      getSession: mockGetSession,
       onAuthStateChange: mockOnAuthStateChange,
     },
     from: vi.fn(() => ({
@@ -45,6 +47,9 @@ describe('useAuth Hook', () => {
     vi.clearAllMocks()
     vi.useFakeTimers({ shouldAdvanceTime: true })
 
+    // Default mock for getSession (no session)
+    mockGetSession.mockResolvedValue({ data: { session: null } })
+
     // Default mock for onAuthStateChange
     mockOnAuthStateChange.mockReturnValue({
       data: {
@@ -60,7 +65,11 @@ describe('useAuth Hook', () => {
   })
 
   describe('Initial State', () => {
-    it('should initialize with loading state', () => {
+    it('should initialize with loading state and resolve to not loading', async () => {
+      // Make getSession hang so we can observe loading=true
+      let resolveSession: (v: unknown) => void
+      mockGetSession.mockReturnValue(new Promise(r => { resolveSession = r }))
+
       const { result } = renderHook(() => useAuth())
 
       expect(result.current.loading).toBe(true)
@@ -68,6 +77,15 @@ describe('useAuth Hook', () => {
       expect(result.current.session).toBeNull()
       expect(result.current.profile).toBeNull()
       expect(result.current.isAuthenticated).toBe(false)
+
+      // Resolve getSession
+      await act(async () => {
+        resolveSession!({ data: { session: null } })
+      })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
     })
 
     it('should set up auth state listener on mount', () => {
@@ -153,17 +171,16 @@ describe('useAuth Hook', () => {
       expect(result.current.loading).toBe(false)
     })
 
-    it('should set loading to false after timeout if no session', async () => {
+    it('should set loading to false after getSession resolves with no session', async () => {
+      mockGetSession.mockResolvedValue({ data: { session: null } })
+
       const { result } = renderHook(() => useAuth())
 
-      expect(result.current.loading).toBe(true)
-
-      // Advance timers by 2 seconds
-      await act(async () => {
-        vi.advanceTimersByTime(2000)
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
       })
 
-      expect(result.current.loading).toBe(false)
+      expect(result.current.user).toBeNull()
     })
   })
 

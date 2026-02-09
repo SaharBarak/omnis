@@ -15,6 +15,7 @@ vi.mock('@/lib/services/ai-interpretations', () => ({
 // Import after mocking
 import { createClient } from '@/lib/supabase/server'
 import { generateInterpretation, generateQuickInterpretation } from '@/lib/services/ai-interpretations'
+import { resetRateLimitStore } from '@/lib/rate-limit'
 import { POST } from './route'
 
 // Helper to create mock NextRequest with POST body
@@ -61,6 +62,7 @@ const MOCK_INTERPRETATION = {
 describe('POST /api/ai/interpret', () => {
   beforeEach(() => {
     vi.resetAllMocks()
+    resetRateLimitStore()
     // Set required env vars
     vi.stubEnv('ANTHROPIC_API_KEY', 'test-api-key')
   })
