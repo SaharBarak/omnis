@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "scrape:knowledge": "npx tsx scripts/scrape-knowledge.ts",
-    "embed:knowledge": "npx tsx scripts/embed-knowledge.ts"
+    "embed:knowledge": "npx tsx scripts/embed-knowledge.ts",
+    "scrape:dry-run": "npx tsx scripts/scrape-knowledge.ts --dry-run"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",

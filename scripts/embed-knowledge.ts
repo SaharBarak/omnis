@@ -1,10 +1,15 @@
 #!/usr/bin/env npx tsx
 /**
  * Knowledge Embedding Pipeline
- * Reads scraped markdown content, chunks it, generates embeddings,
- * and upserts into the content_chunks table.
  *
- * Usage: npx tsx scripts/embed-knowledge.ts
+ * Reads scraped markdown content from data/knowledge/{source-id}/,
+ * chunks it, generates embeddings, and upserts into Supabase.
+ *
+ * Usage:
+ *   npx tsx scripts/embed-knowledge.ts                         # Embed all sources
+ *   npx tsx scripts/embed-knowledge.ts --source=jovianarchive  # Single source
+ *   npx tsx scripts/embed-knowledge.ts --category=kabbalah     # All in category
+ *   npx tsx scripts/embed-knowledge.ts --dry-run               # Show stats only
  */
 
 import { createClient } from '@supabase/supabase-js'
@@ -12,39 +17,28 @@ import OpenAI from 'openai'
 import * as fs from 'fs/promises'
 import * as path from 'path'
 
-const INPUT_DIR = path.join(process.cwd(), 'data', 'knowledge')
-const CHUNK_TARGET_TOKENS = 600 // ~500-800 range
-const CHUNK_MAX_CHARS = 3000 // rough upper bound
-const EMBEDDING_MODEL = 'text-embedding-3-small'
-const BATCH_SIZE = 20 // embeddings per API call
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
+interface KnowledgeSource {
+  id: string
+  name: string
+  url: string
+  category: string
+  startPaths: string[]
+  crawlPattern: string
+  priority: number
+  notes?: string
+}
 
 interface ParsedFile {
   sourceUrl: string
+  sourceId: string
+  category: string
   title: string
   content: string
   filename: string
-}
-
-function parseFrontmatter(raw: string): ParsedFile {
-  const match = raw.match(/^---\n([\s\S]*?)\n---\n\n([\s\S]*)$/)
-  if (!match) {
-    return { sourceUrl: '', title: 'Unknown', content: raw, filename: '' }
-  }
-
-  const frontmatter = match[1]
-  const content = match[2]
-
-  const sourceUrl = frontmatter.match(/source:\s*(.+)/)?.[1]?.trim() || ''
-  const title = frontmatter.match(/title:\s*"(.+)"/)?.[1]?.trim() || 'Unknown'
-
-  return { sourceUrl, title, content, filename: '' }
 }
 
 interface Chunk {
@@ -53,10 +47,70 @@ interface Chunk {
   metadata: Record<string, unknown>
 }
 
+// ---------------------------------------------------------------------------
+// Config
+// ---------------------------------------------------------------------------
+
+const SOURCES_FILE = path.join(__dirname, 'knowledge-sources.json')
+const DATA_DIR = path.join(process.cwd(), 'data', 'knowledge')
+const CHUNK_MAX_CHARS = 3000
+const EMBEDDING_MODEL = 'text-embedding-3-small'
+const BATCH_SIZE = 20
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
+
+// ---------------------------------------------------------------------------
+// Argument parsing
+// ---------------------------------------------------------------------------
+
+function parseArgs() {
+  const args = process.argv.slice(2)
+  const opts: Record<string, string> = {}
+  for (const arg of args) {
+    const m = arg.match(/^--(\w[\w-]*)(?:=(.+))?$/)
+    if (m) opts[m[1]] = m[2] ?? 'true'
+  }
+  return {
+    source: opts['source'] ?? null,
+    category: opts['category'] ?? null,
+    dryRun: opts['dry-run'] === 'true',
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Frontmatter parsing
+// ---------------------------------------------------------------------------
+
+function parseFrontmatter(raw: string, filename: string): ParsedFile {
+  const match = raw.match(/^---\n([\s\S]*?)\n---\n\n([\s\S]*)$/)
+  if (!match) {
+    return { sourceUrl: '', sourceId: '', category: '', title: 'Unknown', content: raw, filename }
+  }
+
+  const fm = match[1]
+  const content = match[2]
+
+  return {
+    sourceUrl: fm.match(/source:\s*(.+)/)?.[1]?.trim() || '',
+    sourceId: fm.match(/source_id:\s*(.+)/)?.[1]?.trim() || '',
+    category: fm.match(/category:\s*(.+)/)?.[1]?.trim() || '',
+    title: fm.match(/title:\s*"(.+)"/)?.[1]?.trim() || 'Unknown',
+    content,
+    filename,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Chunking
+// ---------------------------------------------------------------------------
+
 function chunkContent(content: string, title: string): Chunk[] {
   const chunks: Chunk[] = []
-
-  // Split by headings
   const sections = content.split(/\n(?=#{1,6}\s)/)
   let currentChunk = ''
   let chunkIndex = 0
@@ -64,11 +118,8 @@ function chunkContent(content: string, title: string): Chunk[] {
 
   for (const section of sections) {
     const headingMatch = section.match(/^(#{1,6})\s+(.+)/)
-    if (headingMatch) {
-      currentHeading = headingMatch[2].trim()
-    }
+    if (headingMatch) currentHeading = headingMatch[2].trim()
 
-    // If adding this section would exceed max, flush current chunk
     if (currentChunk && (currentChunk.length + section.length > CHUNK_MAX_CHARS)) {
       chunks.push({
         text: currentChunk.trim(),
@@ -80,9 +131,7 @@ function chunkContent(content: string, title: string): Chunk[] {
 
     currentChunk += section + '\n'
 
-    // If current chunk is large enough on its own, flush
     if (currentChunk.length >= CHUNK_MAX_CHARS) {
-      // Split large chunks by paragraphs
       const paragraphs = currentChunk.split(/\n\n+/)
       let subChunk = ''
       for (const para of paragraphs) {
@@ -100,7 +149,6 @@ function chunkContent(content: string, title: string): Chunk[] {
     }
   }
 
-  // Flush remaining
   if (currentChunk.trim()) {
     chunks.push({
       text: currentChunk.trim(),
@@ -112,6 +160,10 @@ function chunkContent(content: string, title: string): Chunk[] {
   return chunks.filter((c) => c.text.length > 30)
 }
 
+// ---------------------------------------------------------------------------
+// Embedding
+// ---------------------------------------------------------------------------
+
 async function generateEmbeddings(texts: string[]): Promise<number[][]> {
   const response = await openai.embeddings.create({
     model: EMBEDDING_MODEL,
@@ -120,75 +172,96 @@ async function generateEmbeddings(texts: string[]): Promise<number[][]> {
   return response.data.map((d) => d.embedding)
 }
 
-async function main() {
-  console.log('🧠 Starting embedding pipeline\n')
+// ---------------------------------------------------------------------------
+// Process a single source directory
+// ---------------------------------------------------------------------------
 
-  // Read all markdown files
-  const files = (await fs.readdir(INPUT_DIR)).filter((f) => f.endsWith('.md'))
-  console.log(`📂 Found ${files.length} files in ${INPUT_DIR}\n`)
+async function processSource(sourceId: string, dryRun: boolean): Promise<number> {
+  const sourceDir = path.join(DATA_DIR, sourceId)
+
+  let files: string[]
+  try {
+    files = (await fs.readdir(sourceDir)).filter(
+      (f) => f.endsWith('.md') && !f.startsWith('_')
+    )
+  } catch {
+    console.warn(`  ⚠ No data directory for ${sourceId}`)
+    return 0
+  }
+
+  if (files.length === 0) {
+    console.log(`  ⏭ No markdown files for ${sourceId}`)
+    return 0
+  }
+
+  console.log(`\n📂 ${sourceId}: ${files.length} files`)
+
+  if (dryRun) {
+    let totalChars = 0
+    for (const file of files) {
+      const raw = await fs.readFile(path.join(sourceDir, file), 'utf-8')
+      const parsed = parseFrontmatter(raw, file)
+      const chunks = chunkContent(parsed.content, parsed.title)
+      totalChars += parsed.content.length
+      console.log(`   ${file}: ${chunks.length} chunks, ${parsed.content.length} chars`)
+    }
+    console.log(`   Total: ~${Math.ceil(totalChars / 4)} tokens`)
+    return 0
+  }
 
   let totalChunks = 0
 
   for (const file of files) {
-    const raw = await fs.readFile(path.join(INPUT_DIR, file), 'utf-8')
-    const parsed = parseFrontmatter(raw)
-    parsed.filename = file
+    const raw = await fs.readFile(path.join(sourceDir, file), 'utf-8')
+    const parsed = parseFrontmatter(raw, file)
 
     if (!parsed.sourceUrl || !parsed.content) {
-      console.warn(`⏭ Skipping ${file}: missing source URL or content`)
+      console.warn(`  ⏭ Skipping ${file}: missing source URL or content`)
       continue
     }
 
-    console.log(`📄 Processing: ${parsed.title} (${file})`)
+    console.log(`  📄 ${parsed.title} (${file})`)
 
-    // Get or create knowledge_base entry
+    // Upsert knowledge_base entry
     const { data: kbEntry, error: kbError } = await supabase
       .from('knowledge_base')
+      .upsert(
+        {
+          source_url: parsed.sourceUrl,
+          title: parsed.title,
+          content: parsed.content,
+          metadata: {
+            source_id: parsed.sourceId || sourceId,
+            category: parsed.category,
+            scraped_at: new Date().toISOString(),
+            filename: file,
+          },
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'source_url' }
+      )
       .select('id')
-      .eq('source_url', parsed.sourceUrl)
       .single()
 
     if (kbError || !kbEntry) {
-      console.warn(`  ⚠ No knowledge_base entry for ${parsed.sourceUrl}, upserting...`)
-      const { data: inserted, error: insertErr } = await supabase
-        .from('knowledge_base')
-        .upsert(
-          {
-            source_url: parsed.sourceUrl,
-            title: parsed.title,
-            content: parsed.content,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'source_url' }
-        )
-        .select('id')
-        .single()
-
-      if (insertErr || !inserted) {
-        console.error(`  ❌ Failed to upsert: ${insertErr?.message}`)
-        continue
-      }
-      var knowledgeBaseId = inserted.id
-    } else {
-      var knowledgeBaseId = kbEntry.id
+      console.error(`     ❌ KB upsert failed: ${kbError?.message}`)
+      continue
     }
 
-    // Chunk content
+    const knowledgeBaseId = kbEntry.id
+
+    // Chunk and embed
     const chunks = chunkContent(parsed.content, parsed.title)
-    console.log(`  📦 ${chunks.length} chunks`)
+    console.log(`     📦 ${chunks.length} chunks`)
 
-    // Delete existing chunks for this entry
-    await supabase
-      .from('content_chunks')
-      .delete()
-      .eq('knowledge_base_id', knowledgeBaseId)
+    // Delete existing chunks
+    await supabase.from('content_chunks').delete().eq('knowledge_base_id', knowledgeBaseId)
 
-    // Generate embeddings in batches and insert
     for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
       const batch = chunks.slice(i, i + BATCH_SIZE)
       const texts = batch.map((c) => c.text)
 
-      console.log(`  🔄 Embedding batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(chunks.length / BATCH_SIZE)}`)
+      console.log(`     🔄 Embedding batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(chunks.length / BATCH_SIZE)}`)
       const embeddings = await generateEmbeddings(texts)
 
       const rows = batch.map((chunk, j) => ({
@@ -196,24 +269,72 @@ async function main() {
         chunk_index: chunk.index,
         chunk_text: chunk.text,
         embedding: JSON.stringify(embeddings[j]),
-        metadata: chunk.metadata,
+        metadata: {
+          ...chunk.metadata,
+          source_id: parsed.sourceId || sourceId,
+          category: parsed.category,
+        },
       }))
 
-      const { error: insertError } = await supabase
-        .from('content_chunks')
-        .insert(rows)
-
-      if (insertError) {
-        console.error(`  ❌ Insert error: ${insertError.message}`)
-      }
+      const { error: insertError } = await supabase.from('content_chunks').insert(rows)
+      if (insertError) console.error(`     ❌ Insert error: ${insertError.message}`)
 
       totalChunks += batch.length
     }
 
-    console.log(`  ✅ Done`)
+    console.log(`     ✅ Done`)
   }
 
-  console.log(`\n✅ Embedding pipeline complete! ${totalChunks} chunks embedded.`)
+  return totalChunks
 }
 
-main().catch(console.error)
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+
+async function main() {
+  const opts = parseArgs()
+
+  console.log('🧠 Omnis Knowledge Embedding Pipeline')
+  console.log(`   Mode: ${opts.dryRun ? 'DRY RUN' : 'LIVE'}`)
+
+  // Load sources config
+  const raw = await fs.readFile(SOURCES_FILE, 'utf-8')
+  const allSources: KnowledgeSource[] = JSON.parse(raw)
+
+  // Filter
+  let sources = allSources
+  if (opts.source) {
+    sources = allSources.filter((s) => s.id === opts.source)
+    if (sources.length === 0) {
+      console.error(`❌ Source "${opts.source}" not found.`)
+      process.exit(1)
+    }
+  } else if (opts.category) {
+    sources = allSources.filter((s) => s.category === opts.category)
+    if (sources.length === 0) {
+      console.error(`❌ No sources in category "${opts.category}".`)
+      process.exit(1)
+    }
+  }
+
+  // Also handle legacy flat data/knowledge/ files (no subdirectory)
+  // by checking if source directories exist
+  let grandTotal = 0
+
+  for (const source of sources) {
+    try {
+      const chunks = await processSource(source.id, opts.dryRun)
+      grandTotal += chunks
+    } catch (err: any) {
+      console.error(`❌ Error processing ${source.id}: ${err.message}`)
+    }
+  }
+
+  console.log(`\n✅ Embedding pipeline complete! ${grandTotal} chunks embedded.`)
+}
+
+main().catch((err) => {
+  console.error('Fatal error:', err)
+  process.exit(1)
+})
