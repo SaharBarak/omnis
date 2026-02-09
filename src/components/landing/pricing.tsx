@@ -80,11 +80,11 @@ export function Pricing() {
         </div>
 
         {/* Pricing cards — flat grid */}
-        <div className="grid md:grid-cols-3 gap-px bg-border border border-border">
+        <div className="grid md:grid-cols-3 gap-4">
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative bg-background p-6 lg:p-8 ${
+              className={`relative bg-card border border-border rounded-lg p-6 lg:p-8 ${
                 plan.highlighted ? 'bg-muted/20' : ''
               }`}
             >
@@ -138,7 +138,7 @@ export function Pricing() {
 
               {/* CTA */}
               <Button
-                className={`w-full h-11 rounded-none font-medium transition-all duration-200 ${
+                className={`w-full h-11 rounded-lg font-medium transition-all duration-200 ${
                   plan.highlighted
                     ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
                     : 'bg-foreground/5 hover:bg-foreground/10 text-foreground border border-border'

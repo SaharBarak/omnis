@@ -76,7 +76,7 @@ export function Testimonials() {
             <div className="flex gap-2">
               <button
                 onClick={prev}
-                className="w-10 h-10 flex items-center justify-center border border-border hover:border-foreground/30 text-muted-foreground hover:text-foreground transition-all duration-200"
+                className="w-10 h-10 flex items-center justify-center rounded-lg border border-border hover:border-foreground/30 text-muted-foreground hover:text-foreground transition-all duration-200"
                 aria-label="Previous testimonial"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -85,7 +85,7 @@ export function Testimonials() {
               </button>
               <button
                 onClick={next}
-                className="w-10 h-10 flex items-center justify-center border border-border hover:border-foreground/30 text-muted-foreground hover:text-foreground transition-all duration-200"
+                className="w-10 h-10 flex items-center justify-center rounded-lg border border-border hover:border-foreground/30 text-muted-foreground hover:text-foreground transition-all duration-200"
                 aria-label="Next testimonial"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -125,7 +125,7 @@ export function Testimonials() {
 
                   {/* Author */}
                   <div className="lg:col-span-4 flex items-start gap-4">
-                    <div className="w-12 h-12 bg-foreground/5 border border-border flex items-center justify-center text-foreground font-heading text-lg flex-shrink-0">
+                    <div className="w-12 h-12 bg-foreground/5 border border-border rounded-full flex items-center justify-center text-foreground font-heading text-lg flex-shrink-0">
                       {testimonial.avatar}
                     </div>
                     <div>

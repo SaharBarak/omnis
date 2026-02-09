@@ -28,7 +28,7 @@ const staggerContainer = {
 function ChartVisual() {
   return (
     <div
-      className="h-80 border border-border overflow-hidden"
+      className="h-80 border border-border overflow-hidden rounded-lg"
       style={{ background: systemGradients['human-design'] }}
     >
       <div className="h-full flex items-center justify-center p-8">
@@ -60,7 +60,7 @@ function ChartVisual() {
 
 function AIChatVisual() {
   return (
-    <div className="h-80 border border-border bg-card overflow-hidden flex flex-col justify-end p-6 gap-3">
+    <div className="h-80 border border-border bg-card overflow-hidden rounded-lg flex flex-col justify-end p-6 gap-3">
       {/* User message */}
       <motion.div
         className="self-end max-w-[85%]"
@@ -69,7 +69,7 @@ function AIChatVisual() {
         viewport={{ once: true }}
         transition={{ duration: 0.3, delay: 0.1 }}
       >
-        <div className="bg-primary text-primary-foreground text-sm px-4 py-3 rounded-none">
+        <div className="bg-primary text-primary-foreground text-sm px-4 py-3 rounded-lg">
           What does it mean that I&apos;m a Generator with a 6/2 profile?
         </div>
         <div className="text-[10px] text-muted-foreground mt-1 text-right">You</div>
@@ -83,7 +83,7 @@ function AIChatVisual() {
         viewport={{ once: true }}
         transition={{ duration: 0.3, delay: 0.25 }}
       >
-        <div className="bg-muted/50 border border-border text-foreground text-sm px-4 py-3 rounded-none">
+        <div className="bg-muted/50 border border-border text-foreground text-sm px-4 py-3 rounded-lg">
           <p className="leading-relaxed">As a Generator 6/2, your strategy is to <span className="font-medium">wait to respond</span>. The 6th line means you go through three life phases: experimentation until ~30, withdrawal and observation until ~50, then becoming a <span className="font-medium">role model</span>...</p>
         </div>
         <div className="text-[10px] text-muted-foreground mt-1">Omnis AI</div>
@@ -124,7 +124,7 @@ function BoardVisual() {
   ]
 
   return (
-    <div className="h-80 border border-border bg-card overflow-hidden relative dotted-bg">
+    <div className="h-80 border border-border bg-card overflow-hidden rounded-lg relative dotted-bg">
       <svg className="absolute inset-0 w-full h-full" viewBox="0 0 280 200">
         {/* Connection lines */}
         {lines.map((line, i) => (

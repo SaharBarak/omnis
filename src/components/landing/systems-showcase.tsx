@@ -68,10 +68,10 @@ const systems = [
     ),
   },
   {
-    name: 'Gematria',
+    name: 'Kabbalah',
     slug: 'gematria',
-    subtitle: 'HEBREW NUMEROLOGY',
-    description: 'The numbers behind words. Seven Hebrew calculation methods from the Kabbalistic tradition revealing hidden numerical connections.',
+    subtitle: 'HEBREW TEACHINGS',
+    description: 'The hidden structure of creation. Gematria calculations, Tree of Life correspondences, and the numerical wisdom behind Hebrew letters and words.',
     icon: (
       <svg viewBox="0 0 32 32" className="w-8 h-8">
         <rect x="6" y="6" width="20" height="20" rx="2" fill="none" stroke="currentColor" strokeWidth="1" />
@@ -158,7 +158,7 @@ export function SystemsShowcase() {
             {systems.map((system, index) => (
               <motion.div
                 key={system.slug}
-                className="min-w-[280px] snap-start flex-shrink-0 border border-border bg-background hover:border-primary/30 transition-colors duration-200"
+                className="min-w-[280px] snap-start flex-shrink-0 border border-border bg-background hover:border-primary/30 transition-colors duration-200 rounded-lg overflow-hidden"
                 variants={fadeIn}
                 transition={{ duration: 0.3, delay: index * 0.06 }}
               >
@@ -168,11 +168,11 @@ export function SystemsShowcase() {
           </div>
 
           {/* xl: locked 5-column grid */}
-          <div className="hidden xl:grid grid-cols-5 gap-px bg-border">
+          <div className="hidden xl:grid grid-cols-5 gap-4">
             {systems.map((system, index) => (
               <motion.div
                 key={system.slug}
-                className="bg-background hover:bg-muted/30 transition-colors duration-200"
+                className="bg-background hover:bg-muted/30 transition-colors duration-200 rounded-lg overflow-hidden"
                 variants={fadeIn}
                 transition={{ duration: 0.3, delay: index * 0.06 }}
               >

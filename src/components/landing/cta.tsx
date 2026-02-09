@@ -28,7 +28,7 @@ export function CTA() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
           <Button
             size="lg"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 h-12 text-base rounded-none transition-all duration-200 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 h-12 text-base rounded-lg transition-all duration-200 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             asChild
           >
             <Link href="/login">Get Your Chart</Link>
@@ -36,7 +36,7 @@ export function CTA() {
           <Button
             variant="outline"
             size="lg"
-            className="text-white/60 hover:text-white px-8 h-12 text-base rounded-none border-white/15 hover:border-white/30 bg-transparent hover:bg-white/[0.03] transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="text-white/60 hover:text-white px-8 h-12 text-base rounded-lg border-white/15 hover:border-white/30 bg-transparent hover:bg-white/[0.03] transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             asChild
           >
             <Link href="/today">See Today&apos;s Kin</Link>
