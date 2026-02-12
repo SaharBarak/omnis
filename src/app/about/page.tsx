@@ -1,18 +1,45 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { Header, Footer } from '@/components/landing'
+import { JsonLd, SITE_URL, organizationSchema, buildBreadcrumbs } from '@/lib/seo/json-ld'
+import { PageBreadcrumbs } from '@/components/ui/page-breadcrumbs'
 
 export const metadata: Metadata = {
-  title: 'About Omnis - Your Cosmic Blueprint',
-  description: 'Learn about Omnis and our mission to help you discover your cosmic blueprint through Dreamspell, Human Design, Astrology, and Gematria.',
+  title: 'About Omnis - Unifying Ancient Wisdom Systems for Modern Seekers',
+  description: 'Learn about Omnis and our mission to make Dreamspell, Human Design, Astrology, Kabbalah, and Tzolkin accessible, accurate, and interconnected. Privacy-first, open approach.',
+  alternates: {
+    canonical: 'https://omnis.app/about',
+  },
+  openGraph: {
+    title: 'About Omnis - Unifying Ancient Wisdom Systems for Modern Seekers',
+    description: 'Our mission: making five ancient wisdom systems accessible, accurate, and interconnected.',
+    url: 'https://omnis.app/about',
+  },
 }
+
+const aboutOrgSchema = {
+  "@context": "https://schema.org",
+  ...organizationSchema,
+  "description": "Omnis unifies five ancient wisdom systems — Dreamspell, Human Design, Astrology, Kabbalah, and Tzolkin — into one accessible platform for modern seekers.",
+  "foundingDate": "2024",
+  "knowsAbout": ["Dreamspell", "Human Design", "Astrology", "Kabbalah", "Gematria", "Tzolkin", "Mayan Calendar"],
+}
+
+const breadcrumbSchema = buildBreadcrumbs([
+  { name: 'Home', url: SITE_URL },
+  { name: 'About', url: `${SITE_URL}/about` },
+])
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      <JsonLd data={aboutOrgSchema} id="json-ld-organization" />
+      <JsonLd data={breadcrumbSchema} id="json-ld-breadcrumbs" />
+
       <main className="pt-24 pb-16 px-6">
         <div className="max-w-3xl mx-auto">
+          <PageBreadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'About' }]} />
           {/* Hero */}
           <div className="text-center mb-12">
             <div className="earth-badge inline-flex mb-4">

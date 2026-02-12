@@ -1,13 +1,79 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { Header, Footer } from '@/components/landing'
-import { DocLayout, DocHeader, DocSection, DocNav, DocStats, DocInfoBox, DocPullQuote } from '@/components/docs'
+import { DocLayout, DocHeader, DocSection, DocNav, DocStats, DocInfoBox, DocPullQuote, QuickAnswer } from '@/components/docs'
 import { humanDesignDocs, docStructure } from '@/lib/docs/content'
+import { JsonLd, SITE_URL, organizationSchema, buildBreadcrumbs } from '@/lib/seo/json-ld'
 
 export const metadata: Metadata = {
-  title: 'Human Design Documentation',
-  description: 'Complete guide to Human Design: Five Types, Inner Authority, Nine Centers, Profiles, Gates & Channels, and the Incarnation Cross.',
-  keywords: 'human design guide, bodygraph, type, authority, strategy, generator, projector, manifestor, reflector, ra uru hu',
+  title: 'Human Design Explained: Types, Strategy & Authority Guide',
+  description: 'Complete guide to Human Design: the 5 Types (Generator, Projector, Manifestor, Manifesting Generator, Reflector), Inner Authority, 9 Centers, 12 Profiles, 64 Gates & 36 Channels.',
+  keywords: 'human design explained, human design types, bodygraph, type, authority, strategy, generator, projector, manifestor, reflector, ra uru hu, free human design chart',
+  alternates: {
+    canonical: 'https://omnis.app/learn/human-design',
+  },
+  openGraph: {
+    title: 'Human Design Explained: Types, Strategy & Authority Guide',
+    description: 'Learn about the 5 Human Design Types, Strategy, Authority, Centers, and Profiles. Free comprehensive guide.',
+    url: 'https://omnis.app/learn/human-design',
+  },
+}
+
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Human Design Explained: Types, Strategy & Authority Guide",
+  "description": "Complete guide to Human Design: the 5 Types, Inner Authority, 9 Centers, 12 Profiles, 64 Gates & 36 Channels.",
+  "author": { "@id": `${SITE_URL}/#organization` },
+  "publisher": { "@id": `${SITE_URL}/#organization` },
+  "datePublished": "2024-06-01",
+  "dateModified": "2025-01-15",
+  "keywords": ["human design", "bodygraph", "types", "authority", "strategy", "generator", "projector", "manifestor"],
+  "mainEntityOfPage": `${SITE_URL}/learn/human-design`,
+}
+
+const courseSchema = {
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "Human Design: Types, Strategy & Authority Guide",
+  "description": "Learn the Human Design system — 5 Types, Inner Authority, 9 Centers, Profiles, Gates & Channels.",
+  "provider": { "@id": `${SITE_URL}/#organization` },
+  "isAccessibleForFree": true,
+  "url": `${SITE_URL}/learn/human-design`,
+}
+
+const breadcrumbSchema = buildBreadcrumbs([
+  { name: 'Home', url: SITE_URL },
+  { name: 'Learn', url: `${SITE_URL}/learn` },
+  { name: 'Human Design', url: `${SITE_URL}/learn/human-design` },
+])
+
+const humanDesignFaqs = [
+  {
+    question: "What are the 5 Human Design types?",
+    answer: "The 5 Human Design types are: Generator (37% of population, strategy: respond), Manifesting Generator (33%, strategy: respond then inform), Projector (20%, strategy: wait for invitation), Manifestor (8%, strategy: inform), and Reflector (1%, strategy: wait a lunar cycle). Your type determines your basic strategy for making decisions.",
+  },
+  {
+    question: "How is a Human Design chart calculated?",
+    answer: "A Human Design chart (Bodygraph) is calculated from your exact birth date, time, and location. It combines the I Ching, Kabbalah Tree of Life, Hindu Chakra system, and Western Astrology into a single diagram showing your 9 Centers, defined Channels, activated Gates, Type, Strategy, and Authority.",
+  },
+  {
+    question: "What is Inner Authority in Human Design?",
+    answer: "Inner Authority is your body's reliable decision-making mechanism. The main authorities are: Emotional (Solar Plexus — wait for clarity), Sacral (gut response — listen to uh-huh/uh-uh), Splenic (intuition — trust the moment), Ego/Heart (willpower — honor commitments), Self-Projected (identity — talk it out), and Lunar (Reflectors — wait 28 days).",
+  },
+]
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": humanDesignFaqs.map(faq => ({
+    "@type": "Question",
+    "name": faq.question,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": faq.answer,
+    },
+  })),
 }
 
 // Type colors
@@ -28,12 +94,22 @@ export default function HumanDesignDocsPage() {
         sections={docStructure.sections}
         currentSection="human-design"
       >
+        <JsonLd data={articleSchema} id="json-ld-article" />
+        <JsonLd data={courseSchema} id="json-ld-course" />
+        <JsonLd data={breadcrumbSchema} id="json-ld-breadcrumbs" />
+        <JsonLd data={faqSchema} id="json-ld-faq" />
+
         {/* Header */}
         <DocHeader
           badge="Human Design"
           title={humanDesignDocs.overview.title}
           subtitle={humanDesignDocs.overview.subtitle}
           badgeColor="secondary"
+        />
+
+        <QuickAnswer
+          question="What is Human Design?"
+          answer="Human Design is a system combining the I Ching, Kabbalah, Hindu Chakras, and Astrology into a single Bodygraph chart. Calculated from your birth date, time, and place, it reveals your Type (how you exchange energy), Strategy (how to make decisions), and Authority (your body's decision-making mechanism). There are 5 Types: Generator, Manifesting Generator, Projector, Manifestor, and Reflector."
         />
 
         {/* Introduction with drop cap */}
@@ -202,6 +278,18 @@ export default function HumanDesignDocsPage() {
           <DocInfoBox variant="default" title="Your Personal Experiment">
             <p className="leading-relaxed">{humanDesignDocs.experiment.content.trim()}</p>
           </DocInfoBox>
+        </DocSection>
+
+        {/* FAQ */}
+        <DocSection id="hd-faq" title="Frequently Asked Questions">
+          <div className="space-y-4">
+            {humanDesignFaqs.map((faq, i) => (
+              <div key={i} className="doc-card p-5">
+                <h4 className="font-heading text-lg text-foreground mb-2">{faq.question}</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">{faq.answer}</p>
+              </div>
+            ))}
+          </div>
         </DocSection>
 
         {/* CTA */}

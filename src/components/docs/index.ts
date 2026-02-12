@@ -33,3 +33,6 @@ export {
   DocInfoBox,
   DocPullQuote
 } from './doc-layout'
+
+// SEO components
+export { QuickAnswer } from './QuickAnswer'

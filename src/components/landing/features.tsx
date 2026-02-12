@@ -181,7 +181,7 @@ const features = [
   {
     label: 'PERSONAL CHART',
     heading: 'Your complete chart',
-    body: 'Human Design bodygraph, Dreamspell oracle, astrology natal chart, Tzolkin day sign, and Hebrew gematria — all calculated from your birth data and displayed in a single professional view. No more switching between four websites.',
+    body: 'Human Design bodygraph, Dreamspell oracle, astrology natal chart, Tzolkin day sign, and Kabbalah teachings — all calculated from your birth data and displayed in a single professional view. No more switching between four websites.',
     visual: <ChartVisual />,
     imageFirst: true,
     slideVariant: 'slide-left' as const,

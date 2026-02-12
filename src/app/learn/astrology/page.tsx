@@ -1,13 +1,79 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { Header, Footer } from '@/components/landing'
-import { DocLayout, DocHeader, DocSection, DocNav, DocStats, DocInfoBox, DocPullQuote } from '@/components/docs'
+import { DocLayout, DocHeader, DocSection, DocNav, DocStats, DocInfoBox, DocPullQuote, QuickAnswer } from '@/components/docs'
 import { astrologyDocs, docStructure } from '@/lib/docs/content'
+import { JsonLd, SITE_URL, organizationSchema, buildBreadcrumbs } from '@/lib/seo/json-ld'
 
 export const metadata: Metadata = {
-  title: 'Astrology Documentation',
-  description: 'Complete guide to Western Astrology: Sun, Moon, Rising, 12 Zodiac Signs, Planets, Houses, and Aspects.',
-  keywords: 'astrology guide, zodiac signs, natal chart, planets, houses, aspects, sun sign, moon sign, rising sign, horoscope',
+  title: 'Western Astrology Guide: Zodiac Signs, Planets, Houses & Aspects',
+  description: 'Complete guide to Western Astrology: the Big Three (Sun, Moon, Rising), all 12 Zodiac Signs, 10 Planets, 12 Houses, and major Aspects. Learn to read your natal chart.',
+  keywords: 'astrology guide, zodiac signs, natal chart, planets, houses, aspects, sun sign, moon sign, rising sign, horoscope, what is a natal chart, birth chart reading',
+  alternates: {
+    canonical: 'https://omnis.app/learn/astrology',
+  },
+  openGraph: {
+    title: 'Western Astrology Guide: Zodiac Signs, Planets, Houses & Aspects',
+    description: 'Learn Western Astrology: 12 Zodiac Signs, Planets, Houses, and Aspects. Free comprehensive guide.',
+    url: 'https://omnis.app/learn/astrology',
+  },
+}
+
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Western Astrology Guide: Zodiac Signs, Planets, Houses & Aspects",
+  "description": "Complete guide to Western Astrology: the Big Three, all 12 Zodiac Signs, 10 Planets, 12 Houses, and major Aspects.",
+  "author": { "@id": `${SITE_URL}/#organization` },
+  "publisher": { "@id": `${SITE_URL}/#organization` },
+  "datePublished": "2024-06-01",
+  "dateModified": "2025-01-15",
+  "keywords": ["astrology", "zodiac signs", "natal chart", "planets", "houses", "aspects", "sun moon rising"],
+  "mainEntityOfPage": `${SITE_URL}/learn/astrology`,
+}
+
+const courseSchema = {
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "Western Astrology: Zodiac Signs, Planets, Houses & Aspects",
+  "description": "Learn Western Astrology — the Big Three, 12 Signs, Planets, Houses, and how to read a natal chart.",
+  "provider": { "@id": `${SITE_URL}/#organization` },
+  "isAccessibleForFree": true,
+  "url": `${SITE_URL}/learn/astrology`,
+}
+
+const breadcrumbSchema = buildBreadcrumbs([
+  { name: 'Home', url: SITE_URL },
+  { name: 'Learn', url: `${SITE_URL}/learn` },
+  { name: 'Astrology', url: `${SITE_URL}/learn/astrology` },
+])
+
+const astrologyFaqs = [
+  {
+    question: "What is a natal chart?",
+    answer: "A natal chart (birth chart) is a map of the sky at the exact moment and place of your birth. It shows the positions of the Sun, Moon, and planets across the 12 zodiac signs and 12 houses. Your natal chart reveals personality traits, life themes, challenges, and potential. You need your birth date, time, and location to generate an accurate chart.",
+  },
+  {
+    question: "What are Sun, Moon, and Rising signs?",
+    answer: "Your Sun sign represents your core identity and ego — who you are at your center. Your Moon sign reveals your emotional inner world and instincts. Your Rising sign (Ascendant) is the mask you wear and how others perceive you at first meeting. Together, these three form 'the Big Three' — the foundation of your astrological profile.",
+  },
+  {
+    question: "How many zodiac signs are there?",
+    answer: "There are 12 zodiac signs in Western Astrology: Aries, Taurus, Gemini, Cancer, Leo, Virgo, Libra, Scorpio, Sagittarius, Capricorn, Aquarius, and Pisces. They are grouped into four elements (Fire, Earth, Air, Water) and three modalities (Cardinal, Fixed, Mutable).",
+  },
+]
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": astrologyFaqs.map(faq => ({
+    "@type": "Question",
+    "name": faq.question,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": faq.answer,
+    },
+  })),
 }
 
 // Element color utilities
@@ -27,12 +93,22 @@ export default function AstrologyDocsPage() {
         sections={docStructure.sections}
         currentSection="astrology"
       >
+        <JsonLd data={articleSchema} id="json-ld-article" />
+        <JsonLd data={courseSchema} id="json-ld-course" />
+        <JsonLd data={breadcrumbSchema} id="json-ld-breadcrumbs" />
+        <JsonLd data={faqSchema} id="json-ld-faq" />
+
         {/* Header */}
         <DocHeader
           badge="Astrology"
           title={astrologyDocs.overview.title}
           subtitle={astrologyDocs.overview.subtitle}
           badgeColor="accent"
+        />
+
+        <QuickAnswer
+          question="What is Western Astrology?"
+          answer="Western Astrology is the study of how planetary positions at the time of your birth influence your personality and life path. Your natal chart maps the Sun, Moon, and 8 planets across 12 zodiac signs and 12 houses, revealing your core identity (Sun sign), emotional nature (Moon sign), and outward persona (Rising sign). No birth time? You can still analyze your planetary signs and aspects."
         />
 
         {/* Introduction with drop cap */}
@@ -309,6 +385,18 @@ export default function AstrologyDocsPage() {
             </p>
           </DocInfoBox>
         </section>
+
+        {/* FAQ */}
+        <DocSection id="astro-faq" title="Frequently Asked Questions">
+          <div className="space-y-4">
+            {astrologyFaqs.map((faq, i) => (
+              <div key={i} className="doc-card p-5">
+                <h4 className="font-heading text-lg text-foreground mb-2">{faq.question}</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">{faq.answer}</p>
+              </div>
+            ))}
+          </div>
+        </DocSection>
 
         {/* CTA */}
         <section className="doc-card p-8 sm:p-10 text-center mt-16">

@@ -21,7 +21,7 @@ export function CTA() {
 
         {/* Description */}
         <p className="text-lg text-white/45 mb-10 max-w-lg mx-auto leading-relaxed">
-          Human Design, Dreamspell, Astrology, Tzolkin, and Gematria. One profile. One view. Saved for reference.
+          Human Design, Dreamspell, Astrology, Tzolkin, and Kabbalah. One profile. One view. Saved for reference.
         </p>
 
         {/* CTA buttons */}

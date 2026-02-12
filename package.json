@@ -10,11 +10,11 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "scrape:knowledge": "npx tsx scripts/scrape-knowledge.ts",
-    "embed:knowledge": "npx tsx scripts/embed-knowledge.ts",
-    "scrape:dry-run": "npx tsx scripts/scrape-knowledge.ts --dry-run",
-    "scrape:pipeline": "npx tsx scripts/run-scraper.ts",
-    "scrape:no-db": "npx tsx scripts/scrape-knowledge.ts --no-db"
+    "scrape:knowledge": "npx tsx packages/scraper/scrape-knowledge.ts",
+    "embed:knowledge": "npx tsx packages/scraper/embed-knowledge.ts",
+    "scrape:dry-run": "npx tsx packages/scraper/scrape-knowledge.ts --dry-run",
+    "scrape:pipeline": "npx tsx packages/scraper/run-scraper.ts",
+    "scrape:no-db": "npx tsx packages/scraper/scrape-knowledge.ts --no-db"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",

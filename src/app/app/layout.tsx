@@ -402,7 +402,7 @@ function ErrorState() {
         </p>
         <button
           onClick={() => window.location.reload()}
-          className="mt-2 px-6 h-10 bg-primary text-primary-foreground text-sm font-medium rounded-none transition-colors duration-200 hover:bg-primary/90 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className="mt-2 px-6 h-10 bg-primary text-primary-foreground text-sm font-medium rounded-lg transition-colors duration-200 hover:bg-primary/90 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
           Try Again
         </button>

@@ -4,9 +4,17 @@ import { Header, Footer } from '@/components/landing'
 import { docStructure } from '@/lib/docs/content'
 
 export const metadata: Metadata = {
-  title: 'Knowledge Base - Omnis',
-  description: 'Comprehensive documentation for Dreamspell, Human Design, Astrology, Gematria, and traditional Tzolkin. Free educational resources to understand your cosmic blueprint.',
-  keywords: 'dreamspell documentation, human design guide, astrology tutorial, gematria learn, tzolkin calendar, symbolic systems',
+  title: 'Learn Ancient Wisdom Systems: Dreamspell, Human Design, Astrology & More',
+  description: 'Free comprehensive guides to Dreamspell, Human Design, Western Astrology, Kabbalah & Gematria, and the traditional Mayan Tzolkin. Written with respect for the lineages.',
+  keywords: 'dreamspell guide, human design guide, astrology tutorial, gematria learn, tzolkin calendar, kabbalah, symbolic systems, wisdom systems',
+  alternates: {
+    canonical: 'https://omnis.app/learn',
+  },
+  openGraph: {
+    title: 'Learn Ancient Wisdom Systems: Dreamspell, Human Design, Astrology & More',
+    description: 'Free comprehensive guides to five ancient wisdom systems. Learn about your cosmic blueprint.',
+    url: 'https://omnis.app/learn',
+  },
 }
 
 // Section icons with enhanced styling

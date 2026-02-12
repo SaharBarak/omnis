@@ -1,13 +1,79 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { Header, Footer } from '@/components/landing'
-import { DocLayout, DocHeader, DocSection, DocNav, DocStats, DocInfoBox } from '@/components/docs'
+import { DocLayout, DocHeader, DocSection, DocNav, DocStats, DocInfoBox, QuickAnswer } from '@/components/docs'
 import { tzolkinDocs, docStructure } from '@/lib/docs/content'
+import { JsonLd, SITE_URL, organizationSchema, buildBreadcrumbs } from '@/lib/seo/json-ld'
 
 export const metadata: Metadata = {
-  title: 'Traditional Tzolkin Documentation',
-  description: 'Learn about the Traditional Tzolkin - the living Maya calendar kept by daykeepers for over 2,500 years. Explore the 20 Nawales and 13 Numbers.',
-  keywords: 'tzolkin, maya calendar, nawales, cholqij, traditional calendar, mayan daykeeper, indigenous wisdom',
+  title: 'Traditional Mayan Tzolkin Calendar: 20 Nawales & Sacred Count',
+  description: 'Learn the Traditional Tzolkin — the living Maya sacred calendar kept by daykeepers for over 2,500 years. Explore the 20 Nawales, 13 Numbers, and how it differs from Dreamspell.',
+  keywords: 'tzolkin, mayan calendar, maya calendar, nawales, cholqij, traditional calendar, mayan daykeeper, indigenous wisdom, what is the tzolkin, how old is the mayan calendar',
+  alternates: {
+    canonical: 'https://omnis.app/learn/tzolkin',
+  },
+  openGraph: {
+    title: 'Traditional Mayan Tzolkin Calendar: 20 Nawales & Sacred Count',
+    description: 'Explore the living Maya Tzolkin calendar: 20 Nawales, 13 Numbers, and 2,500+ years of tradition.',
+    url: 'https://omnis.app/learn/tzolkin',
+  },
+}
+
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Traditional Mayan Tzolkin Calendar: 20 Nawales & Sacred Count",
+  "description": "Learn the Traditional Tzolkin — the living Maya sacred calendar kept by daykeepers for over 2,500 years.",
+  "author": { "@id": `${SITE_URL}/#organization` },
+  "publisher": { "@id": `${SITE_URL}/#organization` },
+  "datePublished": "2024-06-01",
+  "dateModified": "2025-01-15",
+  "keywords": ["tzolkin", "mayan calendar", "nawales", "cholqij", "maya daykeeper", "sacred calendar"],
+  "mainEntityOfPage": `${SITE_URL}/learn/tzolkin`,
+}
+
+const courseSchema = {
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "Traditional Mayan Tzolkin Calendar: 20 Nawales & Sacred Count",
+  "description": "Learn the Traditional Tzolkin — 20 Nawales, 13 Numbers, and 2,500+ years of living Maya tradition.",
+  "provider": { "@id": `${SITE_URL}/#organization` },
+  "isAccessibleForFree": true,
+  "url": `${SITE_URL}/learn/tzolkin`,
+}
+
+const breadcrumbSchema = buildBreadcrumbs([
+  { name: 'Home', url: SITE_URL },
+  { name: 'Learn', url: `${SITE_URL}/learn` },
+  { name: 'Tzolkin', url: `${SITE_URL}/learn/tzolkin` },
+])
+
+const tzolkinFaqs = [
+  {
+    question: "What is the Tzolkin?",
+    answer: "The Tzolkin (Cholq'ij in K'iche' Maya) is the 260-day sacred calendar of the Maya civilization. It combines 20 day signs (Nawales) with 13 numbers to create a cycle of 260 unique days. Unlike the Dreamspell, the Tzolkin is an unbroken count maintained by Maya daykeepers for over 2,500 years and is still actively used today.",
+  },
+  {
+    question: "What are Nawales?",
+    answer: "Nawales are the 20 day signs of the traditional Tzolkin calendar. Each Nawal carries specific energies and meanings — for example, Imix (Crocodile/Earth) represents the primordial source, while Ajaw (Lord/Sun) represents light and wisdom. Nawales are associated with the four cardinal directions and rotate in a fixed sequence.",
+  },
+  {
+    question: "How old is the Mayan calendar?",
+    answer: "The Tzolkin sacred calendar has been kept continuously for over 2,500 years. Archaeological evidence dates the earliest Tzolkin use to around 500-600 BCE. Unlike modern reconstructions, the traditional count has never been interrupted — Maya daykeepers (Aj Q'ijab') have maintained the exact day count through generations to the present day.",
+  },
+]
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": tzolkinFaqs.map(faq => ({
+    "@type": "Question",
+    "name": faq.question,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": faq.answer,
+    },
+  })),
 }
 
 // Direction colors
@@ -27,12 +93,22 @@ export default function TzolkinDocsPage() {
         sections={docStructure.sections}
         currentSection="tzolkin"
       >
+        <JsonLd data={articleSchema} id="json-ld-article" />
+        <JsonLd data={courseSchema} id="json-ld-course" />
+        <JsonLd data={breadcrumbSchema} id="json-ld-breadcrumbs" />
+        <JsonLd data={faqSchema} id="json-ld-faq" />
+
         {/* Header */}
         <DocHeader
           badge="Traditional Tzolkin"
           title={tzolkinDocs.overview.title}
           subtitle={tzolkinDocs.overview.subtitle}
           badgeColor="accent"
+        />
+
+        <QuickAnswer
+          question="What is the Tzolkin?"
+          answer="The Tzolkin is the 260-day sacred calendar of the Maya civilization, combining 20 day signs (Nawales) with 13 numbers. It has been kept continuously by Maya daykeepers for over 2,500 years and is still actively used in Guatemala and southern Mexico today. Unlike the modern Dreamspell system, the Tzolkin is an unbroken traditional count."
         />
 
         {/* Introduction with drop cap */}
@@ -141,6 +217,18 @@ export default function TzolkinDocsPage() {
             <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
               {tzolkinDocs.ceremonialUse.content.trim()}
             </p>
+          </div>
+        </DocSection>
+
+        {/* FAQ */}
+        <DocSection id="tz-faq" title="Frequently Asked Questions">
+          <div className="space-y-4">
+            {tzolkinFaqs.map((faq, i) => (
+              <div key={i} className="doc-card p-5">
+                <h4 className="font-heading text-lg text-foreground mb-2">{faq.question}</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">{faq.answer}</p>
+              </div>
+            ))}
           </div>
         </DocSection>
 

@@ -1,13 +1,75 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { Header, Footer } from '@/components/landing'
-import { DocLayout, DocHeader, DocSection, DocNav, DocInfoBox, DocPullQuote } from '@/components/docs'
+import { DocLayout, DocHeader, DocSection, DocNav, DocInfoBox, DocPullQuote, QuickAnswer } from '@/components/docs'
 import { integrationDocs, docStructure } from '@/lib/docs/content'
+import { JsonLd, SITE_URL, organizationSchema, buildBreadcrumbs } from '@/lib/seo/json-ld'
 
 export const metadata: Metadata = {
-  title: 'System Integration Guide',
-  description: 'Learn how Dreamspell, Human Design, Astrology, Gematria, and Traditional Tzolkin work together. Find unity in the diversity of symbolic systems.',
-  keywords: 'system integration, dreamspell astrology, human design comparison, symbolic systems, holistic wisdom, unified perspective',
+  title: 'How Dreamspell, Human Design & Astrology Connect: Integration Guide',
+  description: 'Discover how Dreamspell, Human Design, Astrology, Kabbalah, and Tzolkin work together. Find correspondences between systems and build a unified daily practice.',
+  keywords: 'system integration, dreamspell astrology connection, human design comparison, can I use multiple systems, how do wisdom systems connect, symbolic systems, holistic wisdom',
+  alternates: {
+    canonical: 'https://omnis.app/learn/integration',
+  },
+  openGraph: {
+    title: 'How Dreamspell, Human Design & Astrology Connect: Integration Guide',
+    description: 'Discover how five ancient wisdom systems connect and complement each other.',
+    url: 'https://omnis.app/learn/integration',
+  },
+}
+
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How Dreamspell, Human Design & Astrology Connect: Integration Guide",
+  "description": "Discover how Dreamspell, Human Design, Astrology, Kabbalah, and Tzolkin work together.",
+  "author": { "@id": `${SITE_URL}/#organization` },
+  "publisher": { "@id": `${SITE_URL}/#organization` },
+  "datePublished": "2024-06-01",
+  "dateModified": "2025-01-15",
+  "keywords": ["system integration", "dreamspell astrology", "human design comparison", "wisdom systems"],
+  "mainEntityOfPage": `${SITE_URL}/learn/integration`,
+}
+
+const courseSchema = {
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "How Dreamspell, Human Design & Astrology Connect",
+  "description": "Learn how five ancient wisdom systems connect and complement each other for a unified understanding.",
+  "provider": { "@id": `${SITE_URL}/#organization` },
+  "isAccessibleForFree": true,
+  "url": `${SITE_URL}/learn/integration`,
+}
+
+const breadcrumbSchema = buildBreadcrumbs([
+  { name: 'Home', url: SITE_URL },
+  { name: 'Learn', url: `${SITE_URL}/learn` },
+  { name: 'Integration', url: `${SITE_URL}/learn/integration` },
+])
+
+const integrationFaqs = [
+  {
+    question: "Can I use multiple wisdom systems at the same time?",
+    answer: "Yes — that is exactly what Omnis is designed for. Dreamspell, Human Design, Astrology, Kabbalah, and Tzolkin each illuminate different aspects of who you are. Rather than competing, they complement each other: Dreamspell reveals your timing and synchronicity, Human Design shows your strategy and authority, Astrology maps your psychological depth, and Kabbalah connects you to sacred tradition.",
+  },
+  {
+    question: "How do these systems connect?",
+    answer: "The systems share deep structural parallels. Human Design's Bodygraph is built directly on the Kabbalistic Tree of Life. Astrology's planets correspond to specific Sefirot in Kabbalah. The Dreamspell's 13 Tones mirror the 10 Sefirot plus 3 veils of Ein Sof. When multiple systems point to the same theme in your chart, it indicates a strongly emphasized quality in your design.",
+  },
+]
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": integrationFaqs.map(faq => ({
+    "@type": "Question",
+    "name": faq.question,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": faq.answer,
+    },
+  })),
 }
 
 // System colors for the five lenses
@@ -27,12 +89,22 @@ export default function IntegrationDocsPage() {
         sections={docStructure.sections}
         currentSection="integration"
       >
+        <JsonLd data={articleSchema} id="json-ld-article" />
+        <JsonLd data={courseSchema} id="json-ld-course" />
+        <JsonLd data={breadcrumbSchema} id="json-ld-breadcrumbs" />
+        <JsonLd data={faqSchema} id="json-ld-faq" />
+
         {/* Header */}
         <DocHeader
           badge="Integration"
           title={integrationDocs.title}
           subtitle={integrationDocs.subtitle}
           badgeColor="primary"
+        />
+
+        <QuickAnswer
+          question="Can I use Dreamspell, Human Design, and Astrology together?"
+          answer="Yes. Each system illuminates a different facet of who you are: Dreamspell reveals your timing and cosmic purpose, Human Design shows your decision-making strategy and energy type, Astrology maps your psychological depth and life transits, and Kabbalah connects you to sacred numerology. When multiple systems agree on a theme, it signals a core quality in your design. Omnis calculates all five systems from a single birth date."
         />
 
         {/* Introduction with drop cap */}
@@ -296,6 +368,18 @@ export default function IntegrationDocsPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </DocSection>
+
+        {/* FAQ */}
+        <DocSection id="int-faq" title="Frequently Asked Questions">
+          <div className="space-y-4">
+            {integrationFaqs.map((faq, i) => (
+              <div key={i} className="doc-card p-5">
+                <h4 className="font-heading text-lg text-foreground mb-2">{faq.question}</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">{faq.answer}</p>
+              </div>
+            ))}
           </div>
         </DocSection>
 

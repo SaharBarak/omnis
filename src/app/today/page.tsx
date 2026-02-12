@@ -8,12 +8,38 @@ import { TONES } from '@/lib/data/tones'
 import { generateMantra } from '@/lib/data/mantras'
 import { Header, Footer } from '@/components/landing'
 import { getSealGlyphPath, getToneGlyphPath, getSmallSealGlyphPath } from '@/lib/dreamspell-assets'
+import { JsonLd, SITE_URL, buildBreadcrumbs } from '@/lib/seo/json-ld'
+import { PageBreadcrumbs } from '@/components/ui/page-breadcrumbs'
 
 export const metadata: Metadata = {
-  title: "Today's Kin - Daily Dreamspell Reading | Omnis",
-  description: "Discover today's Dreamspell Kin, mantra, and oracle. Start your day with cosmic guidance. Free daily Dreamspell readings.",
-  keywords: "dreamspell, kin of the day, today's kin, daily dreamspell, galactic signature",
+  title: "Today's Dreamspell Kin - Free Daily Galactic Reading",
+  description: "Discover today's Dreamspell Kin, solar seal, galactic tone, oracle, and daily mantra. Free daily Dreamspell reading updated every day.",
+  keywords: "dreamspell, kin of the day, today's kin, daily dreamspell, galactic signature, daily galactic reading",
+  alternates: {
+    canonical: 'https://omnis.app/today',
+  },
+  openGraph: {
+    title: "Today's Dreamspell Kin - Free Daily Galactic Reading",
+    description: "Today's Dreamspell Kin, oracle, and cosmic guidance. Free daily reading.",
+    url: 'https://omnis.app/today',
+  },
 }
+
+const speakableSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Today's Dreamspell Kin - Free Daily Galactic Reading",
+  "url": `${SITE_URL}/today`,
+  "speakable": {
+    "@type": "SpeakableSpecification",
+    "cssSelector": [".daily-kin-summary", ".daily-mantra"],
+  },
+}
+
+const breadcrumbSchema = buildBreadcrumbs([
+  { name: 'Home', url: SITE_URL },
+  { name: "Today's Kin", url: `${SITE_URL}/today` },
+])
 
 // Revalidate every hour to update the kin
 export const revalidate = 3600
@@ -64,8 +90,12 @@ export default function TodayPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
+      <JsonLd data={speakableSchema} id="json-ld-speakable" />
+      <JsonLd data={breadcrumbSchema} id="json-ld-breadcrumbs" />
+
       <main className="pt-24 pb-16 px-6">
         <div className="max-w-3xl mx-auto">
+          <PageBreadcrumbs items={[{ label: 'Home', href: '/' }, { label: "Today's Kin" }]} />
           {/* Date Header */}
           <div className="text-center mb-8">
             <div className="earth-badge inline-flex mb-4">
@@ -94,7 +124,7 @@ export default function TodayPage() {
 
               {/* Kin Number & Name */}
               <div className="text-6xl font-heading text-primary mb-2">{kin}</div>
-              <h2 className="text-3xl font-heading text-foreground mb-1">
+              <h2 className="text-3xl font-heading text-foreground mb-1 daily-kin-summary">
                 {tone.name} {seal.english}
               </h2>
               <p className="text-muted-foreground mb-6">
@@ -113,7 +143,7 @@ export default function TodayPage() {
 
               {/* Mantra */}
               <div className="max-w-md mx-auto">
-                <p className="text-lg italic text-muted-foreground whitespace-pre-line">
+                <p className="text-lg italic text-muted-foreground whitespace-pre-line daily-mantra">
                   &ldquo;{mantra}&rdquo;
                 </p>
               </div>

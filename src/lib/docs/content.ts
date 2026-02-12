@@ -1504,16 +1504,19 @@ export const docStructure = {
     },
     {
       id: 'gematria',
-      title: 'Gematria',
-      description: 'Hebrew numerology and letter mysticism',
+      title: 'Kabbalah & Hebrew',
+      description: 'Tree of Life, Gematria, and Hebrew letter mysticism',
       icon: 'aleph',
       topics: [
         { id: 'overview', title: 'Overview', anchor: 'gem-overview' },
+        { id: 'ein-sof', title: 'Ein Sof & Creation', anchor: 'gem-ein-sof' },
+        { id: 'tree-of-life', title: 'Tree of Life', anchor: 'gem-tree-of-life' },
+        { id: 'four-worlds', title: 'The Four Worlds', anchor: 'gem-four-worlds' },
         { id: 'letters', title: '22 Hebrew Letters', anchor: 'gem-letters' },
-        { id: 'methods', title: 'Calculation Methods', anchor: 'gem-methods' },
+        { id: 'methods', title: 'Gematria Methods', anchor: 'gem-methods' },
         { id: 'numbers', title: 'Significant Numbers', anchor: 'gem-numbers' },
-        { id: 'practice', title: 'Your Name', anchor: 'gem-practice' },
-        { id: 'kabbalah', title: 'Kabbalistic Context', anchor: 'gem-kabbalah' }
+        { id: 'practice', title: 'Practical Applications', anchor: 'gem-practice' },
+        { id: 'integration', title: 'System Integration', anchor: 'gem-integration' }
       ]
     },
     {

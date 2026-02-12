@@ -30,11 +30,14 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#5938C8",
+  themeColor: "#4A8B7F",
 };
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://omnis.app'),
+  alternates: {
+    canonical: '/',
+  },
   title: {
     default: "Omnis - Your Cosmic Blueprint | Dreamspell, Human Design & More",
     template: "%s | Omnis"
@@ -42,15 +45,21 @@ export const metadata: Metadata = {
   description: "Discover your cosmic blueprint with Omnis. Explore Dreamspell Kin, Human Design Bodygraph, Astrology Charts, and Hebrew Gematria. Free daily readings and personal analysis.",
   keywords: [
     "dreamspell",
+    "dreamspell calculator",
+    "galactic signature calculator",
+    "what is my kin",
     "human design",
+    "free human design chart",
     "astrology",
+    "natal chart",
     "gematria",
-    "galactic signature",
+    "kabbalah",
+    "tree of life",
+    "tzolkin",
+    "mayan calendar",
     "kin",
     "bodygraph",
-    "natal chart",
     "hebrew numerology",
-    "cosmic blueprint",
     "spiritual guidance"
   ],
   authors: [{ name: "Omnis" }],

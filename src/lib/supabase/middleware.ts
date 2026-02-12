@@ -5,6 +5,13 @@ import type { CookieOptions } from '@supabase/ssr'
 type CookieToSet = { name: string; value: string; options?: CookieOptions }
 
 export async function updateSession(request: NextRequest) {
+  // If auth code arrives at root (Supabase Site URL fallback), forward to callback route
+  if (request.nextUrl.pathname === '/' && request.nextUrl.searchParams.has('code')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/auth/callback'
+    return NextResponse.redirect(url)
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   })

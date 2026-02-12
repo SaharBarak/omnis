@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { ChevronDown, X, Menu } from 'lucide-react'
+import { useAuth } from '@/lib/hooks/use-auth'
 
 // ============================================
 // DROPDOWN DATA
@@ -32,8 +33,8 @@ const systemsItems = [
     href: '/learn/tzolkin',
   },
   {
-    name: 'Gematria',
-    description: 'Hebrew numerology & letter values',
+    name: 'Kabbalah',
+    description: 'Hebrew teachings & Tree of Life',
     href: '/learn/gematria',
   },
 ]
@@ -99,7 +100,7 @@ function MegaMenuPanel({ activeDropdown, onClose }: { activeDropdown: DropdownKe
                   >
                     <div className="font-medium text-foreground mb-1">Five systems, one place</div>
                     <div className="text-sm text-muted-foreground mb-4">
-                      Explore how Human Design, Dreamspell, Astrology, Tzolkin, and Gematria work together.
+                      Explore how Human Design, Dreamspell, Astrology, Tzolkin, and Kabbalah work together.
                     </div>
                     <span className="text-sm text-primary group-hover:underline">Explore all systems &rarr;</span>
                   </Link>
@@ -151,7 +152,7 @@ function MegaMenuPanel({ activeDropdown, onClose }: { activeDropdown: DropdownKe
 // MOBILE MENU
 // ============================================
 
-function MobileMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function MobileMenu({ isOpen, onClose, isAuthenticated, userName }: { isOpen: boolean; onClose: () => void; isAuthenticated: boolean; userName?: string }) {
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null)
 
   const toggleGroup = (group: string) => {
@@ -298,19 +299,33 @@ function MobileMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
 
               {/* Divider + CTA */}
               <div className="pt-6 mt-4 border-t border-border space-y-3">
-                <Link
-                  href="/login"
-                  onClick={onClose}
-                  className="block py-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
-                >
-                  Sign In
-                </Link>
-                <Button
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium h-11 rounded-none transition-all duration-200 active:scale-[0.98]"
-                  asChild
-                >
-                  <Link href="/login" onClick={onClose}>Get Your Chart</Link>
-                </Button>
+                {isAuthenticated ? (
+                  <>
+                    <div className="text-xs text-muted-foreground mb-1">Signed in{userName ? ` as ${userName}` : ''}</div>
+                    <Button
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium h-11 rounded-lg transition-all duration-200 active:scale-[0.98]"
+                      asChild
+                    >
+                      <Link href="/app" onClick={onClose}>Go to Dashboard</Link>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      onClick={onClose}
+                      className="block py-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+                    >
+                      Sign In
+                    </Link>
+                    <Button
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium h-11 rounded-lg transition-all duration-200 active:scale-[0.98]"
+                      asChild
+                    >
+                      <Link href="/login" onClick={onClose}>Get Your Chart</Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </nav>
           </motion.div>
@@ -329,6 +344,7 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const headerRef = useRef<HTMLElement>(null)
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { user, profile, isAuthenticated, loading: authLoading, signOut } = useAuth()
 
   const dropdownTriggers: { key: DropdownKey; label: string }[] = [
     { key: 'systems', label: 'Systems' },
@@ -422,19 +438,47 @@ export function Header() {
 
             {/* Desktop CTA — right */}
             <div className="hidden lg:flex items-center gap-3">
-              <Link
-                href="/login"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-              >
-                Sign In
-              </Link>
-              <Button
-                size="sm"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-5 h-9 rounded-none transition-all duration-200 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                asChild
-              >
-                <Link href="/login">Get Your Chart</Link>
-              </Button>
+              {authLoading ? (
+                <div className="w-8 h-8 rounded-full bg-muted animate-gentle-pulse" />
+              ) : isAuthenticated ? (
+                <>
+                  <Link
+                    href="/app"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link href="/app" className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary rounded-full">
+                    {user?.user_metadata?.avatar_url ? (
+                      <img
+                        src={user.user_metadata.avatar_url}
+                        alt={profile?.display_name || 'Profile'}
+                        className="w-8 h-8 rounded-full border border-border object-cover"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
+                        {(profile?.display_name || user?.email || 'U').charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  >
+                    Sign In
+                  </Link>
+                  <Button
+                    size="sm"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-5 h-9 rounded-lg transition-all duration-200 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    asChild
+                  >
+                    <Link href="/login">Get Your Chart</Link>
+                  </Button>
+                </>
+              )}
             </div>
 
             {/* Mobile menu button */}
@@ -460,7 +504,12 @@ export function Header() {
       </header>
 
       {/* Mobile menu */}
-      <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+      <MobileMenu
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        isAuthenticated={isAuthenticated}
+        userName={profile?.display_name || user?.email?.split('@')[0]}
+      />
     </>
   )
 }

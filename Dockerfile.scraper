@@ -6,14 +6,14 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci --omit=dev 2>/dev/null || npm install --omit=dev
 
-# Copy scripts and config
-COPY scripts/ ./scripts/
+# Copy scraper submodule and config
+COPY packages/scraper/ ./packages/scraper/
 COPY tsconfig.json ./
 
 # Create data directory
 RUN mkdir -p data/knowledge
 
 # Default: run the pipeline
-CMD ["npx", "tsx", "scripts/run-scraper.ts"]
+CMD ["npx", "tsx", "packages/scraper/run-scraper.ts"]
 
-# For Render cron jobs, set Command to: npx tsx scripts/run-scraper.ts
+# For Render cron jobs, set Command to: npx tsx packages/scraper/run-scraper.ts

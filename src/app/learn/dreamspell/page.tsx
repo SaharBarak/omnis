@@ -1,16 +1,86 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { Header, Footer } from '@/components/landing'
-import { DocLayout, DocHeader, DocSection, DocNav, DocStats, DocInfoBox, DocPullQuote } from '@/components/docs'
+import { DocLayout, DocHeader, DocSection, DocNav, DocStats, DocInfoBox, DocPullQuote, QuickAnswer } from '@/components/docs'
 import { dreamspellDocs, docStructure } from '@/lib/docs/content'
 import { SEALS } from '@/lib/data/seals'
 import { TONES } from '@/lib/data/tones'
 import { getSealGlyphPath, getToneGlyphPath, getHunabKuPath } from '@/lib/dreamspell-assets'
+import { JsonLd, SITE_URL, organizationSchema, buildBreadcrumbs } from '@/lib/seo/json-ld'
 
 export const metadata: Metadata = {
-  title: 'Dreamspell Documentation',
-  description: 'Complete guide to the Dreamspell system: 260 Kin cycle, 20 Solar Seals, 13 Galactic Tones, Wavespells, Oracle, and the Five Castles.',
-  keywords: 'dreamspell guide, galactic signature, kin, solar seals, galactic tones, wavespell, mayan calendar, 13:20, jose arguelles',
+  title: 'What is Dreamspell? Complete Guide to the Galactic Calendar',
+  description: 'Complete guide to the Dreamspell system by Jose Arguelles: 260-day Tzolkin cycle, 20 Solar Seals, 13 Galactic Tones, Wavespells, Oracle, and the Five Castles. Free educational resource.',
+  keywords: 'what is dreamspell, dreamspell guide, galactic signature, kin, solar seals, galactic tones, wavespell, mayan calendar, 13:20, jose arguelles, dreamspell explained',
+  alternates: {
+    canonical: 'https://omnis.app/learn/dreamspell',
+  },
+  openGraph: {
+    title: 'What is Dreamspell? Complete Guide to the Galactic Calendar',
+    description: 'Learn the Dreamspell system: 260 Kin, 20 Solar Seals, 13 Galactic Tones, and the Oracle. Free guide.',
+    url: 'https://omnis.app/learn/dreamspell',
+  },
+}
+
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "What is Dreamspell? Complete Guide to the Galactic Calendar",
+  "description": "Complete guide to the Dreamspell system by Jose Arguelles: 260-day Tzolkin cycle, 20 Solar Seals, 13 Galactic Tones, Wavespells, Oracle, and the Five Castles.",
+  "author": { "@id": `${SITE_URL}/#organization` },
+  "publisher": { "@id": `${SITE_URL}/#organization` },
+  "datePublished": "2024-06-01",
+  "dateModified": "2025-01-15",
+  "keywords": ["dreamspell", "galactic signature", "solar seals", "galactic tones", "jose arguelles", "mayan calendar"],
+  "mainEntityOfPage": `${SITE_URL}/learn/dreamspell`,
+}
+
+const courseSchema = {
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "Dreamspell: Complete Guide to the Galactic Calendar",
+  "description": "Learn the Dreamspell system — 260 Kin, 20 Solar Seals, 13 Galactic Tones, Wavespells, Oracle, and the Five Castles.",
+  "provider": { "@id": `${SITE_URL}/#organization` },
+  "isAccessibleForFree": true,
+  "url": `${SITE_URL}/learn/dreamspell`,
+}
+
+const breadcrumbSchema = buildBreadcrumbs([
+  { name: 'Home', url: SITE_URL },
+  { name: 'Learn', url: `${SITE_URL}/learn` },
+  { name: 'Dreamspell', url: `${SITE_URL}/learn/dreamspell` },
+])
+
+const dreamspellFaqs = [
+  {
+    question: "How do I find my Dreamspell Kin?",
+    answer: "Enter your birth date into the Omnis Dreamspell calculator at omnis.app/calculate. The calculator will show your Kin number (1-260), Solar Seal, Galactic Tone, and your complete Oracle. No birth time is required — only your date of birth.",
+  },
+  {
+    question: "What are the 20 Solar Seals?",
+    answer: "The 20 Solar Seals are the archetypal energies of the Dreamspell system: Dragon, Wind, Night, Seed, Serpent, World-Bridger, Hand, Star, Moon, Dog, Monkey, Human, Skywalker, Wizard, Eagle, Warrior, Earth, Mirror, Storm, and Sun. Each seal belongs to one of four color families (Red, White, Blue, Yellow) representing initiation, refinement, transformation, and ripening.",
+  },
+  {
+    question: "What is the difference between Dreamspell and Tzolkin?",
+    answer: "Dreamspell is Jose Arguelles' modern system (1987) synchronized to July 26 with leap-day skipping. The Traditional Tzolkin is the ancient Maya count using the GMT correlation — an unbroken count spanning over 2,500 years. They produce different Kin numbers for the same date. Omnis calculates both systems.",
+  },
+  {
+    question: "What is a Wavespell?",
+    answer: "A Wavespell is a 13-day cycle in the Dreamspell system. There are 20 Wavespells in the 260-day Tzolkin. Each Wavespell begins with Tone 1 (Magnetic) and ends with Tone 13 (Cosmic), creating a complete journey from purpose to transcendence.",
+  },
+]
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": dreamspellFaqs.map(faq => ({
+    "@type": "Question",
+    "name": faq.question,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": faq.answer,
+    },
+  })),
 }
 
 // Color utilities
@@ -33,12 +103,22 @@ export default function DreamspellDocsPage() {
         sections={docStructure.sections}
         currentSection="dreamspell"
       >
+        <JsonLd data={articleSchema} id="json-ld-article" />
+        <JsonLd data={courseSchema} id="json-ld-course" />
+        <JsonLd data={breadcrumbSchema} id="json-ld-breadcrumbs" />
+        <JsonLd data={faqSchema} id="json-ld-faq" />
+
         {/* Header */}
         <DocHeader
           badge="Dreamspell"
           title={dreamspellDocs.overview.title}
           subtitle={dreamspellDocs.overview.subtitle}
           badgeColor="primary"
+        />
+
+        <QuickAnswer
+          question="What is Dreamspell?"
+          answer="Dreamspell is a modern calendar system created by Jose Arguelles in 1987, based on the ancient Maya Tzolkin. It maps a 260-day cycle of 20 Solar Seals and 13 Galactic Tones to reveal your galactic signature — a unique archetype describing your cosmic purpose. Enter your birth date at omnis.app/calculate to find your Kin."
         />
 
         {/* Hunab Ku accent */}
@@ -304,6 +384,18 @@ export default function DreamspellDocsPage() {
               <div key={i} className="doc-card p-5">
                 <h4 className="font-heading text-lg text-foreground mb-2">{tip.title}</h4>
                 <p className="text-sm text-muted-foreground leading-relaxed">{tip.description}</p>
+              </div>
+            ))}
+          </div>
+        </DocSection>
+
+        {/* FAQ */}
+        <DocSection id="dreamspell-faq" title="Frequently Asked Questions">
+          <div className="space-y-4">
+            {dreamspellFaqs.map((faq, i) => (
+              <div key={i} className="doc-card p-5">
+                <h4 className="font-heading text-lg text-foreground mb-2">{faq.question}</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">{faq.answer}</p>
               </div>
             ))}
           </div>
