@@ -53,6 +53,7 @@ import {
   Settings,
   LogOut,
   ChevronRight,
+  TerminalSquare,
 } from 'lucide-react'
 
 // Navigation structure with groups
@@ -77,6 +78,7 @@ const navGroups = [
       { href: '/app/graph', label: 'Relationship Map', icon: Network },
       { href: '/app/boards', label: 'Boards', icon: LayoutGrid },
       { href: '/app/cards', label: 'Cards', icon: CreditCard },
+      { href: '/app/terminal', label: 'Terminal', icon: TerminalSquare },
     ],
   },
   {
