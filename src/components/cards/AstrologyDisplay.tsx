@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import {
   calculateNatalChart,
@@ -19,6 +20,7 @@ import {
   MODALITY_LABELS,
 } from '@/lib/types/astrology'
 import { getAspectColor } from '@/lib/data/aspects'
+import { NatalChartWheel } from '@/components/astrology/NatalChartWheel'
 
 // Props for the main display
 export interface AstrologyDisplayProps {
@@ -328,6 +330,8 @@ export function AstrologyDisplay({
   compact = false,
   className = '',
 }: AstrologyDisplayProps) {
+  const [view, setView] = useState<'chart' | 'details'>('chart')
+
   const chart = calculateNatalChart({
     date,
     time,
@@ -349,44 +353,80 @@ export function AstrologyDisplay({
         )}
       </div>
 
-      {/* Chart Summary */}
-      <ChartSummaryCard chart={chart} showBalance={showBalance} />
+      {/* View Toggle */}
+      <div className="flex justify-center gap-1 bg-muted rounded-lg p-1">
+        <button
+          onClick={() => setView('chart')}
+          className={cn(
+            'px-4 py-1.5 text-sm rounded-md transition-colors',
+            view === 'chart'
+              ? 'bg-background text-foreground shadow-sm font-medium'
+              : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          🔮 Visual Chart
+        </button>
+        <button
+          onClick={() => setView('details')}
+          className={cn(
+            'px-4 py-1.5 text-sm rounded-md transition-colors',
+            view === 'details'
+              ? 'bg-background text-foreground shadow-sm font-medium'
+              : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          📋 Details
+        </button>
+      </div>
 
-      {/* Planet Positions */}
-      {showPlanets && (
-        <div className="bg-card border rounded-lg p-4">
-          <PlanetPositions
-            planets={chart.planets}
-            showHouses={chart.hasBirthTime}
-            compact={compact}
-          />
-        </div>
+      {/* Visual Chart View */}
+      {view === 'chart' && (
+        <NatalChartWheel chart={chart} />
       )}
 
-      {/* Aspects */}
-      {showAspects && chart.aspects.length > 0 && (
-        <div className="bg-card border rounded-lg p-4">
-          <AspectsDisplay aspects={chart.aspects} compact={compact} />
-        </div>
-      )}
+      {/* Details View */}
+      {view === 'details' && (
+        <>
+          {/* Chart Summary */}
+          <ChartSummaryCard chart={chart} showBalance={showBalance} />
 
-      {/* Angular Points (if birth time available) */}
-      {chart.hasBirthTime && chart.ascendant && chart.midheaven && (
-        <div className="bg-card border rounded-lg p-4">
-          <h4 className="text-sm font-medium mb-3 text-center">
-            Angular Points (נקודות זוויתיות)
-          </h4>
-          <div className="grid grid-cols-2 gap-4 text-center">
-            <div>
-              <span className="text-muted-foreground block text-sm">ASC (Ascendant)</span>
-              <span className="font-medium">{chart.ascendant.formatted}</span>
+          {/* Planet Positions */}
+          {showPlanets && (
+            <div className="bg-card border rounded-lg p-4">
+              <PlanetPositions
+                planets={chart.planets}
+                showHouses={chart.hasBirthTime}
+                compact={compact}
+              />
             </div>
-            <div>
-              <span className="text-muted-foreground block text-sm">MC (Midheaven)</span>
-              <span className="font-medium">{chart.midheaven.formatted}</span>
+          )}
+
+          {/* Aspects */}
+          {showAspects && chart.aspects.length > 0 && (
+            <div className="bg-card border rounded-lg p-4">
+              <AspectsDisplay aspects={chart.aspects} compact={compact} />
             </div>
-          </div>
-        </div>
+          )}
+
+          {/* Angular Points (if birth time available) */}
+          {chart.hasBirthTime && chart.ascendant && chart.midheaven && (
+            <div className="bg-card border rounded-lg p-4">
+              <h4 className="text-sm font-medium mb-3 text-center">
+                Angular Points (נקודות זוויתיות)
+              </h4>
+              <div className="grid grid-cols-2 gap-4 text-center">
+                <div>
+                  <span className="text-muted-foreground block text-sm">ASC (Ascendant)</span>
+                  <span className="font-medium">{chart.ascendant.formatted}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-sm">MC (Midheaven)</span>
+                  <span className="font-medium">{chart.midheaven.formatted}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
