@@ -25,6 +25,7 @@ import {
   CIRCUITRY_LABELS_HEBREW,
 } from '@/lib/types/human-design'
 import { getGate } from '@/lib/data/human-design-gates'
+import { BodygraphChart } from '@/components/human-design/BodygraphChart'
 
 // =============================================================================
 // PROPS INTERFACES
@@ -514,6 +515,14 @@ export function HumanDesignDisplay({
 
   return (
     <div className={cn('human-design-display space-y-6', className)}>
+      {/* Visual Bodygraph Chart */}
+      <div className="bg-card border rounded-lg p-4">
+        <h4 className="text-sm font-medium mb-3 text-center">Bodygraph (בודיגרף)</h4>
+        <div className="flex justify-center">
+          <BodygraphChart bodygraph={result} className="w-full max-w-[400px]" />
+        </div>
+      </div>
+
       {/* Summary Card */}
       <BodygraphSummaryCard
         bodygraph={result}
