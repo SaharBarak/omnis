@@ -3,6 +3,14 @@ import { kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
 import { getSeal } from '@/lib/data/seals'
 import { getTone } from '@/lib/data/tones'
 import { generateMantra } from '@/lib/data/mantras'
+import { cn } from '@/lib/utils'
+
+const COLOR_BORDER = {
+  red: 'border-red-500/30',
+  white: 'border-white/20',
+  blue: 'border-blue-500/30',
+  yellow: 'border-yellow-500/30',
+} as const
 
 export interface MantraDisplayProps {
   kin: Kin
@@ -17,9 +25,13 @@ export function MantraDisplay({ kin }: MantraDisplayProps) {
 
   return (
     <div className="mantra-display text-center p-4">
-      <p className="text-sm italic text-muted-foreground whitespace-pre-line leading-relaxed">
+      <blockquote className={cn(
+        'text-sm italic text-muted-foreground whitespace-pre-line leading-relaxed',
+        'border-l-2 pl-3 text-left',
+        COLOR_BORDER[seal.color],
+      )}>
         {mantra}
-      </p>
+      </blockquote>
     </div>
   )
 }
