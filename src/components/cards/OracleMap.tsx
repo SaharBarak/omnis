@@ -1,47 +1,167 @@
+'use client'
+
 import { SealIcon } from './SealIcon'
 import type { Kin, SealNumber } from '@/core/types'
-import { kinToSeal } from '@/lib/calculations/dreamspell'
+import { kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
 import { calculateOracle } from '@/lib/calculations/oracle'
+import { getSeal } from '@/lib/data/seals'
+import { getTone } from '@/lib/data/tones'
+import { cn } from '@/lib/utils'
+
+// Color map for seal color families
+const SEAL_COLOR_MAP = {
+  red: { bg: 'bg-red-500/15', border: 'border-red-500/40', glow: 'shadow-red-500/30', text: 'text-red-400' },
+  white: { bg: 'bg-white/10', border: 'border-white/40', glow: 'shadow-white/30', text: 'text-white/90' },
+  blue: { bg: 'bg-blue-500/15', border: 'border-blue-500/40', glow: 'shadow-blue-500/30', text: 'text-blue-400' },
+  yellow: { bg: 'bg-yellow-500/15', border: 'border-yellow-500/40', glow: 'shadow-yellow-500/30', text: 'text-yellow-400' },
+} as const
 
 export interface OracleMapProps {
   kin: Kin
+  animated?: boolean
+  size?: 'sm' | 'md' | 'lg'
+  className?: string
 }
 
-export function OracleMap({ kin }: OracleMapProps) {
-  const seal: SealNumber = kinToSeal(kin)
-  const oracle = calculateOracle(kin)
+interface OraclePositionProps {
+  sealNumber: SealNumber
+  label: string
+  labelHe?: string
+  position: 'guide' | 'analog' | 'antipode' | 'occult' | 'center'
+  delay?: number
+  size?: 'sm' | 'md' | 'lg'
+}
+
+function OraclePosition({ sealNumber, label, labelHe, position, delay = 0, size = 'md' }: OraclePositionProps) {
+  const seal = getSeal(sealNumber)
+  const colors = SEAL_COLOR_MAP[seal.color]
+  const isCenter = position === 'center'
+
+  const sizeClasses = {
+    sm: isCenter ? 'w-16 h-16' : 'w-12 h-12',
+    md: isCenter ? 'w-24 h-24' : 'w-16 h-16',
+    lg: isCenter ? 'w-32 h-32' : 'w-20 h-20',
+  }
+
+  const iconSize = isCenter
+    ? (size === 'sm' ? 'md' : size === 'md' ? 'lg' : 'xl')
+    : (size === 'sm' ? 'sm' : size === 'md' ? 'md' : 'lg')
 
   return (
     <div
-      className="oracle-map grid grid-cols-3 grid-rows-3 gap-1 w-[180px] h-[180px] mx-auto"
-      role="img"
-      aria-label="Oracle map"
+      className={cn(
+        'flex flex-col items-center justify-center gap-1 oracle-position',
+        'animate-in fade-in zoom-in-95',
+      )}
+      style={{ animationDelay: `${delay}ms`, animationDuration: '600ms', animationFillMode: 'both' }}
     >
-      {/* Row 1: Guide (top center) */}
-      <div className="col-start-2 row-start-1 flex flex-col items-center justify-center">
-        <SealIcon sealNumber={oracle.guide} size="sm" />
-        <span className="text-xs text-muted-foreground mt-1">Guide</span>
+      <div
+        className={cn(
+          'rounded-full flex items-center justify-center border-2 transition-all duration-500',
+          colors.bg, colors.border,
+          isCenter && `shadow-lg ${colors.glow} ring-1 ring-white/10`,
+          !isCenter && 'hover:scale-110 hover:shadow-md',
+          sizeClasses[size],
+        )}
+      >
+        <SealIcon sealNumber={sealNumber} size={iconSize as any} />
+      </div>
+      {!isCenter && (
+        <div className="text-center">
+          <span className={cn('text-[10px] font-semibold uppercase tracking-wider', colors.text)}>
+            {label}
+          </span>
+          {labelHe && (
+            <span className="block text-[9px] text-muted-foreground/70">{labelHe}</span>
+          )}
+        </div>
+      )}
+      {isCenter && (
+        <span className={cn('text-xs font-bold', colors.text)}>
+          {seal.english}
+        </span>
+      )}
+    </div>
+  )
+}
+
+export function OracleMap({ kin, animated = true, size = 'md', className = '' }: OracleMapProps) {
+  const seal: SealNumber = kinToSeal(kin)
+  const tone = kinToTone(kin)
+  const oracle = calculateOracle(kin)
+  const sealData = getSeal(seal)
+  const toneData = getTone(tone)
+  const centerColors = SEAL_COLOR_MAP[sealData.color]
+
+  return (
+    <div
+      className={cn('oracle-map relative', className)}
+      role="img"
+      aria-label={`Oracle cross for Kin ${kin}: ${toneData.name} ${sealData.english}`}
+    >
+      {/* Cross connecting lines */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className={cn('absolute w-px h-full', centerColors.bg)} style={{ opacity: 0.4 }} />
+        <div className={cn('absolute h-px w-full', centerColors.bg)} style={{ opacity: 0.4 }} />
       </div>
 
-      {/* Row 2: Antipode (left), Kin (center), Analog (right) */}
-      <div className="col-start-1 row-start-2 flex flex-col items-center justify-center">
-        <SealIcon sealNumber={oracle.antipode} size="sm" />
-        <span className="text-xs text-muted-foreground mt-1">Antipode</span>
-      </div>
+      <div className="grid grid-cols-3 grid-rows-3 gap-2 place-items-center w-fit mx-auto">
+        {/* Row 1: Guide (top center) */}
+        <div className="col-start-2 row-start-1">
+          <OraclePosition
+            sealNumber={oracle.guide}
+            label="Guide"
+            labelHe="מדריך"
+            position="guide"
+            delay={animated ? 100 : 0}
+            size={size}
+          />
+        </div>
 
-      <div className="col-start-2 row-start-2 flex flex-col items-center justify-center">
-        <SealIcon sealNumber={seal} size="lg" />
-      </div>
+        {/* Row 2: Antipode (left), Kin (center), Analog (right) */}
+        <div className="col-start-1 row-start-2">
+          <OraclePosition
+            sealNumber={oracle.antipode}
+            label="Antipode"
+            labelHe="אנטיפוד"
+            position="antipode"
+            delay={animated ? 200 : 0}
+            size={size}
+          />
+        </div>
 
-      <div className="col-start-3 row-start-2 flex flex-col items-center justify-center">
-        <SealIcon sealNumber={oracle.analog} size="sm" />
-        <span className="text-xs text-muted-foreground mt-1">Analog</span>
-      </div>
+        <div className="col-start-2 row-start-2">
+          <OraclePosition
+            sealNumber={seal}
+            label={sealData.english}
+            position="center"
+            delay={animated ? 0 : 0}
+            size={size}
+          />
+        </div>
 
-      {/* Row 3: Occult (bottom center) */}
-      <div className="col-start-2 row-start-3 flex flex-col items-center justify-center">
-        <SealIcon sealNumber={oracle.occult} size="sm" />
-        <span className="text-xs text-muted-foreground mt-1">Occult</span>
+        <div className="col-start-3 row-start-2">
+          <OraclePosition
+            sealNumber={oracle.analog}
+            label="Analog"
+            labelHe="אנלוגי"
+            position="analog"
+            delay={animated ? 300 : 0}
+            size={size}
+          />
+        </div>
+
+        {/* Row 3: Occult (bottom center) */}
+        <div className="col-start-2 row-start-3">
+          <OraclePosition
+            sealNumber={oracle.occult}
+            label="Occult"
+            labelHe="נסתר"
+            position="occult"
+            delay={animated ? 400 : 0}
+            size={size}
+          />
+        </div>
       </div>
     </div>
   )
