@@ -31,6 +31,7 @@ export function SealIcon({
 
   return (
     <Image
+      data-testid="seal-icon"
       src={src}
       alt={`${system} seal ${sealNumber}`}
       width={pixels}
