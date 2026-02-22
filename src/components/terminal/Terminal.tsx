@@ -769,7 +769,7 @@ function REPLView({
       <div className="flex gap-2 items-center mt-1">
         <span className="text-cyan-400 shrink-0">omnis&gt;</span>
         <input
-          ref={inputRef}
+          ref={inputRef as React.RefObject<HTMLInputElement>}
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -782,7 +782,7 @@ function REPLView({
         />
         {isProcessing && <span className="text-green-600 animate-pulse">|</span>}
       </div>
-      <div ref={bottomRef} />
+      <div ref={bottomRef as React.RefObject<HTMLDivElement>} />
     </div>
   )
 }

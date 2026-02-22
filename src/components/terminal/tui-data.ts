@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
+import { asKin } from '@/core/types'
 import { calculateOracle } from '@/lib/calculations/oracle'
 import { getSeal } from '@/lib/data/seals'
 import { getTone } from '@/lib/data/tones'
@@ -90,7 +91,7 @@ export function fetchTodayData(): TodayData {
 
   // Wavespell position: tone number IS the position in wavespell
   const wavespellStartKin = kin - tone.number + 1
-  const wavespellSealNum = kinToSeal(wavespellStartKin > 0 ? wavespellStartKin : wavespellStartKin + 260)
+  const wavespellSealNum = kinToSeal(asKin(wavespellStartKin > 0 ? wavespellStartKin : wavespellStartKin + 260))
   const wavespellSeal = getSeal(wavespellSealNum)
 
   return {
