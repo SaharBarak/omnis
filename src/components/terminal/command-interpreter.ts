@@ -94,10 +94,16 @@ ${C.yellow('COMMANDS:')}
   ${C.green('compare')} ${C.dim('<name1> <name2>')}  Compatibility check
   ${C.green('people')}                    List saved people
   ${C.green('ascii')} ${C.dim('<name>')}             Oracle cross ASCII art
+  ${C.green('search')} ${C.dim('<query>')}           Search people by name
+  ${C.green('stats')}                     Show system statistics
+  ${C.green('export')}                    Export current view to clipboard
+  ${C.green('theme')} ${C.dim('<name>')}            Color theme (green/amber/blue/purple)
+  ${C.green('goto')} ${C.dim('<view>')}             Navigate to view by name or number
   ${C.green('help')}                      This message
   ${C.green('clear')}                     Clear terminal
 
 ${C.dim('Tip: Names are fuzzy-matched against your saved people.')}
+${C.dim('Shortcuts: / = search overlay, 1-8 = views')}
 `
 
 async function cmdWhoami(): Promise<string> {
@@ -379,6 +385,83 @@ async function cmdAscii(name: string): Promise<string> {
   ].join('\n')
 }
 
+async function cmdSearch(query: string): Promise<string> {
+  if (!query) return C.red('Usage: search <query>')
+  const people = await getPeople()
+  const lower = query.toLowerCase()
+  const matches = people.filter(p =>
+    p.name.toLowerCase().includes(lower) ||
+    (p.hebrew_name && p.hebrew_name.includes(query))
+  )
+  if (matches.length === 0) return C.dim(`No people matching "${query}"`)
+  const lines = [
+    '',
+    `  ${C.bold(C.cyan('SEARCH RESULTS'))} for "${query}" (${matches.length})`,
+    '',
+  ]
+  for (const p of matches) {
+    lines.push(`  ${C.green('>')} ${p.name}${p.hebrew_name ? ` (${p.hebrew_name})` : ''} ${C.dim(`- ${p.birth_date || 'no date'}`)}`)
+  }
+  lines.push('')
+  return lines.join('\n')
+}
+
+async function cmdStats(): Promise<string> {
+  const people = await getPeople()
+  let dreamspellCount = 0, astroCount = 0, hdCount = 0
+
+  for (const p of people) {
+    const r = await getComputedResults(p.id)
+    if (r.dreamspell) dreamspellCount++
+    if (r.astrology) astroCount++
+    if (r.humandesign) hdCount++
+  }
+
+  return [
+    '',
+    `  ${C.bold(C.cyan('OMNIS STATS'))}`,
+    '',
+    `  ${C.yellow('Total People:')}    ${C.green(String(people.length))}`,
+    `  ${C.yellow('Dreamspell:')}      ${C.green(String(dreamspellCount))} computed`,
+    `  ${C.yellow('Astrology:')}       ${C.green(String(astroCount))} computed`,
+    `  ${C.yellow('Human Design:')}    ${C.green(String(hdCount))} computed`,
+    '',
+  ].join('\n')
+}
+
+function cmdTheme(name: string): string {
+  const themes = ['green', 'amber', 'blue', 'purple']
+  if (!name) return C.red(`Usage: theme <name>\nAvailable: ${themes.join(', ')}`)
+  const lower = name.toLowerCase()
+  if (!themes.includes(lower)) return C.red(`Unknown theme "${name}". Available: ${themes.join(', ')}`)
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('omnis-tui-theme', lower)
+  }
+  return C.green(`Theme set to "${lower}". Refresh to apply.`)
+}
+
+function cmdGoto(target: string): string {
+  if (!target) return C.red('Usage: goto <view name or number>')
+  const viewMap: Record<string, number> = {
+    dashboard: 1, people: 2, person: 3, dreamspell: 4,
+    astrology: 5, humandesign: 6, hd: 6, tzolkin: 7,
+    compatibility: 8, compare: 8, command: 0, cmd: 0, repl: 0,
+  }
+  const num = parseInt(target)
+  if (!isNaN(num) && num >= 0 && num <= 8) {
+    return `__GOTO__${num}`
+  }
+  const mapped = viewMap[target.toLowerCase()]
+  if (mapped !== undefined) {
+    return `__GOTO__${mapped}`
+  }
+  return C.red(`Unknown view "${target}". Use 0-8 or name (dashboard, people, dreamspell, etc.)`)
+}
+
+function cmdExport(): string {
+  return '__EXPORT__'
+}
+
 export async function executeCommand(input: string): Promise<string> {
   const trimmed = input.trim()
   if (!trimmed) return ''
@@ -405,6 +488,16 @@ export async function executeCommand(input: string): Promise<string> {
       return cmdCompare(args)
     case 'ascii':
       return cmdAscii(args)
+    case 'search':
+      return cmdSearch(args)
+    case 'stats':
+      return cmdStats()
+    case 'theme':
+      return cmdTheme(args)
+    case 'goto':
+      return cmdGoto(args)
+    case 'export':
+      return cmdExport()
     case 'clear':
       return '__CLEAR__'
     default:

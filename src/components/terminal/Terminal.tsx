@@ -636,6 +636,53 @@ function isGalacticActivationPortal(kin: number): boolean {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+function renderPersonSummaryColumn(person: PersonRecord, results: any, colWidth: number): string[] {
+  const lines: string[] = []
+  const w = colWidth
+
+  lines.push(C.bold(C.green(person.name.toUpperCase().slice(0, w - 2).padEnd(w))))
+  lines.push(C.dim((person.birth_date || 'no date').padEnd(w)))
+  lines.push('─'.repeat(w))
+
+  const ds = results?.dreamspell
+  if (ds) {
+    lines.push(C.yellow('◈ DREAMSPELL'.padEnd(w)))
+    lines.push(`Kin ${ds.kin}: ${ds.toneData.name} ${ds.sealData.english}`.slice(0, w).padEnd(w))
+    lines.push(`${ds.sealData.color} ${ds.sealData.mayan}`.slice(0, w).padEnd(w))
+    lines.push(`Tone ${ds.tone}: ${ds.toneData.keywords.join(', ')}`.slice(0, w).padEnd(w))
+  } else {
+    lines.push(C.dim('No Dreamspell data'.padEnd(w)))
+  }
+  lines.push('─'.repeat(w))
+
+  const astro = results?.astrology
+  if (astro) {
+    lines.push(C.yellow('✦ ASTROLOGY'.padEnd(w)))
+    lines.push(`☉ Sun: ${astro.sunSign || '?'}`.slice(0, w).padEnd(w))
+    if (astro.moonSign) lines.push(`☽ Moon: ${astro.moonSign}`.slice(0, w).padEnd(w))
+    if (astro.risingSign) lines.push(`↑ Rising: ${astro.risingSign}`.slice(0, w).padEnd(w))
+    if (astro.summary?.dominantElement) lines.push(`Element: ${astro.summary.dominantElement}`.slice(0, w).padEnd(w))
+  } else {
+    lines.push(C.dim('No Astrology data'.padEnd(w)))
+  }
+  lines.push('─'.repeat(w))
+
+  const hd = results?.humandesign
+  if (hd) {
+    lines.push(C.magenta('△ HUMAN DESIGN'.padEnd(w)))
+    lines.push(`Type: ${hd.type}`.slice(0, w).padEnd(w))
+    lines.push(`Strategy: ${hd.strategy || '?'}`.slice(0, w).padEnd(w))
+    lines.push(`Authority: ${hd.authority || '?'}`.slice(0, w).padEnd(w))
+    if (hd.profile) lines.push(`Profile: ${hd.profile}`.slice(0, w).padEnd(w))
+    lines.push(`Defined: ${(hd.definedCenters || []).join(', ') || 'none'}`.slice(0, w).padEnd(w))
+  } else {
+    lines.push(C.dim('No HD data'.padEnd(w)))
+  }
+
+  return lines
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function renderCompatibilityView(person1: PersonRecord | null, person2: PersonRecord | null, r1: any, r2: any): string[] {
   if (!person1 || !person2) return [
     C.dim('Select two people to compare.'),
@@ -645,64 +692,75 @@ function renderCompatibilityView(person1: PersonRecord | null, person2: PersonRe
   ]
 
   const lines: string[] = []
-  const w = 64
+  const w = 72
+  const colW = 30
+  const sep = ' │ '
 
+  // Header
   lines.push(C.cyan(boxLine(BOX.tl, BOX.h, BOX.tr, w)))
-  lines.push(C.cyan(boxText(C.bold(C.yellow(` ⚡  COMPATIBILITY`)), w)))
-  lines.push(C.cyan(boxText(`  ${C.green(person1.name)} ${C.dim('×')} ${C.green(person2.name)}`, w)))
+  lines.push(C.cyan(boxText(C.bold(C.yellow(` ⚡  SPLIT COMPARISON`)), w)))
+  lines.push(C.cyan(boxText(`  ${C.green(person1.name)} ${C.dim('vs')} ${C.green(person2.name)}`, w)))
   lines.push(C.cyan(boxLine(BOX.lt, BOX.h, BOX.rt, w)))
 
+  // Render both columns
+  const leftCol = renderPersonSummaryColumn(person1, r1, colW)
+  const rightCol = renderPersonSummaryColumn(person2, r2, colW)
+  const maxLen = Math.max(leftCol.length, rightCol.length)
+
+  for (let i = 0; i < maxLen; i++) {
+    const left = leftCol[i] || ' '.repeat(colW)
+    const right = rightCol[i] || ' '.repeat(colW)
+    // Pad stripped length
+    const leftStripped = stripAnsi(left)
+    const rightStripped = stripAnsi(right)
+    const leftPadded = left + ' '.repeat(Math.max(0, colW - leftStripped.length))
+    const rightPadded = right + ' '.repeat(Math.max(0, colW - rightStripped.length))
+    lines.push(C.cyan(BOX.v) + ' ' + leftPadded + C.dim(sep) + rightPadded + ' ' + C.cyan(BOX.v))
+  }
+
+  lines.push(C.cyan(boxLine(BOX.lt, BOX.h, BOX.rt, w)))
+
+  // Connections section
   if (r1?.dreamspell && r2?.dreamspell) {
-    lines.push(C.cyan(boxText(C.bold(C.green(' ◈ Dreamspell')), w)))
-    lines.push(C.cyan(boxText(`  ${person1.name}: Kin ${r1.dreamspell.kin} - ${r1.dreamspell.toneData.name} ${r1.dreamspell.sealData.english}`, w)))
-    lines.push(C.cyan(boxText(`  ${person2.name}: Kin ${r2.dreamspell.kin} - ${r2.dreamspell.toneData.name} ${r2.dreamspell.sealData.english}`, w)))
+    lines.push(C.cyan(boxText(C.bold(' Oracle Connections'), w, 'center')))
+    lines.push(C.cyan(boxLine(BOX.lt, BOX.h, BOX.rt, w)))
 
     const seal1 = r1.dreamspell.seal
     const seal2 = r2.dreamspell.seal
     const oracle1 = r1.dreamspell.oracle
     const oracle2 = r2.dreamspell.oracle
     const rels: string[] = []
-    if (oracle1.analog === seal2 || oracle2.analog === seal1) rels.push(C.magenta('Analog (support)'))
-    if (oracle1.antipode === seal2 || oracle2.antipode === seal1) rels.push(C.red('Antipode (challenge)'))
-    if (oracle1.occult === seal2 || oracle2.occult === seal1) rels.push(C.cyan('Occult (hidden power)'))
-    if (oracle1.guide === seal2 || oracle2.guide === seal1) rels.push(C.yellow('Guide'))
+    if (oracle1.analog === seal2 || oracle2.analog === seal1) rels.push(C.magenta('● Analog (support)'))
+    if (oracle1.antipode === seal2 || oracle2.antipode === seal1) rels.push(C.red('● Antipode (challenge)'))
+    if (oracle1.occult === seal2 || oracle2.occult === seal1) rels.push(C.cyan('● Occult (hidden power)'))
+    if (oracle1.guide === seal2 || oracle2.guide === seal1) rels.push(C.yellow('● Guide'))
     if (rels.length > 0) {
-      lines.push(C.cyan(boxText(`  ${C.bold('Connections:')}`, w)))
-      for (const r of rels) lines.push(C.cyan(boxText(`    ● ${r}`, w)))
+      for (const r of rels) lines.push(C.cyan(boxText(`  ${r}`, w)))
     } else {
       lines.push(C.cyan(boxText(C.dim('  No direct oracle connections'), w)))
     }
-    lines.push(C.cyan(boxLine(BOX.lt, BOX.h, BOX.rt, w)))
   }
 
-  if (r1?.astrology && r2?.astrology) {
-    lines.push(C.cyan(boxText(C.bold(C.yellow(' ✦ Astrology')), w)))
-    lines.push(C.cyan(boxText(`  ${person1.name}: ☉ ${r1.astrology.sunSign}${r1.astrology.moonSign ? ` ☽ ${r1.astrology.moonSign}` : ''}`, w)))
-    lines.push(C.cyan(boxText(`  ${person2.name}: ☉ ${r2.astrology.sunSign}${r2.astrology.moonSign ? ` ☽ ${r2.astrology.moonSign}` : ''}`, w)))
-
-    if (r1.astrology.summary?.dominantElement && r2.astrology.summary?.dominantElement) {
-      const e1 = r1.astrology.summary.dominantElement
-      const e2 = r2.astrology.summary.dominantElement
-      const compat = elementCompatibility(e1, e2)
-      lines.push(C.cyan(boxText(`  ${C.dim('Elements:')} ${e1} × ${e2} = ${compat}`, w)))
-    }
-    lines.push(C.cyan(boxLine(BOX.lt, BOX.h, BOX.rt, w)))
+  if (r1?.astrology?.summary?.dominantElement && r2?.astrology?.summary?.dominantElement) {
+    const e1 = r1.astrology.summary.dominantElement
+    const e2 = r2.astrology.summary.dominantElement
+    const compat = elementCompatibility(e1, e2)
+    lines.push(C.cyan(boxText(`  ${C.dim('Elements:')} ${e1} × ${e2} = ${compat}`, w)))
   }
 
   if (r1?.humandesign && r2?.humandesign) {
-    lines.push(C.cyan(boxText(C.bold(C.magenta(' △ Human Design')), w)))
-    lines.push(C.cyan(boxText(`  ${person1.name}: ${r1.humandesign.type}${r1.humandesign.profile ? ` (${r1.humandesign.profile})` : ''}`, w)))
-    lines.push(C.cyan(boxText(`  ${person2.name}: ${r2.humandesign.type}${r2.humandesign.profile ? ` (${r2.humandesign.profile})` : ''}`, w)))
-
     const def1 = new Set<string>((r1.humandesign.definedCenters || []).map((c: string) => c.toLowerCase()))
     const def2 = new Set<string>((r2.humandesign.definedCenters || []).map((c: string) => c.toLowerCase()))
-    const complementary: string[] = []
-    def1.forEach(c => { if (!def2.has(c)) complementary.push(c) })
-    if (complementary.length > 0) {
-      lines.push(C.cyan(boxText(`  ${C.dim('Complementary:')} ${person1.name} defines what ${person2.name} doesn't:`, w)))
-      lines.push(C.cyan(boxText(`    ${complementary.join(', ')}`, w)))
+    const comp1: string[] = []
+    const comp2: string[] = []
+    def1.forEach(c => { if (!def2.has(c)) comp1.push(c) })
+    def2.forEach(c => { if (!def1.has(c)) comp2.push(c) })
+    if (comp1.length > 0 || comp2.length > 0) {
+      lines.push(C.cyan(boxLine(BOX.lt, BOX.h, BOX.rt, w)))
+      lines.push(C.cyan(boxText(C.bold(' HD Complementary Centers'), w, 'center')))
+      if (comp1.length > 0) lines.push(C.cyan(boxText(`  ${person1.name} uniquely defines: ${comp1.join(', ')}`, w)))
+      if (comp2.length > 0) lines.push(C.cyan(boxText(`  ${person2.name} uniquely defines: ${comp2.join(', ')}`, w)))
     }
-    lines.push(C.cyan(boxLine(BOX.lt, BOX.h, BOX.rt, w)))
   }
 
   lines.push(C.cyan(boxLine(BOX.bl, BOX.h, BOX.br, w)))
@@ -789,6 +847,94 @@ function REPLView({
 
 // ─── Main Terminal Component ────────────────────────────────────────────
 
+// ─── Theme System ───────────────────────────────────────────────────────
+
+type ThemeName = 'green' | 'amber' | 'blue' | 'purple'
+
+const THEMES: Record<ThemeName, { primary: string; dim: string; bg: string; border: string; accent: string }> = {
+  green:  { primary: 'text-green-400', dim: 'text-green-700', bg: 'bg-green-950/60', border: 'border-green-800/50', accent: 'text-green-300' },
+  amber:  { primary: 'text-amber-400', dim: 'text-amber-700', bg: 'bg-amber-950/60', border: 'border-amber-800/50', accent: 'text-amber-300' },
+  blue:   { primary: 'text-blue-400', dim: 'text-blue-700', bg: 'bg-blue-950/60', border: 'border-blue-800/50', accent: 'text-blue-300' },
+  purple: { primary: 'text-purple-400', dim: 'text-purple-700', bg: 'bg-purple-950/60', border: 'border-purple-800/50', accent: 'text-purple-300' },
+}
+
+function getStoredTheme(): ThemeName {
+  if (typeof window === 'undefined') return 'green'
+  return (localStorage.getItem('omnis-tui-theme') as ThemeName) || 'green'
+}
+
+function getStoredSidebarWidth(): number {
+  if (typeof window === 'undefined') return 112
+  const stored = localStorage.getItem('omnis-tui-sidebar-width')
+  return stored ? Math.min(200, Math.max(80, parseInt(stored))) : 112
+}
+
+// ─── Search Overlay ─────────────────────────────────────────────────────
+
+function SearchOverlay({
+  people, onSelect, onClose,
+}: {
+  people: PersonRecord[]
+  onSelect: (person: PersonRecord) => void
+  onClose: () => void
+}) {
+  const [query, setQuery] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
+
+  const filtered = query
+    ? people.filter(p =>
+        p.name.toLowerCase().includes(query.toLowerCase()) ||
+        (p.hebrew_name && p.hebrew_name.includes(query))
+      )
+    : people
+
+  return (
+    <div className="absolute inset-0 z-50 flex items-start justify-center pt-16 bg-black/80">
+      <div className="w-96 bg-gray-950 border border-green-700/60 rounded shadow-2xl">
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-green-800/50">
+          <span className="text-green-500">/</span>
+          <input
+            ref={inputRef as React.RefObject<HTMLInputElement>}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') onClose()
+              if (e.key === 'Enter' && filtered.length > 0) {
+                onSelect(filtered[0])
+                onClose()
+              }
+            }}
+            className="flex-1 bg-transparent text-green-300 outline-none text-xs font-mono"
+            placeholder="Search people..."
+            spellCheck={false}
+          />
+          <span className="text-green-800 text-[10px]">ESC close</span>
+        </div>
+        <div className="max-h-48 overflow-y-auto">
+          {filtered.length === 0 ? (
+            <div className="px-3 py-2 text-green-800 text-xs font-mono">No results</div>
+          ) : (
+            filtered.slice(0, 10).map((p, i) => (
+              <button
+                key={p.id}
+                onClick={() => { onSelect(p); onClose() }}
+                className={`w-full text-left px-3 py-1 text-xs font-mono cursor-pointer hover:bg-green-900/30 ${i === 0 ? 'bg-green-900/20 text-green-300' : 'text-green-500'}`}
+              >
+                {p.name}{p.hebrew_name ? ` (${p.hebrew_name})` : ''} <span className="text-green-800">{p.birth_date || ''}</span>
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Terminal() {
   const [currentView, setCurrentView] = useState<ViewId>(1)
   const [people, setPeople] = useState<PersonRecord[]>([])
@@ -805,6 +951,10 @@ export default function Terminal() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [compareResults, setCompareResults] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [theme, setTheme] = useState<ThemeName>('green')
+  const [sidebarWidth, setSidebarWidth] = useState(112)
+  const [showSearch, setShowSearch] = useState(false)
+  const [cursorBlink, setCursorBlink] = useState(true)
 
   // REPL state
   const [replLines, setReplLines] = useState<TerminalLine[]>([
@@ -819,9 +969,18 @@ export default function Terminal() {
 
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Clock tick
+  // Initialize theme and sidebar from localStorage
   useEffect(() => {
-    const interval = setInterval(() => setClock(new Date()), 1000)
+    setTheme(getStoredTheme())
+    setSidebarWidth(getStoredSidebarWidth())
+  }, [])
+
+  // Clock tick + cursor blink
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setClock(new Date())
+      setCursorBlink(prev => !prev)
+    }, 500)
     return () => clearInterval(interval)
   }, [])
 
@@ -936,6 +1095,13 @@ export default function Terminal() {
         setScrollOffset(0)
       }
 
+      // '/' to open search overlay
+      if (e.key === '/' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        e.preventDefault()
+        setShowSearch(true)
+        return
+      }
+
       if (e.key === 'PageDown') { e.preventDefault(); setScrollOffset(prev => prev + 20) }
       if (e.key === 'PageUp') { e.preventDefault(); setScrollOffset(prev => Math.max(prev - 20, 0)) }
       if (e.key === 'Home') { e.preventDefault(); setScrollOffset(0) }
@@ -958,6 +1124,21 @@ export default function Terminal() {
       const result = await executeCommand(cmd)
       if (result === '__CLEAR__') {
         setReplLines([])
+      } else if (result === '__EXPORT__') {
+        const content = renderMainContent().map(l => stripAnsi(l)).join('\n')
+        navigator.clipboard.writeText(content).then(() => {
+          setReplLines(prev => [...prev, { type: 'output', content: '\x1b[32mView exported to clipboard.\x1b[0m' }])
+        }).catch(() => {
+          setReplLines(prev => [...prev, { type: 'output', content: '\x1b[31mFailed to copy to clipboard.\x1b[0m' }])
+        })
+      } else if (result.startsWith('__GOTO__')) {
+        const viewNum = parseInt(result.slice(7)) as ViewId
+        setCurrentView(viewNum)
+        setScrollOffset(0)
+        setReplLines(prev => [...prev, { type: 'output', content: `\x1b[32mNavigated to ${VIEW_LABELS[viewNum]}\x1b[0m` }])
+      } else if (result.includes('Theme set to')) {
+        setTheme(getStoredTheme())
+        setReplLines(prev => [...prev, { type: 'output', content: result }])
       } else if (result) {
         setReplLines(prev => [...prev, { type: 'output', content: result }])
       }
@@ -988,16 +1169,22 @@ export default function Terminal() {
     }
   }
 
+  const themeStyles = THEMES[theme]
   const mainLines = renderMainContent()
+  const totalLines = mainLines.length
   const visibleLines = mainLines.slice(scrollOffset, scrollOffset + 200)
 
   const timeStr = clock.toLocaleTimeString('en-US', { hour12: false })
   const dateStr = clock.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })
 
+  // Get selected person's kin for status bar
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const selectedKin = (personResults as any)?.dreamspell?.kin
+
   return (
     <div
       ref={containerRef}
-      className="relative flex flex-col h-full bg-black font-mono text-xs text-green-400 overflow-hidden select-none"
+      className={`relative flex flex-col h-full bg-black font-mono text-xs ${themeStyles.primary} overflow-hidden select-none`}
       tabIndex={0}
     >
       {/* Matrix rain background */}
@@ -1019,24 +1206,42 @@ export default function Terminal() {
         }}
       />
 
+      {/* Search overlay */}
+      {showSearch && (
+        <SearchOverlay
+          people={people}
+          onSelect={(person) => {
+            const idx = people.findIndex(p => p.id === person.id)
+            if (idx >= 0) setSelectedPersonIndex(idx)
+            loadPersonResults(person)
+            setCurrentView(3)
+            setScrollOffset(0)
+          }}
+          onClose={() => setShowSearch(false)}
+        />
+      )}
+
       {/* ═══ TOP BAR ═══ */}
-      <div className="relative z-20 flex items-center justify-between px-3 py-1 bg-green-950/60 border-b border-green-800/50">
+      <div className={`relative z-20 flex items-center justify-between px-3 py-1 ${themeStyles.bg} border-b ${themeStyles.border}`}>
         <div className="flex items-center gap-2">
-          <span className="text-green-300 font-bold tracking-wider">OMNIS TUI</span>
-          <span className="text-green-700">│</span>
-          <span className="text-green-600">{VIEW_LABELS[currentView]}</span>
+          <span className={`${themeStyles.accent} font-bold tracking-wider`}>OMNIS TUI</span>
+          <span className={themeStyles.dim}>│</span>
+          <span className={themeStyles.primary}>{VIEW_LABELS[currentView]}</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-green-600">{dateStr}</span>
-          <span className="text-green-500 font-bold tabular-nums">{timeStr}</span>
+          <span className={themeStyles.dim}>{dateStr}</span>
+          <span className={`${themeStyles.primary} font-bold tabular-nums`}>{timeStr}</span>
         </div>
       </div>
 
       {/* ═══ MAIN LAYOUT ═══ */}
       <div className="relative z-20 flex flex-1 overflow-hidden">
 
-        {/* ─── LEFT SIDEBAR ─── */}
-        <div className="w-28 shrink-0 border-r border-green-800/50 bg-black/40 flex flex-col py-1">
+        {/* ─── LEFT SIDEBAR (resizable) ─── */}
+        <div
+          className={`shrink-0 ${themeStyles.border} border-r bg-black/40 flex flex-col py-1`}
+          style={{ width: sidebarWidth }}
+        >
           {([1, 2, 3, 4, 5, 6, 7, 8, 0] as ViewId[]).map(v => {
             const active = currentView === v
             const icons: Record<ViewId, string> = {
@@ -1054,25 +1259,48 @@ export default function Terminal() {
                 className={`
                   text-left px-2 py-0.5 text-xs transition-colors cursor-pointer
                   ${active
-                    ? 'bg-green-900/50 text-green-300 font-bold border-r-2 border-green-400'
-                    : 'text-green-700 hover:text-green-500 hover:bg-green-950/40'
+                    ? `bg-green-900/50 ${themeStyles.accent} font-bold border-r-2 border-green-400`
+                    : `${themeStyles.dim} hover:${themeStyles.primary} hover:bg-green-950/40`
                   }
                 `}
               >
-                <span className="text-green-600">[{v}]</span>{' '}
+                <span className={themeStyles.dim}>[{v}]</span>{' '}
                 <span>{icons[v]}</span>{' '}
-                <span className="hidden lg:inline">{VIEW_LABELS[v].slice(0, 6)}</span>
+                <span className="hidden lg:inline">{VIEW_LABELS[v].slice(0, 8)}</span>
               </button>
             )
           })}
 
           {selectedPerson && (
-            <div className="mt-auto px-2 py-1 border-t border-green-900/50">
-              <div className="text-green-700 text-[10px]">SELECTED</div>
-              <div className="text-green-500 text-[10px] truncate">{selectedPerson.name}</div>
+            <div className={`mt-auto px-2 py-1 border-t ${themeStyles.border}`}>
+              <div className={`${themeStyles.dim} text-[10px]`}>SELECTED</div>
+              <div className={`${themeStyles.primary} text-[10px] truncate`}>{selectedPerson.name}</div>
             </div>
           )}
         </div>
+
+        {/* ─── RESIZE HANDLE ─── */}
+        <div
+          className="w-1 cursor-col-resize bg-transparent hover:bg-green-700/30 active:bg-green-600/40 shrink-0"
+          onMouseDown={(e) => {
+            e.preventDefault()
+            const startX = e.clientX
+            const startWidth = sidebarWidth
+            const onMouseMove = (ev: MouseEvent) => {
+              const newWidth = Math.min(200, Math.max(80, startWidth + ev.clientX - startX))
+              setSidebarWidth(newWidth)
+            }
+            const onMouseUp = () => {
+              document.removeEventListener('mousemove', onMouseMove)
+              document.removeEventListener('mouseup', onMouseUp)
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('omnis-tui-sidebar-width', String(sidebarWidth))
+              }
+            }
+            document.addEventListener('mousemove', onMouseMove)
+            document.addEventListener('mouseup', onMouseUp)
+          }}
+        />
 
         {/* ─── MAIN PANEL ─── */}
         <div className="flex-1 overflow-hidden flex flex-col">
@@ -1105,28 +1333,41 @@ export default function Terminal() {
       </div>
 
       {/* ═══ BOTTOM BAR ═══ */}
-      <div className="relative z-20 flex items-center justify-between px-3 py-1 bg-green-950/60 border-t border-green-800/50 text-[10px]">
-        <div className="flex items-center gap-2 text-green-700">
+      <div className={`relative z-20 flex items-center justify-between px-3 py-1 ${themeStyles.bg} border-t ${themeStyles.border} text-[10px]`}>
+        <div className={`flex items-center gap-2 ${themeStyles.dim}`}>
+          <span className={cursorBlink ? themeStyles.primary : 'text-transparent'}>█</span>
           <span>[1-8] Views</span>
-          <span className="text-green-900">│</span>
+          <span className="opacity-40">│</span>
           <span>[0] CMD</span>
-          <span className="text-green-900">│</span>
-          <span>[↑↓] Scroll</span>
-          <span className="text-green-900">│</span>
+          <span className="opacity-40">│</span>
+          <span>[/] Search</span>
+          <span className="opacity-40">│</span>
           <span>[Esc] Dashboard</span>
           {currentView === 2 && (
             <>
-              <span className="text-green-900">│</span>
+              <span className="opacity-40">│</span>
               <span>[Enter] Select</span>
-              <span className="text-green-900">│</span>
+              <span className="opacity-40">│</span>
               <span>[c] Compare</span>
             </>
           )}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-green-800">{people.length} people</span>
-          <span className="text-green-900">│</span>
-          <span className="text-green-700">OMNIS v2.0</span>
+          {selectedPerson && selectedKin && (
+            <>
+              <span className={themeStyles.accent}>Kin {selectedKin}</span>
+              <span className="opacity-40">│</span>
+            </>
+          )}
+          {currentView !== 0 && totalLines > 0 && (
+            <>
+              <span className={themeStyles.dim}>L{scrollOffset + 1}/{totalLines}</span>
+              <span className="opacity-40">│</span>
+            </>
+          )}
+          <span className={themeStyles.dim}>{people.length} people</span>
+          <span className="opacity-40">│</span>
+          <span className={themeStyles.primary}>OMNIS v2.0</span>
         </div>
       </div>
     </div>
