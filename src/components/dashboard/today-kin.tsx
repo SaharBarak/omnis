@@ -12,10 +12,32 @@ import { generateMantra } from '@/lib/data/mantras'
 import { kinToWavespell } from '@/lib/calculations/wavespell'
 import { kinToCastle } from '@/lib/calculations/cycles'
 import { getSealGlyphPath, getToneGlyphPath } from '@/lib/dreamspell-assets'
+import { OracleMap } from '@/components/cards/OracleMap'
+import { SealIcon } from '@/components/cards/SealIcon'
+
+const COLOR_GRADIENT = {
+  red: 'from-red-500/20 via-transparent to-transparent',
+  white: 'from-white/10 via-transparent to-transparent',
+  blue: 'from-blue-500/20 via-transparent to-transparent',
+  yellow: 'from-yellow-500/20 via-transparent to-transparent',
+} as const
+
+const COLOR_ACCENT = {
+  red: 'text-red-400',
+  white: 'text-white/90',
+  blue: 'text-blue-400',
+  yellow: 'text-yellow-400',
+} as const
+
+const COLOR_GLOW = {
+  red: 'shadow-red-500/20',
+  white: 'shadow-white/10',
+  blue: 'shadow-blue-500/20',
+  yellow: 'shadow-yellow-500/20',
+} as const
 
 interface TodayKinProps {
   className?: string
-  /** User's kin number for relationship display */
   userKin?: number
 }
 
@@ -35,15 +57,13 @@ export function TodayKin({ className, userKin }: TodayKinProps) {
     const wavespellSeal = getSeal(wavespell.sealNumber)
     const castle = kinToCastle(kin)
 
-    // Calculate relationship to user's kin if provided
     let relationship: { type: string; description: string } | null = null
     if (userKin) {
       const userKinBranded = asKin(userKin)
       const todaySealNum = kinToSeal(kin)
-      const userSealNum = kinToSeal(userKinBranded)
       const userOracle = calculateOracle(userKinBranded)
 
-      if (todaySealNum === userSealNum) {
+      if (todaySealNum === kinToSeal(userKinBranded)) {
         relationship = { type: 'Self', description: 'Today resonates with your core energy' }
       } else if (todaySealNum === userOracle.guide) {
         relationship = { type: 'Guide', description: 'A day of guidance and higher wisdom' }
@@ -56,79 +76,114 @@ export function TodayKin({ className, userKin }: TodayKinProps) {
       }
     }
 
-    return {
-      kin,
-      seal,
-      tone,
-      mantra,
-      wavespellSealName: wavespellSeal.english,
-      castleName: castle.name,
-      relationship,
-    }
+    return { kin, seal, tone, oracle, mantra, wavespellSealName: wavespellSeal.english, castleName: castle.name, relationship }
   }, [userKin])
 
+  const gradient = COLOR_GRADIENT[data.seal.color]
+  const accent = COLOR_ACCENT[data.seal.color]
+  const glow = COLOR_GLOW[data.seal.color]
+
   return (
-    <div className={cn('feature-card', className)}>
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-4">
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-        </span>
-        <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Today&apos;s Energy
-        </span>
-      </div>
+    <div className={cn(
+      'feature-card relative overflow-hidden',
+      className,
+    )}>
+      {/* Background gradient based on seal color */}
+      <div className={cn('absolute inset-0 bg-gradient-to-br pointer-events-none', gradient)} />
 
-      {/* Seal + Tone Glyphs */}
-      <div className="flex items-center gap-3 mb-4">
-        <img
-          src={getSealGlyphPath(data.seal.number)}
-          alt={data.seal.english}
-          className="w-14 h-14 object-contain"
-        />
-        <div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
-            Kin <span className="text-primary">{data.kin}</span>
-          </h2>
-          <p className="text-lg text-muted-foreground">
-            {data.tone.name} {data.seal.english}
-          </p>
+      <div className="relative z-10">
+        {/* Header */}
+        <div className="flex items-center gap-2 mb-5">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
+          </span>
+          <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            Today&apos;s Galactic Signature
+          </span>
         </div>
-        <img
-          src={getToneGlyphPath(data.tone.number)}
-          alt={`Tone ${data.tone.number}`}
-          className="w-10 h-10 object-contain ml-auto"
-        />
-      </div>
 
-      {/* Mantra */}
-      {data.mantra && (
-        <blockquote className="text-sm italic text-muted-foreground border-l-2 border-primary/30 pl-3 mb-4">
-          &ldquo;{data.mantra}&rdquo;
-        </blockquote>
-      )}
-
-      {/* Context badges */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        <Badge variant="secondary">{data.wavespellSealName} Wavespell</Badge>
-        <Badge variant="outline">{data.castleName} Castle</Badge>
-      </div>
-
-      {/* User relationship */}
-      {data.relationship && (
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <svg className="w-4 h-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
+        {/* Main kin display */}
+        <div className="flex items-start gap-4 mb-5">
+          {/* Seal icon with glow */}
+          <div className="relative shrink-0">
+            <div className={cn(
+              'absolute inset-0 rounded-full blur-xl opacity-40',
+              data.seal.color === 'red' && 'bg-red-500',
+              data.seal.color === 'white' && 'bg-white',
+              data.seal.color === 'blue' && 'bg-blue-500',
+              data.seal.color === 'yellow' && 'bg-yellow-500',
+            )} />
+            <img
+              src={getSealGlyphPath(data.seal.number)}
+              alt={data.seal.english}
+              className={cn('w-16 h-16 object-contain relative z-10 drop-shadow-lg')}
+            />
           </div>
-          <div>
-            <p className="font-medium text-sm text-foreground">Your {data.relationship.type} Day</p>
-            <p className="text-xs text-muted-foreground">{data.relationship.description}</p>
+
+          <div className="flex-1">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground leading-tight">
+              Kin <span className={accent}>{data.kin}</span>
+            </h2>
+            <p className={cn('text-lg font-medium', accent)}>
+              {data.tone.name} {data.seal.english}
+            </p>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {data.seal.hebrew} {data.tone.nameHebrew}
+            </p>
           </div>
+
+          <img
+            src={getToneGlyphPath(data.tone.number)}
+            alt={`Tone ${data.tone.number}`}
+            className="w-12 h-12 object-contain opacity-80 shrink-0"
+          />
         </div>
-      )}
+
+        {/* Oracle Cross */}
+        <div className="mb-5">
+          <OracleMap kin={data.kin} size="sm" />
+        </div>
+
+        {/* Mantra */}
+        {data.mantra && (
+          <blockquote className={cn(
+            'text-sm italic text-muted-foreground border-l-2 pl-3 mb-5',
+            data.seal.color === 'red' && 'border-red-500/40',
+            data.seal.color === 'white' && 'border-white/30',
+            data.seal.color === 'blue' && 'border-blue-500/40',
+            data.seal.color === 'yellow' && 'border-yellow-500/40',
+          )}>
+            &ldquo;{data.mantra}&rdquo;
+          </blockquote>
+        )}
+
+        {/* Context badges */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          <Badge variant="secondary" className="text-xs">{data.wavespellSealName} Wavespell</Badge>
+          <Badge variant="outline" className="text-xs">{data.castleName} Castle</Badge>
+          <Badge variant="outline" className="text-xs">Tone {data.tone.number} · {data.tone.keywords.join(' · ')}</Badge>
+        </div>
+
+        {/* User relationship */}
+        {data.relationship && (
+          <div className={cn(
+            'flex items-center gap-3 p-3 rounded-lg border transition-all',
+            'bg-primary/5 border-primary/10',
+            `shadow-sm ${glow}`,
+          )}>
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <svg className="w-4 h-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-medium text-sm text-foreground">Your {data.relationship.type} Day</p>
+              <p className="text-xs text-muted-foreground">{data.relationship.description}</p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
