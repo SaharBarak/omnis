@@ -4,9 +4,7 @@ import { useState, useMemo } from 'react'
 import type {
   NatalChart,
   PlanetPosition,
-  AspectInstance,
   Element,
-  PlanetId,
 } from '@/lib/types/astrology'
 import { ZODIAC_SIGNS } from '@/lib/data/zodiac-signs'
 import { cn } from '@/lib/utils'

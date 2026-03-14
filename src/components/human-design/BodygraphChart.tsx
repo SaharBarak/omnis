@@ -5,7 +5,6 @@ import type {
   Bodygraph,
   CenterId,
   Channel,
-  PlanetaryActivation,
 } from '@/lib/types/human-design'
 import { CENTER_LABELS } from '@/lib/types/human-design'
 import { CHANNELS } from '@/lib/data/human-design-channels'
@@ -323,7 +322,6 @@ export function BodygraphChart({
 
         let stroke = '#ffffff08'
         let strokeWidth = 1
-        let strokeDasharray: string | undefined
 
         if (isDefined) {
           strokeWidth = 3
@@ -352,7 +350,6 @@ export function BodygraphChart({
             y2={c2.y}
             stroke={stroke}
             strokeWidth={strokeWidth}
-            strokeDasharray={strokeDasharray}
             strokeLinecap="round"
             opacity={isDefined ? 0.9 : 0.15}
             style={{ cursor: isDefined ? 'pointer' : 'default' }}
