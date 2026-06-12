@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, use } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 import { analyzeGroup } from '@/lib/services/group-analysis'
 import type { FullGroupAnalysis, GroupMemberAnalysis } from '@/lib/services/group-analysis'
 import type { GroupWithMembers, ShareOptions } from '@/lib/types/relationship'
@@ -215,23 +214,31 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
     groupAnalysis?: FullGroupAnalysis
   } | null>(null)
 
-  const supabase = createClient()
-
   const loadShare = useCallback(async (password?: string) => {
     setLoading(true)
     setError(null)
     setPasswordError(null)
 
     try {
-      // First, get the share metadata
-      const { data: share, error: shareError } = await supabase
-        .from('shared_views')
-        .select('*')
-        .eq('url_token', token)
-        .eq('active', true)
-        .single()
+      // First, get the share metadata from the public token route (no auth).
+      const shareRes = await fetch(`/api/shares/public/${token}`)
+      if (!shareRes.ok) {
+        setError('Link not found or inactive')
+        setLoading(false)
+        return
+      }
+      const { share } = (await shareRes.json()) as {
+        share: {
+          share_type: 'person' | 'relationship' | 'group' | 'graph'
+          options: ShareOptions
+          expires_at: string | null
+          max_views: number | null
+          view_count: number
+          password_hash: string | null
+        }
+      }
 
-      if (shareError || !share) {
+      if (!share) {
         setError('Link not found or inactive')
         setLoading(false)
         return
@@ -271,21 +278,28 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
         }
       }
 
-      // Increment view count using RPC
-      await supabase.rpc('increment_shared_view_count', { p_token: token })
+      // Increment view count via the public token route
+      await fetch(`/api/shares/public/${token}/view`, { method: 'POST' })
 
       const options = share.options as unknown as ShareOptions
 
       // Load the actual content based on share type
       if (share.share_type === 'group' && options.groupId) {
-        // Load group data
-        const { data: groupData, error: groupError } = await supabase
-          .rpc('get_group_with_members', { p_group_id: options.groupId })
+        // Load group data via the authenticated groups route. As under the old
+        // RLS model, group content is only resolvable for the signed-in owner;
+        // anonymous viewers receive an empty group.
+        const groupRes = await fetch(`/api/groups/${options.groupId}`, {
+          credentials: 'include',
+        })
 
-        if (groupError || !groupData) {
+        if (!groupRes.ok) {
           setError('Unable to load group data')
           setLoading(false)
           return
+        }
+
+        const { group: groupData } = (await groupRes.json()) as {
+          group: GroupWithMembers
         }
 
         const groupWithMembers: GroupWithMembers = {
@@ -317,7 +331,7 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
     } finally {
       setLoading(false)
     }
-  }, [supabase, token])
+  }, [token])
 
   useEffect(() => {
     loadShare()

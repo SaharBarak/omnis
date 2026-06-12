@@ -1,9 +1,32 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import type { SharedView, SharedViewInsert, Json } from '@/lib/supabase/database.types'
 import type { CreateShareInput } from '@/lib/types/relationship'
+
+// Client-facing shape mirrors the original Supabase shared_views row contract
+// (nullable, never undefined) so existing consumers keep type-checking. The
+// server serializer guarantees this shape at runtime.
+type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+interface SharedViewRow {
+  id: string
+  owner_id: string
+  share_type: 'person' | 'relationship' | 'group' | 'graph'
+  options: Json
+  url_token: string
+  expires_at: string | null
+  max_views: number | null
+  view_count: number
+  password_hash: string | null
+  active: boolean
+  created_at: string
+}
 
 // Generate a random URL token
 function generateToken(length = 16): string {
@@ -36,7 +59,7 @@ export interface ShareLink {
   id: string
   url: string
   token: string
-  shareType: SharedView['share_type']
+  shareType: SharedViewRow['share_type']
   expiresAt: string | null
   maxViews: number | null
   viewCount: number
@@ -45,106 +68,89 @@ export interface ShareLink {
   createdAt: string
 }
 
+function toShareLink(row: SharedViewRow): ShareLink {
+  return {
+    id: row.id,
+    url: `${window.location.origin}/share/${row.url_token}`,
+    token: row.url_token,
+    shareType: row.share_type,
+    expiresAt: row.expires_at,
+    maxViews: row.max_views,
+    viewCount: row.view_count,
+    hasPassword: !!row.password_hash,
+    active: row.active,
+    createdAt: row.created_at,
+  }
+}
+
+async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, { credentials: 'include', ...init })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data.error || `Request failed: ${res.status}`)
+  }
+  return res.json() as Promise<T>
+}
+
 export function useShares() {
   const [shares, setShares] = useState<ShareLink[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  const supabase = createClient()
 
   const fetchShares = useCallback(async () => {
     setLoading(true)
     setError(null)
 
     try {
-      const { data, error: fetchError } = await supabase
-        .from('shared_views')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (fetchError) throw fetchError
-
-      const shareLinks: ShareLink[] = (data || []).map(share => ({
-        id: share.id,
-        url: `${window.location.origin}/share/${share.url_token}`,
-        token: share.url_token,
-        shareType: share.share_type,
-        expiresAt: share.expires_at,
-        maxViews: share.max_views,
-        viewCount: share.view_count,
-        hasPassword: !!share.password_hash,
-        active: share.active,
-        createdAt: share.created_at,
-      }))
-
-      setShares(shareLinks)
+      const { shares: rows } = await fetchJson<{ shares: SharedViewRow[] }>(
+        '/api/shares'
+      )
+      setShares(rows.map(toShareLink))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch shares')
     } finally {
       setLoading(false)
     }
-  }, [supabase])
+  }, [])
 
   const createShare = useCallback(async (input: CreateShareInput): Promise<ShareLink | null> => {
     setError(null)
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
-
       const token = generateToken()
       const passwordHash = input.password ? await hashPassword(input.password) : null
 
-      const insertData: SharedViewInsert = {
-        owner_id: user.id,
-        share_type: input.shareType,
-        options: input.options as unknown as Json,
-        url_token: token,
-        expires_at: input.expiresAt || null,
-        max_views: input.maxViews || null,
-        password_hash: passwordHash,
-        active: true,
-      }
+      const { share } = await fetchJson<{ share: SharedViewRow }>('/api/shares', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          share_type: input.shareType,
+          options: input.options,
+          url_token: token,
+          expires_at: input.expiresAt || null,
+          max_views: input.maxViews || null,
+          password_hash: passwordHash,
+        }),
+      })
 
-      const { data, error: insertError } = await supabase
-        .from('shared_views')
-        .insert(insertData)
-        .select()
-        .single()
-
-      if (insertError) throw insertError
-
-      const shareLink: ShareLink = {
-        id: data.id,
-        url: `${window.location.origin}/share/${data.url_token}`,
-        token: data.url_token,
-        shareType: data.share_type,
-        expiresAt: data.expires_at,
-        maxViews: data.max_views,
-        viewCount: data.view_count,
-        hasPassword: !!data.password_hash,
-        active: data.active,
-        createdAt: data.created_at,
-      }
-
+      const shareLink = toShareLink(share)
       setShares(prev => [shareLink, ...prev])
       return shareLink
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create share')
       return null
     }
-  }, [supabase])
+  }, [])
 
   const deactivateShare = useCallback(async (id: string): Promise<boolean> => {
     setError(null)
 
     try {
-      const { error: updateError } = await supabase
-        .from('shared_views')
-        .update({ active: false })
-        .eq('id', id)
-
-      if (updateError) throw updateError
+      await fetchJson(`/api/shares/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active: false }),
+      })
 
       setShares(prev => prev.map(s => s.id === id ? { ...s, active: false } : s))
       return true
@@ -152,74 +158,66 @@ export function useShares() {
       setError(err instanceof Error ? err.message : 'Failed to deactivate share')
       return false
     }
-  }, [supabase])
+  }, [])
 
   const deleteShare = useCallback(async (id: string): Promise<boolean> => {
     setError(null)
 
     try {
-      const { error: deleteError } = await supabase
-        .from('shared_views')
-        .delete()
-        .eq('id', id)
-
-      if (deleteError) throw deleteError
-
+      await fetchJson(`/api/shares/${id}`, { method: 'DELETE' })
       setShares(prev => prev.filter(s => s.id !== id))
       return true
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete share')
       return false
     }
-  }, [supabase])
+  }, [])
 
   // Get shared view by token (public access)
   const getSharedView = useCallback(async (token: string, password?: string): Promise<{
-    data: SharedView | null
+    data: SharedViewRow | null
     error: string | null
     requiresPassword: boolean
   }> => {
     try {
-      const { data, error: fetchError } = await supabase
-        .from('shared_views')
-        .select('*')
-        .eq('url_token', token)
-        .eq('active', true)
-        .single()
-
-      if (fetchError || !data) {
+      const res = await fetch(`/api/shares/public/${token}`)
+      if (!res.ok) {
+        return { data: null, error: 'Share not found or expired', requiresPassword: false }
+      }
+      const { share } = (await res.json()) as { share: SharedViewRow }
+      if (!share) {
         return { data: null, error: 'Share not found or expired', requiresPassword: false }
       }
 
       // Check expiration
-      if (data.expires_at && new Date(data.expires_at) < new Date()) {
+      if (share.expires_at && new Date(share.expires_at) < new Date()) {
         return { data: null, error: 'Share has expired', requiresPassword: false }
       }
 
       // Check max views
-      if (data.max_views !== null && data.view_count >= data.max_views) {
+      if (share.max_views !== null && share.view_count >= share.max_views) {
         return { data: null, error: 'Share has reached maximum views', requiresPassword: false }
       }
 
       // Check password
-      if (data.password_hash) {
+      if (share.password_hash) {
         if (!password) {
           return { data: null, error: null, requiresPassword: true }
         }
-        const valid = await verifyPassword(password, data.password_hash)
+        const valid = await verifyPassword(password, share.password_hash)
         if (!valid) {
           return { data: null, error: 'Incorrect password', requiresPassword: true }
         }
       }
 
-      // Increment view count
-      await supabase.rpc('increment_shared_view_count', { p_token: token })
+      // Increment view count via the public endpoint
+      await fetch(`/api/shares/public/${token}/view`, { method: 'POST' })
 
-      return { data, error: null, requiresPassword: false }
+      return { data: share, error: null, requiresPassword: false }
     } catch (err) {
       return { data: null, error: err instanceof Error ? err.message : 'Failed to fetch share', requiresPassword: false }
     }
-  }, [supabase])
+  }, [])
 
   return {
     shares,

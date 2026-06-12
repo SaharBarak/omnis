@@ -1,15 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import type {
-  Board,
-  BoardInsert,
-  BoardUpdate,
-  BoardShare,
-  BoardShareInsert,
-  Json,
-} from '@/lib/supabase/database.types'
 import type {
   CanvasState,
   Layer,
@@ -18,9 +9,54 @@ import type {
   UpdateBoardInput,
   CreateBoardShareInput,
   BoardWithStats,
-  DEFAULT_CANVAS_STATE,
-  DEFAULT_LAYERS,
 } from '@/lib/types/board'
+
+// Client-facing shapes mirror the original Supabase row contract (nullable,
+// never undefined) so existing consumers keep type-checking. The server
+// serializer guarantees these shapes at runtime. These intentionally duplicate
+// the `@/lib/supabase/database.types` Board/BoardShare row contracts so the
+// public API of this hook is unchanged after the Mongo migration.
+type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export interface Board {
+  id: string
+  owner_id: string
+  name: string
+  description: string | null
+  template:
+    | 'blank'
+    | 'relationship-map'
+    | 'family-tree'
+    | 'yearly-overview'
+    | 'personal-profile'
+    | 'group-analysis'
+    | null
+  canvas: Json
+  layers: Json
+  thumbnail: string | null
+  is_public: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface BoardShare {
+  id: string
+  board_id: string
+  url_token: string
+  permissions: 'view' | 'comment' | 'edit'
+  expires_at: string | null
+  max_views: number | null
+  view_count: number
+  password_hash: string | null
+  active: boolean
+  created_at: string
+}
 
 interface UseBoardsState {
   boards: Board[]
@@ -51,6 +87,23 @@ interface UseBoardsReturn extends UseBoardsState {
   } | null>
 }
 
+async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, { credentials: 'include', ...init })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data.error || `Request failed: ${res.status}`)
+  }
+  return res.json() as Promise<T>
+}
+
+function jsonInit(method: string, body: unknown): RequestInit {
+  return {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }
+}
+
 export function useBoards(): UseBoardsReturn {
   const [state, setState] = useState<UseBoardsState>({
     boards: [],
@@ -58,25 +111,13 @@ export function useBoards(): UseBoardsReturn {
     error: null,
   })
 
-  const supabase = createClient()
-
   // Fetch all boards for current user
   const fetchBoards = useCallback(async () => {
     setState(prev => ({ ...prev, loading: true, error: null }))
 
     try {
-      const { data: boards, error } = await supabase
-        .from('boards')
-        .select('*')
-        .order('updated_at', { ascending: false })
-
-      if (error) throw error
-
-      setState({
-        boards: boards || [],
-        loading: false,
-        error: null,
-      })
+      const { boards } = await fetchJson<{ boards: Board[] }>('/api/boards')
+      setState({ boards, loading: false, error: null })
     } catch (err) {
       setState(prev => ({
         ...prev,
@@ -84,110 +125,70 @@ export function useBoards(): UseBoardsReturn {
         error: err instanceof Error ? err.message : 'Error fetching boards',
       }))
     }
-  }, [supabase])
+  }, [])
 
   // Get a single board by ID
   const getBoard = useCallback(async (id: string): Promise<Board | null> => {
-    const { data, error } = await supabase
-      .from('boards')
-      .select('*')
-      .eq('id', id)
-      .single()
-
-    if (error) {
-      if (error.code === 'PGRST116') return null // Not found
-      throw error
+    const res = await fetch(`/api/boards/${id}`, { credentials: 'include' })
+    if (res.status === 404) return null
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.error || `Request failed: ${res.status}`)
     }
-
-    return data
-  }, [supabase])
+    const { board } = (await res.json()) as { board: Board }
+    return board
+  }, [])
 
   // Create a new board
   const createBoard = useCallback(async (input: CreateBoardInput): Promise<Board> => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Not authenticated')
-
-    // Import defaults dynamically to avoid circular dependencies
-    const { DEFAULT_CANVAS_STATE, DEFAULT_LAYERS } = await import('@/lib/types/board')
-
-    const insertData: BoardInsert = {
-      owner_id: user.id,
-      name: input.name,
-      description: input.description,
-      template: input.template || 'blank',
-      canvas: DEFAULT_CANVAS_STATE as unknown as Json,
-      layers: DEFAULT_LAYERS as unknown as Json,
-    }
-
-    const { data: board, error } = await supabase
-      .from('boards')
-      .insert(insertData)
-      .select()
-      .single()
-
-    if (error) throw error
-
+    const { board } = await fetchJson<{ board: Board }>(
+      '/api/boards',
+      jsonInit('POST', {
+        name: input.name,
+        description: input.description ?? null,
+        template: input.template ?? 'blank',
+      })
+    )
     await fetchBoards()
     return board
-  }, [supabase, fetchBoards])
+  }, [fetchBoards])
 
   // Update a board
   const updateBoard = useCallback(async (id: string, input: UpdateBoardInput): Promise<Board> => {
-    const updateData: BoardUpdate = {}
-
+    const updateData: Record<string, unknown> = {}
     if (input.name !== undefined) updateData.name = input.name
     if (input.description !== undefined) updateData.description = input.description
-    if (input.canvas !== undefined) updateData.canvas = input.canvas as unknown as Json
-    if (input.layers !== undefined) updateData.layers = input.layers as unknown as Json
+    if (input.canvas !== undefined) updateData.canvas = input.canvas
+    if (input.layers !== undefined) updateData.layers = input.layers
     if (input.thumbnail !== undefined) updateData.thumbnail = input.thumbnail
     if (input.isPublic !== undefined) updateData.is_public = input.isPublic
 
-    const { data, error } = await supabase
-      .from('boards')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (error) throw error
-
+    const { board } = await fetchJson<{ board: Board }>(
+      `/api/boards/${id}`,
+      jsonInit('PATCH', updateData)
+    )
     await fetchBoards()
-    return data
-  }, [supabase, fetchBoards])
+    return board
+  }, [fetchBoards])
 
   // Delete a board
   const deleteBoard = useCallback(async (id: string): Promise<void> => {
-    const { error } = await supabase
-      .from('boards')
-      .delete()
-      .eq('id', id)
-
-    if (error) throw error
-
+    await fetchJson(`/api/boards/${id}`, { method: 'DELETE' })
     await fetchBoards()
-  }, [supabase, fetchBoards])
+  }, [fetchBoards])
 
   // Duplicate a board
   const duplicateBoard = useCallback(async (id: string, newName?: string): Promise<string> => {
-    const { data, error } = await supabase
-      .rpc('duplicate_board', {
-        p_board_id: id,
-        p_new_name: newName || null,
-      })
-
-    if (error) throw error
-
+    const { id: newId } = await fetchJson<{ id: string }>(
+      `/api/boards/${id}/duplicate`,
+      jsonInit('POST', { newName: newName ?? null })
+    )
     await fetchBoards()
-    return data as string
-  }, [supabase, fetchBoards])
+    return newId
+  }, [fetchBoards])
 
   // Get recent boards with stats
   const getRecentBoards = useCallback(async (limit = 10): Promise<BoardWithStats[]> => {
-    const { data, error } = await supabase
-      .rpc('get_recent_boards', { p_limit: limit })
-
-    if (error) throw error
-
     interface RecentBoardRow {
       id: string
       name: string
@@ -199,9 +200,13 @@ export function useBoards(): UseBoardsReturn {
       updated_at: string
     }
 
-    return (data || []).map((row: RecentBoardRow) => ({
+    const { boards } = await fetchJson<{ boards: RecentBoardRow[] }>(
+      `/api/boards/recent?limit=${limit}`
+    )
+
+    return boards.map((row) => ({
       id: row.id,
-      owner_id: '', // Not returned by function
+      owner_id: '', // Not returned by the recent-boards projection
       name: row.name,
       description: row.description,
       template: row.template as BoardTemplate | null,
@@ -213,78 +218,48 @@ export function useBoards(): UseBoardsReturn {
       updated_at: row.updated_at,
       nodeCount: row.node_count,
     }))
-  }, [supabase])
+  }, [])
 
   // Update just the canvas state (for auto-save)
   const updateCanvas = useCallback(async (id: string, canvas: CanvasState): Promise<void> => {
-    const { error } = await supabase
-      .from('boards')
-      .update({ canvas: canvas as unknown as Json })
-      .eq('id', id)
-
-    if (error) throw error
-  }, [supabase])
+    await fetchJson(`/api/boards/${id}`, jsonInit('PATCH', { canvas }))
+  }, [])
 
   // Update just the layers
   const updateLayers = useCallback(async (id: string, layers: Layer[]): Promise<void> => {
-    const { error } = await supabase
-      .from('boards')
-      .update({ layers: layers as unknown as Json })
-      .eq('id', id)
-
-    if (error) throw error
-  }, [supabase])
+    await fetchJson(`/api/boards/${id}`, jsonInit('PATCH', { layers }))
+  }, [])
 
   // Create a share link for a board
   const createShare = useCallback(async (boardId: string, input: CreateBoardShareInput): Promise<BoardShare> => {
-    // Generate unique token
+    // Generate unique token client-side (unguessable).
     const token = crypto.randomUUID().replace(/-/g, '').slice(0, 16)
 
-    const insertData: BoardShareInsert = {
-      board_id: boardId,
-      url_token: token,
-      permissions: input.permissions || 'view',
-      expires_at: input.expiresAt,
-      max_views: input.maxViews,
-      // Note: password hashing should be done server-side
-      // For now, we store it as-is (in production, use a server function)
-      password_hash: input.password || null,
-    }
-
-    const { data, error } = await supabase
-      .from('board_shares')
-      .insert(insertData)
-      .select()
-      .single()
-
-    if (error) throw error
-
-    return data
-  }, [supabase])
+    const { share } = await fetchJson<{ share: BoardShare }>(
+      `/api/boards/${boardId}/shares`,
+      jsonInit('POST', {
+        url_token: token,
+        permissions: input.permissions || 'view',
+        expires_at: input.expiresAt ?? null,
+        max_views: input.maxViews ?? null,
+        password_hash: input.password || null,
+      })
+    )
+    return share
+  }, [])
 
   // Get all shares for a board
   const getShares = useCallback(async (boardId: string): Promise<BoardShare[]> => {
-    const { data, error } = await supabase
-      .from('board_shares')
-      .select('*')
-      .eq('board_id', boardId)
-      .eq('active', true)
-      .order('created_at', { ascending: false })
-
-    if (error) throw error
-
-    return data || []
-  }, [supabase])
+    const { shares } = await fetchJson<{ shares: BoardShare[] }>(
+      `/api/boards/${boardId}/shares`
+    )
+    return shares
+  }, [])
 
   // Delete (deactivate) a share
   const deleteShare = useCallback(async (shareId: string): Promise<void> => {
-    const { error } = await supabase
-      .from('board_shares')
-      .update({ active: false })
-      .eq('id', shareId)
-
-    if (error) throw error
-  }, [supabase])
+    await fetchJson(`/api/boards/shares/${shareId}`, { method: 'DELETE' })
+  }, [])
 
   // Get board by share token (public access)
   const getBoardByShareToken = useCallback(async (token: string): Promise<{
@@ -292,14 +267,25 @@ export function useBoards(): UseBoardsReturn {
     permissions: string
     ownerName: string | null
   } | null> => {
-    const { data, error } = await supabase
-      .rpc('get_board_by_share_token', { p_token: token })
+    const res = await fetch(`/api/boards/shared/${token}`)
+    if (res.status === 404) return null
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.error || `Request failed: ${res.status}`)
+    }
 
-    if (error) throw error
+    const row = (await res.json()) as {
+      id: string
+      name: string
+      description: string | null
+      template: string | null
+      canvas: Json
+      layers: Json
+      permissions: string
+      expires_at: string | null
+      owner_name: string | null
+    }
 
-    if (!data || data.length === 0) return null
-
-    const row = data[0]
     return {
       board: {
         id: row.id,
@@ -317,7 +303,7 @@ export function useBoards(): UseBoardsReturn {
       permissions: row.permissions,
       ownerName: row.owner_name,
     }
-  }, [supabase])
+  }, [])
 
   // Initial fetch
   useEffect(() => {
@@ -371,24 +357,16 @@ export function useBoard(): UseBoardReturn {
     dirty: false,
   })
 
-  const supabase = createClient()
-
   const loadBoard = useCallback(async (id: string) => {
     setState(prev => ({ ...prev, loading: true, error: null }))
 
     try {
-      const { data, error } = await supabase
-        .from('boards')
-        .select('*')
-        .eq('id', id)
-        .single()
-
-      if (error) throw error
+      const { board } = await fetchJson<{ board: Board }>(`/api/boards/${id}`)
 
       setState({
-        board: data,
-        canvas: data.canvas as unknown as CanvasState,
-        layers: data.layers as unknown as Layer[],
+        board,
+        canvas: board.canvas as unknown as CanvasState,
+        layers: board.layers as unknown as Layer[],
         loading: false,
         saving: false,
         error: null,
@@ -401,7 +379,7 @@ export function useBoard(): UseBoardReturn {
         error: err instanceof Error ? err.message : 'Error loading board',
       }))
     }
-  }, [supabase])
+  }, [])
 
   const setCanvas = useCallback((canvas: CanvasState) => {
     setState(prev => ({
@@ -425,15 +403,10 @@ export function useBoard(): UseBoardReturn {
     setState(prev => ({ ...prev, saving: true }))
 
     try {
-      const { error } = await supabase
-        .from('boards')
-        .update({
-          canvas: state.canvas as unknown as Json,
-          layers: state.layers as unknown as Json,
-        })
-        .eq('id', state.board.id)
-
-      if (error) throw error
+      await fetchJson(
+        `/api/boards/${state.board.id}`,
+        jsonInit('PATCH', { canvas: state.canvas, layers: state.layers })
+      )
 
       setState(prev => ({
         ...prev,
@@ -447,7 +420,7 @@ export function useBoard(): UseBoardReturn {
         error: err instanceof Error ? err.message : 'Error saving board',
       }))
     }
-  }, [supabase, state.board, state.canvas, state.layers])
+  }, [state.board, state.canvas, state.layers])
 
   return {
     ...state,

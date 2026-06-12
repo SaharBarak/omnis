@@ -1,8 +1,26 @@
 'use client'
 
 import { useCallback } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import type { ComputedResult, SystemType } from '@/lib/supabase/database.types'
+
+// Client-facing shape mirrors the original Supabase computed_results row
+// contract (nullable, never undefined) so existing consumers keep type-checking.
+// The server serializer guarantees these shapes at runtime.
+export type SystemType =
+  | 'dreamspell'
+  | 'tzolkin'
+  | 'longcount'
+  | 'humandesign'
+  | 'astrology'
+  | 'gematria'
+
+export interface ComputedResult {
+  id: string
+  person_id: string
+  system: SystemType
+  version: string
+  data: Record<string, unknown>
+  computed_at: string
+}
 
 // Dreamspell imports
 import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
@@ -146,9 +164,16 @@ export interface ComputeParams {
   hebrewName?: string | null
 }
 
-export function useComputedResults() {
-  const supabase = createClient()
+async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, { credentials: 'include', ...init })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data.error || `Request failed: ${res.status}`)
+  }
+  return res.json() as Promise<T>
+}
 
+export function useComputedResults() {
   // Compute Dreamspell data for a birth date
   const computeDreamspell = useCallback((birthDate: string): DreamspellComputedData => {
     const kin = dateToKin(birthDate)
@@ -365,7 +390,7 @@ export function useComputedResults() {
     }
   }, [])
 
-  // Save computed result to database
+  // Save computed result to database (via the computed-results API)
   const saveComputedResult = useCallback(async (
     personId: string,
     system: SystemType,
@@ -374,47 +399,42 @@ export function useComputedResults() {
   ): Promise<ComputedResult | null> => {
     if (data === null) return null
 
-    const { data: result, error } = await supabase
-      .from('computed_results')
-      .upsert(
+    try {
+      const { result } = await fetchJson<{ result: ComputedResult }>(
+        '/api/computed-results',
         {
-          person_id: personId,
-          system,
-          version,
-          data: data as Record<string, unknown>,
-          computed_at: new Date().toISOString(),
-        },
-        {
-          onConflict: 'person_id,system,version',
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            personId,
+            system,
+            version,
+            data: data as Record<string, unknown>,
+            computed_at: new Date().toISOString(),
+          }),
         }
       )
-      .select()
-      .single()
-
-    if (error) {
+      return result
+    } catch (error) {
       console.error(`Error saving ${system} computed result:`, error)
       return null
     }
+  }, [])
 
-    return result
-  }, [supabase])
-
-  // Get stored computed results for a person
+  // Get stored computed results for a person (via the computed-results API)
   const getStoredResults = useCallback(async (
     personId: string
   ): Promise<ComputedResult[]> => {
-    const { data, error } = await supabase
-      .from('computed_results')
-      .select('*')
-      .eq('person_id', personId)
-
-    if (error) {
+    try {
+      const { results } = await fetchJson<{ results: ComputedResult[] }>(
+        `/api/computed-results?personId=${encodeURIComponent(personId)}`
+      )
+      return results || []
+    } catch (error) {
       console.error('Error fetching computed results:', error)
       return []
     }
-
-    return data || []
-  }, [supabase])
+  }, [])
 
   // Compute and store all systems for a person
   const computeAndStore = useCallback(async (
@@ -498,17 +518,17 @@ export function useComputedResults() {
     return computeAndStore(personId, params)
   }, [getStoredResults, computeAndStore])
 
-  // Delete computed results for a person
+  // Delete computed results for a person (via the computed-results API)
   const deleteComputedResults = useCallback(async (personId: string): Promise<void> => {
-    const { error } = await supabase
-      .from('computed_results')
-      .delete()
-      .eq('person_id', personId)
-
-    if (error) {
+    try {
+      await fetchJson(
+        `/api/computed-results?personId=${encodeURIComponent(personId)}`,
+        { method: 'DELETE' }
+      )
+    } catch (error) {
       console.error('Error deleting computed results:', error)
     }
-  }, [supabase])
+  }, [])
 
   // Invalidate results
   const invalidateResults = useCallback(async (personId: string): Promise<void> => {
