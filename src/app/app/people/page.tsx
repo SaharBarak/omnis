@@ -324,7 +324,7 @@ export default function PeoplePage() {
       hebrew_name: data.hebrew_name || null,
       birth_date: data.birth_date,
       birth_time: data.birth_time,
-      birth_place: data.birth_place as Json | null,
+      birth_place: data.birth_place,
       notes: data.notes || null,
     }, data.tagIds)
     setIsAddDialogOpen(false)
@@ -345,7 +345,7 @@ export default function PeoplePage() {
       hebrew_name: data.hebrew_name || null,
       birth_date: data.birth_date,
       birth_time: data.birth_time,
-      birth_place: data.birth_place as Json | null,
+      birth_place: data.birth_place,
       notes: data.notes || null,
     }, data.tagIds)
     setIsEditDialogOpen(false)

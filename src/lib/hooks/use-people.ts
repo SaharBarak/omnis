@@ -1,9 +1,50 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import type { Person, PersonInsert, PersonUpdate, Tag } from '@/lib/supabase/database.types'
 import { useComputedResults } from './use-computed-results'
+
+// Client-facing shapes mirror the original Supabase row contract (nullable,
+// never undefined) so existing consumers keep type-checking. The server
+// serializer guarantees these shapes at runtime.
+export interface Tag {
+  id: string
+  owner_id: string | null
+  name: string
+  hebrew_name: string
+  color: string
+  is_system: boolean
+  sort_order: number
+  created_at: string
+}
+
+export interface Person {
+  id: string
+  owner_id: string
+  name: string
+  hebrew_name: string | null
+  birth_date: string
+  birth_time: string | null
+  birth_place: { lat?: number; lng?: number; name?: string } | null
+  avatar_url: string | null
+  notes: string | null
+  is_self: boolean
+  deleted_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface PersonInsert {
+  name: string
+  birth_date: string
+  hebrew_name?: string | null
+  birth_time?: string | null
+  birth_place?: { lat?: number; lng?: number; name?: string } | null
+  avatar_url?: string | null
+  notes?: string | null
+  is_self?: boolean
+  owner_id?: string
+}
+export type PersonUpdate = Partial<PersonInsert> & { deleted_at?: string | null }
 
 export interface PersonWithTags extends Person {
   tags: Tag[]
@@ -16,6 +57,15 @@ interface UsePeopleState {
   error: string | null
 }
 
+async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, { credentials: 'include', ...init })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data.error || `Request failed: ${res.status}`)
+  }
+  return res.json() as Promise<T>
+}
+
 export function usePeople() {
   const [state, setState] = useState<UsePeopleState>({
     people: [],
@@ -24,190 +74,121 @@ export function usePeople() {
     error: null,
   })
 
-  const supabase = createClient()
   const { computeAndStore, invalidateResults } = useComputedResults()
 
-  // Fetch all people with their tags
   const fetchPeople = useCallback(async () => {
-    setState(prev => ({ ...prev, loading: true, error: null }))
-
+    setState((prev) => ({ ...prev, loading: true, error: null }))
     try {
-      // Fetch people (excluding soft deleted)
-      const { data: people, error: peopleError } = await supabase
-        .from('people')
-        .select('*')
-        .is('deleted_at', null)
-        .order('name')
-
-      if (peopleError) throw peopleError
-
-      // Fetch all tags (system + user custom)
-      const { data: tags, error: tagsError } = await supabase
-        .from('tags')
-        .select('*')
-        .order('sort_order')
-
-      if (tagsError) throw tagsError
-
-      // Fetch person-tag relationships
-      const { data: personTags, error: personTagsError } = await supabase
-        .from('person_tags')
-        .select('*')
-
-      if (personTagsError) throw personTagsError
-
-      // Build people with tags
-      const peopleWithTags: PersonWithTags[] = (people || []).map(person => ({
-        ...person,
-        tags: (personTags || [])
-          .filter(pt => pt.person_id === person.id)
-          .map(pt => (tags || []).find(t => t.id === pt.tag_id))
-          .filter((t): t is Tag => t !== undefined),
-      }))
-
+      const data = await fetchJson<{ people: PersonWithTags[]; tags: Tag[] }>(
+        '/api/people'
+      )
       setState({
-        people: peopleWithTags,
-        tags: tags || [],
+        people: data.people,
+        tags: data.tags,
         loading: false,
         error: null,
       })
     } catch (err) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         loading: false,
         error: err instanceof Error ? err.message : 'Error fetching people',
       }))
     }
-  }, [supabase])
+  }, [])
 
-  // Add a new person
-  const addPerson = useCallback(async (person: Omit<PersonInsert, 'owner_id'>, tagIds: string[] = []) => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Not authenticated')
-
-    const { data, error } = await supabase
-      .from('people')
-      .insert({ ...person, owner_id: user.id })
-      .select()
-      .single()
-
-    if (error) throw error
-
-    // Add tags
-    if (tagIds.length > 0) {
-      await supabase.from('person_tags').insert(
-        tagIds.map(tagId => ({ person_id: data.id, tag_id: tagId }))
+  const addPerson = useCallback(
+    async (person: Omit<PersonInsert, 'owner_id'>, tagIds: string[] = []) => {
+      const { person: created } = await fetchJson<{ person: Person }>(
+        '/api/people',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ person, tagIds }),
+        }
       )
-    }
+      await computeAndStore(created.id, {
+        birthDate: created.birth_date,
+        hebrewName: created.hebrew_name,
+      })
+      await fetchPeople()
+      return created
+    },
+    [fetchPeople, computeAndStore]
+  )
 
-    // Compute and store symbolic results for the new person
-    await computeAndStore(data.id, { birthDate: data.birth_date, hebrewName: data.hebrew_name })
-
-    await fetchPeople()
-    return data
-  }, [supabase, fetchPeople, computeAndStore])
-
-  // Update a person
-  const updatePerson = useCallback(async (id: string, updates: PersonUpdate, tagIds?: string[]) => {
-    const { data, error } = await supabase
-      .from('people')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (error) throw error
-
-    // Update tags if provided
-    if (tagIds !== undefined) {
-      // Remove existing tags
-      await supabase.from('person_tags').delete().eq('person_id', id)
-
-      // Add new tags
-      if (tagIds.length > 0) {
-        await supabase.from('person_tags').insert(
-          tagIds.map(tagId => ({ person_id: id, tag_id: tagId }))
-        )
+  const updatePerson = useCallback(
+    async (id: string, updates: PersonUpdate, tagIds?: string[]) => {
+      const { person } = await fetchJson<{ person: Person }>(
+        `/api/people/${id}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ updates, tagIds }),
+        }
+      )
+      if (updates.birth_date) {
+        await invalidateResults(id)
+        await computeAndStore(id, {
+          birthDate: person.birth_date,
+          hebrewName: person.hebrew_name,
+        })
       }
-    }
+      await fetchPeople()
+      return person
+    },
+    [fetchPeople, invalidateResults, computeAndStore]
+  )
 
-    // If birth_date was updated, recompute symbolic results
-    if (updates.birth_date) {
-      await invalidateResults(id)
-      await computeAndStore(id, { birthDate: data.birth_date, hebrewName: data.hebrew_name })
-    }
+  const deletePerson = useCallback(
+    async (id: string) => {
+      await fetchJson(`/api/people/${id}`, { method: 'DELETE' })
+      await fetchPeople()
+    },
+    [fetchPeople]
+  )
 
-    await fetchPeople()
-    return data
-  }, [supabase, fetchPeople, invalidateResults, computeAndStore])
+  const restorePerson = useCallback(
+    async (id: string) => {
+      await fetchJson(`/api/people/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'restore' }),
+      })
+      await fetchPeople()
+    },
+    [fetchPeople]
+  )
 
-  // Soft delete a person
-  const deletePerson = useCallback(async (id: string) => {
-    const { error } = await supabase
-      .from('people')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id)
+  const permanentlyDeletePerson = useCallback(
+    async (id: string) => {
+      await fetchJson(`/api/people/${id}?permanent=true`, { method: 'DELETE' })
+      await fetchPeople()
+    },
+    [fetchPeople]
+  )
 
-    if (error) throw error
+  const addTag = useCallback(
+    async (tag: { name: string; hebrew_name: string; color: string }) => {
+      const { tag: created } = await fetchJson<{ tag: Tag }>('/api/tags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(tag),
+      })
+      await fetchPeople()
+      return created
+    },
+    [fetchPeople]
+  )
 
-    await fetchPeople()
-  }, [supabase, fetchPeople])
+  const deleteTag = useCallback(
+    async (id: string) => {
+      await fetchJson(`/api/tags/${id}`, { method: 'DELETE' })
+      await fetchPeople()
+    },
+    [fetchPeople]
+  )
 
-  // Restore a soft deleted person
-  const restorePerson = useCallback(async (id: string) => {
-    const { error } = await supabase
-      .from('people')
-      .update({ deleted_at: null })
-      .eq('id', id)
-
-    if (error) throw error
-
-    await fetchPeople()
-  }, [supabase, fetchPeople])
-
-  // Permanently delete a person
-  const permanentlyDeletePerson = useCallback(async (id: string) => {
-    const { error } = await supabase
-      .from('people')
-      .delete()
-      .eq('id', id)
-
-    if (error) throw error
-
-    await fetchPeople()
-  }, [supabase, fetchPeople])
-
-  // Add a custom tag
-  const addTag = useCallback(async (tag: { name: string; hebrew_name: string; color: string }) => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Not authenticated')
-
-    const { data, error } = await supabase
-      .from('tags')
-      .insert({ ...tag, owner_id: user.id, is_system: false })
-      .select()
-      .single()
-
-    if (error) throw error
-
-    await fetchPeople()
-    return data
-  }, [supabase, fetchPeople])
-
-  // Delete a custom tag
-  const deleteTag = useCallback(async (id: string) => {
-    const { error } = await supabase
-      .from('tags')
-      .delete()
-      .eq('id', id)
-      .eq('is_system', false) // Ensure we can't delete system tags
-
-    if (error) throw error
-
-    await fetchPeople()
-  }, [supabase, fetchPeople])
-
-  // Initial fetch
   useEffect(() => {
     fetchPeople()
   }, [fetchPeople])
