@@ -4,7 +4,7 @@ export interface IContentChunk {
   knowledge_base_id: Types.ObjectId;
   chunk_index: number;
   chunk_text: string;
-  /** 384-dimensional embedding (all-MiniLM-L6-v2). */
+  /** 384-dimensional embedding (Workers AI bge-small-en-v1.5). */
   embedding: number[];
   metadata: Record<string, unknown>;
   created_at: Date;
