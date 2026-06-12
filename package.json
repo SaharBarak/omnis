@@ -22,7 +22,7 @@
     "scrape:no-db": "npx tsx packages/scraper/scrape-knowledge.ts --no-db"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.71.2",
+    "@google/genai": "^2.8.0",
     "@hookform/resolvers": "^5.2.2",
     "@next/third-parties": "^16.1.6",
     "@radix-ui/react-alert-dialog": "^1.1.15",

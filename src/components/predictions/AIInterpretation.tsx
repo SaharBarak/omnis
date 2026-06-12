@@ -100,7 +100,7 @@ export function AIInterpretation({
             </Button>
           </div>
           <p className="text-xs text-muted-foreground mt-3">
-            Powered by Claude AI. Interpretations are for inspiration and self-reflection.
+            Powered by Gemini. Interpretations are for inspiration and self-reflection.
           </p>
         </CardContent>
       </Card>

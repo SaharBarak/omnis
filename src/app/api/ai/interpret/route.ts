@@ -32,7 +32,7 @@ async function getAuthenticatedUser() {
 export async function POST(request: NextRequest) {
   try {
     // Check if AI is configured
-    if (!process.env.ANTHROPIC_API_KEY) {
+    if (!process.env.GEMINI_API_KEY) {
       return NextResponse.json(
         { success: false, error: 'AI service not configured' },
         { status: 503 }

@@ -64,7 +64,7 @@ describe('POST /api/ai/interpret', () => {
     vi.resetAllMocks()
     resetRateLimitStore()
     // Set required env vars
-    vi.stubEnv('ANTHROPIC_API_KEY', 'test-api-key')
+    vi.stubEnv('GEMINI_API_KEY', 'test-api-key')
   })
 
   afterEach(() => {
@@ -92,7 +92,7 @@ describe('POST /api/ai/interpret', () => {
   }
 
   describe('Configuration Checks', () => {
-    it('should return 503 when ANTHROPIC_API_KEY is not configured', async () => {
+    it('should return 503 when GEMINI_API_KEY is not configured', async () => {
       vi.unstubAllEnvs()
       setupAuthenticatedMock()
 

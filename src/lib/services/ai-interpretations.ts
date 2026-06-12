@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk'
+import { GoogleGenAI } from '@google/genai'
 import { createClient } from '@supabase/supabase-js'
 import type {
   PredictionEvent,
@@ -7,23 +7,21 @@ import type {
 } from '@/lib/types/prediction'
 import type { Kin } from '@/core/types'
 
-// Lazy-initialized Anthropic client
-let anthropicClient: Anthropic | null = null
+// Lazy-initialized Gemini client
+let geminiClient: GoogleGenAI | null = null
 
-function getAnthropicClient(): Anthropic {
-  if (!anthropicClient) {
-    if (!process.env.ANTHROPIC_API_KEY) {
-      throw new Error('ANTHROPIC_API_KEY is not configured')
+function getGeminiClient(): GoogleGenAI {
+  if (!geminiClient) {
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is not configured')
     }
-    anthropicClient = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    })
+    geminiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
   }
-  return anthropicClient
+  return geminiClient
 }
 
 // Configuration
-const AI_MODEL = process.env.AI_MODEL || 'claude-3-haiku-20240307'
+const AI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
 const AI_MAX_TOKENS = parseInt(process.env.AI_MAX_TOKENS || '1000', 10)
 
 // Cache TTL (30 days in milliseconds)
@@ -69,21 +67,17 @@ export async function generateInterpretation(
   const prompt = buildInterpretationPrompt(prediction, personContext, locale)
 
   try {
-    // Call Claude API
-    const message = await getAnthropicClient().messages.create({
+    // Call Gemini API (JSON mode; existing parser handles extraction)
+    const result = await getGeminiClient().models.generateContent({
       model: AI_MODEL,
-      max_tokens: AI_MAX_TOKENS,
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
+      contents: prompt,
+      config: {
+        maxOutputTokens: AI_MAX_TOKENS,
+        responseMimeType: 'application/json',
+      },
     })
 
-    // Extract the text response
-    const textContent = message.content.find((c) => c.type === 'text')
-    const responseText = textContent?.type === 'text' ? textContent.text : ''
+    const responseText = result.text ?? ''
 
     // Parse the response
     const interpretation = parseInterpretationResponse(responseText)
@@ -307,19 +301,15 @@ Provide a brief, inspiring interpretation (2-3 sentences) for this cosmic event:
 Focus on personal empowerment and working with this energy. Be concise and meaningful.`
 
   try {
-    const message = await getAnthropicClient().messages.create({
+    const result = await getGeminiClient().models.generateContent({
       model: AI_MODEL,
-      max_tokens: 300,
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
+      contents: prompt,
+      config: {
+        maxOutputTokens: 300,
+      },
     })
 
-    const textContent = message.content.find((c) => c.type === 'text')
-    return textContent?.type === 'text' ? textContent.text : ''
+    return result.text ?? ''
   } catch (error) {
     console.error('Error generating quick interpretation:', error)
     throw new Error('Failed to generate interpretation')
