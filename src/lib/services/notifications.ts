@@ -1,10 +1,19 @@
 import { Resend } from 'resend'
-import { createClient } from '@supabase/supabase-js'
 import type {
   NotificationSettings,
+  NotificationChannel,
+  PredictionSystem,
+  PredictionIntensity,
   PredictionEvent,
   DailyPrediction,
 } from '@/lib/types/prediction'
+import {
+  getSettings,
+  upsertSettings,
+  listAllEnabledDigestRecipients,
+  type NotificationSettingsData,
+  type SerializedNotificationSettings,
+} from '@/lib/db/repositories/notifications-repo'
 import { getDailyPrediction, getPersonalDailyPrediction, COLOR_HEX } from './predictions'
 
 // Lazy initialization of Resend to avoid build-time errors
@@ -24,91 +33,82 @@ function getResend(): Resend | null {
 const FROM_EMAIL = 'Omnis <noreply@omnis.app>'
 
 // ============================================================================
-// Supabase Client
+// Notification Settings (data layer: notifications-repo / MongoDB)
 // ============================================================================
 
-function getSupabaseAdmin() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!url || !serviceKey) {
-    return createClient(
-      url || '',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-    )
+/** Map the persisted snake_case settings document to the camelCase API shape. */
+function toNotificationSettings(
+  row: SerializedNotificationSettings
+): NotificationSettings {
+  return {
+    userId: row.user_id,
+    enabled: row.enabled,
+    channels: row.channels as NotificationChannel[],
+    dailyDigest: row.daily_digest,
+    dailyDigestTime: row.daily_digest_time ?? '08:00',
+    weeklyDigest: row.weekly_digest,
+    weeklyDigestDay: row.weekly_digest_day ?? 0,
+    advanceNotice: row.advance_notice,
+    systems: row.systems as PredictionSystem[],
+    minIntensity: row.min_intensity as PredictionIntensity,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   }
-
-  return createClient(url, serviceKey)
 }
 
-// ============================================================================
-// Notification Settings
-// ============================================================================
+/** Map the camelCase API shape to the snake_case persistence shape. */
+function toSettingsData(settings: NotificationSettings): NotificationSettingsData {
+  return {
+    enabled: settings.enabled,
+    channels: settings.channels,
+    daily_digest: settings.dailyDigest,
+    daily_digest_time: settings.dailyDigestTime,
+    weekly_digest: settings.weeklyDigest,
+    weekly_digest_day: settings.weeklyDigestDay,
+    advance_notice: settings.advanceNotice,
+    systems: settings.systems,
+    min_intensity: settings.minIntensity,
+  }
+}
 
 /**
- * Get notification settings for a user
+ * Get notification settings for a user.
+ *
+ * Owner-scoped: the repository filters `notification_settings` by `user_id`, so
+ * callers MUST pass the id from requireUserId(), never client input.
  */
 export async function getNotificationSettings(
   userId: string
 ): Promise<NotificationSettings | null> {
-  const supabase = getSupabaseAdmin()
-
-  const { data, error } = await supabase
-    .from('notification_settings')
-    .select('*')
-    .eq('user_id', userId)
-    .single()
-
-  if (error || !data) {
+  try {
+    const row = await getSettings(userId)
+    if (!row) return null
+    return toNotificationSettings(row)
+  } catch (error) {
+    console.error('Error fetching notification settings:', error)
     return null
-  }
-
-  return {
-    userId: data.user_id,
-    enabled: data.enabled,
-    channels: data.channels,
-    dailyDigest: data.daily_digest,
-    dailyDigestTime: data.daily_digest_time,
-    weeklyDigest: data.weekly_digest,
-    weeklyDigestDay: data.weekly_digest_day,
-    advanceNotice: data.advance_notice,
-    systems: data.systems,
-    minIntensity: data.min_intensity,
-    createdAt: data.created_at,
-    updatedAt: data.updated_at,
   }
 }
 
 /**
- * Create or update notification settings for a user
+ * Create or update notification settings for a user.
+ *
+ * Owner-scoped: the upsert is keyed on `settings.userId`, which the route
+ * derives from requireUserId().
  */
 export async function upsertNotificationSettings(
   settings: NotificationSettings
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = getSupabaseAdmin()
-
-  const { error } = await supabase
-    .from('notification_settings')
-    .upsert({
-      user_id: settings.userId,
-      enabled: settings.enabled,
-      channels: settings.channels,
-      daily_digest: settings.dailyDigest,
-      daily_digest_time: settings.dailyDigestTime,
-      weekly_digest: settings.weeklyDigest,
-      weekly_digest_day: settings.weeklyDigestDay,
-      advance_notice: settings.advanceNotice,
-      systems: settings.systems,
-      min_intensity: settings.minIntensity,
-      updated_at: new Date().toISOString(),
-    })
-
-  if (error) {
+  try {
+    await upsertSettings(settings.userId, toSettingsData(settings))
+    return { success: true }
+  } catch (error) {
     console.error('Error upserting notification settings:', error)
-    return { success: false, error: error.message }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
   }
-
-  return { success: true }
 }
 
 // ============================================================================
@@ -225,49 +225,21 @@ export async function sendTestNotificationEmail(
 // ============================================================================
 
 /**
- * Get users who need notifications for today
+ * Get users who need notifications for today.
+ *
+ * SYSTEM-SCOPED: reads `notification_settings` and the Better Auth `user`
+ * collection across ALL users. Used only by the CRON_SECRET-authorized cron
+ * route. The cross-tenant read lives behind a clearly-named repo function.
  */
 export async function getUsersForDailyDigest(): Promise<
   Array<{ userId: string; email: string; name: string; birthDate: string | null }>
 > {
-  const supabase = getSupabaseAdmin()
-
-  // Get users with daily digest enabled
-  const { data: settings, error: settingsError } = await supabase
-    .from('notification_settings')
-    .select('user_id')
-    .eq('enabled', true)
-    .eq('daily_digest', true)
-    .contains('channels', ['email'])
-
-  if (settingsError || !settings) {
-    console.error('Error fetching notification settings:', settingsError)
+  try {
+    return await listAllEnabledDigestRecipients()
+  } catch (error) {
+    console.error('Error fetching daily digest recipients:', error)
     return []
   }
-
-  const userIds = settings.map((s) => s.user_id)
-
-  if (userIds.length === 0) {
-    return []
-  }
-
-  // Get user profiles
-  const { data: profiles, error: profilesError } = await supabase
-    .from('profiles')
-    .select('id, email, first_name, birth_date')
-    .in('id', userIds)
-
-  if (profilesError || !profiles) {
-    console.error('Error fetching profiles:', profilesError)
-    return []
-  }
-
-  return profiles.map((p) => ({
-    userId: p.id,
-    email: p.email,
-    name: p.first_name || 'Friend',
-    birthDate: p.birth_date,
-  }))
 }
 
 /**

@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
-// Mock Supabase server client
-vi.mock('@/lib/supabase/server', () => ({
-  createClient: vi.fn(),
+// Mock Better Auth server session
+vi.mock('@/lib/auth-server', () => ({
+  getCurrentUserId: vi.fn(),
 }))
 
 // Mock AI interpretations service
@@ -13,7 +13,7 @@ vi.mock('@/lib/services/ai-interpretations', () => ({
 }))
 
 // Import after mocking
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUserId } from '@/lib/auth-server'
 import { generateInterpretation, generateQuickInterpretation } from '@/lib/services/ai-interpretations'
 import { resetRateLimitStore } from '@/lib/rate-limit'
 import { POST } from './route'
@@ -74,21 +74,13 @@ describe('POST /api/ai/interpret', () => {
   // Helper to setup authenticated mock
   function setupAuthenticatedMock() {
     const mockUser = { id: 'user-123', email: 'test@example.com' }
-    vi.mocked(createClient).mockResolvedValue({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
-      },
-    } as unknown as Awaited<ReturnType<typeof createClient>>)
+    vi.mocked(getCurrentUserId).mockResolvedValue(mockUser.id)
     return mockUser
   }
 
   // Helper to setup unauthenticated mock
   function setupUnauthenticatedMock() {
-    vi.mocked(createClient).mockResolvedValue({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
-      },
-    } as unknown as Awaited<ReturnType<typeof createClient>>)
+    vi.mocked(getCurrentUserId).mockResolvedValue(null)
   }
 
   describe('Configuration Checks', () => {

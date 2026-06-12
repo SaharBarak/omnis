@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUserId } from '@/lib/auth-server'
 import {
   generateInterpretation,
   generateQuickInterpretation,
@@ -8,15 +8,6 @@ import { rateLimiters, rateLimitResponse, addRateLimitHeaders } from '@/lib/rate
 import type { AIInterpretationRequest, PredictionEvent } from '@/lib/types/prediction'
 
 export const dynamic = 'force-dynamic'
-
-// Get authenticated user from server-side Supabase client
-async function getAuthenticatedUser() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  return { user, supabase }
-}
 
 /**
  * POST /api/ai/interpret
@@ -40,14 +31,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Check authentication
-    const { user } = await getAuthenticatedUser()
+    const userId = await getCurrentUserId()
 
-    if (!user) {
+    if (!userId) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
     // Rate limiting check (using user ID for more accurate limiting)
-    const rateLimitResult = await rateLimiters.ai.check(request, 'interpret', user.id)
+    const rateLimitResult = await rateLimiters.ai.check(request, 'interpret', userId)
     if (!rateLimitResult.success) {
       return rateLimitResponse(rateLimitResult)
     }

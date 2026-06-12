@@ -1,43 +1,34 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { NextResponse } from 'next/server'
+import { getSession, UnauthorizedError } from '@/lib/auth-server'
+import { handleApiError } from '@/lib/api/respond'
+import { getProfile } from '@/lib/db/repositories/notifications-repo'
 import { sendTestNotificationEmail } from '@/lib/services/notifications'
 
 export const dynamic = 'force-dynamic'
 
-// Get authenticated user from server-side Supabase client
-async function getAuthenticatedUser() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  return { user, supabase }
-}
-
 /**
  * POST /api/notifications/test
  *
- * Send a test notification to the current user
+ * Send a test notification to the current user. USER-context: reads the
+ * caller's own session + profile only. The recipient is always the
+ * authenticated user's email — never an address from the request.
  */
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
-    const { user, supabase } = await getAuthenticatedUser()
-
+    const session = await getSession()
+    const user = session?.user
     if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
+      throw new UnauthorizedError()
     }
 
-    // Get user's email and name from profile
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('email, first_name')
-      .eq('id', user.id)
-      .single()
-
-    const email = profile?.email || user.email
-    const name = profile?.first_name || 'Friend'
+    // Name comes from the app profile (display_name); email comes from the
+    // Better Auth user record. Both are scoped to the authenticated user.
+    const profile = await getProfile(user.id)
+    const email = user.email
+    const name =
+      (profile as { display_name?: string } | null)?.display_name ||
+      user.name ||
+      'Friend'
 
     if (!email) {
       return NextResponse.json(
@@ -62,10 +53,6 @@ export async function POST(request: NextRequest) {
       emailId: result.id,
     })
   } catch (error) {
-    console.error('Error sending test notification:', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to send test notification' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'POST /api/notifications/test')
   }
 }

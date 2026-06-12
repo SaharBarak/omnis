@@ -1,23 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { getDailyPrediction, getPersonalDailyPrediction } from '@/lib/services/predictions'
-import type { PredictionEvent } from '@/lib/types/prediction'
+import {
+  systemListPeopleWithBirthDate,
+  systemPredictionExists,
+  systemInsertPrediction,
+  systemDeleteExpiredPredictions,
+} from '@/lib/db/repositories/predictions-repo'
 
 export const dynamic = 'force-dynamic'
 
 // This endpoint is called by Vercel Cron at 4am UTC daily
 // Configure in vercel.json: {"crons": [{"path": "/api/cron/daily-predictions", "schedule": "0 4 * * *"}]}
-
-function getSupabaseAdmin() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!url || !serviceKey) {
-    throw new Error('Supabase configuration missing')
-  }
-
-  return createClient(url, serviceKey)
-}
+//
+// SYSTEM CONTEXT: authorized solely by CRON_SECRET. It generates predictions
+// across every owner's people, so it deliberately does NOT call requireUserId().
+// Owner isolation is preserved by persisting each prediction's owner_id from the
+// originating person row (never from request input).
 
 export async function GET(request: NextRequest) {
   // Verify cron secret for security
@@ -29,20 +27,16 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const supabase = getSupabaseAdmin()
     const today = new Date().toISOString().split('T')[0]
-    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
 
     // Get today's base prediction
     const dailyPrediction = getDailyPrediction(today)
 
-    // Get all people with birth dates
-    const { data: people, error: peopleError } = await supabase
-      .from('people')
-      .select('id, owner_id, birth_date, first_name')
-      .not('birth_date', 'is', null)
-
-    if (peopleError) {
+    // Get all people with birth dates (system-wide).
+    let people: { id: string; owner_id: string; birth_date: string; name: string }[]
+    try {
+      people = await systemListPeopleWithBirthDate()
+    } catch (peopleError) {
       console.error('Error fetching people:', peopleError)
       return NextResponse.json(
         { error: 'Failed to fetch people' },
@@ -54,7 +48,7 @@ export async function GET(request: NextRequest) {
     let errors = 0
 
     // Generate personalized predictions for each person
-    for (const person of people || []) {
+    for (const person of people) {
       if (!person.birth_date) continue
 
       try {
@@ -68,22 +62,19 @@ export async function GET(request: NextRequest) {
         // If there are events, store them in the predictions table
         for (const event of personalPrediction.events) {
           // Check if prediction already exists
-          const { data: existing } = await supabase
-            .from('predictions')
-            .select('id')
-            .eq('person_id', person.id)
-            .eq('type', event.type)
-            .eq('start_date', event.startDate)
-            .single()
+          const exists = await systemPredictionExists(
+            person.id,
+            event.type,
+            event.startDate
+          )
 
-          if (existing) {
+          if (exists) {
             continue // Skip if already exists
           }
 
-          // Insert prediction
-          const { error: insertError } = await supabase
-            .from('predictions')
-            .insert({
+          // Insert prediction (owner_id taken from the person row)
+          try {
+            await systemInsertPrediction({
               person_id: person.id,
               owner_id: person.owner_id,
               system: event.system,
@@ -92,16 +83,14 @@ export async function GET(request: NextRequest) {
               end_date: event.endDate,
               intensity: event.intensity,
               themes: event.themes,
-              data: event.data,
-              computed_at: new Date().toISOString(),
-              expires_at: new Date(Date.now() + 30 * 86400000).toISOString(), // 30 days
+              data: event.data as Record<string, unknown>,
+              computed_at: new Date(),
+              expires_at: new Date(Date.now() + 30 * 86400000), // 30 days
             })
-
-          if (insertError) {
+            predictionsGenerated++
+          } catch (insertError) {
             console.error(`Error inserting prediction for person ${person.id}:`, insertError)
             errors++
-          } else {
-            predictionsGenerated++
           }
         }
       } catch (err) {
@@ -111,12 +100,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Clean up expired predictions
-    const { error: deleteError } = await supabase
-      .from('predictions')
-      .delete()
-      .lt('expires_at', new Date().toISOString())
-
-    if (deleteError) {
+    try {
+      await systemDeleteExpiredPredictions()
+    } catch (deleteError) {
       console.error('Error cleaning up expired predictions:', deleteError)
     }
 
@@ -126,7 +112,7 @@ export async function GET(request: NextRequest) {
       kin: dailyPrediction.kin,
       predictionsGenerated,
       errors,
-      peopleProcessed: people?.length || 0,
+      peopleProcessed: people.length,
     })
   } catch (error) {
     console.error('Daily predictions cron error:', error)

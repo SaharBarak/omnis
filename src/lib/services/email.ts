@@ -1,5 +1,9 @@
 import { Resend } from 'resend'
-import { createClient } from '@/lib/supabase/client'
+import {
+  subscribe as repoSubscribe,
+  unsubscribe as repoUnsubscribe,
+  listActiveSubscribers,
+} from '@/lib/db/repositories/newsletter-repo'
 
 // Initialize Resend with API key from environment
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -46,98 +50,57 @@ export interface DailyKinData {
  * Subscribe an email to the newsletter
  */
 export async function subscribeEmail(email: string): Promise<{ success: boolean; error?: string }> {
-  const supabase = createClient()
+  try {
+    // Upsert on the unique email index: re-subscribes a previously
+    // unsubscribed address and is safe against concurrent duplicate signups.
+    const { created } = await repoSubscribe(email)
 
-  // Check if already subscribed
-  const { data: existing } = await supabase
-    .from('newsletter_subscribers')
-    .select('id, unsubscribed_at')
-    .eq('email', email.toLowerCase())
-    .single()
-
-  if (existing) {
-    if (existing.unsubscribed_at) {
-      // Re-subscribe
-      const { error } = await supabase
-        .from('newsletter_subscribers')
-        .update({
-          unsubscribed_at: null,
-          subscribed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existing.id)
-
-      if (error) {
-        return { success: false, error: 'Failed to re-subscribe' }
-      }
-      return { success: true }
+    // Only send the welcome email for a brand-new subscriber.
+    if (created) {
+      await sendWelcomeEmail(email)
     }
-    return { success: true } // Already subscribed
-  }
 
-  // New subscriber
-  const { error } = await supabase
-    .from('newsletter_subscribers')
-    .insert({
-      email: email.toLowerCase(),
-      confirmed: true, // Auto-confirm for now (no double opt-in)
-      confirmed_at: new Date().toISOString(),
-      preferences: { daily_kin: true }
-    })
-
-  if (error) {
-    if (error.code === '23505') {
-      return { success: true } // Already exists
-    }
+    return { success: true }
+  } catch (err) {
+    console.error('Error subscribing email:', err)
     return { success: false, error: 'Failed to subscribe' }
   }
-
-  // Send welcome email
-  await sendWelcomeEmail(email)
-
-  return { success: true }
 }
 
 /**
  * Unsubscribe an email from the newsletter
  */
 export async function unsubscribeEmail(email: string): Promise<{ success: boolean; error?: string }> {
-  const supabase = createClient()
-
-  const { error } = await supabase
-    .from('newsletter_subscribers')
-    .update({
-      unsubscribed_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    })
-    .eq('email', email.toLowerCase())
-
-  if (error) {
+  try {
+    await repoUnsubscribe(email)
+    return { success: true }
+  } catch (err) {
+    console.error('Error unsubscribing email:', err)
     return { success: false, error: 'Failed to unsubscribe' }
   }
-
-  return { success: true }
 }
 
 /**
  * Get all active subscribers for daily kin emails
  */
 export async function getActiveSubscribers(): Promise<EmailSubscriber[]> {
-  const supabase = createClient()
-
-  const { data, error } = await supabase
-    .from('newsletter_subscribers')
-    .select('*')
-    .eq('confirmed', true)
-    .is('unsubscribed_at', null)
-    .contains('preferences', { daily_kin: true })
-
-  if (error) {
-    console.error('Error fetching subscribers:', error)
+  try {
+    const subscribers = await listActiveSubscribers()
+    return subscribers.map((s) => ({
+      id: s.id,
+      email: s.email,
+      subscribed_at: s.subscribed_at ?? '',
+      confirmed: s.confirmed,
+      confirmed_at: s.confirmed_at,
+      unsubscribed_at: s.unsubscribed_at,
+      preferences: {
+        daily_kin: Boolean((s.preferences as { daily_kin?: unknown })?.daily_kin),
+      },
+    }))
+  } catch (err) {
+    console.error('Error fetching subscribers:', err)
     return []
   }
-
-  return data || []
 }
 
 /**

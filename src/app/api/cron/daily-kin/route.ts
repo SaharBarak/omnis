@@ -1,29 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { dateToKin, kinToSeal, kinToTone, calculateOracle } from '@/lib/calculations'
 import { getSeal } from '@/lib/data/seals'
 import { getTone } from '@/lib/data/tones'
 import { generateMantra } from '@/lib/data/mantras'
+import {
+  listSubscribersForCron,
+  logEmailSend,
+  wasEmailSentToday,
+} from '@/lib/db/repositories/newsletter-repo'
 
 export const dynamic = 'force-dynamic'
 
 // This endpoint is called by Vercel Cron
 // Configure in vercel.json: {"crons": [{"path": "/api/cron/daily-kin", "schedule": "0 6 * * *"}]}
-
-function getSupabaseAdmin() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!url || !serviceKey) {
-    return createClient(
-      url || '',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-    )
-  }
-
-  return createClient(url, serviceKey)
-}
 
 export async function GET(request: NextRequest) {
   // Verify cron secret for security
@@ -78,15 +68,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Get active subscribers
-    const supabase = getSupabaseAdmin()
-    const { data: subscribers, error: fetchError } = await supabase
-      .from('newsletter_subscribers')
-      .select('id, email')
-      .eq('confirmed', true)
-      .is('unsubscribed_at', null)
-
-    if (fetchError) {
+    // Get active subscribers (confirmed + not unsubscribed)
+    let subscribers
+    try {
+      subscribers = await listSubscribersForCron()
+    } catch (fetchError) {
       console.error('Error fetching subscribers:', fetchError)
       return NextResponse.json(
         { error: 'Failed to fetch subscribers' },
@@ -100,15 +86,23 @@ export async function GET(request: NextRequest) {
 
     // Send emails
     const resend = new Resend(process.env.RESEND_API_KEY)
+    const subject = `Today's Kin: ${kinData.seal.name} - Kin ${kinData.kin}`
     let sent = 0
     let failed = 0
+    let skipped = 0
 
     for (const subscriber of subscribers) {
       try {
-        const { error: sendError } = await resend.emails.send({
+        // Dedup: skip anyone already sent today's daily_kin (idempotent reruns).
+        if (await wasEmailSentToday(subscriber.id, 'daily_kin')) {
+          skipped++
+          continue
+        }
+
+        const { data: sendData, error: sendError } = await resend.emails.send({
           from: 'Omnis <noreply@omnis.app>',
           to: subscriber.email,
-          subject: `Today's Kin: ${kinData.seal.name} - Kin ${kinData.kin}`,
+          subject,
           html: getDailyKinEmailHtml(kinData, subscriber.email)
         })
 
@@ -117,12 +111,13 @@ export async function GET(request: NextRequest) {
           failed++
         } else {
           sent++
-          // Log successful send
-          await supabase.from('email_send_log').insert({
+          // Log successful send (dedup audit trail).
+          await logEmailSend({
             subscriber_id: subscriber.id,
             email_type: 'daily_kin',
-            subject: `Today's Kin: ${kinData.seal.name} - Kin ${kinData.kin}`,
-            status: 'sent'
+            subject,
+            resend_id: sendData?.id ?? null,
+            status: 'sent',
           })
         }
 
@@ -141,6 +136,7 @@ export async function GET(request: NextRequest) {
       seal: kinData.seal.name,
       sent,
       failed,
+      skipped,
       total: subscribers.length
     })
   } catch (error) {

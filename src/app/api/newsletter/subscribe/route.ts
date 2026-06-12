@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { z } from 'zod'
 import { rateLimiters, rateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limit'
+import { findByEmail, subscribe } from '@/lib/db/repositories/newsletter-repo'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,22 +14,6 @@ const subscribeSchema = z.object({
     .email('Invalid email format')
     .transform((val) => val.toLowerCase().trim()),
 })
-
-// Create server-side Supabase client
-function getSupabaseAdmin() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!url || !serviceKey) {
-    // Fall back to anon key for local dev
-    return createClient(
-      url || '',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-    )
-  }
-
-  return createClient(url, serviceKey)
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,61 +34,24 @@ export async function POST(request: NextRequest) {
 
     const { email: normalizedEmail } = parseResult.data
 
-    const supabase = getSupabaseAdmin()
+    // Determine prior state so we can preserve the original response messages
+    // (Welcome back! / Already subscribed / Subscribed successfully).
+    const existing = await findByEmail(normalizedEmail)
+    const wasUnsubscribed = Boolean(existing?.unsubscribed_at)
 
-    // Check if already subscribed
-    const { data: existing } = await supabase
-      .from('newsletter_subscribers')
-      .select('id, unsubscribed_at')
-      .eq('email', normalizedEmail)
-      .single()
-
-    if (existing) {
-      if (existing.unsubscribed_at) {
-        // Re-subscribe
-        const { error } = await supabase
-          .from('newsletter_subscribers')
-          .update({
-            unsubscribed_at: null,
-            subscribed_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existing.id)
-
-        if (error) {
-          console.error('Error re-subscribing:', error)
-          return NextResponse.json({ error: 'Failed to re-subscribe' }, { status: 500 })
-        }
-
-        const response = NextResponse.json({ success: true, message: 'Welcome back!' })
-        return addRateLimitHeaders(response, rateLimitResult)
-      }
-
-      // Already subscribed
+    if (existing && !wasUnsubscribed) {
+      // Already an active subscriber — no write, no welcome email.
       const response = NextResponse.json({ success: true, message: 'Already subscribed' })
       return addRateLimitHeaders(response, rateLimitResult)
     }
 
-    // New subscriber
-    const { error: insertError } = await supabase.from('newsletter_subscribers').insert({
-      email: normalizedEmail,
-      confirmed: true,
-      confirmed_at: new Date().toISOString(),
-      preferences: { daily_kin: true },
-    })
+    // Upsert on the unique email index: inserts a new subscriber or reactivates
+    // a previously unsubscribed one. `created` is true only on first insert.
+    const { created } = await subscribe(normalizedEmail)
 
-    if (insertError) {
-      // Handle unique constraint violation
-      if (insertError.code === '23505') {
-        const response = NextResponse.json({ success: true, message: 'Already subscribed' })
-        return addRateLimitHeaders(response, rateLimitResult)
-      }
-      console.error('Error inserting subscriber:', insertError)
-      return NextResponse.json({ error: 'Failed to subscribe' }, { status: 500 })
-    }
-
-    // Send welcome email if Resend is configured
-    if (process.env.RESEND_API_KEY) {
+    // Send welcome email only for genuinely new subscribers (not re-subscribes),
+    // and only if Resend is configured.
+    if (created && process.env.RESEND_API_KEY) {
       try {
         const resend = new Resend(process.env.RESEND_API_KEY)
         await resend.emails.send({
@@ -119,7 +66,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const response = NextResponse.json({ success: true, message: 'Subscribed successfully' })
+    const message = wasUnsubscribed ? 'Welcome back!' : 'Subscribed successfully'
+    const response = NextResponse.json({ success: true, message })
     return addRateLimitHeaders(response, rateLimitResult)
   } catch (error) {
     console.error('Newsletter subscription error:', error)

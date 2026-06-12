@@ -1,52 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { Types } from 'mongoose'
+import { requireUserId, UnauthorizedError } from '@/lib/auth-server'
+import { getPersonForTimeline } from '@/lib/db/repositories/predictions-repo'
 import { getPersonalTimeline } from '@/lib/services/predictions'
 import type { TimelineResponse } from '@/lib/types/prediction'
 
 export const dynamic = 'force-dynamic'
 
-// Create Supabase client for server-side operations
-function getSupabaseClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!url || !key) {
-    throw new Error('Supabase configuration missing')
-  }
-
-  return createClient(url, key)
-}
-
 /**
  * GET /api/predictions/timeline/[personId]
  *
- * Get personal timeline with milestones for a specific person
+ * Get personal timeline with milestones for a specific person.
+ *
+ * USER CONTEXT: the caller must be authenticated and must own the person.
+ * Ownership is enforced in the repository (getPersonForTimeline filters by
+ * owner_id), so a person owned by someone else returns the same 404 as a
+ * missing person — no ownership leak.
  */
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ personId: string }> }
 ) {
   try {
+    const userId = await requireUserId()
     const { personId } = await params
 
-    // Validate personId format (UUID)
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-    if (!uuidRegex.test(personId)) {
+    // Validate id format (Mongo ObjectId)
+    if (!Types.ObjectId.isValid(personId)) {
       return NextResponse.json<TimelineResponse>(
         { success: false, error: 'Invalid person ID format.' },
         { status: 400 }
       )
     }
 
-    // Fetch person data from database
-    const supabase = getSupabaseClient()
-    const { data: person, error: fetchError } = await supabase
-      .from('people')
-      .select('id, first_name, last_name, birth_date')
-      .eq('id', personId)
-      .single()
+    // Owner-scoped fetch — null when missing OR not owned by the caller.
+    const person = await getPersonForTimeline(userId, personId)
 
-    if (fetchError || !person) {
+    if (!person) {
       return NextResponse.json<TimelineResponse>(
         { success: false, error: 'Person not found.' },
         { status: 404 }
@@ -61,10 +51,9 @@ export async function GET(
     }
 
     // Generate personal timeline
-    const personName = [person.first_name, person.last_name].filter(Boolean).join(' ')
     const timeline = getPersonalTimeline(
       person.id,
-      personName,
+      person.name,
       person.birth_date
     )
 
@@ -74,6 +63,12 @@ export async function GET(
       computedAt: new Date().toISOString(),
     })
   } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      return NextResponse.json<TimelineResponse>(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
     console.error('Timeline error:', error)
     return NextResponse.json<TimelineResponse>(
       { success: false, error: 'Failed to generate timeline' },

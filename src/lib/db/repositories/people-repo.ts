@@ -52,6 +52,35 @@ export async function listPeopleWithTags(userId: string) {
   return { people: peopleWithTags, tags: serializeMany(tags) }
 }
 
+/**
+ * Owner-scoped fetch of a single, non-deleted person plus its tags. Returns
+ * null if the person does not exist, is soft-deleted, or is not owned by the
+ * user (same response in every case — no ownership leak). Shape matches the
+ * `{ ...person, tags }` objects returned by listPeopleWithTags.
+ */
+export async function getPersonWithTags(userId: string, id: string) {
+  await connectMongo()
+  const personObjId = toObjectId(id)
+
+  const person = await Person.findOne({
+    _id: personObjId,
+    owner_id: userId,
+    deleted_at: null,
+  }).lean()
+
+  if (!person) return null
+
+  const personTags = await PersonTag.find({ person_id: personObjId }).lean()
+  const tagIds = personTags.map((pt) => pt.tag_id)
+  const tags = tagIds.length
+    ? await Tag.find({ _id: { $in: tagIds } })
+        .sort({ sort_order: 1 })
+        .lean()
+    : []
+
+  return { ...serialize(person), tags: serializeMany(tags) }
+}
+
 async function setPersonTags(personObjId: ReturnType<typeof toObjectId>, tagIds: string[]) {
   await PersonTag.deleteMany({ person_id: personObjId })
   if (tagIds.length) {

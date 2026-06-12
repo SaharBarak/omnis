@@ -1,11 +1,14 @@
 import { GoogleGenAI } from '@google/genai'
-import { createClient } from '@supabase/supabase-js'
 import type {
   PredictionEvent,
   AIInterpretationRequest,
   AIInterpretationResponse,
 } from '@/lib/types/prediction'
 import type { Kin } from '@/core/types'
+import {
+  getCachedInterpretation as getCachedInterpretationRow,
+  cacheInterpretation as cacheInterpretationRow,
+} from '@/lib/db/repositories/predictions-repo'
 
 // Lazy-initialized Gemini client
 let geminiClient: GoogleGenAI | null = null
@@ -26,24 +29,6 @@ const AI_MAX_TOKENS = parseInt(process.env.AI_MAX_TOKENS || '1000', 10)
 
 // Cache TTL (30 days in milliseconds)
 const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000
-
-// ============================================================================
-// Supabase Client
-// ============================================================================
-
-function getSupabaseAdmin() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!url || !serviceKey) {
-    return createClient(
-      url || '',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-    )
-  }
-
-  return createClient(url, serviceKey)
-}
 
 // ============================================================================
 // Generate Interpretation
@@ -191,7 +176,7 @@ function parseInterpretationResponse(
 // ============================================================================
 
 /**
- * Get cached interpretation from database
+ * Get cached interpretation from database (Mongo via predictions-repo).
  */
 async function getCachedInterpretation(
   prediction: PredictionEvent
@@ -201,15 +186,9 @@ async function getCachedInterpretation(
   }
 
   try {
-    const supabase = getSupabaseAdmin()
+    const data = await getCachedInterpretationRow(prediction.id)
 
-    const { data, error } = await supabase
-      .from('predictions')
-      .select('interpretation, computed_at, expires_at')
-      .eq('id', prediction.id)
-      .single()
-
-    if (error || !data || !data.interpretation) {
+    if (!data || !data.interpretation) {
       return null
     }
 
@@ -245,7 +224,7 @@ async function getCachedInterpretation(
 }
 
 /**
- * Cache interpretation in database
+ * Cache interpretation in database (Mongo via predictions-repo).
  */
 async function cacheInterpretation(
   prediction: PredictionEvent,
@@ -256,16 +235,13 @@ async function cacheInterpretation(
   }
 
   try {
-    const supabase = getSupabaseAdmin()
-
-    await supabase
-      .from('predictions')
-      .update({
-        interpretation: JSON.stringify(interpretation),
-        computed_at: interpretation.cachedAt,
-        expires_at: interpretation.expiresAt,
-      })
-      .eq('id', prediction.id)
+    await cacheInterpretationRow(prediction.id, {
+      interpretation: JSON.stringify(interpretation),
+      computed_at: interpretation.cachedAt ?? new Date().toISOString(),
+      expires_at:
+        interpretation.expiresAt ??
+        new Date(Date.now() + CACHE_TTL_MS).toISOString(),
+    })
   } catch (error) {
     console.error('Error caching interpretation:', error)
   }

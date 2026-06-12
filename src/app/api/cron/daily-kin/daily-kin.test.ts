@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
-// Mock Supabase
-const mockSupabaseSelect = vi.fn()
-const mockSupabaseInsert = vi.fn()
-const mockSupabaseFrom = vi.fn()
+// Mock the newsletter repository (datastore is now MongoDB via the repo).
+const mockListSubscribers = vi.fn()
+const mockLogEmailSend = vi.fn()
+const mockWasEmailSentToday = vi.fn()
 
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
-    from: mockSupabaseFrom
-  }))
+vi.mock('@/lib/db/repositories/newsletter-repo', () => ({
+  listSubscribersForCron: () => mockListSubscribers(),
+  logEmailSend: (input: unknown) => mockLogEmailSend(input),
+  wasEmailSentToday: (id: string, type: string) => mockWasEmailSentToday(id, type),
 }))
 
 // Mock Resend
@@ -81,37 +81,17 @@ describe('GET /api/cron/daily-kin', () => {
     vi.clearAllMocks()
     process.env = {
       ...originalEnv,
-      NEXT_PUBLIC_SUPABASE_URL: 'https://test.supabase.co',
-      SUPABASE_SERVICE_ROLE_KEY: 'test-service-key',
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-anon-key',
       RESEND_API_KEY: 'test-resend-key',
       CRON_SECRET: 'test-cron-secret',
       NODE_ENV: 'test'
     }
 
-    // Setup default mock chain
-    mockSupabaseFrom.mockImplementation((table: string) => {
-      if (table === 'newsletter_subscribers') {
-        return {
-          select: mockSupabaseSelect.mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              is: vi.fn().mockResolvedValue({
-                data: [
-                  { id: 'sub-1', email: 'test@example.com' }
-                ],
-                error: null
-              })
-            })
-          })
-        }
-      }
-      if (table === 'email_send_log') {
-        return {
-          insert: mockSupabaseInsert.mockResolvedValue({ error: null })
-        }
-      }
-      return { select: vi.fn() }
-    })
+    // Default: one subscriber, none sent today, log/send succeed.
+    mockListSubscribers.mockResolvedValue([
+      { id: 'sub-1', email: 'test@example.com' }
+    ])
+    mockWasEmailSentToday.mockResolvedValue(false)
+    mockLogEmailSend.mockResolvedValue(undefined)
 
     mockResendSend.mockResolvedValue({ data: { id: 'msg-1' }, error: null })
   })
@@ -200,30 +180,11 @@ describe('GET /api/cron/daily-kin', () => {
     })
 
     it('should send emails to all confirmed subscribers', async () => {
-      mockSupabaseFrom.mockImplementation((table: string) => {
-        if (table === 'newsletter_subscribers') {
-          return {
-            select: mockSupabaseSelect.mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                is: vi.fn().mockResolvedValue({
-                  data: [
-                    { id: 'sub-1', email: 'test1@example.com' },
-                    { id: 'sub-2', email: 'test2@example.com' },
-                    { id: 'sub-3', email: 'test3@example.com' }
-                  ],
-                  error: null
-                })
-              })
-            })
-          }
-        }
-        if (table === 'email_send_log') {
-          return {
-            insert: mockSupabaseInsert.mockResolvedValue({ error: null })
-          }
-        }
-        return { select: vi.fn() }
-      })
+      mockListSubscribers.mockResolvedValue([
+        { id: 'sub-1', email: 'test1@example.com' },
+        { id: 'sub-2', email: 'test2@example.com' },
+        { id: 'sub-3', email: 'test3@example.com' }
+      ])
 
       const request = createRequest('/api/cron/daily-kin', {
         authorization: 'Bearer test-cron-secret'
@@ -238,21 +199,7 @@ describe('GET /api/cron/daily-kin', () => {
     })
 
     it('should handle no subscribers', async () => {
-      mockSupabaseFrom.mockImplementation((table: string) => {
-        if (table === 'newsletter_subscribers') {
-          return {
-            select: mockSupabaseSelect.mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                is: vi.fn().mockResolvedValue({
-                  data: [],
-                  error: null
-                })
-              })
-            })
-          }
-        }
-        return { select: vi.fn() }
-      })
+      mockListSubscribers.mockResolvedValue([])
 
       const request = createRequest('/api/cron/daily-kin', {
         authorization: 'Bearer test-cron-secret'
@@ -271,7 +218,7 @@ describe('GET /api/cron/daily-kin', () => {
       })
       await GET(request)
 
-      expect(mockSupabaseInsert).toHaveBeenCalled()
+      expect(mockLogEmailSend).toHaveBeenCalled()
     })
 
     it('should include oracle data in email', async () => {
@@ -304,21 +251,7 @@ describe('GET /api/cron/daily-kin', () => {
 
   describe('Error Handling', () => {
     it('should return 500 when fetching subscribers fails', async () => {
-      mockSupabaseFrom.mockImplementation((table: string) => {
-        if (table === 'newsletter_subscribers') {
-          return {
-            select: mockSupabaseSelect.mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                is: vi.fn().mockResolvedValue({
-                  data: null,
-                  error: { message: 'Database error' }
-                })
-              })
-            })
-          }
-        }
-        return { select: vi.fn() }
-      })
+      mockListSubscribers.mockRejectedValue(new Error('Database error'))
 
       const request = createRequest('/api/cron/daily-kin', {
         authorization: 'Bearer test-cron-secret'
@@ -331,29 +264,10 @@ describe('GET /api/cron/daily-kin', () => {
     })
 
     it('should continue sending after individual email failures', async () => {
-      mockSupabaseFrom.mockImplementation((table: string) => {
-        if (table === 'newsletter_subscribers') {
-          return {
-            select: mockSupabaseSelect.mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                is: vi.fn().mockResolvedValue({
-                  data: [
-                    { id: 'sub-1', email: 'test1@example.com' },
-                    { id: 'sub-2', email: 'test2@example.com' }
-                  ],
-                  error: null
-                })
-              })
-            })
-          }
-        }
-        if (table === 'email_send_log') {
-          return {
-            insert: mockSupabaseInsert.mockResolvedValue({ error: null })
-          }
-        }
-        return { select: vi.fn() }
-      })
+      mockListSubscribers.mockResolvedValue([
+        { id: 'sub-1', email: 'test1@example.com' },
+        { id: 'sub-2', email: 'test2@example.com' }
+      ])
 
       // First email fails, second succeeds
       mockResendSend
@@ -386,7 +300,10 @@ describe('GET /api/cron/daily-kin', () => {
     })
 
     it('should return 500 for unexpected errors', async () => {
-      mockSupabaseFrom.mockImplementation(() => {
+      // An error thrown during kin calculation (before the subscriber fetch)
+      // falls through to the outer catch -> generic "Internal server error".
+      const { dateToKin } = await import('@/lib/calculations')
+      vi.mocked(dateToKin).mockImplementationOnce(() => {
         throw new Error('Unexpected error')
       })
 
@@ -403,29 +320,10 @@ describe('GET /api/cron/daily-kin', () => {
 
   describe('Rate Limiting', () => {
     it('should respect rate limiting between emails', async () => {
-      mockSupabaseFrom.mockImplementation((table: string) => {
-        if (table === 'newsletter_subscribers') {
-          return {
-            select: mockSupabaseSelect.mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                is: vi.fn().mockResolvedValue({
-                  data: [
-                    { id: 'sub-1', email: 'test1@example.com' },
-                    { id: 'sub-2', email: 'test2@example.com' }
-                  ],
-                  error: null
-                })
-              })
-            })
-          }
-        }
-        if (table === 'email_send_log') {
-          return {
-            insert: mockSupabaseInsert.mockResolvedValue({ error: null })
-          }
-        }
-        return { select: vi.fn() }
-      })
+      mockListSubscribers.mockResolvedValue([
+        { id: 'sub-1', email: 'test1@example.com' },
+        { id: 'sub-2', email: 'test2@example.com' }
+      ])
 
       const startTime = Date.now()
       const request = createRequest('/api/cron/daily-kin', {

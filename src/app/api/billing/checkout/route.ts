@@ -1,24 +1,24 @@
 /**
  * Checkout Session API
  * Creates a Stripe Checkout session for subscription
+ *
+ * USER context: the checkout is created for the caller, scoped by their
+ * authenticated session. The Stripe customer/subscription are keyed to the
+ * caller's user id. Stripe calls are unchanged — only the auth source moved
+ * off Supabase.
  */
 
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getSession, UnauthorizedError } from '@/lib/auth-server'
+import { handleApiError } from '@/lib/api/respond'
 import { createCheckoutSession } from '@/lib/services/billing'
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient()
-    
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+    const session = await getSession()
+    const user = session?.user
+    if (!user) {
+      throw new UnauthorizedError()
     }
 
     // Parse request body
@@ -33,9 +33,12 @@ export async function POST(request: Request) {
     }
 
     // Get base URL for redirect
-    const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const origin =
+      request.headers.get('origin') ||
+      process.env.NEXT_PUBLIC_APP_URL ||
+      'http://localhost:3000'
 
-    // Create checkout session
+    // Create checkout session (Stripe) for the authenticated caller
     const { url } = await createCheckoutSession(
       user.id,
       user.email || '',
@@ -50,9 +53,17 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url })
   } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      return handleApiError(error, 'POST /api/billing/checkout')
+    }
     console.error('Checkout error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create checkout session' },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to create checkout session',
+      },
       { status: 500 }
     )
   }

@@ -1,21 +1,19 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
-// Mock Supabase
-const mockSupabaseSelect = vi.fn()
-const mockSupabaseInsert = vi.fn()
-const mockSupabaseFrom = vi.fn()
+// Mock the notifications repository (datastore is now MongoDB via the repo).
+const mockListSettingsForHour = vi.fn()
+const mockLogEmailSend = vi.fn()
 
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
-    from: mockSupabaseFrom
-  }))
+vi.mock('@/lib/db/repositories/notifications-repo', () => ({
+  listAllEnabledSettingsForHour: (hour: string) => mockListSettingsForHour(hour),
+  logEmailSend: (input: unknown) => mockLogEmailSend(input),
 }))
 
 // Mock notifications service
 const mockProcessDailyDigest = vi.fn()
 vi.mock('@/lib/services/notifications', () => ({
-  processDailyDigestNotifications: () => mockProcessDailyDigest()
+  processDailyDigestNotifications: () => mockProcessDailyDigest(),
 }))
 
 import { GET } from './route'
@@ -36,46 +34,18 @@ async function parseResponse(response: Response) {
 
 describe('GET /api/cron/send-notifications', () => {
   const originalEnv = process.env
-  const originalDate = Date
 
   beforeEach(() => {
     vi.clearAllMocks()
     process.env = {
       ...originalEnv,
-      NEXT_PUBLIC_SUPABASE_URL: 'https://test.supabase.co',
-      SUPABASE_SERVICE_ROLE_KEY: 'test-service-key',
       CRON_SECRET: 'test-cron-secret',
-      NODE_ENV: 'test'
+      NODE_ENV: 'test',
     }
 
-    // Setup default mock chain
-    mockSupabaseFrom.mockImplementation((table: string) => {
-      if (table === 'notification_settings') {
-        return {
-          select: mockSupabaseSelect.mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                contains: vi.fn().mockReturnValue({
-                  gte: vi.fn().mockReturnValue({
-                    lt: vi.fn().mockResolvedValue({
-                      data: [{ user_id: 'user-1' }],
-                      error: null
-                    })
-                  })
-                })
-              })
-            })
-          })
-        }
-      }
-      if (table === 'email_send_log') {
-        return {
-          insert: mockSupabaseInsert.mockResolvedValue({ error: null })
-        }
-      }
-      return { select: vi.fn() }
-    })
-
+    // Default: one user wants the digest this hour.
+    mockListSettingsForHour.mockResolvedValue([{ id: 's1', user_id: 'user-1' }])
+    mockLogEmailSend.mockResolvedValue({ logged: true })
     mockProcessDailyDigest.mockResolvedValue({ sent: 5, failed: 0 })
   })
 
@@ -98,7 +68,7 @@ describe('GET /api/cron/send-notifications', () => {
     it('should return 401 in production with invalid cron secret', async () => {
       vi.stubEnv('NODE_ENV', 'production')
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer wrong-secret'
+        authorization: 'Bearer wrong-secret',
       })
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -109,12 +79,11 @@ describe('GET /api/cron/send-notifications', () => {
 
     it('should succeed in production with valid cron secret', async () => {
       vi.stubEnv('NODE_ENV', 'production')
-      // Mock time to be in digest window
       vi.useFakeTimers()
       vi.setSystemTime(new Date('2024-06-15T07:00:00Z'))
 
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
+        authorization: 'Bearer test-cron-secret',
       })
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -143,7 +112,7 @@ describe('GET /api/cron/send-notifications', () => {
       vi.setSystemTime(new Date('2024-06-15T06:30:00Z'))
 
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
+        authorization: 'Bearer test-cron-secret',
       })
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -159,7 +128,7 @@ describe('GET /api/cron/send-notifications', () => {
       vi.setSystemTime(new Date('2024-06-15T07:00:00Z'))
 
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
+        authorization: 'Bearer test-cron-secret',
       })
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -173,7 +142,7 @@ describe('GET /api/cron/send-notifications', () => {
       vi.setSystemTime(new Date('2024-06-15T08:00:00Z'))
 
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
+        authorization: 'Bearer test-cron-secret',
       })
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -187,7 +156,7 @@ describe('GET /api/cron/send-notifications', () => {
       vi.setSystemTime(new Date('2024-06-15T09:00:00Z'))
 
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
+        authorization: 'Bearer test-cron-secret',
       })
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -201,7 +170,7 @@ describe('GET /api/cron/send-notifications', () => {
       vi.setSystemTime(new Date('2024-06-15T05:00:00Z'))
 
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
+        authorization: 'Bearer test-cron-secret',
       })
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -217,7 +186,7 @@ describe('GET /api/cron/send-notifications', () => {
       vi.setSystemTime(new Date('2024-06-15T10:00:00Z'))
 
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
+        authorization: 'Bearer test-cron-secret',
       })
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -233,7 +202,7 @@ describe('GET /api/cron/send-notifications', () => {
       vi.setSystemTime(new Date('2024-06-15T00:00:00Z'))
 
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
+        authorization: 'Bearer test-cron-secret',
       })
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -252,7 +221,7 @@ describe('GET /api/cron/send-notifications', () => {
 
     it('should return success response with correct structure', async () => {
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
+        authorization: 'Bearer test-cron-secret',
       })
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -266,7 +235,7 @@ describe('GET /api/cron/send-notifications', () => {
 
     it('should process daily digest notifications', async () => {
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
+        authorization: 'Bearer test-cron-secret',
       })
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -278,30 +247,10 @@ describe('GET /api/cron/send-notifications', () => {
     })
 
     it('should handle no users needing notifications', async () => {
-      mockSupabaseFrom.mockImplementation((table: string) => {
-        if (table === 'notification_settings') {
-          return {
-            select: mockSupabaseSelect.mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                eq: vi.fn().mockReturnValue({
-                  contains: vi.fn().mockReturnValue({
-                    gte: vi.fn().mockReturnValue({
-                      lt: vi.fn().mockResolvedValue({
-                        data: [],
-                        error: null
-                      })
-                    })
-                  })
-                })
-              })
-            })
-          }
-        }
-        return { select: vi.fn() }
-      })
+      mockListSettingsForHour.mockResolvedValue([])
 
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
+        authorization: 'Bearer test-cron-secret',
       })
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -314,18 +263,18 @@ describe('GET /api/cron/send-notifications', () => {
 
     it('should log notification batch to email_send_log', async () => {
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
+        authorization: 'Bearer test-cron-secret',
       })
       await GET(request)
 
-      expect(mockSupabaseInsert).toHaveBeenCalled()
+      expect(mockLogEmailSend).toHaveBeenCalled()
     })
 
     it('should return sent and failed counts from processor', async () => {
       mockProcessDailyDigest.mockResolvedValue({ sent: 10, failed: 2 })
 
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
+        authorization: 'Bearer test-cron-secret',
       })
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -341,12 +290,11 @@ describe('GET /api/cron/send-notifications', () => {
       vi.setSystemTime(new Date('2024-06-15T07:00:00Z'))
     })
 
-    it('should return 500 when Supabase config is missing', async () => {
-      process.env.NEXT_PUBLIC_SUPABASE_URL = ''
-      process.env.SUPABASE_SERVICE_ROLE_KEY = ''
+    it('should return 500 when fetching settings fails', async () => {
+      mockListSettingsForHour.mockRejectedValue(new Error('Database error'))
 
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
+        authorization: 'Bearer test-cron-secret',
       })
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -355,46 +303,13 @@ describe('GET /api/cron/send-notifications', () => {
       expect(data.error).toBe('Internal server error')
     })
 
-    it('should return 500 when fetching settings fails', async () => {
-      mockSupabaseFrom.mockImplementation((table: string) => {
-        if (table === 'notification_settings') {
-          return {
-            select: mockSupabaseSelect.mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                eq: vi.fn().mockReturnValue({
-                  contains: vi.fn().mockReturnValue({
-                    gte: vi.fn().mockReturnValue({
-                      lt: vi.fn().mockResolvedValue({
-                        data: null,
-                        error: { message: 'Database error' }
-                      })
-                    })
-                  })
-                })
-              })
-            })
-          }
-        }
-        return { select: vi.fn() }
-      })
-
-      const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
-      })
-      const response = await GET(request)
-      const data = await parseResponse(response)
-
-      expect(response.status).toBe(500)
-      expect(data.error).toBe('Failed to fetch notification settings')
-    })
-
     it('should return 500 for unexpected errors', async () => {
-      mockSupabaseFrom.mockImplementation(() => {
+      mockListSettingsForHour.mockImplementation(() => {
         throw new Error('Unexpected error')
       })
 
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
+        authorization: 'Bearer test-cron-secret',
       })
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -407,7 +322,7 @@ describe('GET /api/cron/send-notifications', () => {
       mockProcessDailyDigest.mockRejectedValue(new Error('Processing error'))
 
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
+        authorization: 'Bearer test-cron-secret',
       })
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -425,7 +340,7 @@ describe('GET /api/cron/send-notifications', () => {
 
     it('should include hour in response during digest window', async () => {
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
+        authorization: 'Bearer test-cron-secret',
       })
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -435,7 +350,7 @@ describe('GET /api/cron/send-notifications', () => {
 
     it('should include success flag', async () => {
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
+        authorization: 'Bearer test-cron-secret',
       })
       const response = await GET(request)
       const data = await parseResponse(response)
@@ -447,7 +362,7 @@ describe('GET /api/cron/send-notifications', () => {
       vi.setSystemTime(new Date('2024-06-15T12:00:00Z'))
 
       const request = createRequest('/api/cron/send-notifications', {
-        authorization: 'Bearer test-cron-secret'
+        authorization: 'Bearer test-cron-secret',
       })
       const response = await GET(request)
       const data = await parseResponse(response)

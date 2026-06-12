@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 import { rateLimiters, rateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limit'
+import { unsubscribe } from '@/lib/db/repositories/newsletter-repo'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,17 +13,6 @@ const unsubscribeSchema = z.object({
     .email('Invalid email format')
     .transform((val) => val.toLowerCase().trim()),
 })
-
-function getSupabaseAdmin() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!url || !serviceKey) {
-    return createClient(url || '', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '')
-  }
-
-  return createClient(url, serviceKey)
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,20 +32,8 @@ export async function POST(request: NextRequest) {
     }
 
     const { email: normalizedEmail } = parseResult.data
-    const supabase = getSupabaseAdmin()
 
-    const { error } = await supabase
-      .from('newsletter_subscribers')
-      .update({
-        unsubscribed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('email', normalizedEmail)
-
-    if (error) {
-      console.error('Error unsubscribing:', error)
-      return NextResponse.json({ error: 'Failed to unsubscribe' }, { status: 500 })
-    }
+    await unsubscribe(normalizedEmail)
 
     const response = NextResponse.json({ success: true, message: 'Unsubscribed successfully' })
     return addRateLimitHeaders(response, rateLimitResult)
@@ -82,16 +59,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  const supabase = getSupabaseAdmin()
   const normalizedEmail = email.toLowerCase().trim()
 
-  await supabase
-    .from('newsletter_subscribers')
-    .update({
-      unsubscribed_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('email', normalizedEmail)
+  await unsubscribe(normalizedEmail)
 
   // Redirect to unsubscribe confirmation page
   return NextResponse.redirect(new URL('/unsubscribe?success=true', request.url))

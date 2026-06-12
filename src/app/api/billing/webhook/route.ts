@@ -1,28 +1,25 @@
 /**
  * Stripe Webhook Handler
  * Processes subscription lifecycle events from Stripe
+ *
+ * SYSTEM context: this route is authenticated by the verified Stripe signature,
+ * NOT by a user session. It must NOT use requireUserId(). It writes subscription
+ * state keyed off Stripe identifiers (customer/subscription id) or the user id
+ * carried in verified checkout-session metadata, via the system-context repo
+ * functions.
+ *
+ * Stripe event parsing + signature verification are unchanged; only the
+ * datastore writes moved from Supabase to Mongoose.
  */
 
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import Stripe from 'stripe'
-import { createClient } from '@supabase/supabase-js'
 import { constructWebhookEvent, getPlanFromSubscription } from '@/lib/services/billing'
-
-// Use service role for webhook handler (bypasses RLS)
-// Lazy initialization to avoid build-time errors
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let _supabaseAdmin: ReturnType<typeof createClient<any>> | null = null
-function getSupabaseAdmin() {
-  if (!_supabaseAdmin) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    _supabaseAdmin = createClient<any>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-  }
-  return _supabaseAdmin
-}
+import {
+  upsertSubscriptionByUserId,
+  updateByStripeSubscriptionId,
+} from '@/lib/db/repositories/subscriptions-repo'
 
 export async function POST(request: Request) {
   try {
@@ -86,7 +83,8 @@ export async function POST(request: Request) {
 }
 
 /**
- * Handle successful checkout completion
+ * Handle successful checkout completion.
+ * Upserts the subscription keyed by the user id from verified session metadata.
  */
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const userId = session.metadata?.omnis_user_id
@@ -100,26 +98,15 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const subscriptionId = session.subscription as string
   const customerId = session.customer as string
 
-  // Upsert subscription record
-  const { error } = await getSupabaseAdmin()
-    .from('subscriptions')
-    .upsert({
-      user_id: userId,
-      plan,
-      status: 'active',
-      stripe_subscription_id: subscriptionId,
-      stripe_customer_id: customerId,
-      current_period_start: new Date().toISOString(),
-      current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Will be updated by invoice.paid
-      updated_at: new Date().toISOString(),
-    }, {
-      onConflict: 'user_id',
-    })
-
-  if (error) {
-    console.error('Error upserting subscription:', error)
-    throw error
-  }
+  // Upsert subscription record (system context, keyed by user_id)
+  await upsertSubscriptionByUserId(userId, {
+    plan,
+    status: 'active',
+    stripe_subscription_id: subscriptionId,
+    stripe_customer_id: customerId,
+    current_period_start: new Date(),
+    current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Will be updated by invoice.paid
+  })
 
   console.log(`Checkout completed for user ${userId}, plan: ${plan}`)
 }
@@ -130,26 +117,24 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 async function handleInvoicePaid(invoice: Stripe.Invoice) {
   // Extract subscription ID from invoice - cast to access subscription field
   const invoiceData = invoice as unknown as { subscription?: string | { id: string } | null }
-  const subscriptionId = typeof invoiceData.subscription === 'string' 
-    ? invoiceData.subscription 
+  const subscriptionId = typeof invoiceData.subscription === 'string'
+    ? invoiceData.subscription
     : invoiceData.subscription?.id
-  
+
   if (!subscriptionId) {
     return // Not a subscription invoice
   }
 
-  // Update subscription period
-  const { error } = await getSupabaseAdmin()
-    .from('subscriptions')
-    .update({
-      status: 'active',
-      current_period_end: new Date((invoice.lines.data[0]?.period?.end || 0) * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('stripe_subscription_id', subscriptionId)
+  // Update subscription period (system context, keyed by stripe_subscription_id)
+  const matched = await updateByStripeSubscriptionId(subscriptionId, {
+    status: 'active',
+    current_period_end: new Date((invoice.lines.data[0]?.period?.end || 0) * 1000),
+  })
 
-  if (error) {
-    console.error('Error updating subscription on invoice paid:', error)
+  if (!matched) {
+    console.error(
+      `No subscription matched stripe_subscription_id ${subscriptionId} on invoice paid`
+    )
   }
 
   console.log(`Invoice paid for subscription ${subscriptionId}`)
@@ -161,24 +146,22 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
   // Extract subscription ID from invoice - cast to access subscription field
   const invoiceData = invoice as unknown as { subscription?: string | { id: string } | null }
-  const subscriptionId = typeof invoiceData.subscription === 'string' 
-    ? invoiceData.subscription 
+  const subscriptionId = typeof invoiceData.subscription === 'string'
+    ? invoiceData.subscription
     : invoiceData.subscription?.id
 
   if (!subscriptionId) {
     return
   }
 
-  const { error } = await getSupabaseAdmin()
-    .from('subscriptions')
-    .update({
-      status: 'past_due',
-      updated_at: new Date().toISOString(),
-    })
-    .eq('stripe_subscription_id', subscriptionId)
+  const matched = await updateByStripeSubscriptionId(subscriptionId, {
+    status: 'past_due',
+  })
 
-  if (error) {
-    console.error('Error updating subscription on payment failed:', error)
+  if (!matched) {
+    console.error(
+      `No subscription matched stripe_subscription_id ${subscriptionId} on payment failed`
+    )
   }
 
   console.log(`Payment failed for subscription ${subscriptionId}`)
@@ -189,7 +172,7 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
  */
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const plan = getPlanFromSubscription(subscription)
-  
+
   // Cast to access properties that might not be in type definitions
   const subData = subscription as unknown as {
     id: string
@@ -198,23 +181,24 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     current_period_start: number
     current_period_end: number
   }
-  
-  const { error } = await getSupabaseAdmin()
-    .from('subscriptions')
-    .update({
-      plan,
-      status: subData.status === 'active' ? 'active' : 
-              subData.status === 'trialing' ? 'trialing' : 
-              subData.status === 'past_due' ? 'past_due' : 'canceled',
-      cancel_at_period_end: subData.cancel_at_period_end,
-      current_period_start: new Date(subData.current_period_start * 1000).toISOString(),
-      current_period_end: new Date(subData.current_period_end * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('stripe_subscription_id', subData.id)
 
-  if (error) {
-    console.error('Error updating subscription:', error)
+  const matched = await updateByStripeSubscriptionId(subData.id, {
+    plan,
+    status:
+      subData.status === 'active'
+        ? 'active'
+        : subData.status === 'trialing'
+          ? 'trialing'
+          : subData.status === 'past_due'
+            ? 'past_due'
+            : 'canceled',
+    cancel_at_period_end: subData.cancel_at_period_end,
+    current_period_start: new Date(subData.current_period_start * 1000),
+    current_period_end: new Date(subData.current_period_end * 1000),
+  })
+
+  if (!matched) {
+    console.error(`No subscription matched stripe_subscription_id ${subData.id}`)
   }
 
   console.log(`Subscription ${subData.id} updated to ${subData.status}`)
@@ -224,18 +208,16 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
  * Handle subscription deletion/cancellation
  */
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
-  const { error } = await getSupabaseAdmin()
-    .from('subscriptions')
-    .update({
-      plan: 'free',
-      status: 'canceled',
-      cancel_at_period_end: false,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('stripe_subscription_id', subscription.id)
+  const matched = await updateByStripeSubscriptionId(subscription.id, {
+    plan: 'free',
+    status: 'canceled',
+    cancel_at_period_end: false,
+  })
 
-  if (error) {
-    console.error('Error handling subscription deletion:', error)
+  if (!matched) {
+    console.error(
+      `No subscription matched stripe_subscription_id ${subscription.id} on deletion`
+    )
   }
 
   console.log(`Subscription ${subscription.id} deleted/canceled`)

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { requireUserId } from '@/lib/auth-server'
+import { handleApiError } from '@/lib/api/respond'
 import {
   getNotificationSettings,
   upsertNotificationSettings,
@@ -21,39 +22,24 @@ const defaultSettings: Omit<NotificationSettings, 'userId'> = {
   minIntensity: 'medium',
 }
 
-// Get authenticated user from server-side Supabase client
-async function getAuthenticatedUser() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  return user
-}
-
 /**
  * GET /api/notifications/settings
  *
- * Get current user's notification settings
+ * Get the current user's notification settings. USER-context: scoped to
+ * requireUserId(); a user can only read their own settings.
  */
 export async function GET() {
   try {
-    const user = await getAuthenticatedUser()
+    const userId = await requireUserId()
 
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    const settings = await getNotificationSettings(user.id)
+    const settings = await getNotificationSettings(userId)
 
     if (!settings) {
       // Return default settings if none exist
       return NextResponse.json({
         success: true,
         data: {
-          userId: user.id,
+          userId,
           ...defaultSettings,
         },
       })
@@ -64,35 +50,25 @@ export async function GET() {
       data: settings,
     })
   } catch (error) {
-    console.error('Error fetching notification settings:', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch settings' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'GET /api/notifications/settings')
   }
 }
 
 /**
  * PUT /api/notifications/settings
  *
- * Update current user's notification settings
+ * Update the current user's notification settings. USER-context: the persisted
+ * `userId` is always requireUserId(), never taken from the request body.
  */
 export async function PUT(request: NextRequest) {
   try {
-    const user = await getAuthenticatedUser()
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
+    const userId = await requireUserId()
 
     const body = await request.json()
 
     // Validate and sanitize input
     const settings: NotificationSettings = {
-      userId: user.id,
+      userId,
       enabled: typeof body.enabled === 'boolean' ? body.enabled : true,
       channels: Array.isArray(body.channels)
         ? body.channels.filter((c: string) => ['in-app', 'email', 'sms'].includes(c))
@@ -137,10 +113,6 @@ export async function PUT(request: NextRequest) {
       data: settings,
     })
   } catch (error) {
-    console.error('Error updating notification settings:', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to update settings' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'PUT /api/notifications/settings')
   }
 }

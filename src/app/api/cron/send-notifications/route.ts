@@ -1,22 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { processDailyDigestNotifications } from '@/lib/services/notifications'
+import {
+  listAllEnabledSettingsForHour,
+  logEmailSend,
+} from '@/lib/db/repositories/notifications-repo'
 
 export const dynamic = 'force-dynamic'
 
 // This endpoint is called by Vercel Cron every hour
 // Configure in vercel.json: {"crons": [{"path": "/api/cron/send-notifications", "schedule": "0 * * * *"}]}
-
-function getSupabaseAdmin() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!url || !serviceKey) {
-    throw new Error('Supabase configuration missing')
-  }
-
-  return createClient(url, serviceKey)
-}
+//
+// SYSTEM-context: authorized by CRON_SECRET and intentionally reads across ALL
+// users' notification_settings. There is NO requireUserId() here — the cross-
+// tenant read is legitimate and lives behind clearly-named system repo
+// functions (listAllEnabledSettingsForHour / processDailyDigestNotifications).
 
 export async function GET(request: NextRequest) {
   // Verify cron secret for security
@@ -28,7 +25,6 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const supabase = getSupabaseAdmin()
     const now = new Date()
     const currentHour = now.getUTCHours()
 
@@ -36,26 +32,10 @@ export async function GET(request: NextRequest) {
     // This gives flexibility for different timezones
     if (currentHour >= 6 && currentHour <= 9) {
       // Get users who want digest at this hour
-      const targetTime = `${String(currentHour).padStart(2, '0')}:00`
+      const hourPrefix = String(currentHour).padStart(2, '0')
+      const settings = await listAllEnabledSettingsForHour(hourPrefix)
 
-      const { data: settings, error: settingsError } = await supabase
-        .from('notification_settings')
-        .select('user_id')
-        .eq('enabled', true)
-        .eq('daily_digest', true)
-        .contains('channels', ['email'])
-        .gte('daily_digest_time', `${String(currentHour).padStart(2, '0')}:00`)
-        .lt('daily_digest_time', `${String(currentHour + 1).padStart(2, '0')}:00`)
-
-      if (settingsError) {
-        console.error('Error fetching notification settings:', settingsError)
-        return NextResponse.json(
-          { error: 'Failed to fetch notification settings' },
-          { status: 500 }
-        )
-      }
-
-      if (!settings || settings.length === 0) {
+      if (settings.length === 0) {
         return NextResponse.json({
           success: true,
           message: 'No notifications to send this hour',
@@ -69,15 +49,10 @@ export async function GET(request: NextRequest) {
       const result = await processDailyDigestNotifications()
 
       // Log the notification batch
-      await supabase.from('email_send_log').insert({
+      await logEmailSend({
         email_type: 'daily_digest_batch',
-        subject: `Daily digest batch at ${now.toISOString()}`,
+        subject: `Daily digest batch at ${now.toISOString()} (hour ${currentHour}, sent ${result.sent}, failed ${result.failed})`,
         status: result.sent > 0 ? 'sent' : 'skipped',
-        metadata: {
-          hour: currentHour,
-          sent: result.sent,
-          failed: result.failed,
-        },
       })
 
       return NextResponse.json({

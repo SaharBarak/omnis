@@ -3,15 +3,16 @@
  * Tracks and enforces plan limits for users
  */
 
-import { createClient } from '@/lib/supabase/server'
+import {
+  getUserPlan as getUserPlanFromRepo,
+  getUsage as getUsageFromRepo,
+  incrementUsage as incrementUsageInRepo,
+  type UsageMetric,
+} from '@/lib/db/repositories/subscriptions-repo'
 import { PLANS, PlanTier, getPlanLimits } from './billing'
 
-// Usage metrics
-export type UsageMetric = 
-  | 'profiles_count'
-  | 'ai_interpretations_used'
-  | 'boards_count'
-  | 'exports_count'
+// Usage metrics (re-exported for existing consumers).
+export type { UsageMetric }
 
 export interface UsageData {
   userId: string
@@ -49,44 +50,19 @@ function getCurrentPeriod(): string {
  * Get user's current subscription plan
  */
 export async function getUserPlan(userId: string): Promise<PlanTier> {
-  const supabase = await createClient()
-  
-  const { data, error } = await supabase
-    .from('subscriptions')
-    .select('plan, status, current_period_end')
-    .eq('user_id', userId)
-    .single()
-
-  if (error || !data) {
-    return 'free'
-  }
-
-  // Check if subscription is still valid
-  if (data.status === 'active' || data.status === 'trialing') {
-    const periodEnd = new Date(data.current_period_end)
-    if (periodEnd > new Date()) {
-      return data.plan as PlanTier
-    }
-  }
-
-  return 'free'
+  // Validity logic (status + period_end check) lives in the repo, ported from
+  // the Postgres get_user_plan RPC.
+  return getUserPlanFromRepo(userId)
 }
 
 /**
  * Get current usage for a user
  */
 export async function getCurrentUsage(userId: string): Promise<UsageData> {
-  const supabase = await createClient()
   const period = getCurrentPeriod()
+  const data = await getUsageFromRepo(userId, period)
 
-  const { data, error } = await supabase
-    .from('usage')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('period', period)
-    .single()
-
-  if (error || !data) {
+  if (!data) {
     return {
       userId,
       period,
@@ -115,42 +91,9 @@ export async function trackUsage(
   metric: UsageMetric,
   amount: number = 1
 ): Promise<void> {
-  const supabase = await createClient()
   const period = getCurrentPeriod()
-
-  // Try to update existing record
-  const { error: updateError } = await supabase.rpc('increment_usage', {
-    p_user_id: userId,
-    p_period: period,
-    p_metric: metric,
-    p_amount: amount,
-  })
-
-  if (updateError) {
-    // If RPC doesn't exist, fall back to upsert
-    const { data: existing } = await supabase
-      .from('usage')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('period', period)
-      .single()
-
-    if (existing) {
-      await supabase
-        .from('usage')
-        .update({ [metric]: (existing[metric] || 0) + amount })
-        .eq('user_id', userId)
-        .eq('period', period)
-    } else {
-      await supabase
-        .from('usage')
-        .insert({
-          user_id: userId,
-          period,
-          [metric]: amount,
-        })
-    }
-  }
+  // Atomic $inc upsert in the repo, ported from the increment_usage RPC.
+  await incrementUsageInRepo(userId, period, metric, amount)
 }
 
 /**
