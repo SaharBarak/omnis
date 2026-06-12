@@ -68,13 +68,13 @@ export interface UpsertPredictionInput {
 /**
  * Read the cached AI interpretation for a single prediction by its id.
  *
- * The prediction id is only known to a caller that already obtained it from an
- * owner-scoped read, so this is keyed purely by id (mirrors the original
- * `.from('predictions').select(...).eq('id', ...)`). Returns `null` when the
- * id is malformed or no row exists.
+ * Owner-scoped: filters by both the prediction id AND owner_id so a caller can
+ * never read an interpretation cached on another user's prediction, even with a
+ * valid id. Returns `null` when the id is malformed or no owned row exists.
  */
 export async function getCachedInterpretation(
-  predictionId: string
+  predictionId: string,
+  ownerId: string
 ): Promise<CachedInterpretationRow | null> {
   await connectMongo()
 
@@ -85,7 +85,7 @@ export async function getCachedInterpretation(
     return null
   }
 
-  const row = await Prediction.findById(id)
+  const row = await Prediction.findOne({ _id: id, owner_id: ownerId })
     .select('interpretation computed_at expires_at')
     .lean()
 
@@ -100,10 +100,12 @@ export async function getCachedInterpretation(
 
 /**
  * Persist an AI interpretation onto an existing prediction row.
- * No-op when the id is malformed or no row matches.
+ * Owner-scoped: only updates a prediction owned by ownerId. No-op when the id
+ * is malformed or no owned row matches.
  */
 export async function cacheInterpretation(
   predictionId: string,
+  ownerId: string,
   input: { interpretation: string; computed_at: string; expires_at: string }
 ): Promise<void> {
   await connectMongo()
@@ -116,7 +118,7 @@ export async function cacheInterpretation(
   }
 
   await Prediction.updateOne(
-    { _id: id },
+    { _id: id, owner_id: ownerId },
     {
       $set: {
         interpretation: input.interpretation,

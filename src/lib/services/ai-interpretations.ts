@@ -38,12 +38,13 @@ const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000
  * Generate AI interpretation for a prediction event
  */
 export async function generateInterpretation(
-  request: AIInterpretationRequest
+  request: AIInterpretationRequest,
+  userId: string
 ): Promise<AIInterpretationResponse> {
   const { prediction, personContext, locale = 'en' } = request
 
-  // Check cache first
-  const cached = await getCachedInterpretation(prediction)
+  // Check cache first (owner-scoped)
+  const cached = await getCachedInterpretation(prediction, userId)
   if (cached) {
     return cached
   }
@@ -67,8 +68,8 @@ export async function generateInterpretation(
     // Parse the response
     const interpretation = parseInterpretationResponse(responseText)
 
-    // Cache the interpretation
-    await cacheInterpretation(prediction, interpretation)
+    // Cache the interpretation (owner-scoped)
+    await cacheInterpretation(prediction, userId, interpretation)
 
     return interpretation
   } catch (error) {
@@ -179,14 +180,15 @@ function parseInterpretationResponse(
  * Get cached interpretation from database (Mongo via predictions-repo).
  */
 async function getCachedInterpretation(
-  prediction: PredictionEvent
+  prediction: PredictionEvent,
+  userId: string
 ): Promise<AIInterpretationResponse | null> {
   if (!prediction.id) {
     return null
   }
 
   try {
-    const data = await getCachedInterpretationRow(prediction.id)
+    const data = await getCachedInterpretationRow(prediction.id, userId)
 
     if (!data || !data.interpretation) {
       return null
@@ -228,6 +230,7 @@ async function getCachedInterpretation(
  */
 async function cacheInterpretation(
   prediction: PredictionEvent,
+  userId: string,
   interpretation: AIInterpretationResponse
 ): Promise<void> {
   if (!prediction.id) {
@@ -235,7 +238,7 @@ async function cacheInterpretation(
   }
 
   try {
-    await cacheInterpretationRow(prediction.id, {
+    await cacheInterpretationRow(prediction.id, userId, {
       interpretation: JSON.stringify(interpretation),
       computed_at: interpretation.cachedAt ?? new Date().toISOString(),
       expires_at:

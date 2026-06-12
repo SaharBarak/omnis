@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
       locale,
     }
 
-    const interpretation = await generateInterpretation(interpretationRequest)
+    const interpretation = await generateInterpretation(interpretationRequest, userId)
 
     const response = NextResponse.json({
       success: true,

@@ -256,7 +256,8 @@ describe('POST /api/ai/interpret', () => {
       expect(generateInterpretation).toHaveBeenCalledWith(
         expect.objectContaining({
           personContext,
-        })
+        }),
+        'user-123'
       )
     })
 
@@ -273,7 +274,8 @@ describe('POST /api/ai/interpret', () => {
       expect(generateInterpretation).toHaveBeenCalledWith(
         expect.objectContaining({
           locale: 'he',
-        })
+        }),
+        'user-123'
       )
     })
 
@@ -289,7 +291,8 @@ describe('POST /api/ai/interpret', () => {
       expect(generateInterpretation).toHaveBeenCalledWith(
         expect.objectContaining({
           locale: 'en',
-        })
+        }),
+        'user-123'
       )
     })
 
