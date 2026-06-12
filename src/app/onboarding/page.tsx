@@ -30,7 +30,7 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (profile || user) {
       setFormData({
-        displayName: profile?.display_name || user?.user_metadata?.full_name || '',
+        displayName: profile?.display_name || user?.name || '',
         birthDate: profile?.birth_date || '',
         birthTime: profile?.birth_time || null,
         birthPlace: profile?.birth_place as unknown as BirthPlace | null,
@@ -95,7 +95,7 @@ export default function OnboardingPage() {
         display_name: formData.displayName,
         birth_date: formData.birthDate,
         birth_time: formData.birthTime,
-        birth_place: formData.birthPlace as Json | null,
+        birth_place: formData.birthPlace ?? null,
         hebrew_name: formData.hebrewName || null,
         onboarding_completed: true,
       })

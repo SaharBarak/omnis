@@ -1,210 +1,110 @@
 'use client'
 
-import { useEffect, useState, useCallback, useMemo } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import type { User, Session } from '@supabase/supabase-js'
-import type { Profile } from '@/lib/supabase/database.types'
+import { useEffect, useState, useCallback } from 'react'
+import { signIn, signOut as authSignOut, useSession } from '@/lib/auth-client'
+import type { IProfile } from '@/lib/db/models/profiles'
 
-interface AuthState {
-  user: User | null
-  session: Session | null
-  profile: Profile | null
-  loading: boolean
+export type Profile = IProfile & { _id?: string }
+
+function originCallback(redirectTo?: string): string {
+  const base =
+    typeof window !== 'undefined' ? window.location.origin : ''
+  return `${base}${redirectTo || '/app'}`
 }
 
 export function useAuth() {
-  const [state, setState] = useState<AuthState>({
-    user: null,
-    session: null,
-    profile: null,
-    loading: true,
-  })
+  const { data: sessionData, isPending } = useSession()
+  const user = sessionData?.user ?? null
+  const session = sessionData?.session ?? null
 
-  const supabase = useMemo(() => createClient(), [])
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [profileLoading, setProfileLoading] = useState(false)
 
-  // Fetch user profile from database
-  const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single()
-
-      if (error) {
-        if (error.code !== 'PGRST116') {
-          console.error('Error fetching profile:', error)
-        }
-        return null
-      }
-
-      return data
-    } catch (err) {
-      console.error('Exception fetching profile:', err)
-      return null
-    }
-  }, [supabase])
-
+  // Load the app profile from the server (browser cannot query Mongo directly).
   useEffect(() => {
     let cancelled = false
-
-    // Safety timeout — force loading: false if auth hangs
-    const safetyTimeout = setTimeout(() => {
-      setState(prev => {
-        if (prev.loading) {
-          console.warn('[Auth] Safety timeout: forcing loading=false after 10s')
-          return { ...prev, loading: false }
-        }
-        return prev
-      })
-    }, 10_000)
-
-    // Get the initial session explicitly
-    const initSession = async () => {
-      try {
-        console.log('[Auth] initSession: calling getSession')
-        const { data: { session } } = await supabase.auth.getSession()
-        console.log('[Auth] initSession: getSession returned', session ? 'session' : 'null')
-        if (cancelled) return
-
-        if (session?.user) {
-          console.log('[Auth] initSession: fetching profile for', session.user.id)
-          const profile = await fetchProfile(session.user.id)
-          console.log('[Auth] initSession: fetchProfile returned', profile ? 'profile' : 'null')
-          if (cancelled) return
-          setState({
-            user: session.user,
-            session,
-            profile,
-            loading: false,
-          })
-        } else {
-          setState({
-            user: null,
-            session: null,
-            profile: null,
-            loading: false,
-          })
-        }
-      } catch (err) {
-        console.error('[Auth] Error getting initial session:', err)
-        if (!cancelled) {
-          setState(prev => ({ ...prev, loading: false }))
-        }
-      }
+    if (!user) {
+      setProfile(null)
+      return
     }
-
-    // Set up auth state listener for subsequent changes (token refresh, sign out, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        // Skip INITIAL_SESSION since we handle it above
-        if (event === 'INITIAL_SESSION') return
-
-        if (session?.user) {
-          const profile = await fetchProfile(session.user.id)
-          if (cancelled) return
-          setState({
-            user: session.user,
-            session,
-            profile,
-            loading: false,
-          })
-        } else {
-          if (cancelled) return
-          setState({
-            user: null,
-            session: null,
-            profile: null,
-            loading: false,
-          })
-        }
-      }
-    )
-
-    initSession()
-
+    setProfileLoading(true)
+    fetch('/api/profile', { credentials: 'include' })
+      .then((res) => (res.ok ? res.json() : { profile: null }))
+      .then((data) => {
+        if (!cancelled) setProfile(data.profile ?? null)
+      })
+      .catch(() => {
+        if (!cancelled) setProfile(null)
+      })
+      .finally(() => {
+        if (!cancelled) setProfileLoading(false)
+      })
     return () => {
       cancelled = true
-      clearTimeout(safetyTimeout)
-      subscription.unsubscribe()
     }
-  }, [supabase.auth, fetchProfile])
+  }, [user])
 
-  // Sign in with Google OAuth
   const signInWithGoogle = useCallback(async (redirectTo?: string) => {
-    const callbackUrl = `${window.location.origin}/auth/callback${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ''}`
-    console.log('[Auth] signInWithGoogle called')
-    console.log('[Auth] Redirect URL:', callbackUrl)
-    console.log('[Auth] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { error } = await signIn.social({
       provider: 'google',
-      options: {
-        redirectTo: callbackUrl,
-      },
+      callbackURL: originCallback(redirectTo),
     })
+    if (error) throw new Error(error.message || 'Google sign-in failed')
+  }, [])
 
-    console.log('[Auth] signInWithOAuth response:', { data, error })
-
-    if (error) {
-      console.error('[Auth] Google sign-in error:', error)
-      throw error
-    }
-  }, [supabase.auth])
-
-  // Sign in with Apple OAuth
   const signInWithApple = useCallback(async (redirectTo?: string) => {
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { error } = await signIn.social({
       provider: 'apple',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ''}`,
-      },
+      callbackURL: originCallback(redirectTo),
     })
-    if (error) throw error
-  }, [supabase.auth])
+    if (error) throw new Error(error.message || 'Apple sign-in failed')
+  }, [])
 
-  // Sign in with Email Magic Link
-  const signInWithEmail = useCallback(async (email: string, redirectTo?: string) => {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ''}`,
-      },
-    })
-    if (error) throw error
-  }, [supabase.auth])
+  const signInWithEmail = useCallback(
+    async (email: string, redirectTo?: string) => {
+      const { error } = await signIn.magicLink({
+        email,
+        callbackURL: originCallback(redirectTo),
+      })
+      if (error) throw new Error(error.message || 'Failed to send login link')
+    },
+    []
+  )
 
-  // Sign out
   const signOut = useCallback(async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
-  }, [supabase.auth])
+    await authSignOut()
+  }, [])
 
-  // Update profile
-  const updateProfile = useCallback(async (updates: Partial<Profile>) => {
-    if (!state.user) throw new Error('Not authenticated')
-
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('user_id', state.user.id)
-      .select()
-      .single()
-
-    if (error) throw error
-
-    setState(prev => ({ ...prev, profile: data }))
-    return data
-  }, [supabase, state.user])
+  const updateProfile = useCallback(
+    async (updates: Partial<Profile>) => {
+      const res = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(updates),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || 'Failed to update profile')
+      }
+      const data = await res.json()
+      setProfile(data.profile)
+      return data.profile as Profile
+    },
+    []
+  )
 
   return {
-    ...state,
+    user,
+    session,
+    profile,
+    loading: isPending || profileLoading,
     signInWithGoogle,
     signInWithApple,
     signInWithEmail,
     signOut,
     updateProfile,
-    isAuthenticated: !!state.user,
-    needsOnboarding: state.user && !state.profile?.onboarding_completed,
+    isAuthenticated: !!user,
+    needsOnboarding: !!user && !profile?.onboarding_completed,
   }
 }

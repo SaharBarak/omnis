@@ -18,6 +18,10 @@ interface CloudflareEnv {
   MONGODB_URI: string
   BETTER_AUTH_SECRET: string
   BETTER_AUTH_URL: string
+  GOOGLE_CLIENT_ID: string
+  GOOGLE_CLIENT_SECRET: string
+  APPLE_CLIENT_ID: string
+  APPLE_CLIENT_SECRET: string
   GEMINI_API_KEY: string
   GEMINI_MODEL: string
   PADDLE_API_KEY: string

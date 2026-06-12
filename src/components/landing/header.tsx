@@ -449,9 +449,9 @@ export function Header() {
                     Dashboard
                   </Link>
                   <Link href="/app" className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary rounded-full">
-                    {user?.user_metadata?.avatar_url ? (
+                    {user?.image || profile?.avatar_url ? (
                       <img
-                        src={user.user_metadata.avatar_url}
+                        src={user?.image || profile?.avatar_url || ''}
                         alt={profile?.display_name || 'Profile'}
                         className="w-8 h-8 rounded-full border border-border object-cover"
                       />
