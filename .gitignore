@@ -11,6 +11,11 @@ build/
 out/
 node_modules/
 
+# Cloudflare / OpenNext
+.open-next/
+.wrangler/
+.dev.vars
+
 # Metrics (local only)
 ralph_metrics.csv
 ralph_metrics.jsonl

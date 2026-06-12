@@ -1,0 +1,15 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "omnis-cron",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "triggers": {
+    // Schedules MUST match the keys in src/index.ts CRON_ROUTES.
+    "crons": ["0 6 * * *", "0 4 * * *", "0 8 * * *"]
+  },
+  "vars": {
+    "SITE_URL": "https://omnis.app"
+  }
+}

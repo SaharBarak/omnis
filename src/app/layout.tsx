@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Barlow, Rubik, IBM_Plex_Mono } from "next/font/google";
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 
@@ -117,15 +116,21 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* DNS prefetch for analytics */}
-        <link rel="dns-prefetch" href="https://va.vercel-scripts.com" />
+        <link rel="dns-prefetch" href="https://static.cloudflareinsights.com" />
       </head>
       <body
         className={`${barlow.variable} ${rubik.variable} ${ibmPlexMono.variable} font-sans antialiased`}
       >
         {children}
-        <Analytics />
-        <SpeedInsights />
         <GoogleAnalytics gaId="G-KY20RW9LY7" />
+        {process.env.NEXT_PUBLIC_CF_BEACON_TOKEN && (
+          <Script
+            defer
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon={`{"token": "${process.env.NEXT_PUBLIC_CF_BEACON_TOKEN}"}`}
+            strategy="afterInteractive"
+          />
+        )}
       </body>
     </html>
   );
