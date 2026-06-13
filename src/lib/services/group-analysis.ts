@@ -8,7 +8,7 @@ import { dateToTzolkin } from '../calculations/tzolkin'
 import { getSeal } from '../data/seals'
 import { getTone } from '../data/tones'
 import { getTzolkinSign } from '../data/tzolkin-signs'
-import { calculateDreamspellCompatibility, getScoreColor } from './compatibility'
+import { calculateFiveSystemCompatibility, getScoreColor } from './compatibility'
 
 // ============================================================================
 // TYPES
@@ -19,6 +19,8 @@ export interface GroupMemberAnalysis {
   name: string
   hebrewName: string | null
   birthDate: string
+  birthTime: string | null
+  birthPlace: { lat?: number | null; lng?: number | null } | null
   dreamspell: {
     kin: number
     seal: number
@@ -89,6 +91,8 @@ export function analyzeGroupMember(member: {
   name: string
   hebrew_name: string | null
   birth_date: string
+  birth_time?: string | null
+  birth_place?: { lat?: number | null; lng?: number | null } | null
 }): GroupMemberAnalysis {
   const kin = dateToKin(member.birth_date)
   const seal = kinToSeal(kin)
@@ -104,6 +108,8 @@ export function analyzeGroupMember(member: {
     name: member.name,
     hebrewName: member.hebrew_name,
     birthDate: member.birth_date,
+    birthTime: member.birth_time ?? null,
+    birthPlace: member.birth_place ?? null,
     dreamspell: {
       kin,
       seal,
@@ -272,32 +278,48 @@ function calculateCompatibilityMatrix(members: GroupMemberAnalysis[]): {
       const p1 = members[i]
       const p2 = members[j]
 
-      const compatibility = calculateDreamspellCompatibility(p1.birthDate, p2.birthDate)
+      const compatibility = calculateFiveSystemCompatibility(
+        {
+          birthDate: p1.birthDate,
+          birthTime: p1.birthTime,
+          birthPlace: p1.birthPlace,
+          hebrewName: p1.hebrewName,
+          name: p1.name,
+        },
+        {
+          birthDate: p2.birthDate,
+          birthTime: p2.birthTime,
+          birthPlace: p2.birthPlace,
+          hebrewName: p2.hebrewName,
+          name: p2.name,
+        }
+      )
 
       const entry: CompatibilityMatrixEntry = {
         person1Id: p1.id,
         person2Id: p2.id,
-        score: compatibility.score,
-        aspects: compatibility.connections.map(c => c.type),
+        score: compatibility.overallScore,
+        // Aspects summarize which systems contributed to this pair's score.
+        aspects: compatibility.availableSystems,
       }
 
       matrix.push(entry)
-      totalScore += compatibility.score
+      totalScore += compatibility.overallScore
       pairCount++
 
       // Track highest and lowest
-      if (!highestPair || compatibility.score > highestPair.score) {
+      if (!highestPair || compatibility.overallScore > highestPair.score) {
         highestPair = {
           person1: p1.hebrewName || p1.name,
           person2: p2.hebrewName || p2.name,
-          score: compatibility.score,
+          score: compatibility.overallScore,
         }
       }
-      if (!lowestPair || compatibility.score < lowestPair.score) {
+      if (!lowestPair || compatibility.overallScore < lowestPair.score) {
         lowestPair = {
           person1: p1.hebrewName || p1.name,
           person2: p2.hebrewName || p2.name,
-          score: compatibility.score,
+          score: compatibility.overallScore,
         }
       }
     }

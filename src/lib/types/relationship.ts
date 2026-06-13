@@ -198,6 +198,8 @@ export interface GroupWithMembers extends Group {
     name: string
     hebrew_name: string | null
     birth_date: string
+    birth_time?: string | null
+    birth_place?: { lat?: number | null; lng?: number | null } | null
     added_at: string
   }>
 }

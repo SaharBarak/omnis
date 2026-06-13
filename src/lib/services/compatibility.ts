@@ -7,6 +7,15 @@ import { dateToKin, kinToSeal, kinToTone } from '../calculations/dreamspell'
 import { dateToTzolkin } from '../calculations/tzolkin'
 import { getAnalog, getAntipode, getOccult, getGuide } from '../data/oracle-tables'
 import { getSeal } from '../data/seals'
+import { compareNames } from '../calculations/gematria'
+import {
+  calculateSynastryCompatibility,
+  type SynastryCompatibility,
+} from './synastry'
+import {
+  calculateHDCompatibility,
+  type HDCompatibility,
+} from './hd-compatibility'
 
 // ============================================================================
 // CONNECTION DESCRIPTIONS (Bilingual)
@@ -349,4 +358,156 @@ export function getScoreColor(score: number): string {
   if (score >= 40) return '#F59E0B' // amber-500
   if (score >= 20) return '#F97316' // orange-500
   return '#EF4444' // red-500
+}
+
+// ============================================================================
+// FIVE-SYSTEM FUSION
+// Combines Dreamspell, Tzolkin, Astrology (synastry), Human Design, and
+// Gematria into one weighted score. Each system contributes only when its
+// required inputs are present; weights redistribute over the available systems
+// so a person with only a birth date still gets a meaningful blend, while one
+// with full birth data (time + place + Hebrew name) gets all five.
+// ============================================================================
+
+export type CompatSystem =
+  | 'dreamspell'
+  | 'tzolkin'
+  | 'astrology'
+  | 'humanDesign'
+  | 'gematria'
+
+export interface PersonCompatInput {
+  birthDate: string
+  birthTime?: string | null
+  birthPlace?: { lat?: number | null; lng?: number | null } | null
+  hebrewName?: string | null
+  name?: string | null
+}
+
+export interface SystemScore {
+  score: number
+  available: boolean
+  /** Effective normalized weight applied to the overall score (0 if absent). */
+  weight: number
+}
+
+export interface FiveSystemCompatibility {
+  systems: Record<CompatSystem, SystemScore>
+  overallScore: number
+  availableSystems: CompatSystem[]
+  dreamspellDetail: DreamspellCompatibility
+  tzolkinDetail: TzolkinCompatibility
+  synastryDetail: SynastryCompatibility | null
+  hdDetail: HDCompatibility | null
+  gematriaScore: number | null
+  summary: { english: string; hebrew: string }
+}
+
+// Base weights when every system is available; normalized over what's present.
+const BASE_WEIGHTS: Record<CompatSystem, number> = {
+  dreamspell: 0.22,
+  tzolkin: 0.18,
+  astrology: 0.25,
+  humanDesign: 0.25,
+  gematria: 0.1,
+}
+
+/**
+ * Gematria name resonance as a 0-100 score, derived from compareNames.
+ * Returns null when either Hebrew name is missing/blank.
+ */
+export function gematriaCompatibilityScore(
+  hebrewName1?: string | null,
+  hebrewName2?: string | null
+): number | null {
+  if (!hebrewName1?.trim() || !hebrewName2?.trim()) return null
+  const cmp = compareNames(hebrewName1, hebrewName2)
+
+  let score = 30
+  if (cmp.sharedDigitalRoot) score += 45
+  // Closeness of the two standard values (resonance of magnitude).
+  const maxVal = Math.max(cmp.value1, cmp.value2, 1)
+  const closeness = 1 - Math.min(cmp.difference, maxVal) / maxVal
+  score += Math.round(closeness * 25)
+
+  return Math.max(0, Math.min(100, score))
+}
+
+function lat(p: PersonCompatInput): number | null {
+  return p.birthPlace?.lat ?? null
+}
+function lng(p: PersonCompatInput): number | null {
+  return p.birthPlace?.lng ?? null
+}
+
+function fusionSummary(score: number, available: number): { english: string; hebrew: string } {
+  if (available <= 2) {
+    return score >= 65
+      ? { english: 'Resonant on the systems available; add birth time, place and Hebrew names for the full picture.', hebrew: 'תהודה במערכות הזמינות; הוסיפו שעת לידה, מקום ושמות עבריים לתמונה המלאה.' }
+      : { english: 'Distinct signatures on the systems available; more birth data would sharpen the reading.', hebrew: 'חתימות שונות במערכות הזמינות; נתוני לידה נוספים יחדדו את הקריאה.' }
+  }
+  if (score >= 80) return { english: 'Strong multi-system resonance across mind, energy, and name.', hebrew: 'תהודה רב-מערכתית חזקה בין תודעה, אנרגיה ושם.' }
+  if (score >= 60) return { english: 'Good overall compatibility with several reinforcing systems.', hebrew: 'תאימות כללית טובה עם מספר מערכות מחזקות.' }
+  if (score >= 40) return { english: 'Mixed compatibility — some systems harmonize, others invite growth.', hebrew: 'תאימות מעורבת — חלק מהמערכות מתואמות, אחרות מזמינות צמיחה.' }
+  return { english: 'Contrasting signatures across systems — a relationship of complementary differences.', hebrew: 'חתימות מנוגדות בין המערכות — קשר של הבדלים משלימים.' }
+}
+
+/**
+ * Combine all five systems into one weighted compatibility result.
+ * Dreamspell + Tzolkin always contribute (birth date only). Astrology joins
+ * with birth dates (planet positions), Human Design needs both birth times +
+ * places, Gematria needs both Hebrew names.
+ */
+export function calculateFiveSystemCompatibility(
+  p1: PersonCompatInput,
+  p2: PersonCompatInput
+): FiveSystemCompatibility {
+  const dreamspellDetail = calculateDreamspellCompatibility(p1.birthDate, p2.birthDate)
+  const tzolkinDetail = calculateTzolkinCompatibility(p1.birthDate, p2.birthDate)
+
+  const synastryDetail = calculateSynastryCompatibility(
+    { birthDate: p1.birthDate, birthTime: p1.birthTime, latitude: lat(p1), longitude: lng(p1) },
+    { birthDate: p2.birthDate, birthTime: p2.birthTime, latitude: lat(p2), longitude: lng(p2) }
+  )
+
+  const hdDetail = calculateHDCompatibility(
+    { birthDate: p1.birthDate, birthTime: p1.birthTime, latitude: lat(p1), longitude: lng(p1) },
+    { birthDate: p2.birthDate, birthTime: p2.birthTime, latitude: lat(p2), longitude: lng(p2) }
+  )
+
+  const gematriaScore = gematriaCompatibilityScore(p1.hebrewName, p2.hebrewName)
+
+  const raw: Record<CompatSystem, { score: number; available: boolean }> = {
+    dreamspell: { score: dreamspellDetail.score, available: true },
+    tzolkin: { score: tzolkinDetail.score, available: true },
+    astrology: { score: synastryDetail.score, available: synastryDetail.available },
+    humanDesign: { score: hdDetail.score, available: hdDetail.available },
+    gematria: { score: gematriaScore ?? 0, available: gematriaScore !== null },
+  }
+
+  const present = (Object.keys(raw) as CompatSystem[]).filter((k) => raw[k].available)
+  const weightSum = present.reduce((sum, k) => sum + BASE_WEIGHTS[k], 0) || 1
+
+  const systems = {} as Record<CompatSystem, SystemScore>
+  let overall = 0
+  for (const key of Object.keys(raw) as CompatSystem[]) {
+    const available = raw[key].available
+    const weight = available ? BASE_WEIGHTS[key] / weightSum : 0
+    systems[key] = { score: raw[key].score, available, weight }
+    overall += raw[key].score * weight
+  }
+
+  const overallScore = Math.round(overall)
+
+  return {
+    systems,
+    overallScore,
+    availableSystems: present,
+    dreamspellDetail,
+    tzolkinDetail,
+    synastryDetail: synastryDetail.available ? synastryDetail : null,
+    hdDetail: hdDetail.available ? hdDetail : null,
+    gematriaScore,
+    summary: fusionSummary(overallScore, present.length),
+  }
 }

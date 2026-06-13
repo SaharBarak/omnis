@@ -57,7 +57,7 @@ export async function getGroupWithMembers(userId: string, groupId: string) {
   const personIds = memberships.map((m) => m.person_id)
   const people = personIds.length
     ? await Person.find({ _id: { $in: personIds } })
-        .select('name hebrew_name birth_date')
+        .select('name hebrew_name birth_date birth_time birth_place')
         .lean()
     : []
 
@@ -72,6 +72,10 @@ export async function getGroupWithMembers(userId: string, groupId: string) {
         name: person.name,
         hebrew_name: person.hebrew_name ?? null,
         birth_date: person.birth_date,
+        birth_time: person.birth_time ?? null,
+        birth_place: person.birth_place
+          ? { lat: person.birth_place.lat ?? null, lng: person.birth_place.lng ?? null }
+          : null,
         added_at:
           m.added_at instanceof Date
             ? m.added_at.toISOString()
