@@ -10,14 +10,36 @@ import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
 import { calculateOracle } from '@/lib/calculations/oracle'
 import { SEALS } from '@/lib/data/seals'
 import { TONES } from '@/lib/data/tones'
+import {
+  calculateFiveSystemCompatibility,
+  getScoreColor,
+  type CompatSystem,
+} from '@/lib/services/compatibility'
 
 interface PersonData {
   name: string
   birthDate: string
+  hebrewName?: string
   kin?: number
   seal?: typeof SEALS[0]
   tone?: typeof TONES[0]
   oracle?: ReturnType<typeof calculateOracle>
+}
+
+interface SystemBreakdown {
+  key: CompatSystem
+  label: string
+  labelHebrew: string
+  score: number
+  available: boolean
+}
+
+const SYSTEM_LABELS: Record<CompatSystem, { en: string; he: string }> = {
+  dreamspell: { en: 'Dreamspell', he: 'דרימספל' },
+  tzolkin: { en: 'Tzolkin', he: 'צולקין' },
+  astrology: { en: 'Astrology', he: 'אסטרולוגיה' },
+  humanDesign: { en: 'Human Design', he: 'עיצוב אנושי' },
+  gematria: { en: 'Gematria', he: 'גימטריה' },
 }
 
 interface CompatibilityResult {
@@ -26,6 +48,8 @@ interface CompatibilityResult {
   connections: Connection[]
   overallScore: number
   summary: string
+  systems: SystemBreakdown[]
+  availableCount: number
 }
 
 interface Connection {
@@ -34,7 +58,10 @@ interface Connection {
   strength: 'strong' | 'moderate' | 'subtle'
 }
 
-function calculateCompatibility(p1: PersonData, p2: PersonData): CompatibilityResult {
+function calculateCompatibility(
+  p1: PersonData,
+  p2: PersonData
+): Omit<CompatibilityResult, 'systems' | 'availableCount'> {
   const connections: Connection[] = []
   let score = 50 // Base compatibility
 
@@ -211,7 +238,32 @@ export default function CompatibilityPage() {
       const p1Data = { ...person1, kin: kin1, seal: seal1, tone: tone1, oracle: oracle1 }
       const p2Data = { ...person2, kin: kin2, seal: seal2, tone: tone2, oracle: oracle2 }
 
-      setResult(calculateCompatibility(p1Data, p2Data))
+      const base = calculateCompatibility(p1Data, p2Data)
+
+      // Five-system fusion (date-only -> Dreamspell+Tzolkin+Astrology;
+      // + Hebrew names -> Gematria). Overrides the score/summary with the blend.
+      const fusion = calculateFiveSystemCompatibility(
+        { birthDate: person1.birthDate, hebrewName: person1.hebrewName, name: person1.name },
+        { birthDate: person2.birthDate, hebrewName: person2.hebrewName, name: person2.name }
+      )
+
+      const systems: SystemBreakdown[] = (
+        Object.keys(fusion.systems) as CompatSystem[]
+      ).map((key) => ({
+        key,
+        label: SYSTEM_LABELS[key].en,
+        labelHebrew: SYSTEM_LABELS[key].he,
+        score: fusion.systems[key].score,
+        available: fusion.systems[key].available,
+      }))
+
+      setResult({
+        ...base,
+        overallScore: fusion.overallScore,
+        summary: fusion.summary.english,
+        systems,
+        availableCount: fusion.availableSystems.length,
+      })
       setIsCalculating(false)
     }, 800)
   }
@@ -250,8 +302,9 @@ export default function CompatibilityPage() {
               <span className="text-earth-gradient">Compatibility</span> Check
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Discover the Dreamspell oracle connections between two people.
-              See how your galactic signatures relate and support each other.
+              Discover the connection between two people across five wisdom systems —
+              Dreamspell, Tzolkin, Astrology, Human Design, and Gematria. Add Hebrew
+              names for gematria resonance.
             </p>
           </div>
 
@@ -279,6 +332,17 @@ export default function CompatibilityPage() {
                     value={person1.birthDate}
                     onChange={(e) => setPerson1({ ...person1, birthDate: e.target.value })}
                     required
+                    className="bg-background border-border"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="hebrew1">Hebrew Name (optional)</Label>
+                  <Input
+                    id="hebrew1"
+                    placeholder="לשם תאימות גימטריה"
+                    dir="rtl"
+                    value={person1.hebrewName || ''}
+                    onChange={(e) => setPerson1({ ...person1, hebrewName: e.target.value })}
                     className="bg-background border-border"
                   />
                 </div>
@@ -310,6 +374,17 @@ export default function CompatibilityPage() {
                     className="bg-background border-border"
                   />
                 </div>
+                <div>
+                  <Label htmlFor="hebrew2">Hebrew Name (optional)</Label>
+                  <Input
+                    id="hebrew2"
+                    placeholder="לשם תאימות גימטריה"
+                    dir="rtl"
+                    value={person2.hebrewName || ''}
+                    onChange={(e) => setPerson2({ ...person2, hebrewName: e.target.value })}
+                    className="bg-background border-border"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -338,8 +413,55 @@ export default function CompatibilityPage() {
             <div className="space-y-6 animate-fade-up">
               {/* Score */}
               <div className="earth-card bg-card p-8 text-center">
-                <div className="text-6xl font-heading text-primary mb-4">{result.overallScore}%</div>
+                <div
+                  className="text-6xl font-heading mb-4"
+                  style={{ color: getScoreColor(result.overallScore) }}
+                >
+                  {result.overallScore}%
+                </div>
                 <p className="text-lg text-muted-foreground">{result.summary}</p>
+                <p className="text-xs text-muted-foreground mt-3">
+                  Blended across {result.availableCount} of 5 wisdom systems
+                </p>
+              </div>
+
+              {/* System Breakdown */}
+              <div className="earth-card bg-card p-6">
+                <h3 className="text-xl font-heading mb-4">System Breakdown</h3>
+                <div className="space-y-3">
+                  {result.systems.map((sys) => (
+                    <div key={sys.key} className="flex items-center gap-3">
+                      <div className="w-28 shrink-0 text-sm">
+                        <span className="text-foreground">{sys.label}</span>
+                        <span className="text-muted-foreground"> · {sys.labelHebrew}</span>
+                      </div>
+                      {sys.available ? (
+                        <>
+                          <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all"
+                              style={{
+                                width: `${sys.score}%`,
+                                backgroundColor: getScoreColor(sys.score),
+                              }}
+                            />
+                          </div>
+                          <div className="w-10 shrink-0 text-right text-sm font-medium">
+                            {sys.score}%
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex-1 text-xs text-muted-foreground italic">
+                          {sys.key === 'humanDesign'
+                            ? 'Add birth time + place'
+                            : sys.key === 'gematria'
+                              ? 'Add Hebrew names'
+                              : 'Not available'}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Kin Cards */}
