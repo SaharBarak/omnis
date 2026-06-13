@@ -20,10 +20,10 @@ import { serialize } from '@/lib/db/serialize'
  * functions take a `userId` (Better Auth id from `requireUserId()`) and filter
  * by `user_id === userId`. NEVER pass an owner id sourced from client input.
  *
- * The ONLY exception is {@link updateByStripeCustomerId} /
- * {@link updateByStripeSubscriptionId}, which run in SYSTEM context for the
- * Stripe webhook (authenticated by the Stripe signature, not a user session) and
- * therefore key off Stripe identifiers instead of an owner filter.
+ * The ONLY exception is {@link updateByPaddleCustomerId} /
+ * {@link updateByPaddleSubscriptionId}, which run in SYSTEM context for the
+ * Paddle webhook (authenticated by the Paddle signature, not a user session) and
+ * therefore key off Paddle identifiers instead of an owner filter.
  */
 
 // Serialized row shapes (mirror the old Supabase row contract: dates as ISO
@@ -33,8 +33,8 @@ export interface SubscriptionRow {
   user_id: string
   plan: SubscriptionPlan
   status: SubscriptionStatus
-  stripe_customer_id: string | null
-  stripe_subscription_id: string | null
+  paddle_customer_id: string | null
+  paddle_subscription_id: string | null
   current_period_start: string | null
   current_period_end: string | null
   cancel_at_period_end: boolean
@@ -67,8 +67,8 @@ export type SubscriptionWriteInput = Partial<
     ISubscription,
     | 'plan'
     | 'status'
-    | 'stripe_customer_id'
-    | 'stripe_subscription_id'
+    | 'paddle_customer_id'
+    | 'paddle_subscription_id'
     | 'current_period_start'
     | 'current_period_end'
     | 'cancel_at_period_end'
@@ -153,41 +153,41 @@ export async function getUserPlan(userId: string): Promise<SubscriptionPlan> {
 }
 
 // =============================================================================
-// SUBSCRIPTIONS — SYSTEM context (Stripe webhook only)
+// SUBSCRIPTIONS — SYSTEM context (Paddle webhook only)
 // =============================================================================
 //
 // These functions DO NOT filter by an owner id. They are reachable only from
-// the Stripe webhook handler, which is authenticated by the verified Stripe
-// signature (not a user session). They key off Stripe identifiers carried in
+// the Paddle webhook handler, which is authenticated by the verified Paddle
+// signature (not a user session). They key off Paddle identifiers carried in
 // the verified event payload. Do not call them from user-facing routes.
 
 /**
- * SYSTEM context. Update the subscription matching a Stripe customer id.
+ * SYSTEM context. Update the subscription matching a Paddle customer id.
  * Returns true if a row was matched.
  */
-export async function updateByStripeCustomerId(
+export async function updateByPaddleCustomerId(
   customerId: string,
   data: SubscriptionWriteInput
 ): Promise<boolean> {
   await connectMongo()
   const res = await Subscription.updateOne(
-    { stripe_customer_id: customerId },
+    { paddle_customer_id: customerId },
     { $set: data }
   )
   return res.matchedCount > 0
 }
 
 /**
- * SYSTEM context. Update the subscription matching a Stripe subscription id.
+ * SYSTEM context. Update the subscription matching a Paddle subscription id.
  * Returns true if a row was matched.
  */
-export async function updateByStripeSubscriptionId(
+export async function updateByPaddleSubscriptionId(
   subscriptionId: string,
   data: SubscriptionWriteInput
 ): Promise<boolean> {
   await connectMongo()
   const res = await Subscription.updateOne(
-    { stripe_subscription_id: subscriptionId },
+    { paddle_subscription_id: subscriptionId },
     { $set: data }
   )
   return res.matchedCount > 0
@@ -195,8 +195,8 @@ export async function updateByStripeSubscriptionId(
 
 /**
  * SYSTEM context. Upsert a subscription keyed by `user_id` taken from verified
- * Stripe checkout-session metadata. Mirrors the webhook's
- * `.upsert({...}, { onConflict: 'user_id' })`.
+ * Paddle transaction/subscription custom data. Mirrors the prior
+ * upsert-on-conflict(user_id) behavior.
  */
 export async function upsertSubscriptionByUserId(
   userId: string,

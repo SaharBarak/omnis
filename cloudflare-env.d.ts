@@ -28,6 +28,8 @@ interface CloudflareEnv {
   PADDLE_WEBHOOK_SECRET: string
   NEXT_PUBLIC_PADDLE_CLIENT_TOKEN: string
   PADDLE_ENV: string
+  PADDLE_PRICE_COMPLETE: string
+  PADDLE_PRICE_PRACTITIONER: string
   CRON_SECRET: string
   RESEND_API_KEY: string
 }

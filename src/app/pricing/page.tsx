@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { PLAN_FEATURES } from '@/lib/stripe';
+import { PLAN_FEATURES } from '@/lib/plans';
 import { Check } from 'lucide-react';
 import { JsonLd, SITE_URL, organizationSchema, buildBreadcrumbs } from '@/lib/seo/json-ld';
 import { PageBreadcrumbs } from '@/components/ui/page-breadcrumbs';

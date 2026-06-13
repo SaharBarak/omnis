@@ -33,7 +33,7 @@ export async function GET() {
       status: subscription?.status || 'active',
       currentPeriodEnd: subscription?.current_period_end,
       cancelAtPeriodEnd: subscription?.cancel_at_period_end || false,
-      hasStripeSubscription: !!subscription?.stripe_subscription_id,
+      hasPaddleSubscription: !!subscription?.paddle_subscription_id,
       usage: usage.usage,
       features: usage.features,
     }
@@ -51,7 +51,7 @@ export async function DELETE() {
     // Get the caller's own subscription
     const subscription = await getSubscription(userId)
 
-    if (!subscription?.stripe_subscription_id) {
+    if (!subscription?.paddle_subscription_id) {
       return NextResponse.json(
         { error: 'No active subscription to cancel' },
         { status: 404 }
@@ -61,8 +61,8 @@ export async function DELETE() {
     // Import dynamically to avoid issues
     const { cancelSubscription } = await import('@/lib/services/billing')
 
-    // Cancel at period end (Stripe)
-    await cancelSubscription(subscription.stripe_subscription_id)
+    // Cancel at the end of the current billing period (Paddle)
+    await cancelSubscription(subscription.paddle_subscription_id)
 
     // Update local record (owner-scoped)
     await updateSubscriptionForUser(userId, { cancel_at_period_end: true })
@@ -83,7 +83,7 @@ export async function PATCH() {
     // Get the caller's own subscription
     const subscription = await getSubscription(userId)
 
-    if (!subscription?.stripe_subscription_id) {
+    if (!subscription?.paddle_subscription_id) {
       return NextResponse.json(
         { error: 'No subscription found' },
         { status: 404 }
@@ -97,9 +97,9 @@ export async function PATCH() {
       )
     }
 
-    // Reactivate subscription (Stripe)
+    // Reactivate subscription (Paddle) by clearing the scheduled change
     const { reactivateSubscription } = await import('@/lib/services/billing')
-    await reactivateSubscription(subscription.stripe_subscription_id)
+    await reactivateSubscription(subscription.paddle_subscription_id)
 
     // Update local record (owner-scoped)
     await updateSubscriptionForUser(userId, { cancel_at_period_end: false })

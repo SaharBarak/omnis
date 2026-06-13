@@ -14,7 +14,7 @@ interface SubscriptionData {
   status: string
   currentPeriodEnd?: string
   cancelAtPeriodEnd: boolean
-  hasStripeSubscription: boolean
+  hasPaddleSubscription: boolean
   usage: {
     profiles: { used: number; limit: number; percentage: number }
     aiInterpretations: { used: number; limit: number; percentage: number }
@@ -203,9 +203,9 @@ export default function BillingPage() {
           status={subscription.status}
           currentPeriodEnd={subscription.currentPeriodEnd}
           cancelAtPeriodEnd={subscription.cancelAtPeriodEnd}
-          hasStripeSubscription={subscription.hasStripeSubscription}
-          onManageBilling={subscription.hasStripeSubscription ? handleManageBilling : undefined}
-          onCancelSubscription={subscription.hasStripeSubscription && !subscription.cancelAtPeriodEnd ? handleCancelSubscription : undefined}
+          hasPaddleSubscription={subscription.hasPaddleSubscription}
+          onManageBilling={subscription.hasPaddleSubscription ? handleManageBilling : undefined}
+          onCancelSubscription={subscription.hasPaddleSubscription && !subscription.cancelAtPeriodEnd ? handleCancelSubscription : undefined}
           onReactivate={subscription.cancelAtPeriodEnd ? handleReactivate : undefined}
         />
       )}

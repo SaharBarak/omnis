@@ -1,17 +1,15 @@
 /**
- * Checkout Session API
- * Creates a Stripe Checkout session for subscription
+ * Checkout API
+ * Creates a hosted Paddle checkout transaction for a subscription.
  *
  * USER context: the checkout is created for the caller, scoped by their
- * authenticated session. The Stripe customer/subscription are keyed to the
- * caller's user id. Stripe calls are unchanged — only the auth source moved
- * off Supabase.
+ * authenticated session. The Paddle customer is keyed to the caller's user id.
  */
 
 import { NextResponse } from 'next/server'
 import { getSession, UnauthorizedError } from '@/lib/auth-server'
 import { handleApiError } from '@/lib/api/respond'
-import { createCheckoutSession } from '@/lib/services/billing'
+import { createCheckoutTransaction } from '@/lib/services/billing'
 
 export async function POST(request: Request) {
   try {
@@ -32,19 +30,12 @@ export async function POST(request: Request) {
       )
     }
 
-    // Get base URL for redirect
-    const origin =
-      request.headers.get('origin') ||
-      process.env.NEXT_PUBLIC_APP_URL ||
-      'http://localhost:3000'
-
-    // Create checkout session (Stripe) for the authenticated caller
-    const { url } = await createCheckoutSession(
+    // Create hosted Paddle checkout for the authenticated caller.
+    // The post-checkout return URL is configured in Paddle's checkout settings.
+    const { url } = await createCheckoutTransaction(
       user.id,
       user.email || '',
-      plan as 'complete' | 'practitioner',
-      `${origin}/app/settings/billing?success=true`,
-      `${origin}/app/settings/billing?canceled=true`
+      plan as 'complete' | 'practitioner'
     )
 
     if (!url) {

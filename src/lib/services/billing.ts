@@ -1,31 +1,45 @@
 /**
- * Billing Service - Stripe Integration
- * Handles subscriptions, checkout, and billing management
+ * Billing Service — Paddle Integration
+ * Handles subscriptions, checkout, and billing management.
+ *
+ * Paddle is the merchant of record. Checkout is a hosted Paddle transaction;
+ * subscription lifecycle is reconciled via verified Paddle webhooks. Plan tiers
+ * and entitlements below are billing-provider agnostic.
  */
 
-import Stripe from 'stripe'
+import {
+  Paddle,
+  Environment,
+  type Subscription as PaddleSubscription,
+} from '@paddle/paddle-node-sdk'
 
-// Lazy-initialized Stripe client
-let _stripe: Stripe | null = null
+// Lazy-initialized Paddle client
+let _paddle: Paddle | null = null
 
-function getStripeClient(): Stripe {
-  if (!_stripe) {
-    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-      apiVersion: '2026-01-28.clover',
-    })
+function getPaddleClient(): Paddle {
+  if (!_paddle) {
+    const apiKey = process.env.PADDLE_API_KEY
+    if (!apiKey) {
+      throw new Error('PADDLE_API_KEY is not set')
+    }
+    const environment =
+      process.env.PADDLE_ENV === 'production'
+        ? Environment.production
+        : Environment.sandbox
+    _paddle = new Paddle(apiKey, { environment })
   }
-  return _stripe
+  return _paddle
 }
 
 // Plan types
 export type PlanTier = 'free' | 'complete' | 'practitioner'
 
-// Subscription status
-export type SubscriptionStatus = 
-  | 'active' 
-  | 'trialing' 
-  | 'past_due' 
-  | 'canceled' 
+// Subscription status (internal representation)
+export type SubscriptionStatus =
+  | 'active'
+  | 'trialing'
+  | 'past_due'
+  | 'canceled'
   | 'incomplete'
 
 // Plan configuration
@@ -34,7 +48,7 @@ export const PLANS = {
     name: 'Free',
     price: 0,
     priceILS: 0,
-    stripePriceId: null,
+    paddlePriceId: null,
     limits: {
       profiles: 1,
       systems: ['dreamspell'] as string[],
@@ -51,7 +65,7 @@ export const PLANS = {
     name: 'Complete',
     price: 9,
     priceILS: 33,
-    stripePriceId: process.env.STRIPE_PRICE_COMPLETE_MONTHLY,
+    paddlePriceId: process.env.PADDLE_PRICE_COMPLETE,
     limits: {
       profiles: 10,
       systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria'],
@@ -68,7 +82,7 @@ export const PLANS = {
     name: 'Practitioner',
     price: 29,
     priceILS: 107,
-    stripePriceId: process.env.STRIPE_PRICE_PRACTITIONER_MONTHLY,
+    paddlePriceId: process.env.PADDLE_PRICE_PRACTITIONER,
     limits: {
       profiles: Infinity,
       systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria'],
@@ -85,186 +99,138 @@ export const PLANS = {
 
 export type PlanLimits = typeof PLANS['free']['limits']
 
-// Subscription data interface
 export interface SubscriptionData {
   userId: string
   plan: PlanTier
   status: SubscriptionStatus
-  stripeCustomerId?: string
-  stripeSubscriptionId?: string
+  paddleCustomerId?: string
+  paddleSubscriptionId?: string
   currentPeriodStart?: Date
   currentPeriodEnd?: Date
   cancelAtPeriodEnd?: boolean
 }
 
 /**
- * Get or create a Stripe customer for a user
+ * Get or create a Paddle customer for a user, keyed by email and tagged with
+ * the Omnis user id in custom data.
  */
-export async function getOrCreateStripeCustomer(
+export async function getOrCreatePaddleCustomer(
   userId: string,
   email: string,
   name?: string
 ): Promise<string> {
-  // Search for existing customer
-  const existingCustomers = await getStripeClient().customers.search({
-    query: `metadata['omnis_user_id']:'${userId}'`,
-  })
+  const paddle = getPaddleClient()
 
-  if (existingCustomers.data.length > 0) {
-    return existingCustomers.data[0].id
+  // Paddle enforces unique customer emails — reuse if present.
+  const existing = paddle.customers.list({ email: [email] })
+  for await (const customer of existing) {
+    if (customer.email === email) return customer.id
   }
 
-  // Create new customer
-  const customer = await getStripeClient().customers.create({
+  const created = await paddle.customers.create({
     email,
     name: name || undefined,
-    metadata: {
-      omnis_user_id: userId,
-    },
+    customData: { omnis_user_id: userId },
   })
-
-  return customer.id
+  return created.id
 }
 
 /**
- * Create a Stripe Checkout session for subscription
+ * Create a hosted Paddle checkout transaction for a subscription plan.
+ * Returns the hosted checkout URL (null if Paddle did not provide one).
  */
-export async function createCheckoutSession(
+export async function createCheckoutTransaction(
   userId: string,
   email: string,
-  plan: 'complete' | 'practitioner',
-  successUrl: string,
-  cancelUrl: string
+  plan: 'complete' | 'practitioner'
 ): Promise<{ url: string | null }> {
-  const customerId = await getOrCreateStripeCustomer(userId, email)
-  const priceId = PLANS[plan].stripePriceId
-
+  const priceId = PLANS[plan].paddlePriceId
   if (!priceId) {
-    throw new Error(`No Stripe price configured for plan: ${plan}`)
+    throw new Error(`No Paddle price configured for plan: ${plan}`)
   }
 
-  const session = await getStripeClient().checkout.sessions.create({
-    customer: customerId,
-    mode: 'subscription',
-    line_items: [
-      {
-        price: priceId,
-        quantity: 1,
-      },
-    ],
-    success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: cancelUrl,
-    allow_promotion_codes: true,
-    billing_address_collection: 'required',
-    customer_update: {
-      address: 'auto',
-    },
-    subscription_data: {
-      trial_period_days: 7,
-      metadata: {
-        omnis_user_id: userId,
-        omnis_plan: plan,
-      },
-    },
-    metadata: {
-      omnis_user_id: userId,
-      omnis_plan: plan,
-    },
+  const customerId = await getOrCreatePaddleCustomer(userId, email)
+  const transaction = await getPaddleClient().transactions.create({
+    items: [{ priceId, quantity: 1 }],
+    customerId,
+    customData: { omnis_user_id: userId, omnis_plan: plan },
   })
 
-  return { url: session.url }
+  return { url: transaction.checkout?.url ?? null }
 }
 
 /**
- * Create a Stripe Billing Portal session
+ * Create a Paddle customer portal session for self-service management.
  */
-export async function createBillingPortalSession(
-  stripeCustomerId: string,
-  returnUrl: string
+export async function createPortalSession(
+  paddleCustomerId: string,
+  subscriptionIds: string[] = []
 ): Promise<{ url: string }> {
-  const session = await getStripeClient().billingPortal.sessions.create({
-    customer: stripeCustomerId,
-    return_url: returnUrl,
-  })
-
-  return { url: session.url }
+  const session = await getPaddleClient().customerPortalSessions.create(
+    paddleCustomerId,
+    subscriptionIds
+  )
+  return { url: session.urls.general.overview }
 }
 
 /**
- * Cancel a subscription at period end
+ * Cancel a subscription at the end of the current billing period.
  */
 export async function cancelSubscription(
-  stripeSubscriptionId: string
-): Promise<Stripe.Subscription> {
-  return await getStripeClient().subscriptions.update(stripeSubscriptionId, {
-    cancel_at_period_end: true,
+  paddleSubscriptionId: string
+): Promise<PaddleSubscription> {
+  return getPaddleClient().subscriptions.cancel(paddleSubscriptionId, {
+    effectiveFrom: 'next_billing_period',
   })
 }
 
 /**
- * Reactivate a subscription that was set to cancel
+ * Reactivate a subscription scheduled to cancel by clearing the scheduled change.
  */
 export async function reactivateSubscription(
-  stripeSubscriptionId: string
-): Promise<Stripe.Subscription> {
-  return await getStripeClient().subscriptions.update(stripeSubscriptionId, {
-    cancel_at_period_end: false,
+  paddleSubscriptionId: string
+): Promise<PaddleSubscription> {
+  return getPaddleClient().subscriptions.update(paddleSubscriptionId, {
+    scheduledChange: null,
   })
 }
 
 /**
- * Get subscription details from Stripe
+ * Verify and unmarshal a Paddle webhook into a typed event.
  */
-export async function getStripeSubscription(
-  subscriptionId: string
-): Promise<Stripe.Subscription> {
-  return await getStripeClient().subscriptions.retrieve(subscriptionId)
-}
-
-/**
- * Get customer's invoices
- */
-export async function getCustomerInvoices(
-  customerId: string,
-  limit: number = 12
-): Promise<Stripe.Invoice[]> {
-  const invoices = await getStripeClient().invoices.list({
-    customer: customerId,
-    limit,
-  })
-  return invoices.data
-}
-
-/**
- * Construct and verify a webhook event
- */
-export function constructWebhookEvent(
-  payload: string | Buffer,
+export async function unmarshalWebhookEvent(
+  rawBody: string,
   signature: string
-): Stripe.Event {
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
-  if (!webhookSecret) {
-    throw new Error('STRIPE_WEBHOOK_SECRET not configured')
+) {
+  const secret = process.env.PADDLE_WEBHOOK_SECRET
+  if (!secret) {
+    throw new Error('PADDLE_WEBHOOK_SECRET not configured')
   }
-  return getStripeClient().webhooks.constructEvent(payload, signature, webhookSecret)
+  return getPaddleClient().webhooks.unmarshal(rawBody, secret, signature)
 }
 
-/**
- * Extract plan from Stripe subscription
- */
-export function getPlanFromSubscription(
-  subscription: Stripe.Subscription
-): PlanTier {
-  const priceId = subscription.items.data[0]?.price?.id
-  
-  if (priceId === PLANS.complete.stripePriceId) {
-    return 'complete'
-  }
-  if (priceId === PLANS.practitioner.stripePriceId) {
-    return 'practitioner'
-  }
-  
+/** Map a Paddle price id to our internal plan tier. */
+export function getPlanFromPriceId(priceId: string | undefined | null): PlanTier {
+  if (!priceId) return 'free'
+  if (priceId === PLANS.complete.paddlePriceId) return 'complete'
+  if (priceId === PLANS.practitioner.paddlePriceId) return 'practitioner'
   return 'free'
+}
+
+/** Map a Paddle subscription status to our internal status enum. */
+export function mapPaddleStatus(status: string): SubscriptionStatus {
+  switch (status) {
+    case 'active':
+      return 'active'
+    case 'trialing':
+      return 'trialing'
+    case 'past_due':
+      return 'past_due'
+    case 'canceled':
+      return 'canceled'
+    default:
+      return 'incomplete'
+  }
 }
 
 /**
@@ -276,16 +242,10 @@ export function isPlanFeatureAvailable(
 ): boolean {
   const limits = PLANS[plan].limits
   const value = limits[feature]
-  
-  if (typeof value === 'boolean') {
-    return value
-  }
-  if (typeof value === 'number') {
-    return value > 0
-  }
-  if (Array.isArray(value)) {
-    return value.length > 0
-  }
+
+  if (typeof value === 'boolean') return value
+  if (typeof value === 'number') return value > 0
+  if (Array.isArray(value)) return value.length > 0
   return !!value
 }
 
@@ -296,4 +256,4 @@ export function getPlanLimits(plan: PlanTier) {
   return PLANS[plan].limits
 }
 
-export { getStripeClient as stripe }
+export { getPaddleClient as paddle }

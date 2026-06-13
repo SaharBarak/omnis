@@ -22,7 +22,7 @@ interface SubscriptionStatusProps {
   status: string
   currentPeriodEnd?: string
   cancelAtPeriodEnd?: boolean
-  hasStripeSubscription?: boolean
+  hasPaddleSubscription?: boolean
   onManageBilling?: () => void
   onCancelSubscription?: () => Promise<void>
   onReactivate?: () => Promise<void>
@@ -33,7 +33,7 @@ export function SubscriptionStatus({
   status,
   currentPeriodEnd,
   cancelAtPeriodEnd,
-  hasStripeSubscription,
+  hasPaddleSubscription,
   onManageBilling,
   onCancelSubscription,
   onReactivate,
@@ -142,7 +142,7 @@ export function SubscriptionStatus({
       )}
 
       {/* Actions */}
-      {hasStripeSubscription && (
+      {hasPaddleSubscription && (
         <div className="flex flex-wrap gap-2 pt-2 border-t">
           {onManageBilling && (
             <Button variant="outline" onClick={onManageBilling}>

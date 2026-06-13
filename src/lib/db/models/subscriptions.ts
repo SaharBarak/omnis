@@ -14,8 +14,8 @@ export interface ISubscription {
   user_id: string;
   plan: SubscriptionPlan;
   status: SubscriptionStatus;
-  stripe_customer_id?: string | null;
-  stripe_subscription_id?: string | null;
+  paddle_customer_id?: string | null;
+  paddle_subscription_id?: string | null;
   current_period_start?: Date | null;
   current_period_end?: Date | null;
   cancel_at_period_end?: boolean;
@@ -39,8 +39,8 @@ const subscriptionSchema = new Schema<ISubscription>(
       default: 'active',
       enum: ['active', 'trialing', 'past_due', 'canceled', 'incomplete'],
     },
-    stripe_customer_id: { type: String, default: null },
-    stripe_subscription_id: { type: String, default: null },
+    paddle_customer_id: { type: String, default: null },
+    paddle_subscription_id: { type: String, default: null },
     current_period_start: { type: Date, default: null },
     current_period_end: { type: Date, default: null },
     cancel_at_period_end: { type: Boolean, default: false },
@@ -54,8 +54,8 @@ const subscriptionSchema = new Schema<ISubscription>(
 
 // CONSTRAINT subscriptions_user_id_unique UNIQUE (user_id)
 subscriptionSchema.index({ user_id: 1 }, { unique: true });
-subscriptionSchema.index({ stripe_customer_id: 1 });
-subscriptionSchema.index({ stripe_subscription_id: 1 });
+subscriptionSchema.index({ paddle_customer_id: 1 });
+subscriptionSchema.index({ paddle_subscription_id: 1 });
 subscriptionSchema.index({ status: 1 });
 subscriptionSchema.index({ plan: 1 });
 
