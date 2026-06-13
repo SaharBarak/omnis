@@ -32,7 +32,7 @@ export function SealIcon({
   return (
     <Image
       src={src}
-      alt={`${system} seal ${sealNumber}`}
+      alt={`${system} ${system === 'tzolkin' ? 'sign' : 'seal'} ${sealNumber}`}
       width={pixels}
       height={pixels}
       className={className}

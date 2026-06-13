@@ -92,7 +92,9 @@ describe('Card Components', () => {
 
     it('renders OracleMap component', () => {
       render(<DreamspellSection date="1987-07-26" />)
-      expect(screen.getByRole('img', { name: 'Oracle map' })).toBeInTheDocument()
+      expect(
+        screen.getByRole('img', { name: /Oracle cross for Kin 34/ })
+      ).toBeInTheDocument()
     })
 
     it('renders MantraDisplay component', () => {
@@ -121,7 +123,7 @@ describe('Card Components', () => {
     it('renders seal icon with tzolkin system', () => {
       render(<TzolkinSection date="1987-07-26" />)
       const images = screen.getAllByTestId('seal-icon')
-      const tzolkinIcon = images.find(img => img.getAttribute('src')?.includes('tzolkin'))
+      const tzolkinIcon = images.find(img => img.getAttribute('src')?.includes('MayaTzolkin'))
       expect(tzolkinIcon).toBeInTheDocument()
     })
   })
@@ -143,20 +145,23 @@ describe('Card Components', () => {
 
     it('has correct ARIA label for accessibility', () => {
       render(<OracleMap kin={asKin(34)} />)
-      expect(screen.getByRole('img', { name: 'Oracle map' })).toBeInTheDocument()
+      expect(
+        screen.getByRole('img', { name: /Oracle cross for Kin 34/ })
+      ).toBeInTheDocument()
     })
 
     it('calculates correct oracle positions for Kin 34 (Wizard)', () => {
       render(<OracleMap kin={asKin(34)} />)
       const images = screen.getAllByTestId('seal-icon')
       const srcList = images.map(img => img.getAttribute('src'))
-      expect(srcList.some(s => s?.includes('14-wizard'))).toBe(true)
+      // Kin 34 -> seal 14 (Wizard) at center; glyph assets are numbered.
+      expect(srcList.some(s => s?.includes('glyph14.gif'))).toBe(true)
     })
 
     it('renders in a 3x3 grid layout', () => {
       const { container } = render(<OracleMap kin={asKin(34)} />)
-      const grid = container.querySelector('.oracle-map')
-      expect(grid).toHaveClass('grid', 'grid-cols-3', 'grid-rows-3')
+      const grid = container.querySelector('.oracle-map .grid')
+      expect(grid).toHaveClass('grid-cols-3', 'grid-rows-3')
     })
   })
 
@@ -170,16 +175,16 @@ describe('Card Components', () => {
 
     it('displays multi-line mantra', () => {
       const { container } = render(<MantraDisplay kin={asKin(34)} />)
-      const paragraph = container.querySelector('.mantra-display p')
-      expect(paragraph).toHaveClass('whitespace-pre-line')
+      const quote = container.querySelector('.mantra-display blockquote')
+      expect(quote).toHaveClass('whitespace-pre-line')
     })
 
     it('renders different mantras for different kins', () => {
       const { container: container1 } = render(<MantraDisplay kin={asKin(1)} />)
       const { container: container2 } = render(<MantraDisplay kin={asKin(100)} />)
 
-      const mantra1 = container1.querySelector('.mantra-display p')?.textContent
-      const mantra2 = container2.querySelector('.mantra-display p')?.textContent
+      const mantra1 = container1.querySelector('.mantra-display blockquote')?.textContent
+      const mantra2 = container2.querySelector('.mantra-display blockquote')?.textContent
 
       expect(mantra1).not.toBe(mantra2)
     })
@@ -189,25 +194,25 @@ describe('Card Components', () => {
     it('renders dreamspell seal by default', () => {
       render(<SealIcon sealNumber={1} />)
       const img = screen.getByTestId('seal-icon')
-      expect(img.getAttribute('src')).toContain('dreamspell/seals')
+      expect(img.getAttribute('src')).toContain('/dreamspell/gifs/glyph1.gif')
     })
 
     it('renders tzolkin sign when system is tzolkin', () => {
       render(<SealIcon sealNumber={1} system="tzolkin" />)
       const img = screen.getByTestId('seal-icon')
-      expect(img.getAttribute('src')).toContain('tzolkin/signs')
+      expect(img.getAttribute('src')).toContain('MayaTzolkin1.png')
     })
 
     it('renders correct file for seal 1 (dragon)', () => {
       render(<SealIcon sealNumber={1} system="dreamspell" />)
       const img = screen.getByTestId('seal-icon')
-      expect(img.getAttribute('src')).toContain('01-dragon')
+      expect(img.getAttribute('src')).toContain('glyph1.gif')
     })
 
     it('renders correct file for seal 20 (sun)', () => {
       render(<SealIcon sealNumber={20} system="dreamspell" />)
       const img = screen.getByTestId('seal-icon')
-      expect(img.getAttribute('src')).toContain('20-sun')
+      expect(img.getAttribute('src')).toContain('glyph20.gif')
     })
 
     it('applies small size correctly', () => {
