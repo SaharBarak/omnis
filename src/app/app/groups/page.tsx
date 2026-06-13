@@ -26,7 +26,7 @@ import { Label } from '@/components/ui/label'
 import { ShareDialog } from '@/components/share-dialog'
 import { PageHeader, EmptyState } from '@/components/dashboard'
 import { Plus, MoreVertical, Search, Users, AlertTriangle, Share2, BarChart3 } from 'lucide-react'
-import type { Group, Person } from '@/lib/supabase/database.types'
+import type { Group, Person } from '@/lib/types/database.types'
 import type { GroupWithMembers, CreateGroupInput } from '@/lib/types/relationship'
 
 // Group Card Component

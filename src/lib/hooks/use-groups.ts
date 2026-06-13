@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import type { Group } from '@/lib/supabase/database.types'
+import type { Group } from '@/lib/types/database.types'
 import type {
   GroupWithMembers,
   CreateGroupInput,

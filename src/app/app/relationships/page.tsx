@@ -24,7 +24,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { PageHeader, EmptyState } from '@/components/dashboard'
 import { Plus, MoreVertical, Search, Heart, AlertTriangle, Users } from 'lucide-react'
-import type { Person } from '@/lib/supabase/database.types'
+import type { Person } from '@/lib/types/database.types'
 import type { RelationshipWithPeople, RelationshipType, CreateRelationshipInput } from '@/lib/types/relationship'
 import {
   RELATIONSHIP_TYPE_LABELS,

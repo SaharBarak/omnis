@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { BirthTimeInput } from '@/components/ui/birth-time-input'
 import { LocationPicker, type BirthPlace } from '@/components/ui/location-picker'
 import { useAuth } from '@/lib/hooks/use-auth'
-import type { Json } from '@/lib/supabase/database.types'
+import type { Json } from '@/lib/types/database.types'
 
 export default function OnboardingPage() {
   const router = useRouter()

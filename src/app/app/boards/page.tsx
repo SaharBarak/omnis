@@ -29,7 +29,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { useBoards } from '@/lib/hooks/use-boards'
 import { BOARD_TEMPLATES, type BoardTemplate } from '@/lib/types/board'
-import type { Board } from '@/lib/supabase/database.types'
+import type { Board } from '@/lib/types/database.types'
 
 export default function BoardsPage() {
   const { boards, loading, error, createBoard, deleteBoard, duplicateBoard } = useBoards()

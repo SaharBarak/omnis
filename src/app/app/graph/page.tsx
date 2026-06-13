@@ -10,7 +10,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
 import { getSeal } from '@/lib/data/seals'
 import { getTone } from '@/lib/data/tones'
-import type { Person } from '@/lib/supabase/database.types'
+import type { Person } from '@/lib/types/database.types'
 import type { RelationshipType, RelationshipWithPeople } from '@/lib/types/relationship'
 import { RELATIONSHIP_TYPE_LABELS } from '@/lib/types/relationship'
 

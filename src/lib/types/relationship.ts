@@ -1,7 +1,7 @@
 // Relationship Types for Omnis Phase 2
 // Domain types for relationships, groups, and graph visualization
 
-import type { Person, Relationship, Group, SharedView } from '../supabase/database.types'
+import type { Person, Relationship, Group, SharedView } from './database.types'
 
 // ============================================================================
 // RELATIONSHIP TYPES

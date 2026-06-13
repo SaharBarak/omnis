@@ -14,8 +14,8 @@ import type {
 // Client-facing shapes mirror the original Supabase row contract (nullable,
 // never undefined) so existing consumers keep type-checking. The server
 // serializer guarantees these shapes at runtime. These intentionally duplicate
-// the `@/lib/supabase/database.types` Board/BoardShare row contracts so the
-// public API of this hook is unchanged after the Mongo migration.
+// the original Board/BoardShare row contracts so the public API of this hook
+// is unchanged after the Mongo migration.
 type Json =
   | string
   | number

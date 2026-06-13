@@ -43,8 +43,6 @@
     "@react-three/drei": "^10.7.7",
     "@paddle/paddle-node-sdk": "^3.8.0",
     "@react-three/fiber": "^9.5.0",
-    "@supabase/ssr": "^0.6.1",
-    "@supabase/supabase-js": "^2.49.4",
     "@types/three": "^0.182.0",
     "@xyflow/react": "^12.10.0",
     "better-auth": "^1.6.18",
