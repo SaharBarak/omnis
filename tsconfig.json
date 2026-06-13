@@ -41,6 +41,7 @@
     "backup-mvp",
     "next-app",
     "workers",
+    "scripts",
     ".open-next"
   ]
 }

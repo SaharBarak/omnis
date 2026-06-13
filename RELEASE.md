@@ -3,8 +3,13 @@
 ## Current State (March 2026)
 
 **Build**: Clean (0 errors, 0 TypeScript issues)
-**Deploy**: Vercel (auto-deploy on push to main)
-**Stack**: Next.js 15 + Supabase + Stripe + Tailwind + shadcn/ui
+**Deploy**: Cloudflare Workers via OpenNext (`npm run deploy` / `wrangler`)
+**Stack**: Next.js + MongoDB Atlas + Better Auth + Paddle + Gemini + Cloudflare + Tailwind + shadcn/ui
+
+> **Platform migration:** The stack moved off Supabase/Stripe/Anthropic/Vercel to
+> MongoDB Atlas (Mongoose) + Better Auth, Paddle (merchant of record), Google
+> Gemini, and Cloudflare Workers (OpenNext + Cron Triggers + Web Analytics).
+> Provider names below reflect the new stack. See `docs/MIGRATION_PLAN.md`.
 
 ### Merged Visual PRs
 - #52 — Professional SVG Natal Chart Wheel (astrology)
@@ -24,7 +29,7 @@
 ### What's Live
 - Landing page with Hero, SystemsShowcase, Features, Testimonials, Pricing, FAQ, CTA
 - Full SEO: JSON-LD schemas (WebApp, WebSite, Organization, FAQ), sitemap, robots.txt, OpenGraph
-- Auth flow: Supabase login/signup with callback
+- Auth flow: Better Auth login/signup with OAuth callback
 - Dashboard: sidebar nav, mobile bottom nav, command palette (Cmd+K)
 - People management: add/edit profiles with birth data
 - Dreamspell calculations: kin, seal, tone, oracle cross, wavespell
@@ -39,8 +44,9 @@
 
 ### Required Environment Variables
 See `.env.example` for full list. Minimum for Phase 1:
-- `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `MONGODB_URI`
+- `BETTER_AUTH_SECRET` + `BETTER_AUTH_URL`
+- `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET`
 - `NEXT_PUBLIC_SITE_URL`
 - `CRON_SECRET`
 - `RESEND_API_KEY` (for daily kin emails)
@@ -75,33 +81,34 @@ See `.env.example` for full list. Minimum for Phase 1:
 - Relationships page: CRUD with type/strength/bidirectionality
 - Relationship Map (graph): visual network of connections
 - Boards: kanban-style boards with drag-and-drop
-- AI interpretations: Claude API integration (`/api/ai/interpret`)
+- AI interpretations: Gemini API integration (`/api/ai/interpret`)
 - Share system: shareable profile/group tokens
 
 ### Requires
-- `ANTHROPIC_API_KEY` for AI interpretations
-- Supabase tables for relationships, groups, boards (migrations 001-008)
+- `GEMINI_API_KEY` for AI interpretations
+- Mongo collections for relationships, groups, boards
 - Testing AI prompt quality for chart interpretations
 
 ---
 
 ## Phase 4 — Monetization
 
-**Goal**: Stripe billing, premium features, terminal UI.
+**Goal**: Paddle billing, premium features, terminal UI.
 
 ### What's Ready (code complete)
 - Billing page: subscription status, usage display, plan comparison
-- Checkout flow: Stripe checkout sessions
-- Portal: Stripe customer portal
+- Checkout flow: Paddle transaction / hosted checkout
+- Portal: Paddle customer portal
 - Webhook handler: subscription lifecycle events
 - Pricing page: Free / Complete ($9/mo) / Practitioner ($29/mo)
 - Usage limits: profiles, AI interpretations, boards per plan
 
 ### Requires
-- `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET`
-- Stripe products/prices created in dashboard
-- `STRIPE_PRICE_COMPLETE_MONTHLY` + `STRIPE_PRICE_PRACTITIONER_MONTHLY`
-- Webhook endpoint registered in Stripe
+- `PADDLE_API_KEY` + `PADDLE_WEBHOOK_SECRET`
+- Paddle products/prices created in dashboard (Paddle is merchant of record)
+- `PADDLE_PRICE_COMPLETE` + `PADDLE_PRICE_PRACTITIONER`
+- `NEXT_PUBLIC_PADDLE_CLIENT_TOKEN` (for Paddle.js overlay) + `PADDLE_ENV`
+- Webhook destination registered in Paddle
 
 ### Deferred Features
 - Terminal UI (#53) — in-browser symbolic terminal
@@ -110,9 +117,9 @@ See `.env.example` for full list. Minimum for Phase 1:
 
 ---
 
-## Vercel Cron Jobs
+## Cloudflare Cron Triggers
 
-Configured in `vercel.json`:
+Configured as Cron Triggers (handler in `workers/cron`):
 | Route | Schedule | Purpose |
 |---|---|---|
 | `/api/cron/daily-kin` | 6:00 AM UTC | Send daily kin emails |
@@ -123,7 +130,7 @@ Configured in `vercel.json`:
 
 ## Architecture Notes
 
-- **Supabase migrations**: 001-008 exist in `supabase/migrations/`. Don't apply 007-008 without Supabase access.
-- **Knowledge scraper**: `packages/scraper/` is a separate concern (108 sources, MiniLM embeddings). Leave as-is.
+- **Mongo models**: Mongoose schemas live under `src/lib/db/models/` (ported from the former Supabase migrations). Atlas Vector Search backs knowledge search.
+- **Knowledge scraper**: `packages/scraper/` is a separate concern. The offline scraper writes to Mongo and embeds the corpus with Workers AI `bge-small-en-v1.5` (384d). Leave as-is.
 - **Public assets**: Dreamspell GIFs in `public/dreamspell/`, system icons in `public/icons/`.
 - **Content**: Blog and guides in `content/` directory.

@@ -13,6 +13,10 @@ COPY tsconfig.json ./
 # Create data directory
 RUN mkdir -p data/knowledge
 
+# Runtime env (provided by the host, e.g. render.yaml):
+#   MONGODB_URI       — Atlas connection string; scraper writes the corpus to Mongo
+#   SCRAPER_MAX_PAGES — page cap for a crawl run
+
 # Default: run the pipeline
 CMD ["npx", "tsx", "packages/scraper/run-scraper.ts"]
 

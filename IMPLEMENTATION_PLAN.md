@@ -5,6 +5,13 @@
 > **Last Verified:** 2026-01-30 (comprehensive codebase analysis with 8 parallel agents)
 > **Goal:** Full-featured symbolic systems platform with 6 calculation systems
 
+> **Stack migration note:** Since this plan was written, the platform migrated off
+> Supabase/Stripe/Anthropic/Vercel to **MongoDB Atlas (Mongoose) + Better Auth**,
+> **Paddle** (billing), **Google Gemini** (interpretations), and **Cloudflare
+> Workers** (OpenNext hosting + Cron Triggers). References below to Supabase, the
+> Claude API, or Stripe describe historical implementation; the equivalents now run
+> on the new stack. See `docs/MIGRATION_PLAN.md` for details.
+
 ---
 
 ## Executive Summary

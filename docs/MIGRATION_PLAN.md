@@ -13,7 +13,7 @@ MongoDB / Paddle / Gemini / Cloudflare stack.
 | Vector search | pgvector (384d) | Atlas Vector Search (384d) |
 | Query embeddings | @xenova/transformers (local) | Workers AI `@cf/baai/bge-small-en-v1.5` (384d) |
 | Billing | Stripe | Paddle (merchant of record) |
-| Inference | Anthropic Claude | Gemini via `@google/generative-ai` |
+| Inference | Anthropic Claude | Gemini via `@google/genai` |
 | Hosting | Vercel | Cloudflare Workers (OpenNext adapter) |
 | Cron | Vercel cron | Cloudflare Cron Triggers |
 | Observability | Vercel Analytics + Sentry | Cloudflare-native (Web Analytics + Workers logs) |
@@ -153,18 +153,18 @@ returns; no `@supabase/*` imports remain.
 Smallest. One file, two calls, one route. Parallelizable after Phase 0.
 
 - `src/lib/services/ai-interpretations.ts`: replace `@anthropic-ai/sdk` +
-  `getAnthropicClient()` with `@google/generative-ai` (`GoogleGenerativeAI`,
-  `getGenerativeModel`). Map `messages.create` → `generateContent`.
+  `getAnthropicClient()` with `@google/genai` (`GoogleGenAI`,
+  `models.generateContent`). Map `messages.create` → `generateContent`.
 - Two prompts (`generateInterpretation` full JSON, `generateQuickInterpretation`
   text): move Anthropic system prompt → Gemini `systemInstruction`; use
   `responseMimeType: 'application/json'` + a response schema for the JSON path
   (replaces manual `JSON.parse`).
 - `src/app/api/ai/interpret/route.ts`: swap the `ANTHROPIC_API_KEY` 503 guard →
   `GEMINI_API_KEY`. Keep auth + rate-limit (`rateLimiters.ai`, 10/min) + DB cache.
-- Model: `gemini-2.0-flash` (was `claude-3-haiku`) via `GEMINI_MODEL` env.
+- Model: `gemini-2.5-flash` (was `claude-3-haiku`) via `GEMINI_MODEL` env.
 - UI: `src/components/predictions/AIInterpretation.tsx` "Powered by Claude AI" →
   "Powered by Gemini".
-- `@google/generative-ai` is fetch-based → Workers-safe.
+- `@google/genai` is fetch-based → Workers-safe.
 
 **Exit:** interpretations generate via Gemini; JSON parses; no Anthropic imports.
 

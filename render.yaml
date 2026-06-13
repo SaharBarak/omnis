@@ -6,9 +6,7 @@ services:
     plan: starter
     region: oregon
     envVars:
-      - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_SERVICE_KEY
+      - key: MONGODB_URI
         sync: false
       - key: SCRAPER_MAX_PAGES
         value: "500"

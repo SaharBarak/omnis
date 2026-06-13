@@ -17,22 +17,24 @@ Omnis is a symbolic mapping platform that integrates multiple ancient and modern
 
 ## 🛠 Tech Stack
 
-- **Framework**: [Next.js 14](https://nextjs.org/) (App Router)
-- **Database**: [Supabase](https://supabase.com/) (PostgreSQL + Auth)
+- **Framework**: [Next.js](https://nextjs.org/) (App Router)
+- **Database**: [MongoDB Atlas](https://www.mongodb.com/atlas) (Mongoose ODM + Atlas Vector Search)
+- **Auth**: [Better Auth](https://www.better-auth.com/) (MongoDB adapter, Google/Apple OAuth)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/)
 - **UI Components**: [Radix UI](https://www.radix-ui.com/) + [shadcn/ui](https://ui.shadcn.com/)
-- **AI**: [Anthropic Claude](https://www.anthropic.com/) for interpretations
+- **AI**: [Google Gemini](https://ai.google.dev/) for interpretations
+- **Billing**: [Paddle](https://www.paddle.com/) (merchant of record)
 - **Email**: [Resend](https://resend.com/) for transactional emails
 - **Visualization**: [React Three Fiber](https://docs.pmnd.rs/react-three-fiber) + [React Flow](https://reactflow.dev/)
-- **Deployment**: [Vercel](https://vercel.com/)
+- **Deployment**: [Cloudflare Workers](https://workers.cloudflare.com/) via [OpenNext](https://opennext.js.org/cloudflare)
 - **Testing**: [Vitest](https://vitest.dev/)
 
 ## 📋 Prerequisites
 
 - **Node.js** 20+ (recommended: use [nvm](https://github.com/nvm-sh/nvm))
 - **npm** or **pnpm** (pnpm recommended for faster installs)
-- **Supabase** account and project
+- **MongoDB Atlas** cluster (with Atlas Vector Search enabled)
 - **Git** for version control
 
 ## 🚀 Getting Started
@@ -62,11 +64,12 @@ cp .env.example .env.local
 
 See [Environment Variables](#-environment-variables) for details on each variable.
 
-### 4. Set Up Supabase
+### 4. Set Up MongoDB Atlas
 
-1. Create a new project at [supabase.com](https://supabase.com)
-2. Run the migrations from `supabase/migrations/` in your Supabase SQL editor
-3. Copy your project URL and keys to `.env.local`
+1. Create a cluster at [MongoDB Atlas](https://www.mongodb.com/atlas)
+2. Enable **Atlas Vector Search** (required for knowledge search)
+3. Copy your connection string into `MONGODB_URI` in `.env.local`
+4. Generate a Better Auth secret (`openssl rand -base64 32`) for `BETTER_AUTH_SECRET`
 
 ### 5. Start Development Server
 
@@ -80,21 +83,32 @@ Open [http://localhost:3000](http://localhost:3000) to view the app.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | ✅ | Your Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Supabase anonymous (public) key |
-| `SUPABASE_SERVICE_ROLE_KEY` | ✅ | Supabase service role key (server-side only) |
+| `MONGODB_URI` | ✅ | MongoDB Atlas connection string (includes database name) |
+| `BETTER_AUTH_SECRET` | ✅ | Server secret for signing sessions (`openssl rand -base64 32`) |
+| `BETTER_AUTH_URL` | ✅ | Public base URL of the app (used for OAuth callbacks) |
+| `GOOGLE_CLIENT_ID` | ✅ | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | ✅ | Google OAuth client secret |
+| `APPLE_CLIENT_ID` | ❌ | Apple OAuth client ID (optional) |
+| `APPLE_CLIENT_SECRET` | ❌ | Apple OAuth client secret (optional) |
 | `NEXT_PUBLIC_SITE_URL` | ✅ | Your site's public URL (e.g., `https://omnis.app`) |
+| `NEXT_PUBLIC_CF_BEACON_TOKEN` | ❌ | Cloudflare Web Analytics beacon token |
 | `CRON_SECRET` | ✅ | Secret token for securing cron endpoints |
 | `RESEND_API_KEY` | ✅ | API key for Resend email service |
-| `ANTHROPIC_API_KEY` | ✅ | API key for Claude AI interpretations |
-| `AI_MODEL` | ❌ | Claude model to use (default: `claude-3-5-sonnet-20241022`) |
-| `AI_MAX_TOKENS` | ❌ | Max tokens for AI responses (default: `1024`) |
+| `GEMINI_API_KEY` | ✅ | API key for Gemini AI interpretations |
+| `GEMINI_MODEL` | ❌ | Gemini model to use (default: `gemini-2.5-flash`) |
+| `AI_MAX_TOKENS` | ❌ | Max tokens for AI responses (default: `1000`) |
+| `PADDLE_ENV` | ❌ | Paddle environment: `sandbox` (default) or `production` |
+| `PADDLE_API_KEY` | ✅* | Paddle API key (server-only). *Required for paid features |
+| `PADDLE_WEBHOOK_SECRET` | ✅* | Paddle webhook signing secret |
+| `NEXT_PUBLIC_PADDLE_CLIENT_TOKEN` | ❌ | Client-side token for Paddle.js overlay |
+| `PADDLE_PRICE_COMPLETE` | ✅* | Paddle price ID for the Complete plan |
+| `PADDLE_PRICE_PRACTITIONER` | ✅* | Paddle price ID for the Practitioner plan |
 
 ### Security Notes
 
 - **Never commit `.env.local`** - it's gitignored for a reason
 - `NEXT_PUBLIC_*` variables are exposed to the browser
-- Keep `SUPABASE_SERVICE_ROLE_KEY` server-side only
+- Keep `MONGODB_URI`, `BETTER_AUTH_SECRET`, `PADDLE_API_KEY`, and `GEMINI_API_KEY` server-side only
 - Generate a strong random string for `CRON_SECRET`
 
 ## 📁 Project Structure
@@ -135,12 +149,12 @@ omnis/
 │   │   │   ├── human-design.ts
 │   │   │   └── tzolkin.ts
 │   │   ├── data/            # Static data (glyphs, gates, etc.)
+│   │   ├── db/              # Mongoose connection, models, repositories
 │   │   ├── services/        # Business logic services
-│   │   ├── supabase/        # Supabase client utilities
 │   │   └── types/           # TypeScript type definitions
 │   └── test/                # Test utilities
-├── supabase/
-│   └── migrations/          # Database migrations
+├── workers/
+│   └── cron/                # Cloudflare Cron Triggers handler
 ├── public/                  # Static assets
 └── specs/                   # Feature specifications
 ```
@@ -156,6 +170,8 @@ omnis/
 | `npm run typecheck` | Run TypeScript type checking |
 | `npm run test` | Run tests once |
 | `npm run test:watch` | Run tests in watch mode |
+| `npm run deploy` | Build (OpenNext) and deploy to Cloudflare Workers |
+| `npm run deploy:cron` | Deploy the Cloudflare Cron Triggers worker |
 
 ## 🧪 Testing
 
@@ -176,7 +192,7 @@ Test files follow the pattern `*.test.ts` and are colocated with the code they t
 
 ## 🔄 Cron Jobs
 
-The app uses Vercel Cron for scheduled tasks (configured in `vercel.json`):
+The app uses Cloudflare Cron Triggers for scheduled tasks (handler in `workers/cron`):
 
 | Schedule | Endpoint | Description |
 |----------|----------|-------------|
@@ -184,16 +200,18 @@ The app uses Vercel Cron for scheduled tasks (configured in `vercel.json`):
 | Daily 6am UTC | `/api/cron/daily-kin` | Send daily Kin emails |
 | Daily 8am UTC | `/api/cron/send-notifications` | Send push notifications |
 
-Cron endpoints are protected by `CRON_SECRET` - Vercel automatically sends this header.
+Cron endpoints are protected by `CRON_SECRET` - the Cron Triggers worker sends this header.
 
 ## 🚢 Deployment
 
-### Vercel (Recommended)
+### Cloudflare Workers (Recommended)
+
+The app deploys to Cloudflare Workers via the [OpenNext](https://opennext.js.org/cloudflare) adapter (`@opennextjs/cloudflare`).
 
 1. Push your code to GitHub
-2. Import the project in [Vercel](https://vercel.com)
-3. Add all environment variables in Vercel dashboard
-4. Deploy!
+2. Configure secrets/vars in `wrangler` (or the Cloudflare dashboard) — `MONGODB_URI`, `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID/SECRET`, `PADDLE_*`, `GEMINI_API_KEY`, `CRON_SECRET`
+3. Deploy the app: `npm run deploy`
+4. Deploy the Cron Triggers worker: `npm run deploy:cron`
 
 ### Docker
 
