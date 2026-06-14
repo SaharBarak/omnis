@@ -122,6 +122,7 @@ export default function RootLayout({
       <body
         className={`${barlow.variable} ${rubik.variable} ${ibmPlexMono.variable} font-sans antialiased`}
       >
+        <script defer src="https://clever-swan-577.convex.site/beacon.js" data-slug="omnis" />
         {children}
         <Analytics />
         <SpeedInsights />
