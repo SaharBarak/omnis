@@ -2,8 +2,9 @@
 
 import { useRef } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion, useScroll, useTransform } from 'framer-motion'
-import { systemGradients } from '@/lib/landing-images'
+import { systemGradients, landingImages } from '@/lib/landing-images'
 
 // ============================================
 // SYSTEM DATA
@@ -202,12 +203,23 @@ export function SystemsShowcase() {
 
 function SystemCard({ system }: { system: typeof systems[number] }) {
   const gradient = systemGradients[system.slug] || systemGradients.dreamspell
+  const image = landingImages.systems[system.slug as keyof typeof landingImages.systems]
 
   return (
     <>
-      {/* Gradient header */}
+      {/* Image header — gradient as fallback while loading */}
       <div className="relative h-40 overflow-hidden" style={{ background: gradient }}>
-        <div className="absolute bottom-4 left-4 text-white/70">
+        {image && (
+          <Image
+            src={image}
+            alt={system.name}
+            fill
+            sizes="(max-width: 768px) 100vw, 33vw"
+            className="object-cover"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+        <div className="absolute bottom-4 left-4 text-white/90 drop-shadow">
           {system.icon}
         </div>
       </div>

@@ -2,9 +2,11 @@
 
 import { useRef } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { getSealGlyphPath, getToneGlyphPath } from '@/lib/dreamspell-assets'
+import { landingImages } from '@/lib/landing-images'
 
 // ============================================
 // READING CARD — light theme version
@@ -122,6 +124,19 @@ export function Hero() {
       ref={sectionRef}
       className="relative min-h-screen flex items-center overflow-hidden bg-background pt-16 lg:pt-18"
     >
+      {/* Atmospheric cosmic backdrop */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <Image
+          src={landingImages.hero.background}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover opacity-[0.16] dark:opacity-40"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/40 to-background" />
+      </div>
+
       {/* Content — fades and shifts on scroll */}
       <motion.div
         className="relative z-10 w-full max-w-content mx-auto px-6 py-20 lg:py-28"
