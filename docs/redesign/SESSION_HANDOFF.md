@@ -79,9 +79,12 @@ MAIN_PURPOSE.md first; everything else on demand.
 
 ## Next work (agreed backlog, in rough order)
 
-1. **/learn docs redesign** — folklore skins per system (flavor tokens
-   exist), doc hero banners (ASSET_MAP C2 batch — generate via same
-   Higgsfield pipeline), knowledge search surface on /learn hub.
+1. ~~/learn docs redesign~~ — DONE (2026-07-03 pm): dark hub w/ knowledge
+   search + flavored portal rows, DocHero banner bands on all 6 doc pages,
+   flavored doc-accent vars + AA-safe ink split, QuickAnswer as codex
+   gloss. **Leftover: 5 of 6 C2 banners are mural-crop stopgaps — GPT
+   Image 2 monthly quota exhausted (starter plan); regen with C2 prompts
+   when quota resets (see ASSET_MAP C2 log for CLI gotcha).**
 2. Onboarding ritual backdrops (C4) + dashboard reskin (DASH-GROUND, C5,
    flap-number stat cards).
 3. P3 leftovers: today-board GATE value (needs sun-longitude→gate table),

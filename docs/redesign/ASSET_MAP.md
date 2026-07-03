@@ -115,6 +115,27 @@ All 10 stills approved first-pass. Repo paths + Higgsfield job IDs:
 | TRAVELER | `public/images/redesign/motifs/traveler-glyph.webp` | 61c12084-3bc2-4b1c-b666-7c5ca588d882 |
 | GRID-PAPER | `public/images/redesign/motifs/grid-paper-tile.webp` | b7170d3d-9fb5-434c-9b6c-bcd39c8abed4 |
 
+### C2 log (2026-07-03, afternoon session)
+
+Only DOC-ASTROLOGY got generated before the **starter-plan monthly GPT
+Image 2 quota ran out** (`rate_limit_reached`, billing_period=monthly).
+A JSON-parse bug in the batch script burned 3 duplicate astrology jobs;
+the middle variant (86703cbd) was kept.
+
+| Asset | Repo path | Source |
+|---|---|---|
+| DOC-ASTROLOGY | `public/images/redesign/docs/doc-astrology.webp` | generated, job 86703cbd-d8b4-4e7c-a412-67deae7e50fd (2688×896 center crop) |
+| DOC-DSPELL | `.../docs/doc-dreamspell.webp` | **stopgap**: zone mural crop 2016×896+0+312 |
+| DOC-TZOLKIN | `.../docs/doc-tzolkin.webp` | **stopgap**: zone mural crop 2016×896+0+312 |
+| DOC-HD | `.../docs/doc-human-design.webp` | **stopgap**: zone mural crop 2016×896+0+312 |
+| DOC-GEMATRIA | `.../docs/doc-gematria.webp` | **stopgap**: zone mural crop 2688×896 center |
+| DOC-INTEGRATION | `.../docs/doc-integration.webp` | **stopgap**: hero-sky crop 2688×896 center |
+
+Regenerate the five stopgaps with the C2 prompts (quiet, wide, detail
+right) once quota resets or plan upgrades. CLI gotcha: `generate create
+--wait --json` emits TWO JSON docs (create + wait) — create without
+`--wait`, then `generate wait <id> --json` and read `result_url`.
+
 Video loops (C6): **Seedance 2.0 requires Higgsfield Pro/Ultimate plan** —
 blocked on current plan. Kling 3.0 fallback attempted for V1. If fallback
 also gated: ship static stills + CSS star-twinkle overlay until plan
