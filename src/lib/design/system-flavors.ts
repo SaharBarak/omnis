@@ -22,6 +22,8 @@ export interface SystemFlavor {
   readonly accentSoft: string
   /** Mural band asset for the zone background. */
   readonly muralSrc: string
+  /** Wide-short banner for the /learn doc hero (ASSET_MAP C2). */
+  readonly bannerSrc: string
   /** One-line lineage note shown at the bottom of the zone. */
   readonly lineage: string
   readonly learnHref: string
@@ -36,6 +38,7 @@ export const SYSTEM_FLAVORS: Readonly<Record<SystemKey, SystemFlavor>> =
       accent: '#C9A227',
       accentSoft: '#E7D08A',
       muralSrc: '/images/redesign/mural/zone-astrology.webp',
+      bannerSrc: '/images/redesign/docs/doc-astrology.webp',
       lineage:
         'From the Uranographia atlases to the modern ephemeris — the sky, engraved.',
       learnHref: '/learn/astrology',
@@ -47,6 +50,7 @@ export const SYSTEM_FLAVORS: Readonly<Record<SystemKey, SystemFlavor>> =
       accent: '#A87BD1',
       accentSoft: '#CDB2E8',
       muralSrc: '/images/redesign/mural/zone-dreamspell.webp',
+      bannerSrc: '/images/redesign/docs/doc-dreamspell.webp',
       lineage:
         'In the Dreamspell, no kin stands alone — every sign has its guide, its antipode, its occult ally.',
       learnHref: '/learn/dreamspell',
@@ -58,6 +62,7 @@ export const SYSTEM_FLAVORS: Readonly<Record<SystemKey, SystemFlavor>> =
       accent: '#2E6E5E',
       accentSoft: '#7FB5A6',
       muralSrc: '/images/redesign/mural/zone-tzolkin.webp',
+      bannerSrc: '/images/redesign/docs/doc-tzolkin.webp',
       lineage:
         'The Maya kept day-counts on bark paper for generations. This codex is yours.',
       learnHref: '/learn/tzolkin',
@@ -69,6 +74,7 @@ export const SYSTEM_FLAVORS: Readonly<Record<SystemKey, SystemFlavor>> =
       accent: '#7FD4C1',
       accentSoft: '#B9E8DD',
       muralSrc: '/images/redesign/mural/zone-human-design.webp',
+      bannerSrc: '/images/redesign/docs/doc-human-design.webp',
       lineage:
         'Human Design maps the channels that only exist when two people stand together.',
       learnHref: '/learn/human-design',
@@ -80,6 +86,7 @@ export const SYSTEM_FLAVORS: Readonly<Record<SystemKey, SystemFlavor>> =
       accent: '#D4AF37',
       accentSoft: '#EFD98B',
       muralSrc: '/images/redesign/mural/zone-gematria.webp',
+      bannerSrc: '/images/redesign/docs/doc-gematria.webp',
       lineage:
         'In Kabbalah the letters themselves create — to send a word is to send a world.',
       learnHref: '/learn/gematria',
@@ -98,3 +105,44 @@ export const FLAVOR_DESCENT: readonly SystemKey[] = Object.freeze([
 
 /** Shared near-black every mural band fades into (DESIGN_LANGUAGE.md). */
 export const MURAL_GROUND = '#0B0D16'
+
+/** Doc section ids used by /learn routes and src/lib/docs/content.ts. */
+export type DocSectionId =
+  | 'astrology'
+  | 'dreamspell'
+  | 'tzolkin'
+  | 'human-design'
+  | 'gematria'
+  | 'integration'
+
+/**
+ * Flavor for /learn/integration — the five threads braided into one.
+ * Not a SystemFlavor: it has no zone on the homepage mural.
+ */
+export const INTEGRATION_FLAVOR = Object.freeze({
+  key: 'integration' as const,
+  name: 'Integration',
+  accent: '#C9A227',
+  accentSoft: '#E7D08A',
+  bannerSrc: '/images/redesign/docs/doc-integration.webp',
+  lineage:
+    'Five traditions, one person — where the readings agree, pay attention.',
+  learnHref: '/learn/integration',
+  learnLabel: 'Read the systems together',
+})
+
+export type DocFlavor = Pick<
+  SystemFlavor,
+  'name' | 'accent' | 'accentSoft' | 'bannerSrc' | 'lineage' | 'learnHref'
+>
+
+/** Look up flavor tokens by doc section id (kebab-case route segment). */
+export const DOC_FLAVORS: Readonly<Record<DocSectionId, DocFlavor>> =
+  Object.freeze({
+    astrology: SYSTEM_FLAVORS.astrology,
+    dreamspell: SYSTEM_FLAVORS.dreamspell,
+    tzolkin: SYSTEM_FLAVORS.tzolkin,
+    'human-design': SYSTEM_FLAVORS.humanDesign,
+    gematria: SYSTEM_FLAVORS.gematria,
+    integration: INTEGRATION_FLAVOR,
+  })

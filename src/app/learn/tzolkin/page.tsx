@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { Header, Footer } from '@/components/landing'
-import { DocLayout, DocHeader, DocSection, DocNav, DocStats, DocInfoBox, QuickAnswer } from '@/components/docs'
+import { DocLayout, DocHero, DocSection, DocNav, DocStats, DocInfoBox, QuickAnswer } from '@/components/docs'
 import { tzolkinDocs, docStructure } from '@/lib/docs/content'
 import { JsonLd, SITE_URL, organizationSchema, buildBreadcrumbs } from '@/lib/seo/json-ld'
 
@@ -99,11 +99,10 @@ export default function TzolkinDocsPage() {
         <JsonLd data={faqSchema} id="json-ld-faq" />
 
         {/* Header */}
-        <DocHeader
-          badge="Traditional Tzolkin"
+        <DocHero
+          section="tzolkin"
           title={tzolkinDocs.overview.title}
           subtitle={tzolkinDocs.overview.subtitle}
-          badgeColor="accent"
         />
 
         <QuickAnswer

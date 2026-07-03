@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { Header, Footer } from '@/components/landing'
-import { DocLayout, DocHeader, DocSection, DocNav, DocInfoBox, DocPullQuote, QuickAnswer } from '@/components/docs'
+import { DocLayout, DocHero, DocSection, DocNav, DocInfoBox, DocPullQuote, QuickAnswer } from '@/components/docs'
 import { integrationDocs, docStructure } from '@/lib/docs/content'
 import { JsonLd, SITE_URL, organizationSchema, buildBreadcrumbs } from '@/lib/seo/json-ld'
 
@@ -95,11 +95,10 @@ export default function IntegrationDocsPage() {
         <JsonLd data={faqSchema} id="json-ld-faq" />
 
         {/* Header */}
-        <DocHeader
-          badge="Integration"
+        <DocHero
+          section="integration"
           title={integrationDocs.title}
           subtitle={integrationDocs.subtitle}
-          badgeColor="primary"
         />
 
         <QuickAnswer

@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { Header, Footer } from '@/components/landing'
-import { DocLayout, DocHeader, DocSection, DocNav, DocStats, DocInfoBox, DocPullQuote, QuickAnswer } from '@/components/docs'
+import { DocLayout, DocHero, DocSection, DocNav, DocStats, DocInfoBox, DocPullQuote, QuickAnswer } from '@/components/docs'
 import { gematriaDocs, docStructure } from '@/lib/docs/content'
 import { JsonLd, SITE_URL, organizationSchema, buildBreadcrumbs } from '@/lib/seo/json-ld'
 
@@ -91,11 +91,10 @@ export default function GematriaDocsPage() {
         <JsonLd data={faqSchema} id="json-ld-faq" />
 
         {/* Header */}
-        <DocHeader
-          badge="Kabbalah & Hebrew Teachings"
+        <DocHero
+          section="gematria"
           title="Kabbalah: The Received Wisdom"
           subtitle="A Living Tradition of Mystical Knowledge, Sacred Letters, and the Architecture of Creation"
-          badgeColor="primary"
         />
 
         <QuickAnswer

@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { Header, Footer } from '@/components/landing'
-import { DocLayout, DocHeader, DocSection, DocNav, DocStats, DocInfoBox, DocPullQuote, QuickAnswer } from '@/components/docs'
+import { DocLayout, DocHero, DocSection, DocNav, DocStats, DocInfoBox, DocPullQuote, QuickAnswer } from '@/components/docs'
 import { dreamspellDocs, docStructure } from '@/lib/docs/content'
 import { SEALS } from '@/lib/data/seals'
 import { TONES } from '@/lib/data/tones'
@@ -109,11 +109,10 @@ export default function DreamspellDocsPage() {
         <JsonLd data={faqSchema} id="json-ld-faq" />
 
         {/* Header */}
-        <DocHeader
-          badge="Dreamspell"
+        <DocHero
+          section="dreamspell"
           title={dreamspellDocs.overview.title}
           subtitle={dreamspellDocs.overview.subtitle}
-          badgeColor="primary"
         />
 
         <QuickAnswer

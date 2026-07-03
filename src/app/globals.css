@@ -828,12 +828,22 @@
   @apply w-12 h-1.5 bg-muted-foreground/25 rounded-full mx-auto my-4;
 }
 
-.doc-accent-dreamspell { --doc-accent: 257 50% 50%; }
-.doc-accent-human-design { --doc-accent: 270 50% 50%; }
-.doc-accent-astrology { --doc-accent: 42 75% 50%; }
-.doc-accent-gematria { --doc-accent: 230 50% 50%; }
-.doc-accent-tzolkin { --doc-accent: 160 40% 40%; }
-.doc-accent-integration { --doc-accent: 257 45% 45%; }
+/* Hues mirror SYSTEM_FLAVORS accents (src/lib/design/system-flavors.ts).
+   --doc-accent draws borders/glows; --doc-accent-ink is the AA-safe text
+   tone (darkened for light mode, brightened back in dark mode). */
+.doc-accent-dreamspell { --doc-accent: 271 48% 65%; --doc-accent-ink: 271 48% 42%; }
+.doc-accent-human-design { --doc-accent: 167 50% 66%; --doc-accent-ink: 167 50% 30%; }
+.doc-accent-astrology { --doc-accent: 46 67% 47%; --doc-accent-ink: 46 67% 34%; }
+.doc-accent-gematria { --doc-accent: 46 65% 52%; --doc-accent-ink: 46 65% 35%; }
+.doc-accent-tzolkin { --doc-accent: 165 41% 31%; --doc-accent-ink: 165 41% 26%; }
+.doc-accent-integration { --doc-accent: 46 67% 47%; --doc-accent-ink: 46 67% 34%; }
+
+.dark .doc-accent-dreamspell { --doc-accent-ink: 271 48% 72%; }
+.dark .doc-accent-human-design { --doc-accent-ink: 167 50% 66%; }
+.dark .doc-accent-astrology { --doc-accent-ink: 46 67% 60%; }
+.dark .doc-accent-gematria { --doc-accent-ink: 46 65% 60%; }
+.dark .doc-accent-tzolkin { --doc-accent-ink: 165 41% 55%; }
+.dark .doc-accent-integration { --doc-accent-ink: 46 67% 60%; }
 
 .doc-section-accent {
   border-left: 3px solid hsl(var(--doc-accent, var(--primary)));

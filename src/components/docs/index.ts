@@ -34,5 +34,8 @@ export {
   DocPullQuote
 } from './doc-layout'
 
+// Flavored hero band (redesign — folklore skin per system)
+export { DocHero } from './doc-hero'
+
 // SEO components
 export { QuickAnswer } from './QuickAnswer'

@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { Header, Footer } from '@/components/landing'
-import { DocLayout, DocHeader, DocSection, DocNav, DocStats, DocInfoBox, DocPullQuote, QuickAnswer } from '@/components/docs'
+import { DocLayout, DocHero, DocSection, DocNav, DocStats, DocInfoBox, DocPullQuote, QuickAnswer } from '@/components/docs'
 import { humanDesignDocs, docStructure } from '@/lib/docs/content'
 import { JsonLd, SITE_URL, organizationSchema, buildBreadcrumbs } from '@/lib/seo/json-ld'
 
@@ -100,11 +100,10 @@ export default function HumanDesignDocsPage() {
         <JsonLd data={faqSchema} id="json-ld-faq" />
 
         {/* Header */}
-        <DocHeader
-          badge="Human Design"
+        <DocHero
+          section="human-design"
           title={humanDesignDocs.overview.title}
           subtitle={humanDesignDocs.overview.subtitle}
-          badgeColor="secondary"
         />
 
         <QuickAnswer
