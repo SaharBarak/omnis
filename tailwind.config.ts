@@ -10,6 +10,12 @@ const config: Config = {
   theme: {
   	extend: {
   		fontFamily: {
+  			display: [
+  				'var(--font-display)',
+  				'Fraunces',
+  				'Georgia',
+  				'serif'
+  			],
   			sans: [
   				'var(--font-sans)',
   				'Barlow',

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Barlow, Rubik, IBM_Plex_Mono } from "next/font/google";
+import { Barlow, Rubik, IBM_Plex_Mono, Fraunces } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 
@@ -22,6 +22,13 @@ const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
   variable: "--font-mono",
+  display: "swap",
+});
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-display",
   display: "swap",
 });
 
@@ -119,7 +126,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://static.cloudflareinsights.com" />
       </head>
       <body
-        className={`${barlow.variable} ${rubik.variable} ${ibmPlexMono.variable} font-sans antialiased`}
+        className={`${barlow.variable} ${rubik.variable} ${ibmPlexMono.variable} ${fraunces.variable} font-sans antialiased`}
       >
         {children}
         <GoogleAnalytics gaId="G-KY20RW9LY7" />

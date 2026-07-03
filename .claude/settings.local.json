@@ -41,7 +41,9 @@
       "Bash(npm run test:*)",
       "mcp__plugin_playwright_playwright__browser_take_screenshot",
       "Bash(# Check for additional image sets - moon images, missing glyphs, and any other referenced paths curl -s \"\"https://www.starroot.com/cgi/daycalc.pl\"\")",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(timeout 180 npm run typecheck)",
+      "Bash(echo \"=== EXIT $? ===\")"
     ]
   }
 }
