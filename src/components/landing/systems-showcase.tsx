@@ -139,7 +139,7 @@ export function SystemsShowcase() {
             variants={fadeIn}
             transition={{ duration: 0.3 }}
           >
-            Each system offers a different lens into your design. Omnis calculates all of them from your birth data.
+            Each system offers a different lens into your design. OmnisX calculates all of them from your birth data.
           </motion.p>
         </motion.div>
 

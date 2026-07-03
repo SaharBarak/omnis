@@ -8,7 +8,7 @@ const plans = [
     name: 'Free',
     price: '$0',
     period: 'forever',
-    description: 'Try Omnis with limited access',
+    description: 'Try OmnisX with limited access',
     features: [
       '1 profile only (yourself)',
       'Dreamspell calculation only',

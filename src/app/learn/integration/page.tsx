@@ -51,7 +51,7 @@ const breadcrumbSchema = buildBreadcrumbs([
 const integrationFaqs = [
   {
     question: "Can I use multiple wisdom systems at the same time?",
-    answer: "Yes — that is exactly what Omnis is designed for. Dreamspell, Human Design, Astrology, Kabbalah, and Tzolkin each illuminate different aspects of who you are. Rather than competing, they complement each other: Dreamspell reveals your timing and synchronicity, Human Design shows your strategy and authority, Astrology maps your psychological depth, and Kabbalah connects you to sacred tradition.",
+    answer: "Yes — that is exactly what OmnisX is designed for. Dreamspell, Human Design, Astrology, Kabbalah, and Tzolkin each illuminate different aspects of who you are. Rather than competing, they complement each other: Dreamspell reveals your timing and synchronicity, Human Design shows your strategy and authority, Astrology maps your psychological depth, and Kabbalah connects you to sacred tradition.",
   },
   {
     question: "How do these systems connect?",
@@ -103,7 +103,7 @@ export default function IntegrationDocsPage() {
 
         <QuickAnswer
           question="Can I use Dreamspell, Human Design, and Astrology together?"
-          answer="Yes. Each system illuminates a different facet of who you are: Dreamspell reveals your timing and cosmic purpose, Human Design shows your decision-making strategy and energy type, Astrology maps your psychological depth and life transits, and Kabbalah connects you to sacred numerology. When multiple systems agree on a theme, it signals a core quality in your design. Omnis calculates all five systems from a single birth date."
+          answer="Yes. Each system illuminates a different facet of who you are: Dreamspell reveals your timing and cosmic purpose, Human Design shows your decision-making strategy and energy type, Astrology maps your psychological depth and life transits, and Kabbalah connects you to sacred numerology. When multiple systems agree on a theme, it signals a core quality in your design. OmnisX calculates all five systems from a single birth date."
         />
 
         {/* Introduction with drop cap */}
@@ -382,11 +382,11 @@ export default function IntegrationDocsPage() {
           </div>
         </DocSection>
 
-        {/* Omnis Info Box */}
+        {/* OmnisX Info Box */}
         <section className="mb-12">
-          <DocInfoBox variant="secondary" title="Omnis Does This For You">
+          <DocInfoBox variant="secondary" title="OmnisX Does This For You">
             <p className="leading-relaxed">
-              This is why Omnis exists—to calculate your data across all systems and surface the patterns,
+              This is why OmnisX exists—to calculate your data across all systems and surface the patterns,
               so you can focus on living your design rather than computing it. Enter your birth data once,
               and let the synthesis emerge.
             </p>

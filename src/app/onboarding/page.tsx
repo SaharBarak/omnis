@@ -129,14 +129,14 @@ export default function OnboardingPage() {
                 <circle cx="16" cy="16" r="4" fill="hsl(var(--primary))" />
               </svg>
             </div>
-            <span className="text-xl font-heading text-foreground">Omnis</span>
+            <span className="text-xl font-heading text-foreground">OmnisX</span>
           </Link>
         </div>
 
         <div className="earth-card bg-card p-8">
           {/* Header */}
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-heading text-foreground mb-2">Welcome to Omnis</h1>
+            <h1 className="text-2xl font-heading text-foreground mb-2">Welcome to OmnisX</h1>
             <p className="text-muted-foreground">
               {step === 1 && "Let's get to know you - what's your name?"}
               {step === 2 && 'When were you born?'}

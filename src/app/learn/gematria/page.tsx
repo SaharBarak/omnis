@@ -923,9 +923,9 @@ export default function GematriaDocsPage() {
         {/* ============================================================ */}
         {/* Practical Applications */}
         {/* ============================================================ */}
-        <DocSection id="gem-practice" title="Practical Applications in Omnis">
+        <DocSection id="gem-practice" title="Practical Applications in OmnisX">
           <p className="text-muted-foreground leading-relaxed mb-8">
-            Omnis integrates Kabbalistic wisdom and gematria analysis into your personal profile,
+            OmnisX integrates Kabbalistic wisdom and gematria analysis into your personal profile,
             connecting these ancient tools with your other system readings. Here is how the
             calculations work in practice.
           </p>
@@ -933,7 +933,7 @@ export default function GematriaDocsPage() {
           <h3 className="doc-h3">Name Analysis</h3>
           <p className="text-muted-foreground leading-relaxed mb-6">
             Your Hebrew name is your spiritual identifier &mdash; a numerical signature that connects
-            you to cosmic patterns. Omnis calculates your name across multiple gematria methods
+            you to cosmic patterns. OmnisX calculates your name across multiple gematria methods
             simultaneously, revealing layers of meaning.
           </p>
 
@@ -973,7 +973,7 @@ export default function GematriaDocsPage() {
           <h3 className="doc-h3">Date Analysis</h3>
           <p className="text-muted-foreground leading-relaxed mb-6">
             Hebrew dates can also be calculated using gematria. Since Hebrew uses letters for
-            numbers, every date is also a word &mdash; and that word has meaning. Omnis can convert
+            numbers, every date is also a word &mdash; and that word has meaning. OmnisX can convert
             your birth date to the Hebrew calendar and reveal its numerical significance, including
             which Sefirah governs the week, which letter governs the month, and how the date&apos;s
             total value connects to key words in tradition.
@@ -982,7 +982,7 @@ export default function GematriaDocsPage() {
           <h3 className="doc-h3">Word Connection Discovery</h3>
           <p className="text-muted-foreground leading-relaxed mb-8">
             One of the most powerful features of gematria is discovering that two seemingly unrelated
-            words share the same numerical value. Omnis maintains a database of significant Hebrew
+            words share the same numerical value. OmnisX maintains a database of significant Hebrew
             words and their gematria values, enabling you to discover which biblical names, concepts,
             and phrases share your number. These are not mere coincidences to the Kabbalist &mdash; they
             are threads in the tapestry of hidden meaning that connects all of reality.
@@ -990,7 +990,7 @@ export default function GematriaDocsPage() {
 
           <DocInfoBox variant="secondary" title="Hebrew Name Tip">
             <p className="leading-relaxed">
-              If you have a Hebrew name, enter it in your Omnis profile to see its gematria value and
+              If you have a Hebrew name, enter it in your OmnisX profile to see its gematria value and
               discover words and phrases that share your number. If you don&apos;t have a Hebrew name,
               you can transliterate your English name into Hebrew letters, though the connections
               may be less traditional. Consult a knowledgeable source for accurate transliteration &mdash;
@@ -1006,7 +1006,7 @@ export default function GematriaDocsPage() {
           <p className="text-muted-foreground leading-relaxed mb-6">
             Kabbalah does not exist in isolation. Its Tree of Life has been adopted and adapted by
             virtually every Western esoteric tradition, and its influence runs through several of the
-            systems Omnis brings together. Understanding these connections reveals a deeper unity
+            systems OmnisX brings together. Understanding these connections reveals a deeper unity
             beneath the surface diversity.
           </p>
 

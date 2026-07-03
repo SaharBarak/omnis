@@ -15,7 +15,7 @@ export function JsonLd({ data, id }: { data: Record<string, unknown>; id?: strin
 export const organizationSchema = {
   '@type': 'Organization',
   '@id': `${SITE_URL}/#organization`,
-  name: 'Omnis',
+  name: 'OmnisX',
   url: SITE_URL,
   logo: {
     '@type': 'ImageObject',

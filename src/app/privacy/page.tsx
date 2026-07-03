@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Omnis',
-  description: 'Privacy Policy for Omnis - learn how we collect, use, and protect your personal information including birth data and symbolic mappings.',
+  title: 'Privacy Policy | OmnisX',
+  description: 'Privacy Policy for OmnisX - learn how we collect, use, and protect your personal information including birth data and symbolic mappings.',
   robots: {
     index: true,
     follow: true,

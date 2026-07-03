@@ -71,7 +71,7 @@ export function HeroV2() {
             transition={{ duration: 0.7, delay: 0.35, ease: easeOut }}
           >
             Five systems read every birth. One map holds every relationship.
-            Add a person once; Omnis remembers forever.
+            Add a person once; OmnisX remembers forever.
           </motion.p>
 
           <motion.div
@@ -119,7 +119,7 @@ export function HeroV2() {
                   style={{ backgroundColor: COLORS.brand }}
                 />
                 <span className="truncate">
-                  omnis <span className="text-white/25">/</span> your-map{' '}
+                  omnisx <span className="text-white/25">/</span> your-map{' '}
                   <span className="text-white/25">/</span> home-circle
                 </span>
               </div>

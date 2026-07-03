@@ -112,7 +112,7 @@ export interface SubscriptionData {
 
 /**
  * Get or create a Paddle customer for a user, keyed by email and tagged with
- * the Omnis user id in custom data.
+ * the OmnisX user id in custom data.
  */
 export async function getOrCreatePaddleCustomer(
   userId: string,

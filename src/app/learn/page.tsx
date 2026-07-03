@@ -156,7 +156,7 @@ export default function LearnPage() {
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/70">
             Five guides — Astrology, Dreamspell, the Tzolkin, Human Design,
-            Kabbalah — written with respect for the lineages. When Omnis tells
+            Kabbalah — written with respect for the lineages. When OmnisX tells
             you something about a person, this is where it learned it.
           </p>
 

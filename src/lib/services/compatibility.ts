@@ -1,4 +1,4 @@
-// Compatibility Calculations for Omnis Phase 2.4
+// Compatibility Calculations for OmnisX Phase 2.4
 // Calculates Dreamspell and Tzolkin compatibility between people
 
 import type { Kin, SealNumber, ToneNumber } from '../../core/types'

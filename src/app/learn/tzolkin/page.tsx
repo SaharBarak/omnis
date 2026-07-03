@@ -247,7 +247,7 @@ export default function TzolkinDocsPage() {
         <section className="doc-card p-8 sm:p-10 text-center mt-16">
           <h3 className="text-2xl font-heading text-foreground mb-4">Explore Both Perspectives</h3>
           <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-            Omnis uses the Dreamspell system for daily calculations. Understanding both traditions
+            OmnisX uses the Dreamspell system for daily calculations. Understanding both traditions
             enriches your practice with deeper context.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3">

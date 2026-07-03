@@ -1,14 +1,14 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Contact Omnis - Get in Touch',
-  description: 'Have questions about Omnis, Dreamspell, Human Design, or your cosmic blueprint? Contact our team. We typically respond within 24 hours.',
+  title: 'Contact OmnisX - Get in Touch',
+  description: 'Have questions about OmnisX, Dreamspell, Human Design, or your cosmic blueprint? Contact our team. We typically respond within 24 hours.',
   alternates: {
     canonical: 'https://omnis.app/contact',
   },
   openGraph: {
-    title: 'Contact Omnis - Get in Touch',
-    description: 'Questions about Omnis? Contact our team.',
+    title: 'Contact OmnisX - Get in Touch',
+    description: 'Questions about OmnisX? Contact our team.',
     url: 'https://omnis.app/contact',
   },
 }

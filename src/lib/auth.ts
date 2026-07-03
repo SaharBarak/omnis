@@ -6,7 +6,7 @@ import { mongoClient, mongoDb } from '@/lib/db/mongo-client'
 import { connectMongo } from '@/lib/db/connection'
 import { Profile } from '@/lib/db/models'
 
-const FROM_EMAIL = 'Omnis <noreply@omnis.app>'
+const FROM_EMAIL = 'OmnisX <noreply@omnis.app>'
 
 const siteUrl =
   process.env.BETTER_AUTH_URL ||
@@ -43,8 +43,8 @@ async function sendMagicLinkEmail(email: string, url: string): Promise<void> {
   await resend.emails.send({
     from: FROM_EMAIL,
     to: email,
-    subject: 'Your Omnis sign-in link',
-    html: `<p>Click to sign in to Omnis:</p><p><a href="${url}">Sign in</a></p><p>This link expires shortly. If you did not request it, ignore this email.</p>`,
+    subject: 'Your OmnisX sign-in link',
+    html: `<p>Click to sign in to OmnisX:</p><p><a href="${url}">Sign in</a></p><p>This link expires shortly. If you did not request it, ignore this email.</p>`,
   })
 }
 

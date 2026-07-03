@@ -117,7 +117,7 @@ export function Footer() {
                   <circle cx="16" cy="16" r="4" fill="hsl(var(--primary))" />
                 </svg>
               </div>
-              <span className="text-lg font-heading text-foreground group-hover:text-primary transition-colors duration-200">Omnis</span>
+              <span className="text-lg font-heading text-foreground group-hover:text-primary transition-colors duration-200">OmnisX</span>
             </Link>
             <p className="text-sm text-muted-foreground">
               Six wisdom systems. One view.
@@ -146,7 +146,7 @@ export function Footer() {
 
         {/* Bottom */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-border">
-          <p className="text-sm text-muted-foreground">&copy; 2026 Omnis. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">&copy; 2026 OmnisX. All rights reserved.</p>
           <p className="text-sm text-muted-foreground italic">Time is not money. Time is Art.</p>
         </div>
       </div>

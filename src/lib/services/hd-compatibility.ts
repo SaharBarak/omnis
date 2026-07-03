@@ -1,4 +1,4 @@
-// Human Design Relationship Compatibility for Omnis
+// Human Design Relationship Compatibility for OmnisX
 // Classic HD relationship mechanics across the 36 channels / 64 gates.
 //
 // Connection classes (per channel = pair of gates):

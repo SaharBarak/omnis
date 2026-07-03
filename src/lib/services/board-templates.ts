@@ -1,4 +1,4 @@
-// Board Templates Service for Omnis Phase 4
+// Board Templates Service for OmnisX Phase 4
 // Provides template configurations and board generation functions
 
 import type {

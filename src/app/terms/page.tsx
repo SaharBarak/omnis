@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | Omnis',
-  description: 'Terms of Service for Omnis - the personal symbolic mapping platform for Dreamspell, Human Design, Astrology, and Gematria.',
+  title: 'Terms of Service | OmnisX',
+  description: 'Terms of Service for OmnisX - the personal symbolic mapping platform for Dreamspell, Human Design, Astrology, and Gematria.',
   robots: {
     index: true,
     follow: true,
@@ -26,13 +26,13 @@ export default function TermsPage() {
 
             <h2 className="text-lg font-semibold mt-6 mb-3">1. Acceptance of Terms</h2>
             <p>
-              By accessing and using Omnis (&ldquo;the Service&rdquo;), you agree to be bound by these
+              By accessing and using OmnisX (&ldquo;the Service&rdquo;), you agree to be bound by these
               Terms of Service. If you do not agree to these terms, please do not use the Service.
             </p>
 
             <h2 className="text-lg font-semibold mt-6 mb-3">2. Description of Service</h2>
             <p>
-              Omnis is a personal symbolic mapping platform that provides calculations and
+              OmnisX is a personal symbolic mapping platform that provides calculations and
               visualizations based on various symbolic systems including Dreamspell, Tzolkin,
               Astrology, Human Design, and Gematria. The Service is for informational and
               entertainment purposes only.
@@ -66,7 +66,7 @@ export default function TermsPage() {
 
             <h2 className="text-lg font-semibold mt-6 mb-3">6. Disclaimer</h2>
             <p>
-              The symbolic calculations and interpretations provided by Omnis are for
+              The symbolic calculations and interpretations provided by OmnisX are for
               entertainment and personal exploration purposes only. They should not be
               used as a substitute for professional advice including medical, legal,
               financial, or psychological guidance.
@@ -74,7 +74,7 @@ export default function TermsPage() {
 
             <h2 className="text-lg font-semibold mt-6 mb-3">7. Limitation of Liability</h2>
             <p>
-              To the maximum extent permitted by law, Omnis shall not be liable for any
+              To the maximum extent permitted by law, OmnisX shall not be liable for any
               indirect, incidental, special, consequential, or punitive damages resulting
               from your use of the Service.
             </p>

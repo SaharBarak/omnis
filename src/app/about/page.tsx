@@ -5,13 +5,13 @@ import { JsonLd, SITE_URL, organizationSchema, buildBreadcrumbs } from '@/lib/se
 import { PageBreadcrumbs } from '@/components/ui/page-breadcrumbs'
 
 export const metadata: Metadata = {
-  title: 'About Omnis - Unifying Ancient Wisdom Systems for Modern Seekers',
-  description: 'Learn about Omnis and our mission to make Dreamspell, Human Design, Astrology, Kabbalah, and Tzolkin accessible, accurate, and interconnected. Privacy-first, open approach.',
+  title: 'About OmnisX - Unifying Ancient Wisdom Systems for Modern Seekers',
+  description: 'Learn about OmnisX and our mission to make Dreamspell, Human Design, Astrology, Kabbalah, and Tzolkin accessible, accurate, and interconnected. Privacy-first, open approach.',
   alternates: {
     canonical: 'https://omnis.app/about',
   },
   openGraph: {
-    title: 'About Omnis - Unifying Ancient Wisdom Systems for Modern Seekers',
+    title: 'About OmnisX - Unifying Ancient Wisdom Systems for Modern Seekers',
     description: 'Our mission: making five ancient wisdom systems accessible, accurate, and interconnected.',
     url: 'https://omnis.app/about',
   },
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 const aboutOrgSchema = {
   "@context": "https://schema.org",
   ...organizationSchema,
-  "description": "Omnis unifies five ancient wisdom systems — Dreamspell, Human Design, Astrology, Kabbalah, and Tzolkin — into one accessible platform for modern seekers.",
+  "description": "OmnisX unifies five ancient wisdom systems — Dreamspell, Human Design, Astrology, Kabbalah, and Tzolkin — into one accessible platform for modern seekers.",
   "foundingDate": "2024",
   "knowsAbout": ["Dreamspell", "Human Design", "Astrology", "Kabbalah", "Gematria", "Tzolkin", "Mayan Calendar"],
 }
@@ -46,7 +46,7 @@ export default function AboutPage() {
               <span className="w-1.5 h-1.5 rounded-full bg-primary" />
               <span>Our Story</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-heading text-foreground mb-4">About Omnis</h1>
+            <h1 className="text-3xl sm:text-4xl font-heading text-foreground mb-4">About OmnisX</h1>
             <p className="text-lg text-muted-foreground">
               Unifying ancient wisdom systems for modern seekers
             </p>
@@ -56,7 +56,7 @@ export default function AboutPage() {
           <section className="earth-card bg-card p-8 mb-6">
             <h2 className="text-2xl font-heading text-primary mb-4">Our Mission</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Omnis is built on the belief that multiple symbolic systems can illuminate different facets of who we are. Rather than seeing Dreamspell, Human Design, Astrology, and Gematria as competing frameworks, we recognize them as complementary lenses—each offering unique insights into the cosmic blueprint that makes you, you.
+              OmnisX is built on the belief that multiple symbolic systems can illuminate different facets of who we are. Rather than seeing Dreamspell, Human Design, Astrology, and Gematria as competing frameworks, we recognize them as complementary lenses—each offering unique insights into the cosmic blueprint that makes you, you.
             </p>
             <p className="text-muted-foreground leading-relaxed">
               Our mission is to make these profound systems accessible, accurate, and interconnected, helping you navigate life with greater self-awareness and cosmic alignment.

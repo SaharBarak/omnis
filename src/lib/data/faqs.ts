@@ -1,10 +1,10 @@
 export const faqs = [
   {
     question: "What can I do with the free plan?",
-    answer: "Free lets you save 1 profile (yourself) with Dreamspell calculations and daily kin. It's designed to try Omnis before upgrading. To save family/friends, access all 6 systems, get AI interpretations, or export PDFs, you'll need Complete ($9/mo) or Practitioner ($29/mo).",
+    answer: "Free lets you save 1 profile (yourself) with Dreamspell calculations and daily kin. It's designed to try OmnisX before upgrading. To save family/friends, access all 6 systems, get AI interpretations, or export PDFs, you'll need Complete ($9/mo) or Practitioner ($29/mo).",
   },
   {
-    question: "I don't know my exact birth time. Can I still use Omnis?",
+    question: "I don't know my exact birth time. Can I still use OmnisX?",
     answer: "Yes. Your birth date alone gives you Dreamspell, Tzolkin, Long Count, and Kabbalah - four of the six systems. Human Design authority and astrology Moon/Rising require exact time. You can add it later if you find it (birth certificates often have it).",
   },
   {

@@ -351,7 +351,7 @@ export function FooterV2({ liveLine }: { readonly liveLine: string }) {
       <div className="mx-auto max-w-content px-6">
         <div className="grid gap-10 md:grid-cols-4">
           <div>
-            <p className={TYPE.card}>Omnis</p>
+            <p className={TYPE.card}>OmnisX</p>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/50">
               The living map of your people, read through five wisdom systems.
             </p>
@@ -377,7 +377,7 @@ export function FooterV2({ liveLine }: { readonly liveLine: string }) {
         <div className="mt-14 border-t border-white/10 pt-6 text-center">
           <p className="font-mono text-[11px] tracking-[0.18em] text-brand/80">{liveLine}</p>
           <p className="mt-3 text-xs text-white/35">
-            © {new Date().getFullYear()} Omnis. All rights reserved.
+            © {new Date().getFullYear()} OmnisX. All rights reserved.
           </p>
         </div>
       </div>

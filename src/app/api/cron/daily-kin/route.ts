@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
         }
 
         const { data: sendData, error: sendError } = await resend.emails.send({
-          from: 'Omnis <noreply@omnis.app>',
+          from: 'OmnisX <noreply@omnis.app>',
           to: subscriber.email,
           subject,
           html: getDailyKinEmailHtml(kinData, subscriber.email)
@@ -244,7 +244,7 @@ ${kinData.mantra}
     </div>
 
     <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-      <p style="color: #666; font-size: 12px; margin: 0 0 10px;">Daily Kin from Omnis</p>
+      <p style="color: #666; font-size: 12px; margin: 0 0 10px;">Daily Kin from OmnisX</p>
       <p style="color: #666; font-size: 12px; margin: 0;">
         <a href="https://omnis.app/api/newsletter/unsubscribe?email=${encodeURIComponent(subscriberEmail)}" style="color: #888;">Unsubscribe</a>
       </p>

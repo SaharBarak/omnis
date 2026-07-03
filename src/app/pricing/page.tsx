@@ -5,13 +5,13 @@ import { JsonLd, SITE_URL, organizationSchema, buildBreadcrumbs } from '@/lib/se
 import { PageBreadcrumbs } from '@/components/ui/page-breadcrumbs';
 
 export const metadata: Metadata = {
-  title: 'Omnis Pricing - Free Chart Calculator & Premium Plans',
+  title: 'OmnisX Pricing - Free Chart Calculator & Premium Plans',
   description: 'Free Dreamspell calculator, daily kin readings, and 1 profile. Upgrade to Complete ($9/mo) for all 6 systems or Practitioner ($29/mo) for unlimited profiles and client tools.',
   alternates: {
     canonical: 'https://omnis.app/pricing',
   },
   openGraph: {
-    title: 'Omnis Pricing - Free Chart Calculator & Premium Plans',
+    title: 'OmnisX Pricing - Free Chart Calculator & Premium Plans',
     description: 'Free plan with Dreamspell calculator. Complete ($9/mo) and Practitioner ($29/mo) plans available.',
     url: 'https://omnis.app/pricing',
   },
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 const productSchema = {
   "@context": "https://schema.org",
   "@type": "Product",
-  "name": "Omnis - Cosmic Blueprint Platform",
+  "name": "OmnisX - Cosmic Blueprint Platform",
   "description": "Unified platform for Dreamspell, Human Design, Astrology, Kabbalah, and Tzolkin wisdom systems.",
   "brand": { "@id": `${SITE_URL}/#organization` },
   "url": `${SITE_URL}/pricing`,

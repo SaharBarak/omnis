@@ -54,7 +54,7 @@ const breadcrumbSchema = buildBreadcrumbs([
 const dreamspellFaqs = [
   {
     question: "How do I find my Dreamspell Kin?",
-    answer: "Enter your birth date into the Omnis Dreamspell calculator at omnis.app/calculate. The calculator will show your Kin number (1-260), Solar Seal, Galactic Tone, and your complete Oracle. No birth time is required — only your date of birth.",
+    answer: "Enter your birth date into the OmnisX Dreamspell calculator at omnis.app/calculate. The calculator will show your Kin number (1-260), Solar Seal, Galactic Tone, and your complete Oracle. No birth time is required — only your date of birth.",
   },
   {
     question: "What are the 20 Solar Seals?",
@@ -62,7 +62,7 @@ const dreamspellFaqs = [
   },
   {
     question: "What is the difference between Dreamspell and Tzolkin?",
-    answer: "Dreamspell is Jose Arguelles' modern system (1987) synchronized to July 26 with leap-day skipping. The Traditional Tzolkin is the ancient Maya count using the GMT correlation — an unbroken count spanning over 2,500 years. They produce different Kin numbers for the same date. Omnis calculates both systems.",
+    answer: "Dreamspell is Jose Arguelles' modern system (1987) synchronized to July 26 with leap-day skipping. The Traditional Tzolkin is the ancient Maya count using the GMT correlation — an unbroken count spanning over 2,500 years. They produce different Kin numbers for the same date. OmnisX calculates both systems.",
   },
   {
     question: "What is a Wavespell?",

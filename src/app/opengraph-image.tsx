@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og'
 
-export const alt = 'Omnis - Unified Wisdom Systems'
+export const alt = 'OmnisX - Unified Wisdom Systems'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -83,7 +83,7 @@ export default async function OGImage() {
             display: 'flex',
           }}
         >
-          Omnis
+          OmnisX
         </div>
 
         {/* Tagline */}

@@ -55,7 +55,7 @@ export function PortalCta() {
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            Add yourself first. Then the people who shape your days. Omnis
+            Add yourself first. Then the people who shape your days. OmnisX
             remembers them, connects them, and lets the map grow with your life.
           </motion.p>
           <motion.div

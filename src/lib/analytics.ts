@@ -1,7 +1,7 @@
 /**
  * Google Analytics 4 Event Tracking Utility
  *
- * Comprehensive event tracking for Omnis app
+ * Comprehensive event tracking for OmnisX app
  * Tracks user interactions, conversions, engagement, and errors
  */
 

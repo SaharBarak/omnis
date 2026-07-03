@@ -9,7 +9,7 @@ import {
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 // Email sender identity
-const FROM_EMAIL = 'Omnis <noreply@omnis.app>'
+const FROM_EMAIL = 'OmnisX <noreply@omnis.app>'
 
 export interface EmailSubscriber {
   id: string
@@ -116,7 +116,7 @@ export async function sendWelcomeEmail(email: string): Promise<{ success: boolea
     const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
       to: email,
-      subject: 'Welcome to Omnis - Your Cosmic Journey Begins',
+      subject: 'Welcome to OmnisX - Your Cosmic Journey Begins',
       html: getWelcomeEmailHtml()
     })
 
@@ -198,7 +198,7 @@ function getWelcomeEmailHtml(): string {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Welcome to Omnis</title>
+  <title>Welcome to OmnisX</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #0a0a0f; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
@@ -206,7 +206,7 @@ function getWelcomeEmailHtml(): string {
     <div style="text-align: center; margin-bottom: 40px;">
       <span style="color: #c9a55c; font-size: 32px;">*</span>
       <h1 style="color: #ffffff; font-family: 'Cinzel', serif; font-size: 28px; margin: 10px 0;">
-        Welcome to Omnis
+        Welcome to OmnisX
       </h1>
     </div>
 
@@ -214,7 +214,7 @@ function getWelcomeEmailHtml(): string {
     <div style="background: linear-gradient(180deg, rgba(201, 165, 92, 0.1) 0%, rgba(201, 165, 92, 0.05) 100%); border: 1px solid rgba(201, 165, 92, 0.3); border-radius: 12px; padding: 30px; margin-bottom: 30px;">
       <h2 style="color: #c9a55c; font-size: 20px; margin: 0 0 15px;">Your Cosmic Journey Begins</h2>
       <p style="color: #a0a0a0; line-height: 1.6; margin: 0 0 20px;">
-        Thank you for joining Omnis! You'll now receive daily cosmic guidance featuring Today's Kin from the Dreamspell calendar.
+        Thank you for joining OmnisX! You'll now receive daily cosmic guidance featuring Today's Kin from the Dreamspell calendar.
       </p>
       <p style="color: #a0a0a0; line-height: 1.6; margin: 0 0 20px;">
         Each morning, you'll discover:
@@ -237,7 +237,7 @@ function getWelcomeEmailHtml(): string {
     <!-- Footer -->
     <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
       <p style="color: #666; font-size: 12px; margin: 0 0 10px;">
-        You're receiving this because you subscribed to Omnis Daily Kin.
+        You're receiving this because you subscribed to OmnisX Daily Kin.
       </p>
       <p style="color: #666; font-size: 12px; margin: 0;">
         <a href="https://omnis.app/unsubscribe" style="color: #888;">Unsubscribe</a>
@@ -333,7 +333,7 @@ function getDailyKinEmailHtml(kinData: DailyKinData): string {
     <!-- Footer -->
     <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
       <p style="color: #666; font-size: 12px; margin: 0 0 10px;">
-        Daily Kin from Omnis - Your cosmic guidance, every day.
+        Daily Kin from OmnisX - Your cosmic guidance, every day.
       </p>
       <p style="color: #666; font-size: 12px; margin: 0;">
         <a href="https://omnis.app/unsubscribe" style="color: #888;">Unsubscribe</a>

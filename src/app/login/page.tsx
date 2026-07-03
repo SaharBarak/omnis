@@ -60,7 +60,7 @@ function LoginForm() {
               <circle cx="16" cy="16" r="4" fill="hsl(var(--primary))" />
             </svg>
           </div>
-          <span className="text-2xl font-heading text-foreground">Omnis</span>
+          <span className="text-2xl font-heading text-foreground">OmnisX</span>
         </Link>
         <p className="text-muted-foreground">Personal Symbolic Mapping System</p>
       </div>
@@ -183,7 +183,7 @@ function LoginFallback() {
             <circle cx="16" cy="16" r="4" fill="hsl(var(--primary))" />
           </svg>
         </div>
-        <h1 className="text-2xl font-heading text-foreground">Omnis</h1>
+        <h1 className="text-2xl font-heading text-foreground">OmnisX</h1>
         <p className="text-muted-foreground">Personal Symbolic Mapping System</p>
       </div>
       <div className="earth-card bg-card p-8 flex items-center justify-center">

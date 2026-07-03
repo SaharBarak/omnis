@@ -4,7 +4,7 @@
  *
  * SYSTEM context: authenticated by the verified Paddle signature, NOT a user
  * session. It must NOT use requireUserId(). It writes subscription state keyed
- * off Paddle identifiers (subscription/customer id) or the Omnis user id carried
+ * off Paddle identifiers (subscription/customer id) or the OmnisX user id carried
  * in verified custom data, via the system-context repo functions.
  *
  * The raw request body MUST be passed to unmarshal unmodified — do not parse it

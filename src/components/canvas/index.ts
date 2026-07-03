@@ -1,4 +1,4 @@
-// Canvas Editor Components for Omnis Phase 4
+// Canvas Editor Components for OmnisX Phase 4
 
 export { CanvasProvider, useCanvas } from './canvas-context'
 export { CanvasEditor } from './canvas-editor'

@@ -45,10 +45,10 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   title: {
-    default: "Omnis - Your Cosmic Blueprint | Dreamspell, Human Design & More",
-    template: "%s | Omnis"
+    default: "OmnisX - Your Cosmic Blueprint | Dreamspell, Human Design & More",
+    template: "%s | OmnisX"
   },
-  description: "Discover your cosmic blueprint with Omnis. Explore Dreamspell Kin, Human Design Bodygraph, Astrology Charts, and Hebrew Gematria. Free daily readings and personal analysis.",
+  description: "Discover your cosmic blueprint with OmnisX. Explore Dreamspell Kin, Human Design Bodygraph, Astrology Charts, and Hebrew Gematria. Free daily readings and personal analysis.",
   keywords: [
     "dreamspell",
     "dreamspell calculator",
@@ -68,9 +68,9 @@ export const metadata: Metadata = {
     "hebrew numerology",
     "spiritual guidance"
   ],
-  authors: [{ name: "Omnis" }],
-  creator: "Omnis",
-  publisher: "Omnis",
+  authors: [{ name: "OmnisX" }],
+  creator: "OmnisX",
+  publisher: "OmnisX",
   robots: {
     index: true,
     follow: true,
@@ -86,21 +86,21 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://omnis.app",
-    siteName: "Omnis",
-    title: "Omnis - Your Cosmic Blueprint",
+    siteName: "OmnisX",
+    title: "OmnisX - Your Cosmic Blueprint",
     description: "Discover your cosmic blueprint with Dreamspell, Human Design, Astrology, and Gematria. Free daily readings.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Omnis - Your Cosmic Blueprint",
+        alt: "OmnisX - Your Cosmic Blueprint",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Omnis - Your Cosmic Blueprint",
+    title: "OmnisX - Your Cosmic Blueprint",
     description: "Discover your cosmic blueprint with Dreamspell, Human Design, Astrology, and Gematria.",
     images: ["/og-image.png"],
   },

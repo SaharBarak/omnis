@@ -1,5 +1,5 @@
 /**
- * Omnis Documentation Content
+ * OmnisX Documentation Content
  * Comprehensive knowledge base for all symbolic systems
  *
  * This content was crafted with respect for the lineages:
@@ -828,7 +828,7 @@ export const astrologyDocs = {
       been refined by every major civilization—Babylonian, Egyptian, Greek, Persian, Arabic, Indian,
       and Chinese.
 
-      Western astrology, which Omnis primarily uses, is based on the tropical zodiac—the relationship
+      Western astrology, which OmnisX primarily uses, is based on the tropical zodiac—the relationship
       between the Sun's position and Earth's seasons. Your natal chart is a snapshot of the sky at
       your exact moment of birth, seen from your birthplace—a cosmic fingerprint unique to you.
 
@@ -1387,7 +1387,7 @@ export const integrationDocs = {
     offers a unique lens on identity and purpose. They are not competing truths but complementary
     perspectives, like different instruments in an orchestra.
 
-    Omnis helps you see yourself through all these lenses simultaneously, finding resonance and
+    OmnisX helps you see yourself through all these lenses simultaneously, finding resonance and
     deeper understanding where the systems align and learning from where they diverge.
   `,
 

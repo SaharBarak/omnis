@@ -115,7 +115,7 @@ function AppSidebar() {
                   </svg>
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-heading font-semibold">Omnis</span>
+                  <span className="truncate font-heading font-semibold">OmnisX</span>
                   <span className="truncate text-xs text-muted-foreground">Symbolic Life OS</span>
                 </div>
               </Link>

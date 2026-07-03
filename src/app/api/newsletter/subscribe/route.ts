@@ -55,9 +55,9 @@ export async function POST(request: NextRequest) {
       try {
         const resend = new Resend(process.env.RESEND_API_KEY)
         await resend.emails.send({
-          from: 'Omnis <noreply@omnis.app>',
+          from: 'OmnisX <noreply@omnis.app>',
           to: normalizedEmail,
-          subject: 'Welcome to Omnis - Your Cosmic Journey Begins',
+          subject: 'Welcome to OmnisX - Your Cosmic Journey Begins',
           html: getWelcomeEmailHtml(),
         })
       } catch (emailError) {
@@ -87,12 +87,12 @@ function getWelcomeEmailHtml(): string {
   <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
     <div style="text-align: center; margin-bottom: 40px;">
       <span style="color: #c9a55c; font-size: 32px;">*</span>
-      <h1 style="color: #ffffff; font-size: 28px; margin: 10px 0;">Welcome to Omnis</h1>
+      <h1 style="color: #ffffff; font-size: 28px; margin: 10px 0;">Welcome to OmnisX</h1>
     </div>
     <div style="background: linear-gradient(180deg, rgba(201, 165, 92, 0.1) 0%, rgba(201, 165, 92, 0.05) 100%); border: 1px solid rgba(201, 165, 92, 0.3); border-radius: 12px; padding: 30px; margin-bottom: 30px;">
       <h2 style="color: #c9a55c; font-size: 20px; margin: 0 0 15px;">Your Cosmic Journey Begins</h2>
       <p style="color: #a0a0a0; line-height: 1.6; margin: 0 0 20px;">
-        Thank you for joining Omnis! You'll now receive daily cosmic guidance featuring Today's Kin from the Dreamspell calendar.
+        Thank you for joining OmnisX! You'll now receive daily cosmic guidance featuring Today's Kin from the Dreamspell calendar.
       </p>
       <ul style="color: #a0a0a0; line-height: 1.8; margin: 0 0 20px; padding-left: 20px;">
         <li>The day's galactic signature (Kin)</li>

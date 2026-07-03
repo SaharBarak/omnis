@@ -31,7 +31,7 @@ export const revalidate = 3600
 const webAppSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebApplication',
-  name: 'Omnis',
+  name: 'OmnisX',
   applicationCategory: 'LifestyleApplication',
   operatingSystem: 'Web',
   description:
@@ -79,7 +79,7 @@ const webAppSchema = {
 const webSiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  name: 'Omnis',
+  name: 'OmnisX',
   url: SITE_URL,
   description:
     'The living map of your people — five wisdom systems, one interface, remembered forever.',
@@ -167,7 +167,7 @@ export default function LandingPage() {
           flavor={SYSTEM_FLAVORS.dreamspell}
           pill="Then add one more"
           heading="Two charts. One chemistry."
-          body="Pick any two people and Omnis reads the bond five ways — synastry, kin resonance, type mechanics, name harmonics — then says it plainly: where you flow, where you grind, what the friction is for. Partners, siblings, cofounders, oldest friends."
+          body="Pick any two people and OmnisX reads the bond five ways — synastry, kin resonance, type mechanics, name harmonics — then says it plainly: where you flow, where you grind, what the friction is for. Partners, siblings, cofounders, oldest friends."
           cta={{ label: 'Try compatibility', href: '/compatibility' }}
           compact
         >
@@ -181,7 +181,7 @@ export default function LandingPage() {
           flavor={SYSTEM_FLAVORS.tzolkin}
           pill="Never ask twice"
           heading="Enter a birthday once."
-          body="Everyone you chart joins your private library — birth time, place, name, all five readings, saved. The tenth time you check a friend's chart, you don't ask for their birth time again. You open Omnis."
+          body="Everyone you chart joins your private library — birth time, place, name, all five readings, saved. The tenth time you check a friend's chart, you don't ask for their birth time again. You open OmnisX."
           triad={[
             {
               title: 'Private by default',
@@ -207,7 +207,7 @@ export default function LandingPage() {
           flavor={SYSTEM_FLAVORS.dreamspell}
           pill="The living map"
           heading="Your relationships become visible."
-          body="Every saved person is a node. Omnis draws the lines — attraction, friction, resonance, completion — scored across all five systems, and every score opens into its evidence. Add twenty people and watch the geometry of your life appear."
+          body="Every saved person is a node. OmnisX draws the lines — attraction, friction, resonance, completion — scored across all five systems, and every score opens into its evidence. Add twenty people and watch the geometry of your life appear."
           triad={[
             {
               title: 'Every bond, scored five ways',

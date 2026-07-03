@@ -19,7 +19,7 @@ export function WelcomeCard({ className }: WelcomeCardProps) {
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Welcome to Omnis</span>
+            <span className="text-sm font-medium text-primary">Welcome to OmnisX</span>
           </div>
           <h2 className="text-xl font-bold text-foreground mb-1">
             Begin your symbolic journey

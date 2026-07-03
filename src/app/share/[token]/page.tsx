@@ -363,7 +363,7 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">{error}</p>
             <Link href="/login">
-              <Button>Sign in to Omnis</Button>
+              <Button>Sign in to OmnisX</Button>
             </Link>
           </CardContent>
         </Card>
@@ -377,7 +377,7 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex h-14 items-center px-4 max-w-7xl mx-auto">
           <Link href="/" className="font-bold text-xl">
-            Omnis
+            OmnisX
           </Link>
           <div className="flex-1" />
           <Link href="/login">
@@ -405,7 +405,7 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
           <CardContent className="flex flex-col md:flex-row items-center justify-between py-6 gap-4">
             <div>
               <h3 className="font-bold text-lg">Want to create your own analysis?</h3>
-              <p className="text-muted-foreground">Join Omnis and discover your symbolic connections</p>
+              <p className="text-muted-foreground">Join OmnisX and discover your symbolic connections</p>
             </div>
             <Link href="/login">
               <Button size="lg">Get Started</Button>
