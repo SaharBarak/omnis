@@ -92,24 +92,48 @@ Five system emblems in a quiet row.
   that is the product's actual funnel; hero already teased it, so this
   moment must be bigger, interactive, undeniable.
 
-## 7. ZONE — YOUR CIRCLES 〔human design / circuitry flavor〕
+## 7. ZONE — THE FIVE LAYERS 〔all flavors, one per layer〕 ← SET PIECE #1
+- Pill: `Layer by layer`
+- H2: **Same people. Five layers deep.**
+- Body: Every map and circle in Omnis reads through one system at a time —
+  the astrology layer, the dreamspell layer, the tzolkin, the design, the
+  letters. Slide a single layer out and see which tradition explains the
+  tension. Stack all five and read the whole truth at once.
+- Embed (scroll-pinned sequence — the page's signature interaction):
+  the same group stays fixed while scrolling stacks translucent layers
+  onto it, one per system, each in its folklore texture —
+  1. Astrology: engraved synastry lines appear between the people
+  2. Dreamspell: kin-color threads weave in
+  3. Tzolkin: day-sign marks stamp beside each node
+  4. Human Design: circuit channels connect the bodies
+  5. Gematria: letter-values ring the names
+  6. **Fused**: the layers compress into one resolved reading
+  Like acetate sheets on a cartographer's table.
+- Triad: Isolate any single layer · Compare layers side by side ·
+  Fuse all five into one reading, evidence still visible
+- Rationale: layering is a core product concept — five ancient systems as
+  stackable lenses over the same people — not a settings toggle. It earns
+  the page's biggest scroll-driven moment because it IS the thesis:
+  five traditions, one map.
+
+## 8. ZONE — YOUR CIRCLES 〔human design / circuitry flavor〕
 - Pill: `Group dynamics`
 - H2: **Your family is not your team.**
-- Body: Select any circle and read it whole — one system at a time, or all
-  five fused into a single reading. Each group runs on its own physics:
-  who carries the energy, where it jams, who bridges the room, why this
-  circle could only ever feel like this.
+- Body: Select any circle and read it whole. Each group runs on its own
+  physics: who carries the energy, where it jams, who bridges the room,
+  why this circle could only ever feel like this — and each layer names
+  it differently.
 - Embed: group analysis — three saved groups side by side
   (`Family · Team · Friends`), showing the same person playing different
-  roles in each; layer toggles + `Fuse all five` control.
-- Triad: Layered, one lens at a time · Fused, all five at once ·
-  Electromagnetic pairs, missing centers, group kin
+  roles in each circle.
+- Triad: Whole-group readings · Electromagnetic pairs, missing centers,
+  group kin · The same person, different in every circle
 - Lineage: *Human Design maps the channels that only exist when two
   people stand together.* → Learn Human Design →
 - Rationale: the "different dynamics nature" claim delivered with concrete
-  evidence; layered/fused lives here as controls, not as its own zone.
+  evidence; leans on the layers zone above it.
 
-## 8. ZONE — BEYOND YOU 〔kabbalah / letters flavor〕
+## 9. ZONE — BEYOND YOU 〔kabbalah / letters flavor〕
 - Pill: `Made to be given`
 - H2: **Some maps are meant to be given.**
 - Body: Build the map of your mother's family or your partner's team and
@@ -122,7 +146,7 @@ Five system emblems in a quiet row.
 - Lineage: *In Kabbalah the letters themselves create — to send a word is
   to send a world.* → Learn Gematria →
 
-## 9. KNOWLEDGE BAND — trust layer, flavors braided
+## 10. KNOWLEDGE BAND — trust layer, flavors braided
 - H2: **Every line on the map has sources.**
 - Body: Five deep, searchable guides — each written in the voice of its
   tradition. When a reading says Gate 34 or Kin 113, the source is one
@@ -131,13 +155,13 @@ Five system emblems in a quiet row.
   `Venus synastry`, `Tone 7`, `Gematria 26`) + five flavored doc portals.
 - CTA: **Enter the library →** (/learn)
 
-## 10. SOCIAL PROOF
+## 11. SOCIAL PROOF
 - H2: **For people who read people carefully.**
 - 3 testimonial cards (grid-paper texture) — testimonials must mention
   saved people, group maps, or sharing, not vague "insights" — plus quiet
   horizontal quote marquee.
 
-## 11. SET PIECE — the Today board (split-flap)
+## 12. SET PIECE — the Today board (split-flap)
 - H2: **Today, across the systems.**
 - Sub: One moment, read through five traditions — live.
 - Board (CSS 3D flip, real endpoints): `KIN 113 · MOON WAXING GIBBOUS ·
@@ -145,7 +169,7 @@ Five system emblems in a quiet row.
 - Caption: *(the calendars never stop)*
 - Style: mechanical almanac — mono numerals, restrained gold, no carnival.
 
-## 12. PRICING
+## 13. PRICING
 - H2: **Free while your map is small.**
 - Body: Upgrade when the map becomes something you return to.
 - Cards: **Free** (you + a few people, essential readings) ·
@@ -154,18 +178,18 @@ Five system emblems in a quiet row.
   Cards sell map capacity and sharing before AI. Gold accent on
   recommended.
 
-## 13. FAQ
+## 14. FAQ
 Existing content restyled; lead with persistence/privacy/collaboration
 concerns: what birth data is stored, can collaborators edit, how fusion
 works, what's free, can shares be viewed without an account.
 
-## 14. PORTAL CTA — mural bottom: parchment ground
+## 15. PORTAL CTA — mural bottom: parchment ground
 - Doorway card, warm dawn light through the arch, a small live map
   visible *beyond* the door (entry into product, not abstract glow).
 - H2: **The map starts with one birthday. Yours.**
 - Button (pill, gold): **Open the map**
 
-## 15. FOOTER
+## 16. FOOTER
 Columns: Product · Knowledge · Company · Legal + featured cards.
 Live mono line: `TODAY: KIN 113 · 17 TAMMUZ 5786 · SUN 12° CANCER — the
 calendars are counting`
