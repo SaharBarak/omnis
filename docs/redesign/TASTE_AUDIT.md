@@ -55,6 +55,56 @@ slop copy ✓ · transform/opacity-only animation ✓ · staggered orchestration
 perpetual micro-interactions (flap board, cycler, SMIL pulse, glow) ✓ ·
 deps verified in package.json ✓ · grid-not-flex-math ✓ · content max-width ✓.
 
+## F. Typography & design-system persistence audit (verified by grep)
+
+### F1. Type-scale drift — two competing H2 scales, no tracking rules
+| Usage | Found | Files |
+|---|---|---|
+| Zone H2 | `text-4xl md:text-6xl leading-[1.08]` | zone.tsx, zone-layers.tsx |
+| Centered section H2 | `text-4xl md:text-5xl` (no leading) | sections.tsx ×2, portal-cta.tsx |
+| FAQ H2 | bare `text-4xl` (no md step, no leading) | sections.tsx |
+| Board H2 | `text-4xl md:text-6xl` (no leading) | today-board.tsx |
+| Sub-display | `text-2xl` ×2, `text-xl` ×2, `text-sm`, `text-base` italic ×2 — ad-hoc | embeds, nav, sections |
+
+No `tracking-*` anywhere on display type (skill default: `tracking-tighter`).
+**Fix: one type ramp, used everywhere** —
+`display-hero` (H1) · `display-zone` (zone H2: 4xl/6xl, leading-[1.08],
+tracking-tight) · `display-section` (centered H2: 4xl/5xl, leading-tight,
+tracking-tight) · `display-card` (2xl) · `eyebrow` (mono 11px,
+tracking-[0.2em] uppercase). FAQ + board + portal collapse into
+`display-section`.
+
+### F2. Color-token bypass — 90 hardcoded hexes in 10 files
+- `#C9A227` gold written **32 times**; `#E7D08A` 7×; `#FFF6D9` 2×.
+- **Four divergent card-surface colors**: `#0d101a` (12×), `#12151f` (5×),
+  `#141828`, `#101423` — incoherent elevation story.
+- Ground `#0B0D16` inline 6× despite `MURAL_GROUND` constant existing.
+- The project's HSL token system (globals.css + tailwind) is unused by
+  landing-v2; system-flavors.ts is the only tokenized path.
+
+**Fix: extend tailwind theme + one constants module** —
+`ground #0B0D16 · surface #0D101A · surface-2 #12151F · gold #C9A227 ·
+gold-soft #E7D08A · gold-bright #FFF6D9` as tailwind colors
+(`bg-ground`, `bg-surface`, `text-gold`…); kill `#141828`/`#101423`
+(merge into surface-2); seal-family colors already live in tailwind
+(`seal.*`) — demo-graph should import, not restate.
+
+### F3. Text-emphasis ramp — 14 distinct white-opacity steps
+`text-white/25…/90` in 14 flavors. Collapse to 4 semantic steps:
+`text-hi` (white/90) · `text-mid` (white/70) · `text-low` (white/50) ·
+`text-faint` (white/35). Map: 75,80,85→hi · 60,65→mid · 40,45,55→low ·
+25,30,35→faint (per-case eyeball on borderline 55/60).
+
+### F4. Header (nav) coherence
+Nav logo `font-display text-xl`, footer logo `text-2xl` — unify (both
+`display-card`/2xl or shared Logo component). Nav links `text-sm
+text-white/70` fine, but pill CTA duplicates hero CTA styles inline —
+extract shared `GoldButton` (also carries A4 active-state + A5 magnetic).
+
+**Priority: F1–F4 fold into the P1 sweep** — they're one refactor commit
+(tokens + ramp module + mechanical swap), best done BEFORE the layout
+fixes so A1/A2 build on clean tokens.
+
 ## Execution order
 
 1. **P1 sweep** (hero split, triads→divide-y, circles asym, 100dvh, active
