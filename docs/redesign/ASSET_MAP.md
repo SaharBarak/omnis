@@ -98,6 +98,28 @@ approved still, minimal-motion prompts, ping-pong playback:
 | V2 PORTAL-LOOP | PORTAL-CTA | dawn light breathing in doorway | P1 |
 | V3 MAP-NEBULA-LOOP | ZONE-DSPELL | ambient shimmer behind map embed | P2 |
 
+## C7. Generation log (2026-07-03, GPT Image 2, 2k, style anchor v1)
+
+All 10 stills approved first-pass. Repo paths + Higgsfield job IDs:
+
+| Asset | Repo path | Job ID |
+|---|---|---|
+| HERO-SKY | `public/images/redesign/mural/hero-sky.webp` | 03683844-27a9-450b-b2dd-0a8024cbcc76 |
+| ZONE-ASTRO | `public/images/redesign/mural/zone-astrology.webp` | b4a2e907-fc98-4953-8291-215a00b8bb29 |
+| ZONE-DSPELL | `public/images/redesign/mural/zone-dreamspell.webp` | 0570a0d6-f8eb-4a66-8968-b774e8d5366a |
+| ZONE-TZOLKIN | `public/images/redesign/mural/zone-tzolkin.webp` | 978cea7c-c187-45a1-bc4e-6bb71a0af223 |
+| ZONE-HD | `public/images/redesign/mural/zone-human-design.webp` | ae349ea9-c1b6-4984-b6ba-533338c54203 |
+| ZONE-GEMATRIA | `public/images/redesign/mural/zone-gematria.webp` | 40557c66-73e0-4e4f-91bf-6d62190613bd |
+| PORTAL-CTA | `public/images/redesign/mural/portal-cta.webp` | b9cc78c8-d70b-45a3-be4d-1840833b428e |
+| RAIL-TEX | `public/images/redesign/motifs/thread-of-light.webp` | 237cbdb8-53cf-40e9-93e1-204dad6a4b67 |
+| TRAVELER | `public/images/redesign/motifs/traveler-glyph.webp` | 61c12084-3bc2-4b1c-b666-7c5ca588d882 |
+| GRID-PAPER | `public/images/redesign/motifs/grid-paper-tile.webp` | b7170d3d-9fb5-434c-9b6c-bcd39c8abed4 |
+
+Video loops (C6): **Seedance 2.0 requires Higgsfield Pro/Ultimate plan** —
+blocked on current plan. Kling 3.0 fallback attempted for V1. If fallback
+also gated: ship static stills + CSS star-twinkle overlay until plan
+upgrade decision.
+
 ## D. Built in code, not generated
 
 - Split-flap "today across systems" board — CSS 3D component
