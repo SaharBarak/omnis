@@ -1,9 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { MURAL_GROUND } from '@/lib/design/system-flavors'
+import { TYPE } from '@/lib/design/landing-tokens'
+import { AmbientVideo } from './ambient-video'
 
 // ============================================
 // PORTAL CTA — the boarding door (Railway's "All Aboard", ours in stone).
@@ -12,8 +14,6 @@ import { MURAL_GROUND } from '@/lib/design/system-flavors'
 // ============================================
 
 export function PortalCta() {
-  const reducedMotion = useReducedMotion()
-
   return (
     <section
       className="relative overflow-hidden py-28 md:py-40"
@@ -28,32 +28,18 @@ export function PortalCta() {
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
         >
-          {reducedMotion ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src="/images/redesign/mural/portal-cta.webp"
-              alt=""
-              className="h-auto w-full"
-            />
-          ) : (
-            <video
-              className="h-auto w-full"
-              autoPlay
-              muted
-              loop
-              playsInline
-              poster="/images/redesign/mural/portal-cta.webp"
-            >
-              <source src="/videos/redesign/portal-loop.webm" type="video/webm" />
-              <source src="/videos/redesign/portal-loop.mp4" type="video/mp4" />
-            </video>
-          )}
+          <AmbientVideo
+            webmSrc="/videos/redesign/portal-loop.webm"
+            mp4Src="/videos/redesign/portal-loop.mp4"
+            poster="/images/redesign/mural/portal-cta.webp"
+            className="h-auto w-full"
+          />
         </motion.div>
 
         {/* The invitation */}
         <div className="max-w-md text-center md:text-left">
           <motion.h2
-            className="font-display text-4xl leading-[1.1] text-white md:text-5xl"
+            className={TYPE.section}
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-80px' }}
@@ -62,7 +48,7 @@ export function PortalCta() {
             The map starts with one birthday. Yours.
           </motion.h2>
           <motion.p
-            className="mt-5 text-lg text-white/65"
+            className="mt-5 text-lg text-white/70"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true, margin: '-80px' }}
@@ -80,7 +66,7 @@ export function PortalCta() {
             <Button
               asChild
               size="lg"
-              className="mt-8 animate-glow-pulse rounded-full bg-[#C9A227] px-10 text-base font-semibold text-[#0B0D16] hover:bg-[#E7D08A]"
+              className="mt-8 animate-glow-pulse rounded-full bg-gold px-10 text-base font-semibold text-ground transition-transform hover:bg-gold-soft active:scale-[0.98]"
             >
               <Link href="/login">Open the map</Link>
             </Button>

@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import type { SystemFlavor } from '@/lib/design/system-flavors'
 import { MURAL_GROUND } from '@/lib/design/system-flavors'
+import { COLORS, TYPE } from '@/lib/design/landing-tokens'
 
 // ============================================
 // ZONE — the shared Railway-grammar section:
@@ -47,7 +48,7 @@ export function Zone({
   compact = false,
   accentOverride,
 }: ZoneProps) {
-  const accent = accentOverride ?? flavor?.accent ?? '#C9A227'
+  const accent = accentOverride ?? flavor?.accent ?? COLORS.gold
 
   return (
     <section
@@ -89,7 +90,7 @@ export function Zone({
 
         {/* Serif headline */}
         <motion.h2
-          className="mt-6 max-w-3xl font-display text-4xl leading-[1.08] text-white md:text-6xl"
+          className={`${TYPE.zone} mt-6 max-w-3xl`}
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
@@ -132,21 +133,22 @@ export function Zone({
           </motion.div>
         )}
 
-        {/* Triad */}
+        {/* Triad — divide-y rows, not card columns (taste-audit A2) */}
         {triad && !compact && (
-          <div className="mt-14 grid gap-8 border-t border-white/10 pt-10 md:grid-cols-3">
+          <div className="mt-14 max-w-2xl divide-y divide-white/10 border-t border-white/10">
             {triad.map((item, i) => (
               <motion.div
                 key={item.title}
-                initial={{ opacity: 0, y: 16 }}
+                className="flex flex-col gap-1.5 py-5 md:flex-row md:items-baseline md:gap-8"
+                initial={{ opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.5, delay: i * 0.08, ease: easeOut }}
               >
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-white/90">
+                <h3 className="w-56 shrink-0 text-sm font-semibold uppercase tracking-wide text-white/90">
                   {item.title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-white/55">{item.text}</p>
+                <p className="text-sm leading-relaxed text-white/50">{item.text}</p>
               </motion.div>
             ))}
           </div>
@@ -161,7 +163,7 @@ export function Zone({
             viewport={{ once: true, margin: '-40px' }}
             transition={{ duration: 0.6 }}
           >
-            <p className="font-display text-base italic text-white/45">{flavor.lineage}</p>
+            <p className="font-display text-base italic text-white/50">{flavor.lineage}</p>
             <Link
               href={flavor.learnHref}
               className="inline-flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-80"

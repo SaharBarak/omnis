@@ -3,6 +3,7 @@
 import { useRef } from 'react'
 import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from 'framer-motion'
 import { SYSTEM_FLAVORS, FLAVOR_DESCENT, MURAL_GROUND } from '@/lib/design/system-flavors'
+import { COLORS, TYPE } from '@/lib/design/landing-tokens'
 
 // ============================================
 // THE FIVE LAYERS — scroll-pinned signature set piece.
@@ -96,17 +97,17 @@ export function ZoneLayers() {
         className={
           reducedMotion
             ? 'py-28'
-            : 'sticky top-0 flex min-h-screen flex-col justify-center py-16'
+            : 'sticky top-0 flex min-h-[100dvh] flex-col justify-center py-16'
         }
       >
         <div className="mx-auto w-full max-w-content px-6">
           <span
             className="inline-block rounded-full border px-4 py-1.5 text-xs uppercase tracking-[0.18em]"
-            style={{ borderColor: '#C9A22755', color: '#C9A227', backgroundColor: '#C9A22714' }}
+            style={{ borderColor: `${COLORS.gold}55`, color: COLORS.gold, backgroundColor: `${COLORS.gold}14` }}
           >
             Layer by layer
           </span>
-          <h2 className="mt-6 max-w-3xl font-display text-4xl leading-[1.08] text-white md:text-6xl">
+          <h2 className={`${TYPE.zone} mt-6 max-w-3xl`}>
             Same people. Five layers deep.
           </h2>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-white/70">
@@ -116,7 +117,7 @@ export function ZoneLayers() {
           </p>
 
           {/* The acetate table */}
-          <div className="relative mt-10 rounded-2xl border border-white/10 bg-[#0d101a] p-4 md:p-8">
+          <div className="relative mt-10 rounded-2xl border border-white/10 bg-surface p-4 md:p-8">
             {/* Layer chips */}
             <div className="mb-4 flex flex-wrap gap-2">
               {FLAVOR_DESCENT.map((key, i) => {
@@ -134,7 +135,7 @@ export function ZoneLayers() {
               })}
               <LayerChip
                 label="Fused"
-                accent="#C9A227"
+                accent={COLORS.gold}
                 index={5}
                 activeIndex={activeIndex}
                 forceActive={reducedMotion === true}
@@ -145,14 +146,14 @@ export function ZoneLayers() {
               aria-label="The same six people read through five stacked system layers">
               {/* Fused glow */}
               {reducedMotion ? (
-                <rect x={0} y={0} width={800} height={460} fill="#C9A227" opacity={0.06} />
+                <rect x={0} y={0} width={800} height={460} fill={COLORS.gold} opacity={0.06} />
               ) : (
                 <motion.rect
                   x={0}
                   y={0}
                   width={800}
                   height={460}
-                  fill="#C9A227"
+                  fill={COLORS.gold}
                   style={{ opacity: fusedGlow }}
                 />
               )}
@@ -184,7 +185,7 @@ export function ZoneLayers() {
               {PEOPLE.map((p) => (
                 <g key={p.name}>
                   <circle cx={p.x} cy={p.y} r={16} fill="#ffffff" opacity={0.08} />
-                  <circle cx={p.x} cy={p.y} r={8} fill="#E7D08A" stroke={MURAL_GROUND} strokeWidth={2} />
+                  <circle cx={p.x} cy={p.y} r={8} fill={COLORS.goldSoft} stroke={MURAL_GROUND} strokeWidth={2} />
                   <text
                     x={p.x}
                     y={p.y + 28}
@@ -199,7 +200,7 @@ export function ZoneLayers() {
             </svg>
           </div>
 
-          <p className="mt-6 max-w-xl text-sm text-white/45">
+          <p className="mt-6 max-w-xl text-sm text-white/50">
             Isolate any single layer · compare layers side by side · fuse all
             five into one reading, evidence still visible.
           </p>

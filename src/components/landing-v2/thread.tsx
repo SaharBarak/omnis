@@ -1,6 +1,7 @@
 'use client'
 
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
+import { COLORS } from '@/lib/design/landing-tokens'
 
 // ============================================
 // THREAD OF LIGHT — the Railway rail, reborn.
@@ -29,8 +30,8 @@ export function ThreadOfLight() {
           height: '86%',
           scaleY: progress,
           background:
-            'linear-gradient(to bottom, #C9A22700, #C9A227cc 12%, #C9A227cc 88%, #C9A22700)',
-          boxShadow: '0 0 12px #C9A22766',
+            `linear-gradient(to bottom, ${COLORS.gold}00, ${COLORS.gold}cc 12%, ${COLORS.gold}cc 88%, ${COLORS.gold}00)`,
+          boxShadow: `0 0 12px ${COLORS.gold}66`,
         }}
       />
 
@@ -43,13 +44,13 @@ export function ThreadOfLight() {
           className="absolute inset-0 rounded-full"
           style={{
             background:
-              'radial-gradient(circle, #FFF6D9 0%, #E7D08A 18%, #C9A22766 40%, transparent 70%)',
+              `radial-gradient(circle, ${COLORS.goldBright} 0%, ${COLORS.goldSoft} 18%, ${COLORS.gold}66 40%, transparent 70%)`,
             filter: 'blur(0.5px)',
           }}
         />
         <span
           className="absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
-          style={{ backgroundColor: '#FFF6D9', boxShadow: '0 0 10px 3px #E7D08Acc' }}
+          style={{ backgroundColor: COLORS.goldBright, boxShadow: `0 0 10px 3px ${COLORS.goldSoft}cc` }}
         />
       </motion.div>
     </div>

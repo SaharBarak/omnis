@@ -50,6 +50,16 @@ const config: Config = {
   			'9xl': ['7rem', { lineHeight: '0.9' }]
   		},
   		colors: {
+  			ground: '#0B0D16',
+  			surface: {
+  				DEFAULT: '#0D101A',
+  				'2': '#12151F'
+  			},
+  			gold: {
+  				DEFAULT: '#C9A227',
+  				soft: '#E7D08A',
+  				bright: '#FFF6D9'
+  			},
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

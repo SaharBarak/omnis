@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { SYSTEM_FLAVORS, FLAVOR_DESCENT, type SystemKey } from '@/lib/design/system-flavors'
+import { COLORS } from '@/lib/design/landing-tokens'
 
 // ============================================
 // DEMO GRAPH — lightweight SVG relationship map for marketing surfaces.
@@ -83,7 +84,7 @@ export function DemoGraph({ lens = null, className }: DemoGraphProps) {
       const score = edge.scores[lensIndex]
       return SYSTEM_FLAVORS[lens as SystemKey].accent + (score > 65 ? 'cc' : '55')
     }
-    return fusedScore(edge) > 65 ? '#C9A227cc' : '#ffffff30'
+    return fusedScore(edge) > 65 ? `${COLORS.gold}cc` : '#ffffff30'
   }
 
   return (
@@ -133,7 +134,7 @@ export function DemoGraph({ lens = null, className }: DemoGraphProps) {
               cy={node.y}
               r={9}
               fill={node.color}
-              stroke="#0B0D16"
+              stroke={COLORS.ground}
               strokeWidth={2}
             >
               <animate
@@ -161,7 +162,7 @@ export function DemoGraph({ lens = null, className }: DemoGraphProps) {
       </svg>
 
       {/* Group legend */}
-      <div className="mt-3 flex justify-center gap-6 text-xs uppercase tracking-widest text-white/40">
+      <div className="mt-3 flex justify-center gap-6 text-xs uppercase tracking-widest text-white/50">
         <span>Family</span>
         <span>Team</span>
         <span>Friends</span>
@@ -177,7 +178,7 @@ function EdgeScorecard({ edge }: { readonly edge: DemoEdge }) {
 
   return (
     <g pointerEvents="none">
-      <rect x={x} y={y} width={140} height={104} rx={8} fill="#141828" stroke="#ffffff22" />
+      <rect x={x} y={y} width={140} height={104} rx={8} fill={COLORS.surface2} stroke="#ffffff22" />
       {FLAVOR_DESCENT.map((key, i) => {
         const flavor = SYSTEM_FLAVORS[key]
         const score = edge.scores[i]

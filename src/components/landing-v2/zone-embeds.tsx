@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Search, Link2, Users, Eye, MessageSquare, Pencil } from 'lucide-react'
 import { SYSTEM_FLAVORS, FLAVOR_DESCENT, type SystemKey } from '@/lib/design/system-flavors'
+import { COLORS } from '@/lib/design/landing-tokens'
 import { DemoGraph } from './demo-graph'
 
 // ============================================
@@ -76,7 +77,7 @@ export function ReadingCycler() {
   const flavor = SYSTEM_FLAVORS[tab.key]
 
   return (
-    <div className="mx-auto max-w-2xl rounded-2xl border border-white/10 bg-[#0d101a] p-6 md:p-8">
+    <div className="mx-auto max-w-2xl rounded-2xl border border-white/10 bg-surface p-6 md:p-8">
       {/* Tab strip with progress hairline */}
       <div className="flex gap-1 border-b border-white/10 pb-3">
         {READING_TABS.map((t, i) => (
@@ -118,14 +119,14 @@ export function ReadingCycler() {
             <Image src={tab.icon} alt={tab.title} width={52} height={52} className="opacity-90 invert" />
           </div>
           <div className="text-left">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">{tab.title}</p>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-white/50">{tab.title}</p>
             <p className="mt-1 font-display text-2xl text-white">{tab.value}</p>
-            <p className="mt-1 text-sm text-white/55">{tab.detail}</p>
+            <p className="mt-1 text-sm text-white/50">{tab.detail}</p>
           </div>
         </motion.div>
       </AnimatePresence>
 
-      <p className="mt-6 border-t border-white/10 pt-4 text-right text-xs text-white/40">
+      <p className="mt-6 border-t border-white/10 pt-4 text-right text-xs text-white/50">
         Save to map →
       </p>
     </div>
@@ -146,7 +147,7 @@ const PAIR_SCORES: readonly { readonly key: SystemKey; readonly score: number; r
 
 export function PairScores() {
   return (
-    <div className="mx-auto max-w-xl rounded-2xl border border-white/10 bg-[#0d101a] p-6 md:p-8">
+    <div className="mx-auto max-w-xl rounded-2xl border border-white/10 bg-surface p-6 md:p-8">
       <div className="mb-6 flex items-center justify-center gap-4">
         <PairAvatar name="Maya" color="#C0392B" />
         <div className="h-px w-16 bg-gradient-to-r from-[#C0392B] to-[#2C3E90]" />
@@ -170,8 +171,8 @@ export function PairScores() {
                   transition={{ duration: 0.9, delay: i * 0.12, ease: easeOut }}
                 />
               </div>
-              <span className="w-8 text-right font-mono text-sm text-white/80">{score}</span>
-              <span className="hidden w-44 text-xs text-white/45 md:block">{note}</span>
+              <span className="w-8 text-right font-mono text-sm text-white/90">{score}</span>
+              <span className="hidden w-44 text-xs text-white/50 md:block">{note}</span>
             </div>
           )
         })}
@@ -189,7 +190,7 @@ function PairAvatar({ name, color }: { readonly name: string; readonly color: st
       >
         {name[0]}
       </span>
-      <span className="text-xs text-white/60">{name}</span>
+      <span className="text-xs text-white/70">{name}</span>
     </div>
   )
 }
@@ -219,10 +220,10 @@ export function LibraryDemo() {
   }, [])
 
   return (
-    <div className="mx-auto max-w-2xl rounded-2xl border border-white/10 bg-[#0d101a] p-6 md:p-8">
-      <div className="flex items-center gap-3 rounded-lg border border-white/15 bg-[#12151f] px-4 py-3">
-        <Search className="h-4 w-4 text-white/40" />
-        <span className="font-mono text-sm text-white/85">
+    <div className="mx-auto max-w-2xl rounded-2xl border border-white/10 bg-surface p-6 md:p-8">
+      <div className="flex items-center gap-3 rounded-lg border border-white/15 bg-surface-2 px-4 py-3">
+        <Search className="h-4 w-4 text-white/50" />
+        <span className="font-mono text-sm text-white/90">
           {typed}
           <span className="animate-gentle-pulse text-white/50">|</span>
         </span>
@@ -240,11 +241,11 @@ export function LibraryDemo() {
             >
               <div>
                 <p className="text-sm font-medium text-white/90">{p.name}</p>
-                <p className="font-mono text-xs text-white/45">{p.meta}</p>
+                <p className="font-mono text-xs text-white/50">{p.meta}</p>
               </div>
               <div className="flex gap-2 text-xs text-white/50">
                 <span>Open reading</span>
-                <span className="text-white/25">·</span>
+                <span className="text-white/35">·</span>
                 <span>Add to map</span>
               </div>
             </motion.div>
@@ -266,7 +267,7 @@ export function MapCenterpiece() {
   const [lens, setLens] = useState<SystemKey | null>(null)
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#0d101a] p-4 md:p-8">
+    <div className="rounded-2xl border border-white/10 bg-surface p-4 md:p-8">
       <div className="mb-5 flex flex-wrap gap-2">
         {FLAVOR_DESCENT.map((key) => {
           const flavor = SYSTEM_FLAVORS[key]
@@ -276,7 +277,7 @@ export function MapCenterpiece() {
               key={key}
               type="button"
               onClick={() => setLens(isActive ? null : key)}
-              className="rounded-full border px-3 py-1 text-[11px] uppercase tracking-widest transition-opacity"
+              className="rounded-full border px-3 py-1 text-[11px] uppercase tracking-widest transition-all active:scale-[0.98]"
               style={{
                 borderColor: `${flavor.accent}55`,
                 color: flavor.accent,
@@ -293,9 +294,9 @@ export function MapCenterpiece() {
           onClick={() => setLens(null)}
           className="rounded-full border px-3 py-1 text-[11px] uppercase tracking-widest"
           style={{
-            borderColor: '#C9A22755',
-            color: '#C9A227',
-            backgroundColor: lens === null ? '#C9A22722' : '#C9A22708',
+            borderColor: `${COLORS.gold}55`,
+            color: COLORS.gold,
+            backgroundColor: lens === null ? `${COLORS.gold}22` : `${COLORS.gold}08`,
           }}
         >
           Fused
@@ -316,7 +317,7 @@ export function MapCenterpiece() {
 const CIRCLES = [
   {
     name: 'Family',
-    accent: '#C9A227',
+    accent: COLORS.gold,
     members: ['Maya', 'Noam', 'Dana', 'Shai'],
     insight: 'Maya bridges — the only defined throat in the room.',
   },
@@ -336,11 +337,11 @@ const CIRCLES = [
 
 export function CirclesDemo() {
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-[2fr_1fr_1fr]">
       {CIRCLES.map((circle, i) => (
         <motion.div
           key={circle.name}
-          className="rounded-2xl border border-white/10 bg-[#0d101a] p-6"
+          className={`rounded-2xl border border-white/10 bg-surface p-6 ${i === 0 ? 'md:p-8' : ''}`}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
@@ -353,13 +354,13 @@ export function CirclesDemo() {
             >
               {circle.name}
             </span>
-            <Users className="h-4 w-4 text-white/30" />
+            <Users className="h-4 w-4 text-white/35" />
           </div>
           <div className="mt-4 flex -space-x-2">
             {circle.members.map((m) => (
               <span
                 key={m}
-                className={`flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#0d101a] text-xs font-medium text-white ${
+                className={`flex h-9 w-9 items-center justify-center rounded-full border-2 border-surface text-xs font-medium text-white ${
                   m === 'Maya' ? '' : 'bg-white/15'
                 }`}
                 style={m === 'Maya' ? { backgroundColor: circle.accent } : undefined}
@@ -369,7 +370,7 @@ export function CirclesDemo() {
               </span>
             ))}
           </div>
-          <p className="mt-4 text-sm leading-relaxed text-white/60">{circle.insight}</p>
+          <p className="mt-4 text-sm leading-relaxed text-white/70">{circle.insight}</p>
         </motion.div>
       ))}
     </div>
@@ -383,8 +384,8 @@ export function CirclesDemo() {
 export function ShareDemo() {
   return (
     <div className="mx-auto grid max-w-3xl items-center gap-6 md:grid-cols-2">
-      <div className="rounded-2xl border border-white/10 bg-[#0d101a] p-6">
-        <p className="text-xs uppercase tracking-[0.18em] text-white/45">Share this map</p>
+      <div className="rounded-2xl border border-white/10 bg-surface p-6">
+        <p className="text-xs uppercase tracking-[0.18em] text-white/50">Share this map</p>
         <p className="mt-2 font-display text-xl text-white">Mom&rsquo;s side — 12 people</p>
         <div className="mt-5 space-y-2.5">
           {[
@@ -394,11 +395,11 @@ export function ShareDemo() {
           ].map(({ icon: Icon, label, on }) => (
             <div key={label} className="flex items-center justify-between text-sm text-white/70">
               <span className="flex items-center gap-2.5">
-                <Icon className="h-4 w-4 text-white/40" />
+                <Icon className="h-4 w-4 text-white/50" />
                 {label}
               </span>
               <span
-                className={`h-4 w-7 rounded-full ${on ? 'bg-[#C9A227]' : 'bg-white/15'} relative`}
+                className={`h-4 w-7 rounded-full ${on ? 'bg-gold' : 'bg-white/15'} relative`}
               >
                 <span
                   className={`absolute top-0.5 h-3 w-3 rounded-full bg-white transition-all ${on ? 'right-0.5' : 'left-0.5'}`}
@@ -407,9 +408,9 @@ export function ShareDemo() {
             </div>
           ))}
         </div>
-        <div className="mt-5 flex items-center gap-2 rounded-lg border border-white/15 bg-[#12151f] px-3 py-2.5">
-          <Link2 className="h-4 w-4 shrink-0 text-[#C9A227]" />
-          <span className="truncate font-mono text-xs text-white/60">
+        <div className="mt-5 flex items-center gap-2 rounded-lg border border-white/15 bg-surface-2 px-3 py-2.5">
+          <Link2 className="h-4 w-4 shrink-0 text-gold" />
+          <span className="truncate font-mono text-xs text-white/70">
             omnis.app/share/m0ms-side-x7f2
           </span>
         </div>
@@ -417,14 +418,14 @@ export function ShareDemo() {
 
       {/* Recipient phone frame */}
       <motion.div
-        className="mx-auto w-52 rounded-[2rem] border border-white/15 bg-[#0d101a] p-3 shadow-2xl"
+        className="mx-auto w-52 rounded-[2rem] border border-white/15 bg-surface p-3 shadow-2xl"
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-60px' }}
         transition={{ duration: 0.6, delay: 0.2, ease: easeOut }}
       >
-        <div className="rounded-[1.4rem] bg-[#12151f] p-4">
-          <p className="text-[9px] uppercase tracking-widest text-white/40">Shared with you</p>
+        <div className="rounded-[1.4rem] bg-surface-2 p-4">
+          <p className="text-[9px] uppercase tracking-widest text-white/50">Shared with you</p>
           <p className="mt-1 font-display text-sm text-white">Mom&rsquo;s side</p>
           <div className="mt-3">
             <DemoGraph className="scale-[1.02]" />
@@ -461,9 +462,9 @@ export function KnowledgeSearch() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="flex items-center gap-3 rounded-full border border-white/15 bg-[#12151f] px-6 py-4">
-        <Search className="h-5 w-5 text-[#C9A227]" />
-        <span className="font-mono text-base text-white/85">
+      <div className="flex items-center gap-3 rounded-full border border-white/15 bg-surface-2 px-6 py-4">
+        <Search className="h-5 w-5 text-gold" />
+        <span className="font-mono text-base text-white/90">
           {typed}
           <span className="animate-gentle-pulse text-white/50">|</span>
         </span>

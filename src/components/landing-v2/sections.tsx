@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SYSTEM_FLAVORS, FLAVOR_DESCENT, MURAL_GROUND } from '@/lib/design/system-flavors'
+import { TYPE } from '@/lib/design/landing-tokens'
 import { faqs } from '@/lib/data/faqs'
 
 // ============================================
@@ -55,7 +56,7 @@ export function SigilBand() {
             </motion.div>
           ))}
         </div>
-        <p className="mt-8 text-center font-display text-base italic text-white/40">
+        <p className="mt-8 text-center font-display text-base italic text-white/50">
           Five traditions, thousands of years old. One map.
         </p>
       </div>
@@ -93,7 +94,7 @@ export function SocialProofV2() {
     <section className="py-24" style={{ backgroundColor: MURAL_GROUND }}>
       <div className="mx-auto max-w-content px-6">
         <motion.h2
-          className="text-center font-display text-4xl text-white md:text-5xl"
+          className={`${TYPE.section} text-center`}
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
@@ -105,11 +106,11 @@ export function SocialProofV2() {
           {TESTIMONIALS.map((t, i) => (
             <motion.figure
               key={t.name}
-              className="rounded-2xl border border-white/10 p-7"
+              className={`rounded-2xl border border-white/10 p-7 ${i === 1 ? "md:-mt-6" : ""}`}
               style={{
                 backgroundImage: 'url(/images/redesign/motifs/grid-paper-tile.webp)',
                 backgroundSize: '340px',
-                backgroundColor: '#0d101a',
+                backgroundColor: '#0D101A', // surface token (style prop for blend-mode)
                 backgroundBlendMode: 'overlay',
               }}
               initial={{ opacity: 0, y: 20 }}
@@ -117,12 +118,12 @@ export function SocialProofV2() {
               viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.55, delay: i * 0.1, ease: easeOut }}
             >
-              <blockquote className="text-[15px] leading-relaxed text-white/75">
+              <blockquote className="text-[15px] leading-relaxed text-white/70">
                 &ldquo;{t.quote}&rdquo;
               </blockquote>
               <figcaption className="mt-5 text-sm">
                 <span className="font-medium text-white/90">{t.name}</span>
-                <span className="text-white/45"> — {t.role}</span>
+                <span className="text-white/50"> — {t.role}</span>
               </figcaption>
             </motion.figure>
           ))}
@@ -172,7 +173,7 @@ export function PricingV2() {
     <section id="pricing" className="py-24" style={{ backgroundColor: MURAL_GROUND }}>
       <div className="mx-auto max-w-content px-6">
         <motion.h2
-          className="text-center font-display text-4xl text-white md:text-5xl"
+          className={`${TYPE.section} text-center`}
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
@@ -180,7 +181,7 @@ export function PricingV2() {
         >
           Free while your map is small.
         </motion.h2>
-        <p className="mt-4 text-center text-lg text-white/55">
+        <p className="mt-4 text-center text-lg text-white/50">
           Upgrade when the map becomes something you return to.
         </p>
         <div className="mx-auto mt-14 grid max-w-4xl gap-6 md:grid-cols-3">
@@ -189,8 +190,8 @@ export function PricingV2() {
               key={plan.name}
               className={`rounded-2xl border p-7 ${
                 plan.highlight
-                  ? 'border-[#C9A22766] bg-[#C9A2270d] shadow-[0_0_40px_#C9A22722]'
-                  : 'border-white/10 bg-[#0d101a]'
+                  ? 'border-gold/40 bg-gold/5 shadow-[0_0_40px_rgba(201,162,39,0.13)] md:scale-105'
+                  : 'border-white/10 bg-surface'
               }`}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -200,13 +201,13 @@ export function PricingV2() {
               <p className="text-xs uppercase tracking-[0.2em] text-white/50">{plan.name}</p>
               <p className="mt-3 font-display text-4xl text-white">
                 {plan.price}
-                <span className="text-base text-white/40">/mo</span>
+                <span className="text-base text-white/50">/mo</span>
               </p>
-              <p className="mt-1 text-sm text-white/55">{plan.tagline}</p>
+              <p className="mt-1 text-sm text-white/50">{plan.tagline}</p>
               <ul className="mt-6 space-y-2.5 text-sm text-white/70">
                 {plan.features.map((f) => (
                   <li key={f} className="flex gap-2">
-                    <span style={{ color: '#C9A227' }}>·</span>
+                    <span className="text-gold">·</span>
                     {f}
                   </li>
                 ))}
@@ -215,8 +216,8 @@ export function PricingV2() {
                 asChild
                 className={`mt-7 w-full rounded-full ${
                   plan.highlight
-                    ? 'bg-[#C9A227] text-[#0B0D16] hover:bg-[#E7D08A]'
-                    : 'bg-white/10 text-white hover:bg-white/20'
+                    ? 'bg-gold text-ground hover:bg-gold-soft active:scale-[0.98]'
+                    : 'bg-white/10 text-white hover:bg-white/20 active:scale-[0.98]'
                 }`}
               >
                 <Link href="/login">{plan.cta}</Link>
@@ -240,7 +241,7 @@ export function FaqV2() {
     <section id="faq" className="py-24" style={{ backgroundColor: MURAL_GROUND }}>
       <div className="mx-auto max-w-2xl px-6">
         <motion.h2
-          className="text-center font-display text-4xl text-white"
+          className={`${TYPE.section} text-center`}
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
@@ -256,16 +257,16 @@ export function FaqV2() {
                 className="flex w-full items-center justify-between gap-4 py-5 text-left"
                 onClick={() => setOpen(open === i ? null : i)}
               >
-                <span className="text-[15px] font-medium text-white/85">{faq.question}</span>
+                <span className="text-[15px] font-medium text-white/90">{faq.question}</span>
                 <ChevronDown
-                  className={`h-4 w-4 shrink-0 text-[#C9A227] transition-transform ${
+                  className={`h-4 w-4 shrink-0 text-gold transition-transform ${
                     open === i ? 'rotate-180' : ''
                   }`}
                 />
               </button>
               {open === i && (
                 <motion.p
-                  className="pb-5 text-sm leading-relaxed text-white/60"
+                  className="pb-5 text-sm leading-relaxed text-white/70"
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   transition={{ duration: 0.25 }}
@@ -319,20 +320,20 @@ export function FooterV2({ liveLine }: { readonly liveLine: string }) {
       <div className="mx-auto max-w-content px-6">
         <div className="grid gap-10 md:grid-cols-4">
           <div>
-            <p className="font-display text-2xl text-white">Omnis</p>
-            <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/45">
+            <p className={TYPE.card}>Omnis</p>
+            <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/50">
               The living map of your people, read through five wisdom systems.
             </p>
           </div>
           {FOOTER_COLUMNS.map((col) => (
             <div key={col.title}>
-              <p className="text-xs uppercase tracking-[0.2em] text-white/40">{col.title}</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-white/50">{col.title}</p>
               <ul className="mt-4 space-y-2.5">
                 {col.links.map((link) => (
                   <li key={link.href + link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-white/65 transition-colors hover:text-white"
+                      className="text-sm text-white/70 transition-colors hover:text-white"
                     >
                       {link.label}
                     </Link>
@@ -343,8 +344,8 @@ export function FooterV2({ liveLine }: { readonly liveLine: string }) {
           ))}
         </div>
         <div className="mt-14 border-t border-white/10 pt-6 text-center">
-          <p className="font-mono text-[11px] tracking-[0.18em] text-[#C9A227]/80">{liveLine}</p>
-          <p className="mt-3 text-xs text-white/30">
+          <p className="font-mono text-[11px] tracking-[0.18em] text-gold/80">{liveLine}</p>
+          <p className="mt-3 text-xs text-white/35">
             © {new Date().getFullYear()} Omnis. All rights reserved.
           </p>
         </div>

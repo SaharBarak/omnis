@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { MURAL_GROUND } from '@/lib/design/system-flavors'
+import { TYPE } from '@/lib/design/landing-tokens'
 
 // ============================================
 // TODAY BOARD — the split-flap set piece (Railway homage).
@@ -41,7 +42,7 @@ function FlapCell({ target, delay }: { readonly target: string; readonly delay: 
   return (
     <span
       ref={ref}
-      className="inline-flex h-9 w-6 items-center justify-center rounded-[3px] border border-white/10 bg-[#12151f] font-mono text-sm text-white/85 md:h-11 md:w-7 md:text-base"
+      className="inline-flex h-9 w-6 items-center justify-center rounded-[3px] border border-white/10 bg-surface-2 font-mono text-sm text-white/90 md:h-11 md:w-7 md:text-base"
       style={{ transformStyle: 'preserve-3d' }}
     >
       <motion.span
@@ -59,7 +60,7 @@ function FlapCell({ target, delay }: { readonly target: string; readonly delay: 
 function FlapRow({ row, rowIndex }: { readonly row: BoardRow; readonly rowIndex: number }) {
   return (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-      <span className="w-24 shrink-0 font-mono text-[11px] uppercase tracking-[0.22em] text-white/40 md:w-32">
+      <span className="w-24 shrink-0 font-mono text-[11px] uppercase tracking-[0.22em] text-white/50 md:w-32">
         {row.label}
       </span>
       <span className="flex gap-[3px]">
@@ -94,7 +95,7 @@ export function TodayBoard({ data }: { readonly data: TodayBoardData }) {
     >
       <div className="mx-auto max-w-content px-6 text-center">
         <motion.h2
-          className="font-display text-4xl text-white md:text-6xl"
+          className={TYPE.section}
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
@@ -103,7 +104,7 @@ export function TodayBoard({ data }: { readonly data: TodayBoardData }) {
           Today, across the systems.
         </motion.h2>
         <motion.p
-          className="mt-4 text-lg text-white/60"
+          className="mt-4 text-lg text-white/70"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true, margin: '-80px' }}
@@ -112,11 +113,11 @@ export function TodayBoard({ data }: { readonly data: TodayBoardData }) {
           One moment, read through five traditions — live.
         </motion.p>
 
-        <div className="mx-auto mt-14 inline-flex flex-col gap-4 rounded-xl border border-white/10 bg-[#0d101a] p-6 text-left md:p-10">
+        <div className="mx-auto mt-14 inline-flex flex-col gap-4 rounded-xl border border-white/10 bg-surface p-6 text-left md:p-10">
           {rows.map((row, i) => (
             <FlapRow key={row.label} row={row} rowIndex={i} />
           ))}
-          <p className="mt-2 text-center font-mono text-[11px] tracking-[0.18em] text-white/30">
+          <p className="mt-2 text-center font-mono text-[11px] tracking-[0.18em] text-white/35">
             (THE CALENDARS NEVER STOP)
           </p>
         </div>

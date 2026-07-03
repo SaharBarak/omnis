@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { TYPE } from '@/lib/design/landing-tokens'
 
 // ============================================
 // NAV — translucent over the mural, densifies after scroll.
@@ -21,11 +22,11 @@ export function NavV2() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
-        dense ? 'border-b border-white/10 bg-[#0B0D16]/90 backdrop-blur-md' : 'bg-transparent'
+        dense ? 'border-b border-white/10 bg-ground/90 backdrop-blur-md' : 'bg-transparent'
       }`}
     >
       <div className="mx-auto flex h-16 max-w-content items-center justify-between px-6">
-        <Link href="/" className="font-display text-xl text-white">
+        <Link href="/" className={TYPE.card}>
           Omnis
         </Link>
         <nav className="hidden items-center gap-8 text-sm text-white/70 md:flex">
@@ -49,7 +50,7 @@ export function NavV2() {
           <Button
             asChild
             size="sm"
-            className="rounded-full bg-[#C9A227] px-5 font-semibold text-[#0B0D16] hover:bg-[#E7D08A]"
+            className="rounded-full bg-gold px-5 font-semibold text-ground transition-transform hover:bg-gold-soft active:scale-[0.98]"
           >
             <Link href="/login">Open your map</Link>
           </Button>
