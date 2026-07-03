@@ -3,6 +3,12 @@
 Reference: railway.com homepage composition (verified via live screenshots,
 2026-07-03). What we borrow, what we make ours.
 
+> **Read MAIN_PURPOSE.md first.** The map of your people is the lead
+> feature; the five systems are its lenses; docs are its sources. The
+> homepage composition below is superseded in detail by HOMEPAGE_SPEC.md
+> (capability zones wearing folklore skins) — this file remains the source
+> of truth for visual language, flavor tokens, motion, and type.
+
 ## What Railway does (observed — full homepage anatomy, 19 scroll frames)
 
 1. **Continuous illustrated mural** — dusk sky → painted clouds → mountains →

@@ -53,6 +53,11 @@ compose/stitch in CSS as layered bands.
 Zone bands must blend at edges (top/bottom fade to shared near-black
 `#0B0D16`) so the page reads as ONE continuous mural — Railway's key trick.
 
+Zone order on homepage (per HOMEPAGE_SPEC.md capability mapping):
+ZONE-ASTRO → ZONE-TZOLKIN → ZONE-DSPELL → ZONE-HD → ZONE-GEMATRIA.
+The hero floating UI is the live relationship graph — built in code, not
+generated art.
+
 ### C2. /learn doc heroes (priority 2)
 
 Five banners, one per system — same prompts as ZONE-* but wide-short
