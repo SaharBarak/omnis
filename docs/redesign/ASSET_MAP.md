@@ -87,6 +87,17 @@ zone art via crop/re-gen.
 | DASH-GROUND | very dark, very subtle cosmic ground texture, near-imperceptible stars — must not distract from data |
 | EMPTY-STATES ×3 | small illustrations: no-people, no-groups, no-boards (tiny observatory / gathering circle / blank codex) |
 
+## C6. Generate — Higgsfield VIDEO loops (image-to-video)
+
+See MOTION_SPEC.md for full contract. Seedance 2.0, `--start-image` = our
+approved still, minimal-motion prompts, ping-pong playback:
+
+| ID | From still | Purpose | Priority |
+|---|---|---|---|
+| V1 HERO-SKY-LOOP | HERO-SKY | living hero mural (cloud drift, twinkle) | P1 |
+| V2 PORTAL-LOOP | PORTAL-CTA | dawn light breathing in doorway | P1 |
+| V3 MAP-NEBULA-LOOP | ZONE-DSPELL | ambient shimmer behind map embed | P2 |
+
 ## D. Built in code, not generated
 
 - Split-flap "today across systems" board — CSS 3D component
