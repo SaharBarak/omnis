@@ -30,8 +30,8 @@ export function ThreadOfLight() {
           height: '86%',
           scaleY: progress,
           background:
-            `linear-gradient(to bottom, ${COLORS.gold}00, ${COLORS.gold}cc 12%, ${COLORS.gold}cc 88%, ${COLORS.gold}00)`,
-          boxShadow: `0 0 12px ${COLORS.gold}66`,
+            `linear-gradient(to bottom, ${COLORS.brand}00, ${COLORS.brand}cc 12%, ${COLORS.brand}cc 88%, ${COLORS.brand}00)`,
+          boxShadow: `0 0 12px ${COLORS.brand}66`,
         }}
       />
 
@@ -44,13 +44,13 @@ export function ThreadOfLight() {
           className="absolute inset-0 rounded-full"
           style={{
             background:
-              `radial-gradient(circle, ${COLORS.goldBright} 0%, ${COLORS.goldSoft} 18%, ${COLORS.gold}66 40%, transparent 70%)`,
+              `radial-gradient(circle, ${COLORS.brandBright} 0%, ${COLORS.brandSoft} 18%, ${COLORS.brand}66 40%, transparent 70%)`,
             filter: 'blur(0.5px)',
           }}
         />
         <span
           className="absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
-          style={{ backgroundColor: COLORS.goldBright, boxShadow: `0 0 10px 3px ${COLORS.goldSoft}cc` }}
+          style={{ backgroundColor: COLORS.brandBright, boxShadow: `0 0 10px 3px ${COLORS.brandSoft}cc` }}
         />
       </motion.div>
     </div>

@@ -135,6 +135,7 @@ export default function LandingPage() {
 
         {/* §3 YOU — one birthday, five readings */}
         <Zone
+          lean="right"
           id="you"
           flavor={SYSTEM_FLAVORS.astrology}
           pill="Start with one birthday"
@@ -161,6 +162,7 @@ export default function LandingPage() {
 
         {/* §4 YOU + ONE — compact bridge */}
         <Zone
+          lean="left"
           id="pair"
           flavor={SYSTEM_FLAVORS.dreamspell}
           pill="Then add one more"
@@ -174,6 +176,7 @@ export default function LandingPage() {
 
         {/* §5 YOUR PEOPLE, KEPT — persistence */}
         <Zone
+          lean="right"
           id="people"
           flavor={SYSTEM_FLAVORS.tzolkin}
           pill="Never ask twice"
@@ -199,6 +202,7 @@ export default function LandingPage() {
 
         {/* §6 THE MAP — centerpiece */}
         <Zone
+          lean="left"
           id="map"
           flavor={SYSTEM_FLAVORS.dreamspell}
           pill="The living map"
@@ -227,6 +231,7 @@ export default function LandingPage() {
 
         {/* §8 YOUR CIRCLES — group dynamics */}
         <Zone
+          lean="right"
           id="circles"
           flavor={SYSTEM_FLAVORS.humanDesign}
           pill="Group dynamics"
@@ -252,6 +257,7 @@ export default function LandingPage() {
 
         {/* §9 BEYOND YOU — gifting & collaboration */}
         <Zone
+          lean="left"
           id="give"
           flavor={SYSTEM_FLAVORS.gematria}
           pill="Made to be given"
@@ -277,6 +283,7 @@ export default function LandingPage() {
 
         {/* §10 KNOWLEDGE — trust layer */}
         <Zone
+          lean="right"
           id="knowledge"
           pill="The source layer"
           heading="Every line on the map has sources."

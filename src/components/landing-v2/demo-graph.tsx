@@ -87,7 +87,7 @@ export function DemoGraph({ lens = null, className }: DemoGraphProps) {
       const score = edge.scores[lensIndex]
       return SYSTEM_FLAVORS[lens as SystemKey].accent + (score > 65 ? 'cc' : '55')
     }
-    return fusedScore(edge) > 65 ? `${COLORS.gold}cc` : '#ffffff30'
+    return fusedScore(edge) > 65 ? `${COLORS.brand}cc` : '#ffffff30'
   }
 
   return (

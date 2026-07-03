@@ -52,11 +52,28 @@ MAIN_PURPOSE.md first; everything else on demand.
 ## Conventions to keep (violating these = regression)
 
 - All landing headings via `TYPE` ramp; no ad-hoc display classes.
-- No hardcoded hexes in landing-v2 — tailwind tokens or `COLORS`; only
-  seal-family demo colors + system-flavors source are literal.
-- Every mural band fades to `#0B0D16` at edges (one-continuous-painting).
-- No 3-equal-card rows; no centered heroes; `min-h-[100dvh]` never
-  `h-screen`; `active:scale-[0.98]` on interactive; videos only through
+- **Display face is Space Grotesk** (`--font-display`, swapped from
+  Fraunces 2026-07-03 pm — user wants hightech/trustworthy, no serif
+  mysticism). Space Grotesk has NO italics — never style
+  `font-display italic` (browser fake-slant). Weight carries hierarchy
+  (`font-semibold` on hero/zone/section).
+- **Chrome accent is `brand` (Railway-family violet #7D5BC9 / soft
+  #A78FDF / bright #EFEAFA)** — tailwind `brand/brand-soft/brand-bright`,
+  constants `COLORS.brand*`. Gold classes are GONE. Per-system folklore
+  accents (incl. astrology/gematria golds) still live in
+  system-flavors.ts and are unchanged.
+- Ground stays `#0B0D16` — murals are painted to fade into it; do not
+  neutralize it without regenerating all mural art.
+- Hero = Railway pattern: sky inside an inset `rounded-[2rem]` panel,
+  centered promise, product surface w/ control chrome (breadcrumb + tabs)
+  rising cropped from the panel floor. This centered hero is the ONE
+  sanctioned centered hero (user mandated via Railway reference).
+- Zones take `lean="left|right"` — alternate per zone (mural
+  object-position + embed offset zig-zag). Keep alternating.
+- Primary CTAs: `rounded-xl bg-brand text-white`, never text-ground on
+  brand, no glow animations. Small pills stay rounded-full.
+- No 3-equal-card rows; `min-h-[100dvh]` never `h-screen`;
+  `active:scale-[0.98]` on interactive; videos only through
   `AmbientVideo`.
 - Copy voice: calm/concrete, no mysticism-kitsch, no SaaS hype; dry humor
   only in persistence copy. Commits: semantic, no AI co-author lines.

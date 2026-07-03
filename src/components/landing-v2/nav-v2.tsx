@@ -50,7 +50,7 @@ export function NavV2() {
           <Button
             asChild
             size="sm"
-            className="rounded-full bg-gold px-5 font-semibold text-ground transition-transform hover:bg-gold-soft active:scale-[0.98]"
+            className="rounded-xl bg-brand px-5 font-semibold text-white transition-transform hover:bg-brand-soft active:scale-[0.98]"
           >
             <Link href="/login">Open your map</Link>
           </Button>

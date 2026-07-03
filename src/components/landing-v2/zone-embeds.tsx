@@ -294,9 +294,9 @@ export function MapCenterpiece() {
           onClick={() => setLens(null)}
           className="rounded-full border px-3 py-1 text-[11px] uppercase tracking-widest"
           style={{
-            borderColor: `${COLORS.gold}55`,
-            color: COLORS.gold,
-            backgroundColor: lens === null ? `${COLORS.gold}22` : `${COLORS.gold}08`,
+            borderColor: `${COLORS.brand}55`,
+            color: COLORS.brand,
+            backgroundColor: lens === null ? `${COLORS.brand}22` : `${COLORS.brand}08`,
           }}
         >
           Fused
@@ -317,7 +317,7 @@ export function MapCenterpiece() {
 const CIRCLES = [
   {
     name: 'Family',
-    accent: COLORS.gold,
+    accent: COLORS.brand,
     members: ['Maya', 'Noam', 'Dana', 'Shai'],
     insight: 'Maya bridges — the only defined throat in the room.',
   },
@@ -399,7 +399,7 @@ export function ShareDemo() {
                 {label}
               </span>
               <span
-                className={`h-4 w-7 rounded-full ${on ? 'bg-gold' : 'bg-white/15'} relative`}
+                className={`h-4 w-7 rounded-full ${on ? 'bg-brand' : 'bg-white/15'} relative`}
               >
                 <span
                   className={`absolute top-0.5 h-3 w-3 rounded-full bg-white transition-all ${on ? 'right-0.5' : 'left-0.5'}`}
@@ -409,7 +409,7 @@ export function ShareDemo() {
           ))}
         </div>
         <div className="mt-5 flex items-center gap-2 rounded-lg border border-white/15 bg-surface-2 px-3 py-2.5">
-          <Link2 className="h-4 w-4 shrink-0 text-gold" />
+          <Link2 className="h-4 w-4 shrink-0 text-brand" />
           <span className="truncate font-mono text-xs text-white/70">
             omnis.app/share/m0ms-side-x7f2
           </span>
@@ -498,13 +498,13 @@ export function KnowledgeSearch() {
   return (
     <div className="mx-auto max-w-2xl">
       <form
-        className="flex items-center gap-3 rounded-full border border-white/15 bg-surface-2 px-6 py-4 transition-colors focus-within:border-gold/50"
+        className="flex items-center gap-3 rounded-xl border border-white/15 bg-surface-2 px-6 py-4 transition-colors focus-within:border-brand/50"
         onSubmit={(e) => {
           e.preventDefault()
           void runSearch()
         }}
       >
-        <Search className="h-5 w-5 shrink-0 text-gold" />
+        <Search className="h-5 w-5 shrink-0 text-brand" />
         <input
           type="text"
           value={value}
@@ -541,7 +541,7 @@ export function KnowledgeSearch() {
             <a
               key={hit.sourceUrl + hit.snippet.slice(0, 24)}
               href={hit.sourceUrl}
-              className="block rounded-lg border border-white/10 bg-surface px-4 py-3 transition-colors hover:border-gold/40"
+              className="block rounded-lg border border-white/10 bg-surface px-4 py-3 transition-colors hover:border-brand/40"
             >
               <p className="text-sm font-medium text-white/90">{hit.title}</p>
               <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-white/50">

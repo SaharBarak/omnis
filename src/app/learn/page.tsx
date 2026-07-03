@@ -81,7 +81,7 @@ function PortalRow({ section }: { readonly section: DocSectionId }) {
           )}
         </div>
 
-        <p className="mt-4 text-sm italic leading-relaxed text-white/35">
+        <p className="mt-4 font-mono text-xs leading-relaxed text-white/35">
           {flavor.lineage}
         </p>
       </div>
@@ -150,7 +150,7 @@ export default function LearnPage() {
 
         {/* Hero — knowledge search is the surface, not a card grid. */}
         <section className="relative mx-auto max-w-content px-6">
-          <p className={`${TYPE.eyebrow} text-gold`}>Knowledge base</p>
+          <p className={`${TYPE.eyebrow} text-brand`}>Knowledge base</p>
           <h1 className={`${TYPE.hero} mt-4 max-w-3xl`}>
             The sources behind every reading.
           </h1>
@@ -178,12 +178,12 @@ export default function LearnPage() {
         <section className="relative mx-auto mt-20 max-w-content px-6 sm:mt-28">
           <div className="grid gap-6 md:grid-cols-2">
             <figure className="rounded-2xl border border-white/10 bg-surface p-8 sm:p-10">
-              <blockquote className="font-display text-xl italic leading-relaxed text-white/90 sm:text-2xl">
+              <blockquote className="text-xl leading-relaxed text-white/90 sm:text-2xl">
                 &ldquo;Who owns your time owns your mind. Own your own time and
                 know your own mind.&rdquo;
               </blockquote>
               <figcaption className="mt-6 flex items-center gap-4">
-                <span className="h-px w-10 bg-gold/40" />
+                <span className="h-px w-10 bg-brand/40" />
                 <span>
                   <cite className="not-italic font-medium text-white/70">José Argüelles</cite>
                   <span className="block text-sm text-white/35">Creator of Dreamspell</span>
@@ -192,11 +192,11 @@ export default function LearnPage() {
             </figure>
 
             <figure className="rounded-2xl border border-white/10 bg-surface p-8 sm:p-10">
-              <blockquote className="font-display text-xl italic leading-relaxed text-white/90 sm:text-2xl">
+              <blockquote className="text-xl leading-relaxed text-white/90 sm:text-2xl">
                 &ldquo;I am not the guru. I am a mechanic.&rdquo;
               </blockquote>
               <figcaption className="mt-6 flex items-center gap-4">
-                <span className="h-px w-10 bg-gold/40" />
+                <span className="h-px w-10 bg-brand/40" />
                 <span>
                   <cite className="not-italic font-medium text-white/70">Ra Uru Hu</cite>
                   <span className="block text-sm text-white/35">Founder of Human Design</span>
@@ -254,13 +254,13 @@ export default function LearnPage() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/calculate"
-                className="inline-flex items-center justify-center rounded-full bg-gold px-8 py-4 font-medium text-ground transition-colors hover:bg-gold-soft active:scale-[0.98]"
+                className="inline-flex items-center justify-center rounded-xl bg-brand px-8 py-4 font-medium text-white transition-colors hover:bg-brand-soft active:scale-[0.98]"
               >
                 Calculate your signatures
               </Link>
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center rounded-full border border-white/15 px-8 py-4 font-medium text-white/70 transition-colors hover:border-white/30 hover:text-white active:scale-[0.98]"
+                className="inline-flex items-center justify-center rounded-xl border border-white/15 px-8 py-4 font-medium text-white/70 transition-colors hover:border-white/30 hover:text-white active:scale-[0.98]"
               >
                 Create a free account
               </Link>

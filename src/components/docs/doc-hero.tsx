@@ -51,7 +51,7 @@ export function DocHero({ section, title, subtitle }: DocHeroProps) {
           {flavor.name}
         </span>
 
-        <h1 className="mt-5 max-w-2xl font-display text-3xl leading-[1.08] tracking-tight text-white md:text-5xl">
+        <h1 className="mt-5 max-w-2xl font-display font-semibold text-3xl leading-[1.08] tracking-tight text-white md:text-5xl">
           {title}
         </h1>
         <p className="mt-4 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">

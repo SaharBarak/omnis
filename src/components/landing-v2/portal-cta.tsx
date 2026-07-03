@@ -68,7 +68,7 @@ export function PortalCta() {
               <Button
                 asChild
                 size="lg"
-                className="animate-glow-pulse rounded-full bg-gold px-10 text-base font-semibold text-ground transition-transform hover:bg-gold-soft active:scale-[0.98]"
+                className="rounded-xl bg-brand px-10 text-base font-semibold text-white transition-transform hover:bg-brand-soft active:scale-[0.98]"
               >
                 <Link href="/login">Open the map</Link>
               </Button>

@@ -12,9 +12,9 @@ const config: Config = {
   		fontFamily: {
   			display: [
   				'var(--font-display)',
-  				'Fraunces',
-  				'Georgia',
-  				'serif'
+  				'Space Grotesk',
+  				'system-ui',
+  				'sans-serif'
   			],
   			sans: [
   				'var(--font-sans)',
@@ -55,10 +55,10 @@ const config: Config = {
   				DEFAULT: '#0D101A',
   				'2': '#12151F'
   			},
-  			gold: {
-  				DEFAULT: '#C9A227',
-  				soft: '#E7D08A',
-  				bright: '#FFF6D9'
+  			brand: {
+  				DEFAULT: '#7D5BC9',
+  				soft: '#A78FDF',
+  				bright: '#EFEAFA'
   			},
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',

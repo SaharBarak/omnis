@@ -5,44 +5,47 @@ import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { MURAL_GROUND } from '@/lib/design/system-flavors'
-import { TYPE } from '@/lib/design/landing-tokens'
+import { COLORS, TYPE } from '@/lib/design/landing-tokens'
 import { AmbientVideo } from './ambient-video'
 import { Magnetic } from './magnetic'
 import { DemoGraph } from './demo-graph'
 
 // ============================================
-// HERO — living sky mural, split composition (taste-audit A1):
-// promise left, the live map right, above the fold.
-// Spec: docs/redesign/HOMEPAGE_SPEC.md §1, MOTION_SPEC V1.
+// HERO — Railway-pattern: the sky lives inside an inset, rounded panel
+// (page ground stays visible around it); centered promise; the real
+// product surface rises from the panel's bottom edge and gets cropped
+// by it. Spec: docs/redesign/HOMEPAGE_SPEC.md §1, MOTION_SPEC V1.
 // ============================================
 
 const easeOut = [0.4, 0, 0.2, 1] as const
 
+const SURFACE_TABS = ['Map', 'People', 'Circles', 'Boards'] as const
+
 export function HeroV2() {
   return (
-    <section
-      className="relative flex min-h-[100dvh] items-center overflow-hidden pb-16 pt-28 md:pt-24"
-      style={{ backgroundColor: MURAL_GROUND }}
-    >
-      {/* Living sky — video with still fallback (MOTION_SPEC playback contract) */}
-      <div aria-hidden className="absolute inset-0">
-        <AmbientVideo
-          webmSrc="/videos/redesign/hero-sky-loop.webm"
-          mp4Src="/videos/redesign/hero-sky-loop.mp4"
-          poster="/images/redesign/mural/hero-sky.webp"
-          className="h-full w-full object-cover"
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `linear-gradient(to bottom, ${MURAL_GROUND}55 0%, ${MURAL_GROUND}22 40%, ${MURAL_GROUND} 96%)`,
-          }}
-        />
-      </div>
+    <section className="relative px-3 pt-20 sm:px-5 md:pt-24">
+      <div
+        className="relative mx-auto flex min-h-[88dvh] max-w-[1400px] flex-col overflow-hidden rounded-[2rem] border border-white/10"
+        style={{ backgroundColor: MURAL_GROUND }}
+      >
+        {/* Living sky — video with still fallback (MOTION_SPEC playback contract) */}
+        <div aria-hidden className="absolute inset-0">
+          <AmbientVideo
+            webmSrc="/videos/redesign/hero-sky-loop.webm"
+            mp4Src="/videos/redesign/hero-sky-loop.mp4"
+            poster="/images/redesign/mural/hero-sky.webp"
+            className="h-full w-full object-cover"
+          />
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(to bottom, ${MURAL_GROUND}66 0%, ${MURAL_GROUND}22 45%, ${MURAL_GROUND}E6 100%)`,
+            }}
+          />
+        </div>
 
-      <div className="relative mx-auto grid w-full max-w-content items-center gap-14 px-6 lg:grid-cols-[3fr_2fr] lg:gap-10">
-        {/* The promise — left */}
-        <div className="text-left">
+        {/* The promise — centered, Railway-style */}
+        <div className="relative mx-auto flex w-full max-w-3xl flex-1 flex-col items-center px-6 pt-24 text-center md:pt-32">
           <motion.p
             className={`${TYPE.eyebrow} text-white/50`}
             initial={{ opacity: 0 }}
@@ -53,7 +56,7 @@ export function HeroV2() {
           </motion.p>
 
           <motion.h1
-            className={`${TYPE.hero} mt-6 max-w-2xl`}
+            className={`${TYPE.hero} mt-6`}
             initial={{ opacity: 0, y: 20, filter: 'blur(6px)' }}
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             transition={{ duration: 0.8, delay: 0.2, ease: easeOut }}
@@ -67,13 +70,12 @@ export function HeroV2() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.35, ease: easeOut }}
           >
-            Omnis reads every birth through five wisdom systems and draws the
-            living map between them — family, friends, teams. Add a person
-            once; the map remembers forever.
+            Five systems read every birth. One map holds every relationship.
+            Add a person once; Omnis remembers forever.
           </motion.p>
 
           <motion.div
-            className="mt-9 flex flex-wrap items-center gap-4"
+            className="mt-9 flex flex-wrap items-center justify-center gap-4"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5, ease: easeOut }}
@@ -82,7 +84,7 @@ export function HeroV2() {
               <Button
                 asChild
                 size="lg"
-                className="rounded-full bg-gold px-8 text-base font-semibold text-ground transition-transform hover:bg-gold-soft active:scale-[0.98]"
+                className="rounded-xl bg-brand px-8 text-base font-semibold text-white transition-transform hover:bg-brand-soft active:scale-[0.98]"
               >
                 <Link href="/login">
                   Open your map
@@ -94,25 +96,56 @@ export function HeroV2() {
               asChild
               size="lg"
               variant="outline"
-              className="rounded-full border-white/25 bg-transparent px-8 text-base text-white transition-transform hover:bg-white/10 hover:text-white active:scale-[0.98]"
+              className="rounded-xl border-white/15 bg-surface/80 px-8 text-base text-white backdrop-blur-sm transition-transform hover:bg-surface-2 hover:text-white active:scale-[0.98]"
             >
               <Link href="/calculate">Try one reading</Link>
             </Button>
           </motion.div>
         </div>
 
-        {/* The living map — right, above the fold */}
+        {/* The product surface — rises from the panel floor, cropped by it */}
         <motion.div
-          className="relative rounded-2xl border border-white/10 bg-surface/80 p-5 shadow-2xl backdrop-blur-sm md:p-7"
-          initial={{ opacity: 0, x: 32 }}
-          animate={{ opacity: 1, x: 0 }}
+          className="relative mx-auto mt-14 w-full max-w-4xl px-4 sm:px-6 md:mt-16"
+          initial={{ opacity: 0, y: 48 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.55, ease: easeOut }}
         >
-          <div className="mb-4 flex items-center justify-between">
-            <span className={`${TYPE.eyebrow} text-white/50`}>Your living map</span>
-            <span className="font-mono text-xs text-white/50">8 people · 3 circles</span>
+          <div className="overflow-hidden rounded-t-2xl border border-b-0 border-white/10 bg-surface/95 shadow-[0_-24px_80px_-32px_rgba(125,91,201,0.35)] backdrop-blur-sm">
+            {/* Control chrome */}
+            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-6">
+              <div className="flex min-w-0 items-center gap-2 font-mono text-xs text-white/50">
+                <span
+                  className="h-2 w-2 shrink-0 rounded-full"
+                  style={{ backgroundColor: COLORS.brand }}
+                />
+                <span className="truncate">
+                  omnis <span className="text-white/25">/</span> your-map{' '}
+                  <span className="text-white/25">/</span> home-circle
+                </span>
+              </div>
+              <div className="hidden items-center gap-1 sm:flex">
+                {SURFACE_TABS.map((tab, i) => (
+                  <span
+                    key={tab}
+                    className={
+                      i === 0
+                        ? 'rounded-md bg-white/10 px-3 py-1 text-xs font-medium text-white'
+                        : 'px-3 py-1 text-xs text-white/50'
+                    }
+                  >
+                    {tab}
+                  </span>
+                ))}
+              </div>
+              <span className="font-mono text-xs text-white/50">
+                8 people · 3 circles
+              </span>
+            </div>
+
+            <div className="p-4 sm:p-6">
+              <DemoGraph />
+            </div>
           </div>
-          <DemoGraph />
         </motion.div>
       </div>
     </section>

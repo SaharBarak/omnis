@@ -33,6 +33,12 @@ interface ZoneProps {
   /** Compact variant (half-height, no triad) — spec §4 You + One. */
   readonly compact?: boolean
   readonly accentOverride?: string
+  /**
+   * Asymmetric play (taste: Railway control surfaces): which way the
+   * mural detail and the embedded product surface lean. Alternate per
+   * zone so the descent zig-zags instead of stacking symmetrically.
+   */
+  readonly lean?: 'left' | 'right'
 }
 
 export function Zone({
@@ -47,8 +53,10 @@ export function Zone({
   mural = true,
   compact = false,
   accentOverride,
+  lean = 'left',
 }: ZoneProps) {
-  const accent = accentOverride ?? flavor?.accent ?? COLORS.gold
+  const accent = accentOverride ?? flavor?.accent ?? COLORS.brand
+  const leansRight = lean === 'right'
 
   return (
     <section
@@ -64,7 +72,7 @@ export function Zone({
             alt=""
             fill
             sizes="100vw"
-            className="object-cover opacity-45"
+            className={`object-cover opacity-45 ${leansRight ? 'object-[70%_center]' : 'object-[30%_center]'}`}
           />
           <div
             className="absolute inset-0"
@@ -111,7 +119,7 @@ export function Zone({
           {cta && (
             <Link
               href={cta.href}
-              className="mt-4 inline-flex items-center gap-2 font-medium transition-opacity hover:opacity-80"
+              className="mt-5 flex w-fit items-center gap-2 font-medium transition-opacity hover:opacity-80"
               style={{ color: accent }}
             >
               {cta.label}
@@ -123,7 +131,7 @@ export function Zone({
         {/* Embedded product UI */}
         {children && (
           <motion.div
-            className="mt-14"
+            className={`mt-14 ${leansRight ? 'md:-mr-8 md:ml-16 lg:-mr-14' : 'md:-ml-8 md:mr-16 lg:-ml-14'}`}
             initial={{ opacity: 0, y: 28 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-60px' }}
@@ -163,7 +171,7 @@ export function Zone({
             viewport={{ once: true, margin: '-40px' }}
             transition={{ duration: 0.6 }}
           >
-            <p className="font-display text-base italic text-white/50">{flavor.lineage}</p>
+            <p className="font-mono text-xs tracking-wide text-white/40">{flavor.lineage}</p>
             <Link
               href={flavor.learnHref}
               className="inline-flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-80"

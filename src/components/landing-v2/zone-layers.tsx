@@ -103,7 +103,7 @@ export function ZoneLayers() {
         <div className="mx-auto w-full max-w-content px-6">
           <span
             className="inline-block rounded-full border px-4 py-1.5 text-xs uppercase tracking-[0.18em]"
-            style={{ borderColor: `${COLORS.gold}55`, color: COLORS.gold, backgroundColor: `${COLORS.gold}14` }}
+            style={{ borderColor: `${COLORS.brand}55`, color: COLORS.brand, backgroundColor: `${COLORS.brand}14` }}
           >
             Layer by layer
           </span>
@@ -135,7 +135,7 @@ export function ZoneLayers() {
               })}
               <LayerChip
                 label="Fused"
-                accent={COLORS.gold}
+                accent={COLORS.brand}
                 index={5}
                 activeIndex={activeIndex}
                 forceActive={reducedMotion === true}
@@ -146,14 +146,14 @@ export function ZoneLayers() {
               aria-label="The same six people read through five stacked system layers">
               {/* Fused glow */}
               {reducedMotion ? (
-                <rect x={0} y={0} width={800} height={460} fill={COLORS.gold} opacity={0.06} />
+                <rect x={0} y={0} width={800} height={460} fill={COLORS.brand} opacity={0.06} />
               ) : (
                 <motion.rect
                   x={0}
                   y={0}
                   width={800}
                   height={460}
-                  fill={COLORS.gold}
+                  fill={COLORS.brand}
                   style={{ opacity: fusedGlow }}
                 />
               )}
@@ -185,7 +185,7 @@ export function ZoneLayers() {
               {PEOPLE.map((p) => (
                 <g key={p.name}>
                   <circle cx={p.x} cy={p.y} r={16} fill="#ffffff" opacity={0.08} />
-                  <circle cx={p.x} cy={p.y} r={8} fill={COLORS.goldSoft} stroke={MURAL_GROUND} strokeWidth={2} />
+                  <circle cx={p.x} cy={p.y} r={8} fill={COLORS.brandSoft} stroke={MURAL_GROUND} strokeWidth={2} />
                   <text
                     x={p.x}
                     y={p.y + 28}

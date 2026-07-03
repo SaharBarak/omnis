@@ -56,7 +56,7 @@ export function SigilBand() {
             </motion.div>
           ))}
         </div>
-        <p className="mt-8 text-center font-display text-base italic text-white/50">
+        <p className="mt-8 text-center font-mono text-sm text-white/50">
           Five traditions, thousands of years old. One map.
         </p>
       </div>
@@ -110,7 +110,7 @@ function QuoteMarquee() {
         transition={{ duration: 55, ease: 'linear', repeat: Infinity }}
       >
         {[...MARQUEE_QUOTES, ...MARQUEE_QUOTES].map((q, i) => (
-          <span key={i} className="whitespace-nowrap font-display text-base italic text-white/50">
+          <span key={i} className="whitespace-nowrap font-mono text-sm text-white/50">
             {'\u201C'}{q}{'\u201D'}
           </span>
         ))}
@@ -221,7 +221,7 @@ export function PricingV2() {
               key={plan.name}
               className={`rounded-2xl border p-7 ${
                 plan.highlight
-                  ? 'border-gold/40 bg-gold/5 shadow-[0_0_40px_rgba(201,162,39,0.13)] md:scale-105'
+                  ? 'border-brand/40 bg-brand/5 shadow-[0_0_40px_rgba(201,162,39,0.13)] md:scale-105'
                   : 'border-white/10 bg-surface'
               }`}
               initial={{ opacity: 0, y: 20 }}
@@ -238,16 +238,16 @@ export function PricingV2() {
               <ul className="mt-6 space-y-2.5 text-sm text-white/70">
                 {plan.features.map((f) => (
                   <li key={f} className="flex gap-2">
-                    <span className="text-gold">·</span>
+                    <span className="text-brand">·</span>
                     {f}
                   </li>
                 ))}
               </ul>
               <Button
                 asChild
-                className={`mt-7 w-full rounded-full ${
+                className={`mt-7 w-full rounded-xl ${
                   plan.highlight
-                    ? 'bg-gold text-ground hover:bg-gold-soft active:scale-[0.98]'
+                    ? 'bg-brand text-white hover:bg-brand-soft active:scale-[0.98]'
                     : 'bg-white/10 text-white hover:bg-white/20 active:scale-[0.98]'
                 }`}
               >
@@ -290,7 +290,7 @@ export function FaqV2() {
               >
                 <span className="text-[15px] font-medium text-white/90">{faq.question}</span>
                 <ChevronDown
-                  className={`h-4 w-4 shrink-0 text-gold transition-transform ${
+                  className={`h-4 w-4 shrink-0 text-brand transition-transform ${
                     open === i ? 'rotate-180' : ''
                   }`}
                 />
@@ -375,7 +375,7 @@ export function FooterV2({ liveLine }: { readonly liveLine: string }) {
           ))}
         </div>
         <div className="mt-14 border-t border-white/10 pt-6 text-center">
-          <p className="font-mono text-[11px] tracking-[0.18em] text-gold/80">{liveLine}</p>
+          <p className="font-mono text-[11px] tracking-[0.18em] text-brand/80">{liveLine}</p>
           <p className="mt-3 text-xs text-white/35">
             © {new Date().getFullYear()} Omnis. All rights reserved.
           </p>

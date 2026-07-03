@@ -19,7 +19,7 @@ export function QuickAnswer({
         Quick answer
       </div>
       <h2
-        className="text-lg font-display italic text-foreground mb-3"
+        className="text-lg font-display text-foreground mb-3"
         itemProp="name"
       >
         {question}
