@@ -46,6 +46,12 @@ compose/stitch in CSS as layered bands.
 | ZONE-HD | Human Design band | deep indigo blueprint, fine white schematic grid, luminous thin circuit channels forming an abstract human silhouette, hexagram tick marks, precise, technical-mystic | 2880×1620 |
 | ZONE-GEMATRIA | Gematria band | indigo-black night over aged parchment horizon, gilded Hebrew calligraphy strokes floating as constellations, Tree of Life geometry faint in background, illuminated-manuscript gold accents | 2880×1620 |
 | RAIL-TEX | Thread-of-light | thin luminous thread of golden light on transparent/near-black, subtle particle glow, vertical | 512×2048 |
+| TRAVELER | Traveler glyph (rides thread on scroll; Railway's train equivalent) | small luminous comet-star glyph, warm gold core with subtle four-color (red/white/blue/yellow) trailing sparks, on near-black | 512×512 |
+| PORTAL-CTA | Portal doorway final CTA | tall arched temple doorway glowing with warm dawn light from within, dark surround, perspective stone floor receding toward viewer, inviting, painterly | 1600×2000 |
+| GRID-PAPER | Testimonial card texture | very subtle blueprint grid-paper texture on near-black, barely visible | 1024×1024 tile |
+
+Zone bands must blend at edges (top/bottom fade to shared near-black
+`#0B0D16`) so the page reads as ONE continuous mural — Railway's key trick.
 
 ### C2. /learn doc heroes (priority 2)
 

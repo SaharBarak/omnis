@@ -3,49 +3,96 @@
 Reference: railway.com homepage composition (verified via live screenshots,
 2026-07-03). What we borrow, what we make ours.
 
-## What Railway does (observed)
+## What Railway does (observed — full homepage anatomy, 19 scroll frames)
 
-1. **Hero** — full-bleed, hand-illustrated night sky (painted clouds, star
-   field), serif display headline over it, one-line sub, two CTAs, floating
-   product-UI canvas sliding in below the fold.
-2. **Long continuous background** — the page is one tall painted canvas, not
-   stacked white sections. A **vertical rail line** runs down the left with
-   node markers; each section = badge pill → large serif headline → prose →
-   embedded live product UI.
-3. **Animated set pieces** — e.g. split-flap airport board counting live
-   stats. Mechanical, playful, memorable. One per page, not ten.
+1. **Continuous illustrated mural** — dusk sky → painted clouds → mountains →
+   a shinkansen train crossing the frame. One painting; the whole page is
+   dark; there are zero white sections. Section boundaries are soft
+   rounded-corner containers and glow shifts, never background color flips.
+2. **Hero** — serif display "Ship software peacefully" over the mural,
+   one-line sub, two CTAs (filled + outline), floating **live product
+   canvas** overlapping the mural below the fold.
+3. **Logo wall** — two rows of translucent grid cells sitting on the mural's
+   bottom edge.
+4. **Rail sections ×5** — vertical rail line down the left; a **little train
+   icon rides the rail as you scroll**. Repeating grammar: color-coded pill
+   badge (Build and deploy / Network and connect / Scale and grow / Monitor
+   and observe / Evolve and collaborate) → large serif headline → 2-line
+   prose + "Learn more →" → giant embedded *real* product UI (not
+   screenshots) → triad of icon+title+prose features → quiet "Alternative
+   to" competitor-icon row. Each section tints its accents (green / orange /
+   purple).
+5. **Social proof** — centered serif "Trusted by the best in business",
+   3 large testimonial cards on grid-paper texture, then "...and loved by
+   developers" horizontal tweet marquee.
+6. **Split-flap station board** — serif "105.6M+ deploys per month (and
+   counting)" over a live mechanical flip board: USERS / SERVICES /
+   DEPLOYMENTS / REQUESTS / LOGS with real-time digits.
+7. **Final CTA as train door** — "A better future is now boarding", a
+   doorway-shaped card glowing with warm sunset gradient (the view from a
+   train door), "All Aboard" pill button, perspective station-platform floor
+   grid receding behind.
+8. **Footer** — featured-announcement cards + six link columns, compliance
+   marks, mono-green "All systems operational".
 
-## Omnis translation
+**Core insight: total metaphor commitment.** Railway = an actual railway
+journey at every layer — the train rides the rail while you scroll, the
+stats are a station departures board, the CTA is a boarding door, the copy
+says "All Aboard". The metaphor isn't decoration; it's the page's narrative
+arc: promise → product proof → social proof → live-scale proof → boarding.
 
-The night sky isn't a metaphor for us — it's the product. The scroll is a
-**descent through the five wisdom systems**: you start in the cosmos
-(astrology), pass through the galactic Maya (dreamspell), the stone codices
-(tzolkin), the body blueprint (human design), and end at the letters of
-creation (gematria/kabbalah). The Railway rail becomes a **thread of light**
-connecting the systems — visually morphing per zone (constellation line →
-kin thread → carved groove → channel/circuit → letter path).
+## Omnis translation — the cosmic pilgrimage
+
+Railway commits totally to the railway journey; Omnis commits totally to a
+**pilgrimage through the five wisdom systems**. The night sky isn't a
+metaphor for us — it's the product. The scroll is a descent: cosmos
+(astrology) → galactic Maya (dreamspell) → stone codices (tzolkin) → body
+blueprint (human design) → letters of creation (gematria/kabbalah).
+
+Metaphor mapping (element-for-element):
+
+| Railway | Omnis |
+|---|---|
+| Train icon riding the rail on scroll | **Traveler glyph** (comet / kin star) riding the thread of light |
+| Rail line, color-tinted per section | Thread of light morphing per zone: constellation line → kin thread → carved groove → circuit channel → letter path |
+| Continuous train-country mural | Continuous cosmos-to-parchment mural (one painting, five zones) |
+| Embedded live product canvas | Embedded live ReadingCard / natal wheel / bodygraph / oracle (real components, real data) |
+| "Alternative to" competitor rows | "As known in tradition" — source-lineage row (codex, manuscript, atlas references) |
+| Split-flap departures board | **"Today across the systems"** live board: kin · moon phase · sun sign transit · HD gate · Hebrew date |
+| Train-door final CTA "All Aboard" | **Portal/temple-door CTA** "Your blueprint awaits" — doorway card glowing with dawn light |
+| "All systems operational" footer | "The calendars are counting" live footer line (today's kin + Hebrew date, mono) |
 
 ### Homepage composition (long scroll, one canvas)
 
 ```
-[Hero]        illustrated cosmic sky, serif headline "Know your blueprint" (TBD copy),
-              CTA: Get your chart → /calculate | Explore the knowledge → /learn
-              floating UI: live ReadingCard (today's kin, real data)
-[Rail begins]
+[Hero]        illustrated cosmic sky (mural top), serif headline "Know your
+              blueprint" (TBD copy), sub, CTA: Get your chart → /calculate |
+              Explore the knowledge → /learn
+              floating UI: live ReadingCard (today's kin, real data),
+              overlapping the mural like Railway's canvas
+[Mural cont.] sky descends toward horizon — the five-zone descent begins
+[Thread]      thread of light begins; traveler glyph attaches, rides on scroll
 [Zone 1]      Astrology     — engraved star-atlas texture fades in
 [Zone 2]      Dreamspell    — spectral galactic zone, seal glyphs orbit
 [Zone 3]      Tzolkin       — codex/stone zone, carved glyph frieze
 [Zone 4]      Human Design  — blueprint zone, bodygraph circuit draws itself
 [Zone 5]      Gematria      — parchment/ink zone, Hebrew letters as stars
-[Set piece]   "Today across the systems" — split-flap-style board flipping
-              today's kin, moon, transits (live data; our Railway-board moment)
+[Social]      centered serif head + testimonial cards on grid-paper texture
+              (reuse Railway's card treatment), horizontal marquee of reader
+              quotes
+[Set piece]   "Today across the systems" — split-flap board flipping live
+              kin · moon · transit · gate · Hebrew date
 [Pricing]     three cards on quiet dark ground
-[FAQ + CTA + Footer]
+[Portal CTA]  doorway card glowing with dawn light — "Your blueprint awaits"
+[FAQ + Footer] footer ends with live mono line: today's kin + Hebrew date
 ```
 
-Each zone: badge pill (system name) → serif display headline → 2-line prose
-→ embedded real product UI (person tab, wheel, bodygraph…) → "Learn the
-system →" into its flavored docs.
+Zone grammar (Railway's, reskinned): color-keyed pill badge (system name) →
+serif display headline → 2-line prose + "Learn the system →" → embedded real
+product UI (ReadingCard, natal wheel, bodygraph, oracle map…) → triad of
+icon+title+prose (what you learn / what you get / how it connects) →
+"As known in tradition" source-lineage row (replaces Railway's competitor
+row — cites codices, manuscripts, atlases).
 
 ## Per-system folklore flavors
 
