@@ -19,6 +19,8 @@ interface DemoNode {
   readonly y: number
   /** Dreamspell seal family color. */
   readonly color: string
+  /** Five-system mini reading, FLAVOR_DESCENT order. */
+  readonly reading: readonly [string, string, string, string, string]
 }
 
 interface DemoEdge {
@@ -29,14 +31,14 @@ interface DemoEdge {
 }
 
 const NODES: readonly DemoNode[] = [
-  { id: 'maya', name: 'Maya', group: 'Family', x: 200, y: 120, color: '#C0392B' },
-  { id: 'noam', name: 'Noam', group: 'Family', x: 90, y: 210, color: '#F1C40F' },
-  { id: 'dana', name: 'Dana', group: 'Family', x: 250, y: 270, color: '#ECF0F1' },
-  { id: 'ari', name: 'Ari', group: 'Team', x: 470, y: 90, color: '#2C3E90' },
-  { id: 'tal', name: 'Tal', group: 'Team', x: 610, y: 190, color: '#C0392B' },
-  { id: 'omer', name: 'Omer', group: 'Team', x: 500, y: 300, color: '#F1C40F' },
-  { id: 'lior', name: 'Lior', group: 'Friends', x: 350, y: 380, color: '#ECF0F1' },
-  { id: 'shai', name: 'Shai', group: 'Friends', x: 160, y: 400, color: '#2C3E90' },
+  { id: 'maya', name: 'Maya', group: 'Family', x: 200, y: 120, color: '#C0392B', reading: ['Leo · Pisces moon', 'Kin 113 Skywalker', "B'en 9", 'MG 5/1', 'מיה · 55'] },
+  { id: 'noam', name: 'Noam', group: 'Family', x: 90, y: 210, color: '#F1C40F', reading: ['Taurus · Virgo moon', 'Kin 42 Wind', 'Ik 3', 'Projector 3/5', 'נועם · 166'] },
+  { id: 'dana', name: 'Dana', group: 'Family', x: 250, y: 270, color: '#ECF0F1', reading: ['Cancer · Leo moon', 'Kin 200 Sun', 'Ajaw 5', 'Generator 1/3', 'דנה · 59'] },
+  { id: 'ari', name: 'Ari', group: 'Team', x: 470, y: 90, color: '#2C3E90', reading: ['Sagittarius · Aries moon', 'Kin 87 Hand', 'Manik 10', 'Manifestor 6/2', 'ארי · 211'] },
+  { id: 'tal', name: 'Tal', group: 'Team', x: 610, y: 190, color: '#C0392B', reading: ['Scorpio · Cancer moon', 'Kin 155 Eagle', 'Men 12', 'Generator 4/6', 'טל · 39'] },
+  { id: 'omer', name: 'Omer', group: 'Team', x: 500, y: 300, color: '#F1C40F', reading: ['Gemini · Libra moon', 'Kin 231 Monkey', "Chuwen 10", 'Reflector', 'עומר · 316'] },
+  { id: 'lior', name: 'Lior', group: 'Friends', x: 350, y: 380, color: '#ECF0F1', reading: ['Virgo · Taurus moon', 'Kin 18 Mirror', 'Etznab 5', 'Projector 5/1', 'ליאור · 247'] },
+  { id: 'shai', name: 'Shai', group: 'Friends', x: 160, y: 400, color: '#2C3E90', reading: ['Pisces · Scorpio moon', 'Kin 260 Sun', 'Ajaw 13', 'MG 2/4', 'שי · 310'] },
 ]
 
 const EDGES: readonly DemoEdge[] = [
@@ -73,6 +75,7 @@ interface DemoGraphProps {
 
 export function DemoGraph({ lens = null, className }: DemoGraphProps) {
   const [hovered, setHovered] = useState<DemoEdge | null>(null)
+  const [selected, setSelected] = useState<DemoNode | null>(null)
 
   const lensIndex = useMemo(
     () => (lens ? FLAVOR_DESCENT.indexOf(lens) : -1),
@@ -88,7 +91,7 @@ export function DemoGraph({ lens = null, className }: DemoGraphProps) {
   }
 
   return (
-    <div className={className}>
+    <div className={`relative ${className ?? ''}`}>
       <svg
         viewBox="0 0 700 470"
         className="h-auto w-full"
@@ -127,6 +130,8 @@ export function DemoGraph({ lens = null, className }: DemoGraphProps) {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.15 + i * 0.06, ease: 'easeOut' }}
+            className="cursor-pointer"
+            onClick={() => setSelected(selected?.id === node.id ? null : node)}
           >
             <circle cx={node.x} cy={node.y} r={17} fill={node.color} opacity={0.16} />
             <circle
@@ -160,6 +165,46 @@ export function DemoGraph({ lens = null, className }: DemoGraphProps) {
         {/* Hover scorecard */}
         {hovered && <EdgeScorecard edge={hovered} />}
       </svg>
+
+      {/* Node person card — tap a node for its five-system mini reading */}
+      {selected && (
+        <motion.div
+          className="absolute right-3 top-3 w-56 rounded-xl border border-white/10 bg-surface-2 p-4 shadow-2xl"
+          initial={{ opacity: 0, y: 8, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 220, damping: 20 }}
+        >
+          <div className="flex items-center justify-between">
+            <p className="font-display text-base text-white">{selected.name}</p>
+            <button
+              type="button"
+              aria-label="Close"
+              className="text-white/50 transition-colors hover:text-white"
+              onClick={() => setSelected(null)}
+            >
+              ×
+            </button>
+          </div>
+          <p className="mt-0.5 text-[10px] uppercase tracking-widest text-white/50">
+            {selected.group}
+          </p>
+          <div className="mt-3 space-y-1.5">
+            {FLAVOR_DESCENT.map((key, i) => (
+              <div key={key} className="flex items-baseline justify-between gap-2">
+                <span
+                  className="text-[9px] uppercase tracking-wider"
+                  style={{ color: SYSTEM_FLAVORS[key].accent }}
+                >
+                  {SYSTEM_FLAVORS[key].name}
+                </span>
+                <span className="text-right font-mono text-[11px] text-white/90">
+                  {selected.reading[i]}
+                </span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {/* Group legend */}
       <div className="mt-3 flex justify-center gap-6 text-xs uppercase tracking-widest text-white/50">

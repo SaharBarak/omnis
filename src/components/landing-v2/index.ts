@@ -1,6 +1,9 @@
 export { NavV2 } from './nav-v2'
 export { HeroV2 } from './hero-v2'
 export { ThreadOfLight } from './thread'
+export { StarParallax } from './star-parallax'
+export { Magnetic } from './magnetic'
+export { AmbientVideo } from './ambient-video'
 export { Zone } from './zone'
 export { ZoneLayers } from './zone-layers'
 export {

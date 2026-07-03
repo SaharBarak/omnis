@@ -44,8 +44,8 @@ export const SYSTEM_FLAVORS: Readonly<Record<SystemKey, SystemFlavor>> =
     dreamspell: {
       key: 'dreamspell',
       name: 'Dreamspell',
-      accent: '#B387E8',
-      accentSoft: '#D9C2F5',
+      accent: '#A87BD1',
+      accentSoft: '#CDB2E8',
       muralSrc: '/images/redesign/mural/zone-dreamspell.webp',
       lineage:
         'In the Dreamspell, no kin stands alone — every sign has its guide, its antipode, its occult ally.',

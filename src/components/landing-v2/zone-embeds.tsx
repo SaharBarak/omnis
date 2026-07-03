@@ -116,7 +116,7 @@ export function ReadingCycler() {
             className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl border"
             style={{ borderColor: `${flavor.accent}44`, backgroundColor: `${flavor.accent}10` }}
           >
-            <Image src={tab.icon} alt={tab.title} width={52} height={52} className="opacity-90 invert" />
+            <Image src={tab.icon} alt={tab.title} width={52} height={52} className="h-[52px] w-[52px] object-contain opacity-90 invert" />
           </div>
           <div className="text-left">
             <p className="text-[11px] uppercase tracking-[0.18em] text-white/50">{tab.title}</p>
@@ -442,11 +442,28 @@ export function ShareDemo() {
 
 const KNOWLEDGE_QUERIES = ['Gate 34', 'Kin 113', 'Venus synastry', 'Tone 7', 'Gematria 26']
 
+interface SearchHit {
+  readonly title: string
+  readonly snippet: string
+  readonly sourceUrl: string
+}
+
+type SearchState =
+  | { readonly status: 'idle' }
+  | { readonly status: 'loading' }
+  | { readonly status: 'done'; readonly hits: readonly SearchHit[] }
+  | { readonly status: 'error' }
+
 export function KnowledgeSearch() {
   const [queryIndex, setQueryIndex] = useState(0)
   const [typed, setTyped] = useState('')
+  const [value, setValue] = useState('')
+  const [focused, setFocused] = useState(false)
+  const [search, setSearch] = useState<SearchState>({ status: 'idle' })
 
+  // Demo placeholder self-types while the input is untouched.
   useEffect(() => {
+    if (focused || value) return
     const query = KNOWLEDGE_QUERIES[queryIndex]
     let i = 0
     const typeTimer = setInterval(() => {
@@ -458,17 +475,82 @@ export function KnowledgeSearch() {
       }
     }, 110)
     return () => clearInterval(typeTimer)
-  }, [queryIndex])
+  }, [queryIndex, focused, value])
+
+  const runSearch = async () => {
+    const query = value.trim()
+    if (query.length < 2) return
+    setSearch({ status: 'loading' })
+    try {
+      const res = await fetch('/api/knowledge/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, limit: 3 }),
+      })
+      if (!res.ok) throw new Error(String(res.status))
+      const data = (await res.json()) as { results: SearchHit[] }
+      setSearch({ status: 'done', hits: data.results })
+    } catch {
+      setSearch({ status: 'error' })
+    }
+  }
 
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="flex items-center gap-3 rounded-full border border-white/15 bg-surface-2 px-6 py-4">
-        <Search className="h-5 w-5 text-gold" />
-        <span className="font-mono text-base text-white/90">
-          {typed}
-          <span className="animate-gentle-pulse text-white/50">|</span>
-        </span>
-      </div>
+      <form
+        className="flex items-center gap-3 rounded-full border border-white/15 bg-surface-2 px-6 py-4 transition-colors focus-within:border-gold/50"
+        onSubmit={(e) => {
+          e.preventDefault()
+          void runSearch()
+        }}
+      >
+        <Search className="h-5 w-5 shrink-0 text-gold" />
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={focused || value ? 'Search the knowledge base' : typed}
+          aria-label="Search the knowledge base"
+          className="w-full bg-transparent font-mono text-base text-white/90 outline-none placeholder:text-white/50"
+        />
+      </form>
+
+      {/* Result states */}
+      {search.status === 'loading' && (
+        <div className="mt-4 space-y-2" aria-busy="true">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-14 animate-shimmer rounded-lg bg-white/5" />
+          ))}
+        </div>
+      )}
+      {search.status === 'error' && (
+        <p className="mt-4 text-center text-sm text-white/50">
+          Search is unavailable right now — the five guides below are always open.
+        </p>
+      )}
+      {search.status === 'done' && search.hits.length === 0 && (
+        <p className="mt-4 text-center text-sm text-white/50">
+          Nothing close enough yet — try a gate, kin, sign, tone, or number.
+        </p>
+      )}
+      {search.status === 'done' && search.hits.length > 0 && (
+        <div className="mt-4 space-y-2">
+          {search.hits.map((hit) => (
+            <a
+              key={hit.sourceUrl + hit.snippet.slice(0, 24)}
+              href={hit.sourceUrl}
+              className="block rounded-lg border border-white/10 bg-surface px-4 py-3 transition-colors hover:border-gold/40"
+            >
+              <p className="text-sm font-medium text-white/90">{hit.title}</p>
+              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-white/50">
+                {hit.snippet}
+              </p>
+            </a>
+          ))}
+        </div>
+      )}
       <div className="mt-6 flex flex-wrap justify-center gap-3">
         {FLAVOR_DESCENT.map((key) => {
           const flavor = SYSTEM_FLAVORS[key]

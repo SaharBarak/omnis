@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { MURAL_GROUND } from '@/lib/design/system-flavors'
 import { TYPE } from '@/lib/design/landing-tokens'
 import { AmbientVideo } from './ambient-video'
+import { Magnetic } from './magnetic'
 import { DemoGraph } from './demo-graph'
 
 // ============================================
@@ -77,16 +78,18 @@ export function HeroV2() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5, ease: easeOut }}
           >
-            <Button
-              asChild
-              size="lg"
-              className="rounded-full bg-gold px-8 text-base font-semibold text-ground transition-transform hover:bg-gold-soft active:scale-[0.98]"
-            >
-              <Link href="/login">
-                Open your map
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+            <Magnetic>
+              <Button
+                asChild
+                size="lg"
+                className="rounded-full bg-gold px-8 text-base font-semibold text-ground transition-transform hover:bg-gold-soft active:scale-[0.98]"
+              >
+                <Link href="/login">
+                  Open your map
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </Magnetic>
             <Button
               asChild
               size="lg"

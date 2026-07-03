@@ -2,6 +2,7 @@ import {
   NavV2,
   HeroV2,
   ThreadOfLight,
+  StarParallax,
   Zone,
   ZoneLayers,
   ReadingCycler,
@@ -121,6 +122,7 @@ export default function LandingPage() {
       <JsonLd data={orgSchema} id="json-ld-org" />
       <JsonLd data={faqSchema} id="json-ld-faq" />
 
+      <StarParallax />
       <ThreadOfLight />
       <NavV2 />
 

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { MURAL_GROUND } from '@/lib/design/system-flavors'
 import { TYPE } from '@/lib/design/landing-tokens'
 import { AmbientVideo } from './ambient-video'
+import { Magnetic } from './magnetic'
 
 // ============================================
 // PORTAL CTA — the boarding door (Railway's "All Aboard", ours in stone).
@@ -63,13 +64,15 @@ export function PortalCta() {
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
-            <Button
-              asChild
-              size="lg"
-              className="mt-8 animate-glow-pulse rounded-full bg-gold px-10 text-base font-semibold text-ground transition-transform hover:bg-gold-soft active:scale-[0.98]"
-            >
-              <Link href="/login">Open the map</Link>
-            </Button>
+            <Magnetic className="mt-8">
+              <Button
+                asChild
+                size="lg"
+                className="animate-glow-pulse rounded-full bg-gold px-10 text-base font-semibold text-ground transition-transform hover:bg-gold-soft active:scale-[0.98]"
+              >
+                <Link href="/login">Open the map</Link>
+              </Button>
+            </Magnetic>
           </motion.div>
         </div>
       </div>

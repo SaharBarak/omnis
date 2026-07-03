@@ -48,7 +48,7 @@ export function SigilBand() {
                 alt={sigil.label}
                 width={34}
                 height={34}
-                className="opacity-50 invert"
+                className="h-[34px] w-[34px] object-contain opacity-50 invert"
               />
               <span className="text-[10px] uppercase tracking-[0.2em] text-white/35">
                 {sigil.label}
@@ -89,6 +89,36 @@ const TESTIMONIALS = [
   },
 ] as const
 
+
+const MARQUEE_QUOTES = [
+  'finally deleted my birthday-notes doc',
+  'my chavruta group map made everyone gasp',
+  'the family map explained thirty years in one look',
+  'sent my co-founder our pair reading. silence, then "oh no, it\u2019s accurate"',
+  'five systems agreeing about my sister was not on my bingo card',
+  'the layers view is the first time astrology and HD talked to each other',
+] as const
+
+function QuoteMarquee() {
+  return (
+    <div className="relative mt-10 overflow-hidden" aria-hidden>
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-ground to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-ground to-transparent" />
+      <motion.div
+        className="flex w-max gap-10"
+        animate={{ x: ['0%', '-50%'] }}
+        transition={{ duration: 55, ease: 'linear', repeat: Infinity }}
+      >
+        {[...MARQUEE_QUOTES, ...MARQUEE_QUOTES].map((q, i) => (
+          <span key={i} className="whitespace-nowrap font-display text-base italic text-white/50">
+            {'\u201C'}{q}{'\u201D'}
+          </span>
+        ))}
+      </motion.div>
+    </div>
+  )
+}
+
 export function SocialProofV2() {
   return (
     <section className="py-24" style={{ backgroundColor: MURAL_GROUND }}>
@@ -128,6 +158,7 @@ export function SocialProofV2() {
             </motion.figure>
           ))}
         </div>
+        <QuoteMarquee />
       </div>
     </section>
   )
