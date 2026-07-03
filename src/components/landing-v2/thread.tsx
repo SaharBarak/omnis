@@ -34,13 +34,24 @@ export function ThreadOfLight() {
         }}
       />
 
-      {/* The traveler rides the thread */}
-      <motion.img
-        src="/images/redesign/motifs/traveler-glyph.webp"
-        alt=""
-        className="absolute left-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 mix-blend-screen"
+      {/* The traveler rides the thread — pure CSS comet (no blend-mode quirks) */}
+      <motion.div
+        className="absolute left-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2"
         style={{ top: travelerTop }}
-      />
+      >
+        <span
+          className="absolute inset-0 rounded-full"
+          style={{
+            background:
+              'radial-gradient(circle, #FFF6D9 0%, #E7D08A 18%, #C9A22766 40%, transparent 70%)',
+            filter: 'blur(0.5px)',
+          }}
+        />
+        <span
+          className="absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{ backgroundColor: '#FFF6D9', boxShadow: '0 0 10px 3px #E7D08Acc' }}
+        />
+      </motion.div>
     </div>
   )
 }
