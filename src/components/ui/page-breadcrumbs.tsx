@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import Link from 'next/link'
 import {
   Breadcrumb,
@@ -19,17 +20,21 @@ export function PageBreadcrumbs({ items }: { items: BreadcrumbEntry[] }) {
       <BreadcrumbList>
         {items.map((item, i) => {
           const isLast = i === items.length - 1
+          // Separator renders its own <li>, so it must be a SIBLING of the
+          // item <li>, never nested inside it (invalid HTML / hydration error).
           return (
-            <BreadcrumbItem key={item.label}>
+            <Fragment key={item.label}>
               {i > 0 && <BreadcrumbSeparator />}
-              {isLast || !item.href ? (
-                <BreadcrumbPage>{item.label}</BreadcrumbPage>
-              ) : (
-                <BreadcrumbLink asChild>
-                  <Link href={item.href}>{item.label}</Link>
-                </BreadcrumbLink>
-              )}
-            </BreadcrumbItem>
+              <BreadcrumbItem>
+                {isLast || !item.href ? (
+                  <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink asChild>
+                    <Link href={item.href}>{item.label}</Link>
+                  </BreadcrumbLink>
+                )}
+              </BreadcrumbItem>
+            </Fragment>
           )
         })}
       </BreadcrumbList>
