@@ -2,6 +2,7 @@ import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm'
 
 import { getDb } from '@/lib/db/client'
 import { group_members, groups, people } from '@/lib/db/schema'
+import { isUniqueViolation } from '@/lib/db/errors'
 import { filterOwnedPersonIds } from '@/lib/db/ownership'
 import { serialize, serializeMany, toEntityId } from '@/lib/db/serialize'
 
@@ -197,7 +198,7 @@ export async function addMemberToGroup(
     return 'ok'
   } catch (error) {
     // Duplicate key on the (group_id, person_id) primary key.
-    if ((error as { code?: string }).code === '23505') return 'duplicate'
+    if (isUniqueViolation(error)) return 'duplicate'
     throw error
   }
 }

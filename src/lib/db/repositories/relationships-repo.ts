@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, isNull, or } from 'drizzle-orm'
 
 import { getDb } from '@/lib/db/client'
 import { people, relationships } from '@/lib/db/schema'
+import { isUniqueViolation } from '@/lib/db/errors'
 import { serialize, toEntityId } from '@/lib/db/serialize'
 import type { RelationshipType } from '@/lib/types/relationship'
 
@@ -139,7 +140,7 @@ export async function createRelationship(userId: string, input: RelationshipInpu
       .returning()
     return serialize(created)
   } catch (error) {
-    if (isDuplicateKeyError(error)) {
+    if (isUniqueViolation(error)) {
       throw new DuplicateRelationshipError(
         'A relationship of this type already exists between these people'
       )
@@ -360,11 +361,3 @@ export class DuplicateRelationshipError extends Error {
 }
 
 /** Postgres unique_violation (was Mongo duplicate-key code 11000). */
-function isDuplicateKeyError(error: unknown): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    (error as { code?: string }).code === '23505'
-  )
-}
