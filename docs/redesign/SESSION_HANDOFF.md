@@ -5,14 +5,54 @@ MAIN_PURPOSE.md first; everything else on demand.
 
 ## Branch state
 
-- **Active branch: `redesign/knowledge-experience`** (17 commits, based on
-  `feat/cloudflare-foundation` which itself is 16 unpushed commits ahead of
-  main — the full platform migration: Cloudflare Workers, Mongo/Better
-  Auth, Gemini, Paddle. Nothing pushed anywhere yet, no PRs).
-- Working tree clean except `next-env.d.ts` (generated noise) and
-  `.claude/settings.local.json`.
-- Health at handoff: typecheck ✓ · lint 0 errors (12 pre-existing
-  warnings) · 935/935 tests ✓ · `next build` ✓.
+- **Active branch: `redesign/knowledge-experience`**. Product renamed
+  **OmnisX** (2026-07-04). Nothing pushed anywhere yet, no PRs.
+- Health: typecheck ✓ · lint 0 errors (11 pre-existing warnings) ·
+  935/935 tests ✓ · `next build` ✓.
+
+## Platform migration (2026-07-04) — Mongo→Supabase, Better Auth→Auth0
+
+Stack SWAPPED per user: MongoDB/Mongoose → **Supabase Postgres (Drizzle)**;
+Better Auth → **Auth0 v4**; deploy stays **Cloudflare Workers**; billing
+**Paddle sandbox**. All code done, committed, green. **Blocked only on live
+secrets** — see `docs/SETUP.md` (exact env + commands, all free tier).
+
+- Data: `src/lib/db/schema.ts` (21 tables, pgvector(384)), `client.ts`
+  (postgres.js + Supavisor pooler), migration `drizzle/0000_*.sql` (has
+  `CREATE EXTENSION vector`). Old `src/lib/db/models`, `connection.ts`,
+  `mongo-client.ts`, `auth.ts`, `auth-client.ts`, Mongo migrate script all
+  DELETED. `serialize.ts`: `toObjectId`→`toEntityId`/`isEntityId` (UUID).
+- Repos: all 10 ported by parallel agents + hand-fixed. Row contract
+  preserved (routes untouched). knowledge-search: Atlas $vectorSearch →
+  pgvector cosine, **normalized to Atlas [0,1] score** so 0.7 threshold
+  still means the same.
+- Auth: `src/lib/auth0.ts`, `auth-server.ts` maps session→{id,email,name,
+  image}, `middleware.ts` mounts Auth0 + gates pages (preserves rolled
+  cookie on redirects). `use-auth.ts` + login page = Auth0 Universal Login
+  (redirect; removed false "magic-link sent" UI). Identity mirror + profile
+  bootstrap in GET/PATCH `/api/profile` (`ensureUserAndProfile`).
+- Security fixes (medium code-review, 5 finders): public share routes no
+  longer leak `password_hash`/`owner_id` (server-side `verifySharePassword`
+  + safe projections); atomic view-count increment (max_views race);
+  `src/lib/db/ownership.ts` guards group-member + person-tag writes against
+  cross-tenant IDOR; bidirectional relationships canonicalize endpoint order.
+- **Greenfield notes (NOT bugs, no live data yet):** Auth0 `sub` ≠ any old
+  owner_id — fine, empty DB; new users create rows under their sub. If real
+  Mongo data ever needs importing, an id-remap + `toEntityId` UUID-shape
+  caveat apply (see review findings, angle C).
+- **Supabase project ref `vgqncswfgetxwujrfavb`** (user's account). Apply
+  schema: `npm run db:migrate` once `DATABASE_URL_DIRECT` is set.
+
+## Remaining (blocked on user-supplied secrets)
+
+1. Fill `.env.local` from `.env.example` (Supabase pooler + direct URIs,
+   Auth0 app creds, Paddle sandbox keys + price IDs) — `docs/SETUP.md`.
+2. `npm run db:migrate` (creates tables + pgvector).
+3. Walk all 10 USER_FLOWS end-to-end on the live stack (Playwright for
+   localhost — Aside crashes on heavy local pages).
+4. `wrangler r2 bucket create omnisx-next-cache`, `wrangler secret put …`
+   (list in SETUP), `npm run deploy` + `npm run deploy:cron`; then point
+   Auth0 callbacks + Paddle webhook at the deployed origin.
 
 ## What this session shipped (chronological)
 
