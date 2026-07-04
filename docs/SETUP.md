@@ -9,7 +9,8 @@ tiers used are free.
 Dashboard → Project Settings → Database → Connection string.
 
 - `DATABASE_URL` — the **Transaction pooler** URI (Supavisor, port `6543`).
-  The app runtime uses this (`prepare:false`, one conn per Workers isolate).
+  The app runtime uses this (`prepare:false`, per-request client on
+  Workers so a connection never crosses requests in a reused isolate).
 - `DATABASE_URL_DIRECT` — the **Direct** URI (port `5432`), migrations only.
 
 Apply the schema (creates all 21 tables + enables pgvector):
