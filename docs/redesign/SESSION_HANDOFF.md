@@ -43,6 +43,36 @@ secrets** — see `docs/SETUP.md` (exact env + commands, all free tier).
 - **Supabase project ref `vgqncswfgetxwujrfavb`** (user's account). Apply
   schema: `npm run db:migrate` once `DATABASE_URL_DIRECT` is set.
 
+## Verified against a real Postgres (2026-07-04, local docker)
+
+Ran the migration + repos against `pgvector/pgvector:pg16` on `localhost:5433`
+(no Supabase creds needed) — caught 3 real bugs the migration introduced:
+
+- `npm run db:migrate` applies clean: 21 tables, `vector` extension on,
+  `content_chunks.embedding vector(384)`.
+- `scripts/smoke-repos.ts` — 12/12 assertions (people CRUD, tenant
+  isolation, soft-delete, relationship canonicalization, group IDOR guard,
+  billing usage). Rerun anytime with
+  `DATABASE_URL=postgresql://postgres:omnisx@localhost:5433/omnisx npx tsx scripts/smoke-repos.ts`.
+- Anonymous funnel walked (Playwright, dev on local pg): landing/learn/
+  pricing/calculate 200; **flow 2 calculate computes for real** (Kin 17
+  Self-Existing Earth); `/app` gated → 307 `/login`; protected APIs → 401.
+
+Bugs found + fixed this pass (all committed):
+1. `DrizzleQueryError` wraps the pg error → `23505` is on `.cause`, not
+   `.code`. Ported repos read `.code` (undefined) so every duplicate
+   group-member / reversed relationship silently 500'd. New
+   `src/lib/db/errors.ts` `isUniqueViolation()` walks the cause chain.
+2. **`middleware.ts` must live at `src/middleware.ts`** (src/ dir) or Next
+   ignores it — `/auth/*` 404'd and gating never ran. Moved.
+3. Breadcrumb separator `<li>` was nested inside item `<li>` → hydration
+   error on pricing (+2). Emitted as sibling.
+
+Local test rig: `docker run -d --name omnisx-pg -e POSTGRES_PASSWORD=omnisx
+-e POSTGRES_DB=omnisx -p 5433:5432 pgvector/pgvector:pg16`. `.env.local`
+currently holds local-dev values (local pg + placeholder Auth0 so the app
+boots; login needs real Auth0). Git-ignored.
+
 ## Remaining (blocked on user-supplied secrets)
 
 1. Fill `.env.local` from `.env.example` (Supabase pooler + direct URIs,
