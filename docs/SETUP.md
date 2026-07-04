@@ -46,7 +46,7 @@ Env:
 - `APP_BASE_URL` — `http://localhost:3000` locally, prod origin in prod
 
 The SDK auto-mounts `/auth/login`, `/auth/logout`, `/auth/callback`,
-`/auth/profile` via `middleware.ts`.
+`/auth/profile` via `src/middleware.ts` (must live under src/, not repo root).
 
 ## 3. Paddle (Sandbox first)
 
