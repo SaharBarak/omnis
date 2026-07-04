@@ -1,8 +1,13 @@
-import { connectMongo } from '@/lib/db/connection'
-import { NotificationSettings, Profile, EmailSendLog } from '@/lib/db/models'
-import type { INotificationSettings } from '@/lib/db/models/notification_settings'
+import { and, eq, gte, inArray, lt, sql } from 'drizzle-orm'
+
+import { getDb } from '@/lib/db/client'
+import {
+  email_send_log,
+  notification_settings,
+  profiles,
+  users,
+} from '@/lib/db/schema'
 import { serialize, serializeMany } from '@/lib/db/serialize'
-import { mongoDb } from '@/lib/db/mongo-client'
 
 /**
  * Notifications domain repository. Replaces the Supabase queries that used to
@@ -10,7 +15,7 @@ import { mongoDb } from '@/lib/db/mongo-client'
  *
  * Tenant scoping lives here now that Postgres RLS is gone:
  *  - Owner-scoped functions take `userId` (from requireUserId()) as their first
- *    arg and filter `notification_settings`/`profiles` by `user_id === userId`.
+ *    arg and filter `notification_settings`/`profiles` by `user_id = userId`.
  *    A user can only read/write their OWN settings — never trust an id from the
  *    request body or query string.
  *  - System-scoped functions are clearly named (`listAll...`) and read across
@@ -18,8 +23,10 @@ import { mongoDb } from '@/lib/db/mongo-client'
  */
 
 // ---------------------------------------------------------------------------
-// Settings persistence shape (snake_case, mirrors the Mongo document / old row)
+// Settings persistence shape (snake_case, mirrors the Postgres row)
 // ---------------------------------------------------------------------------
+
+export type MinIntensity = 'low' | 'medium' | 'high' | 'peak'
 
 export interface NotificationSettingsData {
   enabled: boolean
@@ -30,7 +37,7 @@ export interface NotificationSettingsData {
   weekly_digest_day: number | null
   advance_notice: number
   systems: string[]
-  min_intensity: INotificationSettings['min_intensity']
+  min_intensity: MinIntensity
 }
 
 export type SerializedNotificationSettings = NotificationSettingsData & {
@@ -40,54 +47,88 @@ export type SerializedNotificationSettings = NotificationSettingsData & {
   updated_at: string
 }
 
+/** jsonb array containment: does `channels` include the given channel? */
+function channelsInclude(channel: string) {
+  return sql`${notification_settings.channels} @> ${JSON.stringify([channel])}::jsonb`
+}
+
 // ---------------------------------------------------------------------------
 // Owner-scoped operations (USER context)
 // ---------------------------------------------------------------------------
 
 /**
  * Read the notification settings owned by `userId`, or null if none exist yet.
- * Filters by `user_id === userId` — the user can only read their own settings.
+ * Filters by `user_id = userId` — the user can only read their own settings.
  */
 export async function getSettings(
   userId: string
 ): Promise<SerializedNotificationSettings | null> {
-  await connectMongo()
-  const doc = await NotificationSettings.findOne({ user_id: userId }).lean()
-  if (!doc) return null
-  return serialize<SerializedNotificationSettings>(doc)
+  const db = getDb()
+  const rows = await db
+    .select()
+    .from(notification_settings)
+    .where(eq(notification_settings.user_id, userId))
+    .limit(1)
+  if (!rows[0]) return null
+  return serialize<SerializedNotificationSettings>(rows[0])
 }
 
 /**
  * Create or update the notification settings owned by `userId`.
  *
- * Replaces the Supabase `.from('notification_settings').upsert(...)` keyed on
- * `user_id`. The upsert filter is the owner id, so a user can only mutate their
- * own row. Returns the persisted, serialized settings.
+ * Replaces the Mongo `findOneAndUpdate(..., { upsert: true })` keyed on
+ * `user_id` with `insert().onConflictDoUpdate` on the `user_id` unique index.
+ * The upsert key is the owner id, so a user can only mutate their own row.
+ * Returns the persisted, serialized settings.
  */
 export async function upsertSettings(
   userId: string,
   data: NotificationSettingsData
 ): Promise<SerializedNotificationSettings> {
-  await connectMongo()
-  const doc = await NotificationSettings.findOneAndUpdate(
-    { user_id: userId },
-    { $set: { ...data, user_id: userId } },
-    { new: true, upsert: true, setDefaultsOnInsert: true }
-  ).lean()
-  return serialize<SerializedNotificationSettings>(doc)
+  const db = getDb()
+
+  // Nullable inputs fall back to the column defaults (the columns are NOT
+  // NULL), mirroring the old schema defaults applied on insert.
+  const values = {
+    user_id: userId,
+    enabled: data.enabled,
+    channels: data.channels,
+    daily_digest: data.daily_digest,
+    daily_digest_time: data.daily_digest_time ?? '08:00',
+    weekly_digest: data.weekly_digest,
+    weekly_digest_day: data.weekly_digest_day ?? 0,
+    advance_notice: data.advance_notice,
+    systems: data.systems,
+    min_intensity: data.min_intensity,
+  }
+
+  const rows = await db
+    .insert(notification_settings)
+    .values(values)
+    .onConflictDoUpdate({
+      target: notification_settings.user_id,
+      set: { ...values, updated_at: new Date().toISOString() },
+    })
+    .returning()
+
+  return serialize<SerializedNotificationSettings>(rows[0])
 }
 
 /**
  * Read the profile owned by `userId`, or null if none exists. Filters by
- * `user_id === userId`. Email is NOT stored on the profile — it lives on the
- * Better Auth user record — so callers that need an address combine this with
+ * `user_id = userId`. Email is NOT stored on the profile — it lives on the
+ * auth `users` table — so callers that need an address combine this with
  * the session user's email.
  */
 export async function getProfile(userId: string) {
-  await connectMongo()
-  const doc = await Profile.findOne({ user_id: userId }).lean()
-  if (!doc) return null
-  return serialize(doc)
+  const db = getDb()
+  const rows = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.user_id, userId))
+    .limit(1)
+  if (!rows[0]) return null
+  return serialize(rows[0])
 }
 
 // ---------------------------------------------------------------------------
@@ -103,50 +144,53 @@ export interface DigestRecipient {
 
 /**
  * SYSTEM-SCOPED. List every user who has email daily-digest notifications
- * enabled, joined to the data needed to send them (email + name from the Better
- * Auth `user` collection, birth date from `profiles`).
+ * enabled, joined to the data needed to send them (email + name from the auth
+ * `users` table, birth date from `profiles`).
  *
  * Replaces the Supabase cross-user query in `getUsersForDailyDigest`. There is
  * NO owner filter by design — this is the legitimate all-tenant read used only
  * by the CRON_SECRET-authorized cron route. Do NOT call from a user route.
  */
 export async function listAllEnabledDigestRecipients(): Promise<DigestRecipient[]> {
-  await connectMongo()
+  const db = getDb()
 
-  const settings = await NotificationSettings.find({
-    enabled: true,
-    daily_digest: true,
-    channels: 'email',
-  })
-    .select('user_id')
-    .lean()
+  const settings = await db
+    .select({ user_id: notification_settings.user_id })
+    .from(notification_settings)
+    .where(
+      and(
+        eq(notification_settings.enabled, true),
+        eq(notification_settings.daily_digest, true),
+        channelsInclude('email')
+      )
+    )
 
   const userIds = settings.map((s) => s.user_id)
   if (userIds.length === 0) return []
 
-  // Email + display name come from the Better Auth `user` collection; birth
-  // date comes from the app `profiles` collection. Fetch both, keyed by user id.
-  const [users, profiles] = await Promise.all([
-    mongoDb
-      .collection('user')
-      .find({ id: { $in: userIds } })
-      .project<{ id: string; email?: string; name?: string }>({
-        id: 1,
-        email: 1,
-        name: 1,
+  // Email + display name come from the auth `users` table; birth date comes
+  // from the app `profiles` table. Fetch both, keyed by user id.
+  const [userRows, profileRows] = await Promise.all([
+    db
+      .select({ id: users.id, email: users.email, name: users.name })
+      .from(users)
+      .where(inArray(users.id, userIds)),
+    db
+      .select({
+        user_id: profiles.user_id,
+        display_name: profiles.display_name,
+        birth_date: profiles.birth_date,
       })
-      .toArray(),
-    Profile.find({ user_id: { $in: userIds } })
-      .select('user_id display_name birth_date')
-      .lean(),
+      .from(profiles)
+      .where(inArray(profiles.user_id, userIds)),
   ])
 
   const emailById = new Map<string, { email?: string; name?: string }>()
-  for (const u of users) {
-    emailById.set(u.id, { email: u.email, name: u.name })
+  for (const u of userRows) {
+    emailById.set(u.id, { email: u.email, name: u.name ?? undefined })
   }
   const profileById = new Map<string, { display_name?: string; birth_date?: string | null }>()
-  for (const p of profiles) {
+  for (const p of profileRows) {
     profileById.set(p.user_id, {
       display_name: p.display_name,
       birth_date: p.birth_date ?? null,
@@ -173,19 +217,24 @@ export async function listAllEnabledDigestRecipients(): Promise<DigestRecipient[
 /**
  * SYSTEM-SCOPED. List every enabled notification_settings row whose digest hour
  * matches `hourPrefix` (e.g. '07'), used by the cron to decide whether there is
- * any work this hour. Replaces the `.gte/.lt` daily_digest_time window query.
+ * any work this hour. Plain text comparison on the 'HH:mm' string, same window
+ * semantics as the `.gte/.lt` daily_digest_time query.
  */
 export async function listAllEnabledSettingsForHour(hourPrefix: string) {
-  await connectMongo()
+  const db = getDb()
   const next = String(Number(hourPrefix) + 1).padStart(2, '0')
-  const settings = await NotificationSettings.find({
-    enabled: true,
-    daily_digest: true,
-    channels: 'email',
-    daily_digest_time: { $gte: `${hourPrefix}:00`, $lt: `${next}:00` },
-  })
-    .select('user_id')
-    .lean()
+  const settings = await db
+    .select({ id: notification_settings.id, user_id: notification_settings.user_id })
+    .from(notification_settings)
+    .where(
+      and(
+        eq(notification_settings.enabled, true),
+        eq(notification_settings.daily_digest, true),
+        channelsInclude('email'),
+        gte(notification_settings.daily_digest_time, `${hourPrefix}:00`),
+        lt(notification_settings.daily_digest_time, `${next}:00`)
+      )
+    )
   return serializeMany(settings)
 }
 
@@ -210,8 +259,8 @@ export async function logEmailSend(
   entry: EmailSendLogInput
 ): Promise<{ logged: boolean }> {
   try {
-    await connectMongo()
-    await EmailSendLog.create({
+    const db = getDb()
+    await db.insert(email_send_log).values({
       email_type: entry.email_type,
       subject: entry.subject ?? null,
       status: entry.status ?? 'sent',

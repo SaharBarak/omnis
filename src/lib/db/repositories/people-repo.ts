@@ -1,11 +1,14 @@
-import { connectMongo } from '@/lib/db/connection'
-import { Person, Tag, PersonTag } from '@/lib/db/models'
-import { serialize, serializeMany, toObjectId } from '@/lib/db/serialize'
+import { and, asc, eq, inArray, isNull, or } from 'drizzle-orm'
+
+import { getDb } from '@/lib/db/client'
+import { people, person_tags, tags } from '@/lib/db/schema'
+import { filterAttachableTagIds } from '@/lib/db/ownership'
+import { serialize, serializeMany, toEntityId } from '@/lib/db/serialize'
 
 /**
  * People domain repository. Every function is scoped to the authenticated
  * `userId` (Better Auth id). This is the only place tenant isolation for
- * people/tags is enforced now that Postgres RLS is gone — callers MUST pass the
+ * people/tags is enforced — Postgres RLS is not used — callers MUST pass the
  * id from requireUserId(), never from client input.
  */
 
@@ -25,31 +28,37 @@ export type PersonUpdateInput = Partial<PersonInput> & {
 }
 
 export async function listPeopleWithTags(userId: string) {
-  await connectMongo()
+  const db = getDb()
 
-  const [people, tags] = await Promise.all([
-    Person.find({ owner_id: userId, deleted_at: null }).sort({ name: 1 }).lean(),
-    Tag.find({ $or: [{ is_system: true }, { owner_id: userId }] })
-      .sort({ sort_order: 1 })
-      .lean(),
+  const [peopleRows, tagRows] = await Promise.all([
+    db
+      .select()
+      .from(people)
+      .where(and(eq(people.owner_id, userId), isNull(people.deleted_at)))
+      .orderBy(asc(people.name)),
+    db
+      .select()
+      .from(tags)
+      .where(or(eq(tags.is_system, true), eq(tags.owner_id, userId)))
+      .orderBy(asc(tags.sort_order)),
   ])
 
-  const peopleIds = people.map((p) => p._id)
-  const personTags = peopleIds.length
-    ? await PersonTag.find({ person_id: { $in: peopleIds } }).lean()
+  const peopleIds = peopleRows.map((p) => p.id)
+  const personTagRows = peopleIds.length
+    ? await db.select().from(person_tags).where(inArray(person_tags.person_id, peopleIds))
     : []
 
-  const tagById = new Map(tags.map((t) => [String(t._id), t]))
+  const tagById = new Map(tagRows.map((t) => [t.id, t]))
 
-  const peopleWithTags = people.map((person) => {
-    const pTags = personTags
-      .filter((pt) => String(pt.person_id) === String(person._id))
-      .map((pt) => tagById.get(String(pt.tag_id)))
+  const peopleWithTags = peopleRows.map((person) => {
+    const pTags = personTagRows
+      .filter((pt) => pt.person_id === person.id)
+      .map((pt) => tagById.get(pt.tag_id))
       .filter((t): t is NonNullable<typeof t> => Boolean(t))
     return { ...serialize(person), tags: serializeMany(pTags) }
   })
 
-  return { people: peopleWithTags, tags: serializeMany(tags) }
+  return { people: peopleWithTags, tags: serializeMany(tagRows) }
 }
 
 /**
@@ -59,35 +68,46 @@ export async function listPeopleWithTags(userId: string) {
  * `{ ...person, tags }` objects returned by listPeopleWithTags.
  */
 export async function getPersonWithTags(userId: string, id: string) {
-  await connectMongo()
-  const personObjId = toObjectId(id)
+  const db = getDb()
+  const personId = toEntityId(id)
 
-  const person = await Person.findOne({
-    _id: personObjId,
-    owner_id: userId,
-    deleted_at: null,
-  }).lean()
+  const [person] = await db
+    .select()
+    .from(people)
+    .where(
+      and(eq(people.id, personId), eq(people.owner_id, userId), isNull(people.deleted_at))
+    )
+    .limit(1)
 
   if (!person) return null
 
-  const personTags = await PersonTag.find({ person_id: personObjId }).lean()
-  const tagIds = personTags.map((pt) => pt.tag_id)
-  const tags = tagIds.length
-    ? await Tag.find({ _id: { $in: tagIds } })
-        .sort({ sort_order: 1 })
-        .lean()
+  const personTagRows = await db
+    .select()
+    .from(person_tags)
+    .where(eq(person_tags.person_id, personId))
+  const tagIds = personTagRows.map((pt) => pt.tag_id)
+  const tagRows = tagIds.length
+    ? await db
+        .select()
+        .from(tags)
+        .where(inArray(tags.id, tagIds))
+        .orderBy(asc(tags.sort_order))
     : []
 
-  return { ...serialize(person), tags: serializeMany(tags) }
+  return { ...serialize(person), tags: serializeMany(tagRows) }
 }
 
-async function setPersonTags(personObjId: ReturnType<typeof toObjectId>, tagIds: string[]) {
-  await PersonTag.deleteMany({ person_id: personObjId })
-  if (tagIds.length) {
-    await PersonTag.insertMany(
-      tagIds.map((tagId) => ({ person_id: personObjId, tag_id: toObjectId(tagId) })),
-      { ordered: false }
-    )
+async function setPersonTags(userId: string, personId: string, tagIds: string[]) {
+  const db = getDb()
+  // Only the caller's own tags (plus system tags) may be attached — a foreign
+  // tag id is silently dropped rather than persisted as a cross-tenant link.
+  const attachable = await filterAttachableTagIds(userId, tagIds)
+  await db.delete(person_tags).where(eq(person_tags.person_id, personId))
+  if (attachable.length) {
+    await db
+      .insert(person_tags)
+      .values(attachable.map((tagId) => ({ person_id: personId, tag_id: tagId })))
+      .onConflictDoNothing()
   }
 }
 
@@ -96,12 +116,15 @@ export async function createPerson(
   input: PersonInput,
   tagIds: string[] = []
 ) {
-  await connectMongo()
-  const person = await Person.create({ ...input, owner_id: userId })
+  const db = getDb()
+  const [person] = await db
+    .insert(people)
+    .values({ ...input, owner_id: userId })
+    .returning()
   if (tagIds.length) {
-    await setPersonTags(person._id, tagIds)
+    await setPersonTags(userId, person.id, tagIds)
   }
-  return serialize(person.toObject())
+  return serialize(person)
 }
 
 /** Returns the updated person, or null if it is not owned by the user. */
@@ -111,80 +134,85 @@ export async function updatePerson(
   updates: PersonUpdateInput,
   tagIds?: string[]
 ) {
-  await connectMongo()
-  const personObjId = toObjectId(id)
+  const db = getDb()
+  const personId = toEntityId(id)
 
-  const person = await Person.findOneAndUpdate(
-    { _id: personObjId, owner_id: userId },
-    { $set: updates },
-    { new: true }
-  ).lean()
+  const [person] = await db
+    .update(people)
+    .set({ ...updates, updated_at: new Date().toISOString() })
+    .where(and(eq(people.id, personId), eq(people.owner_id, userId)))
+    .returning()
 
   if (!person) return null
 
   if (tagIds !== undefined) {
-    await setPersonTags(personObjId, tagIds)
+    await setPersonTags(userId, personId, tagIds)
   }
 
   return serialize(person)
 }
 
 export async function softDeletePerson(userId: string, id: string) {
-  await connectMongo()
-  const res = await Person.updateOne(
-    { _id: toObjectId(id), owner_id: userId },
-    { $set: { deleted_at: new Date() } }
-  )
-  return res.matchedCount > 0
+  const db = getDb()
+  const res = await db
+    .update(people)
+    .set({ deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .where(and(eq(people.id, toEntityId(id)), eq(people.owner_id, userId)))
+    .returning({ id: people.id })
+  return res.length > 0
 }
 
 export async function restorePerson(userId: string, id: string) {
-  await connectMongo()
-  const res = await Person.updateOne(
-    { _id: toObjectId(id), owner_id: userId },
-    { $set: { deleted_at: null } }
-  )
-  return res.matchedCount > 0
+  const db = getDb()
+  const res = await db
+    .update(people)
+    .set({ deleted_at: null, updated_at: new Date().toISOString() })
+    .where(and(eq(people.id, toEntityId(id)), eq(people.owner_id, userId)))
+    .returning({ id: people.id })
+  return res.length > 0
 }
 
 export async function permanentlyDeletePerson(userId: string, id: string) {
-  await connectMongo()
-  const personObjId = toObjectId(id)
-  const res = await Person.deleteOne({ _id: personObjId, owner_id: userId })
-  if (res.deletedCount > 0) {
-    await PersonTag.deleteMany({ person_id: personObjId })
-  }
-  return res.deletedCount > 0
+  const db = getDb()
+  const personId = toEntityId(id)
+  const res = await db
+    .delete(people)
+    .where(and(eq(people.id, personId), eq(people.owner_id, userId)))
+    .returning({ id: people.id })
+  // person_tags rows are removed by the ON DELETE CASCADE FK on person_id.
+  return res.length > 0
 }
 
 export async function listTags(userId: string) {
-  await connectMongo()
-  const tags = await Tag.find({ $or: [{ is_system: true }, { owner_id: userId }] })
-    .sort({ sort_order: 1 })
-    .lean()
-  return serializeMany(tags)
+  const db = getDb()
+  const tagRows = await db
+    .select()
+    .from(tags)
+    .where(or(eq(tags.is_system, true), eq(tags.owner_id, userId)))
+    .orderBy(asc(tags.sort_order))
+  return serializeMany(tagRows)
 }
 
 export async function createTag(
   userId: string,
   tag: { name: string; hebrew_name: string; color: string }
 ) {
-  await connectMongo()
-  const created = await Tag.create({ ...tag, owner_id: userId, is_system: false })
-  return serialize(created.toObject())
+  const db = getDb()
+  const [created] = await db
+    .insert(tags)
+    .values({ ...tag, owner_id: userId, is_system: false })
+    .returning()
+  return serialize(created)
 }
 
 /** Deletes a non-system tag owned by the user. Returns true if removed. */
 export async function deleteTag(userId: string, id: string) {
-  await connectMongo()
-  const tagObjId = toObjectId(id)
-  const res = await Tag.deleteOne({
-    _id: tagObjId,
-    owner_id: userId,
-    is_system: false,
-  })
-  if (res.deletedCount > 0) {
-    await PersonTag.deleteMany({ tag_id: tagObjId })
-  }
-  return res.deletedCount > 0
+  const db = getDb()
+  const tagId = toEntityId(id)
+  const res = await db
+    .delete(tags)
+    .where(and(eq(tags.id, tagId), eq(tags.owner_id, userId), eq(tags.is_system, false)))
+    .returning({ id: tags.id })
+  // person_tags rows are removed by the ON DELETE CASCADE FK on tag_id.
+  return res.length > 0
 }

@@ -1,6 +1,7 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare'
-import { connectMongo } from '@/lib/db/connection'
-import { ContentChunk } from '@/lib/db/models'
+import { sql } from 'drizzle-orm'
+
+import { getDb } from '@/lib/db/client'
 
 /**
  * Knowledge base semantic search.
@@ -11,13 +12,14 @@ import { ContentChunk } from '@/lib/db/models'
  * (handled in the scraper, packages/scraper) so query and corpus share one
  * 384-dim vector space.
  *
- * Vector search runs through an Atlas Vector Search index named
- * `embedding_vector_index` on content_chunks.embedding (384 dims, cosine),
- * replacing the Postgres pgvector `search_knowledge` RPC.
+ * Vector search runs through pgvector cosine distance (`<=>`) on
+ * content_chunks.embedding (vector(384)), replacing the Atlas
+ * `$vectorSearch` aggregation. Similarity is normalized to [0,1] as
+ * `1 - cosine_distance/2`, matching Atlas's `(1 + cosine)/2` vectorSearchScore
+ * scale so the 0.7 default threshold keeps its original meaning.
  */
 
 const EMBEDDING_MODEL = '@cf/baai/bge-small-en-v1.5'
-const VECTOR_INDEX = 'embedding_vector_index'
 
 interface WorkersAi {
   run(model: string, inputs: { text: string | string[] }): Promise<{ data: number[][] }>
@@ -47,18 +49,19 @@ export interface KnowledgeResult {
   similarity: number
 }
 
-interface VectorSearchRow {
-  _id: unknown
-  knowledge_base_id: unknown
+type VectorSearchRow = {
+  id: string
+  knowledge_base_id: string
   chunk_index: number
   chunk_text: string
   score: number
-  kb: { source_url: string; title: string }
+  source_url: string
+  title: string
 }
 
 /**
  * Search the knowledge base by semantic similarity.
- * Embeds the query with Workers AI, then runs Atlas $vectorSearch.
+ * Embeds the query with Workers AI, then runs a pgvector cosine search.
  */
 export async function searchKnowledge(
   query: string,
@@ -66,46 +69,38 @@ export async function searchKnowledge(
   threshold: number = 0.7
 ): Promise<KnowledgeResult[]> {
   const queryEmbedding = await embedQuery(query)
-  await connectMongo()
+  const db = getDb()
 
-  const rows = await ContentChunk.aggregate<VectorSearchRow>([
-    {
-      $vectorSearch: {
-        index: VECTOR_INDEX,
-        path: 'embedding',
-        queryVector: queryEmbedding,
-        numCandidates: Math.max(limit * 10, 100),
-        limit,
-      },
-    },
-    {
-      $project: {
-        knowledge_base_id: 1,
-        chunk_index: 1,
-        chunk_text: 1,
-        score: { $meta: 'vectorSearchScore' },
-      },
-    },
-    {
-      $lookup: {
-        from: 'knowledge_base',
-        localField: 'knowledge_base_id',
-        foreignField: '_id',
-        as: 'kb',
-      },
-    },
-    { $unwind: '$kb' },
-  ])
+  const queryVector = `[${queryEmbedding.join(',')}]`
+
+  const rows = await db.execute<VectorSearchRow>(sql`
+    SELECT
+      cc.id,
+      cc.knowledge_base_id,
+      cc.chunk_index,
+      cc.chunk_text,
+      kb.title,
+      kb.source_url,
+      -- Normalize cosine similarity to [0,1] to preserve the Atlas
+      -- vectorSearchScore scale the 0.7 default threshold was tuned for:
+      -- Atlas score = (1 + cosine) / 2, and (cc.embedding <=> v) = 1 - cosine.
+      1 - ((cc.embedding <=> ${queryVector}::vector) / 2) AS score
+    FROM content_chunks cc
+    JOIN knowledge_base kb ON kb.id = cc.knowledge_base_id
+    WHERE cc.embedding IS NOT NULL
+    ORDER BY cc.embedding <=> ${queryVector}::vector
+    LIMIT ${limit}
+  `)
 
   return rows
     .filter((row) => row.score >= threshold)
     .map((row) => ({
-      id: String(row._id),
+      id: String(row.id),
       knowledgeBaseId: String(row.knowledge_base_id),
       chunkIndex: row.chunk_index,
       chunkText: row.chunk_text,
-      sourceUrl: row.kb.source_url,
-      title: row.kb.title,
+      sourceUrl: row.source_url,
+      title: row.title,
       similarity: row.score,
     }))
 }

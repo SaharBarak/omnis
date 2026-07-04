@@ -1,16 +1,18 @@
-import { connectMongo } from '@/lib/db/connection'
-import { Relationship, Person } from '@/lib/db/models'
-import { serialize, toObjectId } from '@/lib/db/serialize'
-import type { RelationshipType } from '@/lib/db/models'
+import { and, desc, eq, inArray, isNull, or } from 'drizzle-orm'
+
+import { getDb } from '@/lib/db/client'
+import { people, relationships } from '@/lib/db/schema'
+import { serialize, toEntityId } from '@/lib/db/serialize'
+import type { RelationshipType } from '@/lib/types/relationship'
 
 /**
  * Relationships domain repository. Every function is scoped to the authenticated
- * `userId` (Better Auth id). This is the only place tenant isolation for
- * relationships is enforced now that Postgres RLS is gone — callers MUST pass the
- * id from requireUserId(), never from client input.
+ * `userId` (Auth0 subject). This is the only place tenant isolation for
+ * relationships is enforced — callers MUST pass the id from requireUserId(),
+ * never from client input.
  *
  * Relationship rows carry their own `owner_id`, so the primary tenant filter is
- * `owner_id === userId` on the relationships collection. On create we additionally
+ * `owner_id = userId` on the relationships table. On create we additionally
  * verify both referenced people belong to the user (mirroring the old Postgres
  * INSERT policy's EXISTS checks) so a relationship can never point at someone
  * else's person.
@@ -45,78 +47,97 @@ export interface RelationshipUpdateInput {
  * referenced person is missing/not owned is dropped (no cross-tenant leak).
  */
 export async function listRelationshipsWithPeople(userId: string) {
-  await connectMongo()
+  const db = getDb()
 
-  const relationships = await Relationship.find({ owner_id: userId })
-    .sort({ created_at: -1 })
-    .lean()
+  const rels = await db
+    .select()
+    .from(relationships)
+    .where(eq(relationships.owner_id, userId))
+    .orderBy(desc(relationships.created_at))
 
-  if (relationships.length === 0) return []
+  if (rels.length === 0) return []
 
   const personIds = new Set<string>()
-  for (const r of relationships) {
-    personIds.add(String(r.person1_id))
-    personIds.add(String(r.person2_id))
+  for (const r of rels) {
+    personIds.add(r.person1_id)
+    personIds.add(r.person2_id)
   }
 
-  const people = await Person.find({
-    _id: { $in: Array.from(personIds).map((id) => toObjectId(id)) },
-    owner_id: userId,
-    deleted_at: null,
-  }).lean()
-
-  const peopleById = new Map(people.map((p) => [String(p._id), p]))
-
-  return relationships
-    .filter(
-      (r) =>
-        peopleById.has(String(r.person1_id)) &&
-        peopleById.has(String(r.person2_id))
+  const persons = await db
+    .select()
+    .from(people)
+    .where(
+      and(
+        inArray(people.id, Array.from(personIds)),
+        eq(people.owner_id, userId),
+        isNull(people.deleted_at)
+      )
     )
+
+  const peopleById = new Map(persons.map((p) => [p.id, p]))
+
+  return rels
+    .filter((r) => peopleById.has(r.person1_id) && peopleById.has(r.person2_id))
     .map((r) => ({
       ...serialize(r),
-      person1: serialize(peopleById.get(String(r.person1_id))!),
-      person2: serialize(peopleById.get(String(r.person2_id))!),
+      person1: serialize(peopleById.get(r.person1_id)!),
+      person2: serialize(peopleById.get(r.person2_id)!),
     }))
 }
 
 /**
  * Create a relationship owned by the user. Verifies both people belong to the
  * user first (replaces the Postgres INSERT WITH CHECK EXISTS clauses).
- * Throws if either person is missing/not owned, or on the duplicate-key error
- * from the unique (owner_id, person1_id, person2_id, type) index.
+ * Throws if either person is missing/not owned, or on the unique-constraint
+ * violation from the (owner_id, person1_id, person2_id, type) index.
  */
 export async function createRelationship(userId: string, input: RelationshipInput) {
-  await connectMongo()
+  const db = getDb()
 
-  const person1ObjId = toObjectId(input.person1_id)
-  const person2ObjId = toObjectId(input.person2_id)
+  const rawP1 = toEntityId(input.person1_id)
+  const rawP2 = toEntityId(input.person2_id)
+  const bidirectional = input.bidirectional ?? true
 
-  const ownedCount = await Person.countDocuments({
-    _id: { $in: [person1ObjId, person2ObjId] },
-    owner_id: userId,
-    deleted_at: null,
-  })
-  if (ownedCount < 2) {
+  // Canonicalize endpoint order for bidirectional relationships so the reversed
+  // pair (B,A) collides with the (owner_id, person1_id, person2_id, type) unique
+  // index instead of being stored as a phantom duplicate. Directional links keep
+  // the caller's order.
+  const [person1Id, person2Id] =
+    bidirectional && rawP1 > rawP2 ? [rawP2, rawP1] : [rawP1, rawP2]
+
+  const owned = await db
+    .select({ id: people.id })
+    .from(people)
+    .where(
+      and(
+        inArray(people.id, [person1Id, person2Id]),
+        eq(people.owner_id, userId),
+        isNull(people.deleted_at)
+      )
+    )
+  if (owned.length < 2) {
     throw new RelationshipPeopleError(
       'Both people must belong to the current user'
     )
   }
 
   try {
-    const created = await Relationship.create({
-      owner_id: userId,
-      person1_id: person1ObjId,
-      person2_id: person2ObjId,
-      type: input.type,
-      subtype: input.subtype ?? null,
-      bidirectional: input.bidirectional ?? true,
-      strength: input.strength ?? 3,
-      start_date: input.start_date ?? null,
-      end_date: input.end_date ?? null,
-      notes: input.notes ?? null,
-    })
-    return serialize(created.toObject())
+    const [created] = await db
+      .insert(relationships)
+      .values({
+        owner_id: userId,
+        person1_id: person1Id,
+        person2_id: person2Id,
+        type: input.type,
+        subtype: input.subtype ?? null,
+        bidirectional,
+        strength: input.strength ?? 3,
+        start_date: input.start_date ?? null,
+        end_date: input.end_date ?? null,
+        notes: input.notes ?? null,
+      })
+      .returning()
+    return serialize(created)
   } catch (error) {
     if (isDuplicateKeyError(error)) {
       throw new DuplicateRelationshipError(
@@ -133,23 +154,34 @@ export async function updateRelationship(
   id: string,
   updates: RelationshipUpdateInput
 ) {
-  await connectMongo()
-  const relObjId = toObjectId(id)
+  const db = getDb()
+  const relId = toEntityId(id)
 
-  const $set: Record<string, unknown> = {}
-  if (updates.type !== undefined) $set.type = updates.type
-  if (updates.subtype !== undefined) $set.subtype = updates.subtype
-  if (updates.bidirectional !== undefined) $set.bidirectional = updates.bidirectional
-  if (updates.strength !== undefined) $set.strength = updates.strength
-  if (updates.start_date !== undefined) $set.start_date = updates.start_date
-  if (updates.end_date !== undefined) $set.end_date = updates.end_date
-  if (updates.notes !== undefined) $set.notes = updates.notes
+  const set: Record<string, unknown> = {}
+  if (updates.type !== undefined) set.type = updates.type
+  if (updates.subtype !== undefined) set.subtype = updates.subtype
+  if (updates.bidirectional !== undefined) set.bidirectional = updates.bidirectional
+  if (updates.strength !== undefined) set.strength = updates.strength
+  if (updates.start_date !== undefined) set.start_date = updates.start_date
+  if (updates.end_date !== undefined) set.end_date = updates.end_date
+  if (updates.notes !== undefined) set.notes = updates.notes
 
-  const relationship = await Relationship.findOneAndUpdate(
-    { _id: relObjId, owner_id: userId },
-    { $set },
-    { new: true }
-  ).lean()
+  const ownedFilter = and(eq(relationships.id, relId), eq(relationships.owner_id, userId))
+
+  // Drizzle rejects an empty set; Mongo's empty $set was a no-op read.
+  if (Object.keys(set).length === 0) {
+    const [existing] = await db.select().from(relationships).where(ownedFilter).limit(1)
+    return existing ? serialize(existing) : null
+  }
+
+  // Mongoose timestamps bumped updated_at on every update; do the same here.
+  set.updated_at = new Date().toISOString()
+
+  const [relationship] = await db
+    .update(relationships)
+    .set(set)
+    .where(ownedFilter)
+    .returning()
 
   if (!relationship) return null
   return serialize(relationship)
@@ -157,12 +189,14 @@ export async function updateRelationship(
 
 /** Deletes a relationship owned by the user. Returns true if removed. */
 export async function deleteRelationship(userId: string, id: string) {
-  await connectMongo()
-  const res = await Relationship.deleteOne({
-    _id: toObjectId(id),
-    owner_id: userId,
-  })
-  return res.deletedCount > 0
+  const db = getDb()
+  const deleted = await db
+    .delete(relationships)
+    .where(
+      and(eq(relationships.id, toEntityId(id)), eq(relationships.owner_id, userId))
+    )
+    .returning({ id: relationships.id })
+  return deleted.length > 0
 }
 
 /**
@@ -173,58 +207,66 @@ export async function deleteRelationship(userId: string, id: string) {
  *  - bidirectional relationships where the person is person2,
  * each shaped from that person's perspective (the "other" person resolved).
  *
- * Tenant scoping: the relationship query filters by `owner_id === userId`, and
+ * Tenant scoping: the relationship query filters by `owner_id = userId`, and
  * the person we anchor on must itself be owned by the user. The other person is
- * resolved via an owner-scoped Person lookup, so a row whose other person is
+ * resolved via an owner-scoped people lookup, so a row whose other person is
  * missing/not owned is dropped.
  */
 export async function getPersonRelationships(userId: string, personId: string) {
-  await connectMongo()
-  const personObjId = toObjectId(personId)
+  const db = getDb()
+  const anchorId = toEntityId(personId)
 
   // Anchor person must belong to the user.
-  const anchor = await Person.findOne({
-    _id: personObjId,
-    owner_id: userId,
-    deleted_at: null,
-  }).lean()
+  const [anchor] = await db
+    .select({ id: people.id })
+    .from(people)
+    .where(
+      and(eq(people.id, anchorId), eq(people.owner_id, userId), isNull(people.deleted_at))
+    )
+    .limit(1)
   if (!anchor) return []
 
   // WHERE owner_id = userId AND (person1 = p OR (person2 = p AND bidirectional))
-  const relationships = await Relationship.find({
-    owner_id: userId,
-    $or: [
-      { person1_id: personObjId },
-      { person2_id: personObjId, bidirectional: true },
-    ],
-  })
-    .sort({ created_at: -1 })
-    .lean()
+  const rels = await db
+    .select()
+    .from(relationships)
+    .where(
+      and(
+        eq(relationships.owner_id, userId),
+        or(
+          eq(relationships.person1_id, anchorId),
+          and(eq(relationships.person2_id, anchorId), eq(relationships.bidirectional, true))
+        )
+      )
+    )
+    .orderBy(desc(relationships.created_at))
 
-  if (relationships.length === 0) return []
+  if (rels.length === 0) return []
 
-  const otherIds = relationships.map((r) =>
-    String(r.person1_id) === String(personObjId) ? r.person2_id : r.person1_id
+  const otherIds = rels.map((r) =>
+    r.person1_id === anchorId ? r.person2_id : r.person1_id
   )
 
-  const otherPeople = await Person.find({
-    _id: { $in: otherIds },
-    owner_id: userId,
-    deleted_at: null,
-  }).lean()
+  const otherPeople = await db
+    .select()
+    .from(people)
+    .where(
+      and(
+        inArray(people.id, otherIds),
+        eq(people.owner_id, userId),
+        isNull(people.deleted_at)
+      )
+    )
 
-  const peopleById = new Map(otherPeople.map((p) => [String(p._id), p]))
+  const peopleById = new Map(otherPeople.map((p) => [p.id, p]))
 
-  return relationships
+  return rels
     .map((r) => {
-      const otherId =
-        String(r.person1_id) === String(personObjId)
-          ? r.person2_id
-          : r.person1_id
-      const otherPerson = peopleById.get(String(otherId))
+      const otherId = r.person1_id === anchorId ? r.person2_id : r.person1_id
+      const otherPerson = peopleById.get(otherId)
       if (!otherPerson) return null
       return {
-        id: serialize<{ id: string }>(r).id,
+        id: r.id,
         type: r.type,
         subtype: r.subtype ?? null,
         strength: r.strength,
@@ -233,8 +275,8 @@ export async function getPersonRelationships(userId: string, personId: string) {
         endDate: r.end_date ?? null,
         notes: r.notes ?? null,
         otherPerson: serialize(otherPerson),
-        createdAt: serialize<{ created_at: string }>(r).created_at,
-        updatedAt: serialize<{ updated_at: string }>(r).updated_at,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
       }
     })
     .filter((r): r is NonNullable<typeof r> => r !== null)
@@ -251,46 +293,48 @@ export async function getPersonRelationships(userId: string, personId: string) {
  * owner-scoped, so no cross-tenant node or edge can appear.
  */
 export async function getRelationshipGraph(userId: string) {
-  await connectMongo()
+  const db = getDb()
 
-  const [people, relationships] = await Promise.all([
-    Person.find({ owner_id: userId, deleted_at: null })
-      .select({ name: 1, hebrew_name: 1, birth_date: 1 })
-      .lean(),
-    Relationship.find({ owner_id: userId })
+  const [persons, rels] = await Promise.all([
+    db
       .select({
-        person1_id: 1,
-        person2_id: 1,
-        type: 1,
-        subtype: 1,
-        bidirectional: 1,
-        strength: 1,
+        id: people.id,
+        name: people.name,
+        hebrew_name: people.hebrew_name,
+        birth_date: people.birth_date,
       })
-      .lean(),
+      .from(people)
+      .where(and(eq(people.owner_id, userId), isNull(people.deleted_at))),
+    db
+      .select({
+        id: relationships.id,
+        person1_id: relationships.person1_id,
+        person2_id: relationships.person2_id,
+        type: relationships.type,
+        subtype: relationships.subtype,
+        bidirectional: relationships.bidirectional,
+        strength: relationships.strength,
+      })
+      .from(relationships)
+      .where(eq(relationships.owner_id, userId)),
   ])
 
-  const nodes = people.map((p) => {
-    const s = serialize<{ id: string }>(p)
-    return {
-      id: s.id,
-      name: p.name,
-      hebrew_name: p.hebrew_name ?? null,
-      birth_date: p.birth_date,
-    }
-  })
+  const nodes = persons.map((p) => ({
+    id: p.id,
+    name: p.name,
+    hebrew_name: p.hebrew_name ?? null,
+    birth_date: p.birth_date,
+  }))
 
-  const edges = relationships.map((r) => {
-    const s = serialize<{ id: string }>(r)
-    return {
-      id: s.id,
-      source: String(r.person1_id),
-      target: String(r.person2_id),
-      type: r.type,
-      subtype: r.subtype ?? null,
-      bidirectional: r.bidirectional,
-      strength: r.strength,
-    }
-  })
+  const edges = rels.map((r) => ({
+    id: r.id,
+    source: r.person1_id,
+    target: r.person2_id,
+    type: r.type,
+    subtype: r.subtype ?? null,
+    bidirectional: r.bidirectional,
+    strength: r.strength,
+  }))
 
   return { nodes, edges }
 }
@@ -315,11 +359,12 @@ export class DuplicateRelationshipError extends Error {
   }
 }
 
+/** Postgres unique_violation (was Mongo duplicate-key code 11000). */
 function isDuplicateKeyError(error: unknown): boolean {
   return (
     typeof error === 'object' &&
     error !== null &&
     'code' in error &&
-    (error as { code?: number }).code === 11000
+    (error as { code?: string }).code === '23505'
   )
 }

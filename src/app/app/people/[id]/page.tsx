@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Types } from 'mongoose'
+import { isEntityId } from '@/lib/db/serialize'
 import { requireUserId } from '@/lib/auth-server'
 import { getPersonWithTags } from '@/lib/db/repositories/people-repo'
 import type { PersonWithTags } from '@/lib/hooks/use-people'
@@ -27,7 +27,7 @@ export default async function PersonDetailPage({
   const { id } = await params
 
   // Invalid id -> treat as not found (avoids throwing BadIdError to the page).
-  if (!Types.ObjectId.isValid(id)) {
+  if (!isEntityId(id)) {
     return <PersonNotFound />
   }
 

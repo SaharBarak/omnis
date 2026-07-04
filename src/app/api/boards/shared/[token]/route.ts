@@ -10,12 +10,18 @@ type Ctx = { params: Promise<{ token: string }> }
  * max-view state inside getBoardByShareToken, which returns only the minimal
  * board data needed for a public viewer (never owner_id).
  */
-export async function GET(_request: Request, { params }: Ctx) {
+export async function GET(request: Request, { params }: Ctx) {
   try {
     const { token } = await params
-    const result = await getBoardByShareToken(token)
+    // Password gate: viewer supplies a candidate hash; the raw hash never
+    // leaves the server (see getBoardByShareToken).
+    const candidateHash = new URL(request.url).searchParams.get('ph')
+    const result = await getBoardByShareToken(token, candidateHash)
     if (!result) {
       return NextResponse.json({ error: 'Not found or expired' }, { status: 404 })
+    }
+    if ('locked' in result) {
+      return NextResponse.json({ locked: true }, { status: 401 })
     }
     return NextResponse.json(result)
   } catch (error) {

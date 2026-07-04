@@ -11,7 +11,6 @@ import { useAuth } from '@/lib/hooks/use-auth'
 function LoginForm() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
-  const [emailSent, setEmailSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') || '/app'
@@ -19,19 +18,18 @@ function LoginForm() {
   const { signInWithGoogle, signInWithEmail } = useAuth()
 
   const handleGoogleSignIn = async () => {
-    console.log('[Login] handleGoogleSignIn called, redirectTo:', redirectTo)
     setLoading(true)
     setError(null)
     try {
       await signInWithGoogle(redirectTo)
-      console.log('[Login] signInWithGoogle completed - should redirect now')
     } catch (err) {
-      console.error('[Login] Google sign-in error:', err)
       setError(err instanceof Error ? err.message : 'Error signing in with Google')
       setLoading(false)
     }
   }
 
+  // Auth0 Universal Login is redirect-based: the email only prefills the hosted
+  // login form. This navigates away, so there is no "link sent" state.
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email) return
@@ -40,10 +38,8 @@ function LoginForm() {
     setError(null)
     try {
       await signInWithEmail(email, redirectTo)
-      setEmailSent(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error sending login link')
-    } finally {
+      setError(err instanceof Error ? err.message : 'Error continuing with email')
       setLoading(false)
     }
   }
@@ -66,29 +62,7 @@ function LoginForm() {
       </div>
 
       <div className="earth-card bg-card p-8">
-        {emailSent ? (
-          <div className="text-center space-y-4">
-            <div className="w-14 h-14 mx-auto rounded-full bg-secondary/10 flex items-center justify-center">
-              <svg className="w-7 h-7 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <div className="text-lg font-heading text-secondary">
-              Link sent!
-            </div>
-            <p className="text-muted-foreground">
-              Check your inbox at <strong className="text-foreground">{email}</strong>
-            </p>
-            <Button
-              variant="outline"
-              onClick={() => setEmailSent(false)}
-              className="w-full"
-            >
-              Send new link
-            </Button>
-          </div>
-        ) : (
-          <>
+        <>
             {/* OAuth Buttons */}
             <div className="space-y-3 mb-6">
               <Button
@@ -149,7 +123,7 @@ function LoginForm() {
                 className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground"
                 disabled={loading || !email}
               >
-                {loading ? 'Sending...' : 'Send login link'}
+                {loading ? 'Redirecting...' : 'Continue with email'}
               </Button>
             </form>
 
@@ -165,8 +139,7 @@ function LoginForm() {
               {' '}and{' '}
               <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>
             </p>
-          </>
-        )}
+        </>
       </div>
     </div>
   )

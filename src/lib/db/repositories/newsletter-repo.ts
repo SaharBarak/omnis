@@ -1,5 +1,6 @@
-import { connectMongo } from '@/lib/db/connection'
-import { NewsletterSubscriber, EmailSendLog } from '@/lib/db/models'
+import { and, eq, gte, lt, sql } from 'drizzle-orm'
+import { getDb } from '@/lib/db/client'
+import { email_send_log, newsletter_subscribers } from '@/lib/db/schema'
 import { serialize, serializeMany } from '@/lib/db/serialize'
 
 /**
@@ -12,9 +13,6 @@ import { serialize, serializeMany } from '@/lib/db/serialize'
  * argument and no owner filter here; tenant scoping does not apply to this
  * domain. Authorization lives in the callers (public subscribe route, cron
  * bearer check).
- *
- * Replaces the former Supabase `newsletter_subscribers` / `email_send_log`
- * tables (service-role client) with Mongoose via connectMongo().
  */
 
 /** Plain (serialized) subscriber shape returned to callers. */
@@ -51,9 +49,13 @@ function normalizeEmail(email: string): string {
 
 /** Look up a single subscriber by (normalized) email. Null if none. */
 export async function findByEmail(email: string): Promise<SubscriberRecord | null> {
-  await connectMongo()
-  const doc = await NewsletterSubscriber.findOne({ email: normalizeEmail(email) }).lean()
-  return doc ? serialize<SubscriberRecord>(doc) : null
+  const db = getDb()
+  const [row] = await db
+    .select()
+    .from(newsletter_subscribers)
+    .where(eq(newsletter_subscribers.email, normalizeEmail(email)))
+    .limit(1)
+  return row ? serialize<SubscriberRecord>(row) : null
 }
 
 /**
@@ -64,108 +66,126 @@ export async function findByEmail(email: string): Promise<SubscriberRecord | nul
  * Returns `{ subscriber, created }` where `created` is true when this call
  * inserted a brand-new subscriber (used by callers to decide whether to send a
  * welcome email).
- *
- * Replaces the Supabase select-then-insert/update branch.
  */
 export async function subscribe(
   email: string
 ): Promise<{ subscriber: SubscriberRecord; created: boolean }> {
-  await connectMongo()
+  const db = getDb()
   const normalized = normalizeEmail(email)
-  const now = new Date()
+  const now = new Date().toISOString()
 
-  const existing = await NewsletterSubscriber.findOne({ email: normalized }).lean()
+  const [existing] = await db
+    .select({ id: newsletter_subscribers.id })
+    .from(newsletter_subscribers)
+    .where(eq(newsletter_subscribers.email, normalized))
+    .limit(1)
   const created = !existing
 
-  const doc = await NewsletterSubscriber.findOneAndUpdate(
-    { email: normalized },
-    {
-      // Always (re)activate: clears unsubscribed_at and refreshes subscribed_at.
-      $set: {
-        email: normalized,
+  // Always (re)activate: clears unsubscribed_at and refreshes subscribed_at.
+  // Preferences only seed on first insert; the conflict path doesn't touch them.
+  const [row] = await db
+    .insert(newsletter_subscribers)
+    .values({
+      email: normalized,
+      unsubscribed_at: null,
+      subscribed_at: now,
+      confirmed: true,
+      confirmed_at: now,
+      preferences: { daily_kin: true },
+    })
+    .onConflictDoUpdate({
+      target: newsletter_subscribers.email,
+      set: {
         unsubscribed_at: null,
         subscribed_at: now,
         confirmed: true,
         confirmed_at: now,
+        updated_at: now,
       },
-      // Only set preferences on first insert; don't clobber existing prefs.
-      $setOnInsert: {
-        preferences: { daily_kin: true },
-      },
-    },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  ).lean()
+    })
+    .returning()
 
-  return { subscriber: serialize<SubscriberRecord>(doc), created }
+  return { subscriber: serialize<SubscriberRecord>(row), created }
 }
 
 /** Mark a subscriber confirmed (double opt-in path). Null if not found. */
 export async function confirm(email: string): Promise<SubscriberRecord | null> {
-  await connectMongo()
-  const doc = await NewsletterSubscriber.findOneAndUpdate(
-    { email: normalizeEmail(email) },
-    { $set: { confirmed: true, confirmed_at: new Date() } },
-    { new: true }
-  ).lean()
-  return doc ? serialize<SubscriberRecord>(doc) : null
+  const db = getDb()
+  const now = new Date().toISOString()
+  const [row] = await db
+    .update(newsletter_subscribers)
+    .set({ confirmed: true, confirmed_at: now, updated_at: now })
+    .where(eq(newsletter_subscribers.email, normalizeEmail(email)))
+    .returning()
+  return row ? serialize<SubscriberRecord>(row) : null
 }
 
 /**
- * Unsubscribe an email. Idempotent — matches the old Supabase semantics where
- * updating a non-existent email simply affected zero rows without erroring.
- * Returns true if a subscriber row was matched.
+ * Unsubscribe an email. Idempotent — updating a non-existent email simply
+ * affects zero rows without erroring. Returns true if a row was matched.
  */
 export async function unsubscribe(email: string): Promise<boolean> {
-  await connectMongo()
-  const res = await NewsletterSubscriber.updateOne(
-    { email: normalizeEmail(email) },
-    { $set: { unsubscribed_at: new Date() } }
-  )
-  return res.matchedCount > 0
+  const db = getDb()
+  const now = new Date().toISOString()
+  const rows = await db
+    .update(newsletter_subscribers)
+    .set({ unsubscribed_at: now, updated_at: now })
+    .where(eq(newsletter_subscribers.email, normalizeEmail(email)))
+    .returning({ id: newsletter_subscribers.id })
+  return rows.length > 0
 }
 
 /** Hard-delete a subscriber by email. Returns true if one was removed. */
 export async function deleteByEmail(email: string): Promise<boolean> {
-  await connectMongo()
-  const res = await NewsletterSubscriber.deleteOne({ email: normalizeEmail(email) })
-  return res.deletedCount > 0
+  const db = getDb()
+  const rows = await db
+    .delete(newsletter_subscribers)
+    .where(eq(newsletter_subscribers.email, normalizeEmail(email)))
+    .returning({ id: newsletter_subscribers.id })
+  return rows.length > 0
 }
 
 /**
  * All active subscribers opted in to daily kin: confirmed, not unsubscribed,
- * and `preferences.daily_kin === true`. Replaces the Supabase
- * `.eq('confirmed', true).is('unsubscribed_at', null).contains('preferences', { daily_kin: true })`.
+ * and `preferences.daily_kin === true` (JSONB path query).
  */
 export async function listActiveSubscribers(): Promise<SubscriberRecord[]> {
-  await connectMongo()
-  const docs = await NewsletterSubscriber.find({
-    confirmed: true,
-    unsubscribed_at: null,
-    'preferences.daily_kin': true,
-  }).lean()
-  return serializeMany<SubscriberRecord>(docs)
+  const db = getDb()
+  const rows = await db
+    .select()
+    .from(newsletter_subscribers)
+    .where(
+      and(
+        eq(newsletter_subscribers.confirmed, true),
+        sql`${newsletter_subscribers.unsubscribed_at} is null`,
+        sql`${newsletter_subscribers.preferences}->>'daily_kin' = 'true'`
+      )
+    )
+  return serializeMany<SubscriberRecord>(rows)
 }
 
 /**
  * Subscribers eligible for the daily-kin cron: confirmed and not unsubscribed.
- * Returns only `{ id, email }`. Mirrors the cron's old
- * `.select('id, email').eq('confirmed', true).is('unsubscribed_at', null)`.
+ * Returns only `{ id, email }`.
  */
 export async function listSubscribersForCron(): Promise<SubscriberRef[]> {
-  await connectMongo()
-  const docs = await NewsletterSubscriber.find({
-    confirmed: true,
-    unsubscribed_at: null,
-  })
-    .select({ _id: 1, email: 1 })
-    .lean()
-  return docs.map((d) => ({ id: String(d._id), email: d.email }))
+  const db = getDb()
+  const rows = await db
+    .select({ id: newsletter_subscribers.id, email: newsletter_subscribers.email })
+    .from(newsletter_subscribers)
+    .where(
+      and(
+        eq(newsletter_subscribers.confirmed, true),
+        sql`${newsletter_subscribers.unsubscribed_at} is null`
+      )
+    )
+  return rows
 }
 
 /** Append a row to email_send_log. Best-effort dedup audit trail. */
 export async function logEmailSend(input: EmailSendLogInput): Promise<void> {
-  await connectMongo()
-  await EmailSendLog.create({
+  const db = getDb()
+  await db.insert(email_send_log).values({
     subscriber_id: input.subscriber_id ?? null,
     email_type: input.email_type,
     subject: input.subject ?? null,
@@ -178,27 +198,32 @@ export async function logEmailSend(input: EmailSendLogInput): Promise<void> {
 /**
  * Dedup guard: has an email of `email_type` already been logged as `sent` to
  * this subscriber within the current UTC day? Prevents the cron from
- * double-sending if it is (re)triggered the same day. There is no equivalent
- * in the old Supabase code — the log was write-only — so this is a new
- * idempotency check enabled by querying the same log.
+ * double-sending if it is (re)triggered the same day.
  */
 export async function wasEmailSentToday(
   subscriberId: string,
   emailType: string,
   now: Date = new Date()
 ): Promise<boolean> {
-  await connectMongo()
+  const db = getDb()
   const startOfDay = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
   )
   const startOfNextDay = new Date(startOfDay)
   startOfNextDay.setUTCDate(startOfNextDay.getUTCDate() + 1)
 
-  const existing = await EmailSendLog.exists({
-    subscriber_id: subscriberId,
-    email_type: emailType,
-    status: 'sent',
-    sent_at: { $gte: startOfDay, $lt: startOfNextDay },
-  })
-  return existing !== null
+  const [row] = await db
+    .select({ id: email_send_log.id })
+    .from(email_send_log)
+    .where(
+      and(
+        eq(email_send_log.subscriber_id, subscriberId),
+        eq(email_send_log.email_type, emailType),
+        eq(email_send_log.status, 'sent'),
+        gte(email_send_log.sent_at, startOfDay.toISOString()),
+        lt(email_send_log.sent_at, startOfNextDay.toISOString())
+      )
+    )
+    .limit(1)
+  return Boolean(row)
 }

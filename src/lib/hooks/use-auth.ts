@@ -1,26 +1,39 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { signIn, signOut as authSignOut, useSession } from '@/lib/auth-client'
-import type { IProfile } from '@/lib/db/models/profiles'
+import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useUser } from '@auth0/nextjs-auth0'
+import type { profiles } from '@/lib/db/schema'
 
-export type Profile = IProfile & { _id?: string }
+export type Profile = typeof profiles.$inferSelect
 
-function originCallback(redirectTo?: string): string {
-  const base =
-    typeof window !== 'undefined' ? window.location.origin : ''
-  return `${base}${redirectTo || '/app'}`
+function loginUrl(params: Record<string, string>): string {
+  const qs = new URLSearchParams(params)
+  return `/auth/login?${qs.toString()}`
 }
 
+/**
+ * App-facing auth hook — same API as the Better Auth era. Identity comes
+ * from the Auth0 session (via /auth/profile); the app profile still loads
+ * from /api/profile. Sign-in is redirect-based (Auth0 Universal Login), so
+ * the signIn* helpers navigate instead of resolving.
+ */
 export function useAuth() {
-  const { data: sessionData, isPending } = useSession()
-  const user = sessionData?.user ?? null
-  const session = sessionData?.session ?? null
+  const { user: auth0User, isLoading: sessionLoading } = useUser()
+
+  const user = useMemo(() => {
+    if (!auth0User?.sub) return null
+    return {
+      id: auth0User.sub,
+      email: auth0User.email ?? '',
+      name: auth0User.name ?? null,
+      image: auth0User.picture ?? null,
+    }
+  }, [auth0User])
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [profileLoading, setProfileLoading] = useState(false)
 
-  // Load the app profile from the server (browser cannot query Mongo directly).
+  // Load the app profile from the server (browser cannot query the DB directly).
   useEffect(() => {
     let cancelled = false
     if (!user) {
@@ -45,34 +58,31 @@ export function useAuth() {
   }, [user])
 
   const signInWithGoogle = useCallback(async (redirectTo?: string) => {
-    const { error } = await signIn.social({
-      provider: 'google',
-      callbackURL: originCallback(redirectTo),
+    window.location.href = loginUrl({
+      connection: 'google-oauth2',
+      returnTo: redirectTo || '/app',
     })
-    if (error) throw new Error(error.message || 'Google sign-in failed')
   }, [])
 
   const signInWithApple = useCallback(async (redirectTo?: string) => {
-    const { error } = await signIn.social({
-      provider: 'apple',
-      callbackURL: originCallback(redirectTo),
+    window.location.href = loginUrl({
+      connection: 'apple',
+      returnTo: redirectTo || '/app',
     })
-    if (error) throw new Error(error.message || 'Apple sign-in failed')
   }, [])
 
   const signInWithEmail = useCallback(
     async (email: string, redirectTo?: string) => {
-      const { error } = await signIn.magicLink({
-        email,
-        callbackURL: originCallback(redirectTo),
+      window.location.href = loginUrl({
+        login_hint: email,
+        returnTo: redirectTo || '/app',
       })
-      if (error) throw new Error(error.message || 'Failed to send login link')
     },
     []
   )
 
   const signOut = useCallback(async () => {
-    await authSignOut()
+    window.location.href = '/auth/logout'
   }, [])
 
   const updateProfile = useCallback(
@@ -96,9 +106,9 @@ export function useAuth() {
 
   return {
     user,
-    session,
+    session: auth0User ?? null,
     profile,
-    loading: isPending || profileLoading,
+    loading: sessionLoading || profileLoading,
     signInWithGoogle,
     signInWithApple,
     signInWithEmail,

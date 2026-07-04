@@ -1,33 +1,36 @@
-import { connectMongo } from '@/lib/db/connection'
-import { Subscription, Usage } from '@/lib/db/models'
-import type {
-  ISubscription,
-  SubscriptionPlan,
-  SubscriptionStatus,
-} from '@/lib/db/models'
-import type { IUsage } from '@/lib/db/models'
+import { eq, sql } from 'drizzle-orm'
+import { getDb } from '@/lib/db/client'
+import { subscriptions, usage } from '@/lib/db/schema'
 import { serialize } from '@/lib/db/serialize'
 
 /**
- * Billing data repository (subscriptions + usage collections).
+ * Billing data repository (subscriptions + usage tables).
  *
- * Replaces the Supabase `subscriptions`/`usage` reads/writes and the Postgres
- * RPCs from `supabase/migrations/00006_billing_schema.sql`:
+ * Ports the Postgres RPCs from the original Supabase schema:
  *   - `get_user_plan`   -> {@link getUserPlan}
  *   - `increment_usage` -> {@link incrementUsage}
  *
- * Tenant scoping is enforced here now that Postgres RLS is gone. Owner-scoped
- * functions take a `userId` (Better Auth id from `requireUserId()`) and filter
- * by `user_id === userId`. NEVER pass an owner id sourced from client input.
+ * Tenant scoping is enforced here. Owner-scoped functions take a `userId`
+ * (Auth0 sub from `requireUserId()`) and filter by `user_id === userId`.
+ * NEVER pass an owner id sourced from client input.
  *
  * The ONLY exception is {@link updateByPaddleCustomerId} /
  * {@link updateByPaddleSubscriptionId}, which run in SYSTEM context for the
- * Paddle webhook (authenticated by the Paddle signature, not a user session) and
- * therefore key off Paddle identifiers instead of an owner filter.
+ * Paddle webhook (authenticated by the Paddle signature, not a user session)
+ * and therefore key off Paddle identifiers instead of an owner filter.
  */
 
-// Serialized row shapes (mirror the old Supabase row contract: dates as ISO
-// strings, `_id` -> `id`, nullable fields as `string | null`).
+export type SubscriptionPlan = 'free' | 'complete' | 'practitioner'
+export type SubscriptionStatus =
+  | 'active'
+  | 'trialing'
+  | 'past_due'
+  | 'paused'
+  | 'canceled'
+  | 'incomplete'
+
+// Serialized row shapes (the Supabase row contract: dates as ISO strings,
+// nullable fields as `string | null`).
 export interface SubscriptionRow {
   id: string
   user_id: string
@@ -62,19 +65,27 @@ export type UsageMetric =
   | 'exports_count'
 
 /** Writable subscription fields (timestamps/`user_id` are managed elsewhere). */
-export type SubscriptionWriteInput = Partial<
-  Pick<
-    ISubscription,
-    | 'plan'
-    | 'status'
-    | 'paddle_customer_id'
-    | 'paddle_subscription_id'
-    | 'current_period_start'
-    | 'current_period_end'
-    | 'cancel_at_period_end'
-    | 'trial_end'
-  >
->
+export interface SubscriptionWriteInput {
+  plan?: SubscriptionPlan
+  status?: SubscriptionStatus
+  paddle_customer_id?: string | null
+  paddle_subscription_id?: string | null
+  current_period_start?: string | Date | null
+  current_period_end?: string | Date | null
+  cancel_at_period_end?: boolean
+  trial_end?: string | Date | null
+}
+
+function toWrite(data: SubscriptionWriteInput) {
+  const iso = (v: string | Date | null | undefined) =>
+    v instanceof Date ? v.toISOString() : v
+  const out: Record<string, unknown> = { ...data }
+  if ('current_period_start' in data) out.current_period_start = iso(data.current_period_start)
+  if ('current_period_end' in data) out.current_period_end = iso(data.current_period_end)
+  if ('trial_end' in data) out.trial_end = iso(data.trial_end)
+  out.updated_at = new Date().toISOString()
+  return out
+}
 
 // =============================================================================
 // SUBSCRIPTIONS — owner-scoped (USER context)
@@ -84,9 +95,13 @@ export type SubscriptionWriteInput = Partial<
 export async function getSubscription(
   userId: string
 ): Promise<SubscriptionRow | null> {
-  await connectMongo()
-  const doc = await Subscription.findOne({ user_id: userId }).lean()
-  return doc ? serialize<SubscriptionRow>(doc) : null
+  const db = getDb()
+  const [row] = await db
+    .select()
+    .from(subscriptions)
+    .where(eq(subscriptions.user_id, userId))
+    .limit(1)
+  return row ? serialize<SubscriptionRow>(row) : null
 }
 
 /**
@@ -97,13 +112,14 @@ export async function upsertSubscriptionForUser(
   userId: string,
   data: SubscriptionWriteInput
 ): Promise<SubscriptionRow> {
-  await connectMongo()
-  const doc = await Subscription.findOneAndUpdate(
-    { user_id: userId },
-    { $set: { ...data, user_id: userId } },
-    { new: true, upsert: true, setDefaultsOnInsert: true }
-  ).lean()
-  return serialize<SubscriptionRow>(doc)
+  const db = getDb()
+  const write = toWrite(data)
+  const [row] = await db
+    .insert(subscriptions)
+    .values({ user_id: userId, ...write })
+    .onConflictDoUpdate({ target: subscriptions.user_id, set: write })
+    .returning()
+  return serialize<SubscriptionRow>(row)
 }
 
 /**
@@ -114,13 +130,13 @@ export async function updateSubscriptionForUser(
   userId: string,
   data: SubscriptionWriteInput
 ): Promise<SubscriptionRow | null> {
-  await connectMongo()
-  const doc = await Subscription.findOneAndUpdate(
-    { user_id: userId },
-    { $set: data },
-    { new: true }
-  ).lean()
-  return doc ? serialize<SubscriptionRow>(doc) : null
+  const db = getDb()
+  const [row] = await db
+    .update(subscriptions)
+    .set(toWrite(data))
+    .where(eq(subscriptions.user_id, userId))
+    .returning()
+  return row ? serialize<SubscriptionRow>(row) : null
 }
 
 /**
@@ -132,12 +148,17 @@ export async function updateSubscriptionForUser(
  * `'free'`.
  */
 export async function getUserPlan(userId: string): Promise<SubscriptionPlan> {
-  await connectMongo()
-  const sub = await Subscription.findOne({ user_id: userId })
-    .select('plan status current_period_end')
-    .lean()
+  const db = getDb()
+  const [sub] = await db
+    .select({
+      plan: subscriptions.plan,
+      status: subscriptions.status,
+      current_period_end: subscriptions.current_period_end,
+    })
+    .from(subscriptions)
+    .where(eq(subscriptions.user_id, userId))
+    .limit(1)
 
-  // NOT FOUND -> free
   if (!sub) return 'free'
 
   const isActiveStatus = sub.status === 'active' || sub.status === 'trialing'
@@ -146,7 +167,7 @@ export async function getUserPlan(userId: string): Promise<SubscriptionPlan> {
     new Date(sub.current_period_end).getTime() > Date.now()
 
   if (isActiveStatus && notExpired) {
-    return sub.plan
+    return sub.plan as SubscriptionPlan
   }
 
   return 'free'
@@ -169,12 +190,13 @@ export async function updateByPaddleCustomerId(
   customerId: string,
   data: SubscriptionWriteInput
 ): Promise<boolean> {
-  await connectMongo()
-  const res = await Subscription.updateOne(
-    { paddle_customer_id: customerId },
-    { $set: data }
-  )
-  return res.matchedCount > 0
+  const db = getDb()
+  const rows = await db
+    .update(subscriptions)
+    .set(toWrite(data))
+    .where(eq(subscriptions.paddle_customer_id, customerId))
+    .returning({ id: subscriptions.id })
+  return rows.length > 0
 }
 
 /**
@@ -185,12 +207,13 @@ export async function updateByPaddleSubscriptionId(
   subscriptionId: string,
   data: SubscriptionWriteInput
 ): Promise<boolean> {
-  await connectMongo()
-  const res = await Subscription.updateOne(
-    { paddle_subscription_id: subscriptionId },
-    { $set: data }
-  )
-  return res.matchedCount > 0
+  const db = getDb()
+  const rows = await db
+    .update(subscriptions)
+    .set(toWrite(data))
+    .where(eq(subscriptions.paddle_subscription_id, subscriptionId))
+    .returning({ id: subscriptions.id })
+  return rows.length > 0
 }
 
 /**
@@ -202,12 +225,12 @@ export async function upsertSubscriptionByUserId(
   userId: string,
   data: SubscriptionWriteInput
 ): Promise<void> {
-  await connectMongo()
-  await Subscription.updateOne(
-    { user_id: userId },
-    { $set: { ...data, user_id: userId } },
-    { upsert: true, setDefaultsOnInsert: true }
-  )
+  const db = getDb()
+  const write = toWrite(data)
+  await db
+    .insert(subscriptions)
+    .values({ user_id: userId, ...write })
+    .onConflictDoUpdate({ target: subscriptions.user_id, set: write })
 }
 
 // =============================================================================
@@ -219,16 +242,26 @@ export async function getUsage(
   userId: string,
   period: string
 ): Promise<UsageRow | null> {
-  await connectMongo()
-  const doc = await Usage.findOne({ user_id: userId, period }).lean()
-  return doc ? serialize<UsageRow>(doc) : null
+  const db = getDb()
+  const [row] = await db
+    .select()
+    .from(usage)
+    .where(sql`${usage.user_id} = ${userId} and ${usage.period} = ${period}`)
+    .limit(1)
+  return row ? serialize<UsageRow>(row) : null
 }
+
+const USAGE_COLUMNS = {
+  profiles_count: usage.profiles_count,
+  ai_interpretations_used: usage.ai_interpretations_used,
+  boards_count: usage.boards_count,
+  exports_count: usage.exports_count,
+} as const
 
 /**
  * Port of the Postgres `increment_usage(p_user_id, p_period, p_metric, p_amount)`
- * RPC. Atomically upserts the `{ user_id, period }` row and increments the named
- * metric column by `amount` in a single `$inc` upsert. The other metric columns
- * default to 0 on insert via the schema, so no explicit seeding is required.
+ * RPC. Upserts the `{ user_id, period }` row and increments the named metric
+ * column by `amount`. The other metric columns default to 0 on insert.
  */
 export async function incrementUsage(
   userId: string,
@@ -236,12 +269,16 @@ export async function incrementUsage(
   metric: UsageMetric,
   amount = 1
 ): Promise<void> {
-  await connectMongo()
-  await Usage.updateOne(
-    { user_id: userId, period },
-    { $inc: { [metric]: amount } },
-    { upsert: true, setDefaultsOnInsert: true }
-  )
+  const db = getDb()
+  const column = USAGE_COLUMNS[metric]
+  await db
+    .insert(usage)
+    .values({ user_id: userId, period, [metric]: amount })
+    .onConflictDoUpdate({
+      target: [usage.user_id, usage.period],
+      set: {
+        [metric]: sql`${column} + ${amount}`,
+        updated_at: new Date().toISOString(),
+      },
+    })
 }
-
-export type { IUsage }

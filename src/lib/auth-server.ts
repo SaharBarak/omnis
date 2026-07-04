@@ -1,15 +1,36 @@
-import { headers } from 'next/headers'
-import { auth } from '@/lib/auth'
+import { auth0 } from '@/lib/auth0'
 
 /**
  * Server-side session helpers. These are the single source of truth for "who
- * is the authenticated user" and the backbone of tenant scoping now that
- * Postgres RLS is gone — every owner-scoped query must derive its filter from
- * requireUserId(), never from client input.
+ * is the authenticated user" and the backbone of tenant scoping — every
+ * owner-scoped query must derive its filter from requireUserId(), never from
+ * client input. Same public API as the Better Auth era; the Auth0 session
+ * user is mapped to the old shape (id = Auth0 sub).
  */
 
-export async function getSession() {
-  return auth.api.getSession({ headers: await headers() })
+export interface SessionUser {
+  id: string
+  email: string
+  name: string | null
+  image: string | null
+}
+
+export interface AppSession {
+  user: SessionUser
+}
+
+export async function getSession(): Promise<AppSession | null> {
+  const session = await auth0.getSession()
+  if (!session?.user?.sub) return null
+  const { user } = session
+  return {
+    user: {
+      id: user.sub,
+      email: user.email ?? '',
+      name: user.name ?? null,
+      image: user.picture ?? null,
+    },
+  }
 }
 
 export async function getCurrentUserId(): Promise<string | null> {

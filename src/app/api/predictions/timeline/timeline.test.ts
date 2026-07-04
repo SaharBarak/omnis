@@ -31,8 +31,8 @@ import { getPersonForTimeline } from '@/lib/db/repositories/predictions-repo'
 const mockRequireUserId = vi.mocked(requireUserId)
 const mockGetPersonForTimeline = vi.mocked(getPersonForTimeline)
 
-// Valid Mongo ObjectId (24 hex chars)
-const VALID_ID = '507f1f77bcf86cd799439011'
+// Valid entity id (UUID)
+const VALID_ID = '2b4f0a4e-1c3d-4e5f-8a6b-9c0d1e2f3a4b'
 const USER_ID = 'user-1'
 
 const MOCK_PERSON = {
@@ -89,7 +89,7 @@ describe('GET /api/predictions/timeline/[personId]', () => {
       expect(data.error).toContain('Invalid person ID format')
     })
 
-    it('should accept a valid ObjectId', async () => {
+    it('should accept a valid UUID', async () => {
       mockGetPersonForTimeline.mockResolvedValue(MOCK_PERSON)
       const request = createRequest(VALID_ID)
       const params = Promise.resolve({ personId: VALID_ID })

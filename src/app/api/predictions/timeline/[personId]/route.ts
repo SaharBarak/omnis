@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Types } from 'mongoose'
+import { isEntityId } from '@/lib/db/serialize'
 import { requireUserId, UnauthorizedError } from '@/lib/auth-server'
 import { getPersonForTimeline } from '@/lib/db/repositories/predictions-repo'
 import { getPersonalTimeline } from '@/lib/services/predictions'
@@ -25,8 +25,8 @@ export async function GET(
     const userId = await requireUserId()
     const { personId } = await params
 
-    // Validate id format (Mongo ObjectId)
-    if (!Types.ObjectId.isValid(personId)) {
+    // Validate id format (UUID)
+    if (!isEntityId(personId)) {
       return NextResponse.json<TimelineResponse>(
         { success: false, error: 'Invalid person ID format.' },
         { status: 400 }

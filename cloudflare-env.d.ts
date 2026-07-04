@@ -15,7 +15,12 @@ interface CloudflareEnv {
 
   // Vars / secrets (set via wrangler.jsonc vars or `wrangler secret put`)
   NEXT_PUBLIC_SITE_URL: string
-  MONGODB_URI: string
+  DATABASE_URL: string
+  AUTH0_DOMAIN: string
+  AUTH0_CLIENT_ID: string
+  AUTH0_CLIENT_SECRET: string
+  AUTH0_SECRET: string
+  APP_BASE_URL: string
   BETTER_AUTH_SECRET: string
   BETTER_AUTH_URL: string
   GOOGLE_CLIENT_ID: string

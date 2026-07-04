@@ -1,7 +1,9 @@
-import { connectMongo } from '@/lib/db/connection'
-import { Board, BoardShare, Profile } from '@/lib/db/models'
-import type { BoardTemplate } from '@/lib/db/models'
-import { serialize, serializeMany, toObjectId } from '@/lib/db/serialize'
+import { and, desc, eq, gt, isNull, or, sql } from 'drizzle-orm'
+
+import { getDb } from '@/lib/db/client'
+import { board_shares, boards, profiles } from '@/lib/db/schema'
+import { serialize, serializeMany, toEntityId } from '@/lib/db/serialize'
+import type { BoardTemplate } from '@/lib/types/board'
 
 /**
  * Boards domain repository. Every owner-scoped function is keyed to the
@@ -40,30 +42,68 @@ export interface BoardShareInput {
   password_hash?: string | null
 }
 
+// Application-level defaults for new boards. The Postgres column defaults are
+// the neutral `{}` / `[]`; these richer shapes were previously applied by the
+// Mongoose schema defaults and are preserved here so createBoard semantics do
+// not change.
+const DEFAULT_CANVAS: Record<string, unknown> = {
+  width: 1920,
+  height: 1080,
+  viewBox: { x: 0, y: 0, width: 1920, height: 1080, zoom: 1 },
+  background: { type: 'solid', color: '#FFFFFF' },
+  grid: { visible: true, size: 20, snap: true, color: '#E5E7EB' },
+  nodes: [],
+  connections: [],
+  annotations: [],
+}
+
+const DEFAULT_LAYERS: Array<Record<string, unknown>> = [
+  { id: 'background', name: 'רקע', visible: true, locked: false, opacity: 1, order: 0, color: '#9CA3AF' },
+  { id: 'people', name: 'אנשים', visible: true, locked: false, opacity: 1, order: 1, color: '#3B82F6' },
+  { id: 'connections', name: 'קשרים', visible: true, locked: false, opacity: 1, order: 2, color: '#10B981' },
+  { id: 'annotations', name: 'הערות', visible: true, locked: false, opacity: 1, order: 3, color: '#F59E0B' },
+]
+
 // ---------------------------------------------------------------------------
 // Owner-scoped board CRUD
 // ---------------------------------------------------------------------------
 
 export async function listBoards(userId: string) {
-  await connectMongo()
-  const boards = await Board.find({ owner_id: userId })
-    .sort({ updated_at: -1 })
-    .lean()
-  return serializeMany(boards)
+  const db = getDb()
+  const rows = await db
+    .select()
+    .from(boards)
+    .where(eq(boards.owner_id, userId))
+    .orderBy(desc(boards.updated_at))
+  return serializeMany(rows)
 }
 
 /** Returns the board, or null if it does not exist or is not owned by the user. */
 export async function getBoard(userId: string, id: string) {
-  await connectMongo()
-  const board = await Board.findOne({ _id: toObjectId(id), owner_id: userId }).lean()
+  const db = getDb()
+  const [board] = await db
+    .select()
+    .from(boards)
+    .where(and(eq(boards.id, toEntityId(id)), eq(boards.owner_id, userId)))
+    .limit(1)
   return board ? serialize(board) : null
 }
 
 export async function createBoard(userId: string, input: BoardInput) {
-  await connectMongo()
-  // Mixed canvas/layers default to the schema defaults when omitted.
-  const board = await Board.create({ ...input, owner_id: userId })
-  return serialize(board.toObject())
+  const db = getDb()
+  // Rich canvas/layers defaults apply when omitted (see DEFAULT_CANVAS above).
+  const [board] = await db
+    .insert(boards)
+    .values({
+      owner_id: userId,
+      name: input.name,
+      description: input.description ?? null,
+      template: input.template ?? null,
+      canvas: input.canvas ?? { ...DEFAULT_CANVAS },
+      layers: input.layers ?? DEFAULT_LAYERS.map((l) => ({ ...l })),
+    })
+    .returning()
+  return serialize(board)
 }
 
 /** Returns the updated board, or null if it is not owned by the user. */
@@ -72,37 +112,46 @@ export async function updateBoard(
   id: string,
   updates: BoardUpdateInput
 ) {
-  await connectMongo()
-  const board = await Board.findOneAndUpdate(
-    { _id: toObjectId(id), owner_id: userId },
-    { $set: updates },
-    { new: true }
-  ).lean()
+  const db = getDb()
+  // Drop undefined keys so partial updates never null-out columns; always bump
+  // updated_at (the Mongoose timestamps behavior the old model provided).
+  const set: Record<string, unknown> = { updated_at: sql`now()` }
+  for (const [key, value] of Object.entries(updates)) {
+    if (value !== undefined) set[key] = value
+  }
+  const [board] = await db
+    .update(boards)
+    .set(set)
+    .where(and(eq(boards.id, toEntityId(id)), eq(boards.owner_id, userId)))
+    .returning()
   return board ? serialize(board) : null
 }
 
 export async function deleteBoard(userId: string, id: string) {
-  await connectMongo()
-  const boardObjId = toObjectId(id)
-  const res = await Board.deleteOne({ _id: boardObjId, owner_id: userId })
-  if (res.deletedCount > 0) {
-    // Clean up dependent share links for the board we just removed.
-    await BoardShare.deleteMany({ board_id: boardObjId })
-  }
-  return res.deletedCount > 0
+  const db = getDb()
+  // board_shares rows are removed by the ON DELETE CASCADE FK (the manual
+  // BoardShare.deleteMany the Mongo port needed).
+  const deleted = await db
+    .delete(boards)
+    .where(and(eq(boards.id, toEntityId(id)), eq(boards.owner_id, userId)))
+    .returning({ id: boards.id })
+  return deleted.length > 0
 }
 
 // ---------------------------------------------------------------------------
 // Owner-scoped board_shares ops (ownership proven via the parent board)
 // ---------------------------------------------------------------------------
 
-/** Confirm the board exists and belongs to the user. Returns its ObjectId or null. */
+/** Confirm the board exists and belongs to the user. Returns its id or null. */
 async function assertOwnedBoard(userId: string, boardId: string) {
-  const boardObjId = toObjectId(boardId)
-  const board = await Board.findOne({ _id: boardObjId, owner_id: userId })
-    .select('_id')
-    .lean()
-  return board ? boardObjId : null
+  const db = getDb()
+  const id = toEntityId(boardId)
+  const [board] = await db
+    .select({ id: boards.id })
+    .from(boards)
+    .where(and(eq(boards.id, id), eq(boards.owner_id, userId)))
+    .limit(1)
+  return board ? id : null
 }
 
 /** Creates a share link for a board the user owns. Returns null if not owned. */
@@ -111,30 +160,35 @@ export async function createBoardShare(
   boardId: string,
   input: BoardShareInput
 ) {
-  await connectMongo()
-  const boardObjId = await assertOwnedBoard(userId, boardId)
-  if (!boardObjId) return null
+  const db = getDb()
+  const ownedBoardId = await assertOwnedBoard(userId, boardId)
+  if (!ownedBoardId) return null
 
-  const share = await BoardShare.create({
-    board_id: boardObjId,
-    url_token: input.url_token,
-    permissions: input.permissions ?? 'view',
-    expires_at: input.expires_at ? new Date(input.expires_at) : null,
-    max_views: input.max_views ?? null,
-    password_hash: input.password_hash ?? null,
-  })
-  return serialize(share.toObject())
+  const [share] = await db
+    .insert(board_shares)
+    .values({
+      board_id: ownedBoardId,
+      url_token: input.url_token,
+      permissions: input.permissions ?? 'view',
+      expires_at: input.expires_at ? new Date(input.expires_at).toISOString() : null,
+      max_views: input.max_views ?? null,
+      password_hash: input.password_hash ?? null,
+    })
+    .returning()
+  return serialize(share)
 }
 
 /** Lists active share links for a board the user owns. Returns null if not owned. */
 export async function listBoardShares(userId: string, boardId: string) {
-  await connectMongo()
-  const boardObjId = await assertOwnedBoard(userId, boardId)
-  if (!boardObjId) return null
+  const db = getDb()
+  const ownedBoardId = await assertOwnedBoard(userId, boardId)
+  if (!ownedBoardId) return null
 
-  const shares = await BoardShare.find({ board_id: boardObjId, active: true })
-    .sort({ created_at: -1 })
-    .lean()
+  const shares = await db
+    .select()
+    .from(board_shares)
+    .where(and(eq(board_shares.board_id, ownedBoardId), eq(board_shares.active, true)))
+    .orderBy(desc(board_shares.created_at))
   return serializeMany(shares)
 }
 
@@ -143,22 +197,29 @@ export async function listBoardShares(userId: string, boardId: string) {
  * board owned by the user before flipping `active`. Returns true if updated.
  */
 export async function deactivateBoardShare(userId: string, shareId: string) {
-  await connectMongo()
-  const shareObjId = toObjectId(shareId)
+  const db = getDb()
+  const id = toEntityId(shareId)
 
-  const share = await BoardShare.findOne({ _id: shareObjId }).select('board_id').lean()
+  const [share] = await db
+    .select({ board_id: board_shares.board_id })
+    .from(board_shares)
+    .where(eq(board_shares.id, id))
+    .limit(1)
   if (!share) return false
 
-  const owned = await Board.findOne({ _id: share.board_id, owner_id: userId })
-    .select('_id')
-    .lean()
+  const [owned] = await db
+    .select({ id: boards.id })
+    .from(boards)
+    .where(and(eq(boards.id, share.board_id), eq(boards.owner_id, userId)))
+    .limit(1)
   if (!owned) return false
 
-  const res = await BoardShare.updateOne(
-    { _id: shareObjId },
-    { $set: { active: false } }
-  )
-  return res.matchedCount > 0
+  const updated = await db
+    .update(board_shares)
+    .set({ active: false })
+    .where(eq(board_shares.id, id))
+    .returning({ id: board_shares.id })
+  return updated.length > 0
 }
 
 // ---------------------------------------------------------------------------
@@ -174,45 +235,81 @@ export async function deactivateBoardShare(userId: string, shareId: string) {
  * board's display fields, the share permissions/expiry, and the owner's display
  * name. The board's `owner_id` is never returned.
  */
-export async function getBoardByShareToken(token: string) {
-  await connectMongo()
+/**
+ * PUBLIC — resolves a board by share token. `candidateHash` is the viewer's
+ * supplied password hash (null when none). If the share is password-protected
+ * and the candidate does not match, returns `{ locked: true }` WITHOUT board
+ * content and without incrementing the view count — the hash never leaves the
+ * server. owner_id is never returned (only the owner's display name).
+ */
+export async function getBoardByShareToken(
+  token: string,
+  candidateHash: string | null = null
+) {
+  const db = getDb()
 
-  const now = new Date()
-  const share = await BoardShare.findOne({
-    url_token: token,
-    active: true,
-    $and: [
-      { $or: [{ expires_at: null }, { expires_at: { $gt: now } }] },
-      { $or: [{ max_views: null }, { $expr: { $lt: ['$view_count', '$max_views'] } }] },
-    ],
-  }).lean()
+  const now = new Date().toISOString()
+  const [share] = await db
+    .select()
+    .from(board_shares)
+    .where(
+      and(
+        eq(board_shares.url_token, token),
+        eq(board_shares.active, true),
+        or(isNull(board_shares.expires_at), gt(board_shares.expires_at, now)),
+        or(
+          isNull(board_shares.max_views),
+          sql`${board_shares.view_count} < ${board_shares.max_views}`
+        )
+      )
+    )
+    .limit(1)
 
   if (!share) return null
 
-  const board = await Board.findById(share.board_id)
-    .select('name description template canvas layers owner_id')
-    .lean()
+  if (share.password_hash != null && candidateHash !== share.password_hash) {
+    return { locked: true as const }
+  }
+
+  const [board] = await db
+    .select({
+      id: boards.id,
+      name: boards.name,
+      description: boards.description,
+      template: boards.template,
+      canvas: boards.canvas,
+      layers: boards.layers,
+      owner_id: boards.owner_id,
+    })
+    .from(boards)
+    .where(eq(boards.id, share.board_id))
+    .limit(1)
   if (!board) return null
 
   // Atomically increment the view count (mirrors the RPC side effect).
-  await BoardShare.updateOne({ _id: share._id }, { $inc: { view_count: 1 } })
+  await db
+    .update(board_shares)
+    .set({ view_count: sql`${board_shares.view_count} + 1` })
+    .where(eq(board_shares.id, share.id))
 
   // Resolve the owner's display name. owner_id is used internally only and is
   // never returned to the public caller.
-  const ownerProfile = await Profile.findOne({ user_id: board.owner_id })
-    .select('display_name')
-    .lean()
+  const [ownerProfile] = await db
+    .select({ display_name: profiles.display_name })
+    .from(profiles)
+    .where(eq(profiles.user_id, board.owner_id))
+    .limit(1)
   const ownerName = ownerProfile?.display_name ?? null
 
   return {
-    id: String(board._id),
+    id: board.id,
     name: board.name,
     description: board.description ?? null,
     template: (board.template ?? null) as string | null,
-    canvas: board.canvas ?? {},
-    layers: board.layers ?? [],
+    canvas: (board.canvas ?? {}) as Record<string, unknown>,
+    layers: (board.layers ?? []) as Array<Record<string, unknown>>,
     permissions: share.permissions,
-    expires_at: share.expires_at ? share.expires_at.toISOString() : null,
+    expires_at: share.expires_at ?? null,
     owner_name: ownerName,
   }
 }
@@ -230,20 +327,27 @@ export async function duplicateBoard(
   boardId: string,
   newTitle?: string | null
 ) {
-  await connectMongo()
-  const source = await Board.findOne({ _id: toObjectId(boardId), owner_id: userId }).lean()
+  const db = getDb()
+  const [source] = await db
+    .select()
+    .from(boards)
+    .where(and(eq(boards.id, toEntityId(boardId)), eq(boards.owner_id, userId)))
+    .limit(1)
   if (!source) return null
 
   const name = newTitle ?? `${source.name} (העתק)`
-  const copy = await Board.create({
-    owner_id: userId,
-    name,
-    description: source.description ?? null,
-    template: source.template ?? null,
-    canvas: source.canvas,
-    layers: source.layers,
-  })
-  return String(copy._id)
+  const [copy] = await db
+    .insert(boards)
+    .values({
+      owner_id: userId,
+      name,
+      description: source.description ?? null,
+      template: source.template ?? null,
+      canvas: source.canvas,
+      layers: source.layers,
+    })
+    .returning({ id: boards.id })
+  return copy.id
 }
 
 /**
@@ -253,43 +357,31 @@ export async function duplicateBoard(
  * `node_count` (`canvas.nodes.length`). Matches the old RPC's return columns.
  */
 export async function getRecentBoards(userId: string, limit = 10) {
-  await connectMongo()
-  const rows = await Board.aggregate([
-    { $match: { owner_id: userId } },
-    { $sort: { updated_at: -1 } },
-    { $limit: limit },
-    {
-      $project: {
-        _id: 0,
-        id: { $toString: '$_id' },
-        name: 1,
-        description: 1,
-        template: 1,
-        thumbnail: 1,
-        is_public: 1,
-        node_count: {
-          $cond: [
-            { $isArray: '$canvas.nodes' },
-            { $size: '$canvas.nodes' },
-            0,
-          ],
-        },
-        updated_at: 1,
-      },
-    },
-  ])
+  const db = getDb()
+  const rows = await db
+    .select({
+      id: boards.id,
+      name: boards.name,
+      description: boards.description,
+      template: boards.template,
+      thumbnail: boards.thumbnail,
+      is_public: boards.is_public,
+      node_count: sql<number>`jsonb_array_length(coalesce(${boards.canvas}->'nodes', '[]'::jsonb))`,
+      updated_at: boards.updated_at,
+    })
+    .from(boards)
+    .where(eq(boards.owner_id, userId))
+    .orderBy(desc(boards.updated_at))
+    .limit(limit)
 
   return rows.map((row) => ({
-    id: row.id as string,
-    name: row.name as string,
+    id: row.id,
+    name: row.name,
     description: (row.description ?? null) as string | null,
     template: (row.template ?? null) as string | null,
     thumbnail: (row.thumbnail ?? null) as string | null,
     is_public: Boolean(row.is_public),
     node_count: Number(row.node_count ?? 0),
-    updated_at:
-      row.updated_at instanceof Date
-        ? row.updated_at.toISOString()
-        : String(row.updated_at),
+    updated_at: String(row.updated_at),
   }))
 }

@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
+import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { connectMongo } from '@/lib/db/connection'
-import { Profile } from '@/lib/db/models'
-import { requireUserId, UnauthorizedError } from '@/lib/auth-server'
+import { getDb } from '@/lib/db/client'
+import { profiles, users } from '@/lib/db/schema'
+import { serialize } from '@/lib/db/serialize'
+import { getSession, UnauthorizedError, type SessionUser } from '@/lib/auth-server'
 
 const birthPlaceSchema = z
   .object({
@@ -25,12 +27,44 @@ const updateSchema = z.object({
   onboarding_completed: z.boolean().optional(),
 })
 
+/**
+ * Identity bootstrap — upserts the Auth0 user into the local `users` mirror
+ * and ensures an app profile exists. Replaces the Better Auth
+ * databaseHooks.user.create.after hook; called by both GET and PATCH so a
+ * profile is guaranteed before the first write, with no ordering dependency.
+ */
+async function ensureUserAndProfile(user: SessionUser) {
+  const db = getDb()
+  const now = new Date().toISOString()
+
+  await db
+    .insert(users)
+    .values({ id: user.id, email: user.email, name: user.name, image: user.image })
+    .onConflictDoUpdate({
+      target: users.id,
+      set: { email: user.email, name: user.name, image: user.image, updated_at: now },
+    })
+
+  const display_name = user.name || (user.email ? user.email.split('@')[0] : '') || 'User'
+  await db
+    .insert(profiles)
+    .values({ user_id: user.id, display_name, avatar_url: user.image })
+    .onConflictDoNothing()
+
+  const [profile] = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.user_id, user.id))
+    .limit(1)
+  return profile
+}
+
 export async function GET() {
   try {
-    const userId = await requireUserId()
-    await connectMongo()
-    const profile = await Profile.findOne({ user_id: userId }).lean()
-    return NextResponse.json({ profile: profile ?? null })
+    const session = await getSession()
+    if (!session) throw new UnauthorizedError()
+    const profile = await ensureUserAndProfile(session.user)
+    return NextResponse.json({ profile: serialize(profile) ?? null })
   } catch (error) {
     if (error instanceof UnauthorizedError) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -42,21 +76,24 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   try {
-    const userId = await requireUserId()
+    const session = await getSession()
+    if (!session) throw new UnauthorizedError()
     const body = await request.json()
     const updates = updateSchema.parse(body)
 
-    await connectMongo()
-    const profile = await Profile.findOneAndUpdate(
-      { user_id: userId },
-      { $set: updates },
-      { new: true, upsert: false }
-    ).lean()
+    // Guarantee the identity mirror + profile row exist before updating, so a
+    // PATCH that lands before any GET (e.g. onboarding on a fresh session)
+    // never 404s.
+    await ensureUserAndProfile(session.user)
 
-    if (!profile) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
-    }
-    return NextResponse.json({ profile })
+    const db = getDb()
+    const [profile] = await db
+      .update(profiles)
+      .set({ ...updates, updated_at: new Date().toISOString() })
+      .where(eq(profiles.user_id, session.user.id))
+      .returning()
+
+    return NextResponse.json({ profile: serialize(profile) })
   } catch (error) {
     if (error instanceof UnauthorizedError) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

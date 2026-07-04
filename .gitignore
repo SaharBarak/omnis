@@ -48,3 +48,4 @@ npm-debug.log*
 core
 core.*
 .vercel
+next-env.d.ts

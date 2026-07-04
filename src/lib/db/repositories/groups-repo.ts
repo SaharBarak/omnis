@@ -1,12 +1,15 @@
-import { connectMongo } from '@/lib/db/connection'
-import { Group, GroupMember, Person } from '@/lib/db/models'
-import { serialize, serializeMany, toObjectId } from '@/lib/db/serialize'
+import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm'
+
+import { getDb } from '@/lib/db/client'
+import { group_members, groups, people } from '@/lib/db/schema'
+import { filterOwnedPersonIds } from '@/lib/db/ownership'
+import { serialize, serializeMany, toEntityId } from '@/lib/db/serialize'
 
 /**
  * Groups domain repository. Every function is scoped to the authenticated
  * `userId` (Better Auth id). This is the only place tenant isolation for
- * groups/group_members is enforced now that Postgres RLS is gone — callers MUST
- * pass the id from requireUserId(), never from client input.
+ * groups/group_members is enforced — callers MUST pass the id from
+ * requireUserId(), never from client input.
  *
  * Member operations verify the parent group is owned by the user before any
  * mutation of group_members, so a caller can never attach members to (or read
@@ -20,55 +23,82 @@ export interface GroupInput {
 
 export type GroupUpdateInput = Partial<GroupInput>
 
-/** Confirm the group exists and belongs to the user. Returns its ObjectId or null. */
+/** Confirm the group exists and belongs to the user. Returns its id or null. */
 async function assertOwnedGroup(userId: string, groupId: string) {
-  const groupObjId = toObjectId(groupId)
-  const group = await Group.findOne({ _id: groupObjId, owner_id: userId })
-    .select('_id')
-    .lean()
-  return group ? groupObjId : null
+  const db = getDb()
+  const gid = toEntityId(groupId)
+  const [group] = await db
+    .select({ id: groups.id })
+    .from(groups)
+    .where(and(eq(groups.id, gid), eq(groups.owner_id, userId)))
+    .limit(1)
+  return group ? gid : null
 }
 
 export async function listGroups(userId: string) {
-  await connectMongo()
-  const groups = await Group.find({ owner_id: userId }).sort({ name: 1 }).lean()
-  return serializeMany(groups)
+  const db = getDb()
+  const rows = await db
+    .select()
+    .from(groups)
+    .where(eq(groups.owner_id, userId))
+    .orderBy(asc(groups.name))
+  return serializeMany(rows)
 }
 
 /**
  * Reimplements the Postgres RPC `get_group_with_members(p_group_id)`.
  * Returns the group joined to its members (each member projected from the
- * people doc plus the membership `added_at`), or null if the group does not
+ * people row plus the membership `added_at`), or null if the group does not
  * exist or is not owned by the user. The `members` array preserves the exact
  * JSON shape the old RPC returned:
  *   { id, name, hebrew_name, birth_date, added_at }
  */
 export async function getGroupWithMembers(userId: string, groupId: string) {
-  await connectMongo()
-  const groupObjId = toObjectId(groupId)
+  const db = getDb()
+  const gid = toEntityId(groupId)
 
-  const group = await Group.findOne({ _id: groupObjId, owner_id: userId }).lean()
+  const [group] = await db
+    .select()
+    .from(groups)
+    .where(and(eq(groups.id, gid), eq(groups.owner_id, userId)))
+    .limit(1)
   if (!group) return null
 
-  const memberships = await GroupMember.find({ group_id: groupObjId })
-    .sort({ added_at: 1 })
-    .lean()
+  const memberships = await db
+    .select()
+    .from(group_members)
+    .where(eq(group_members.group_id, gid))
+    .orderBy(asc(group_members.added_at))
 
   const personIds = memberships.map((m) => m.person_id)
-  const people = personIds.length
-    ? await Person.find({ _id: { $in: personIds } })
-        .select('name hebrew_name birth_date birth_time birth_place')
-        .lean()
+  const persons = personIds.length
+    ? await db
+        .select({
+          id: people.id,
+          name: people.name,
+          hebrew_name: people.hebrew_name,
+          birth_date: people.birth_date,
+          birth_time: people.birth_time,
+          birth_place: people.birth_place,
+        })
+        .from(people)
+        .where(
+          and(
+            inArray(people.id, personIds),
+            eq(people.owner_id, userId),
+            isNull(people.deleted_at)
+          )
+        )
     : []
 
-  const personById = new Map(people.map((p) => [String(p._id), p]))
+  const personById = new Map(persons.map((p) => [p.id, p]))
 
   const members = memberships
     .map((m) => {
-      const person = personById.get(String(m.person_id))
+      const person = personById.get(m.person_id)
       if (!person) return null
       return {
-        id: String(person._id),
+        id: person.id,
         name: person.name,
         hebrew_name: person.hebrew_name ?? null,
         birth_date: person.birth_date,
@@ -77,8 +107,8 @@ export async function getGroupWithMembers(userId: string, groupId: string) {
           ? { lat: person.birth_place.lat ?? null, lng: person.birth_place.lng ?? null }
           : null,
         added_at:
-          m.added_at instanceof Date
-            ? m.added_at.toISOString()
+          (m.added_at as unknown) instanceof Date
+            ? (m.added_at as unknown as Date).toISOString()
             : (m.added_at as unknown as string),
       }
     })
@@ -92,24 +122,25 @@ export async function createGroup(
   input: GroupInput,
   personIds: string[] = []
 ) {
-  await connectMongo()
-  const group = await Group.create({
-    owner_id: userId,
-    name: input.name,
-    description: input.description ?? null,
-  })
+  const db = getDb()
+  const [group] = await db
+    .insert(groups)
+    .values({
+      owner_id: userId,
+      name: input.name,
+      description: input.description ?? null,
+    })
+    .returning()
 
-  if (personIds.length) {
-    await GroupMember.insertMany(
-      personIds.map((personId) => ({
-        group_id: group._id,
-        person_id: toObjectId(personId),
-      })),
-      { ordered: false }
-    )
+  const ownedIds = await filterOwnedPersonIds(userId, personIds)
+  if (ownedIds.length) {
+    await db
+      .insert(group_members)
+      .values(ownedIds.map((pid) => ({ group_id: group.id, person_id: pid })))
+      .onConflictDoNothing()
   }
 
-  return serialize(group.toObject())
+  return serialize(group)
 }
 
 /** Returns the updated group, or null if it is not owned by the user. */
@@ -118,12 +149,12 @@ export async function updateGroup(
   id: string,
   updates: GroupUpdateInput
 ) {
-  await connectMongo()
-  const group = await Group.findOneAndUpdate(
-    { _id: toObjectId(id), owner_id: userId },
-    { $set: updates },
-    { new: true }
-  ).lean()
+  const db = getDb()
+  const [group] = await db
+    .update(groups)
+    .set({ ...updates, updated_at: sql`now()` })
+    .where(and(eq(groups.id, toEntityId(id)), eq(groups.owner_id, userId)))
+    .returning()
 
   if (!group) return null
   return serialize(group)
@@ -131,13 +162,18 @@ export async function updateGroup(
 
 /** Deletes a group owned by the user and its memberships. Returns true if removed. */
 export async function deleteGroup(userId: string, id: string) {
-  await connectMongo()
-  const groupObjId = toObjectId(id)
-  const res = await Group.deleteOne({ _id: groupObjId, owner_id: userId })
-  if (res.deletedCount > 0) {
-    await GroupMember.deleteMany({ group_id: groupObjId })
+  const db = getDb()
+  const gid = toEntityId(id)
+  const deleted = await db
+    .delete(groups)
+    .where(and(eq(groups.id, gid), eq(groups.owner_id, userId)))
+    .returning({ id: groups.id })
+  if (deleted.length > 0) {
+    // Membership rows are already removed by the FK ON DELETE CASCADE; this
+    // explicit delete mirrors the previous implementation and is harmless.
+    await db.delete(group_members).where(eq(group_members.group_id, gid))
   }
-  return res.deletedCount > 0
+  return deleted.length > 0
 }
 
 /**
@@ -149,17 +185,19 @@ export async function addMemberToGroup(
   groupId: string,
   personId: string
 ): Promise<'ok' | 'not_found' | 'duplicate'> {
-  await connectMongo()
-  const groupObjId = await assertOwnedGroup(userId, groupId)
-  if (!groupObjId) return 'not_found'
+  const db = getDb()
+  const gid = await assertOwnedGroup(userId, groupId)
+  if (!gid) return 'not_found'
 
-  const personObjId = toObjectId(personId)
+  // Reject a person the caller does not own (cross-tenant IDOR guard).
+  const [pid] = await filterOwnedPersonIds(userId, [personId])
+  if (!pid) return 'not_found'
   try {
-    await GroupMember.create({ group_id: groupObjId, person_id: personObjId })
+    await db.insert(group_members).values({ group_id: gid, person_id: pid })
     return 'ok'
   } catch (error) {
-    // Duplicate key on the unique (group_id, person_id) index.
-    if ((error as { code?: number }).code === 11000) return 'duplicate'
+    // Duplicate key on the (group_id, person_id) primary key.
+    if ((error as { code?: string }).code === '23505') return 'duplicate'
     throw error
   }
 }
@@ -173,14 +211,18 @@ export async function removeMemberFromGroup(
   groupId: string,
   personId: string
 ): Promise<boolean> {
-  await connectMongo()
-  const groupObjId = await assertOwnedGroup(userId, groupId)
-  if (!groupObjId) return false
+  const db = getDb()
+  const gid = await assertOwnedGroup(userId, groupId)
+  if (!gid) return false
 
-  await GroupMember.deleteOne({
-    group_id: groupObjId,
-    person_id: toObjectId(personId),
-  })
+  await db
+    .delete(group_members)
+    .where(
+      and(
+        eq(group_members.group_id, gid),
+        eq(group_members.person_id, toEntityId(personId))
+      )
+    )
   return true
 }
 
@@ -193,19 +235,17 @@ export async function setGroupMembers(
   groupId: string,
   personIds: string[]
 ): Promise<boolean> {
-  await connectMongo()
-  const groupObjId = await assertOwnedGroup(userId, groupId)
-  if (!groupObjId) return false
+  const db = getDb()
+  const gid = await assertOwnedGroup(userId, groupId)
+  if (!gid) return false
 
-  await GroupMember.deleteMany({ group_id: groupObjId })
-  if (personIds.length) {
-    await GroupMember.insertMany(
-      personIds.map((personId) => ({
-        group_id: groupObjId,
-        person_id: toObjectId(personId),
-      })),
-      { ordered: false }
-    )
+  const ownedIds = await filterOwnedPersonIds(userId, personIds)
+  await db.delete(group_members).where(eq(group_members.group_id, gid))
+  if (ownedIds.length) {
+    await db
+      .insert(group_members)
+      .values(ownedIds.map((pid) => ({ group_id: gid, person_id: pid })))
+      .onConflictDoNothing()
   }
   return true
 }
