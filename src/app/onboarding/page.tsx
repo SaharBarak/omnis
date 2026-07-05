@@ -46,6 +46,14 @@ export default function OnboardingPage() {
     }
   }, [authLoading, user, router])
 
+  // Users who already completed onboarding are never kept here — send them
+  // straight to the app (covers manual navigation and the back button).
+  useEffect(() => {
+    if (!authLoading && profile?.onboarding_completed) {
+      router.replace('/app')
+    }
+  }, [authLoading, profile, router])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -100,7 +108,7 @@ export default function OnboardingPage() {
         onboarding_completed: true,
       })
 
-      router.push('/app')
+      router.replace('/app')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error saving profile')
     } finally {

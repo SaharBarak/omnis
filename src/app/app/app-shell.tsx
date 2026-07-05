@@ -415,8 +415,15 @@ function ErrorState() {
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const { user, loading } = useAuth()
+  const { user, profile, loading } = useAuth()
   const [timedOut, setTimedOut] = useState(false)
+
+  // New-user onboarding gate. GET /api/profile bootstraps a profile row on
+  // first load (ensureUserAndProfile), so a loaded profile with
+  // onboarding_completed === false is a reliable "new user" signal. We
+  // require a non-null profile so a transient fetch failure never bounces an
+  // established user into onboarding.
+  const needsOnboarding = !loading && !!user && !!profile && !profile.onboarding_completed
 
   // Dashboard ground theme — landing palette mapped onto the shadcn vars
   // (dashboard.css). Scoped to <html> while the authed app is mounted so
@@ -442,11 +449,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     }
   }, [loading, user, router])
 
+  // Route new users through onboarding before they see the app.
+  useEffect(() => {
+    if (needsOnboarding) {
+      router.replace('/onboarding')
+    }
+  }, [needsOnboarding, router])
+
   if (timedOut && loading) {
     return <ErrorState />
   }
 
-  if (loading || !user) {
+  if (loading || !user || needsOnboarding) {
     return <LoadingState />
   }
 

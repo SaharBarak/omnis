@@ -5,27 +5,7 @@ import { getDb } from '@/lib/db/client'
 import { profiles, users } from '@/lib/db/schema'
 import { serialize } from '@/lib/db/serialize'
 import { getSession, UnauthorizedError, type SessionUser } from '@/lib/auth-server'
-
-const birthPlaceSchema = z
-  .object({
-    lat: z.number().optional(),
-    lng: z.number().optional(),
-    name: z.string().optional(),
-  })
-  .nullable()
-
-const updateSchema = z.object({
-  display_name: z.string().min(1).max(200).optional(),
-  birth_date: z.string().optional().nullable(),
-  birth_time: z.string().optional().nullable(),
-  birth_place: birthPlaceSchema.optional(),
-  hebrew_name: z.string().optional().nullable(),
-  avatar_url: z.string().optional().nullable(),
-  locale: z.enum(['he', 'en']).optional(),
-  timezone: z.string().optional(),
-  preferences: z.record(z.string(), z.unknown()).optional(),
-  onboarding_completed: z.boolean().optional(),
-})
+import { updateSchema } from './schemas'
 
 /**
  * Identity bootstrap — upserts the Auth0 user into the local `users` mirror
