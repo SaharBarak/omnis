@@ -6,6 +6,7 @@ import { dateToKin, kinToSeal, kinToTone, calculateOracle } from '@/lib/calculat
 import { getSeal } from '@/lib/data/seals'
 import { getTone } from '@/lib/data/tones'
 import { generateMantra } from '@/lib/data/mantras'
+import { EMAIL_FROM } from '@/lib/email/from'
 import {
   listSubscribersForCron,
   logEmailSend,
@@ -98,7 +99,7 @@ export async function GET(request: NextRequest) {
         }
 
         const { data: sendData, error: sendError } = await resend.emails.send({
-          from: 'OmnisX <noreply@omnis.app>',
+          from: EMAIL_FROM,
           to: subscriber.email,
           subject,
           html: getDailyKinEmailHtml(

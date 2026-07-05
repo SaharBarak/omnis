@@ -3,6 +3,7 @@ import { Resend } from 'resend'
 import { z } from 'zod'
 import { rateLimiters, rateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limit'
 import { findByEmail, subscribe } from '@/lib/db/repositories/newsletter-repo'
+import { EMAIL_FROM } from '@/lib/email/from'
 
 export const dynamic = 'force-dynamic'
 
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
       try {
         const resend = new Resend(process.env.RESEND_API_KEY)
         await resend.emails.send({
-          from: 'OmnisX <noreply@omnis.app>',
+          from: EMAIL_FROM,
           to: normalizedEmail,
           subject: 'Welcome to OmnisX - Your Cosmic Journey Begins',
           html: getWelcomeEmailHtml(),

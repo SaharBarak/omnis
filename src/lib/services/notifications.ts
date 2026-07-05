@@ -30,7 +30,9 @@ function getResend(): Resend | null {
 }
 
 // Email sender identity
-const FROM_EMAIL = 'OmnisX <noreply@omnis.app>'
+import { EMAIL_FROM } from '@/lib/email/from'
+
+const FROM_EMAIL = EMAIL_FROM
 
 // ============================================================================
 // Notification Settings (data layer: notifications-repo / MongoDB)
