@@ -219,6 +219,32 @@ export default function TzolkinDocsPage() {
           </div>
         </DocSection>
 
+        {/* Long Count & Calendar Round */}
+        <DocSection id="tz-long-count" title="The Long Count & Calendar Round">
+          <p className="text-muted-foreground leading-relaxed mb-6">
+            The Tzolkin is one wheel in a larger Maya calendrical machine. The{' '}
+            <strong className="text-foreground">Long Count</strong> tracks absolute time: a positional
+            count of days since the era date (August 11, 3114 BCE in the GMT correlation), written as
+            baktun.katun.tun.winal.kin — five places counting 144,000 / 7,200 / 360 / 20 / 1 days.
+            It is the count carved on the great stelae, and the one that completed its 13th baktun
+            in December 2012.
+          </p>
+          <p className="text-muted-foreground leading-relaxed mb-8">
+            Alongside it runs the <strong className="text-foreground">Haab</strong>, the 365-day solar
+            year of eighteen 20-day months plus the five days of Wayeb&apos;. The Tzolkin and Haab mesh
+            like gears into the <strong className="text-foreground">Calendar Round</strong> — a 52-year
+            cycle (18,980 days) after which the same Tzolkin day and Haab date pair recurs.
+          </p>
+          <DocInfoBox variant="primary" title="In OmnisX">
+            <p className="leading-relaxed">
+              Every profile&apos;s birth date is located in all of these counts: the traditional Tzolkin
+              day, the Haab date, and the full Long Count — computed with the GMT correlation (584,283)
+              and shown alongside the modern Dreamspell signature, so you can compare the counts for
+              anyone on your map.
+            </p>
+          </DocInfoBox>
+        </DocSection>
+
         {/* FAQ */}
         <DocSection id="tz-faq" title="Frequently Asked Questions">
           <div className="space-y-4">
@@ -247,7 +273,8 @@ export default function TzolkinDocsPage() {
         <section className="doc-card p-8 sm:p-10 text-center mt-16">
           <h3 className="text-2xl font-heading text-foreground mb-4">Explore Both Perspectives</h3>
           <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-            OmnisX uses the Dreamspell system for daily calculations. Understanding both traditions
+            OmnisX calculates both counts side by side — the traditional Tzolkin (GMT correlation)
+            and the modern Dreamspell — for every person you chart. Understanding both traditions
             enriches your practice with deeper context.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3">

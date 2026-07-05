@@ -103,7 +103,7 @@ export default function IntegrationDocsPage() {
 
         <QuickAnswer
           question="Can I use Dreamspell, Human Design, and Astrology together?"
-          answer="Yes. Each system illuminates a different facet of who you are: Dreamspell reveals your timing and cosmic purpose, Human Design shows your decision-making strategy and energy type, Astrology maps your psychological depth and life transits, and Kabbalah connects you to sacred numerology. When multiple systems agree on a theme, it signals a core quality in your design. OmnisX calculates all five systems from a single birth date."
+          answer="Yes. Each system illuminates a different facet of who you are: Dreamspell reveals your timing and cosmic purpose, the traditional Tzolkin grounds you in the living Maya count, Human Design shows your decision-making strategy and energy type, Astrology maps your psychological depth and life transits, and Kabbalah reads the numbers hidden in your name. When multiple systems agree on a theme, it signals a core quality in your design. OmnisX computes every lens from one profile — birth date, time, place, and name, entered once — for every person on your map."
         />
 
         {/* Introduction with drop cap */}
@@ -387,8 +387,9 @@ export default function IntegrationDocsPage() {
           <DocInfoBox variant="secondary" title="OmnisX Does This For You">
             <p className="leading-relaxed">
               This is why OmnisX exists—to calculate your data across all systems and surface the patterns,
-              so you can focus on living your design rather than computing it. Enter your birth data once,
-              and let the synthesis emerge.
+              so you can focus on living your design rather than computing it. Enter a birth once and it is
+              remembered forever: every person you chart becomes a node on your map, ready for any new
+              reading, comparison, or group.
             </p>
           </DocInfoBox>
         </section>
@@ -397,7 +398,8 @@ export default function IntegrationDocsPage() {
         <section className="doc-card p-8 sm:p-10 text-center mt-16">
           <h3 className="text-2xl font-heading text-foreground mb-4">See Your Full Picture</h3>
           <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-            Enter your birth data to receive your unified reading across all systems.
+            Enter your birth data for a unified reading across every system — then add the people
+            around you and watch the map take shape.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3">
             <Link

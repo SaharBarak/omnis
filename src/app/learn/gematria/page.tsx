@@ -973,19 +973,23 @@ export default function GematriaDocsPage() {
           <h3 className="doc-h3">Date Analysis</h3>
           <p className="text-muted-foreground leading-relaxed mb-6">
             Hebrew dates can also be calculated using gematria. Since Hebrew uses letters for
-            numbers, every date is also a word &mdash; and that word has meaning. OmnisX can convert
-            your birth date to the Hebrew calendar and reveal its numerical significance, including
-            which Sefirah governs the week, which letter governs the month, and how the date&apos;s
-            total value connects to key words in tradition.
+            numbers, every date is also a word &mdash; and that word has meaning. In traditional
+            practice, spans of time carry their own signatures: weeks are linked to the Sefirot,
+            months to their Hebrew letters. In OmnisX, the calendar side of your chart is carried
+            by the time systems &mdash; Dreamspell, the Tzolkin, and the Long Count &mdash; while
+            gematria does what it does best: reading the names.
           </p>
 
           <h3 className="doc-h3">Word Connection Discovery</h3>
           <p className="text-muted-foreground leading-relaxed mb-8">
             One of the most powerful features of gematria is discovering that two seemingly unrelated
-            words share the same numerical value. OmnisX maintains a database of significant Hebrew
-            words and their gematria values, enabling you to discover which biblical names, concepts,
-            and phrases share your number. These are not mere coincidences to the Kabbalist &mdash; they
-            are threads in the tapestry of hidden meaning that connects all of reality.
+            words share the same numerical value. OmnisX keeps a curated table of significant gematria
+            values, so when your name&apos;s total lands on a notable number &mdash; a divine name, a
+            foundational concept &mdash; the reading flags the connection. And because every person you
+            chart is saved to your map, OmnisX can also compare names directly, surfacing matching
+            values between you and the people in your life. These are not mere coincidences to the
+            Kabbalist &mdash; they are threads in the tapestry of hidden meaning that connects all of
+            reality.
           </p>
 
           <DocInfoBox variant="secondary" title="Hebrew Name Tip">

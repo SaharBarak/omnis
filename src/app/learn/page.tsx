@@ -155,9 +155,10 @@ export default function LearnPage() {
             The sources behind every reading.
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/70">
-            Five guides — Astrology, Dreamspell, the Tzolkin, Human Design,
-            Kabbalah — written with respect for the lineages. When OmnisX tells
-            you something about a person, this is where it learned it.
+            Five guides — Astrology, Dreamspell, the Tzolkin &amp; Long Count,
+            Human Design, Kabbalah — written with respect for the lineages.
+            When OmnisX tells you something about a person, this is where it
+            learned it.
           </p>
 
           <div className="mt-10 max-w-2xl [&>div]:mx-0">

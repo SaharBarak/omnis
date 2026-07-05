@@ -117,7 +117,7 @@ export default function DreamspellDocsPage() {
 
         <QuickAnswer
           question="What is Dreamspell?"
-          answer="Dreamspell is a modern calendar system created by Jose Arguelles in 1987, based on the ancient Maya Tzolkin. It maps a 260-day cycle of 20 Solar Seals and 13 Galactic Tones to reveal your galactic signature — a unique archetype describing your cosmic purpose. Enter your birth date at omnis.app/calculate to find your Kin."
+          answer="Dreamspell is a modern calendar system created by Jose Arguelles in 1987, based on the ancient Maya Tzolkin. It maps a 260-day cycle of 20 Solar Seals and 13 Galactic Tones to reveal your galactic signature — a unique archetype describing your cosmic purpose. Enter your birth date in the OmnisX calculator to find your Kin — no birth time needed."
         />
 
         {/* Hunab Ku accent */}
@@ -229,7 +229,7 @@ export default function DreamspellDocsPage() {
                   />
                   <div className={`text-lg font-heading mb-0.5 ${colors.text}`}>{seal.number}</div>
                   <div className="text-sm font-medium text-foreground">{seal.english}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{seal.hebrew}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{seal.mayan}</div>
                 </div>
               )
             })}
@@ -258,7 +258,6 @@ export default function DreamspellDocsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 flex-wrap mb-2">
                       <span className="font-heading text-lg text-foreground">{tone.name}</span>
-                      <span className="text-sm text-muted-foreground">({tone.nameHebrew})</span>
                       <span className="text-xs font-mono text-primary">Tone {tone.number}</span>
                     </div>
                     {toneDoc && (
