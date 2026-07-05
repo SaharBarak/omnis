@@ -18,7 +18,6 @@ export type {
   GraphEdge,
   GraphCluster,
   RelationshipGraph,
-  RawGraphData,
   GroupPreset,
   GroupWithMembers,
   HarmonyType,

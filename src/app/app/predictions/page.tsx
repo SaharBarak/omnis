@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageHeader } from '@/components/dashboard'
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
 import {
+  AIInterpretation,
   PredictionCard,
   PredictionTimeline,
   IntensityBadge,
@@ -195,7 +196,12 @@ export default function PredictionsPage() {
 
           {/* Daily View */}
           {forecastView === 'daily' && (
-            <PredictionCard prediction={dailyPrediction} />
+            <>
+              <PredictionCard prediction={dailyPrediction} />
+              {dailyPrediction.events.map((event, i) => (
+                <AIInterpretation key={`${event.title}-${i}`} prediction={event} />
+              ))}
+            </>
           )}
 
           {/* Weekly View */}

@@ -162,25 +162,6 @@ export interface RelationshipGraph {
   clusters: GraphCluster[]
 }
 
-// Raw graph data from database
-export interface RawGraphData {
-  nodes: Array<{
-    id: string
-    name: string
-    hebrew_name: string | null
-    birth_date: string
-  }>
-  edges: Array<{
-    id: string
-    source: string
-    target: string
-    type: string
-    subtype: string | null
-    bidirectional: boolean
-    strength: number
-  }>
-}
-
 // ============================================================================
 // GROUP TYPES
 // ============================================================================

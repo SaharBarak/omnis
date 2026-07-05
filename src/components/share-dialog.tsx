@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -23,16 +23,23 @@ interface ShareDialogProps {
 }
 
 export function ShareDialog({ open, onOpenChange, shareType, title, options }: ShareDialogProps) {
-  const { createShare } = useShares()
+  const { shares, fetchShares, createShare, deactivateShare } = useShares()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [createdLink, setCreatedLink] = useState<ShareLink | null>(null)
   const [copied, setCopied] = useState(false)
+  const [revokingId, setRevokingId] = useState<string | null>(null)
 
   // Form state
   const [expirationDays, setExpirationDays] = useState<string>('7')
   const [maxViews, setMaxViews] = useState<string>('')
   const [password, setPassword] = useState('')
+
+  useEffect(() => {
+    if (open) fetchShares()
+  }, [open, fetchShares])
+
+  const activeLinks = shares.filter((s) => s.shareType === shareType && s.active)
 
   const handleCreate = async () => {
     setLoading(true)
@@ -67,6 +74,15 @@ export function ShareDialog({ open, onOpenChange, shareType, title, options }: S
     }
   }
 
+  const handleRevoke = async (id: string) => {
+    setRevokingId(id)
+    setError(null)
+    const ok = await deactivateShare(id)
+    if (!ok) setError('Failed to revoke share link')
+    if (createdLink?.id === id) setCreatedLink(null)
+    setRevokingId(null)
+  }
+
   const handleCopy = async () => {
     if (!createdLink) return
     try {
@@ -89,16 +105,16 @@ export function ShareDialog({ open, onOpenChange, shareType, title, options }: S
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>שיתוף {title}</DialogTitle>
+          <DialogTitle>Share {title}</DialogTitle>
           <DialogDescription>
-            צור קישור לשיתוף עם אחרים
+            Create a link to share with others
           </DialogDescription>
         </DialogHeader>
 
         {createdLink ? (
           <div className="space-y-4">
             <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-              <div className="text-green-800 font-medium mb-2">קישור נוצר בהצלחה!</div>
+              <div className="text-green-800 font-medium mb-2">Link created!</div>
               <div className="flex items-center gap-2">
                 <Input
                   value={createdLink.url}
@@ -107,68 +123,68 @@ export function ShareDialog({ open, onOpenChange, shareType, title, options }: S
                   dir="ltr"
                 />
                 <Button onClick={handleCopy} variant="outline" size="sm">
-                  {copied ? 'הועתק!' : 'העתק'}
+                  {copied ? 'Copied!' : 'Copy'}
                 </Button>
               </div>
             </div>
 
             <div className="text-sm text-muted-foreground space-y-1">
               {createdLink.expiresAt && (
-                <p>תפוגה: {new Date(createdLink.expiresAt).toLocaleDateString('he-IL')}</p>
+                <p>Expires: {new Date(createdLink.expiresAt).toLocaleDateString()}</p>
               )}
               {createdLink.maxViews && (
-                <p>מקסימום צפיות: {createdLink.maxViews}</p>
+                <p>Max views: {createdLink.maxViews}</p>
               )}
               {createdLink.hasPassword && (
-                <p>מוגן בסיסמה</p>
+                <p>Password protected</p>
               )}
             </div>
 
             <div className="flex justify-end">
-              <Button onClick={handleClose}>סגור</Button>
+              <Button onClick={handleClose}>Close</Button>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
             {/* Expiration */}
             <div className="space-y-2">
-              <Label htmlFor="expiration">תפוגה</Label>
+              <Label htmlFor="expiration">Expiration</Label>
               <select
                 id="expiration"
                 value={expirationDays}
                 onChange={(e) => setExpirationDays(e.target.value)}
                 className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
               >
-                <option value="1">יום אחד</option>
-                <option value="7">שבוע</option>
-                <option value="30">חודש</option>
-                <option value="90">3 חודשים</option>
-                <option value="0">ללא תפוגה</option>
+                <option value="1">1 day</option>
+                <option value="7">1 week</option>
+                <option value="30">1 month</option>
+                <option value="90">3 months</option>
+                <option value="0">Never</option>
               </select>
             </div>
 
             {/* Max views */}
             <div className="space-y-2">
-              <Label htmlFor="maxViews">מקסימום צפיות (אופציונלי)</Label>
+              <Label htmlFor="maxViews">Max views (optional)</Label>
               <Input
                 id="maxViews"
                 type="number"
                 min="1"
                 value={maxViews}
                 onChange={(e) => setMaxViews(e.target.value)}
-                placeholder="ללא הגבלה"
+                placeholder="Unlimited"
               />
             </div>
 
             {/* Password */}
             <div className="space-y-2">
-              <Label htmlFor="password">סיסמה (אופציונלי)</Label>
+              <Label htmlFor="password">Password (optional)</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="הגנה בסיסמה"
+                placeholder="Password protection"
               />
             </div>
 
@@ -176,12 +192,45 @@ export function ShareDialog({ open, onOpenChange, shareType, title, options }: S
               <div className="text-sm text-destructive">{error}</div>
             )}
 
+            {/* Existing active links for this share type */}
+            {activeLinks.length > 0 && (
+              <div className="space-y-2 pt-2 border-t">
+                <Label>Active links</Label>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {activeLinks.map((link) => (
+                    <div
+                      key={link.id}
+                      className="flex items-center gap-2 p-2 rounded-md border border-input"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs truncate" dir="ltr">{link.url}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {link.viewCount} view{link.viewCount === 1 ? '' : 's'}
+                          {link.expiresAt &&
+                            ` · expires ${new Date(link.expiresAt).toLocaleDateString()}`}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRevoke(link.id)}
+                        disabled={revokingId === link.id}
+                      >
+                        {revokingId === link.id ? 'Revoking…' : 'Revoke'}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={handleClose}>
-                ביטול
+                Cancel
               </Button>
               <Button onClick={handleCreate} disabled={loading}>
-                {loading ? 'יוצר...' : 'צור קישור'}
+                {loading ? 'Creating…' : 'Create link'}
               </Button>
             </div>
           </div>

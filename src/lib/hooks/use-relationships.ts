@@ -5,7 +5,6 @@ import type {
   RelationshipType,
   RelationshipWithPeople,
   RelationshipFromPerson,
-  RawGraphData,
   CreateRelationshipInput,
   UpdateRelationshipInput,
 } from '@/lib/types/relationship'
@@ -41,7 +40,6 @@ interface UseRelationshipsReturn extends UseRelationshipsState {
   updateRelationship: (id: string, input: UpdateRelationshipInput) => Promise<Relationship>
   deleteRelationship: (id: string) => Promise<void>
   getRelationshipsForPerson: (personId: string) => Promise<RelationshipFromPerson[]>
-  getGraphData: () => Promise<RawGraphData>
 }
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
@@ -147,11 +145,6 @@ export function useRelationships(): UseRelationshipsReturn {
     return relationships
   }, [])
 
-  // Get graph data for visualization
-  const getGraphData = useCallback(async (): Promise<RawGraphData> => {
-    return fetchJson<RawGraphData>('/api/relationships/graph')
-  }, [])
-
   // Initial fetch
   useEffect(() => {
     fetchRelationships()
@@ -164,7 +157,6 @@ export function useRelationships(): UseRelationshipsReturn {
     updateRelationship,
     deleteRelationship,
     getRelationshipsForPerson,
-    getGraphData,
   }
 }
 

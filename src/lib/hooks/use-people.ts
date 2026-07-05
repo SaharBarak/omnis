@@ -168,27 +168,6 @@ export function usePeople() {
     [fetchPeople]
   )
 
-  const addTag = useCallback(
-    async (tag: { name: string; hebrew_name: string; color: string }) => {
-      const { tag: created } = await fetchJson<{ tag: Tag }>('/api/tags', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(tag),
-      })
-      await fetchPeople()
-      return created
-    },
-    [fetchPeople]
-  )
-
-  const deleteTag = useCallback(
-    async (id: string) => {
-      await fetchJson(`/api/tags/${id}`, { method: 'DELETE' })
-      await fetchPeople()
-    },
-    [fetchPeople]
-  )
-
   useEffect(() => {
     fetchPeople()
   }, [fetchPeople])
@@ -201,7 +180,5 @@ export function usePeople() {
     deletePerson,
     restorePerson,
     permanentlyDeletePerson,
-    addTag,
-    deleteTag,
   }
 }

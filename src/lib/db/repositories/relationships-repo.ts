@@ -283,62 +283,6 @@ export async function getPersonRelationships(userId: string, personId: string) {
     .filter((r): r is NonNullable<typeof r> => r !== null)
 }
 
-/**
- * Ports the `get_relationship_graph()` RPC.
- *
- * Returns `{ nodes, edges }` for the current user:
- *  - nodes: the user's non-deleted people, shaped { id, name, hebrew_name, birth_date }.
- *  - edges: the user's relationships, shaped { id, source, target, type, subtype, bidirectional, strength }.
- *
- * Same JSON shape the old SQL function returned (RawGraphData). Both queries are
- * owner-scoped, so no cross-tenant node or edge can appear.
- */
-export async function getRelationshipGraph(userId: string) {
-  const db = getDb()
-
-  const [persons, rels] = await Promise.all([
-    db
-      .select({
-        id: people.id,
-        name: people.name,
-        hebrew_name: people.hebrew_name,
-        birth_date: people.birth_date,
-      })
-      .from(people)
-      .where(and(eq(people.owner_id, userId), isNull(people.deleted_at))),
-    db
-      .select({
-        id: relationships.id,
-        person1_id: relationships.person1_id,
-        person2_id: relationships.person2_id,
-        type: relationships.type,
-        subtype: relationships.subtype,
-        bidirectional: relationships.bidirectional,
-        strength: relationships.strength,
-      })
-      .from(relationships)
-      .where(eq(relationships.owner_id, userId)),
-  ])
-
-  const nodes = persons.map((p) => ({
-    id: p.id,
-    name: p.name,
-    hebrew_name: p.hebrew_name ?? null,
-    birth_date: p.birth_date,
-  }))
-
-  const edges = rels.map((r) => ({
-    id: r.id,
-    source: r.person1_id,
-    target: r.person2_id,
-    type: r.type,
-    subtype: r.subtype ?? null,
-    bidirectional: r.bidirectional,
-    strength: r.strength,
-  }))
-
-  return { nodes, edges }
-}
 
 // ----------------------------------------------------------------------------
 // Errors mapped to HTTP responses by the route handlers.

@@ -183,36 +183,3 @@ export async function permanentlyDeletePerson(userId: string, id: string) {
   return res.length > 0
 }
 
-export async function listTags(userId: string) {
-  const db = getDb()
-  const tagRows = await db
-    .select()
-    .from(tags)
-    .where(or(eq(tags.is_system, true), eq(tags.owner_id, userId)))
-    .orderBy(asc(tags.sort_order))
-  return serializeMany(tagRows)
-}
-
-export async function createTag(
-  userId: string,
-  tag: { name: string; hebrew_name: string; color: string }
-) {
-  const db = getDb()
-  const [created] = await db
-    .insert(tags)
-    .values({ ...tag, owner_id: userId, is_system: false })
-    .returning()
-  return serialize(created)
-}
-
-/** Deletes a non-system tag owned by the user. Returns true if removed. */
-export async function deleteTag(userId: string, id: string) {
-  const db = getDb()
-  const tagId = toEntityId(id)
-  const res = await db
-    .delete(tags)
-    .where(and(eq(tags.id, tagId), eq(tags.owner_id, userId), eq(tags.is_system, false)))
-    .returning({ id: tags.id })
-  // person_tags rows are removed by the ON DELETE CASCADE FK on tag_id.
-  return res.length > 0
-}
