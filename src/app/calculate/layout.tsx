@@ -6,12 +6,12 @@ export const metadata: Metadata = {
   description: 'Free Dreamspell Kin calculator. Enter your birth date to discover your galactic signature, solar seal, galactic tone, oracle, and personal mantra. Includes all 260 Kin.',
   keywords: 'dreamspell calculator, kin calculator, galactic signature, mayan calendar, birth chart, what is my kin, galactic signature calculator',
   alternates: {
-    canonical: 'https://omnis.app/calculate',
+    canonical: '/calculate',
   },
   openGraph: {
     title: 'Free Dreamspell Calculator - Find Your Galactic Signature & Kin',
     description: 'Discover your Dreamspell Kin, solar seal, and cosmic purpose. Free calculator for all 260 galactic signatures.',
-    url: 'https://omnis.app/calculate',
+    url: '/calculate',
   },
 }
 

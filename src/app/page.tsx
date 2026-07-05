@@ -20,77 +20,35 @@ import {
   TodayBoard,
   PortalCta,
 } from '@/components/landing-v2'
+import type { Metadata } from 'next'
 import { SYSTEM_FLAVORS, MURAL_GROUND } from '@/lib/design/system-flavors'
 import { getTodayAcrossSystems, getFooterLiveLine } from '@/lib/today-board'
-import { JsonLd, SITE_URL, organizationSchema } from '@/lib/seo/json-ld'
+import {
+  JsonLd,
+  organizationSchema,
+  webSiteSchema,
+  softwareApplicationSchema,
+  buildFaqPage,
+} from '@/components/seo/json-ld'
 import { faqs } from '@/lib/data/faqs'
 
 // Revalidate hourly so the today board and footer line stay current.
 export const revalidate = 3600
 
-const webAppSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'WebApplication',
-  name: 'OmnisX',
-  applicationCategory: 'LifestyleApplication',
-  operatingSystem: 'Web',
-  description:
-    'The living map of your people — everyone in your life read through Astrology, Dreamspell, Tzolkin, Human Design, and Kabbalah, with relationship and group dynamics across all five systems.',
-  url: SITE_URL,
-  offers: [
-    {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'USD',
-      description: 'Free plan — your five-system reading and a small people library',
-    },
-    {
-      '@type': 'Offer',
-      price: '9',
-      priceCurrency: 'USD',
-      description: 'Complete plan — unlimited people, full map and group dynamics, AI interpretations',
-    },
-    {
-      '@type': 'Offer',
-      price: '29',
-      priceCurrency: 'USD',
-      description: 'Practitioner plan — collaborators, client maps, exports',
-    },
-  ],
-  featureList: [
-    'Living relationship map across five wisdom systems',
-    'Five-system personal reading',
-    'Persistent people library',
-    'Group dynamics — layered or fused',
-    'Shareable living map links',
-    'Human Design Bodygraph',
-    'Dreamspell Galactic Signature',
-    'Astrology Natal Chart',
-    'Tzolkin Sacred Calendar',
-    'Kabbalah & Gematria',
-  ],
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: '4.9',
-    ratingCount: '127',
+export const metadata: Metadata = {
+  title: {
+    absolute: 'OmnisX - The Living Map of Your People | 6 Wisdom Systems',
   },
-}
-
-const webSiteSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: 'OmnisX',
-  url: SITE_URL,
   description:
-    'The living map of your people — five wisdom systems, one interface, remembered forever.',
-  publisher: { '@id': `${SITE_URL}/#organization` },
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: {
-      '@type': 'EntryPoint',
-      urlTemplate: `${SITE_URL}/calculate?q={search_term_string}`,
-    },
-    'query-input': 'required name=search_term_string',
+    'Enter one birthday and read it through Astrology, Dreamspell, Tzolkin, Human Design, and Hebrew Gematria at once. Save your people, map every relationship, and read group dynamics across all six systems.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'OmnisX - The Living Map of Your People',
+    description:
+      'Everyone in your life, read through six wisdom systems at once — and remembered forever. Free six-system reading from one birthday.',
+    url: '/',
   },
 }
 
@@ -99,25 +57,14 @@ const orgSchema = {
   ...organizationSchema,
 }
 
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: faqs.map((faq) => ({
-    '@type': 'Question',
-    name: faq.question,
-    acceptedAnswer: {
-      '@type': 'Answer',
-      text: faq.answer,
-    },
-  })),
-}
+const faqSchema = buildFaqPage(faqs)
 
 export default function LandingPage() {
   const today = getTodayAcrossSystems()
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: MURAL_GROUND }}>
-      <JsonLd data={webAppSchema} id="json-ld-webapp" />
+      <JsonLd data={softwareApplicationSchema} id="json-ld-webapp" />
       <JsonLd data={webSiteSchema} id="json-ld-website" />
       <JsonLd data={orgSchema} id="json-ld-org" />
       <JsonLd data={faqSchema} id="json-ld-faq" />

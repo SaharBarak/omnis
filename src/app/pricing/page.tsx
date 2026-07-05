@@ -1,60 +1,32 @@
 import { Metadata } from 'next';
 import { PLAN_FEATURES } from '@/lib/plans';
 import { Check } from 'lucide-react';
-import { JsonLd, SITE_URL, organizationSchema, buildBreadcrumbs } from '@/lib/seo/json-ld';
+import {
+  JsonLd,
+  SITE_URL,
+  softwareApplicationSchema,
+  buildBreadcrumbs,
+} from '@/components/seo/json-ld';
 import { PageBreadcrumbs } from '@/components/ui/page-breadcrumbs';
 
 export const metadata: Metadata = {
   title: 'OmnisX Pricing - Free Chart Calculator & Premium Plans',
   description: 'Free Dreamspell calculator, daily kin readings, and 1 profile. Upgrade to Complete ($9/mo) for all 6 systems or Practitioner ($29/mo) for unlimited profiles and client tools.',
   alternates: {
-    canonical: 'https://omnis.app/pricing',
+    canonical: '/pricing',
   },
   openGraph: {
     title: 'OmnisX Pricing - Free Chart Calculator & Premium Plans',
     description: 'Free plan with Dreamspell calculator. Complete ($9/mo) and Practitioner ($29/mo) plans available.',
-    url: 'https://omnis.app/pricing',
+    url: '/pricing',
   },
 };
 
-const productSchema = {
-  "@context": "https://schema.org",
-  "@type": "Product",
-  "name": "OmnisX - Cosmic Blueprint Platform",
-  "description": "Unified platform for Dreamspell, Human Design, Astrology, Kabbalah, and Tzolkin wisdom systems.",
-  "brand": { "@id": `${SITE_URL}/#organization` },
-  "url": `${SITE_URL}/pricing`,
-  "offers": [
-    {
-      "@type": "Offer",
-      "name": "Free",
-      "price": "0",
-      "priceCurrency": "USD",
-      "description": "Dreamspell calculator, daily kin readings, and basic analytics.",
-      "url": `${SITE_URL}/pricing`,
-      "availability": "https://schema.org/InStock",
-    },
-    {
-      "@type": "Offer",
-      "name": "Pro",
-      "price": "29",
-      "priceCurrency": "USD",
-      "description": "Unlimited projects, advanced analytics, priority support, and API access.",
-      "url": `${SITE_URL}/pricing`,
-      "availability": "https://schema.org/InStock",
-      "priceValidUntil": "2026-12-31",
-    },
-    {
-      "@type": "Offer",
-      "name": "Enterprise",
-      "price": "99",
-      "priceCurrency": "USD",
-      "description": "Everything in Pro plus unlimited team members, dedicated support, and custom contracts.",
-      "url": `${SITE_URL}/pricing`,
-      "availability": "https://schema.org/InStock",
-      "priceValidUntil": "2026-12-31",
-    },
-  ],
+// Shared product entity — offers stay in sync with the plans marketed
+// on the landing page (Free / Complete $9 / Practitioner $29).
+const pricingSchema = {
+  ...softwareApplicationSchema,
+  url: `${SITE_URL}/pricing`,
 };
 
 const breadcrumbSchema = buildBreadcrumbs([
@@ -126,7 +98,7 @@ function PricingCard({
 export default function PricingPage() {
   return (
     <div className="container mx-auto px-4 py-16">
-      <JsonLd data={productSchema} id="json-ld-product" />
+      <JsonLd data={pricingSchema} id="json-ld-product" />
       <JsonLd data={breadcrumbSchema} id="json-ld-breadcrumbs" />
       <PageBreadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Pricing' }]} />
       <div className="mx-auto max-w-3xl text-center">

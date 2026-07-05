@@ -16,12 +16,12 @@ export const metadata: Metadata = {
   description: "Discover today's Dreamspell Kin, solar seal, galactic tone, oracle, and daily mantra. Free daily Dreamspell reading updated every day.",
   keywords: "dreamspell, kin of the day, today's kin, daily dreamspell, galactic signature, daily galactic reading",
   alternates: {
-    canonical: 'https://omnis.app/today',
+    canonical: '/today',
   },
   openGraph: {
     title: "Today's Dreamspell Kin - Free Daily Galactic Reading",
     description: "Today's Dreamspell Kin, oracle, and cosmic guidance. Free daily reading.",
-    url: 'https://omnis.app/today',
+    url: '/today',
   },
 }
 

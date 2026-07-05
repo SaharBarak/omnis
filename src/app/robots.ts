@@ -1,4 +1,39 @@
 import { MetadataRoute } from 'next'
+import { SITE_URL } from '@/components/seo/json-ld'
+
+/**
+ * Private or no-search-value surfaces. `/share/` carries personal chart data
+ * behind unlisted tokens — kept out of search and AI indexes by default.
+ */
+const PRIVATE_PATHS = [
+  '/app/',
+  '/api/',
+  '/auth/',
+  '/share/',
+  '/onboarding',
+  '/unsubscribe',
+] as const
+
+/**
+ * AI search/answer crawlers are explicitly allowed on the public surface so
+ * OmnisX can be cited by ChatGPT, Claude, Perplexity, Gemini, et al.
+ * (Blocking them would remove the site from AI answers entirely.)
+ */
+const AI_CRAWLERS = [
+  'GPTBot',
+  'ChatGPT-User',
+  'OAI-SearchBot',
+  'Google-Extended',
+  'ClaudeBot',
+  'Claude-SearchBot',
+  'anthropic-ai',
+  'PerplexityBot',
+  'Perplexity-User',
+  'Applebot-Extended',
+  'Amazonbot',
+  'Bytespider',
+  'meta-externalagent',
+] as const
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -6,44 +41,14 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/app/', '/api/', '/auth/', '/onboarding', '/unsubscribe'],
+        disallow: [...PRIVATE_PATHS],
       },
-      {
-        userAgent: 'GPTBot',
+      ...AI_CRAWLERS.map((userAgent) => ({
+        userAgent,
         allow: '/',
-        disallow: ['/app/', '/api/', '/auth/'],
-      },
-      {
-        userAgent: 'ChatGPT-User',
-        allow: '/',
-        disallow: ['/app/', '/api/', '/auth/'],
-      },
-      {
-        userAgent: 'Google-Extended',
-        allow: '/',
-        disallow: ['/app/', '/api/', '/auth/'],
-      },
-      {
-        userAgent: 'ClaudeBot',
-        allow: '/',
-        disallow: ['/app/', '/api/', '/auth/'],
-      },
-      {
-        userAgent: 'PerplexityBot',
-        allow: '/',
-        disallow: ['/app/', '/api/', '/auth/'],
-      },
-      {
-        userAgent: 'Applebot-Extended',
-        allow: '/',
-        disallow: ['/app/', '/api/', '/auth/'],
-      },
-      {
-        userAgent: 'Amazonbot',
-        allow: '/',
-        disallow: ['/app/', '/api/', '/auth/'],
-      },
+        disallow: [...PRIVATE_PATHS],
+      })),
     ],
-    sitemap: 'https://omnis.app/sitemap.xml',
+    sitemap: `${SITE_URL}/sitemap.xml`,
   }
 }

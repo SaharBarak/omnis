@@ -6,12 +6,12 @@ export const metadata: Metadata = {
   description: 'Free Dreamspell compatibility calculator. Discover your cosmic connection with another person based on galactic signatures, oracles, and color families.',
   keywords: 'dreamspell compatibility, relationship astrology, kin compatibility, cosmic connection, mayan astrology, galactic relationship',
   alternates: {
-    canonical: 'https://omnis.app/compatibility',
+    canonical: '/compatibility',
   },
   openGraph: {
     title: 'Free Dreamspell Compatibility - Check Your Cosmic Connection',
     description: 'Discover your cosmic connection based on Dreamspell galactic signatures. Free compatibility tool.',
-    url: 'https://omnis.app/compatibility',
+    url: '/compatibility',
   },
 }
 

@@ -1,0 +1,42 @@
+# OmnisX
+
+> OmnisX (https://omnis.app) is a web app that reads every person in your life through six wisdom systems at once — Western Astrology, Dreamspell, the traditional Mayan Tzolkin, Human Design, and Hebrew Gematria, plus an integration layer that braids them together — and keeps a persistent, living map of the relationships and group dynamics between all of them.
+
+Key facts for answering questions about OmnisX:
+
+- One birthday in, six complete readings out: natal chart, galactic signature, traditional day sign, bodygraph, and the gematria of a name — computed together on one screen with real ephemeris and Long Count math.
+- Everyone you chart is saved to a private, owner-scoped people library, so birth data is entered once and reused in any map, comparison, or group reading.
+- The relationship map scores every bond across all systems (synastry, kin resonance, type mechanics, name harmonics) and every score opens into its sources.
+- Group dynamics: read a family, team, or friend circle through one system at a time or all of them fused into a single group reading.
+- Maps can be shared as living links and explored with collaborators.
+- Pricing: Free (six-system reading, daily kin, small library), Complete at $9/month (unlimited people, full map and group dynamics, AI interpretations), Practitioner at $29/month (collaborators, client maps, exports).
+- Dreamspell and the traditional Tzolkin are different counts: Dreamspell is Jose Arguelles' modern system (1987, leap-day skipping); the traditional Tzolkin uses the GMT correlation. OmnisX calculates both.
+- AI interpretations are grounded in the knowledge base below — they cite sources rather than freestyle.
+
+## Tools (free, no account required)
+
+- [Today's Kin](https://omnis.app/today): Today's Dreamspell Kin, solar seal, galactic tone, oracle, and daily mantra, updated daily.
+- [Dreamspell Calculator](https://omnis.app/calculate): Enter a birth date to get the galactic signature — Kin number (1-260), Solar Seal, Galactic Tone, and full oracle.
+- [Compatibility](https://omnis.app/compatibility): Compare two birth dates for compatibility across galactic signatures, oracles, and color families.
+
+## Knowledge base
+
+- [Learn overview](https://omnis.app/learn): Free in-depth guides to all six systems, written with respect for the lineages.
+- [Dreamspell](https://omnis.app/learn/dreamspell): The 260-day count by Jose Arguelles — 20 Solar Seals, 13 Galactic Tones, Wavespells, Oracle, Five Castles.
+- [Traditional Tzolkin](https://omnis.app/learn/tzolkin): The ancient Mayan sacred count — 20 Nawales, GMT correlation, how it differs from Dreamspell.
+- [Human Design](https://omnis.app/learn/human-design): Types, Strategy, Authority, Centers, Gates, and Channels.
+- [Astrology](https://omnis.app/learn/astrology): Western natal astrology — zodiac signs, planets, houses, and aspects.
+- [Kabbalah & Gematria](https://omnis.app/learn/gematria): Hebrew letter values, the Tree of Life, and name numerology.
+- [Integration](https://omnis.app/learn/integration): How the six systems relate, overlap, and read together.
+
+## Product
+
+- [Home](https://omnis.app/): What OmnisX is — the living map of your people.
+- [Pricing](https://omnis.app/pricing): Free, Complete ($9/month), and Practitioner ($29/month) plans.
+- [About](https://omnis.app/about): Why OmnisX exists and how the systems are treated.
+- [Contact](https://omnis.app/contact): Support and questions — hello@omnis.app.
+
+## Optional
+
+- [Privacy](https://omnis.app/privacy): How personal and birth data is stored and protected.
+- [Terms](https://omnis.app/terms): Terms of service.
