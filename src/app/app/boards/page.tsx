@@ -30,6 +30,13 @@ import { Label } from '@/components/ui/label'
 import { useBoards } from '@/lib/hooks/use-boards'
 import { BOARD_TEMPLATES, type BoardTemplate } from '@/lib/types/board'
 import type { Board } from '@/lib/types/database.types'
+import { TEMPLATE_ICONS, FALLBACK_TEMPLATE_ICON } from '@/components/canvas/template-selector'
+
+/** Lucide glyph for a board template (replaces the emoji icons). */
+function TemplateGlyph({ templateId, className }: { templateId: string | null | undefined; className?: string }) {
+  const Icon = (templateId && TEMPLATE_ICONS[templateId as BoardTemplate]) || FALLBACK_TEMPLATE_ICON
+  return <Icon className={className} aria-hidden="true" />
+}
 
 export default function BoardsPage() {
   const { boards, loading, error, createBoard, deleteBoard, duplicateBoard } = useBoards()
@@ -100,7 +107,7 @@ export default function BoardsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-heading text-foreground">Boards</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">Boards</h1>
           <p className="text-muted-foreground">
             Create and edit visual boards
           </p>
@@ -150,7 +157,7 @@ export default function BoardsPage() {
                         onClick={() => setSelectedTemplate(key)}
                       >
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xl">{template.icon}</span>
+                          <TemplateGlyph templateId={key} className="h-4 w-4 text-primary" />
                           <span className="font-medium text-sm text-foreground">{template.name}</span>
                         </div>
                         <p className="text-xs text-muted-foreground">
@@ -234,9 +241,7 @@ function BoardCard({ board, onDelete, onDuplicate }: BoardCardProps) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="text-4xl opacity-50">
-              {template?.icon || '📋'}
-            </div>
+            <TemplateGlyph templateId={board.template} className="h-10 w-10 text-primary/40" />
           )}
         </div>
       </Link>
@@ -245,7 +250,7 @@ function BoardCard({ board, onDelete, onDuplicate }: BoardCardProps) {
       <div className="p-4">
         <div className="flex items-start justify-between">
           <Link href={`/app/boards/${board.id}`} className="flex-1 min-w-0">
-            <h3 className="font-heading text-foreground truncate">{board.name}</h3>
+            <h3 className="font-display font-medium tracking-tight text-foreground truncate">{board.name}</h3>
             {board.description && (
               <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
                 {board.description}
@@ -295,7 +300,7 @@ function BoardCard({ board, onDelete, onDuplicate }: BoardCardProps) {
         <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
           {template && (
             <span className="flex items-center gap-1">
-              {template.icon}
+              <TemplateGlyph templateId={board.template} className="h-3.5 w-3.5" />
               {template.name}
             </span>
           )}

@@ -48,13 +48,13 @@ export function ProfileProgress({
   if (completion === 100 && userKin) {
     return (
       <div className={cn('surface-card p-5', className)}>
-        <h3 className="font-semibold text-foreground mb-4">Your Signature</h3>
+        <h3 className="font-display font-semibold tracking-tight text-foreground mb-4">Your Signature</h3>
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center border border-primary/10">
-            <span className="text-xl font-bold text-primary">{userKin.kin}</span>
+            <span className="font-mono text-xl font-semibold tabular-nums text-primary">{userKin.kin}</span>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Galactic Signature</p>
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Galactic Signature</p>
             <p className="font-semibold text-foreground">{userKin.signature}</p>
           </div>
         </div>
@@ -71,8 +71,8 @@ export function ProfileProgress({
   return (
     <div className={cn('surface-card p-5', className)}>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-foreground">Complete Your Profile</h3>
-        <span className="text-sm text-muted-foreground">{completion}%</span>
+        <h3 className="font-display font-semibold tracking-tight text-foreground">Complete Your Profile</h3>
+        <span className="font-mono text-sm tabular-nums text-muted-foreground">{completion}%</span>
       </div>
 
       <Progress value={completion} className="h-1.5 mb-4" />

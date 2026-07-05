@@ -47,14 +47,14 @@ export function CanvasToolbar({ readOnly, onSave, onExport }: CanvasToolbarProps
   } = useCanvas()
 
   const tools: { id: ToolId; icon: React.ReactNode; label: string; shortcut: string }[] = [
-    { id: 'select', icon: <MousePointer2 className="h-4 w-4" />, label: 'בחירה', shortcut: 'V' },
-    { id: 'hand', icon: <Hand className="h-4 w-4" />, label: 'גרירה', shortcut: 'H' },
-    { id: 'text', icon: <Type className="h-4 w-4" />, label: 'טקסט', shortcut: 'T' },
-    { id: 'shape', icon: <Square className="h-4 w-4" />, label: 'צורה', shortcut: 'R' },
-    { id: 'line', icon: <Minus className="h-4 w-4" />, label: 'קו', shortcut: 'L' },
-    { id: 'sticky', icon: <StickyNote className="h-4 w-4" />, label: 'פתק', shortcut: 'N' },
-    { id: 'pen', icon: <Pencil className="h-4 w-4" />, label: 'עט', shortcut: 'P' },
-    { id: 'highlight', icon: <Highlighter className="h-4 w-4" />, label: 'הדגשה', shortcut: 'G' },
+    { id: 'select', icon: <MousePointer2 className="h-4 w-4" />, label: 'Select', shortcut: 'V' },
+    { id: 'hand', icon: <Hand className="h-4 w-4" />, label: 'Pan', shortcut: 'H' },
+    { id: 'text', icon: <Type className="h-4 w-4" />, label: 'Text', shortcut: 'T' },
+    { id: 'shape', icon: <Square className="h-4 w-4" />, label: 'Shape', shortcut: 'R' },
+    { id: 'line', icon: <Minus className="h-4 w-4" />, label: 'Line', shortcut: 'L' },
+    { id: 'sticky', icon: <StickyNote className="h-4 w-4" />, label: 'Sticky note', shortcut: 'N' },
+    { id: 'pen', icon: <Pencil className="h-4 w-4" />, label: 'Pen', shortcut: 'P' },
+    { id: 'highlight', icon: <Highlighter className="h-4 w-4" />, label: 'Highlight', shortcut: 'G' },
   ]
 
   const handleToolClick = useCallback((toolId: ToolId) => {
@@ -77,7 +77,7 @@ export function CanvasToolbar({ readOnly, onSave, onExport }: CanvasToolbarProps
           variant="ghost"
           size="sm"
           onClick={handleZoomOut}
-          title="התרחק"
+          title="Zoom out"
         >
           <ZoomOut className="h-4 w-4" />
         </Button>
@@ -88,7 +88,7 @@ export function CanvasToolbar({ readOnly, onSave, onExport }: CanvasToolbarProps
           variant="ghost"
           size="sm"
           onClick={handleZoomIn}
-          title="התקרב"
+          title="Zoom in"
         >
           <ZoomIn className="h-4 w-4" />
         </Button>
@@ -96,7 +96,7 @@ export function CanvasToolbar({ readOnly, onSave, onExport }: CanvasToolbarProps
           variant="ghost"
           size="sm"
           onClick={fitToScreen}
-          title="התאם למסך"
+          title="Fit to screen"
         >
           <Maximize className="h-4 w-4" />
         </Button>
@@ -115,7 +115,7 @@ export function CanvasToolbar({ readOnly, onSave, onExport }: CanvasToolbarProps
               variant={isDirty ? 'default' : 'ghost'}
               size="sm"
               onClick={onSave}
-              title="שמור"
+              title="Save"
             >
               <Save className="h-4 w-4" />
             </Button>
@@ -129,7 +129,7 @@ export function CanvasToolbar({ readOnly, onSave, onExport }: CanvasToolbarProps
           size="sm"
           onClick={undo}
           disabled={!canUndo()}
-          title="בטל (Ctrl+Z)"
+          title="Undo (Ctrl+Z)"
         >
           <Undo2 className="h-4 w-4" />
         </Button>
@@ -138,7 +138,7 @@ export function CanvasToolbar({ readOnly, onSave, onExport }: CanvasToolbarProps
           size="sm"
           onClick={redo}
           disabled={!canRedo()}
-          title="בצע שוב (Ctrl+Shift+Z)"
+          title="Redo (Ctrl+Shift+Z)"
         >
           <Redo2 className="h-4 w-4" />
         </Button>
@@ -166,7 +166,7 @@ export function CanvasToolbar({ readOnly, onSave, onExport }: CanvasToolbarProps
           variant="ghost"
           size="sm"
           onClick={handleZoomOut}
-          title="התרחק (Ctrl+-)"
+          title="Zoom out (Ctrl+-)"
         >
           <ZoomOut className="h-4 w-4" />
         </Button>
@@ -177,7 +177,7 @@ export function CanvasToolbar({ readOnly, onSave, onExport }: CanvasToolbarProps
           variant="ghost"
           size="sm"
           onClick={handleZoomIn}
-          title="התקרב (Ctrl+=)"
+          title="Zoom in (Ctrl+=)"
         >
           <ZoomIn className="h-4 w-4" />
         </Button>
@@ -185,7 +185,7 @@ export function CanvasToolbar({ readOnly, onSave, onExport }: CanvasToolbarProps
           variant="ghost"
           size="sm"
           onClick={fitToScreen}
-          title="התאם למסך (Ctrl+0)"
+          title="Fit to screen (Ctrl+0)"
         >
           <Maximize className="h-4 w-4" />
         </Button>
@@ -193,7 +193,7 @@ export function CanvasToolbar({ readOnly, onSave, onExport }: CanvasToolbarProps
           variant={showGrid ? 'secondary' : 'ghost'}
           size="sm"
           onClick={() => setShowGrid(!showGrid)}
-          title="הצג/הסתר רשת"
+          title="Toggle grid"
         >
           <Grid3X3 className="h-4 w-4" />
         </Button>
@@ -206,7 +206,7 @@ export function CanvasToolbar({ readOnly, onSave, onExport }: CanvasToolbarProps
               variant="ghost"
               size="sm"
               onClick={onExport}
-              title="ייצא"
+              title="Export"
             >
               <Download className="h-4 w-4" />
             </Button>

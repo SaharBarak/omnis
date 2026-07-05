@@ -11,7 +11,7 @@ export function TzolkinSection({ date }: TzolkinSectionProps) {
   return (
     <section className="tzolkin-section pt-4">
       <h3 className="text-center text-sm font-medium text-muted-foreground mb-4">
-        According to the Tzolkin (צולקין)
+        According to the Tzolkin
       </h3>
 
       <div className="flex items-center justify-center gap-4">
@@ -22,7 +22,7 @@ export function TzolkinSection({ date }: TzolkinSectionProps) {
             {tone} {daySign.yucatec}
           </span>
           <span className="text-base text-muted-foreground">
-            {daySign.english} — {daySign.hebrew}
+            {daySign.english}
           </span>
         </div>
       </div>

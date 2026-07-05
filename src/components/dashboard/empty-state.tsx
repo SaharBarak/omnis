@@ -219,7 +219,7 @@ export function EmptyState({ icon, title, description, action, className = '' }:
       </div>
 
       {/* Content */}
-      <h3 className="text-xl font-heading text-foreground mb-2">{title}</h3>
+      <h3 className="font-display text-xl font-semibold tracking-tight text-foreground mb-2">{title}</h3>
       <p className="text-muted-foreground max-w-sm mb-6">{description}</p>
 
       {/* Action */}

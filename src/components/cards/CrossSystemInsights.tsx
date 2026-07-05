@@ -32,9 +32,7 @@ export interface CrossSystemInsightsProps {
   /** Astrology data */
   astrology?: {
     sunSign: string
-    sunSignHebrew?: string
     moonSign?: string | null
-    moonSignHebrew?: string | null
     risingSign?: string | null
     dominantElement?: string
     dominantModality?: string
@@ -42,7 +40,6 @@ export interface CrossSystemInsightsProps {
   /** Human Design data */
   humanDesign?: {
     type: string
-    typeHebrew?: string
     strategy?: string
     authority?: string
     profile?: string | null
@@ -67,9 +64,7 @@ export interface CrossSystemInsightsProps {
 export interface InsightTheme {
   id: string
   title: string
-  titleHebrew: string
   description: string
-  descriptionHebrew: string
   systems: string[]
   strength: 'strong' | 'moderate' | 'subtle'
   color: string
@@ -80,13 +75,13 @@ export interface InsightTheme {
 // =============================================================================
 
 /**
- * Map Dreamspell seal colors to elemental qualities
+ * Map Dreamspell seal colors to their elemental correspondence
  */
-const SEAL_COLOR_TO_ELEMENT: Record<string, { element: string; quality: string }> = {
-  red: { element: 'fire', quality: 'יוזמה וכוח חיים' },
-  white: { element: 'air', quality: 'זיקוק ותקשורת' },
-  blue: { element: 'water', quality: 'טרנספורמציה ורגש' },
-  yellow: { element: 'earth', quality: 'הבשלה והתממשות' },
+const SEAL_COLOR_TO_ELEMENT: Record<string, string> = {
+  red: 'fire',
+  white: 'air',
+  blue: 'water',
+  yellow: 'earth',
 }
 
 /**
@@ -100,48 +95,18 @@ const SIGN_TO_ELEMENT: Record<string, string> = {
 }
 
 /**
- * Map Human Design types to energy patterns
- */
-const HD_TYPE_ENERGY: Record<string, { hebrew: string; pattern: string }> = {
-  manifestor: { hebrew: 'מניפסטור', pattern: 'יוזמה והנעה' },
-  generator: { hebrew: 'גנרטור', pattern: 'תגובה ובנייה' },
-  'manifesting-generator': { hebrew: 'מ״ג', pattern: 'יוזמה עם תגובה' },
-  projector: { hebrew: 'פרוג\'קטור', pattern: 'הכוונה והדרכה' },
-  reflector: { hebrew: 'רפלקטור', pattern: 'שיקוף והתבוננות' },
-}
-
-/**
- * Map Dreamspell tones to their qualities
- */
-const TONE_QUALITIES: Record<number, { quality: string; hebrew: string }> = {
-  1: { quality: 'initiation', hebrew: 'התחלה ואחדות' },
-  2: { quality: 'challenge', hebrew: 'קיטוב ואתגר' },
-  3: { quality: 'activation', hebrew: 'הפעלה ושירות' },
-  4: { quality: 'definition', hebrew: 'צורה והגדרה' },
-  5: { quality: 'empowerment', hebrew: 'העצמה ומרכז' },
-  6: { quality: 'balance', hebrew: 'איזון וריתמוס' },
-  7: { quality: 'attunement', hebrew: 'כיוון והתנאות' },
-  8: { quality: 'integrity', hebrew: 'שלמות והרמוניה' },
-  9: { quality: 'intention', hebrew: 'כוונה והשלמה' },
-  10: { quality: 'manifestation', hebrew: 'התממשות' },
-  11: { quality: 'liberation', hebrew: 'שחרור ופירוק' },
-  12: { quality: 'cooperation', hebrew: 'שיתוף פעולה' },
-  13: { quality: 'transcendence', hebrew: 'נוכחות וחריגה' },
-}
-
-/**
  * Digital root interpretations
  */
-const DIGITAL_ROOT_MEANINGS: Record<number, { theme: string; hebrew: string }> = {
-  1: { theme: 'Unity and Leadership', hebrew: 'אחדות ומנהיגות' },
-  2: { theme: 'Partnership and Balance', hebrew: 'שותפות ואיזון' },
-  3: { theme: 'Creativity and Expression', hebrew: 'יצירתיות וביטוי' },
-  4: { theme: 'Structure and Foundation', hebrew: 'מבנה ויסוד' },
-  5: { theme: 'Freedom and Change', hebrew: 'חופש ושינוי' },
-  6: { theme: 'Harmony and Responsibility', hebrew: 'הרמוניה ואחריות' },
-  7: { theme: 'Wisdom and Introspection', hebrew: 'חכמה והתבוננות' },
-  8: { theme: 'Power and Abundance', hebrew: 'כוח ושפע' },
-  9: { theme: 'Completion and Compassion', hebrew: 'השלמה וחמלה' },
+const DIGITAL_ROOT_MEANINGS: Record<number, string> = {
+  1: 'Unity and Leadership',
+  2: 'Partnership and Balance',
+  3: 'Creativity and Expression',
+  4: 'Structure and Foundation',
+  5: 'Freedom and Change',
+  6: 'Harmony and Responsibility',
+  7: 'Wisdom and Introspection',
+  8: 'Power and Abundance',
+  9: 'Completion and Compassion',
 }
 
 /**
@@ -153,16 +118,14 @@ function analyzeCorrelations(props: CrossSystemInsightsProps): InsightTheme[] {
 
   // 1. Elemental correlation between Dreamspell color and Astrology element
   if (dreamspell?.colorFamily && astrology?.dominantElement) {
-    const sealElement = SEAL_COLOR_TO_ELEMENT[dreamspell.colorFamily]?.element
+    const sealElement = SEAL_COLOR_TO_ELEMENT[dreamspell.colorFamily]
     const astroElement = astrology.dominantElement.toLowerCase()
 
     if (sealElement && astroElement && sealElement === astroElement) {
       themes.push({
         id: 'elemental-alignment',
         title: 'Elemental Alignment',
-        titleHebrew: 'יישור יסודות',
         description: `Both Dreamspell (${dreamspell.colorFamily}) and Astrology (${astrology.dominantElement}) point to ${sealElement} energy.`,
-        descriptionHebrew: `הדרימספל (${dreamspell.colorFamily}) והאסטרולוגיה (${astrology.dominantElement}) מצביעים על אנרגיית ${sealElement}.`,
         systems: ['Dreamspell', 'Astrology'],
         strength: 'strong',
         color: getElementColor(sealElement),
@@ -172,16 +135,14 @@ function analyzeCorrelations(props: CrossSystemInsightsProps): InsightTheme[] {
 
   // 2. Sun sign element matches Dreamspell color element
   if (dreamspell?.colorFamily && astrology?.sunSign) {
-    const sealElement = SEAL_COLOR_TO_ELEMENT[dreamspell.colorFamily]?.element
+    const sealElement = SEAL_COLOR_TO_ELEMENT[dreamspell.colorFamily]
     const sunElement = SIGN_TO_ELEMENT[astrology.sunSign.toLowerCase()]
 
     if (sealElement && sunElement && sealElement === sunElement) {
       themes.push({
         id: 'sun-seal-harmony',
         title: 'Sun-Seal Harmony',
-        titleHebrew: 'הרמוניה שמש-חותם',
         description: `Your Sun sign and Dreamspell seal share the ${sealElement} element.`,
-        descriptionHebrew: `מזל השמש וחותם הדרימספל שלך חולקים את יסוד ה${getElementHebrew(sealElement)}.`,
         systems: ['Dreamspell', 'Astrology'],
         strength: 'moderate',
         color: getElementColor(sealElement),
@@ -191,7 +152,6 @@ function analyzeCorrelations(props: CrossSystemInsightsProps): InsightTheme[] {
 
   // 3. Tone-Type correlation (initiating tones + manifestor, etc.)
   if (dreamspell?.tone && humanDesign?.type) {
-    const toneQuality = TONE_QUALITIES[dreamspell.tone]?.quality
     const hdTypeKey = humanDesign.type.toLowerCase().replace(/\s+/g, '-')
 
     // Check for correlations
@@ -208,9 +168,7 @@ function analyzeCorrelations(props: CrossSystemInsightsProps): InsightTheme[] {
       themes.push({
         id: 'energy-pattern-match',
         title: 'Energy Pattern Match',
-        titleHebrew: 'התאמת דפוס אנרגטי',
         description: `Your Dreamspell tone (${dreamspell.tone}) resonates with your Human Design type (${humanDesign.type}).`,
-        descriptionHebrew: `הטון שלך (${dreamspell.tone}) מתהדהד עם הטיפוס באיצוב אנושי (${humanDesign.typeHebrew || humanDesign.type}).`,
         systems: ['Dreamspell', 'Human Design'],
         strength: 'moderate',
         color: 'purple',
@@ -227,9 +185,7 @@ function analyzeCorrelations(props: CrossSystemInsightsProps): InsightTheme[] {
       themes.push({
         id: 'numeric-resonance',
         title: 'Numeric Resonance',
-        titleHebrew: 'תהודה מספרית',
-        description: `Your Kin (${dreamspell.kin}) and name share the digital root ${kinDigitalRoot}: ${rootMeaning?.theme || ''}.`,
-        descriptionHebrew: `הקין שלך (${dreamspell.kin}) והשם חולקים את השורש ${kinDigitalRoot}: ${rootMeaning?.hebrew || ''}.`,
+        description: `Your Kin (${dreamspell.kin}) and name share the digital root ${kinDigitalRoot}: ${rootMeaning || ''}.`,
         systems: ['Dreamspell', 'Gematria'],
         strength: 'strong',
         color: 'amber',
@@ -246,9 +202,7 @@ function analyzeCorrelations(props: CrossSystemInsightsProps): InsightTheme[] {
       themes.push({
         id: 'name-tone-link',
         title: 'Name-Tone Link',
-        titleHebrew: 'קשר שם-טון',
         description: `The letters in your name (${gematria.letterCount}) relate to your tone (${dreamspell.tone}).`,
-        descriptionHebrew: `מספר האותיות בשמך (${gematria.letterCount}) קשור לטון שלך (${dreamspell.tone}).`,
         systems: ['Dreamspell', 'Gematria'],
         strength: 'subtle',
         color: 'teal',
@@ -263,9 +217,7 @@ function analyzeCorrelations(props: CrossSystemInsightsProps): InsightTheme[] {
       themes.push({
         id: 'transformation-era',
         title: 'Era of Transformation',
-        titleHebrew: 'עידן הטרנספורמציה',
         description: 'You were born in the 13th Baktun, an era of profound transformation and completion.',
-        descriptionHebrew: 'נולדת בבקטון ה-13, עידן של טרנספורמציה עמוקה והשלמה.',
         systems: ['Long Count'],
         strength: 'moderate',
         color: 'indigo',
@@ -295,9 +247,7 @@ function analyzeCorrelations(props: CrossSystemInsightsProps): InsightTheme[] {
       themes.push({
         id: 'chakra-center-alignment',
         title: 'Chakra-Center Alignment',
-        titleHebrew: 'יישור צ׳אקרה-מרכז',
         description: `Your ${dreamspell.earthFamily} Earth Family chakra aligns with your defined Human Design centers.`,
-        descriptionHebrew: `צ׳אקרת משפחת האדמה ${dreamspell.earthFamily} שלך מתיישרת עם המרכזים המוגדרים שלך.`,
         systems: ['Dreamspell', 'Human Design'],
         strength: 'moderate',
         color: 'green',
@@ -327,19 +277,6 @@ function getElementColor(element: string): string {
     case 'air': return 'cyan'
     case 'water': return 'blue'
     default: return 'gray'
-  }
-}
-
-/**
- * Get Hebrew name for element
- */
-function getElementHebrew(element: string): string {
-  switch (element) {
-    case 'fire': return 'אש'
-    case 'earth': return 'אדמה'
-    case 'air': return 'אוויר'
-    case 'water': return 'מים'
-    default: return element
   }
 }
 

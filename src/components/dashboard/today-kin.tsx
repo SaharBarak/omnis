@@ -98,7 +98,7 @@ export function TodayKin({ className, userKin }: TodayKinProps) {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
           </span>
-          <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
             Today&apos;s Galactic Signature
           </span>
         </div>
@@ -122,14 +122,14 @@ export function TodayKin({ className, userKin }: TodayKinProps) {
           </div>
 
           <div className="flex-1">
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground leading-tight">
-              Kin <span className={accent}>{data.kin}</span>
+            <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-foreground leading-tight">
+              Kin <span className={cn('font-mono tabular-nums', accent)}>{data.kin}</span>
             </h2>
             <p className={cn('text-lg font-medium', accent)}>
               {data.tone.name} {data.seal.english}
             </p>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {data.seal.hebrew} {data.tone.nameHebrew}
+            <p className="font-mono text-xs uppercase tracking-[0.14em] text-muted-foreground mt-1">
+              {data.seal.mayan} · Tone {data.tone.number}
             </p>
           </div>
 

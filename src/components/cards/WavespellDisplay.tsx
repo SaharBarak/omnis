@@ -38,7 +38,7 @@ export function WavespellDisplay({
       {/* Wavespell Header */}
       <div className="text-center mb-4">
         <h3 className="text-lg font-semibold">
-          {wavespellSeal.english} Wavespell (גל ה{wavespellSeal.hebrew})
+          {wavespellSeal.english} Wavespell <span className="text-muted-foreground text-sm">({wavespellSeal.mayan})</span>
         </h3>
         <p className="text-sm text-muted-foreground">
           Kin {wavespell.startKin}-{wavespell.endKin}

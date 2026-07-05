@@ -37,7 +37,7 @@ export const PersonCanvasNode = memo(function PersonCanvasNode({
           <img src={avatarUrl} alt={personName} className="w-full h-full rounded-full object-cover" />
         ) : (
           <span className="text-lg font-bold text-primary">
-            {(hebrewName || personName || '?').charAt(0)}
+            {(personName || hebrewName || '?').charAt(0)}
           </span>
         )}
         <Handle type="source" position={Position.Right} className="!bg-primary" />
@@ -62,7 +62,7 @@ export const PersonCanvasNode = memo(function PersonCanvasNode({
               <img src={avatarUrl} alt={personName} className="w-full h-full rounded-full object-cover" />
             ) : (
               <span className="text-sm font-bold text-primary">
-                {(hebrewName || personName || '?').charAt(0)}
+                {(personName || hebrewName || '?').charAt(0)}
               </span>
             )}
           </div>
@@ -94,7 +94,7 @@ export const PersonCanvasNode = memo(function PersonCanvasNode({
             <img src={avatarUrl} alt={personName} className="w-full h-full rounded-full object-cover" />
           ) : (
             <span className="text-2xl font-bold text-primary">
-              {(hebrewName || personName || '?').charAt(0)}
+              {(personName || hebrewName || '?').charAt(0)}
             </span>
           )}
         </div>
@@ -113,19 +113,19 @@ export const PersonCanvasNode = memo(function PersonCanvasNode({
         {showSystems && showSystems.length > 0 && (
           <div className="flex flex-wrap gap-1 justify-center">
             {showSystems.includes('dreamspell') && (
-              <span className="px-2 py-0.5 text-xs rounded bg-red-100 text-red-800">Dreamspell</span>
+              <span className="px-2 py-0.5 text-xs rounded border border-red-500/25 bg-red-500/10 text-red-400">Dreamspell</span>
             )}
             {showSystems.includes('tzolkin') && (
-              <span className="px-2 py-0.5 text-xs rounded bg-orange-100 text-orange-800">Tzolkin</span>
+              <span className="px-2 py-0.5 text-xs rounded border border-orange-500/25 bg-orange-500/10 text-orange-400">Tzolkin</span>
             )}
             {showSystems.includes('astrology') && (
-              <span className="px-2 py-0.5 text-xs rounded bg-purple-100 text-purple-800">Astro</span>
+              <span className="px-2 py-0.5 text-xs rounded border border-purple-500/25 bg-purple-500/10 text-purple-400">Astro</span>
             )}
             {showSystems.includes('humandesign') && (
-              <span className="px-2 py-0.5 text-xs rounded bg-pink-100 text-pink-800">HD</span>
+              <span className="px-2 py-0.5 text-xs rounded border border-pink-500/25 bg-pink-500/10 text-pink-400">HD</span>
             )}
             {showSystems.includes('gematria') && (
-              <span className="px-2 py-0.5 text-xs rounded bg-cyan-100 text-cyan-800">Gematria</span>
+              <span className="px-2 py-0.5 text-xs rounded border border-cyan-500/25 bg-cyan-500/10 text-cyan-400">Gematria</span>
             )}
           </div>
         )}

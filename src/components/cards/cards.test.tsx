@@ -84,10 +84,15 @@ describe('Card Components', () => {
       expect(screen.getByText(/Blue Crystal Hand/)).toBeInTheDocument()
     })
 
-    it('displays Hebrew translation', () => {
+    it('displays Mayan seal name', () => {
       render(<DreamspellSection date="1987-07-26" />)
-      const hebrewText = screen.getByText(/קוסם/)
-      expect(hebrewText).toBeInTheDocument()
+      // Kin 34 = Galactic tone, seal 14 (Wizard) whose Mayan name is Ix
+      expect(screen.getByText(/Galactic Ix/)).toBeInTheDocument()
+    })
+
+    it('does not render Hebrew text', () => {
+      const { container } = render(<DreamspellSection date="1987-07-26" />)
+      expect(container.textContent).not.toMatch(/[֐-׿]/)
     })
 
     it('renders OracleMap component', () => {
@@ -115,9 +120,10 @@ describe('Card Components', () => {
       expect(yucatecName).toBeInTheDocument()
     })
 
-    it('displays Hebrew translation for day sign', () => {
+    it('does not render Hebrew text', () => {
       const { container } = render(<TzolkinSection date="1987-07-26" />)
       expect(container.querySelector('.tzolkin-section')).toBeInTheDocument()
+      expect(container.textContent).not.toMatch(/[֐-׿]/)
     })
 
     it('renders seal icon with tzolkin system', () => {

@@ -179,7 +179,7 @@ export default function DashboardPage() {
       {recentPeople.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">Recent People</h2>
+            <h2 className="font-display text-lg font-semibold tracking-tight text-foreground">Recent People</h2>
             {people.length > 4 && (
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/app/people" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
@@ -218,7 +218,7 @@ export default function DashboardPage() {
 
       {/* Explore section */}
       <section>
-        <h2 className="text-lg font-semibold text-foreground mb-4">Explore</h2>
+        <h2 className="font-display text-lg font-semibold tracking-tight text-foreground mb-4">Explore</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <QuickAction
             title="Predictions"

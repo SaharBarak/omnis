@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Zap, Flame, Sparkles } from 'lucide-react'
 import { useGroups } from '@/lib/hooks/use-groups'
 import { analyzeGroup, getScoreColor } from '@/lib/services/group-analysis'
 import type { FullGroupAnalysis, DistributionItem, GroupMemberAnalysis } from '@/lib/services/group-analysis'
@@ -13,11 +14,11 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 // Color display names
-const COLOR_LABELS: Record<string, { english: string; hebrew: string; hex: string }> = {
-  red: { english: 'Red', hebrew: 'אדום', hex: '#EF4444' },
-  white: { english: 'White', hebrew: 'לבן', hex: '#F3F4F6' },
-  blue: { english: 'Blue', hebrew: 'כחול', hex: '#3B82F6' },
-  yellow: { english: 'Yellow', hebrew: 'צהוב', hex: '#F59E0B' },
+const COLOR_LABELS: Record<string, { english: string; hex: string }> = {
+  red: { english: 'Red', hex: '#EF4444' },
+  white: { english: 'White', hex: '#F3F4F6' },
+  blue: { english: 'Blue', hex: '#3B82F6' },
+  yellow: { english: 'Yellow', hex: '#F59E0B' },
 }
 
 // Distribution bar component
@@ -27,8 +28,7 @@ function DistributionBar({ item, maxCount }: { item: DistributionItem; maxCount:
   return (
     <div className="flex items-center gap-3 py-1">
       <div className="w-32 text-sm truncate" title={item.name}>
-        <span className="font-medium">{item.nameHebrew}</span>
-        <span className="text-muted-foreground text-xs mr-1">({item.name})</span>
+        <span className="font-medium">{item.name}</span>
       </div>
       <div className="flex-1 bg-muted rounded-full h-4 overflow-hidden">
         <div
@@ -36,7 +36,7 @@ function DistributionBar({ item, maxCount }: { item: DistributionItem; maxCount:
           style={{ width: `${widthPercent}%` }}
         />
       </div>
-      <div className="w-16 text-sm text-left">
+      <div className="w-16 text-sm text-right font-mono tabular-nums">
         <span className="font-medium">{item.count}</span>
         <span className="text-muted-foreground text-xs"> ({item.percentage.toFixed(0)}%)</span>
       </div>
@@ -47,7 +47,6 @@ function DistributionBar({ item, maxCount }: { item: DistributionItem; maxCount:
 // Color balance pie chart (simplified bar view)
 function ColorBalanceChart({ colorBalance }: { colorBalance: FullGroupAnalysis['dreamspell']['colorBalance'] }) {
   const colors = ['red', 'white', 'blue', 'yellow'] as const
-  const total = colors.reduce((sum, c) => sum + colorBalance[c].count, 0)
 
   return (
     <div className="space-y-3">
@@ -60,7 +59,7 @@ function ColorBalanceChart({ colorBalance }: { colorBalance: FullGroupAnalysis['
               style={{ backgroundColor: COLOR_LABELS[color].hex, borderColor: color === 'white' ? '#D1D5DB' : COLOR_LABELS[color].hex }}
             />
             <div className="w-20 text-sm">
-              <span className="font-medium">{COLOR_LABELS[color].hebrew}</span>
+              <span className="font-medium">{COLOR_LABELS[color].english}</span>
             </div>
             <div className="flex-1 bg-muted rounded-full h-4 overflow-hidden">
               <div
@@ -68,7 +67,7 @@ function ColorBalanceChart({ colorBalance }: { colorBalance: FullGroupAnalysis['
                 style={{ width: `${data.percentage}%`, backgroundColor: COLOR_LABELS[color].hex }}
               />
             </div>
-            <div className="w-12 text-sm text-left">
+            <div className="w-12 text-sm text-right font-mono tabular-nums">
               {data.count} ({data.percentage.toFixed(0)}%)
             </div>
           </div>
@@ -85,7 +84,7 @@ function CompatibilityMatrix({ analysis }: { analysis: FullGroupAnalysis }) {
   if (members.length < 2) {
     return (
       <div className="text-center text-muted-foreground py-8">
-        נדרשים לפחות 2 חברים בקבוצה כדי לחשב תאימות
+        At least two members are needed to compute compatibility.
       </div>
     )
   }
@@ -109,11 +108,11 @@ function CompatibilityMatrix({ analysis }: { analysis: FullGroupAnalysis }) {
       <table className="min-w-full border-collapse">
         <thead>
           <tr>
-            <th className="p-2 border bg-muted text-right text-sm min-w-[100px]"></th>
+            <th className="p-2 border bg-muted text-left text-sm min-w-[100px]"></th>
             {members.map(m => (
               <th key={m.id} className="p-2 border bg-muted text-center text-xs min-w-[60px]">
-                <div className="truncate max-w-[60px]" title={m.hebrewName || m.name}>
-                  {(m.hebrewName || m.name).slice(0, 5)}
+                <div className="truncate max-w-[60px]" title={m.name || m.hebrewName || ''}>
+                  {(m.name || m.hebrewName || '').slice(0, 5)}
                 </div>
               </th>
             ))}
@@ -122,9 +121,9 @@ function CompatibilityMatrix({ analysis }: { analysis: FullGroupAnalysis }) {
         <tbody>
           {members.map(row => (
             <tr key={row.id}>
-              <td className="p-2 border bg-muted text-right text-sm font-medium">
-                <div className="truncate max-w-[100px]" title={row.hebrewName || row.name}>
-                  {row.hebrewName || row.name}
+              <td className="p-2 border bg-muted text-left text-sm font-medium">
+                <div className="truncate max-w-[100px]" title={row.name || row.hebrewName || ''}>
+                  {row.name || row.hebrewName}
                 </div>
               </td>
               {members.map(col => {
@@ -132,10 +131,12 @@ function CompatibilityMatrix({ analysis }: { analysis: FullGroupAnalysis }) {
                 return (
                   <td
                     key={col.id}
-                    className="p-2 border text-center text-sm font-medium"
+                    className="p-2 border text-center text-sm font-medium font-mono tabular-nums"
                     style={{
-                      backgroundColor: score !== null ? getScoreColor(score) : '#F3F4F6',
-                      color: score !== null && score >= 40 ? 'white' : '#374151',
+                      backgroundColor: score !== null ? getScoreColor(score) : 'hsl(var(--muted))',
+                      color: score === null
+                        ? 'hsl(var(--muted-foreground))'
+                        : score >= 40 ? 'white' : '#1F2937',
                     }}
                   >
                     {score !== null ? score : '-'}
@@ -149,7 +150,7 @@ function CompatibilityMatrix({ analysis }: { analysis: FullGroupAnalysis }) {
 
       {/* Legend */}
       <div className="mt-4 flex items-center gap-4 text-sm">
-        <span className="text-muted-foreground">מקרא:</span>
+        <span className="text-muted-foreground">Legend:</span>
         <div className="flex items-center gap-1">
           <div className="w-4 h-4 rounded" style={{ backgroundColor: '#22C55E' }} />
           <span>80+</span>
@@ -182,15 +183,15 @@ function MemberCard({ member }: { member: GroupMemberAnalysis }) {
   return (
     <div className="flex items-center gap-3 p-3 border rounded-lg">
       <div
-        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold font-mono tabular-nums"
         style={{ backgroundColor: colorHex }}
       >
         {member.dreamspell.kin}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="font-medium truncate">{member.hebrewName || member.name}</div>
+        <div className="font-medium truncate">{member.name || member.hebrewName}</div>
         <div className="text-sm text-muted-foreground">
-          {member.dreamspell.sealNameHebrew} {member.dreamspell.toneNameHebrew}
+          {member.dreamspell.toneName} {member.dreamspell.sealName}
         </div>
       </div>
       <Badge variant="outline" className="text-xs">
@@ -202,25 +203,22 @@ function MemberCard({ member }: { member: GroupMemberAnalysis }) {
 
 // Insight card component
 function InsightCard({ insight }: { insight: FullGroupAnalysis['insights'][0] }) {
-  const colors = {
-    strength: 'border-green-500 bg-green-50',
-    challenge: 'border-amber-500 bg-amber-50',
-    pattern: 'border-blue-500 bg-blue-50',
+  const styles = {
+    strength: 'border-green-500/40 bg-green-500/10',
+    challenge: 'border-amber-500/40 bg-amber-500/10',
+    pattern: 'border-blue-500/40 bg-blue-500/10',
   }
   const icons = {
-    strength: '💪',
-    challenge: '🔥',
-    pattern: '🔮',
+    strength: <Zap className="h-4 w-4 text-green-500" />,
+    challenge: <Flame className="h-4 w-4 text-amber-500" />,
+    pattern: <Sparkles className="h-4 w-4 text-blue-500" />,
   }
 
   return (
-    <div className={`p-4 border-r-4 rounded-lg ${colors[insight.type]}`}>
-      <div className="flex items-start gap-2">
-        <span className="text-xl">{icons[insight.type]}</span>
-        <div>
-          <p className="font-medium">{insight.hebrew}</p>
-          <p className="text-sm text-muted-foreground">{insight.english}</p>
-        </div>
+    <div className={`p-4 border-l-4 rounded-lg ${styles[insight.type]}`}>
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 shrink-0">{icons[insight.type]}</span>
+        <p className="text-sm text-foreground">{insight.english}</p>
       </div>
     </div>
   )
@@ -243,14 +241,14 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
       try {
         const group = await getGroupWithMembers(id)
         if (!group) {
-          setError('הקבוצה לא נמצאה')
+          setError('Group not found')
           return
         }
 
         const analysisResult = analyzeGroup(group)
         setAnalysis(analysisResult)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'שגיאה בטעינת הנתונים')
+        setError(err instanceof Error ? err.message : 'Something went wrong while loading the analysis')
       } finally {
         setLoading(false)
       }
@@ -262,7 +260,7 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">טוען ניתוח...</div>
+        <div className="text-center">Loading analysis...</div>
       </div>
     )
   }
@@ -271,7 +269,7 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
     return (
       <div className="space-y-4">
         <Button variant="ghost" onClick={() => router.back()}>
-          ← חזור
+          &larr; Back
         </Button>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center text-destructive">{error}</div>
@@ -296,17 +294,17 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-            <Link href="/app/groups" className="hover:underline">קבוצות</Link>
+            <Link href="/app/groups" className="hover:underline">Groups</Link>
             <span>/</span>
             <span>{analysis.groupName}</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">ניתוח קבוצתי</h1>
+          <h1 className="text-3xl font-display font-semibold tracking-tight">Group analysis</h1>
           <p className="text-muted-foreground">
-            {analysis.memberCount} חברים בקבוצה
+            {analysis.memberCount} members
           </p>
         </div>
         <Button variant="outline" onClick={() => router.back()}>
-          חזור לקבוצות
+          Back to groups
         </Button>
       </div>
 
@@ -314,45 +312,45 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">חברים</CardTitle>
+            <CardTitle className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Members</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analysis.memberCount}</div>
+            <div className="text-2xl font-bold font-mono tabular-nums">{analysis.memberCount}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">תאימות ממוצעת</CardTitle>
+            <CardTitle className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Average compatibility</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold" style={{ color: getScoreColor(analysis.compatibility.averageScore) }}>
+            <div className="text-2xl font-bold font-mono tabular-nums" style={{ color: getScoreColor(analysis.compatibility.averageScore) }}>
               {analysis.compatibility.averageScore}%
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">חותם נפוץ</CardTitle>
+            <CardTitle className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Most common seal</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-lg font-bold">
-              {topSeals[0]?.nameHebrew || '-'}
+              {topSeals[0]?.name || '-'}
             </div>
             <div className="text-sm text-muted-foreground">
-              {topSeals[0] ? `${topSeals[0].count} אנשים` : ''}
+              {topSeals[0] ? `${topSeals[0].count} people` : ''}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">טון נפוץ</CardTitle>
+            <CardTitle className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Most common tone</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-lg font-bold">
-              {topTones[0]?.nameHebrew || '-'}
+              {topTones[0]?.name || '-'}
             </div>
             <div className="text-sm text-muted-foreground">
-              {topTones[0] ? `${topTones[0].count} אנשים` : ''}
+              {topTones[0] ? `${topTones[0].count} people` : ''}
             </div>
           </CardContent>
         </Card>
@@ -362,8 +360,8 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
       {analysis.insights.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>תובנות</CardTitle>
-            <CardDescription>ממצאים עיקריים מהניתוח הקבוצתי</CardDescription>
+            <CardTitle>Insights</CardTitle>
+            <CardDescription>Key observations from the group data</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {analysis.insights.map((insight, idx) => (
@@ -376,30 +374,31 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
       {/* Tabs for detailed analysis */}
       <Tabs defaultValue="compatibility" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="compatibility">מטריצת תאימות</TabsTrigger>
-          <TabsTrigger value="dreamspell">דרימספל</TabsTrigger>
-          <TabsTrigger value="tzolkin">צולקין</TabsTrigger>
-          <TabsTrigger value="members">חברים</TabsTrigger>
+          <TabsTrigger value="compatibility">Compatibility</TabsTrigger>
+          <TabsTrigger value="dreamspell">Dreamspell</TabsTrigger>
+          <TabsTrigger value="tzolkin">Tzolkin</TabsTrigger>
+          <TabsTrigger value="members">Members</TabsTrigger>
         </TabsList>
 
         <TabsContent value="compatibility" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>מטריצת תאימות</CardTitle>
+              <CardTitle>Compatibility matrix</CardTitle>
               <CardDescription>
-                ציוני תאימות בין כל זוגות חברי הקבוצה (0-100)
+                Compatibility scores for every pair in the group (0-100)
               </CardDescription>
             </CardHeader>
             <CardContent>
               <CompatibilityMatrix analysis={analysis} />
 
               {analysis.compatibility.highestPair && (
-                <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="font-medium text-green-800">
-                    🌟 הזוג בעל התאימות הגבוהה ביותר
+                <div className="mt-6 p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+                  <div className="flex items-center gap-2 font-medium text-green-500">
+                    <Sparkles className="h-4 w-4" />
+                    Highest-compatibility pair
                   </div>
-                  <div className="text-green-700">
-                    {analysis.compatibility.highestPair.person1} ↔ {analysis.compatibility.highestPair.person2}: {analysis.compatibility.highestPair.score}%
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {analysis.compatibility.highestPair.person1} &harr; {analysis.compatibility.highestPair.person2}: {analysis.compatibility.highestPair.score}%
                   </div>
                 </div>
               )}
@@ -411,8 +410,8 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
           <div className="grid gap-6 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>התפלגות חותמות</CardTitle>
-                <CardDescription>20 החותמות השמשיות של הדרימספל</CardDescription>
+                <CardTitle>Seal distribution</CardTitle>
+                <CardDescription>The 20 solar seals of the Dreamspell</CardDescription>
               </CardHeader>
               <CardContent>
                 {topSeals.length > 0 ? (
@@ -422,15 +421,15 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
                     ))}
                   </div>
                 ) : (
-                  <div className="text-muted-foreground text-center py-4">אין נתונים</div>
+                  <div className="text-muted-foreground text-center py-4">No data</div>
                 )}
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>התפלגות טונים</CardTitle>
-                <CardDescription>13 הטונים הגלקטיים</CardDescription>
+                <CardTitle>Tone distribution</CardTitle>
+                <CardDescription>The 13 galactic tones</CardDescription>
               </CardHeader>
               <CardContent>
                 {topTones.length > 0 ? (
@@ -440,7 +439,7 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
                     ))}
                   </div>
                 ) : (
-                  <div className="text-muted-foreground text-center py-4">אין נתונים</div>
+                  <div className="text-muted-foreground text-center py-4">No data</div>
                 )}
               </CardContent>
             </Card>
@@ -448,8 +447,8 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
 
           <Card>
             <CardHeader>
-              <CardTitle>מאזן צבעים</CardTitle>
-              <CardDescription>התפלגות ארבעת הצבעים הכיווניים</CardDescription>
+              <CardTitle>Color balance</CardTitle>
+              <CardDescription>Distribution of the four directional colors</CardDescription>
             </CardHeader>
             <CardContent>
               <ColorBalanceChart colorBalance={analysis.dreamspell.colorBalance} />
@@ -461,8 +460,8 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
           <div className="grid gap-6 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>התפלגות סימני יום</CardTitle>
-                <CardDescription>20 סימני היום של הצולקין המסורתי</CardDescription>
+                <CardTitle>Day sign distribution</CardTitle>
+                <CardDescription>The 20 day signs of the traditional Tzolkin</CardDescription>
               </CardHeader>
               <CardContent>
                 {analysis.tzolkin.signDistribution.filter(d => d.count > 0).length > 0 ? (
@@ -472,15 +471,15 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
                     ))}
                   </div>
                 ) : (
-                  <div className="text-muted-foreground text-center py-4">אין נתונים</div>
+                  <div className="text-muted-foreground text-center py-4">No data</div>
                 )}
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>התפלגות טונים (צולקין)</CardTitle>
-                <CardDescription>13 הטונים של הצולקין</CardDescription>
+                <CardTitle>Tone distribution (Tzolkin)</CardTitle>
+                <CardDescription>The 13 Tzolkin tones</CardDescription>
               </CardHeader>
               <CardContent>
                 {analysis.tzolkin.toneDistribution.filter(d => d.count > 0).length > 0 ? (
@@ -490,7 +489,7 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
                     ))}
                   </div>
                 ) : (
-                  <div className="text-muted-foreground text-center py-4">אין נתונים</div>
+                  <div className="text-muted-foreground text-center py-4">No data</div>
                 )}
               </CardContent>
             </Card>
@@ -500,8 +499,8 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
         <TabsContent value="members" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>חברי הקבוצה</CardTitle>
-              <CardDescription>רשימת כל החברים עם נתוני הדרימספל שלהם</CardDescription>
+              <CardTitle>Group members</CardTitle>
+              <CardDescription>Every member with their Dreamspell profile</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">

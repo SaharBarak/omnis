@@ -26,13 +26,12 @@ export interface OracleMapProps {
 interface OraclePositionProps {
   sealNumber: SealNumber
   label: string
-  labelHe?: string
   position: 'guide' | 'analog' | 'antipode' | 'occult' | 'center'
   delay?: number
   size?: 'sm' | 'md' | 'lg'
 }
 
-function OraclePosition({ sealNumber, label, labelHe, position, delay = 0, size = 'md' }: OraclePositionProps) {
+function OraclePosition({ sealNumber, label, position, delay = 0, size = 'md' }: OraclePositionProps) {
   const seal = getSeal(sealNumber)
   const colors = SEAL_COLOR_MAP[seal.color]
   const isCenter = position === 'center'
@@ -71,9 +70,6 @@ function OraclePosition({ sealNumber, label, labelHe, position, delay = 0, size 
           <span className={cn('text-[10px] font-semibold uppercase tracking-wider', colors.text)}>
             {label}
           </span>
-          {labelHe && (
-            <span className="block text-[9px] text-muted-foreground/70">{labelHe}</span>
-          )}
         </div>
       )}
       {isCenter && (
@@ -111,7 +107,6 @@ export function OracleMap({ kin, animated = true, size = 'md', className = '' }:
           <OraclePosition
             sealNumber={oracle.guide}
             label="Guide"
-            labelHe="מדריך"
             position="guide"
             delay={animated ? 100 : 0}
             size={size}
@@ -123,7 +118,6 @@ export function OracleMap({ kin, animated = true, size = 'md', className = '' }:
           <OraclePosition
             sealNumber={oracle.antipode}
             label="Antipode"
-            labelHe="אנטיפוד"
             position="antipode"
             delay={animated ? 200 : 0}
             size={size}
@@ -144,7 +138,6 @@ export function OracleMap({ kin, animated = true, size = 'md', className = '' }:
           <OraclePosition
             sealNumber={oracle.analog}
             label="Analog"
-            labelHe="אנלוגי"
             position="analog"
             delay={animated ? 300 : 0}
             size={size}
@@ -156,7 +149,6 @@ export function OracleMap({ kin, animated = true, size = 'md', className = '' }:
           <OraclePosition
             sealNumber={oracle.occult}
             label="Occult"
-            labelHe="נסתר"
             position="occult"
             delay={animated ? 400 : 0}
             size={size}

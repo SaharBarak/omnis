@@ -68,9 +68,11 @@ describe('WavespellDisplay Components', () => {
       expect(magneticText).not.toBeInTheDocument()
     })
 
-    it('displays Hebrew name in wavespell header', () => {
+    it('displays Mayan seal name in wavespell header', () => {
       const { container } = render(<WavespellDisplay kin={asKin(34)} />)
-      expect(container.textContent).toMatch(/גל ה/)
+      // Kin 34 sits in the Hand wavespell (seal 7, Mayan name Manik)
+      expect(container.textContent).toMatch(/\(Manik\)/)
+      expect(container.textContent).not.toMatch(/[֐-׿]/)
     })
   })
 
@@ -120,9 +122,9 @@ describe('CastleDisplay Components', () => {
       expect(screen.getByText(/Castle of Turning|Castle of Burning/)).toBeInTheDocument()
     })
 
-    it('shows Hebrew castle name', () => {
-      render(<CastleDisplay kin={asKin(1)} />)
-      expect(screen.getByText(/טירת/)).toBeInTheDocument()
+    it('does not render Hebrew castle name', () => {
+      const { container } = render(<CastleDisplay kin={asKin(1)} />)
+      expect(container.textContent).not.toMatch(/[֐-׿]/)
     })
 
     it('displays current kin position in castle', () => {
@@ -182,9 +184,9 @@ describe('YearlyDisplay Components', () => {
       expect(screen.getByText(/Dreamspell Year/)).toBeInTheDocument()
     })
 
-    it('shows Hebrew header', () => {
-      render(<DreamspellYearDisplay year={2024} />)
-      expect(screen.getByText(/שנת הדרימספל/)).toBeInTheDocument()
+    it('does not render Hebrew text', () => {
+      const { container } = render(<DreamspellYearDisplay year={2024} />)
+      expect(container.textContent).not.toMatch(/[֐-׿]/)
     })
 
     it('displays year bearer seal', () => {
@@ -209,9 +211,9 @@ describe('YearlyDisplay Components', () => {
       expect(screen.getByText(/Galactic Birthday/)).toBeInTheDocument()
     })
 
-    it('shows Hebrew header', () => {
-      render(<GalacticBirthdayDisplay birthDate="1987-07-26" targetYear={2024} />)
-      expect(screen.getByText(/יום הולדת גלקטי/)).toBeInTheDocument()
+    it('does not render Hebrew text', () => {
+      const { container } = render(<GalacticBirthdayDisplay birthDate="1987-07-26" targetYear={2024} />)
+      expect(container.textContent).not.toMatch(/[֐-׿]/)
     })
 
     it('displays seal icon', () => {
@@ -236,9 +238,9 @@ describe('YearlyDisplay Components', () => {
       expect(screen.getByText(/Personal Year/)).toBeInTheDocument()
     })
 
-    it('shows Hebrew header', () => {
-      render(<PersonalYearDisplay birthDate="1987-07-26" currentDate="2024-01-15" />)
-      expect(screen.getByText(/השנה האישית/)).toBeInTheDocument()
+    it('does not render Hebrew text', () => {
+      const { container } = render(<PersonalYearDisplay birthDate="1987-07-26" currentDate="2024-01-15" />)
+      expect(container.textContent).not.toMatch(/[֐-׿]/)
     })
 
     it('displays seal icon', () => {

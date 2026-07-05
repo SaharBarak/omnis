@@ -23,9 +23,9 @@ export function PageHeader({
     <div className={cn('flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between', className)}>
       <div>
         {meta && (
-          <p className="text-sm text-muted-foreground mb-1">{meta}</p>
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-1.5">{meta}</p>
         )}
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+        <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
           {title}
         </h1>
         {subtitle && (

@@ -1,11 +1,35 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { X, Check } from 'lucide-react'
+import {
+  X,
+  Check,
+  File,
+  Network,
+  GitBranch,
+  CalendarRange,
+  User,
+  Users,
+  LayoutGrid,
+  type LucideIcon,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { BOARD_TEMPLATE_CONFIGS, type BoardTemplateConfig } from '@/lib/services/board-templates'
 import type { BoardTemplate } from '@/lib/types/board'
+
+/** Icon per board template — replaces the emoji glyphs in the template config. */
+export const TEMPLATE_ICONS: Record<BoardTemplate, LucideIcon> = {
+  blank: File,
+  'relationship-map': Network,
+  'family-tree': GitBranch,
+  'yearly-overview': CalendarRange,
+  'personal-profile': User,
+  'group-analysis': Users,
+}
+
+/** Fallback glyph for unknown/missing template ids. */
+export const FALLBACK_TEMPLATE_ICON: LucideIcon = LayoutGrid
 
 interface TemplateSelectorProps {
   open: boolean
@@ -83,6 +107,7 @@ interface TemplateCardProps {
 }
 
 function TemplateCard({ template, selected, onSelect }: TemplateCardProps) {
+  const Icon = TEMPLATE_ICONS[template.id] ?? FALLBACK_TEMPLATE_ICON
   return (
     <button
       type="button"
@@ -101,10 +126,12 @@ function TemplateCard({ template, selected, onSelect }: TemplateCardProps) {
       )}
 
       {/* Icon */}
-      <div className="text-4xl mb-3">{template.icon}</div>
+      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <Icon className="h-5 w-5" aria-hidden="true" />
+      </div>
 
       {/* Name */}
-      <h3 className="font-semibold text-base mb-1">{template.name}</h3>
+      <h3 className="font-display font-semibold tracking-tight text-base mb-1">{template.name}</h3>
 
       {/* Description */}
       <p className="text-sm text-muted-foreground">{template.description}</p>
@@ -112,12 +139,12 @@ function TemplateCard({ template, selected, onSelect }: TemplateCardProps) {
       {/* Features */}
       <div className="mt-3 flex flex-wrap gap-1.5">
         {template.autoPopulate && (
-          <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">
+          <span className="px-2 py-0.5 text-xs rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20">
             Auto
           </span>
         )}
         {template.layout && template.layout !== 'free' && (
-          <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded-full">
+          <span className="px-2 py-0.5 text-xs rounded-full bg-primary/10 text-primary border border-primary/20">
             {template.layout === 'hierarchical' ? 'Hierarchical' :
              template.layout === 'circular' ? 'Circular' :
              template.layout === 'force-directed' ? 'Dynamic' : template.layout}
@@ -141,21 +168,24 @@ export function InlineTemplateSelector({ value, onChange }: InlineTemplateSelect
     <div className="space-y-3" dir="ltr">
       <Label className="text-sm font-medium">Template</Label>
       <div className="grid grid-cols-3 gap-2">
-        {templates.map(template => (
-          <button
-            key={template.id}
-            type="button"
-            className={`p-3 text-center border rounded-lg transition-all ${
-              value === template.id
-                ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                : 'border-border hover:border-primary/50'
-            }`}
-            onClick={() => onChange(template.id)}
-          >
-            <div className="text-2xl mb-1">{template.icon}</div>
-            <div className="text-xs font-medium">{template.name}</div>
-          </button>
-        ))}
+        {templates.map(template => {
+          const Icon = TEMPLATE_ICONS[template.id] ?? FALLBACK_TEMPLATE_ICON
+          return (
+            <button
+              key={template.id}
+              type="button"
+              className={`p-3 text-center border rounded-lg transition-all active:scale-[0.98] ${
+                value === template.id
+                  ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                  : 'border-border hover:border-primary/50'
+              }`}
+              onClick={() => onChange(template.id)}
+            >
+              <Icon className="mx-auto mb-1 h-5 w-5 text-primary" aria-hidden="true" />
+              <div className="text-xs font-medium">{template.name}</div>
+            </button>
+          )
+        })}
       </div>
     </div>
   )

@@ -44,7 +44,7 @@ export function DreamspellSection({ date, showWavespell = true }: DreamspellSect
   const colorBorder = COLOR_BORDER[seal.color]
 
   const kinNameEn = `${capitalizeFirstLetter(seal.color)} ${tone.name} ${seal.english}`
-  const kinNameHe = `${seal.hebrew} ${tone.nameHebrew}`
+  const kinNameMayan = `${tone.name} ${seal.mayan}`
 
   return (
     <section className="dreamspell-section flex-1 flex flex-col border-b pb-4">
@@ -72,7 +72,7 @@ export function DreamspellSection({ date, showWavespell = true }: DreamspellSect
           {kinNameEn} <span className="text-muted-foreground font-normal">(Kin {kin})</span>
         </div>
         <div className="text-base text-muted-foreground">
-          {kinNameHe}
+          {kinNameMayan}
         </div>
         <div className="text-xs text-muted-foreground/60 mt-1">
           {tone.keywords.join(' · ')}
@@ -82,7 +82,7 @@ export function DreamspellSection({ date, showWavespell = true }: DreamspellSect
       {/* Oracle Cross */}
       <div className={cn('rounded-xl border p-4 mb-4', colorBorder, 'bg-black/20')}>
         <h4 className="text-center text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">
-          Oracle Cross · צלב האורקל
+          Oracle Cross
         </h4>
         <OracleMap kin={kin} size="md" />
       </div>

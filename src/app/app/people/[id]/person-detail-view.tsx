@@ -7,7 +7,19 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ArrowLeft, AlertTriangle, Settings } from 'lucide-react'
+import {
+  ArrowLeft,
+  AlertTriangle,
+  Settings,
+  Orbit,
+  CalendarDays,
+  Landmark,
+  Star,
+  Dna,
+  Hash,
+  Sparkles,
+  type LucideIcon,
+} from 'lucide-react'
 import { DreamspellSection, TzolkinSection } from '@/components/cards'
 import { WavespellDisplay, CastleDisplay, PersonalYearDisplay, GalacticBirthdayDisplay } from '@/components/cards'
 import { LongCountDisplay, HaabDisplay, CalendarRoundDisplay, MayanTimelineDisplay } from '@/components/cards'
@@ -27,14 +39,14 @@ import { useSystemPreferences, type SystemKey } from '@/lib/hooks/use-system-pre
 
 type TabKey = SystemKey | 'insights'
 
-const SYSTEMS: { key: TabKey; label: string; labelHe: string; icon: string; requiresTime?: boolean; requiresLocation?: boolean }[] = [
-  { key: 'dreamspell', label: 'Dreamspell', labelHe: 'דרימספל', icon: '🌈' },
-  { key: 'tzolkin', label: 'Tzolkin', labelHe: 'צולקין', icon: '🗓️' },
-  { key: 'longcount', label: 'Long Count', labelHe: 'לונג קאונט', icon: '🏛️' },
-  { key: 'astrology', label: 'Astrology', labelHe: 'אסטרולוגיה', icon: '⭐', requiresTime: true, requiresLocation: true },
-  { key: 'humandesign', label: 'Human Design', labelHe: 'עיצוב אנושי', icon: '🧬', requiresTime: true, requiresLocation: true },
-  { key: 'gematria', label: 'Gematria', labelHe: 'גימטריה', icon: '🔢' },
-  { key: 'insights', label: 'Insights', labelHe: 'תובנות', icon: '✨' },
+const SYSTEMS: { key: TabKey; label: string; icon: LucideIcon; requiresTime?: boolean; requiresLocation?: boolean }[] = [
+  { key: 'dreamspell', label: 'Dreamspell', icon: Orbit },
+  { key: 'tzolkin', label: 'Tzolkin', icon: CalendarDays },
+  { key: 'longcount', label: 'Long Count', icon: Landmark },
+  { key: 'astrology', label: 'Astrology', icon: Star, requiresTime: true, requiresLocation: true },
+  { key: 'humandesign', label: 'Human Design', icon: Dna, requiresTime: true, requiresLocation: true },
+  { key: 'gematria', label: 'Gematria', icon: Hash },
+  { key: 'insights', label: 'Insights', icon: Sparkles },
 ]
 
 export function PersonDetailView({ person }: { person: PersonWithTags }) {
@@ -80,9 +92,7 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
 
   // Calculate Astrology data for insights
   let astroSunSign = ''
-  let astroSunSignHebrew = ''
   let astroMoonSign: string | null = null
-  let astroMoonSignHebrew: string | null = null
   let astroDominantElement = ''
   let astroDominantModality = ''
 
@@ -95,9 +105,7 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
         longitude,
       })
       astroSunSign = chart.sunSign.id
-      astroSunSignHebrew = chart.sunSign.hebrew
       astroMoonSign = chart.moonSign.id
-      astroMoonSignHebrew = chart.moonSign.hebrew
       // Find dominant element and modality
       const elements = Object.entries(chart.elementBalance)
       const modalities = Object.entries(chart.modalityBalance)
@@ -112,11 +120,9 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
     try {
       const chart = calculateSunSignChart(person.birth_date, latitude, longitude)
       astroSunSign = chart.sunSign.id
-      astroSunSignHebrew = chart.sunSign.hebrew
       const moon = chart.planets.find(p => p.planet.id === 'moon')
       if (moon) {
         astroMoonSign = moon.sign.id
-        astroMoonSignHebrew = moon.sign.hebrew
       }
     } catch (e) {
       // Ignore errors
@@ -125,7 +131,6 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
 
   // Calculate Human Design data for insights
   let hdType = ''
-  let hdTypeHebrew = ''
   let hdStrategy = ''
   let hdAuthority = ''
   let hdProfile: string | null = null
@@ -142,7 +147,6 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
       if (result.hasBirthTime) {
         const bodygraph = result as import('@/lib/types/human-design').Bodygraph
         hdType = bodygraph.type
-        hdTypeHebrew = bodygraph.typeDefinition.nameHebrew
         hdStrategy = bodygraph.typeDefinition.strategy
         hdAuthority = bodygraph.authority
         hdProfile = bodygraph.profile.name
@@ -179,20 +183,20 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">{person.name}</h1>
+            <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">{person.name}</h1>
             {person.hebrew_name && person.hebrew_name !== person.name && (
               <p className="text-lg text-muted-foreground">{person.hebrew_name}</p>
             )}
           </div>
         </div>
-        <Badge variant="secondary" className="text-sm">
+        <Badge variant="secondary" className="font-mono text-sm tabular-nums">
           Kin {kin}
         </Badge>
       </div>
 
       {/* Person Info Card */}
       <div className="surface-card p-5">
-        <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4">Personal Details</h2>
+        <h2 className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground mb-4">Personal Details</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
             <span className="text-sm text-muted-foreground block mb-1">Birth Date</span>
@@ -269,29 +273,32 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
       ) : (
       <Tabs value={visibleSystems.some(s => s.key === activeTab) ? activeTab : visibleSystems[0]?.key || 'dreamspell'} onValueChange={(v) => setActiveTab(v as TabKey)} className="w-full">
         <TabsList className="w-full flex flex-wrap h-auto gap-1 p-1">
-          {visibleSystems.map((system) => (
-            <TabsTrigger
-              key={system.key}
-              value={system.key}
-              className="flex-1 min-w-[100px] gap-1"
-            >
-              <span>{system.icon}</span>
-              <span className="hidden sm:inline">{system.label}</span>
-            </TabsTrigger>
-          ))}
+          {visibleSystems.map((system) => {
+            const SystemIcon = system.icon
+            return (
+              <TabsTrigger
+                key={system.key}
+                value={system.key}
+                className="flex-1 min-w-[100px] gap-1.5"
+              >
+                <SystemIcon className="w-4 h-4" aria-hidden="true" />
+                <span className="hidden sm:inline">{system.label}</span>
+              </TabsTrigger>
+            )
+          })}
         </TabsList>
 
         {/* Dreamspell Tab */}
         <TabsContent value="dreamspell" className="space-y-6 mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="surface-card p-5">
-              <h3 className="font-semibold text-foreground mb-1">Birthday Kin</h3>
+              <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Birthday Kin</h3>
               <p className="text-sm text-muted-foreground mb-4">Galactic Signature according to the Dreamspell</p>
               <DreamspellSection date={person.birth_date} />
             </div>
 
             <div className="surface-card p-5">
-              <h3 className="font-semibold text-foreground mb-1">Wavespell</h3>
+              <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Wavespell</h3>
               <p className="text-sm text-muted-foreground mb-4">Position in the 13-day wave</p>
               <WavespellDisplay kin={kin} showLabels />
             </div>
@@ -299,20 +306,20 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="surface-card p-5">
-              <h3 className="font-semibold text-foreground mb-1">Castle</h3>
+              <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Castle</h3>
               <p className="text-sm text-muted-foreground mb-4">Position in the 52-day cycle</p>
               <CastleDisplay kin={kin} />
             </div>
 
             <div className="surface-card p-5">
-              <h3 className="font-semibold text-foreground mb-1">Personal Year</h3>
+              <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Personal Year</h3>
               <p className="text-sm text-muted-foreground mb-4">Annual Kin</p>
               <PersonalYearDisplay birthDate={person.birth_date} />
             </div>
           </div>
 
           <div className="surface-card p-5">
-            <h3 className="font-semibold text-foreground mb-1">Galactic Birthday</h3>
+            <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Galactic Birthday</h3>
             <p className="text-sm text-muted-foreground mb-4">Date of the next Galactic Birthday</p>
             <GalacticBirthdayDisplay birthDate={person.birth_date} />
           </div>
@@ -321,7 +328,7 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
         {/* Tzolkin Tab */}
         <TabsContent value="tzolkin" className="space-y-6 mt-6">
           <div className="surface-card p-5">
-            <h3 className="font-semibold text-foreground mb-1">Traditional Tzolkin</h3>
+            <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Traditional Tzolkin</h3>
             <p className="text-sm text-muted-foreground mb-4">The traditional Mayan calendar (260 days)</p>
             <TzolkinSection date={person.birth_date} />
           </div>
@@ -331,26 +338,26 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
         <TabsContent value="longcount" className="space-y-6 mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="surface-card p-5">
-              <h3 className="font-semibold text-foreground mb-1">Long Count</h3>
+              <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Long Count</h3>
               <p className="text-sm text-muted-foreground mb-4">Birth date in the Mayan Long Count</p>
               <LongCountDisplay dateStr={person.birth_date} showLabels showDaysSinceCreation />
             </div>
 
             <div className="surface-card p-5">
-              <h3 className="font-semibold text-foreground mb-1">Haab (Solar Year)</h3>
+              <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Haab (Solar Year)</h3>
               <p className="text-sm text-muted-foreground mb-4">The 365-day solar calendar</p>
               <HaabDisplay dateStr={person.birth_date} showMonthIndex />
             </div>
           </div>
 
           <div className="surface-card p-5">
-            <h3 className="font-semibold text-foreground mb-1">Calendar Round</h3>
+            <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Calendar Round</h3>
             <p className="text-sm text-muted-foreground mb-4">Combination of Tzolkin and Haab - 52-year cycle</p>
             <CalendarRoundDisplay dateStr={person.birth_date} />
           </div>
 
           <div className="surface-card p-5">
-            <h3 className="font-semibold text-foreground mb-1">Mayan Timeline</h3>
+            <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Mayan Timeline</h3>
             <p className="text-sm text-muted-foreground mb-4">Significant events in the Mayan calendar</p>
             <MayanTimelineDisplay
               birthDateStr={person.birth_date}
@@ -364,7 +371,7 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
         {/* Astrology Tab */}
         <TabsContent value="astrology" className="space-y-6 mt-6">
           <div className="surface-card p-5">
-            <h3 className="font-semibold text-foreground mb-1">Birth Chart</h3>
+            <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Birth Chart</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Western Astrology - Planet positions at birth
               {!hasBirthTime && <span className="text-amber-600 ml-2">(without birth time - approximate)</span>}
@@ -384,7 +391,7 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
         {/* Human Design Tab */}
         <TabsContent value="humandesign" className="space-y-6 mt-6">
           <div className="surface-card p-5">
-            <h3 className="font-semibold text-foreground mb-1">Human Design</h3>
+            <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Human Design</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Type, Strategy, and Authority
               {!hasBirthTime && <span className="text-amber-600 ml-2">(without birth time - approximate)</span>}
@@ -404,7 +411,7 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
         {/* Gematria Tab */}
         <TabsContent value="gematria" className="space-y-6 mt-6">
           <div className="surface-card p-5">
-            <h3 className="font-semibold text-foreground mb-1">Gematria</h3>
+            <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Gematria</h3>
             <p className="text-sm text-muted-foreground mb-4">Numerical values of the Hebrew name</p>
             <GematriaDisplay
               text={hebrewName}
@@ -418,7 +425,7 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
         {/* Cross-System Insights Tab */}
         <TabsContent value="insights" className="space-y-6 mt-6">
           <div className="surface-card p-5">
-            <h3 className="font-semibold text-foreground mb-1">Cross-System Insights</h3>
+            <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Cross-System Insights</h3>
             <p className="text-sm text-muted-foreground mb-4">Connections and patterns across different systems</p>
             <CrossSystemInsights
                 dreamspell={{
@@ -432,15 +439,12 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
                 }}
                 astrology={astroSunSign ? {
                   sunSign: astroSunSign,
-                  sunSignHebrew: astroSunSignHebrew,
                   moonSign: astroMoonSign,
-                  moonSignHebrew: astroMoonSignHebrew,
                   dominantElement: astroDominantElement,
                   dominantModality: astroDominantModality,
                 } : null}
                 humanDesign={hdType ? {
                   type: hdType,
-                  typeHebrew: hdTypeHebrew,
                   strategy: hdStrategy,
                   authority: hdAuthority,
                   profile: hdProfile,

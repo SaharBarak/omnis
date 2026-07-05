@@ -1,5 +1,6 @@
 'use client'
 
+import { Sparkles } from 'lucide-react'
 import { SealIcon } from './SealIcon'
 import type { Kin } from '@/core/types'
 import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
@@ -30,7 +31,7 @@ export function DreamspellYearDisplay({
   return (
     <div className={cn('dreamspell-year-display p-4 rounded-lg bg-muted/50', className)}>
       <h3 className="text-lg font-semibold text-center mb-3">
-        Dreamspell Year <span className="text-muted-foreground text-sm">(שנת הדרימספל)</span>
+        Dreamspell Year
       </h3>
 
       <div className="flex items-center justify-center gap-4">
@@ -41,7 +42,7 @@ export function DreamspellYearDisplay({
             {dreamspellYear.yearName}
           </p>
           <p className="text-muted-foreground">
-            {seal.hebrew} {tone.nameHebrew}
+            {tone.name} {seal.mayan}
           </p>
           <p className="text-sm text-muted-foreground mt-1">
             Kin {dreamspellYear.yearBearer.kin}
@@ -77,7 +78,7 @@ export function GalacticBirthdayDisplay({
   return (
     <div className={cn('galactic-birthday-display p-4 rounded-lg bg-muted/50', className)}>
       <h3 className="text-lg font-semibold text-center mb-3">
-        Galactic Birthday <span className="text-muted-foreground text-sm">(יום הולדת גלקטי)</span>
+        Galactic Birthday
       </h3>
 
       <div className="flex items-center justify-center gap-4">
@@ -88,7 +89,7 @@ export function GalacticBirthdayDisplay({
             {getSealColorName(galacticBirthday.seal)} {tone.name} {seal.english}
           </p>
           <p className="text-muted-foreground">
-            {seal.hebrew} {tone.nameHebrew}
+            {seal.mayan}
           </p>
           <p className="text-sm text-muted-foreground mt-1">
             Kin {galacticBirthday.kin}
@@ -104,8 +105,9 @@ export function GalacticBirthdayDisplay({
 
         {galacticBirthday.isGalacticReturn && (
           <div className="mt-2 p-2 bg-primary/20 rounded-lg">
-            <p className="text-primary font-semibold text-sm">
-              🌟 Galactic Return!
+            <p className="flex items-center gap-1.5 text-primary font-semibold text-sm">
+              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+              Galactic Return!
             </p>
             <p className="text-xs text-muted-foreground">
               Your kin on this date matches your birth kin ({birthKin})
@@ -136,7 +138,7 @@ export function PersonalYearDisplay({
   return (
     <div className={cn('personal-year-display p-4 rounded-lg bg-muted/50', className)}>
       <h3 className="text-lg font-semibold text-center mb-3">
-        Personal Year <span className="text-muted-foreground text-sm">(השנה האישית)</span>
+        Personal Year
       </h3>
 
       <div className="flex items-center justify-center gap-4">
@@ -147,7 +149,7 @@ export function PersonalYearDisplay({
             {getSealColorName(personalYear.seal)} {tone.name} {seal.english}
           </p>
           <p className="text-muted-foreground">
-            {seal.hebrew} {tone.nameHebrew}
+            {seal.mayan}
           </p>
           <p className="text-sm text-muted-foreground mt-1">
             Kin {personalYear.kin} • Age {personalYear.age}
@@ -191,15 +193,6 @@ export function PersonalYearDisplay({
 }
 
 // Helper functions
-function formatDateHebrew(dateStr: string): string {
-  const [year, month, day] = dateStr.split('-').map(Number)
-  const months = [
-    'ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
-    'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'
-  ]
-  return `${day} ${months[month - 1]} ${year}`
-}
-
 function getSealColorName(sealNumber: number): string {
   const colors = ['Red', 'White', 'Blue', 'Yellow']
   return colors[(sealNumber - 1) % 4]

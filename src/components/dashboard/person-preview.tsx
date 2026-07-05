@@ -33,7 +33,7 @@ export function PersonPreview({
         <div className="flex items-center gap-3">
           {/* Kin badge */}
           <div className="w-11 h-11 rounded-full bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center shrink-0 border border-primary/10">
-            <span className="text-base font-bold text-primary">{kin}</span>
+            <span className="font-mono text-base font-semibold tabular-nums text-primary">{kin}</span>
           </div>
 
           {/* Info */}

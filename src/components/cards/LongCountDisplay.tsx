@@ -20,12 +20,12 @@ export interface LongCountDisplayProps {
 }
 
 // Long Count unit names
-const UNIT_NAMES = {
-  baktun: { hebrew: 'באקטון', english: "B'ak'tun" },
-  katun: { hebrew: 'קאטון', english: "K'atun" },
-  tun: { hebrew: 'טון', english: 'Tun' },
-  winal: { hebrew: 'וינאל', english: 'Winal' },
-  kin: { hebrew: 'קין', english: "K'in" },
+const UNIT_NAMES: Record<keyof LongCount, string> = {
+  baktun: "B'ak'tun",
+  katun: "K'atun",
+  tun: 'Tun',
+  winal: 'Winal',
+  kin: "K'in",
 }
 
 const UNIT_ORDER: (keyof LongCount)[] = ['baktun', 'katun', 'tun', 'winal', 'kin']
@@ -45,7 +45,7 @@ export function LongCountDisplay({
       {/* Header */}
       <div className="text-center mb-4">
         <h3 className="text-lg font-semibold">
-          Long Count Date (תאריך ה-Long Count)
+          Long Count Date
         </h3>
       </div>
 
@@ -71,13 +71,8 @@ export function LongCountDisplay({
                   {data.longCount[unit]}
                 </span>
                 <span className="text-xs text-muted-foreground mt-1">
-                  {UNIT_NAMES[unit].english}
+                  {UNIT_NAMES[unit]}
                 </span>
-                {!compact && (
-                  <span className="text-xs text-muted-foreground">
-                    ({UNIT_NAMES[unit].hebrew})
-                  </span>
-                )}
               </div>
             ))}
           </div>
@@ -90,9 +85,6 @@ export function LongCountDisplay({
               <span className="font-medium">{data.daysSinceCreation.toLocaleString()}</span>
               <span className="mx-1">days since creation</span>
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              ({data.daysSinceCreation.toLocaleString()} ימים מאז הבריאה)
-            </p>
           </div>
         )}
       </div>
@@ -102,13 +94,10 @@ export function LongCountDisplay({
         <div className="mt-4 bg-accent/10 rounded-lg p-3">
           <div className="text-center">
             <p className="text-sm font-medium">
-              Calendar Round (מעגל לוח השנה)
+              Calendar Round
             </p>
             <p className="text-lg font-semibold mt-1">
               {data.calendarRound.formatted}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {data.calendarRound.formattedHebrew}
             </p>
           </div>
         </div>
@@ -188,13 +177,10 @@ export function HaabDisplay({ dateStr, showMonthIndex = false, className = '' }:
   return (
     <div className={cn('haab-display text-center', className)}>
       <div className="text-sm text-muted-foreground mb-1">
-        Haab&apos; (האאב)
+        Haab&apos;
       </div>
       <div className="text-lg font-semibold">
         {haab.day} {haab.monthName}
-      </div>
-      <div className="text-sm text-muted-foreground">
-        ({haab.day} {haab.monthNameHebrew})
       </div>
       {showMonthIndex && (
         <div className="text-xs text-muted-foreground mt-1">
@@ -219,7 +205,7 @@ export function CalendarRoundDisplay({ dateStr, className = '' }: CalendarRoundD
     <div className={cn('calendar-round-display', className)}>
       <div className="text-center mb-3">
         <h4 className="text-sm font-medium text-muted-foreground">
-          Calendar Round (מעגל לוח השנה)
+          Calendar Round
         </h4>
       </div>
 
@@ -227,26 +213,23 @@ export function CalendarRoundDisplay({ dateStr, className = '' }: CalendarRoundD
         {/* Tzolkin Section */}
         <div className="bg-muted/30 rounded-lg p-3 text-center">
           <div className="text-xs text-muted-foreground mb-1">
-            Tzolk&apos;in (צולקין)
+            Tzolk&apos;in
           </div>
           <div className="text-lg font-semibold">
             {tzolkin.tone} {tzolkin.daySign.yucatec}
           </div>
           <div className="text-sm text-muted-foreground">
-            ({tzolkin.tone} {tzolkin.daySign.hebrew})
+            ({tzolkin.daySign.english})
           </div>
         </div>
 
         {/* Haab Section */}
         <div className="bg-muted/30 rounded-lg p-3 text-center">
           <div className="text-xs text-muted-foreground mb-1">
-            Haab&apos; (האאב)
+            Haab&apos;
           </div>
           <div className="text-lg font-semibold">
             {haab.day} {haab.monthName}
-          </div>
-          <div className="text-sm text-muted-foreground">
-            ({haab.day} {haab.monthNameHebrew})
           </div>
         </div>
       </div>

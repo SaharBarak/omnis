@@ -16,13 +16,8 @@ import type {
   Channel,
 } from '@/lib/types/human-design'
 import {
-  TYPE_LABELS_HEBREW,
-  AUTHORITY_LABELS_HEBREW,
   CENTER_LABELS,
-  CENTER_LABELS_HEBREW,
   DEFINITION_LABELS,
-  DEFINITION_LABELS_HEBREW,
-  CIRCUITRY_LABELS_HEBREW,
 } from '@/lib/types/human-design'
 import { getGate } from '@/lib/data/human-design-gates'
 import { BodygraphChart } from '@/components/human-design/BodygraphChart'
@@ -89,7 +84,6 @@ function CenterBadge({
   defined: boolean
   compact?: boolean
 }) {
-  const hebrewName = CENTER_LABELS_HEBREW[centerId]
   const englishName = CENTER_LABELS[centerId]
 
   const bgColor = defined
@@ -108,9 +102,6 @@ function CenterBadge({
       <span className={cn('font-semibold', compact ? 'text-xs' : 'text-sm')}>
         {englishName}
       </span>
-      {!compact && (
-        <span className="text-xs opacity-75">{hebrewName}</span>
-      )}
     </div>
   )
 }
@@ -187,9 +178,6 @@ export function MissingBirthTimeMessage({
       <p className="text-center text-muted-foreground">
         {partial.message}
       </p>
-      <p className="text-center text-sm text-muted-foreground mt-2">
-        {partial.messageHebrew}
-      </p>
     </div>
   )
 }
@@ -213,25 +201,18 @@ export function BodygraphSummaryCard({
         <div className="text-3xl font-bold mb-1">
           {bodygraph.typeDefinition.name}
         </div>
-        <div className="text-muted-foreground">
-          {bodygraph.typeDefinition.nameHebrew}
-        </div>
         <div className="text-sm mt-2 bg-muted p-2 rounded">
           <span className="font-medium">Strategy: </span>
           {bodygraph.typeDefinition.strategy}
-          <span className="text-muted-foreground"> ({bodygraph.typeDefinition.strategyHebrew})</span>
         </div>
       </div>
 
       {/* Authority */}
       <div className="border-t pt-4 mb-4">
-        <h4 className="text-sm font-medium mb-2">Inner Authority (סמכות פנימית)</h4>
+        <h4 className="text-sm font-medium mb-2">Inner Authority</h4>
         <div className="flex items-center gap-2">
           <span className="text-lg font-semibold">
             {bodygraph.authorityDefinition.name}
-          </span>
-          <span className="text-sm text-muted-foreground">
-            ({bodygraph.authorityDefinition.nameHebrew})
           </span>
         </div>
         <p className="text-sm text-muted-foreground mt-1">
@@ -241,12 +222,11 @@ export function BodygraphSummaryCard({
 
       {/* Profile */}
       <div className="border-t pt-4 mb-4">
-        <h4 className="text-sm font-medium mb-2">Profile (פרופיל)</h4>
+        <h4 className="text-sm font-medium mb-2">Profile</h4>
         <div className="flex items-center gap-2">
           <span className="text-2xl font-bold">{bodygraph.profile.id}</span>
           <div className="flex flex-col">
             <span className="font-semibold">{bodygraph.profile.name}</span>
-            <span className="text-sm text-muted-foreground">{bodygraph.profile.nameHebrew}</span>
           </div>
         </div>
         <p className="text-sm text-muted-foreground mt-1">
@@ -257,13 +237,10 @@ export function BodygraphSummaryCard({
       {/* Definition */}
       {showDefinition && (
         <div className="border-t pt-4">
-          <h4 className="text-sm font-medium mb-2">Definition (הגדרה)</h4>
+          <h4 className="text-sm font-medium mb-2">Definition</h4>
           <div className="flex items-center gap-2">
             <span className="font-semibold">
               {DEFINITION_LABELS[bodygraph.definition]}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              ({DEFINITION_LABELS_HEBREW[bodygraph.definition]})
             </span>
           </div>
           <div className="text-sm text-muted-foreground mt-1">
@@ -274,10 +251,9 @@ export function BodygraphSummaryCard({
 
       {/* Incarnation Cross */}
       <div className="border-t pt-4 mt-4">
-        <h4 className="text-sm font-medium mb-2">Incarnation Cross (צלב הגלגול)</h4>
+        <h4 className="text-sm font-medium mb-2">Incarnation Cross</h4>
         <div className="text-center p-3 bg-muted rounded">
           <div className="font-semibold">{bodygraph.incarnationCross.name}</div>
-          <div className="text-sm text-muted-foreground">{bodygraph.incarnationCross.nameHebrew}</div>
           <div className="text-xs text-muted-foreground mt-2">
             Gates: {bodygraph.incarnationCross.gates.personalitySun} / {bodygraph.incarnationCross.gates.personalityEarth} | {bodygraph.incarnationCross.gates.designSun} / {bodygraph.incarnationCross.gates.designEarth}
           </div>
@@ -310,7 +286,7 @@ export function CenterStateDisplay({
   return (
     <div className={cn('center-state-display', className)}>
       <h4 className="text-sm font-medium mb-3 text-center">
-        Centers (מרכזים)
+        Centers
       </h4>
       <div className={cn('grid gap-2', compact ? 'grid-cols-5' : 'grid-cols-3')}>
         {centerOrder.map((centerId) => (
@@ -407,7 +383,7 @@ export function ChannelsDisplay({
   if (channels.length === 0) {
     return (
       <div className={cn('text-center text-muted-foreground py-4', className)}>
-        No defined channels (אין ערוצים מוגדרים)
+        No defined channels
       </div>
     )
   }
@@ -427,7 +403,7 @@ export function ChannelsDisplay({
             <div className="flex flex-col flex-1 min-w-0">
               <span className="font-medium truncate">{channel.name}</span>
               <span className="text-xs text-muted-foreground truncate">
-                {channel.nameHebrew} • {channel.circuitry}
+                {channel.circuitry}
               </span>
             </div>
           </div>
@@ -517,7 +493,7 @@ export function HumanDesignDisplay({
     <div className={cn('human-design-display space-y-6', className)}>
       {/* Visual Bodygraph Chart */}
       <div className="bg-card border rounded-lg p-4">
-        <h4 className="text-sm font-medium mb-3 text-center">Bodygraph (בודיגרף)</h4>
+        <h4 className="text-sm font-medium mb-3 text-center">Bodygraph</h4>
         <div className="flex justify-center">
           <BodygraphChart bodygraph={result} className="w-full max-w-[400px]" />
         </div>

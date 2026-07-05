@@ -40,7 +40,7 @@ export function MayanTimelineDisplay({
       {/* Header */}
       <div className="text-center mb-4">
         <h3 className="text-lg font-semibold">
-          Mayan Timeline (לוח זמנים מאיה)
+          Mayan Timeline
         </h3>
         <p className="text-sm text-muted-foreground mt-1">
           Special dates in your life
@@ -51,16 +51,13 @@ export function MayanTimelineDisplay({
       <div className="bg-primary/10 rounded-lg p-4 mb-4">
         <div className="text-center">
           <div className="text-sm text-muted-foreground mb-1">
-            Birth (לידה)
+            Birth
           </div>
           <div className="text-lg font-mono font-bold">
             {formatLongCount(dates.birth.longCount)}
           </div>
           <div className="text-sm mt-2">
             {dates.birth.calendarRound.formatted}
-          </div>
-          <div className="text-xs text-muted-foreground">
-            {dates.birth.calendarRound.formattedHebrew}
           </div>
         </div>
       </div>
@@ -70,7 +67,7 @@ export function MayanTimelineDisplay({
         <div className="mb-4">
           <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-            Tun Birthdays (ימי הולדת טון)
+            Tun Birthdays
             <span className="text-xs text-muted-foreground font-normal">(every 360 days)</span>
           </h4>
           <div className="space-y-2">
@@ -86,7 +83,7 @@ export function MayanTimelineDisplay({
         <div className="mb-4">
           <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-purple-500"></span>
-            K&apos;atun Birthdays (ימי הולדת קאטון)
+            K&apos;atun Birthdays
             <span className="text-xs text-muted-foreground font-normal">(~19.7 years)</span>
           </h4>
           <div className="space-y-2">
@@ -102,7 +99,7 @@ export function MayanTimelineDisplay({
         <div className="mb-4">
           <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-amber-500"></span>
-            Calendar Round Return (חזרת מעגל לוח השנה)
+            Calendar Round Return
             <span className="text-xs text-muted-foreground font-normal">(~52 years)</span>
           </h4>
           <CalendarRoundReturnCard crReturn={dates.nextCalendarRoundReturn} />
@@ -220,7 +217,7 @@ export function HistoricalDatesDisplay({ className = '' }: HistoricalDatesDispla
     <div className={cn('historical-dates-display', className)}>
       <div className="text-center mb-4">
         <h3 className="text-lg font-semibold">
-          Historical Dates (תאריכים היסטוריים)
+          Historical Dates
         </h3>
       </div>
 
@@ -237,9 +234,6 @@ export function HistoricalDatesDisplay({ className = '' }: HistoricalDatesDispla
               <div className="text-xs text-muted-foreground">
                 {date.gregorian}
               </div>
-            </div>
-            <div className="mt-1 text-xs text-muted-foreground">
-              ({date.significanceHebrew})
             </div>
             <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
               <div>

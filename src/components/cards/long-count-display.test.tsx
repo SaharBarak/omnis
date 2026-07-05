@@ -46,10 +46,9 @@ const RECENT_DATE = '2024-01-15'
 
 describe('LongCountDisplay Components', () => {
   describe('LongCountDisplay', () => {
-    it('renders header with English and Hebrew', () => {
+    it('renders header', () => {
       render(<LongCountDisplay dateStr={EPOCH_DATE} />)
       expect(screen.getByText(/Long Count Date/)).toBeInTheDocument()
-      expect(screen.getByText(/תאריך ה-Long Count/)).toBeInTheDocument()
     })
 
     it('displays formatted Long Count string', () => {
@@ -67,24 +66,14 @@ describe('LongCountDisplay Components', () => {
       expect(screen.getByText("K'in")).toBeInTheDocument()
     })
 
-    it('shows Hebrew unit names when not compact', () => {
-      render(<LongCountDisplay dateStr={EPOCH_DATE} compact={false} />)
-      expect(screen.getByText('(באקטון)')).toBeInTheDocument()
-      expect(screen.getByText('(קאטון)')).toBeInTheDocument()
-      expect(screen.getByText('(טון)')).toBeInTheDocument()
-      expect(screen.getByText('(וינאל)')).toBeInTheDocument()
-      expect(screen.getByText('(קין)')).toBeInTheDocument()
-    })
-
-    it('hides Hebrew names in compact mode', () => {
-      render(<LongCountDisplay dateStr={EPOCH_DATE} compact={true} />)
-      expect(screen.queryByText('(באקטון)')).not.toBeInTheDocument()
+    it('does not render Hebrew unit names', () => {
+      const { container } = render(<LongCountDisplay dateStr={EPOCH_DATE} compact={false} />)
+      expect(container.textContent).not.toMatch(/[֐-׿]/)
     })
 
     it('displays days since creation when showDaysSinceCreation is true (default)', () => {
       render(<LongCountDisplay dateStr={EPOCH_DATE} />)
       expect(screen.getByText(/days since creation/)).toBeInTheDocument()
-      expect(screen.getByText(/ימים מאז הבריאה/)).toBeInTheDocument()
     })
 
     it('hides days since creation when showDaysSinceCreation is false', () => {
@@ -95,7 +84,6 @@ describe('LongCountDisplay Components', () => {
     it('shows Calendar Round section when showCalendarRound is true (default)', () => {
       render(<LongCountDisplay dateStr={EPOCH_DATE} />)
       expect(screen.getByText(/Calendar Round/)).toBeInTheDocument()
-      expect(screen.getByText(/מעגל לוח השנה/)).toBeInTheDocument()
     })
 
     it('hides Calendar Round section when showCalendarRound is false', () => {
@@ -174,10 +162,9 @@ describe('LongCountDisplay Components', () => {
   })
 
   describe('HaabDisplay', () => {
-    it('renders Haab header in English and Hebrew', () => {
+    it('renders Haab header', () => {
       render(<HaabDisplay dateStr={EPOCH_DATE} />)
       expect(screen.getByText(/Haab/)).toBeInTheDocument()
-      expect(screen.getByText(/האאב/)).toBeInTheDocument()
     })
 
     it('displays Haab day and month name', () => {
@@ -186,10 +173,9 @@ describe('LongCountDisplay Components', () => {
       expect(container.textContent).toMatch(/\d+/)
     })
 
-    it('shows Hebrew month name', () => {
+    it('does not render Hebrew month name', () => {
       const { container } = render(<HaabDisplay dateStr={EPOCH_DATE} />)
-      // Hebrew month name should be present
-      expect(container.textContent).toMatch(/[א-ת]+/)
+      expect(container.textContent).not.toMatch(/[֐-׿]/)
     })
 
     it('shows month index when showMonthIndex is true', () => {
@@ -212,19 +198,16 @@ describe('LongCountDisplay Components', () => {
     it('renders Calendar Round header', () => {
       render(<CalendarRoundDisplay dateStr={EPOCH_DATE} />)
       expect(screen.getByText(/Calendar Round/)).toBeInTheDocument()
-      expect(screen.getByText(/מעגל לוח השנה/)).toBeInTheDocument()
     })
 
     it('displays Tzolkin section', () => {
       render(<CalendarRoundDisplay dateStr={EPOCH_DATE} />)
       expect(screen.getByText(/Tzolk'in/)).toBeInTheDocument()
-      expect(screen.getByText(/צולקין/)).toBeInTheDocument()
     })
 
     it('displays Haab section', () => {
       render(<CalendarRoundDisplay dateStr={EPOCH_DATE} />)
       expect(screen.getByText(/Haab'/)).toBeInTheDocument()
-      expect(screen.getByText(/האאב/)).toBeInTheDocument()
     })
 
     it('shows combined format at bottom', () => {

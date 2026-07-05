@@ -26,14 +26,6 @@ const CASTLE_TEXT_COLORS: Record<string, string> = {
   green: 'text-green-700 dark:text-green-400',
 }
 
-const CASTLE_NAMES_HEBREW: Record<number, string> = {
-  1: 'טירת הסיבוב',
-  2: 'טירת המעבר',
-  3: 'טירת הבעירה',
-  4: 'טירת הנתינה',
-  5: 'טירת הקסם',
-}
-
 export interface CastleDisplayProps {
   kin: Kin
   showAllCastles?: boolean
@@ -53,7 +45,7 @@ export function CastleDisplay({
     <div className={cn('castle-display', className)}>
       {showAllCastles && (
         <h3 className="text-lg font-semibold text-center mb-4">
-          The Five Castles <span className="text-muted-foreground text-sm">(חמש הטירות)</span>
+          The Five Castles
         </h3>
       )}
 
@@ -81,9 +73,6 @@ export function CastleDisplay({
                 )}>
                   {castle.name}
                 </span>
-                <p className="text-sm text-muted-foreground">
-                  {CASTLE_NAMES_HEBREW[castle.number]}
-                </p>
               </div>
 
               {!showAllCastles && (

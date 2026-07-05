@@ -14,7 +14,17 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { PageHeader } from '@/components/dashboard'
-import { RotateCcw, Save } from 'lucide-react'
+import {
+  RotateCcw,
+  Save,
+  Orbit,
+  CalendarDays,
+  Landmark,
+  Star,
+  Dna,
+  Hash,
+  type LucideIcon,
+} from 'lucide-react'
 
 // System definitions
 type SystemKey = 'dreamspell' | 'tzolkin' | 'longcount' | 'astrology' | 'humandesign' | 'gematria'
@@ -22,7 +32,7 @@ type SystemKey = 'dreamspell' | 'tzolkin' | 'longcount' | 'astrology' | 'humande
 interface SystemInfo {
   key: SystemKey
   label: string
-  icon: string
+  icon: LucideIcon
   description: string
   requiresTime?: boolean
   requiresLocation?: boolean
@@ -32,25 +42,25 @@ const SYSTEMS: SystemInfo[] = [
   {
     key: 'dreamspell',
     label: 'Dreamspell',
-    icon: '🌈',
+    icon: Orbit,
     description: 'Modern Mayan calendar system by Jose Arguelles',
   },
   {
     key: 'tzolkin',
     label: 'Tzolkin',
-    icon: '🗓️',
+    icon: CalendarDays,
     description: 'Traditional Mayan 260-day sacred calendar',
   },
   {
     key: 'longcount',
     label: 'Long Count',
-    icon: '🏛️',
+    icon: Landmark,
     description: 'Ancient Mayan long count calendar system',
   },
   {
     key: 'astrology',
     label: 'Astrology',
-    icon: '⭐',
+    icon: Star,
     description: 'Western natal chart astrology',
     requiresTime: true,
     requiresLocation: true,
@@ -58,7 +68,7 @@ const SYSTEMS: SystemInfo[] = [
   {
     key: 'humandesign',
     label: 'Human Design',
-    icon: '🧬',
+    icon: Dna,
     description: 'Bodygraph analysis combining multiple systems',
     requiresTime: true,
     requiresLocation: true,
@@ -66,7 +76,7 @@ const SYSTEMS: SystemInfo[] = [
   {
     key: 'gematria',
     label: 'Gematria',
-    icon: '🔢',
+    icon: Hash,
     description: 'Hebrew numerology based on letter values',
   },
 ]
@@ -178,7 +188,7 @@ export default function SettingsPage() {
       />
 
       <div className="surface-card p-6">
-        <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-1">Symbolic Systems</h2>
+        <h2 className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground mb-1">Symbolic Systems</h2>
         <p className="text-sm text-muted-foreground mb-6">
           Choose which systems will be displayed on profile pages
         </p>
@@ -190,7 +200,9 @@ export default function SettingsPage() {
               className="flex items-center justify-between py-4 border-b border-border last:border-0"
             >
               <div className="flex items-start gap-3">
-                <span className="text-2xl">{system.icon}</span>
+                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <system.icon className="h-4 w-4" aria-hidden="true" />
+                </span>
                 <div>
                   <Label htmlFor={system.key} className="text-base font-medium text-foreground cursor-pointer">
                     {system.label}
@@ -253,7 +265,7 @@ export default function SettingsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="en">English</SelectItem>
-                <SelectItem value="he">עברית (Hebrew)</SelectItem>
+                <SelectItem value="he">Hebrew</SelectItem>
               </SelectContent>
             </Select>
           </div>

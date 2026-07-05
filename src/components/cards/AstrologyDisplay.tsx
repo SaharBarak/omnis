@@ -69,8 +69,10 @@ function ElementBar({ element, percentage }: { element: Element; percentage: num
 
   return (
     <div className="flex items-center gap-2">
-      <span className="w-6 text-center">{label.emoji}</span>
-      <span className="text-sm text-muted-foreground w-12">{label.labelHebrew}</span>
+      <span className="flex w-6 justify-center">
+        <span className={cn('h-2.5 w-2.5 rounded-full', colors[element])} aria-hidden="true" />
+      </span>
+      <span className="text-sm text-muted-foreground w-12">{label.label}</span>
       <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
         <div
           className={cn('h-full rounded-full transition-all', colors[element])}
@@ -98,7 +100,7 @@ export function ChartSummaryCard({
       {/* Big Three */}
       <div className="text-center mb-4">
         <h3 className="text-lg font-semibold mb-3">
-          Big Three (הסימנים הגדולים)
+          Big Three
         </h3>
 
         <div className="grid grid-cols-3 gap-4">
@@ -106,14 +108,14 @@ export function ChartSummaryCard({
           <div className="flex flex-col items-center">
             <span className="text-3xl">{chart.sunSign.symbol}</span>
             <span className="font-semibold">{chart.sunSign.name}</span>
-            <span className="text-sm text-muted-foreground">Sun ({chart.sunSign.hebrew})</span>
+            <span className="text-sm text-muted-foreground">Sun</span>
           </div>
 
           {/* Moon Sign */}
           <div className="flex flex-col items-center">
             <span className="text-3xl">{chart.moonSign.symbol}</span>
             <span className="font-semibold">{chart.moonSign.name}</span>
-            <span className="text-sm text-muted-foreground">Moon ({chart.moonSign.hebrew})</span>
+            <span className="text-sm text-muted-foreground">Moon</span>
           </div>
 
           {/* Rising Sign */}
@@ -129,7 +131,7 @@ export function ChartSummaryCard({
                 <span className="text-muted-foreground">Unknown</span>
               </>
             )}
-            <span className="text-sm text-muted-foreground">Rising ({chart.risingSign?.hebrew || 'עולה'})</span>
+            <span className="text-sm text-muted-foreground">Rising</span>
           </div>
         </div>
       </div>
@@ -138,7 +140,7 @@ export function ChartSummaryCard({
       {showBalance && (
         <div className="border-t pt-4">
           <h4 className="text-sm font-medium mb-3 text-center">
-            Element Balance (איזון אלמנטים)
+            Element Balance
           </h4>
           <div className="space-y-2">
             {(['fire', 'earth', 'air', 'water'] as Element[]).map(element => (
@@ -199,7 +201,7 @@ export function PlanetPositions({
   return (
     <div className={cn('planet-positions', className)}>
       <h4 className="text-sm font-medium mb-3 text-center">
-        Planetary Positions (מיקומי כוכבים)
+        Planetary Positions
       </h4>
 
       <div className={cn(
@@ -257,7 +259,7 @@ export function AspectsDisplay({
   if (aspects.length === 0) {
     return (
       <div className={cn('aspects-display text-center text-muted-foreground', className)}>
-        No aspects found (לא נמצאו אספקטים)
+        No aspects found
       </div>
     )
   }
@@ -271,7 +273,7 @@ export function AspectsDisplay({
   return (
     <div className={cn('aspects-display', className)}>
       <h4 className="text-sm font-medium mb-3 text-center">
-        Aspects (אספקטים)
+        Aspects
       </h4>
 
       <div className={cn(
@@ -344,7 +346,7 @@ export function AstrologyDisplay({
       {/* Header */}
       <div className="text-center">
         <h3 className="text-lg font-semibold">
-          Natal Chart (מפת לידה)
+          Natal Chart
         </h3>
         {!chart.hasBirthTime && (
           <p className="text-sm text-muted-foreground">
@@ -364,7 +366,7 @@ export function AstrologyDisplay({
               : 'text-muted-foreground hover:text-foreground'
           )}
         >
-          🔮 Visual Chart
+          Visual Chart
         </button>
         <button
           onClick={() => setView('details')}
@@ -375,7 +377,7 @@ export function AstrologyDisplay({
               : 'text-muted-foreground hover:text-foreground'
           )}
         >
-          📋 Details
+          Details
         </button>
       </div>
 
@@ -412,7 +414,7 @@ export function AstrologyDisplay({
           {chart.hasBirthTime && chart.ascendant && chart.midheaven && (
             <div className="bg-card border rounded-lg p-4">
               <h4 className="text-sm font-medium mb-3 text-center">
-                Angular Points (נקודות זוויתיות)
+                Angular Points
               </h4>
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
