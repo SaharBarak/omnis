@@ -57,7 +57,14 @@ function PersonCard({
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0 flex-1">
           <Link href={`/app/people/${person.id}`} className="hover:text-primary transition-colors">
-            <h3 className="font-semibold text-foreground truncate">{person.name}</h3>
+            <h3 className="font-semibold text-foreground truncate">
+              {person.name}
+              {person.is_self && (
+                <span className="ml-2 align-middle rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary">
+                  You
+                </span>
+              )}
+            </h3>
           </Link>
           {person.hebrew_name && (
             <p className="text-sm text-muted-foreground truncate">{person.hebrew_name}</p>

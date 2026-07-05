@@ -24,6 +24,7 @@ interface GraphNode {
   hebrewName: string | null
   color: string
   val: number // node size
+  isSelf: boolean
 }
 
 interface GraphLink {
@@ -70,6 +71,7 @@ function transformToGraphData(
       hebrewName: person.hebrew_name,
       color,
       val: 1, // base size
+      isSelf: Boolean(person.is_self),
     }
   })
 
@@ -242,28 +244,50 @@ export default function GraphPage() {
     }
   }, [])
 
-  // Custom node canvas object
+  // Custom node canvas object: dark surface disc, seal-colored ring,
+  // initials inside, name underneath. Self gets a brand halo + "You".
   const nodeCanvasObject = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
-    const label = node.name
-    const fontSize = Math.max(10 / globalScale, 4)
-    ctx.font = `${fontSize}px sans-serif`
+    const r = 5 + Math.min(node.val, 3) * 1.5
 
-    // Draw node circle
-    const nodeSize = 4 + node.val * 2
+    // Self halo
+    if (node.isSelf) {
+      ctx.beginPath()
+      ctx.arc(node.x, node.y, r + 2.5, 0, 2 * Math.PI, false)
+      ctx.strokeStyle = 'rgba(125, 91, 201, 0.9)'
+      ctx.lineWidth = 1.2
+      ctx.stroke()
+    }
+
+    // Disc
     ctx.beginPath()
-    ctx.arc(node.x, node.y, nodeSize, 0, 2 * Math.PI, false)
-    ctx.fillStyle = node.color
+    ctx.arc(node.x, node.y, r, 0, 2 * Math.PI, false)
+    ctx.fillStyle = '#151827'
     ctx.fill()
-    ctx.strokeStyle = '#ffffff'
-    ctx.lineWidth = 1 / globalScale
+    ctx.strokeStyle = node.color
+    ctx.lineWidth = 1.4
     ctx.stroke()
 
-    // Draw label
-    if (globalScale > 0.7) {
-      ctx.textAlign = 'center'
+    // Initials
+    const initials = String(node.name || '')
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w: string) => w[0].toUpperCase())
+      .join('')
+    ctx.font = `600 ${r * 0.85}px sans-serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.92)'
+    ctx.fillText(initials, node.x, node.y + r * 0.05)
+
+    // Name (screen-constant ~12px, hidden when zoomed far out)
+    if (globalScale > 0.6) {
+      const labelSize = 12 / globalScale
+      ctx.font = `500 ${labelSize}px sans-serif`
       ctx.textBaseline = 'top'
-      ctx.fillStyle = '#1F2937'
-      ctx.fillText(label, node.x, node.y + nodeSize + 2)
+      ctx.fillStyle = 'rgba(239, 234, 250, 0.75)'
+      const label = node.isSelf ? `${node.name} · You` : node.name
+      ctx.fillText(label, node.x, node.y + r + 3 / globalScale)
     }
   }, [])
 
@@ -361,19 +385,29 @@ export default function GraphPage() {
             nodeLabel={(node: any) => `${node.name}${node.hebrewName ? ` (${node.hebrewName})` : ''}`}
             nodeCanvasObject={nodeCanvasObject}
             nodePointerAreaPaint={(node: any, color: string, ctx: CanvasRenderingContext2D) => {
-              const nodeSize = 4 + node.val * 2
+              const r = 5 + Math.min(node.val, 3) * 1.5
               ctx.fillStyle = color
               ctx.beginPath()
-              ctx.arc(node.x, node.y, nodeSize, 0, 2 * Math.PI, false)
+              ctx.arc(node.x, node.y, r + 2.5, 0, 2 * Math.PI, false)
               ctx.fill()
             }}
             linkColor={(link: any) => link.color}
-            linkWidth={(link: any) => link.width}
+            linkWidth={(link: any) => Math.min(link.width || 1, 3)}
             linkDirectionalParticles={2}
-            linkDirectionalParticleWidth={2}
+            linkDirectionalParticleWidth={1.5}
             onNodeClick={handleNodeClick}
             cooldownTicks={100}
-            onEngineStop={() => graphRef.current?.zoomToFit(400, 50)}
+            minZoom={0.5}
+            maxZoom={8}
+            onEngineStop={() => {
+              const g = graphRef.current
+              if (!g) return
+              g.zoomToFit(400, 80)
+              // Small graphs otherwise zoom in so far the nodes look enormous.
+              setTimeout(() => {
+                if (g.zoom() > 2.2) g.zoom(2.2, 200)
+              }, 450)
+            }}
             enableZoomInteraction={true}
             enablePanInteraction={true}
             enableNodeDrag={true}

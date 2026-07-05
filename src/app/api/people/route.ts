@@ -11,6 +11,9 @@ const birthPlaceSchema = z
     lat: z.number().optional(),
     lng: z.number().optional(),
     name: z.string().optional(),
+    city: z.string().optional(),
+    country: z.string().optional(),
+    timezone: z.string().optional(),
   })
   .nullable()
 
@@ -23,7 +26,6 @@ const createSchema = z.object({
     birth_place: birthPlaceSchema.optional(),
     avatar_url: z.string().nullable().optional(),
     notes: z.string().nullable().optional(),
-    is_self: z.boolean().optional(),
   }),
   tagIds: z.array(z.string()).optional(),
 })
@@ -50,7 +52,11 @@ export async function POST(request: Request) {
     const profileLimit = getPlanLimits(plan).profiles
     if (profileLimit !== Infinity) {
       const existing = await listPeopleWithTags(userId)
-      if (existing.people.length >= profileLimit) {
+      // The self entry is free on every plan — only tracked people count.
+      const tracked = existing.people.filter(
+        (p) => !(p as { is_self?: boolean }).is_self
+      )
+      if (tracked.length >= profileLimit) {
         return NextResponse.json(
           {
             error: `You've reached your plan's limit of ${profileLimit} ${profileLimit === 1 ? 'person' : 'people'} on ${PLANS[plan].name}. Upgrade to add more.`,
