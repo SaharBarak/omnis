@@ -125,12 +125,10 @@ function PersonCard({
 
 function PersonForm({
   person,
-  tags,
   onSave,
   onCancel,
 }: {
   person?: PersonWithTags
-  tags: Tag[]
   onSave: (data: {
     name: string
     hebrew_name: string
@@ -138,7 +136,6 @@ function PersonForm({
     birth_time: string | null
     birth_place: BirthPlace | null
     notes: string
-    tagIds: string[]
   }) => Promise<void>
   onCancel: () => void
 }) {
@@ -153,7 +150,6 @@ function PersonForm({
     birth_time: person?.birth_time || null as string | null,
     birth_place: existingBirthPlace,
     notes: person?.notes || '',
-    tagIds: person?.tags.map(t => t.id) || [],
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -169,15 +165,6 @@ function PersonForm({
     } finally {
       setLoading(false)
     }
-  }
-
-  const toggleTag = (tagId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tagIds: prev.tagIds.includes(tagId)
-        ? prev.tagIds.filter(id => id !== tagId)
-        : [...prev.tagIds, tagId],
-    }))
   }
 
   return (
@@ -230,31 +217,6 @@ function PersonForm({
           onChange={(value) => setFormData(prev => ({ ...prev, birth_place: value }))}
         />
       </div>
-
-      {tags.length > 0 && (
-        <div className="space-y-2">
-          <Label>Tags</Label>
-          <div className="flex flex-wrap gap-2">
-            {tags.map(tag => (
-              <Badge
-                key={tag.id}
-                variant={formData.tagIds.includes(tag.id) ? 'default' : 'outline'}
-                className="cursor-pointer"
-                style={formData.tagIds.includes(tag.id) ? {
-                  backgroundColor: tag.color,
-                  borderColor: tag.color,
-                } : {
-                  borderColor: tag.color,
-                  color: tag.color,
-                }}
-                onClick={() => toggleTag(tag.id)}
-              >
-                {tag.name}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
 
       <div className="space-y-2">
         <Label htmlFor="notes">Notes</Label>
@@ -317,7 +279,6 @@ export default function PeoplePage() {
     birth_time: string | null
     birth_place: BirthPlace | null
     notes: string
-    tagIds: string[]
   }) => {
     await addPerson({
       name: data.name,
@@ -326,7 +287,7 @@ export default function PeoplePage() {
       birth_time: data.birth_time,
       birth_place: data.birth_place,
       notes: data.notes || null,
-    }, data.tagIds)
+    })
     setIsAddDialogOpen(false)
   }
 
@@ -337,9 +298,10 @@ export default function PeoplePage() {
     birth_time: string | null
     birth_place: BirthPlace | null
     notes: string
-    tagIds: string[]
   }) => {
     if (!editingPerson) return
+    // tagIds intentionally omitted: no tag-management UI exists, and an
+    // undefined tagIds skips tag sync server-side, preserving legacy tags.
     await updatePerson(editingPerson.id, {
       name: data.name,
       hebrew_name: data.hebrew_name || null,
@@ -347,7 +309,7 @@ export default function PeoplePage() {
       birth_time: data.birth_time,
       birth_place: data.birth_place,
       notes: data.notes || null,
-    }, data.tagIds)
+    })
     setIsEditDialogOpen(false)
     setEditingPerson(null)
   }
@@ -412,7 +374,6 @@ export default function PeoplePage() {
                 <DialogDescription>Enter the details of the person you want to add</DialogDescription>
               </DialogHeader>
               <PersonForm
-                tags={tags}
                 onSave={handleAddPerson}
                 onCancel={() => setIsAddDialogOpen(false)}
               />
@@ -509,7 +470,6 @@ export default function PeoplePage() {
           {editingPerson && (
             <PersonForm
               person={editingPerson}
-              tags={tags}
               onSave={handleUpdatePerson}
               onCancel={() => {
                 setIsEditDialogOpen(false)
