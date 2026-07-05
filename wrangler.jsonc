@@ -38,6 +38,6 @@
     "enabled": true
   },
   "vars": {
-    "NEXT_PUBLIC_SITE_URL": "https://omnis.app"
+    "NEXT_PUBLIC_SITE_URL": "https://omnisx.sahar-h-barak.workers.dev"
   }
 }

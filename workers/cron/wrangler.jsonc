@@ -10,6 +10,6 @@
     "crons": ["0 6 * * *", "0 4 * * *", "0 8 * * *"]
   },
   "vars": {
-    "SITE_URL": "https://omnis.app"
+    "SITE_URL": "https://omnisx.sahar-h-barak.workers.dev"
   }
 }
