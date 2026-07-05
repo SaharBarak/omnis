@@ -42,6 +42,7 @@
     "next-app",
     "workers",
     "scripts",
+    "packages",
     ".open-next"
   ]
 }
