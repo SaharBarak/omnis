@@ -93,18 +93,57 @@ tests added) · `next build` ✓ (48/48 pages).
 4. Prod corpus: `DATABASE_URL='<supabase session-pooler URI>' npm run
    ingest:knowledge` then `npm run ingest:knowledge:verify`.
 
+### Third wave (2026-07-05 eve) — DONE + DEPLOYED
+
+All green: typecheck ✓ · **lint FIXED, 0 errors/64 warnings/~11s** ·
+**918/918 tests** · build ✓ · deployed + smoke-verified.
+
+- **Explorer tier (`e0dc70a`)** — $5/mo: all six systems, 5 profiles,
+  2 boards, timeline; no AI/relationships/exports/groups/API ("whole map,
+  small scale, no AI"). Paddle sandbox pro_01kwst8kdad72ya2syp5sschfr /
+  pri_01kwst90ww53xqm03p594grsm7; PADDLE_PRICE_EXPLORER pushed as worker
+  secret + .env.local. isPaidPlanTier killed the last two-paid-plan
+  hardcode; entitlements enforce automatically (plan-generic
+  requireLimit). Pricing page: slim Explorer row above featured grid +
+  ledger column; settings upgrade surface updated. 15 new billing tests.
+  NOTE: homepage PricingV2 teaser still shows 3 plans (design decision).
+- **Lint fixed (`131462a`)** — root cause: unscoped override object
+  leaked into .open-next/.wrangler where eslint-config-next's plugins
+  (registered with a files glob) are undefined; 77MB bundle trees also
+  caused the OOM. Global ignores scope lint to src/ + packages/scraper.
+  import rules via resolver-free eslint-plugin-import-x (first=error
+  fixed everywhere; order/no-duplicates=warn, autofixable, ratchet later).
+- **Cleanup pass 2 (`1ed136d`)** — deleted 12 verified-dead files
+  (TzolkinGrid, 4 landing-v1, ui/form+scroll-area, analytics, email.ts,
+  3 dead barrels) + 3 deps; people-form tag picker removed (tag CRUD
+  gone, no system tags seeded; read paths + legacy assignments kept).
+- **Deploy correctness (`072592a` + `afd40d5`)** — CRITICAL bug fixed:
+  `npm run deploy` was inlining .env.local's localhost into
+  NEXT_PUBLIC_SITE_URL at build → prod canonicals said
+  http://localhost:3100. Deploy script now pins the workers.dev origin;
+  stale omnis.app vars in both wrangler configs corrected; cron worker
+  redeployed (SITE_URL fixed). RATE_LIMIT_KV namespace created
+  (a57499088e054890b17bec5d8a0b73ce) + wired; UNSUBSCRIBE_SECRET pushed
+  (mirrored in .env.local). Prod smoke: canonicals correct, Explorer
+  live on /pricing, CSP enforced, gates hold.
+
 ### Still-open backlog
-1. **Explorer $5 tier + add-ons (#14)** — needs new Paddle sandbox prices
-   (user) + billing.ts + entitlement fields.
-2. **Pre-existing (#23)** — lint flat-config broken (above); Supabase
-   pooler in Sydney → authed queries ~30s (region migration / caching).
-3. **Deliberately left** — hello@/privacy@/support@omnis.app emails (need
-   domain decision + Resend verification); env fallback strings
-   `?? 'https://omnis.app'` (harmless, prod env set).
-4. **Extra dead-code suspects (listed, not deleted)** — TzolkinGrid,
-   landing-v1 {demo,how-it-works,scroll-reveal-quote,social-proof},
-   ui/{form,scroll-area} (+deps), lib/analytics.ts, services/email.ts,
-   dead barrels billing/index, types/index, data/index.
+1. **Add-ons + one-time AI packs** — deferred (product decisions; user
+   AFK on the ask). Explorer shipped without them.
+2. **Supabase Sydney latency** — user AFK on region question; default =
+   keep for now. To migrate: user creates eu-central-1 project (or
+   `npx supabase login`), then schema migrate + secrets swap + verify
+   (DB near-empty, cheap now, pricier later).
+3. **omnis.app emails** (hello@/privacy@/support@) — left until custom
+   domain decision (user AFK on the ask). Env fallback strings
+   `?? 'https://omnis.app'` harmless (prod env pinned at build now).
+4. **Paddle checkout E2E** on live origin (sandbox card 4242…) — worth a
+   pass now that three paid tiers exist; then business verification →
+   live keys.
+5. RESEND_API_KEY + GEMINI_API_KEY still unset — newsletter/daily-kin
+   cron + AI interpret 503/skip until provided.
+6. Knowledge corpus: pipeline committed but DORMANT per user ("not
+   needed atm") — `npm run ingest:knowledge` when wanted.
 
 ## Platform migration (2026-07-04) — Mongo→Supabase, Better Auth→Auth0
 
