@@ -6,14 +6,17 @@ import {
   listSharedViews,
   createSharedView,
 } from '@/lib/db/repositories/shares-repo'
+import { generateShareToken, hashSharePassword } from '@/lib/share/share-token'
 
+// The client NEVER supplies url_token or password_hash: the token is minted
+// server-side (unguessable, server-owned) and the raw password is hashed
+// here. The created row — including its url_token — is returned to the caller.
 const createSchema = z.object({
   share_type: z.enum(['person', 'relationship', 'group', 'graph']),
   options: z.record(z.string(), z.unknown()).optional(),
-  url_token: z.string().min(1).max(128),
   expires_at: z.string().nullable().optional(),
   max_views: z.number().int().positive().nullable().optional(),
-  password_hash: z.string().nullable().optional(),
+  password: z.string().min(1).max(128).nullable().optional(),
 })
 
 export async function GET() {
@@ -30,8 +33,12 @@ export async function POST(request: Request) {
   try {
     const userId = await requireUserId()
     const body = await request.json()
-    const input = createSchema.parse(body)
-    const share = await createSharedView(userId, input)
+    const { password, ...input } = createSchema.parse(body)
+    const share = await createSharedView(userId, {
+      ...input,
+      url_token: generateShareToken(),
+      password_hash: password ? await hashSharePassword(password) : null,
+    })
     return NextResponse.json({ share }, { status: 201 })
   } catch (error) {
     return handleApiError(error, 'POST /api/shares')

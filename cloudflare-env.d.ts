@@ -12,6 +12,14 @@ interface CloudflareEnv {
   NEXT_INC_CACHE_R2_BUCKET: unknown
   IMAGES: unknown
   AI: { run(model: string, inputs: unknown): Promise<unknown> }
+  RATE_LIMIT_KV: {
+    get(key: string): Promise<string | null>
+    put(
+      key: string,
+      value: string,
+      options?: { expirationTtl?: number }
+    ): Promise<void>
+  }
 
   // Vars / secrets (set via wrangler.jsonc vars or `wrangler secret put`)
   NEXT_PUBLIC_SITE_URL: string
@@ -36,5 +44,6 @@ interface CloudflareEnv {
   PADDLE_PRICE_COMPLETE: string
   PADDLE_PRICE_PRACTITIONER: string
   CRON_SECRET: string
+  UNSUBSCRIBE_SECRET: string
   RESEND_API_KEY: string
 }

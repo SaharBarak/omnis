@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { rateLimiters, rateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limit'
+import { verifyUnsubscribeToken } from '@/lib/api/unsubscribe-token'
 import { unsubscribe } from '@/lib/db/repositories/newsletter-repo'
 
 export const dynamic = 'force-dynamic'
@@ -43,7 +44,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Also support GET for unsubscribe links in emails
+// GET handles one-click unsubscribe links in emails. The link must carry a
+// valid HMAC signature over the email (`sig`, minted server-side when the
+// email is sent) — a bare identifier would let anyone unsubscribe anyone.
+// Invalid/missing signatures fall through to the manual /unsubscribe form.
 export async function GET(request: NextRequest) {
   // Rate limiting check for GET as well
   const rateLimitResult = await rateLimiters.newsletter.check(request, 'unsubscribe-link')
@@ -54,12 +58,17 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url)
   const email = searchParams.get('email')
+  const sig = searchParams.get('sig')
 
   if (!email) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
   const normalizedEmail = email.toLowerCase().trim()
+
+  if (!sig || !(await verifyUnsubscribeToken(normalizedEmail, sig))) {
+    return NextResponse.redirect(new URL('/unsubscribe?error=invalid_link', request.url))
+  }
 
   await unsubscribe(normalizedEmail)
 

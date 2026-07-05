@@ -230,19 +230,17 @@ export function useBoards(): UseBoardsReturn {
     await fetchJson(`/api/boards/${id}`, jsonInit('PATCH', { layers }))
   }, [])
 
-  // Create a share link for a board
+  // Create a share link for a board. Token generation and password hashing
+  // happen SERVER-SIDE in POST /api/boards/[id]/shares; the minted url_token
+  // comes back on the returned share.
   const createShare = useCallback(async (boardId: string, input: CreateBoardShareInput): Promise<BoardShare> => {
-    // Generate unique token client-side (unguessable).
-    const token = crypto.randomUUID().replace(/-/g, '').slice(0, 16)
-
     const { share } = await fetchJson<{ share: BoardShare }>(
       `/api/boards/${boardId}/shares`,
       jsonInit('POST', {
-        url_token: token,
         permissions: input.permissions || 'view',
         expires_at: input.expiresAt ?? null,
         max_views: input.maxViews ?? null,
-        password_hash: input.password || null,
+        password: input.password || null,
       })
     )
     return share

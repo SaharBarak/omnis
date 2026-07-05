@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Eye, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { CanvasProvider, CanvasEditor } from '@/components/canvas'
 import type { CanvasState, Layer } from '@/lib/types/board'
 
@@ -17,7 +18,7 @@ interface SharedBoard {
 
 type ViewState =
   | { status: 'loading' }
-  | { status: 'locked' }
+  | { status: 'locked'; wrongPassword: boolean }
   | { status: 'error'; message: string }
   | { status: 'ready'; board: SharedBoard }
 
@@ -25,6 +26,9 @@ type ViewState =
  * Public, read-only viewer for a board shared via an unguessable token.
  * Intentionally fetches the public endpoint directly (no useBoards hook)
  * so no authenticated board-list request fires for anonymous visitors.
+ *
+ * Password attempts go in the POST body — never in the URL — so they can't
+ * leak via logs, history, or Referer headers.
  */
 export default function SharedBoardPage({
   params,
@@ -32,19 +36,22 @@ export default function SharedBoardPage({
   params: Promise<{ token: string }>
 }) {
   const [state, setState] = useState<ViewState>({ status: 'loading' })
+  const [password, setPassword] = useState('')
 
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadSharedBoard() {
+  const loadSharedBoard = useCallback(
+    async (candidatePassword?: string): Promise<void> => {
       try {
         const { token } = await params
-        const res = await fetch(`/api/boards/shared/${token}`)
-
-        if (cancelled) return
+        const res = candidatePassword
+          ? await fetch(`/api/boards/shared/${token}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ password: candidatePassword }),
+            })
+          : await fetch(`/api/boards/shared/${token}`)
 
         if (res.status === 401) {
-          setState({ status: 'locked' })
+          setState({ status: 'locked', wrongPassword: !!candidatePassword })
           return
         }
         if (res.status === 404) {
@@ -75,17 +82,15 @@ export default function SharedBoardPage({
           },
         })
       } catch {
-        if (!cancelled) {
-          setState({ status: 'error', message: 'Could not load this board.' })
-        }
+        setState({ status: 'error', message: 'Could not load this board.' })
       }
-    }
+    },
+    [params]
+  )
 
+  useEffect(() => {
     loadSharedBoard()
-    return () => {
-      cancelled = true
-    }
-  }, [params])
+  }, [loadSharedBoard])
 
   if (state.status === 'loading') {
     return (
@@ -100,6 +105,29 @@ export default function SharedBoardPage({
       <div className="h-screen flex flex-col items-center justify-center gap-4">
         <Lock className="h-8 w-8 text-muted-foreground" />
         <p className="text-muted-foreground">This shared board is password protected.</p>
+        <form
+          className="flex flex-col items-center gap-3 w-full max-w-xs"
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (!password) return
+            setState({ status: 'loading' })
+            loadSharedBoard(password)
+          }}
+        >
+          <Input
+            type="password"
+            placeholder="Enter password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoFocus
+          />
+          {state.wrongPassword && (
+            <p className="text-sm text-destructive">Incorrect password. Try again.</p>
+          )}
+          <Button type="submit" className="w-full" disabled={!password}>
+            Unlock board
+          </Button>
+        </form>
       </div>
     )
   }

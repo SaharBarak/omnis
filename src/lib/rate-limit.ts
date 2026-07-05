@@ -1,8 +1,18 @@
 /**
  * Rate Limiting Utility
  *
- * Uses in-memory store for development/edge functions.
- * Can be extended to use Upstash Redis or Vercel KV for distributed rate limiting.
+ * Backing store selection (per check, so it works under Workers isolate churn):
+ *
+ * 1. Cloudflare KV (`RATE_LIMIT_KV` binding, wrangler.jsonc) — fixed-window
+ *    counter shared across all Workers isolates. KV is eventually consistent
+ *    and the read-increment-write is not atomic, so this is BEST-EFFORT
+ *    smoothing: a burst racing across isolates can slightly exceed `max`.
+ *    That is acceptable for these limits (abuse damping, not billing
+ *    enforcement). The strict alternative is a Durable Object counter
+ *    (single-writer, exact), deliberately not used here: it adds a class +
+ *    migration + per-request DO round-trip and cost for no product benefit.
+ * 2. In-memory Map — fallback when the KV binding is absent (local dev
+ *    without bindings, vitest, plain Node). Per-process only.
  *
  * @example
  * const limiter = createRateLimiter({ max: 10, windowMs: 60_000 })
@@ -11,6 +21,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { getCloudflareContext } from '@opennextjs/cloudflare'
 
 export interface RateLimitConfig {
   /** Maximum number of requests allowed in the window */
@@ -30,14 +41,22 @@ export interface RateLimitResult {
   reset: number // Unix timestamp when the limit resets
 }
 
+/** Minimal KV surface the limiter needs (subset of Workers KVNamespace). */
+export interface RateLimitKv {
+  get(key: string): Promise<string | null>
+  put(
+    key: string,
+    value: string,
+    options?: { expirationTtl?: number }
+  ): Promise<void>
+}
+
 interface RateLimitEntry {
   count: number
   resetAt: number
 }
 
-// In-memory store for rate limiting
-// Note: This resets on server restart and doesn't work across multiple instances
-// For production with multiple instances, use Upstash Redis or Vercel KV
+// In-memory fallback store. Resets on restart, per-isolate/per-process only.
 const store = new Map<string, RateLimitEntry>()
 
 /** Reset the in-memory rate limit store (for tests) */
@@ -68,6 +87,20 @@ function startCleanup() {
 }
 
 /**
+ * Resolve the KV binding from the request-scoped Cloudflare context.
+ * Returns null when not running on Workers (dev without bindings, tests,
+ * plain Node) so callers can degrade to the in-memory store.
+ */
+function getRateLimitKv(): RateLimitKv | null {
+  try {
+    const { env } = getCloudflareContext()
+    return (env as { RATE_LIMIT_KV?: RateLimitKv }).RATE_LIMIT_KV ?? null
+  } catch {
+    return null
+  }
+}
+
+/**
  * Get a unique identifier for the request
  */
 function getIdentifier(request: NextRequest, userId?: string): string {
@@ -88,6 +121,71 @@ function getIdentifier(request: NextRequest, userId?: string): string {
   }
 
   return ip
+}
+
+/** Fixed-window check against the shared KV namespace. */
+async function checkKv(
+  kv: RateLimitKv,
+  key: string,
+  max: number,
+  windowMs: number,
+  now: number
+): Promise<RateLimitResult> {
+  const windowStart = Math.floor(now / windowMs) * windowMs
+  const resetAt = windowStart + windowMs
+  const kvKey = `${key}:${windowStart}`
+
+  const current = Number.parseInt((await kv.get(kvKey)) ?? '0', 10) || 0
+  const count = current + 1
+
+  // KV requires expirationTtl >= 60s; pad past the window end so the key
+  // outlives its window and then self-deletes.
+  const ttl = Math.max(60, Math.ceil(windowMs / 1000) + 60)
+  await kv.put(kvKey, String(count), { expirationTtl: ttl })
+
+  return {
+    success: count <= max,
+    limit: max,
+    remaining: Math.max(0, max - count),
+    reset: Math.floor(resetAt / 1000),
+  }
+}
+
+/** Sliding-window-ish check against the per-process in-memory store. */
+function checkMemory(
+  key: string,
+  max: number,
+  windowMs: number,
+  now: number
+): RateLimitResult {
+  let entry = store.get(key)
+
+  // If no entry or window expired, create new entry
+  if (!entry || entry.resetAt < now) {
+    entry = {
+      count: 1,
+      resetAt: now + windowMs,
+    }
+    store.set(key, entry)
+
+    return {
+      success: true,
+      limit: max,
+      remaining: max - 1,
+      reset: Math.floor(entry.resetAt / 1000),
+    }
+  }
+
+  // Increment counter
+  entry.count++
+  store.set(key, entry)
+
+  return {
+    success: entry.count <= max,
+    limit: max,
+    remaining: Math.max(0, max - entry.count),
+    reset: Math.floor(entry.resetAt / 1000),
+  }
 }
 
 /**
@@ -111,37 +209,16 @@ export function createRateLimiter(config: RateLimitConfig) {
       const key = `${keyPrefix}:${endpoint}:${identifier}`
       const now = Date.now()
 
-      let entry = store.get(key)
-
-      // If no entry or window expired, create new entry
-      if (!entry || entry.resetAt < now) {
-        entry = {
-          count: 1,
-          resetAt: now + windowMs,
-        }
-        store.set(key, entry)
-
-        return {
-          success: true,
-          limit: max,
-          remaining: max - 1,
-          reset: Math.floor(entry.resetAt / 1000),
+      const kv = getRateLimitKv()
+      if (kv) {
+        try {
+          return await checkKv(kv, key, max, windowMs, now)
+        } catch {
+          // KV outage must never take the API down — degrade to per-isolate.
         }
       }
 
-      // Increment counter
-      entry.count++
-      store.set(key, entry)
-
-      const remaining = Math.max(0, max - entry.count)
-      const success = entry.count <= max
-
-      return {
-        success,
-        limit: max,
-        remaining,
-        reset: Math.floor(entry.resetAt / 1000),
-      }
+      return checkMemory(key, max, windowMs, now)
     },
   }
 }

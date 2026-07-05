@@ -14,6 +14,14 @@
       "service": "omnisx"
     }
   ],
+  "kv_namespaces": [
+    {
+      "binding": "RATE_LIMIT_KV",
+      // Placeholder — replace with the id printed by:
+      //   npx wrangler kv namespace create RATE_LIMIT_KV
+      "id": "REPLACE_WITH_RATE_LIMIT_KV_NAMESPACE_ID"
+    }
+  ],
   "r2_buckets": [
     {
       "binding": "NEXT_INC_CACHE_R2_BUCKET",

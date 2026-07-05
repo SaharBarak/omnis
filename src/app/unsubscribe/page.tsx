@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 function UnsubscribeContent() {
   const searchParams = useSearchParams()
   const success = searchParams.get('success') === 'true'
+  const errorParam = searchParams.get('error')
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<{ success: boolean; message?: string } | null>(
@@ -79,6 +80,13 @@ function UnsubscribeContent() {
           </div>
         ) : (
           <form onSubmit={handleUnsubscribe} className="glass rounded-xl p-6">
+            {errorParam && (
+              <p className="text-sm text-red-400 mb-4">
+                {errorParam === 'rate_limit'
+                  ? 'Too many attempts. Please try again later.'
+                  : 'That unsubscribe link is invalid or has expired. Enter your email below to unsubscribe.'}
+              </p>
+            )}
             <div className="mb-6">
               <label htmlFor="email" className="block text-sm font-medium mb-2">
                 Enter your email address

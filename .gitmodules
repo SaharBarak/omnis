@@ -1,3 +1,0 @@
-[submodule "packages/scraper"]
-	path = packages/scraper
-	url = https://github.com/SaharBarak/omnis-scraper.git

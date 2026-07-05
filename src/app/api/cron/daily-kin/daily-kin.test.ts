@@ -83,6 +83,7 @@ describe('GET /api/cron/daily-kin', () => {
       ...originalEnv,
       RESEND_API_KEY: 'test-resend-key',
       CRON_SECRET: 'test-cron-secret',
+      UNSUBSCRIBE_SECRET: 'test-unsubscribe-secret',
       NODE_ENV: 'test'
     }
 
@@ -244,6 +245,21 @@ describe('GET /api/cron/daily-kin', () => {
       const emailCall = mockResendSend.mock.calls[0][0]
       expect(emailCall.html).toContain(`email=${encodeURIComponent(testEmail)}`)
       expect(emailCall.html).not.toContain('email=RECIPIENT')
+      // Link must carry the HMAC signature (forgery protection).
+      expect(emailCall.html).toMatch(/&sig=[0-9a-f]{64}/)
+    })
+
+    it('should fall back to the manual unsubscribe page when UNSUBSCRIBE_SECRET is unset', async () => {
+      delete process.env.UNSUBSCRIBE_SECRET
+      const request = createRequest('/api/cron/daily-kin', {
+        authorization: 'Bearer test-cron-secret'
+      })
+      await GET(request)
+
+      const emailCall = mockResendSend.mock.calls[0][0]
+      // Never emit a forgeable bare-email link.
+      expect(emailCall.html).not.toContain('/api/newsletter/unsubscribe?email=')
+      expect(emailCall.html).toContain('https://omnis.app/unsubscribe')
     })
   })
 

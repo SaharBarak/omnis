@@ -54,15 +54,6 @@ export function toPublicGroupAnalysis(
   }
 }
 
-/**
- * SHA-256 hex digest of a share password, matching the client-side scheme
- * used at share creation time (`hashPassword` in use-shares.ts). Runs on Web
- * Crypto so it works in both the Cloudflare Workers runtime and Node.
- */
-export async function hashSharePassword(password: string): Promise<string> {
-  const data = new TextEncoder().encode(password)
-  const digest = await crypto.subtle.digest('SHA-256', data)
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('')
-}
+// Share token + password hashing moved to src/lib/share/share-token.ts —
+// re-exported here for existing importers.
+export { hashSharePassword } from './share-token'

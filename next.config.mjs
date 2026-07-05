@@ -89,11 +89,13 @@ const nextConfig = {
             value: 'max-age=63072000; includeSubDomains; preload',
           },
           {
-            // Report-only first: enforce frame-ancestors for real clickjacking
-            // defense without risking breakage on inline Next/Auth0/framer
-            // scripts. Promote to enforced Content-Security-Policy in a follow-up
-            // once violation reports are clean.
-            key: 'Content-Security-Policy-Report-Only',
+            // Enforced minimal CSP. Deliberately no script-src/style-src —
+            // Next.js inline bootstrap scripts would break without nonces.
+            // These three directives can't break the app: nothing frames it,
+            // nothing rewrites <base>, and no plugins are embedded. No
+            // report-only twin kept: there is no reporting endpoint to
+            // receive violation reports.
+            key: 'Content-Security-Policy',
             value: "frame-ancestors 'none'; base-uri 'self'; object-src 'none'",
           },
         ],

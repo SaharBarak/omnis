@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { isAuthorizedCron } from '@/lib/api/cron-auth'
+import { signUnsubscribeToken } from '@/lib/api/unsubscribe-token'
 import { dateToKin, kinToSeal, kinToTone, calculateOracle } from '@/lib/calculations'
 import { getSeal } from '@/lib/data/seals'
 import { getTone } from '@/lib/data/tones'
@@ -100,7 +101,10 @@ export async function GET(request: NextRequest) {
           from: 'OmnisX <noreply@omnis.app>',
           to: subscriber.email,
           subject,
-          html: getDailyKinEmailHtml(kinData, subscriber.email)
+          html: getDailyKinEmailHtml(
+            kinData,
+            await buildUnsubscribeUrl(subscriber.email)
+          )
         })
 
         if (sendError) {
@@ -159,7 +163,19 @@ interface KinData {
   }
 }
 
-function getDailyKinEmailHtml(kinData: KinData, subscriberEmail: string): string {
+/**
+ * One-click unsubscribe URL carrying an HMAC signature over the email so the
+ * endpoint can prove the link came from us (a bare email would let anyone
+ * unsubscribe anyone). When UNSUBSCRIBE_SECRET is unset we fall back to the
+ * identifier-free manual form rather than emit a forgeable link.
+ */
+async function buildUnsubscribeUrl(subscriberEmail: string): Promise<string> {
+  const sig = await signUnsubscribeToken(subscriberEmail)
+  if (!sig) return 'https://omnis.app/unsubscribe'
+  return `https://omnis.app/api/newsletter/unsubscribe?email=${encodeURIComponent(subscriberEmail)}&sig=${sig}`
+}
+
+function getDailyKinEmailHtml(kinData: KinData, unsubscribeUrl: string): string {
   const sealColors: Record<string, string> = {
     red: '#ef4444',
     white: '#f5f5f5',
@@ -243,7 +259,7 @@ ${kinData.mantra}
     <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
       <p style="color: #666; font-size: 12px; margin: 0 0 10px;">Daily Kin from OmnisX</p>
       <p style="color: #666; font-size: 12px; margin: 0;">
-        <a href="https://omnis.app/api/newsletter/unsubscribe?email=${encodeURIComponent(subscriberEmail)}" style="color: #888;">Unsubscribe</a>
+        <a href="${unsubscribeUrl}" style="color: #888;">Unsubscribe</a>
       </p>
     </div>
   </div>
