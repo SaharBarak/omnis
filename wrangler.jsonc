@@ -19,7 +19,7 @@
       "binding": "RATE_LIMIT_KV",
       // Placeholder — replace with the id printed by:
       //   npx wrangler kv namespace create RATE_LIMIT_KV
-      "id": "REPLACE_WITH_RATE_LIMIT_KV_NAMESPACE_ID"
+      "id": "a57499088e054890b17bec5d8a0b73ce"
     }
   ],
   "r2_buckets": [
