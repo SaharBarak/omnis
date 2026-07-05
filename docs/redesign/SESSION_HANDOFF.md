@@ -1,4 +1,4 @@
-# Session Handoff — Redesign (2026-07-03)
+# Session Handoff — Redesign (2026-07-05)
 
 Continue point for the Omnis knowledge-experience redesign. Read this +
 MAIN_PURPOSE.md first; everything else on demand.
@@ -73,16 +73,45 @@ Local test rig: `docker run -d --name omnisx-pg -e POSTGRES_PASSWORD=omnisx
 currently holds local-dev values (local pg + placeholder Auth0 so the app
 boots; login needs real Auth0). Git-ignored.
 
-## Remaining (blocked on user-supplied secrets)
+## DEPLOYED (2026-07-05) — live at https://omnisx.sahar-h-barak.workers.dev
 
-1. Fill `.env.local` from `.env.example` (Supabase pooler + direct URIs,
-   Auth0 app creds, Paddle sandbox keys + price IDs) — `docs/SETUP.md`.
-2. `npm run db:migrate` (creates tables + pgvector).
-3. Walk all 10 USER_FLOWS end-to-end on the live stack (Playwright for
-   localhost — Aside crashes on heavy local pages).
-4. `wrangler r2 bucket create omnisx-next-cache`, `wrangler secret put …`
-   (list in SETUP), `npm run deploy` + `npm run deploy:cron`; then point
-   Auth0 callbacks + Paddle webhook at the deployed origin.
+All secrets live, all services wired, prod verified 21/21 authed + 19/19 anon
+flow assertions (same scripts as local; scratchpad/authed-flows.mjs pattern).
+
+- **Supabase**: password reset (new pw in .env.local), pooler URI runtime +
+  session-pooler URI for migrations (direct host is IPv6-only — unreachable
+  from this network). 21 tables + pgvector(384) migrated and verified.
+- **Auth0** (tenant `dev-kaipd4klyg48p0ai.us`): Regular Web App "OmnisX",
+  Google + Username-Password-Authentication enabled, callbacks/logout for
+  :3100, :3000 and the workers.dev origin. NOTE: Universal Login default
+  screen renders social-only; email path MUST pass
+  `connection=Username-Password-Authentication` (fixed in use-auth.ts,
+  commit 1fcd2f4).
+- **Paddle sandbox** (account "Two Circles Studios"): products OmnisX
+  Complete pri_01kws4k6zh22zxbg9efjd4cwqr ($9/mo) + Practitioner
+  pri_01kws4k77743e1px763pv91hbq ($29/mo), API key `omnisx-server`
+  (all scopes), client token `omnisx-web`, webhook →
+  workers.dev/api/billing/webhook (secret captured). All in .env.local +
+  wrangler secrets.
+- **Cloudflare**: R2 subscription + Workers Paid ($5/mo) enabled by user
+  (worker gzip is 5.2 MiB > 3 MiB free cap). Bucket omnisx-next-cache.
+  Workers: `omnisx` (main) + `omnisx-cron` (3 schedules). 14 secrets pushed
+  (APP_BASE_URL/NEXT_PUBLIC_SITE_URL = workers.dev origin at build+secret
+  time; .env.local keeps localhost for dev).
+- Test user: sahar.h.barak+omnisxtest1@gmail.com (pw was scratchpad-only —
+  reset via Auth0 if needed).
+
+## Remaining (small)
+
+1. RESEND_API_KEY + GEMINI_API_KEY never provided — newsletter/daily-kin
+   cron + AI interpret return 503/skip until set (push via wrangler secret).
+2. Paddle checkout E2E (sandbox card 4242…) on live origin; then business
+   verification → live Paddle keys.
+3. knowledge `content_chunks` empty — search returns [] until content
+   ingested (needs 384-dim bge-small embeddings).
+4. Custom domain when ready: update Auth0 callbacks, Paddle webhook,
+   APP_BASE_URL/NEXT_PUBLIC_SITE_URL secrets, rebuild+deploy.
+5. omnisx-cron `SITE_URL` var still says omnis.app — update wrangler.jsonc.
 
 ## What this session shipped (chronological)
 
