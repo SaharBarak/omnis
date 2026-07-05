@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { isAuthorizedCron } from '@/lib/api/cron-auth'
 import { dateToKin, kinToSeal, kinToTone, calculateOracle } from '@/lib/calculations'
 import { getSeal } from '@/lib/data/seals'
 import { getTone } from '@/lib/data/tones'
@@ -16,13 +17,9 @@ export const dynamic = 'force-dynamic'
 // Configure in vercel.json: {"crons": [{"path": "/api/cron/daily-kin", "schedule": "0 6 * * *"}]}
 
 export async function GET(request: NextRequest) {
-  // Verify cron secret for security
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    // In development, allow without auth
-    if (process.env.NODE_ENV === 'production') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+  // Verify cron secret — fail closed regardless of environment.
+  if (!isAuthorizedCron(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   if (!process.env.RESEND_API_KEY) {

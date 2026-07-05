@@ -135,14 +135,12 @@ describe('GET /api/cron/daily-kin', () => {
       expect(data.success).toBe(true)
     })
 
-    it('should succeed in development without cron secret', async () => {
+    it('should fail closed in development without cron secret', async () => {
       vi.stubEnv('NODE_ENV', 'development')
       const request = createRequest('/api/cron/daily-kin')
       const response = await GET(request)
-      const data = await parseResponse(response)
 
-      expect(response.status).toBe(200)
-      expect(data.success).toBe(true)
+      expect(response.status).toBe(401)
     })
   })
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isAuthorizedCron } from '@/lib/api/cron-auth'
 import { processDailyDigestNotifications } from '@/lib/services/notifications'
 import {
   listAllEnabledSettingsForHour,
@@ -16,12 +17,9 @@ export const dynamic = 'force-dynamic'
 // functions (listAllEnabledSettingsForHour / processDailyDigestNotifications).
 
 export async function GET(request: NextRequest) {
-  // Verify cron secret for security
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    if (process.env.NODE_ENV === 'production') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+  // Verify cron secret — fail closed regardless of environment.
+  if (!isAuthorizedCron(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {

@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { requireUserId } from '@/lib/auth-server'
 import { handleApiError } from '@/lib/api/respond'
 import { listPeopleWithTags, createPerson } from '@/lib/db/repositories/people-repo'
+import { getUserPlan } from '@/lib/services/usage'
+import { getPlanLimits, PLANS } from '@/lib/services/billing'
 
 const birthPlaceSchema = z
   .object({
@@ -41,6 +43,24 @@ export async function POST(request: Request) {
     const userId = await requireUserId()
     const body = await request.json()
     const { person, tagIds } = createSchema.parse(body)
+
+    // Plan entitlement: cap saved profiles per the user's tier. Counted from
+    // actual owned rows (not a monthly meter) since profiles are persistent.
+    const plan = await getUserPlan(userId)
+    const profileLimit = getPlanLimits(plan).profiles
+    if (profileLimit !== Infinity) {
+      const existing = await listPeopleWithTags(userId)
+      if (existing.people.length >= profileLimit) {
+        return NextResponse.json(
+          {
+            error: `You've reached your plan's limit of ${profileLimit} ${profileLimit === 1 ? 'person' : 'people'} on ${PLANS[plan].name}. Upgrade to add more.`,
+            code: 'limit_exceeded',
+          },
+          { status: 403 }
+        )
+      }
+    }
+
     const created = await createPerson(userId, person, tagIds ?? [])
     return NextResponse.json({ person: created }, { status: 201 })
   } catch (error) {

@@ -92,17 +92,12 @@ describe('GET /api/cron/send-notifications', () => {
       expect(data.success).toBe(true)
     })
 
-    it('should succeed in development without cron secret', async () => {
+    it('should fail closed in development without cron secret', async () => {
       vi.stubEnv('NODE_ENV', 'development')
-      vi.useFakeTimers()
-      vi.setSystemTime(new Date('2024-06-15T07:00:00Z'))
-
       const request = createRequest('/api/cron/send-notifications')
       const response = await GET(request)
-      const data = await parseResponse(response)
 
-      expect(response.status).toBe(200)
-      expect(data.success).toBe(true)
+      expect(response.status).toBe(401)
     })
   })
 

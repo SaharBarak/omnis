@@ -5,6 +5,7 @@ import {
   generateQuickInterpretation,
 } from '@/lib/services/ai-interpretations'
 import { rateLimiters, rateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limit'
+import { requireLimit, trackUsage, LimitExceededError } from '@/lib/services/usage'
 import type { AIInterpretationRequest, PredictionEvent } from '@/lib/types/prediction'
 
 export const dynamic = 'force-dynamic'
@@ -43,6 +44,11 @@ export async function POST(request: NextRequest) {
       return rateLimitResponse(rateLimitResult)
     }
 
+    // Plan entitlement: free plan gets 0 AI interpretations; paid plans are
+    // metered monthly. requireLimit throws LimitExceededError (→ 403) when the
+    // plan grants 0 or the monthly quota is spent.
+    await requireLimit(userId, 'ai_interpretations_used')
+
     const body = await request.json()
 
     // Validate required fields
@@ -66,6 +72,8 @@ export async function POST(request: NextRequest) {
         locale
       )
 
+      await trackUsage(userId, 'ai_interpretations_used')
+
       const response = NextResponse.json({
         success: true,
         data: {
@@ -86,12 +94,20 @@ export async function POST(request: NextRequest) {
 
     const interpretation = await generateInterpretation(interpretationRequest, userId)
 
+    await trackUsage(userId, 'ai_interpretations_used')
+
     const response = NextResponse.json({
       success: true,
       data: interpretation,
     })
     return addRateLimitHeaders(response, rateLimitResult)
   } catch (error) {
+    if (error instanceof LimitExceededError) {
+      return NextResponse.json(
+        { success: false, error: error.message, code: 'limit_exceeded' },
+        { status: 403 }
+      )
+    }
     console.error('AI interpretation error:', error)
     return NextResponse.json(
       { success: false, error: 'Failed to generate interpretation' },

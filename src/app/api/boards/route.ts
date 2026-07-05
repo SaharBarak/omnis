@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { requireUserId } from '@/lib/auth-server'
 import { handleApiError } from '@/lib/api/respond'
 import { listBoards, createBoard } from '@/lib/db/repositories/boards-repo'
+import { getUserPlan } from '@/lib/services/usage'
+import { getPlanLimits, PLANS } from '@/lib/services/billing'
 
 const templateEnum = z.enum([
   'blank',
@@ -36,6 +38,27 @@ export async function POST(request: Request) {
     const userId = await requireUserId()
     const body = await request.json()
     const input = createSchema.parse(body)
+
+    // Plan entitlement: cap boards per tier (free = 0 → boards are a paid
+    // feature). Counted from actual owned rows since boards are persistent.
+    const plan = await getUserPlan(userId)
+    const boardLimit = getPlanLimits(plan).boards
+    if (boardLimit !== Infinity) {
+      const existing = await listBoards(userId)
+      if (existing.length >= boardLimit) {
+        return NextResponse.json(
+          {
+            error:
+              boardLimit === 0
+                ? `Boards aren't included on ${PLANS[plan].name}. Upgrade to create boards.`
+                : `You've reached your plan's limit of ${boardLimit} boards on ${PLANS[plan].name}. Upgrade for more.`,
+            code: 'limit_exceeded',
+          },
+          { status: 403 }
+        )
+      }
+    }
+
     const board = await createBoard(userId, input)
     return NextResponse.json({ board }, { status: 201 })
   } catch (error) {

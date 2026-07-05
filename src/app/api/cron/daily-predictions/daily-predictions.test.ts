@@ -119,23 +119,19 @@ describe('GET /api/cron/daily-predictions', () => {
       expect(data.success).toBe(true)
     })
 
-    it('should succeed in development without cron secret', async () => {
+    it('should fail closed in development without cron secret', async () => {
       vi.stubEnv('NODE_ENV', 'development')
       const request = createRequest('/api/cron/daily-predictions')
       const response = await GET(request)
-      const data = await parseResponse(response)
 
-      expect(response.status).toBe(200)
-      expect(data.success).toBe(true)
+      expect(response.status).toBe(401)
     })
 
-    it('should succeed in test mode without cron secret', async () => {
+    it('should fail closed in test mode without cron secret', async () => {
       const request = createRequest('/api/cron/daily-predictions')
       const response = await GET(request)
-      const data = await parseResponse(response)
 
-      expect(response.status).toBe(200)
-      expect(data.success).toBe(true)
+      expect(response.status).toBe(401)
     })
   })
 

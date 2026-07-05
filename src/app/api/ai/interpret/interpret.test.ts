@@ -12,9 +12,31 @@ vi.mock('@/lib/services/ai-interpretations', () => ({
   generateQuickInterpretation: vi.fn(),
 }))
 
+// Mock usage/entitlement service. LimitExceededError is a real class so the
+// route's `instanceof` check works when we simulate an over-limit user.
+vi.mock('@/lib/services/usage', () => {
+  class LimitExceededError extends Error {
+    constructor(
+      public metric: string,
+      public current: number,
+      public limit: number,
+      message?: string
+    ) {
+      super(message || `Limit exceeded for ${metric}: ${current}/${limit}`)
+      this.name = 'LimitExceededError'
+    }
+  }
+  return {
+    requireLimit: vi.fn().mockResolvedValue(undefined),
+    trackUsage: vi.fn().mockResolvedValue(undefined),
+    LimitExceededError,
+  }
+})
+
 // Import after mocking
 import { getCurrentUserId } from '@/lib/auth-server'
 import { generateInterpretation, generateQuickInterpretation } from '@/lib/services/ai-interpretations'
+import { requireLimit, trackUsage, LimitExceededError } from '@/lib/services/usage'
 import { resetRateLimitStore } from '@/lib/rate-limit'
 import { POST } from './route'
 
@@ -119,6 +141,33 @@ describe('POST /api/ai/interpret', () => {
       const response = await POST(request)
 
       expect(response.status).toBe(200)
+    })
+  })
+
+  describe('Plan entitlement', () => {
+    it('should return 403 when the plan quota is exhausted', async () => {
+      setupAuthenticatedMock()
+      vi.mocked(requireLimit).mockRejectedValueOnce(
+        new LimitExceededError('ai_interpretations_used', 0, 0, 'Upgrade for AI interpretations.')
+      )
+
+      const request = createPostRequest({ prediction: MOCK_PREDICTION })
+      const response = await POST(request)
+      const data = await parseResponse(response)
+
+      expect(response.status).toBe(403)
+      expect(data.code).toBe('limit_exceeded')
+      expect(generateInterpretation).not.toHaveBeenCalled()
+    })
+
+    it('should track usage after a successful interpretation', async () => {
+      setupAuthenticatedMock()
+      vi.mocked(generateInterpretation).mockResolvedValue(MOCK_INTERPRETATION)
+
+      const request = createPostRequest({ prediction: MOCK_PREDICTION })
+      await POST(request)
+
+      expect(trackUsage).toHaveBeenCalledWith('user-123', 'ai_interpretations_used')
     })
   })
 

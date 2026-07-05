@@ -1,5 +1,7 @@
 'use client'
 
+import './dashboard.css'
+
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
@@ -115,8 +117,8 @@ function AppSidebar() {
                   </svg>
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-heading font-semibold">OmnisX</span>
-                  <span className="truncate text-xs text-muted-foreground">Symbolic Life OS</span>
+                  <span className="truncate font-display font-semibold tracking-tight">OmnisX</span>
+                  <span className="truncate font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Symbolic Life OS</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -127,7 +129,7 @@ function AppSidebar() {
       <SidebarContent>
         {navGroups.map((group) => (
           <SidebarGroup key={group.label}>
-            <SidebarGroupLabel className="text-xs font-medium text-sidebar-foreground/70">
+            <SidebarGroupLabel className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-sidebar-foreground/50">
               {group.label}
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -411,10 +413,20 @@ function ErrorState() {
   )
 }
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const { user, loading } = useAuth()
   const [timedOut, setTimedOut] = useState(false)
+
+  // Dashboard ground theme — landing palette mapped onto the shadcn vars
+  // (dashboard.css). Scoped to <html> while the authed app is mounted so
+  // portaled surfaces (dropdowns, dialogs, toasts) pick it up too.
+  useEffect(() => {
+    document.documentElement.classList.add('dash-theme', 'dark')
+    return () => {
+      document.documentElement.classList.remove('dash-theme', 'dark')
+    }
+  }, [])
 
   // Timeout: show error state after 12s of loading
   useEffect(() => {

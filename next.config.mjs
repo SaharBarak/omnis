@@ -73,6 +73,29 @@ const nextConfig = {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin',
           },
+          {
+            // Clickjacking protection — the authed app must never be framed.
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+          },
+          {
+            // *.workers.dev is HSTS-preloaded; set explicitly so it survives a
+            // future custom-domain cutover.
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
+          {
+            // Report-only first: enforce frame-ancestors for real clickjacking
+            // defense without risking breakage on inline Next/Auth0/framer
+            // scripts. Promote to enforced Content-Security-Policy in a follow-up
+            // once violation reports are clean.
+            key: 'Content-Security-Policy-Report-Only',
+            value: "frame-ancestors 'none'; base-uri 'self'; object-src 'none'",
+          },
         ],
       },
     ];
