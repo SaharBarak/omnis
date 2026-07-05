@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 export interface PricingPlan {
-  id: 'free' | 'complete' | 'practitioner'
+  id: 'free' | 'explorer' | 'complete' | 'practitioner'
   name: string
   description: string
   price: number
@@ -138,6 +138,19 @@ export const PRICING_PLANS: PricingPlan[] = [
       'Dreamspell system only',
       'Basic calculations',
       'Community support',
+    ],
+  },
+  {
+    id: 'explorer',
+    name: 'Explorer',
+    description: 'Every system, a few people, no AI',
+    price: 5,
+    priceILS: 18,
+    features: [
+      'Up to 5 people',
+      'All 6 symbolic systems',
+      '2 boards',
+      'Timeline view',
     ],
   },
   {

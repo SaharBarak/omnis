@@ -370,7 +370,7 @@ export const subscriptions = pgTable(
   {
     id: id(),
     user_id: text('user_id').notNull(),
-    plan: text('plan').notNull().default('free'), // free|complete|practitioner
+    plan: text('plan').notNull().default('free'), // free|explorer|complete|practitioner
     status: text('status').notNull().default('active'),
     paddle_customer_id: text('paddle_customer_id'),
     paddle_subscription_id: text('paddle_subscription_id'),

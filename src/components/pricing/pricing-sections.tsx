@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { TYPE } from '@/lib/design/landing-tokens'
 import {
   FREE_PLAN,
+  EXPLORER_PLAN,
   PAID_PLANS,
   LEDGER_COLUMNS,
   LEDGER_ROWS,
@@ -135,7 +136,52 @@ export function FreeLead() {
 }
 
 // --------------------------------------------
-// Paid tiers — featured Complete column, Practitioner beside it
+// Explorer — slim entry row: the whole map, small scale, no AI.
+// Deliberately quieter than the Complete/Practitioner cards below it.
+// --------------------------------------------
+
+function ExplorerRow() {
+  return (
+    <motion.div
+      {...fadeUp}
+      className="rounded-2xl border border-white/10 bg-surface p-6 sm:p-7"
+    >
+      <div className="grid items-center gap-6 md:grid-cols-[auto_1fr_auto]">
+        <div className="flex items-baseline gap-4">
+          <p className="text-xs uppercase tracking-[0.2em] text-white/50">
+            {EXPLORER_PLAN.name}
+          </p>
+          <p className="font-display text-3xl font-semibold text-white">
+            {EXPLORER_PLAN.price}
+            <span className="text-sm font-normal text-white/50">/mo</span>
+          </p>
+        </div>
+        <div>
+          <p className="text-sm text-white/70">{EXPLORER_PLAN.tagline}</p>
+          <ul className="mt-2 flex flex-wrap gap-x-6 gap-y-1.5 text-sm text-white/50">
+            {EXPLORER_PLAN.points.map((point) => (
+              <li key={point} className="flex items-center gap-2">
+                <span className="text-brand">·</span>
+                {point}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="w-full md:w-52">
+          <CheckoutButton
+            plan={EXPLORER_PLAN.id}
+            label={EXPLORER_PLAN.cta}
+            featured={false}
+          />
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+// --------------------------------------------
+// Paid tiers — Explorer entry row, then the featured Complete column
+// with Practitioner beside it
 // --------------------------------------------
 
 export function PaidTiers() {
@@ -144,7 +190,10 @@ export function PaidTiers() {
       <motion.h2 {...fadeUp} className={`${TYPE.section} text-center`}>
         Upgrade when the map becomes something you return to.
       </motion.h2>
-      <div className="mt-12 grid gap-6 md:grid-cols-5">
+      <div className="mt-12">
+        <ExplorerRow />
+      </div>
+      <div className="mt-6 grid gap-6 md:grid-cols-5">
         {PAID_PLANS.map((plan, i) => (
           <motion.div
             key={plan.id}
@@ -208,7 +257,7 @@ export function PlanLedger() {
         What each plan holds.
       </motion.h2>
       <motion.div {...fadeUp} className="mt-12 overflow-x-auto">
-        <table className="w-full min-w-[560px] border-collapse text-sm">
+        <table className="w-full min-w-[680px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-white/10">
               <th className="py-4 pr-4 text-left font-normal text-white/35" scope="col">
@@ -234,6 +283,7 @@ export function PlanLedger() {
                   {row.label}
                 </th>
                 <LedgerCell value={row.free} />
+                <LedgerCell value={row.explorer} />
                 <LedgerCell value={row.complete} featured />
                 <LedgerCell value={row.practitioner} />
               </tr>

@@ -9,7 +9,7 @@
 import { NextResponse } from 'next/server'
 import { getSession, UnauthorizedError } from '@/lib/auth-server'
 import { handleApiError } from '@/lib/api/respond'
-import { createCheckoutTransaction } from '@/lib/services/billing'
+import { createCheckoutTransaction, isPaidPlanTier } from '@/lib/services/billing'
 
 export async function POST(request: Request) {
   try {
@@ -23,20 +23,16 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { plan } = body
 
-    if (!plan || !['complete', 'practitioner'].includes(plan)) {
+    if (!isPaidPlanTier(plan)) {
       return NextResponse.json(
-        { error: 'Invalid plan. Must be "complete" or "practitioner"' },
+        { error: 'Invalid plan. Must be "explorer", "complete" or "practitioner"' },
         { status: 400 }
       )
     }
 
     // Create hosted Paddle checkout for the authenticated caller.
     // The post-checkout return URL is configured in Paddle's checkout settings.
-    const { url } = await createCheckoutTransaction(
-      user.id,
-      user.email || '',
-      plan as 'complete' | 'practitioner'
-    )
+    const { url } = await createCheckoutTransaction(user.id, user.email || '', plan)
 
     if (!url) {
       throw new Error('Failed to create checkout session')

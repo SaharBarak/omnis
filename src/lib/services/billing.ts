@@ -32,7 +32,20 @@ function getPaddleClient(): Paddle {
 }
 
 // Plan types
-export type PlanTier = 'free' | 'complete' | 'practitioner'
+export type PlanTier = 'free' | 'explorer' | 'complete' | 'practitioner'
+
+// Plans that can be purchased through Paddle checkout.
+export type PaidPlanTier = Exclude<PlanTier, 'free'>
+
+export const PAID_PLAN_TIERS: readonly PaidPlanTier[] = [
+  'explorer',
+  'complete',
+  'practitioner',
+] as const
+
+export function isPaidPlanTier(value: unknown): value is PaidPlanTier {
+  return (PAID_PLAN_TIERS as readonly string[]).includes(value as string)
+}
 
 // Subscription status (internal representation)
 export type SubscriptionStatus =
@@ -56,6 +69,24 @@ export const PLANS = {
       boards: 0,
       exports: false,
       timeline: false,
+      relationships: false,
+      groupAnalysis: false,
+      apiAccess: false,
+    },
+  },
+  explorer: {
+    name: 'Explorer',
+    price: 5,
+    priceILS: 18,
+    paddlePriceId: process.env.PADDLE_PRICE_EXPLORER,
+    limits: {
+      // The whole map at small scale: every system, a few people, no AI.
+      profiles: 5,
+      systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria'],
+      aiInterpretations: 0,
+      boards: 2,
+      exports: false,
+      timeline: true,
       relationships: false,
       groupAnalysis: false,
       apiAccess: false,
@@ -142,7 +173,7 @@ export async function getOrCreatePaddleCustomer(
 export async function createCheckoutTransaction(
   userId: string,
   email: string,
-  plan: 'complete' | 'practitioner'
+  plan: PaidPlanTier
 ): Promise<{ url: string | null }> {
   const priceId = PLANS[plan].paddlePriceId
   if (!priceId) {
@@ -212,6 +243,7 @@ export async function unmarshalWebhookEvent(
 /** Map a Paddle price id to our internal plan tier. */
 export function getPlanFromPriceId(priceId: string | undefined | null): PlanTier {
   if (!priceId) return 'free'
+  if (priceId === PLANS.explorer.paddlePriceId) return 'explorer'
   if (priceId === PLANS.complete.paddlePriceId) return 'complete'
   if (priceId === PLANS.practitioner.paddlePriceId) return 'practitioner'
   return 'free'

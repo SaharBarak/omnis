@@ -224,7 +224,7 @@ export default function BillingPage() {
         <p className="text-sm text-muted-foreground mb-6">
           Compare plans and upgrade anytime
         </p>
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
           {PRICING_PLANS.map((plan) => (
             <PricingCard
               key={plan.id}

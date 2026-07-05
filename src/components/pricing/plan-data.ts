@@ -7,7 +7,7 @@
  * promise something billing.ts does not enforce.
  */
 
-export type PaidPlanId = 'complete' | 'practitioner'
+export type PaidPlanId = 'explorer' | 'complete' | 'practitioner'
 
 export const FREE_PLAN = {
   name: 'Free',
@@ -29,6 +29,24 @@ export interface PaidPlan {
   readonly cta: string
   readonly featured: boolean
 }
+
+/**
+ * Entry paid tier — rendered as a slim row above the Complete/Practitioner
+ * grid, not as an equal third column. The whole map, small scale, no AI.
+ */
+export const EXPLORER_PLAN: PaidPlan = {
+  id: 'explorer',
+  name: 'Explorer',
+  price: '$5',
+  tagline: 'Every system, a few people',
+  points: [
+    'Up to 5 people',
+    'All six systems on every chart',
+    '2 boards & timeline view',
+  ],
+  cta: 'Open the whole map',
+  featured: false,
+} as const
 
 export const PAID_PLANS: readonly PaidPlan[] = [
   {
@@ -67,20 +85,21 @@ export const PAID_PLANS: readonly PaidPlan[] = [
 export interface LedgerRow {
   readonly label: string
   readonly free: string
+  readonly explorer: string
   readonly complete: string
   readonly practitioner: string
 }
 
-export const LEDGER_COLUMNS = ['Free', 'Complete', 'Practitioner'] as const
+export const LEDGER_COLUMNS = ['Free', 'Explorer', 'Complete', 'Practitioner'] as const
 
 export const LEDGER_ROWS: readonly LedgerRow[] = [
-  { label: 'People saved', free: '3', complete: '10', practitioner: 'Unlimited' },
-  { label: 'Systems', free: 'Dreamspell', complete: 'All six', practitioner: 'All six' },
-  { label: 'AI interpretations', free: '—', complete: '30', practitioner: 'Unlimited' },
-  { label: 'Boards', free: '—', complete: '5', practitioner: 'Unlimited' },
-  { label: 'Timeline view', free: '—', complete: 'Included', practitioner: 'Included' },
-  { label: 'Relationship readings', free: '—', complete: 'Basic', practitioner: 'Advanced' },
-  { label: 'PDF exports', free: '—', complete: 'Included', practitioner: 'Included' },
-  { label: 'Group analysis', free: '—', complete: '—', practitioner: 'Included' },
-  { label: 'API access', free: '—', complete: '—', practitioner: 'Included' },
+  { label: 'People saved', free: '3', explorer: '5', complete: '10', practitioner: 'Unlimited' },
+  { label: 'Systems', free: 'Dreamspell', explorer: 'All six', complete: 'All six', practitioner: 'All six' },
+  { label: 'AI interpretations', free: '—', explorer: '—', complete: '30', practitioner: 'Unlimited' },
+  { label: 'Boards', free: '—', explorer: '2', complete: '5', practitioner: 'Unlimited' },
+  { label: 'Timeline view', free: '—', explorer: 'Included', complete: 'Included', practitioner: 'Included' },
+  { label: 'Relationship readings', free: '—', explorer: '—', complete: 'Basic', practitioner: 'Advanced' },
+  { label: 'PDF exports', free: '—', explorer: '—', complete: 'Included', practitioner: 'Included' },
+  { label: 'Group analysis', free: '—', explorer: '—', complete: '—', practitioner: 'Included' },
+  { label: 'API access', free: '—', explorer: '—', complete: '—', practitioner: 'Included' },
 ] as const

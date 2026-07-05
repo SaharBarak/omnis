@@ -20,7 +20,7 @@ import { serialize } from '@/lib/db/serialize'
  * and therefore key off Paddle identifiers instead of an owner filter.
  */
 
-export type SubscriptionPlan = 'free' | 'complete' | 'practitioner'
+export type SubscriptionPlan = 'free' | 'explorer' | 'complete' | 'practitioner'
 export type SubscriptionStatus =
   | 'active'
   | 'trialing'
