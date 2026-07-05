@@ -155,6 +155,25 @@ export async function getSharedViewByToken(
 }
 
 /**
+ * INTERNAL (server-only) — resolves the owning tenant of an active share so
+ * the public share route can load the shared content through the normal
+ * owner-scoped repositories. The returned owner_id MUST NEVER be included in
+ * any response payload; it exists purely to key `getGroupWithMembers`-style
+ * lookups on behalf of an anonymous viewer.
+ */
+export async function getSharedViewOwnerIdByToken(
+  token: string
+): Promise<string | null> {
+  const db = getDb()
+  const [row] = await db
+    .select({ owner_id: shared_views.owner_id })
+    .from(shared_views)
+    .where(and(eq(shared_views.url_token, token), eq(shared_views.active, true)))
+    .limit(1)
+  return row?.owner_id ?? null
+}
+
+/**
  * PUBLIC — server-side password check for a protected share. Compares the
  * candidate against the stored hash without ever returning the hash. Returns
  * true when the share has no password or the candidate matches.

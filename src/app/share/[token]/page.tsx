@@ -2,9 +2,12 @@
 
 import { useState, useEffect, useCallback, use } from 'react'
 import Link from 'next/link'
-import { analyzeGroup } from '@/lib/services/group-analysis'
-import type { FullGroupAnalysis, GroupMemberAnalysis } from '@/lib/services/group-analysis'
-import type { GroupWithMembers, ShareOptions } from '@/lib/types/relationship'
+import type {
+  PublicGroupAnalysis,
+  PublicGroupMemberAnalysis,
+  PublicShareResponse,
+} from '@/lib/share/public-share'
+import type { ShareOptions } from '@/lib/types/relationship'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -19,7 +22,7 @@ const COLOR_LABELS: Record<string, { hebrew: string; hex: string }> = {
 }
 
 // Member card for display
-function MemberCard({ member }: { member: GroupMemberAnalysis }) {
+function MemberCard({ member }: { member: PublicGroupMemberAnalysis }) {
   const colorHex = COLOR_LABELS[member.dreamspell.color]?.hex || '#6B7280'
 
   return (
@@ -92,7 +95,7 @@ function PasswordForm({
 }
 
 // Group share view
-function GroupShareView({ analysis }: { analysis: FullGroupAnalysis }) {
+function GroupShareView({ analysis }: { analysis: PublicGroupAnalysis }) {
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -211,7 +214,7 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
   const [shareData, setShareData] = useState<{
     type: string
     options: ShareOptions
-    groupAnalysis?: FullGroupAnalysis
+    groupAnalysis?: PublicGroupAnalysis
   } | null>(null)
 
   const loadShare = useCallback(async (password?: string) => {
@@ -220,112 +223,42 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
     setPasswordError(null)
 
     try {
-      // First, get the share metadata from the public token route (no auth).
-      const shareRes = await fetch(`/api/shares/public/${token}`)
-      if (!shareRes.ok) {
-        setError('Link not found or inactive')
-        setLoading(false)
-        return
-      }
-      const { share } = (await shareRes.json()) as {
-        share: {
-          share_type: 'person' | 'relationship' | 'group' | 'graph'
-          options: ShareOptions
-          expires_at: string | null
-          max_views: number | null
-          view_count: number
-          password_hash: string | null
+      // Single public, token-scoped endpoint — no auth required. The server
+      // enforces expiry, max-view capping (atomic increment), and password
+      // verification, and returns only safe projections of the shared content.
+      const res = password
+        ? await fetch(`/api/share/${token}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password }),
+          })
+        : await fetch(`/api/share/${token}`)
+
+      if (res.status === 401) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string }
+        if (password) {
+          setPasswordError(body.error || 'Incorrect password')
         }
-      }
-
-      if (!share) {
-        setError('Link not found or inactive')
-        setLoading(false)
-        return
-      }
-
-      // Check expiration
-      if (share.expires_at && new Date(share.expires_at) < new Date()) {
-        setError('Link has expired')
+        setRequiresPassword(true)
         setLoading(false)
         return
       }
 
-      // Check max views
-      if (share.max_views !== null && share.view_count >= share.max_views) {
-        setError('Link has reached maximum views')
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string }
+        setError(body.error || 'Link not found or inactive')
         setLoading(false)
         return
       }
 
-      // Check password
-      if (share.password_hash) {
-        if (!password) {
-          setRequiresPassword(true)
-          setLoading(false)
-          return
-        }
-        // Simple hash comparison (in production, use bcrypt or similar)
-        const encoder = new TextEncoder()
-        const data = encoder.encode(password)
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-        const hashArray = Array.from(new Uint8Array(hashBuffer))
-        const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-        if (hash !== share.password_hash) {
-          setPasswordError('Incorrect password')
-          setLoading(false)
-          return
-        }
-      }
+      const { share, group } = (await res.json()) as PublicShareResponse
 
-      // Increment view count via the public token route
-      await fetch(`/api/shares/public/${token}/view`, { method: 'POST' })
-
-      const options = share.options as unknown as ShareOptions
-
-      // Load the actual content based on share type
-      if (share.share_type === 'group' && options.groupId) {
-        // Load group data via the authenticated groups route. As under the old
-        // RLS model, group content is only resolvable for the signed-in owner;
-        // anonymous viewers receive an empty group.
-        const groupRes = await fetch(`/api/groups/${options.groupId}`, {
-          credentials: 'include',
-        })
-
-        if (!groupRes.ok) {
-          setError('Unable to load group data')
-          setLoading(false)
-          return
-        }
-
-        const { group: groupData } = (await groupRes.json()) as {
-          group: GroupWithMembers
-        }
-
-        const groupWithMembers: GroupWithMembers = {
-          id: groupData.id,
-          owner_id: groupData.owner_id,
-          name: groupData.name,
-          description: groupData.description,
-          created_at: groupData.created_at,
-          updated_at: groupData.updated_at,
-          members: groupData.members || [],
-        }
-
-        const analysis = analyzeGroup(groupWithMembers)
-        setShareData({
-          type: share.share_type,
-          options,
-          groupAnalysis: analysis,
-        })
-        setRequiresPassword(false)
-      } else {
-        // For other share types, just set basic data
-        setShareData({
-          type: share.share_type,
-          options,
-        })
-      }
+      setShareData({
+        type: share.share_type,
+        options: share.options,
+        groupAnalysis: group,
+      })
+      setRequiresPassword(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error loading')
     } finally {
