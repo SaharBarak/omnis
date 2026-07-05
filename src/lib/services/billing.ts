@@ -50,7 +50,7 @@ export const PLANS = {
     priceILS: 0,
     paddlePriceId: null,
     limits: {
-      profiles: 1,
+      profiles: 3,
       systems: ['dreamspell'] as string[],
       aiInterpretations: 0,
       boards: 0,

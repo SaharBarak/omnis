@@ -1,7 +1,7 @@
 export const faqs = [
   {
     question: "What can I do with the free plan?",
-    answer: "Free lets you save 1 profile (yourself) with Dreamspell calculations and daily kin. It's designed to try OmnisX before upgrading. To save family/friends, access all 6 systems, get AI interpretations, or export PDFs, you'll need Complete ($9/mo) or Practitioner ($29/mo).",
+    answer: "Free lets you save 3 people with Dreamspell calculations and daily kin. It's designed to try OmnisX before upgrading. To hold up to 10 people across all 6 systems, get AI interpretations, or export PDFs, you'll need Complete ($9/mo); Practitioner ($29/mo) is unlimited for mapping clients or large groups.",
   },
   {
     question: "I don't know my exact birth time. Can I still use OmnisX?",

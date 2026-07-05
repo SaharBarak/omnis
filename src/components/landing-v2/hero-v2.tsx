@@ -86,8 +86,8 @@ export function HeroV2() {
                 size="lg"
                 className="rounded-xl bg-brand px-8 text-base font-semibold text-white transition-transform hover:bg-brand-soft active:scale-[0.98]"
               >
-                <Link href="/login">
-                  Open your map
+                <Link href="/calculate">
+                  Try a free reading
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -98,7 +98,7 @@ export function HeroV2() {
               variant="outline"
               className="rounded-xl border-white/15 bg-surface/80 px-8 text-base text-white backdrop-blur-sm transition-transform hover:bg-surface-2 hover:text-white active:scale-[0.98]"
             >
-              <Link href="/calculate">Try one reading</Link>
+              <Link href="/login">Open your map</Link>
             </Button>
           </motion.div>
         </div>
