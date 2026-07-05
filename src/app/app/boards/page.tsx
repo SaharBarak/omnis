@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Label } from '@/components/ui/label'
+import { BoardShareDialog } from '@/components/boards/board-share-dialog'
 import { useBoards } from '@/lib/hooks/use-boards'
 import { BOARD_TEMPLATES, type BoardTemplate } from '@/lib/types/board'
 import type { Board } from '@/lib/types/database.types'
@@ -39,11 +40,22 @@ function TemplateGlyph({ templateId, className }: { templateId: string | null | 
 }
 
 export default function BoardsPage() {
-  const { boards, loading, error, createBoard, deleteBoard, duplicateBoard } = useBoards()
+  const {
+    boards,
+    loading,
+    error,
+    createBoard,
+    deleteBoard,
+    duplicateBoard,
+    createShare,
+    getShares,
+    deleteShare,
+  } = useBoards()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [newBoardName, setNewBoardName] = useState('')
   const [selectedTemplate, setSelectedTemplate] = useState<BoardTemplate>('blank')
   const [isCreating, setIsCreating] = useState(false)
+  const [shareTarget, setShareTarget] = useState<{ id: string; name: string } | null>(null)
 
   const handleCreateBoard = async () => {
     if (!newBoardName.trim()) return
@@ -211,10 +223,21 @@ export default function BoardsPage() {
               board={board}
               onDelete={() => handleDeleteBoard(board.id)}
               onDuplicate={() => handleDuplicateBoard(board.id, board.name)}
+              onShare={() => setShareTarget({ id: board.id, name: board.name })}
             />
           ))}
         </div>
       )}
+
+      {/* Share dialog */}
+      <BoardShareDialog
+        boardId={shareTarget?.id ?? null}
+        boardName={shareTarget?.name ?? null}
+        onClose={() => setShareTarget(null)}
+        createShare={createShare}
+        getShares={getShares}
+        deleteShare={deleteShare}
+      />
     </div>
   )
 }
@@ -224,9 +247,10 @@ interface BoardCardProps {
   board: Board
   onDelete: () => void
   onDuplicate: () => void
+  onShare: () => void
 }
 
-function BoardCard({ board, onDelete, onDuplicate }: BoardCardProps) {
+function BoardCard({ board, onDelete, onDuplicate, onShare }: BoardCardProps) {
   const template = board.template ? BOARD_TEMPLATES[board.template as BoardTemplate] : null
 
   return (
@@ -280,7 +304,7 @@ function BoardCard({ board, onDelete, onDuplicate }: BoardCardProps) {
                 <Copy className="h-4 w-4 mr-2" />
                 Duplicate
               </DropdownMenuItem>
-              <DropdownMenuItem disabled>
+              <DropdownMenuItem onClick={onShare}>
                 <Share2 className="h-4 w-4 mr-2" />
                 Share
               </DropdownMenuItem>

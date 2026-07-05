@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowRight, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { CanvasProvider, CanvasEditor, useCanvas } from '@/components/canvas'
+import { CanvasProvider, CanvasEditor, ExportDialog, useCanvas } from '@/components/canvas'
 import { useBoards, useBoard } from '@/lib/hooks/use-boards'
 import type { CanvasState, Layer } from '@/lib/types/board'
 
@@ -61,7 +61,7 @@ export default function BoardEditorPage() {
     return (
       <div className="h-screen flex flex-col items-center justify-center">
         <p className="text-destructive mb-4">{error || 'Board not found'}</p>
-        <Button variant="outline" onClick={() => router.push('/boards')}>
+        <Button variant="outline" onClick={() => router.push('/app/boards')}>
           <ArrowRight className="h-4 w-4 mr-2" />
           Back to Boards
         </Button>
@@ -90,6 +90,10 @@ function BoardEditorContent({ boardId, boardName }: BoardEditorContentProps) {
   const { canvas, layers, isDirty, clearDirty } = useCanvas()
   const { updateBoard } = useBoards()
   const [saving, setSaving] = useState(false)
+  const [isExportOpen, setIsExportOpen] = useState(false)
+  const canvasContainerRef = useRef<HTMLDivElement>(null)
+
+  const handleOpenExport = useCallback(() => setIsExportOpen(true), [])
 
   // Save function
   const handleSave = useCallback(async () => {
@@ -138,7 +142,7 @@ function BoardEditorContent({ boardId, boardName }: BoardEditorContentProps) {
       {/* Header */}
       <header className="h-14 border-b bg-card flex items-center justify-between px-4 flex-shrink-0">
         <div className="flex items-center gap-4">
-          <Link href="/boards">
+          <Link href="/app/boards">
             <Button variant="ghost" size="sm">
               <ArrowRight className="h-4 w-4 mr-2" />
               Back
@@ -165,9 +169,16 @@ function BoardEditorContent({ boardId, boardName }: BoardEditorContentProps) {
       </header>
 
       {/* Canvas */}
-      <div className="flex-1 overflow-hidden">
-        <CanvasEditor onSave={handleSave} />
+      <div ref={canvasContainerRef} className="flex-1 overflow-hidden">
+        <CanvasEditor onSave={handleSave} onExport={handleOpenExport} />
       </div>
+
+      <ExportDialog
+        open={isExportOpen}
+        onClose={() => setIsExportOpen(false)}
+        canvasRef={canvasContainerRef}
+        boardName={boardName}
+      />
     </div>
   )
 }
