@@ -7,8 +7,67 @@ MAIN_PURPOSE.md first; everything else on demand.
 
 - **Active branch: `redesign/knowledge-experience`**. Product renamed
   **OmnisX** (2026-07-04). Nothing pushed anywhere yet, no PRs.
-- Health: typecheck ✓ · lint 0 errors (11 pre-existing warnings) ·
-  935/935 tests ✓ · `next build` ✓.
+- Health: typecheck ✓ · **937/937 tests ✓** · `next build` ✓ · deployed.
+  **Lint is currently broken (pre-existing, not this work):** eslint.config.mjs
+  references `react-hooks/*` and `import/*` rules but doesn't register those
+  plugins in the flat config; registering them makes eslint-plugin-import OOM.
+  Needs proper flat-config wiring. Tracked as a backlog item.
+
+## Polish sweep (2026-07-05) — 6-agent fan-out, committed + deployed
+
+Ran 6 parallel agents (3 writers on disjoint dirs, 3 read-only reporters),
+integrated the high-value fixes, committed in 5 themed commits on top of the
+live deploy, and redeployed. All typecheck + 937 tests green.
+
+- **Security (`36a9334`)** — HIGH fix: plan entitlements were UI-only (free
+  users got unlimited profiles + unlimited paid-Gemini AI). Now enforced
+  server-side in /api/ai/interpret (requireLimit + trackUsage), /api/people
+  (profile cap), /api/boards (board cap). Cron routes fail closed via
+  timing-safe `src/lib/api/cron-auth.ts` (were fail-open outside production).
+  Headers: X-Frame DENY, HSTS, Permissions-Policy, report-only CSP.
+- **Pricing/marketing (`61c7ead`)** — free tier 1→3 people; fixed live copy
+  lies (Complete "unlimited"→"up to 10", FAQ "1 profile"→"3"); hero leads
+  with the free reading not the signup wall.
+- **SEO (`a1e7b05`)** — JSON-LD now SSR (was client-only, invisible to
+  crawlers/AI); canonicals fixed; fabricated aggregateRating removed;
+  llms.txt + AI-crawler allowlist; `/app` noindexed.
+- **Docs (`b40f4b5`)** — learn guides aligned to shipped reality (Tzolkin/
+  Long Count are real engines; dropped 2 unshipped Gematria promises).
+- **Dashboard (`d7eab9a`)** — reskinned to landing design language
+  (src/app/app/dashboard.css); cards use real usePeople() data (was a 16-entry
+  Hebrew TEST_PEOPLE fixture); exhaustive Hebrew/mock removal (gematria letters
+  kept as data).
+
+### Backlog from the reporters (NOT yet done — the "do it all" second wave)
+
+Ordered by impact. Full detail lives in the task list / agent reports.
+1. **/pricing page body still the generic placeholder** (wrong plans, fake
+   SLA/SSO/trial). Metadata+schema already fixed; rebuild the visible page
+   from billing.ts PLANS. (task #13)
+2. **Public group-share 401** — `/share/[token]` fetches via auth-guarded
+   `/api/groups/[id]`, so anonymous recipients get "Unable to load group
+   data". Viral loop dead. Serve via public token-scoped endpoint. (#18)
+3. **Knowledge search has no corpus** — packages/scraper/ is empty, nothing
+   writes content_chunks; prod search returns []. Restore scraper+embedding
+   pipeline + non-Workers-AI local embedding fallback. (#19)
+4. **Onboarding orphaned** — /onboarding page exists but nothing routes to it;
+   PATCH /api/profile birthPlaceSchema strips city/country/timezone. (#20)
+5. **Boards export/share dead + /boards 404 backlinks** (should be
+   /app/boards); wire onExport; build or delete board-share routes. (#21)
+6. **Explorer $5 tier + add-ons** — marketing recommends a full-6-system
+   entry tier + Complete-only add-ons + one-time AI packs; needs new Paddle
+   prices + billing.ts + entitlement data-model fields. (#14)
+7. **Security remainder (#17)** — rate limiter is a no-op across Workers
+   isolates (needs KV/Durable Object); promote CSP report-only→enforced; LOW:
+   share url_token server-side, share pw out of URL query, unsubscribe HMAC.
+8. **Cross-cutting (#15)** — brand copy says "five systems" but billing
+   exposes six; learn canonicals hardcode omnis.app (dead domain) vs the
+   workers.dev origin.
+9. **Dead-code sweep (#22)** — orphaned /api/predictions/*, AIInterpretation
+   component, graph API (edges/links mismatch), tag CRUD UI, value-capture
+   CTAs, share revocation UI. Decide mount-or-remove per item.
+10. **Pre-existing (#23)** — lint config broken (above); Supabase pooler in
+    Sydney makes authed queries ~30s (region migration / caching).
 
 ## Platform migration (2026-07-04) — Mongo→Supabase, Better Auth→Auth0
 
