@@ -1,6 +1,14 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 
+import {
+  LongCountDisplay,
+  LongCountMini,
+  BaktunProgress,
+  HaabDisplay,
+  CalendarRoundDisplay,
+} from './LongCountDisplay'
+
 vi.mock('next/image', () => ({
   default: function MockImage({
     src,
@@ -28,14 +36,6 @@ vi.mock('next/image', () => ({
     )
   },
 }))
-
-import {
-  LongCountDisplay,
-  LongCountMini,
-  BaktunProgress,
-  HaabDisplay,
-  CalendarRoundDisplay,
-} from './LongCountDisplay'
 
 // Test date: July 26, 1987 (Dreamspell epoch)
 const EPOCH_DATE = '1987-07-26'

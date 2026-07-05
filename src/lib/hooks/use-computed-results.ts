@@ -2,26 +2,6 @@
 
 import { useCallback } from 'react'
 
-// Client-facing shape mirrors the original Supabase computed_results row
-// contract (nullable, never undefined) so existing consumers keep type-checking.
-// The server serializer guarantees these shapes at runtime.
-export type SystemType =
-  | 'dreamspell'
-  | 'tzolkin'
-  | 'longcount'
-  | 'humandesign'
-  | 'astrology'
-  | 'gematria'
-
-export interface ComputedResult {
-  id: string
-  person_id: string
-  system: SystemType
-  version: string
-  data: Record<string, unknown>
-  computed_at: string
-}
-
 // Dreamspell imports
 import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
 import { calculateOracle } from '@/lib/calculations/oracle'
@@ -50,6 +30,26 @@ import type { Seal } from '@/lib/types/seal'
 import type { Tone } from '@/lib/types/tone'
 import type { TzolkinDaySign } from '@/lib/types/tzolkin'
 import type { Bodygraph } from '@/lib/types/human-design'
+
+// Client-facing shape mirrors the original Supabase computed_results row
+// contract (nullable, never undefined) so existing consumers keep type-checking.
+// The server serializer guarantees these shapes at runtime.
+export type SystemType =
+  | 'dreamspell'
+  | 'tzolkin'
+  | 'longcount'
+  | 'humandesign'
+  | 'astrology'
+  | 'gematria'
+
+export interface ComputedResult {
+  id: string
+  person_id: string
+  system: SystemType
+  version: string
+  data: Record<string, unknown>
+  computed_at: string
+}
 
 // Version constants for algorithm tracking
 const DREAMSPELL_VERSION = '1.1.0' // Upgraded to include wavespell and castle

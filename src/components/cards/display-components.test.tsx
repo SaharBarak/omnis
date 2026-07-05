@@ -1,6 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 
+import { WavespellDisplay, WavespellMini, WavespellProgress } from './WavespellDisplay'
+import { CastleDisplay, CastleMini } from './CastleDisplay'
+import { DreamspellYearDisplay, GalacticBirthdayDisplay, PersonalYearDisplay } from './YearlyDisplay'
+import { asKin } from '@/core/types'
+
 vi.mock('next/image', () => ({
   default: function MockImage({
     src,
@@ -28,11 +33,6 @@ vi.mock('next/image', () => ({
     )
   },
 }))
-
-import { WavespellDisplay, WavespellMini, WavespellProgress } from './WavespellDisplay'
-import { CastleDisplay, CastleMini } from './CastleDisplay'
-import { DreamspellYearDisplay, GalacticBirthdayDisplay, PersonalYearDisplay } from './YearlyDisplay'
-import { asKin } from '@/core/types'
 
 describe('WavespellDisplay Components', () => {
   describe('WavespellDisplay', () => {

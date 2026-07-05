@@ -1,4 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
+// Mock html2canvas - returns a mock canvas
+import html2canvas from 'html2canvas'
+
+// Mock jsPDF
+import jsPDF from 'jspdf'
 import {
   exportCanvas,
   downloadExport,
@@ -6,15 +12,9 @@ import {
   EXPORT_FORMAT_OPTIONS,
   EXPORT_SCALE_OPTIONS,
 } from './canvas-export'
-
-// Mock html2canvas - returns a mock canvas
-import html2canvas from 'html2canvas'
 vi.mock('html2canvas', () => ({
   default: vi.fn(),
 }))
-
-// Mock jsPDF
-import jsPDF from 'jspdf'
 const mockJsPDFInstance = {
   addImage: vi.fn(),
   output: vi.fn().mockReturnValue(new Blob(['pdf-content'], { type: 'application/pdf' })),

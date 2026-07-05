@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
+import { GET } from './route'
+
 // Mock the newsletter repository (datastore is now MongoDB via the repo).
 const mockListSubscribers = vi.fn()
 const mockLogEmailSend = vi.fn()
@@ -57,8 +59,6 @@ vi.mock('@/lib/data/tones', () => ({
 vi.mock('@/lib/data/mantras', () => ({
   generateMantra: vi.fn(() => 'I activate in order to communicate\nBonding breath')
 }))
-
-import { GET } from './route'
 
 // Helper to create mock NextRequest with headers
 function createRequest(url: string, headers: Record<string, string> = {}): NextRequest {

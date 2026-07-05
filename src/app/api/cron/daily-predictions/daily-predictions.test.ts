@@ -1,6 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
+import { GET } from './route'
+import {
+  systemListPeopleWithBirthDate,
+  systemPredictionExists,
+  systemInsertPrediction,
+  systemDeleteExpiredPredictions,
+} from '@/lib/db/repositories/predictions-repo'
+
 // Mock predictions repo (the cron is SYSTEM context: authorized by CRON_SECRET
 // and operates across owners via the system* repo functions).
 vi.mock('@/lib/db/repositories/predictions-repo', () => ({
@@ -34,14 +42,6 @@ vi.mock('@/lib/services/predictions', () => ({
     ],
   })),
 }))
-
-import { GET } from './route'
-import {
-  systemListPeopleWithBirthDate,
-  systemPredictionExists,
-  systemInsertPrediction,
-  systemDeleteExpiredPredictions,
-} from '@/lib/db/repositories/predictions-repo'
 
 const mockListPeople = vi.mocked(systemListPeopleWithBirthDate)
 const mockExists = vi.mocked(systemPredictionExists)

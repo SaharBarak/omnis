@@ -1,6 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 
+import { PersonCard } from './PersonCard'
+import { DreamspellSection } from './DreamspellSection'
+import { TzolkinSection } from './TzolkinSection'
+import { OracleMap } from './OracleMap'
+import { MantraDisplay } from './MantraDisplay'
+import { SealIcon } from './SealIcon'
+import { asKin } from '@/core/types'
+
 vi.mock('next/image', () => ({
   default: function MockImage({
     src,
@@ -28,14 +36,6 @@ vi.mock('next/image', () => ({
     )
   },
 }))
-
-import { PersonCard } from './PersonCard'
-import { DreamspellSection } from './DreamspellSection'
-import { TzolkinSection } from './TzolkinSection'
-import { OracleMap } from './OracleMap'
-import { MantraDisplay } from './MantraDisplay'
-import { SealIcon } from './SealIcon'
-import { asKin } from '@/core/types'
 
 describe('Card Components', () => {
   describe('PersonCard', () => {

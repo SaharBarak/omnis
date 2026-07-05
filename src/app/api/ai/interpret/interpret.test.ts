@@ -1,6 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
+// Import after mocking
+import { POST } from './route'
+import { getCurrentUserId } from '@/lib/auth-server'
+import { generateInterpretation, generateQuickInterpretation } from '@/lib/services/ai-interpretations'
+import { requireLimit, trackUsage, LimitExceededError } from '@/lib/services/usage'
+import { resetRateLimitStore } from '@/lib/rate-limit'
+
 // Mock Better Auth server session
 vi.mock('@/lib/auth-server', () => ({
   getCurrentUserId: vi.fn(),
@@ -32,13 +39,6 @@ vi.mock('@/lib/services/usage', () => {
     LimitExceededError,
   }
 })
-
-// Import after mocking
-import { getCurrentUserId } from '@/lib/auth-server'
-import { generateInterpretation, generateQuickInterpretation } from '@/lib/services/ai-interpretations'
-import { requireLimit, trackUsage, LimitExceededError } from '@/lib/services/usage'
-import { resetRateLimitStore } from '@/lib/rate-limit'
-import { POST } from './route'
 
 // Helper to create mock NextRequest with POST body
 function createPostRequest(body: object): NextRequest {
