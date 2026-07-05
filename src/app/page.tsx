@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     absolute: 'OmnisX - The Living Map of Your People | 6 Wisdom Systems',
   },
   description:
-    'Enter one birthday and read it through Astrology, Dreamspell, Tzolkin, Human Design, and Hebrew Gematria at once. Save your people, map every relationship, and read group dynamics across all six systems.',
+    'Enter one birthday and read it through Astrology, Dreamspell, Tzolkin, Long Count, Human Design, and Hebrew Gematria at once. Save your people, map every relationship, and read group dynamics across all six systems.',
   alternates: {
     canonical: '/',
   },
@@ -80,14 +80,14 @@ export default function LandingPage() {
         {/* §2 Sigil band — breather */}
         <SigilBand />
 
-        {/* §3 YOU — one birthday, five readings */}
+        {/* §3 YOU — one birthday, six readings */}
         <Zone
           lean="right"
           id="you"
           flavor={SYSTEM_FLAVORS.astrology}
           pill="Start with one birthday"
-          heading="One birthday. Five complete readings."
-          body="Your natal chart, galactic signature, day sign, bodygraph, and the number of your name — computed together, on one screen. Five systems that never met each other, reading the same moment: you."
+          heading="One birthday. Six complete readings."
+          body="Your natal chart, galactic signature, day sign, Long Count date, bodygraph, and the number of your name — computed together, on one screen. Six systems that never met each other, reading the same moment: you."
           cta={{ label: 'Try it with your birthday', href: '/calculate' }}
           triad={[
             {
@@ -96,7 +96,7 @@ export default function LandingPage() {
             },
             {
               title: 'Layered or side by side',
-              text: 'Read one system at a time, or stack all five over the same birth.',
+              text: 'Read one system at a time, or stack all six over the same birth.',
             },
             {
               title: 'Grounded AI',
@@ -128,7 +128,7 @@ export default function LandingPage() {
           flavor={SYSTEM_FLAVORS.tzolkin}
           pill="Never ask twice"
           heading="Enter a birthday once."
-          body="Everyone you chart joins your private library — birth time, place, name, all five readings, saved. The tenth time you check a friend's chart, you don't ask for their birth time again. You open OmnisX."
+          body="Everyone you chart joins your private library — birth time, place, name, all six readings, saved. The tenth time you check a friend's chart, you don't ask for their birth time again. You open OmnisX."
           triad={[
             {
               title: 'Private by default',

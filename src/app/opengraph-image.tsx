@@ -134,7 +134,7 @@ export default async function OGImage() {
             display: 'flex',
           }}
         >
-          omnis.app
+          OmnisX
         </div>
       </div>
     ),

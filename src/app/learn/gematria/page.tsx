@@ -10,12 +10,12 @@ export const metadata: Metadata = {
   description: 'Complete guide to Kabbalah: the Tree of Life, 10 Sefirot, Gematria calculation methods, 22 Hebrew letters, the Four Worlds, and integration with Human Design and Astrology.',
   keywords: 'kabbalah, tree of life, sefirot, gematria, hebrew letters, ein sof, four worlds, what is kabbalah, what is the tree of life, what is gematria, jewish mysticism, hebrew numerology',
   alternates: {
-    canonical: 'https://omnis.app/learn/gematria',
+    canonical: '/learn/gematria',
   },
   openGraph: {
     title: 'Kabbalah Tree of Life & Gematria: Complete Hebrew Mysticism Guide',
     description: 'Learn Kabbalah: Tree of Life, 10 Sefirot, Gematria, and the 22 Hebrew Letters. Free comprehensive guide.',
-    url: 'https://omnis.app/learn/gematria',
+    url: '/learn/gematria',
   },
 }
 

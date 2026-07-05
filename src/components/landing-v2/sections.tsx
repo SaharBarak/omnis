@@ -95,7 +95,7 @@ const MARQUEE_QUOTES = [
   'my chavruta group map made everyone gasp',
   'the family map explained thirty years in one look',
   'sent my co-founder our pair reading. silence, then "oh no, it\u2019s accurate"',
-  'five systems agreeing about my sister was not on my bingo card',
+  'six systems agreeing about my sister was not on my bingo card',
   'the layers view is the first time astrology and HD talked to each other',
 ] as const
 
@@ -353,7 +353,7 @@ export function FooterV2({ liveLine }: { readonly liveLine: string }) {
           <div>
             <p className={TYPE.card}>OmnisX</p>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/50">
-              The living map of your people, read through five wisdom systems.
+              The living map of your people, read through six wisdom systems.
             </p>
           </div>
           {FOOTER_COLUMNS.map((col) => (

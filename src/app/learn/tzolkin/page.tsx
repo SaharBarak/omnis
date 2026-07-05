@@ -10,12 +10,12 @@ export const metadata: Metadata = {
   description: 'Learn the Traditional Tzolkin — the living Maya sacred calendar kept by daykeepers for over 2,500 years. Explore the 20 Nawales, 13 Numbers, and how it differs from Dreamspell.',
   keywords: 'tzolkin, mayan calendar, maya calendar, nawales, cholqij, traditional calendar, mayan daykeeper, indigenous wisdom, what is the tzolkin, how old is the mayan calendar',
   alternates: {
-    canonical: 'https://omnis.app/learn/tzolkin',
+    canonical: '/learn/tzolkin',
   },
   openGraph: {
     title: 'Traditional Mayan Tzolkin Calendar: 20 Nawales & Sacred Count',
     description: 'Explore the living Maya Tzolkin calendar: 20 Nawales, 13 Numbers, and 2,500+ years of tradition.',
-    url: 'https://omnis.app/learn/tzolkin',
+    url: '/learn/tzolkin',
   },
 }
 

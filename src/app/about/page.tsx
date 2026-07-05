@@ -6,21 +6,21 @@ import { PageBreadcrumbs } from '@/components/ui/page-breadcrumbs'
 
 export const metadata: Metadata = {
   title: 'About OmnisX - Unifying Ancient Wisdom Systems for Modern Seekers',
-  description: 'Learn about OmnisX and our mission to make Dreamspell, Human Design, Astrology, Kabbalah, and Tzolkin accessible, accurate, and interconnected. Privacy-first, open approach.',
+  description: 'Learn about OmnisX and our mission to make Dreamspell, Tzolkin, Long Count, Human Design, Astrology, and Kabbalah accessible, accurate, and interconnected. Privacy-first, open approach.',
   alternates: {
-    canonical: 'https://omnis.app/about',
+    canonical: '/about',
   },
   openGraph: {
     title: 'About OmnisX - Unifying Ancient Wisdom Systems for Modern Seekers',
-    description: 'Our mission: making five ancient wisdom systems accessible, accurate, and interconnected.',
-    url: 'https://omnis.app/about',
+    description: 'Our mission: making six ancient wisdom systems accessible, accurate, and interconnected.',
+    url: '/about',
   },
 }
 
 const aboutOrgSchema = {
   "@context": "https://schema.org",
   ...organizationSchema,
-  "description": "OmnisX unifies five ancient wisdom systems — Dreamspell, Human Design, Astrology, Kabbalah, and Tzolkin — into one accessible platform for modern seekers.",
+  "description": "OmnisX unifies six ancient wisdom systems — Dreamspell, Tzolkin, Long Count, Human Design, Astrology, and Kabbalah — into one accessible platform for modern seekers.",
   "foundingDate": "2024",
   "knowsAbout": ["Dreamspell", "Human Design", "Astrology", "Kabbalah", "Gematria", "Tzolkin", "Mayan Calendar"],
 }

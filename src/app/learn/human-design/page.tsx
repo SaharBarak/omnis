@@ -10,12 +10,12 @@ export const metadata: Metadata = {
   description: 'Complete guide to Human Design: the 5 Types (Generator, Projector, Manifestor, Manifesting Generator, Reflector), Inner Authority, 9 Centers, 12 Profiles, 64 Gates & 36 Channels.',
   keywords: 'human design explained, human design types, bodygraph, type, authority, strategy, generator, projector, manifestor, reflector, ra uru hu, free human design chart',
   alternates: {
-    canonical: 'https://omnis.app/learn/human-design',
+    canonical: '/learn/human-design',
   },
   openGraph: {
     title: 'Human Design Explained: Types, Strategy & Authority Guide',
     description: 'Learn about the 5 Human Design Types, Strategy, Authority, Centers, and Profiles. Free comprehensive guide.',
-    url: 'https://omnis.app/learn/human-design',
+    url: '/learn/human-design',
   },
 }
 

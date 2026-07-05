@@ -21,12 +21,12 @@ export const metadata: Metadata = {
   description: 'Free comprehensive guides to Dreamspell, Human Design, Western Astrology, Kabbalah & Gematria, and the traditional Mayan Tzolkin. Written with respect for the lineages.',
   keywords: 'dreamspell guide, human design guide, astrology tutorial, gematria learn, tzolkin calendar, kabbalah, symbolic systems, wisdom systems',
   alternates: {
-    canonical: 'https://omnis.app/learn',
+    canonical: '/learn',
   },
   openGraph: {
     title: 'Learn Ancient Wisdom Systems: Dreamspell, Human Design, Astrology & More',
-    description: 'Free comprehensive guides to five ancient wisdom systems. Learn about your cosmic blueprint.',
-    url: 'https://omnis.app/learn',
+    description: 'Free comprehensive guides to six ancient wisdom systems. Learn about your cosmic blueprint.',
+    url: '/learn',
   },
 }
 
@@ -250,7 +250,7 @@ export default function LearnPage() {
             <h2 className={TYPE.section}>Now read a person, not a page.</h2>
             <p className="mt-4 max-w-xl text-white/50">
               The guides explain the systems. The product reads your people
-              through all five at once — and remembers every birthday forever.
+              through all six at once — and remembers every birthday forever.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link

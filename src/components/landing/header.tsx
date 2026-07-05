@@ -98,9 +98,9 @@ function MegaMenuPanel({ activeDropdown, onClose }: { activeDropdown: DropdownKe
                     onClick={onClose}
                     className="group block p-6 border border-border hover:border-primary/30 transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
-                    <div className="font-medium text-foreground mb-1">Five systems, one place</div>
+                    <div className="font-medium text-foreground mb-1">Six systems, one place</div>
                     <div className="text-sm text-muted-foreground mb-4">
-                      Explore how Human Design, Dreamspell, Astrology, Tzolkin, and Kabbalah work together.
+                      Explore how Human Design, Dreamspell, Astrology, the Tzolkin and Long Count, and Kabbalah work together.
                     </div>
                     <span className="text-sm text-primary group-hover:underline">Explore all systems &rarr;</span>
                   </Link>

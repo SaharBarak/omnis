@@ -10,12 +10,12 @@ export const metadata: Metadata = {
   description: 'Discover how Dreamspell, Human Design, Astrology, Kabbalah, and Tzolkin work together. Find correspondences between systems and build a unified daily practice.',
   keywords: 'system integration, dreamspell astrology connection, human design comparison, can I use multiple systems, how do wisdom systems connect, symbolic systems, holistic wisdom',
   alternates: {
-    canonical: 'https://omnis.app/learn/integration',
+    canonical: '/learn/integration',
   },
   openGraph: {
     title: 'How Dreamspell, Human Design & Astrology Connect: Integration Guide',
     description: 'Discover how five ancient wisdom systems connect and complement each other.',
-    url: 'https://omnis.app/learn/integration',
+    url: '/learn/integration',
   },
 }
 

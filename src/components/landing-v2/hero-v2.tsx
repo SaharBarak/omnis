@@ -52,7 +52,7 @@ export function HeroV2() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.1 }}
           >
-            Astrology · Dreamspell · Tzolkin · Human Design · Kabbalah
+            Astrology · Dreamspell · Tzolkin · Long Count · Human Design · Kabbalah
           </motion.p>
 
           <motion.h1
@@ -70,7 +70,7 @@ export function HeroV2() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.35, ease: easeOut }}
           >
-            Five systems read every birth. One map holds every relationship.
+            Six systems read every birth. One map holds every relationship.
             Add a person once; OmnisX remembers forever.
           </motion.p>
 

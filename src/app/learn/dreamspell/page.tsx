@@ -13,12 +13,12 @@ export const metadata: Metadata = {
   description: 'Complete guide to the Dreamspell system by Jose Arguelles: 260-day Tzolkin cycle, 20 Solar Seals, 13 Galactic Tones, Wavespells, Oracle, and the Five Castles. Free educational resource.',
   keywords: 'what is dreamspell, dreamspell guide, galactic signature, kin, solar seals, galactic tones, wavespell, mayan calendar, 13:20, jose arguelles, dreamspell explained',
   alternates: {
-    canonical: 'https://omnis.app/learn/dreamspell',
+    canonical: '/learn/dreamspell',
   },
   openGraph: {
     title: 'What is Dreamspell? Complete Guide to the Galactic Calendar',
     description: 'Learn the Dreamspell system: 260 Kin, 20 Solar Seals, 13 Galactic Tones, and the Oracle. Free guide.',
-    url: 'https://omnis.app/learn/dreamspell',
+    url: '/learn/dreamspell',
   },
 }
 
@@ -54,7 +54,7 @@ const breadcrumbSchema = buildBreadcrumbs([
 const dreamspellFaqs = [
   {
     question: "How do I find my Dreamspell Kin?",
-    answer: "Enter your birth date into the OmnisX Dreamspell calculator at omnis.app/calculate. The calculator will show your Kin number (1-260), Solar Seal, Galactic Tone, and your complete Oracle. No birth time is required — only your date of birth.",
+    answer: "Enter your birth date into the free OmnisX Dreamspell calculator. The calculator will show your Kin number (1-260), Solar Seal, Galactic Tone, and your complete Oracle. No birth time is required — only your date of birth.",
   },
   {
     question: "What are the 20 Solar Seals?",

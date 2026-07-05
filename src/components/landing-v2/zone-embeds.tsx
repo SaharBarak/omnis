@@ -253,7 +253,7 @@ export function LibraryDemo() {
         )}
       </div>
       <p className="mt-5 text-center text-xs text-white/35">
-        Saved once — birth time, place, name, all five readings.
+        Saved once — birth time, place, name, all six readings.
       </p>
     </div>
   )

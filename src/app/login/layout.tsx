@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     follow: false,
   },
   alternates: {
-    canonical: 'https://omnis.app/login',
+    canonical: '/login',
   },
 }
 

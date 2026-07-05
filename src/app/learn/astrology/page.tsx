@@ -10,12 +10,12 @@ export const metadata: Metadata = {
   description: 'Complete guide to Western Astrology: the Big Three (Sun, Moon, Rising), all 12 Zodiac Signs, 10 Planets, 12 Houses, and major Aspects. Learn to read your natal chart.',
   keywords: 'astrology guide, zodiac signs, natal chart, planets, houses, aspects, sun sign, moon sign, rising sign, horoscope, what is a natal chart, birth chart reading',
   alternates: {
-    canonical: 'https://omnis.app/learn/astrology',
+    canonical: '/learn/astrology',
   },
   openGraph: {
     title: 'Western Astrology Guide: Zodiac Signs, Planets, Houses & Aspects',
     description: 'Learn Western Astrology: 12 Zodiac Signs, Planets, Houses, and Aspects. Free comprehensive guide.',
-    url: 'https://omnis.app/learn/astrology',
+    url: '/learn/astrology',
   },
 }
 
