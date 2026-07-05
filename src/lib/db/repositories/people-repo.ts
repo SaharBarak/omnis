@@ -17,7 +17,7 @@ export interface PersonInput {
   hebrew_name?: string | null
   birth_date: string
   birth_time?: string | null
-  birth_place?: { lat?: number; lng?: number; name?: string } | null
+  birth_place?: { lat?: number; lng?: number; name?: string; city?: string; country?: string; timezone?: string } | null
   avatar_url?: string | null
   notes?: string | null
   is_self?: boolean
@@ -170,6 +170,40 @@ export async function restorePerson(userId: string, id: string) {
     .where(and(eq(people.id, toEntityId(id)), eq(people.owner_id, userId)))
     .returning({ id: people.id })
   return res.length > 0
+}
+
+/**
+ * Creates or refreshes the owner's own "self" person from their profile so
+ * the user appears on their map from the moment onboarding completes.
+ * Server-side only (called from PATCH /api/profile) — bypasses the
+ * profiles_count plan cap on purpose: the self entry is free on every plan.
+ * A soft-deleted self row is restored rather than duplicated.
+ */
+export async function upsertSelfPerson(
+  userId: string,
+  input: Omit<PersonInput, 'is_self'>
+) {
+  const db = getDb()
+  const [existing] = await db
+    .select({ id: people.id })
+    .from(people)
+    .where(and(eq(people.owner_id, userId), eq(people.is_self, true)))
+    .limit(1)
+
+  if (existing) {
+    const [person] = await db
+      .update(people)
+      .set({ ...input, deleted_at: null, updated_at: new Date().toISOString() })
+      .where(and(eq(people.id, existing.id), eq(people.owner_id, userId)))
+      .returning()
+    return serialize(person)
+  }
+
+  const [person] = await db
+    .insert(people)
+    .values({ ...input, owner_id: userId, is_self: true })
+    .returning()
+  return serialize(person)
 }
 
 export async function permanentlyDeletePerson(userId: string, id: string) {

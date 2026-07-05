@@ -5,6 +5,7 @@ import { getDb } from '@/lib/db/client'
 import { profiles, users } from '@/lib/db/schema'
 import { serialize } from '@/lib/db/serialize'
 import { getSession, UnauthorizedError, type SessionUser } from '@/lib/auth-server'
+import { upsertSelfPerson } from '@/lib/db/repositories/people-repo'
 import { updateSchema } from './schemas'
 
 /**
@@ -72,6 +73,30 @@ export async function PATCH(request: Request) {
       .set({ ...updates, updated_at: new Date().toISOString() })
       .where(eq(profiles.user_id, session.user.id))
       .returning()
+
+    // Mirror the profile into the owner's "self" person so the user is on
+    // their own map. Runs once onboarding is complete and whenever identity
+    // fields change afterwards; the self entry is exempt from the plan cap.
+    if (profile?.onboarding_completed && profile.birth_date) {
+      const identityKeys = [
+        'display_name',
+        'hebrew_name',
+        'birth_date',
+        'birth_time',
+        'birth_place',
+        'onboarding_completed',
+      ] as const
+      if (identityKeys.some((k) => k in updates)) {
+        await upsertSelfPerson(session.user.id, {
+          name: profile.display_name,
+          hebrew_name: profile.hebrew_name,
+          birth_date: profile.birth_date,
+          birth_time: profile.birth_time,
+          birth_place: profile.birth_place,
+          avatar_url: profile.avatar_url,
+        })
+      }
+    }
 
     return NextResponse.json({ profile: serialize(profile) })
   } catch (error) {
