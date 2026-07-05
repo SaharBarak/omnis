@@ -38,36 +38,73 @@ live deploy, and redeployed. All typecheck + 937 tests green.
   Hebrew TEST_PEOPLE fixture); exhaustive Hebrew/mock removal (gematria letters
   kept as data).
 
-### Backlog from the reporters (NOT yet done — the "do it all" second wave)
+### Second wave (2026-07-05 pm) — DONE, committed, NOT yet deployed
 
-Ordered by impact. Full detail lives in the task list / agent reports.
-1. **/pricing page body still the generic placeholder** (wrong plans, fake
-   SLA/SSO/trial). Metadata+schema already fixed; rebuild the visible page
-   from billing.ts PLANS. (task #13)
-2. **Public group-share 401** — `/share/[token]` fetches via auth-guarded
-   `/api/groups/[id]`, so anonymous recipients get "Unable to load group
-   data". Viral loop dead. Serve via public token-scoped endpoint. (#18)
-3. **Knowledge search has no corpus** — packages/scraper/ is empty, nothing
-   writes content_chunks; prod search returns []. Restore scraper+embedding
-   pipeline + non-Workers-AI local embedding fallback. (#19)
-4. **Onboarding orphaned** — /onboarding page exists but nothing routes to it;
-   PATCH /api/profile birthPlaceSchema strips city/country/timezone. (#20)
-5. **Boards export/share dead + /boards 404 backlinks** (should be
-   /app/boards); wire onExport; build or delete board-share routes. (#21)
-6. **Explorer $5 tier + add-ons** — marketing recommends a full-6-system
-   entry tier + Complete-only add-ons + one-time AI packs; needs new Paddle
-   prices + billing.ts + entitlement data-model fields. (#14)
-7. **Security remainder (#17)** — rate limiter is a no-op across Workers
-   isolates (needs KV/Durable Object); promote CSP report-only→enforced; LOW:
-   share url_token server-side, share pw out of URL query, unsubscribe HMAC.
-8. **Cross-cutting (#15)** — brand copy says "five systems" but billing
-   exposes six; learn canonicals hardcode omnis.app (dead domain) vs the
-   workers.dev origin.
-9. **Dead-code sweep (#22)** — orphaned /api/predictions/*, AIInterpretation
-   component, graph API (edges/links mismatch), tag CRUD UI, value-capture
-   CTAs, share revocation UI. Decide mount-or-remove per item.
-10. **Pre-existing (#23)** — lint config broken (above); Supabase pooler in
-    Sydney makes authed queries ~30s (region migration / caching).
+8 agents across 2 waves. All green: typecheck ✓ · **905/905 tests** (count
+dropped from 945: dead predictions/tags test files deleted, limiter+HMAC
+tests added) · `next build` ✓ (48/48 pages).
+
+- **Pricing (`a231a0b`)** — body rebuilt from billing.ts PLANS: free lead
+  band, asymmetric Complete-featured tiers, entitlement ledger table;
+  fake trial/SLA/SSO/Contact-Sales gone. Checkout reuses
+  POST /api/billing/checkout. `src/components/pricing/plan-data.ts`
+  mirrors PLANS (documented source of truth).
+- **Group share (`533956b`)** — public GET/POST /api/share/[token], safe
+  projections (no owner_id/password_hash/member birth data), server-side
+  pw hash, atomic view cap. Live-E2E'd 14/14 against dev+real DB.
+- **Onboarding (`8c45340`)** — AppShell gates on
+  profile.onboarding_completed → /onboarding (middleware stays DB-free);
+  birthPlaceSchema keeps city/country/timezone (zod was stripping); jsonb
+  $type widened; 8 regression tests.
+- **Boards (`5431513`)** — export dialog wired (html2canvas PNG/JPEG/SVG
+  existed unmounted); share UI BUILT not deleted (backend existed e2e):
+  share-link dialog + public read-only viewer /shared/[token]; 2 /boards
+  backlinks → /app/boards.
+- **Copy+SEO (`79d674b`)** — framing: five traditions/flavors, SIX computed
+  systems (Long Count rides inside Tzolkin; compatibility genuinely scores
+  five — never say six there). Learn/about/contact/login canonicals
+  relative via metadataBase; OG wordmark omnis.app→OmnisX.
+- **Security (`d6ba2f2`)** — rate limiter now Cloudflare-KV fixed-window
+  (in-memory fallback when binding absent/errors); CSP enforced (was
+  report-only); share tokens+pw hashes minted server-side ONLY (fixed
+  latent bug: board shares stored raw pw in password_hash — old
+  pw-protected board shares won't unlock, none existed); boards viewer pw
+  ?ph= query → POST body + unlock form; unsubscribe links HMAC-signed
+  (UNSUBSCRIBE_SECRET, fails closed). Also carries the scraper submodule
+  de-registration (commit-ordering accident, harmless).
+- **Cleanup (`77722ef`)** — REMOVED: /api/predictions/* + use-predictions
+  (page computes client-side), relationships graph route (page builds own
+  nodes/links), tag CRUD write path, UpgradeCTA, placeholder plans.ts.
+  MOUNTED: AIInterpretation per daily event on /app/predictions (the
+  metered paid feature's only consumer); share revocation in ShareDialog
+  (active links + view counts + revoke). Note: tags now system-seed-only;
+  people-form tag pickers vestigial until system tags seeded.
+- **Knowledge (`7655047`)** — packages/scraper now in-repo package (was
+  dead submodule gitlink). Corpus = src/lib/docs/content.ts (what /learn
+  renders), 6 docs → 60 chunks, local Xenova/bge-small-en-v1.5 (matches
+  Workers-AI query side, verified compatible, scores 0.77-0.92 local).
+  `npm run ingest:knowledge` (+:dry-run/:verify), idempotent upserts.
+
+**Deploy + user-only steps (IN ORDER — deploy fails with placeholder KV id):**
+1. `npx wrangler kv namespace create RATE_LIMIT_KV` → paste id over
+   REPLACE_WITH_RATE_LIMIT_KV_NAMESPACE_ID in wrangler.jsonc.
+2. `npx wrangler secret put UNSUBSCRIBE_SECRET` (e.g. openssl rand -hex 32).
+3. `npm run deploy` (blocked for agent by permission classifier).
+4. Prod corpus: `DATABASE_URL='<supabase session-pooler URI>' npm run
+   ingest:knowledge` then `npm run ingest:knowledge:verify`.
+
+### Still-open backlog
+1. **Explorer $5 tier + add-ons (#14)** — needs new Paddle sandbox prices
+   (user) + billing.ts + entitlement fields.
+2. **Pre-existing (#23)** — lint flat-config broken (above); Supabase
+   pooler in Sydney → authed queries ~30s (region migration / caching).
+3. **Deliberately left** — hello@/privacy@/support@omnis.app emails (need
+   domain decision + Resend verification); env fallback strings
+   `?? 'https://omnis.app'` (harmless, prod env set).
+4. **Extra dead-code suspects (listed, not deleted)** — TzolkinGrid,
+   landing-v1 {demo,how-it-works,scroll-reveal-quote,social-proof},
+   ui/{form,scroll-area} (+deps), lib/analytics.ts, services/email.ts,
+   dead barrels billing/index, types/index, data/index.
 
 ## Platform migration (2026-07-04) — Mongo→Supabase, Better Auth→Auth0
 
