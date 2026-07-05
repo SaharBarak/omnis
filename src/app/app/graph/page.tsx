@@ -206,6 +206,15 @@ export default function GraphPage() {
     return () => window.removeEventListener('resize', updateDimensions)
   }, [])
 
+  // Spread small graphs out — the default d3 forces pack a handful of
+  // nodes into a tight cluster that reads as a blob after zoomToFit.
+  useEffect(() => {
+    const g = graphRef.current
+    if (!g) return
+    g.d3Force('charge')?.strength(-160)
+    g.d3Force('link')?.distance(55)
+  })
+
   // Transform data for the graph
   const graphData = useMemo(() => {
     if (people.length === 0) {
@@ -405,7 +414,7 @@ export default function GraphPage() {
               g.zoomToFit(400, 80)
               // Small graphs otherwise zoom in so far the nodes look enormous.
               setTimeout(() => {
-                if (g.zoom() > 2.2) g.zoom(2.2, 200)
+                if (g.zoom() > 3.2) g.zoom(3.2, 200)
               }, 450)
             }}
             enableZoomInteraction={true}
