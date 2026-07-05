@@ -74,6 +74,7 @@ export function useAuth() {
   const signInWithEmail = useCallback(
     async (email: string, redirectTo?: string) => {
       window.location.href = loginUrl({
+        connection: 'Username-Password-Authentication',
         login_hint: email,
         returnTo: redirectTo || '/app',
       })
