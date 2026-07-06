@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og'
 
-export const alt = 'OmnisX - Unified Wisdom Systems'
+export const alt = 'OmnisX — Symbolic Life OS'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -15,7 +15,7 @@ export default async function OGImage() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #0d0d14 0%, #14141f 50%, #0d1117 100%)',
+          background: 'linear-gradient(135deg, #0B0D16 0%, #131625 50%, #0B0D16 100%)',
           fontFamily: 'system-ui, sans-serif',
         }}
       >
@@ -29,7 +29,7 @@ export default async function OGImage() {
             width: 400,
             height: 400,
             borderRadius: '50%',
-            border: '1px solid rgba(74, 139, 127, 0.15)',
+            border: '2px solid rgba(167, 143, 223, 0.18)',
             display: 'flex',
           }}
         />
@@ -42,7 +42,7 @@ export default async function OGImage() {
             width: 280,
             height: 280,
             borderRadius: '50%',
-            border: '1px solid rgba(74, 139, 127, 0.25)',
+            border: '2px solid rgba(167, 143, 223, 0.3)',
             display: 'flex',
           }}
         />
@@ -55,7 +55,7 @@ export default async function OGImage() {
             width: 160,
             height: 160,
             borderRadius: '50%',
-            border: '1px solid rgba(74, 139, 127, 0.35)',
+            border: '2px solid rgba(167, 143, 223, 0.45)',
             display: 'flex',
           }}
         />
@@ -66,7 +66,7 @@ export default async function OGImage() {
             width: 24,
             height: 24,
             borderRadius: '50%',
-            background: '#4A8B7F',
+            background: '#7D5BC9',
             marginBottom: 32,
             display: 'flex',
           }}
@@ -95,7 +95,7 @@ export default async function OGImage() {
             display: 'flex',
           }}
         >
-          Unified Wisdom Systems
+          Symbolic Life OS
         </div>
 
         {/* System names */}
@@ -106,7 +106,7 @@ export default async function OGImage() {
             alignItems: 'center',
           }}
         >
-          {['Dreamspell', 'Human Design', 'Astrology', 'Tzolkin', 'Kabbalah'].map(
+          {['Dreamspell', 'Tzolkin', 'Long Count', 'Human Design', 'Astrology', 'Kabbalah'].map(
             (name) => (
               <div
                 key={name}
@@ -130,7 +130,7 @@ export default async function OGImage() {
             position: 'absolute',
             bottom: 32,
             fontSize: 16,
-            color: 'rgba(74, 139, 127, 0.8)',
+            color: 'rgba(167, 143, 223, 0.8)',
             display: 'flex',
           }}
         >
