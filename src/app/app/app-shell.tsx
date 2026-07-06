@@ -55,6 +55,7 @@ import {
   Settings,
   LogOut,
   ChevronRight,
+  Moon,
 } from 'lucide-react'
 
 // Navigation structure with groups
@@ -85,6 +86,7 @@ const navGroups = [
     label: 'Insights',
     items: [
       { href: '/app/predictions', label: 'Predictions', icon: Sparkles },
+      { href: '/app/moon', label: 'Moon Map', icon: Moon },
     ],
   },
 ]

@@ -15,6 +15,7 @@ import {
   type SerializedNotificationSettings,
 } from '@/lib/db/repositories/notifications-repo'
 import { getDailyPrediction, getPersonalDailyPrediction, COLOR_HEX } from './predictions'
+import { EMAIL_FROM } from '@/lib/email/from'
 
 // Lazy initialization of Resend to avoid build-time errors
 let resendInstance: Resend | null = null
@@ -28,9 +29,6 @@ function getResend(): Resend | null {
   }
   return resendInstance
 }
-
-// Email sender identity
-import { EMAIL_FROM } from '@/lib/email/from'
 
 const FROM_EMAIL = EMAIL_FROM
 
