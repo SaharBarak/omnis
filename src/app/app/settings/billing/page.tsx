@@ -36,9 +36,13 @@ export default function BillingPage() {
   const [actionLoading, setActionLoading] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
-  const fetchSubscription = useCallback(async () => {
+  const fetchSubscription = useCallback(async (refresh = false) => {
     try {
-      const response = await fetch('/api/billing/subscription')
+      // refresh=1 makes the server re-sync from Paddle (post-checkout the
+      // webhook may not have landed yet).
+      const response = await fetch(
+        refresh ? '/api/billing/subscription?refresh=1' : '/api/billing/subscription'
+      )
       if (response.ok) {
         const data = await response.json()
         setSubscription(data)
@@ -58,8 +62,8 @@ export default function BillingPage() {
   useEffect(() => {
     if (searchParams.get('success') === 'true') {
       setMessage({ type: 'success', text: 'Your subscription has been updated successfully!' })
-      // Refresh subscription data
-      fetchSubscription()
+      // Refresh subscription data (force a server-side Paddle re-sync)
+      fetchSubscription(true)
     } else if (searchParams.get('canceled') === 'true') {
       setMessage({ type: 'error', text: 'Checkout was canceled. No charges were made.' })
     }

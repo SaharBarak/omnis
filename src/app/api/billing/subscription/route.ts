@@ -13,15 +13,20 @@ import {
   getSubscription,
   updateSubscriptionForUser,
 } from '@/lib/db/repositories/subscriptions-repo'
+import { resyncSubscriptionIfStale } from '@/lib/services/subscription-sync'
 import { getUsageSummary } from '@/lib/services/usage'
 import { PLANS } from '@/lib/services/billing'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const userId = await requireUserId()
 
-    // Get the caller's own subscription
-    const subscription = await getSubscription(userId)
+    // Get the caller's own subscription, re-synced from Paddle when forced
+    // (?refresh=1, e.g. right after checkout, racing the webhook) or when the
+    // local row is stale. Falls back to cached state if Paddle is unreachable.
+    const force =
+      new URL(request.url).searchParams.get('refresh') === '1'
+    const subscription = await resyncSubscriptionIfStale(userId, { force })
 
     // Get usage summary
     const usage = await getUsageSummary(userId)
