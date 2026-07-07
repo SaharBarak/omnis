@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { track } from '@/lib/analytics/posthog'
 import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
 import { calculateOracle } from '@/lib/calculations/oracle'
 import { SEALS } from '@/lib/data/seals'
@@ -73,6 +74,8 @@ export default function CalculatePage() {
         occult: getOracleSeal(oracleResult.occult),
       },
     })
+
+    track('calculate_completed', { kin })
 
     setIsCalculating(false)
   }

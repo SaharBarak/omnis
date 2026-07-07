@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { BirthTimeInput } from '@/components/ui/birth-time-input'
 import { LocationPicker, type BirthPlace } from '@/components/ui/location-picker'
+import { track } from '@/lib/analytics/posthog'
 import { useAuth } from '@/lib/hooks/use-auth'
 import type { Json } from '@/lib/types/database.types'
 
@@ -107,6 +108,8 @@ export default function OnboardingPage() {
         hebrew_name: formData.hebrewName || null,
         onboarding_completed: true,
       })
+
+      track('onboarding_completed')
 
       router.replace('/app')
     } catch (err) {

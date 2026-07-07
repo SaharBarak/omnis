@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Barlow, Rubik, IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { PostHogAnalytics } from "@/lib/analytics/posthog-provider";
 import "./globals.css";
 
 const barlow = Barlow({
@@ -128,6 +129,7 @@ export default function RootLayout({
         className={`${barlow.variable} ${rubik.variable} ${ibmPlexMono.variable} ${spaceGrotesk.variable} font-sans antialiased`}
       >
         {children}
+        <PostHogAnalytics />
         <GoogleAnalytics gaId="G-KY20RW9LY7" />
         {process.env.NEXT_PUBLIC_CF_BEACON_TOKEN && (
           <Script

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { track } from '@/lib/analytics/posthog'
 import type { CreateShareInput } from '@/lib/types/relationship'
 
 // Client-facing shape mirrors the original Supabase shared_views row contract
@@ -105,6 +106,7 @@ export function useShares() {
       })
 
       const shareLink = toShareLink(share)
+      track('share_created', { share_type: shareLink.shareType })
       setShares(prev => [shareLink, ...prev])
       return shareLink
     } catch (err) {

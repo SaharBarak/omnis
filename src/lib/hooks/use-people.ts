@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useComputedResults } from './use-computed-results'
+import { track } from '@/lib/analytics/posthog'
 
 // Client-facing shapes mirror the original Supabase row contract (nullable,
 // never undefined) so existing consumers keep type-checking. The server
@@ -107,6 +108,7 @@ export function usePeople() {
           body: JSON.stringify({ person, tagIds }),
         }
       )
+      track('person_created', { is_self: created.is_self })
       await computeAndStore(created.id, {
         birthDate: created.birth_date,
         hebrewName: created.hebrew_name,

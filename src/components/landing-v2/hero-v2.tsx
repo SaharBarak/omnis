@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { track } from '@/lib/analytics/posthog'
 import { MURAL_GROUND } from '@/lib/design/system-flavors'
 import { COLORS, TYPE } from '@/lib/design/landing-tokens'
 import { AmbientVideo } from './ambient-video'
@@ -86,7 +87,7 @@ export function HeroV2() {
                 size="lg"
                 className="rounded-xl bg-brand px-8 text-base font-semibold text-white transition-transform hover:bg-brand-soft active:scale-[0.98]"
               >
-                <Link href="/calculate">
+                <Link href="/calculate" onClick={() => track('landing_cta_clicked')}>
                   Try a free reading
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>

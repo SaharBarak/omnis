@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useUser } from '@auth0/nextjs-auth0'
+import { identifyUser, resetIdentity } from '@/lib/analytics/posthog'
 import type { profiles } from '@/lib/db/schema'
 
 export type Profile = typeof profiles.$inferSelect
@@ -32,6 +33,12 @@ export function useAuth() {
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [profileLoading, setProfileLoading] = useState(false)
+
+  // Product analytics: tie the anonymous device to the signed-in user.
+  // No-op when PostHog is off; identifyUser dedupes repeat calls itself.
+  useEffect(() => {
+    if (user) identifyUser(user.id, user.email || undefined)
+  }, [user])
 
   // Load the app profile from the server (browser cannot query the DB directly).
   useEffect(() => {
@@ -83,6 +90,7 @@ export function useAuth() {
   )
 
   const signOut = useCallback(async () => {
+    resetIdentity()
     window.location.href = '/auth/logout'
   }, [])
 

@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { track } from '@/lib/analytics/posthog'
 import { useAuth } from '@/lib/hooks/use-auth'
 
 function LoginForm() {
@@ -18,6 +19,7 @@ function LoginForm() {
   const { signInWithGoogle, signInWithEmail } = useAuth()
 
   const handleGoogleSignIn = async () => {
+    track('signup_started', { method: 'google' })
     setLoading(true)
     setError(null)
     try {
@@ -34,6 +36,7 @@ function LoginForm() {
     e.preventDefault()
     if (!email) return
 
+    track('signup_started', { method: 'email' })
     setLoading(true)
     setError(null)
     try {
