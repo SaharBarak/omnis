@@ -64,6 +64,8 @@ export function ShareDialog({ open, onOpenChange, shareType, title, options }: S
 
       if (result) {
         setCreatedLink(result)
+        // Dashboard get-to-value checklist reads this flag ("Share a reading").
+        try { window.localStorage.setItem('omnis.checklist.shared', '1') } catch { /* storage disabled */ }
       } else {
         setError('Failed to create share link')
       }
