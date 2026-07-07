@@ -20,7 +20,12 @@ import { serialize } from '@/lib/db/serialize'
  * and therefore key off Paddle identifiers instead of an owner filter.
  */
 
-export type SubscriptionPlan = 'free' | 'explorer' | 'complete' | 'practitioner'
+export type SubscriptionPlan =
+  | 'free'
+  | 'explorer'
+  | 'complete'
+  | 'practitioner'
+  | 'lifetime'
 export type SubscriptionStatus =
   | 'active'
   | 'trialing'
@@ -181,6 +186,23 @@ export async function getUserPlan(userId: string): Promise<SubscriptionPlan> {
 // the Paddle webhook handler, which is authenticated by the verified Paddle
 // signature (not a user session). They key off Paddle identifiers carried in
 // the verified event payload. Do not call them from user-facing routes.
+
+/**
+ * SYSTEM context. Read the subscription row matching a Paddle subscription id.
+ * Used by the webhook sync to check the current local plan (e.g. the lifetime
+ * guard) before overwriting state from Paddle.
+ */
+export async function getByPaddleSubscriptionId(
+  subscriptionId: string
+): Promise<SubscriptionRow | null> {
+  const db = getDb()
+  const [row] = await db
+    .select()
+    .from(subscriptions)
+    .where(eq(subscriptions.paddle_subscription_id, subscriptionId))
+    .limit(1)
+  return row ? serialize<SubscriptionRow>(row) : null
+}
 
 /**
  * SYSTEM context. Update the subscription matching a Paddle customer id.

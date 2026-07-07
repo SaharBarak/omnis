@@ -84,7 +84,9 @@ export function SubscriptionStatus({
             <span className="text-2xl font-bold">{planInfo.name}</span>
             {planInfo.price > 0 && (
               <span className="text-muted-foreground ml-2">
-                ${planInfo.price}/month
+                {plan === 'lifetime'
+                  ? `$${planInfo.price} · paid once`
+                  : `$${planInfo.price}/month`}
               </span>
             )}
           </div>
@@ -132,6 +134,13 @@ export function SubscriptionStatus({
             Your payment failed. Please update your payment method to continue using premium features.
           </p>
         </div>
+      )}
+
+      {/* Lifetime Info — no renewal, no expiry, nothing to cancel */}
+      {plan === 'lifetime' && (
+        <p className="text-sm text-muted-foreground">
+          Founding Lifetime — yours forever. No renewals, no billing dates.
+        </p>
       )}
 
       {/* Renewal Info */}

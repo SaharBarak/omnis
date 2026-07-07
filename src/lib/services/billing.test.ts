@@ -11,6 +11,7 @@ const PRICE_IDS = {
   PADDLE_PRICE_EXPLORER: 'pri_explorer_test',
   PADDLE_PRICE_COMPLETE: 'pri_complete_test',
   PADDLE_PRICE_PRACTITIONER: 'pri_practitioner_test',
+  PADDLE_PRICE_LIFETIME: 'pri_lifetime_test',
 } as const
 
 async function importBillingWithEnv() {
@@ -26,13 +27,14 @@ afterEach(() => {
 })
 
 describe('PLANS', () => {
-  it('defines all four tiers', async () => {
+  it('defines all five tiers', async () => {
     const { PLANS } = await importBillingWithEnv()
     expect(Object.keys(PLANS)).toEqual([
       'free',
       'explorer',
       'complete',
       'practitioner',
+      'lifetime',
     ])
   })
 
@@ -42,6 +44,13 @@ describe('PLANS', () => {
     expect(PLANS.explorer.price).toBe(5)
     expect(PLANS.complete.price).toBe(9)
     expect(PLANS.practitioner.price).toBe(29)
+  })
+
+  it('founding lifetime is a $79 one-time purchase with Complete entitlements', async () => {
+    const { PLANS } = await importBillingWithEnv()
+    expect(PLANS.lifetime.price).toBe(79)
+    // Entitlements mirror Complete exactly — lifetime is "Complete, forever".
+    expect(PLANS.lifetime.limits).toEqual(PLANS.complete.limits)
   })
 
   it('explorer holds the whole map at small scale with no AI', async () => {
@@ -82,6 +91,7 @@ describe('getPlanFromPriceId', () => {
     expect(getPlanFromPriceId(PRICE_IDS.PADDLE_PRICE_EXPLORER)).toBe('explorer')
     expect(getPlanFromPriceId(PRICE_IDS.PADDLE_PRICE_COMPLETE)).toBe('complete')
     expect(getPlanFromPriceId(PRICE_IDS.PADDLE_PRICE_PRACTITIONER)).toBe('practitioner')
+    expect(getPlanFromPriceId(PRICE_IDS.PADDLE_PRICE_LIFETIME)).toBe('lifetime')
   })
 
   it('falls back to free for unknown or missing ids', async () => {
@@ -98,6 +108,7 @@ describe('isPaidPlanTier', () => {
     expect(isPaidPlanTier('explorer')).toBe(true)
     expect(isPaidPlanTier('complete')).toBe(true)
     expect(isPaidPlanTier('practitioner')).toBe(true)
+    expect(isPaidPlanTier('lifetime')).toBe(true)
     expect(isPaidPlanTier('free')).toBe(false)
     expect(isPaidPlanTier('enterprise')).toBe(false)
     expect(isPaidPlanTier(undefined)).toBe(false)

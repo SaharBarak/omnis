@@ -7,7 +7,7 @@
  * promise something billing.ts does not enforce.
  */
 
-export type PaidPlanId = 'explorer' | 'complete' | 'practitioner'
+export type PaidPlanId = 'explorer' | 'complete' | 'practitioner' | 'lifetime'
 
 export const FREE_PLAN = {
   name: 'Free',
@@ -80,6 +80,25 @@ export const PAID_PLANS: readonly PaidPlan[] = [
     featured: false,
   },
 ] as const
+
+/**
+ * Founding Lifetime — one-time launch offer rendered as a slim band under
+ * the paid tiers grid. Complete-tier entitlements (billing.ts PLANS.lifetime
+ * mirrors PLANS.complete), paid once, never billed again.
+ */
+export const LIFETIME_PLAN = {
+  id: 'lifetime',
+  name: 'Founding Lifetime',
+  price: '$79',
+  priceNote: 'once',
+  tagline: 'Everything in Complete, forever. Early-supporter price.',
+  points: [
+    'All Complete features, for life',
+    'One payment — never billed again',
+    'Limited to early supporters',
+  ],
+  cta: 'Claim founding access',
+} as const
 
 /** Comparison ledger — one row per entitlement in billing.ts PLANS.limits. */
 export interface LedgerRow {

@@ -32,15 +32,17 @@ function getPaddleClient(): Paddle {
 }
 
 // Plan types
-export type PlanTier = 'free' | 'explorer' | 'complete' | 'practitioner'
+export type PlanTier = 'free' | 'explorer' | 'complete' | 'practitioner' | 'lifetime'
 
 // Plans that can be purchased through Paddle checkout.
+// 'lifetime' is a one-time transaction (no billing_cycle), not a subscription.
 export type PaidPlanTier = Exclude<PlanTier, 'free'>
 
 export const PAID_PLAN_TIERS: readonly PaidPlanTier[] = [
   'explorer',
   'complete',
   'practitioner',
+  'lifetime',
 ] as const
 
 export function isPaidPlanTier(value: unknown): value is PaidPlanTier {
@@ -126,6 +128,25 @@ export const PLANS = {
       apiAccess: true,
     },
   },
+  lifetime: {
+    // Founding Lifetime — one-time purchase, Complete entitlements forever.
+    // Mirrors PLANS.complete.limits (keep the two in lockstep; a test enforces it).
+    name: 'Founding Lifetime',
+    price: 79,
+    priceILS: 292,
+    paddlePriceId: process.env.PADDLE_PRICE_LIFETIME,
+    limits: {
+      profiles: 10,
+      systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria'],
+      aiInterpretations: 30,
+      boards: 5,
+      exports: true,
+      timeline: true,
+      relationships: 'basic' as const,
+      groupAnalysis: false,
+      apiAccess: false,
+    },
+  },
 } as const
 
 export type PlanLimits = typeof PLANS['free']['limits']
@@ -167,7 +188,9 @@ export async function getOrCreatePaddleCustomer(
 }
 
 /**
- * Create a hosted Paddle checkout transaction for a subscription plan.
+ * Create a hosted Paddle checkout transaction for a paid plan.
+ * Works for both recurring prices (subscription tiers) and one-time prices
+ * ('lifetime' — no billing_cycle, so Paddle treats it as a plain transaction).
  * Returns the hosted checkout URL (null if Paddle did not provide one).
  */
 export async function createCheckoutTransaction(
@@ -246,6 +269,7 @@ export function getPlanFromPriceId(priceId: string | undefined | null): PlanTier
   if (priceId === PLANS.explorer.paddlePriceId) return 'explorer'
   if (priceId === PLANS.complete.paddlePriceId) return 'complete'
   if (priceId === PLANS.practitioner.paddlePriceId) return 'practitioner'
+  if (priceId === PLANS.lifetime.paddlePriceId) return 'lifetime'
   return 'free'
 }
 

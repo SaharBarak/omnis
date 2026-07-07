@@ -26,7 +26,11 @@ interface PricingCardProps {
 export function PricingCard({ plan, currentPlan, onSelect, loading }: PricingCardProps) {
   const [isLoading, setIsLoading] = useState(false)
   const isCurrentPlan = currentPlan === plan.id
-  const isPlanDisabled = isCurrentPlan || plan.id === 'free'
+  // Founding Lifetime holders keep Complete-tier entitlements forever and the
+  // sync layer treats lifetime as sticky, so no subscription purchase can
+  // apply to them — disable all cards rather than sell a no-op.
+  const hasLifetime = currentPlan === 'lifetime'
+  const isPlanDisabled = isCurrentPlan || plan.id === 'free' || hasLifetime
 
   const handleSelect = async () => {
     if (isPlanDisabled || !onSelect) return
@@ -110,6 +114,10 @@ export function PricingCard({ plan, currentPlan, onSelect, loading }: PricingCar
           'Loading...'
         ) : isCurrentPlan ? (
           'Current Plan'
+        ) : hasLifetime ? (
+          plan.id === 'practitioner'
+            ? 'Not available on Lifetime'
+            : 'Included in Lifetime'
         ) : plan.id === 'free' ? (
           'Free Forever'
         ) : (

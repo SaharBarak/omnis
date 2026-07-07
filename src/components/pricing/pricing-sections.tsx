@@ -8,6 +8,7 @@ import { TYPE } from '@/lib/design/landing-tokens'
 import {
   FREE_PLAN,
   EXPLORER_PLAN,
+  LIFETIME_PLAN,
   PAID_PLANS,
   LEDGER_COLUMNS,
   LEDGER_ROWS,
@@ -180,6 +181,54 @@ function ExplorerRow() {
 }
 
 // --------------------------------------------
+// Founding Lifetime — slim launch band under the paid tiers grid.
+// One-time purchase, Complete entitlements forever. Quieter than the
+// cards above it, but carried by the brand violet.
+// --------------------------------------------
+
+function LifetimeBand() {
+  return (
+    <motion.div
+      {...fadeUp}
+      className="rounded-2xl border border-brand/30 bg-brand/[0.07] p-6 sm:p-7"
+    >
+      <div className="grid items-center gap-6 md:grid-cols-[auto_1fr_auto]">
+        <div className="flex items-baseline gap-4">
+          <p className="text-xs uppercase tracking-[0.2em] text-brand-soft">
+            {LIFETIME_PLAN.name}
+          </p>
+          <p className="font-display text-3xl font-semibold text-white">
+            {LIFETIME_PLAN.price}
+            <span className="text-sm font-normal text-white/50">
+              {' '}
+              {LIFETIME_PLAN.priceNote}
+            </span>
+          </p>
+        </div>
+        <div>
+          <p className="text-sm text-white/70">{LIFETIME_PLAN.tagline}</p>
+          <ul className="mt-2 flex flex-wrap gap-x-6 gap-y-1.5 text-sm text-white/50">
+            {LIFETIME_PLAN.points.map((point) => (
+              <li key={point} className="flex items-center gap-2">
+                <span className="text-brand">·</span>
+                {point}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="w-full md:w-52">
+          <CheckoutButton
+            plan={LIFETIME_PLAN.id}
+            label={LIFETIME_PLAN.cta}
+            featured
+          />
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+// --------------------------------------------
 // Paid tiers — Explorer entry row, then the featured Complete column
 // with Practitioner beside it
 // --------------------------------------------
@@ -238,9 +287,13 @@ export function PaidTiers() {
           </motion.div>
         ))}
       </div>
+      <div className="mt-6">
+        <LifetimeBand />
+      </div>
       <p className="mt-6 text-center text-sm text-white/35">
-        Billed monthly through Paddle. Cancel any time — your plan runs to the
-        end of the period, and your people stay saved.
+        Billed monthly through Paddle — Founding Lifetime is a single one-time
+        payment. Cancel any time — your plan runs to the end of the period, and
+        your people stay saved.
       </p>
     </section>
   )

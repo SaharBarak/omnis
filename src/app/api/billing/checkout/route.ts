@@ -10,6 +10,7 @@ import { NextResponse } from 'next/server'
 import { getSession, UnauthorizedError } from '@/lib/auth-server'
 import { handleApiError } from '@/lib/api/respond'
 import { createCheckoutTransaction, isPaidPlanTier } from '@/lib/services/billing'
+import { getSubscription } from '@/lib/db/repositories/subscriptions-repo'
 
 export async function POST(request: Request) {
   try {
@@ -25,8 +26,19 @@ export async function POST(request: Request) {
 
     if (!isPaidPlanTier(plan)) {
       return NextResponse.json(
-        { error: 'Invalid plan. Must be "explorer", "complete" or "practitioner"' },
+        { error: 'Invalid plan. Must be "explorer", "complete", "practitioner" or "lifetime"' },
         { status: 400 }
+      )
+    }
+
+    // Founding Lifetime is terminal: holders already own Complete forever and
+    // the sync layer keeps their plan sticky, so any further checkout would
+    // charge them for nothing.
+    const existing = await getSubscription(user.id)
+    if (existing?.plan === 'lifetime') {
+      return NextResponse.json(
+        { error: 'You already have Founding Lifetime — nothing further to buy.' },
+        { status: 409 }
       )
     }
 
