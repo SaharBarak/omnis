@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SYSTEM_FLAVORS, FLAVOR_DESCENT, MURAL_GROUND } from '@/lib/design/system-flavors'
+import { BrandMark } from '@/components/brand-mark'
 import { TYPE } from '@/lib/design/landing-tokens'
 import { faqs } from '@/lib/data/faqs'
 
@@ -351,7 +352,10 @@ export function FooterV2({ liveLine }: { readonly liveLine: string }) {
       <div className="mx-auto max-w-content px-6">
         <div className="grid gap-10 md:grid-cols-4">
           <div>
-            <p className={TYPE.card}>OmnisX</p>
+            <p className={`flex items-center gap-2.5 ${TYPE.card}`}>
+              <BrandMark size={24} />
+              OmnisX
+            </p>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/50">
               The living map of your people, read through six wisdom systems.
             </p>

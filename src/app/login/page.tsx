@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from 'react'
 import Link from 'next/link'
+import { BrandMark } from '@/components/brand-mark'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -53,24 +54,20 @@ function LoginForm() {
       <div className="text-center mb-8">
         <Link href="/" className="inline-flex items-center gap-2.5 mb-4">
           <div className="w-10 h-10 flex items-center justify-center">
-            <svg viewBox="0 0 32 32" className="w-9 h-9">
-              <circle cx="16" cy="16" r="14" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.3" />
-              <circle cx="16" cy="16" r="9" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.5" />
-              <circle cx="16" cy="16" r="4" fill="hsl(var(--primary))" />
-            </svg>
+            <BrandMark size={36} className="w-9 h-9" />
           </div>
-          <span className="text-2xl font-heading text-foreground">OmnisX</span>
+          <span className="text-2xl font-display font-semibold tracking-tight text-white">OmnisX</span>
         </Link>
-        <p className="text-muted-foreground">Personal Symbolic Mapping System</p>
+        <p className="text-white/50">Personal Symbolic Mapping System</p>
       </div>
 
-      <div className="earth-card bg-card p-8">
+      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8">
         <>
             {/* OAuth Buttons */}
             <div className="space-y-3 mb-6">
               <Button
                 variant="outline"
-                className="w-full h-11 gap-2 border-border hover:bg-muted/50"
+                className="w-full h-11 gap-2 border-white/15 bg-transparent text-white hover:bg-white/5 hover:text-white active:scale-[0.98]"
                 onClick={handleGoogleSignIn}
                 disabled={loading}
               >
@@ -98,10 +95,10 @@ function LoginForm() {
 
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="earth-divider w-full" />
+                <div className="w-full border-t border-white/10" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">
+                <span className="bg-[#12141F] px-2 text-white/40">
                   or with email
                 </span>
               </div>
@@ -110,7 +107,7 @@ function LoginForm() {
             {/* Email Magic Link Form */}
             <form onSubmit={handleEmailSignIn} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email address</Label>
+                <Label htmlFor="email" className="text-white/70">Email address</Label>
                 <Input
                   id="email"
                   type="email"
@@ -118,12 +115,12 @@ function LoginForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="h-11 bg-background border-border"
+                  className="h-11 bg-white/[0.04] border-white/15 text-white placeholder:text-white/30"
                 />
               </div>
               <Button
                 type="submit"
-                className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground"
+                className="w-full h-11 rounded-xl bg-brand hover:bg-brand/90 text-white active:scale-[0.98]"
                 disabled={loading || !email}
               >
                 {loading ? 'Redirecting...' : 'Continue with email'}
@@ -136,11 +133,11 @@ function LoginForm() {
               </div>
             )}
 
-            <p className="mt-6 text-xs text-center text-muted-foreground">
+            <p className="mt-6 text-xs text-center text-white/40">
               By signing in, you agree to our{' '}
-              <a href="/terms" className="text-primary hover:underline">Terms of Service</a>
+              <a href="/terms" className="text-brand-soft hover:underline">Terms of Service</a>
               {' '}and{' '}
-              <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>
+              <a href="/privacy" className="text-brand-soft hover:underline">Privacy Policy</a>
             </p>
         </>
       </div>
@@ -153,17 +150,13 @@ function LoginFallback() {
     <div className="w-full max-w-md">
       <div className="text-center mb-8">
         <div className="w-10 h-10 mx-auto mb-4">
-          <svg viewBox="0 0 32 32" className="w-9 h-9">
-            <circle cx="16" cy="16" r="14" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.3" />
-            <circle cx="16" cy="16" r="9" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.5" />
-            <circle cx="16" cy="16" r="4" fill="hsl(var(--primary))" />
-          </svg>
+          <BrandMark size={36} className="w-9 h-9" />
         </div>
-        <h1 className="text-2xl font-heading text-foreground">OmnisX</h1>
-        <p className="text-muted-foreground">Personal Symbolic Mapping System</p>
+        <h1 className="text-2xl font-display font-semibold tracking-tight text-white">OmnisX</h1>
+        <p className="text-white/50">Personal Symbolic Mapping System</p>
       </div>
-      <div className="earth-card bg-card p-8 flex items-center justify-center">
-        <div className="text-muted-foreground">Loading...</div>
+      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8 flex items-center justify-center">
+        <div className="text-white/50">Loading...</div>
       </div>
     </div>
   )
@@ -171,7 +164,7 @@ function LoginFallback() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-6">
+    <div className="min-h-[100dvh] flex items-center justify-center bg-[#0B0D16] p-6">
       <Suspense fallback={<LoginFallback />}>
         <LoginForm />
       </Suspense>
