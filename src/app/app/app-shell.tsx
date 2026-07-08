@@ -5,6 +5,7 @@ import './dashboard.css'
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { BrandMark } from '@/components/brand-mark'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -112,11 +113,7 @@ function AppSidebar() {
             <SidebarMenuButton size="lg" asChild>
               <Link href="/app" className="flex items-center gap-3">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <svg viewBox="0 0 32 32" className="size-5">
-                    <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.3" />
-                    <circle cx="16" cy="16" r="9" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.5" />
-                    <circle cx="16" cy="16" r="4" fill="currentColor" />
-                  </svg>
+                  <BrandMark size={22} mono className="size-5" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-display font-semibold tracking-tight">OmnisX</span>

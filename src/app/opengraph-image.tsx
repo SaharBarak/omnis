@@ -19,58 +19,26 @@ export default async function OGImage() {
           fontFamily: 'system-ui, sans-serif',
         }}
       >
-        {/* Decorative circles */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 400,
-            height: 400,
-            borderRadius: '50%',
-            border: '2px solid rgba(167, 143, 223, 0.18)',
-            display: 'flex',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 280,
-            height: 280,
-            borderRadius: '50%',
-            border: '2px solid rgba(167, 143, 223, 0.3)',
-            display: 'flex',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 160,
-            height: 160,
-            borderRadius: '50%',
-            border: '2px solid rgba(167, 143, 223, 0.45)',
-            display: 'flex',
-          }}
-        />
-
-        {/* Center dot */}
-        <div
-          style={{
-            width: 24,
-            height: 24,
-            borderRadius: '50%',
-            background: '#7D5BC9',
-            marginBottom: 32,
-            display: 'flex',
-          }}
-        />
+        {/* Asterism mark */}
+        <svg
+          viewBox="0 0 32 32"
+          width="140"
+          height="140"
+          style={{ marginBottom: 32 }}
+        >
+          <g stroke="#A78FDF" strokeWidth="0.9" opacity="0.55">
+            <line x1="16" y1="16" x2="7" y2="9" />
+            <line x1="16" y1="16" x2="25" y2="7" />
+            <line x1="16" y1="16" x2="24" y2="24" />
+            <line x1="16" y1="16" x2="8" y2="25" />
+            <line x1="7" y1="9" x2="25" y2="7" />
+          </g>
+          <circle cx="16" cy="16" r="3.4" fill="#7D5BC9" />
+          <circle cx="7" cy="9" r="2" fill="#EFEAFA" />
+          <circle cx="25" cy="7" r="1.6" fill="#A78FDF" />
+          <circle cx="24" cy="24" r="1.8" fill="#A78FDF" />
+          <circle cx="8" cy="25" r="1.4" fill="#EFEAFA" />
+        </svg>
 
         {/* Title */}
         <div
