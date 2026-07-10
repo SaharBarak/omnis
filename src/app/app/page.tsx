@@ -42,10 +42,12 @@ import {
 } from 'lucide-react'
 
 /**
- * Get-to-value checklist persistence (namespaced localStorage keys).
+ * Get-to-value checklist state, persisted server-side on the profile under
+ * `preferences.checklist` so progress follows the user across devices and
+ * sessions (not trapped in one browser's localStorage).
  *
- * Signals that have no cheap server-side query use honest client flags:
- * - map-seen: set when the user clicks through the "See your map" step.
+ * Signals that have no cheap server-side query use honest flags:
+ * - mapSeen: set when the user clicks through the "See your map" step.
  *   (We cannot instrument /app/graph itself from this file, so the click-
  *   through is the simplest honest signal; a sidebar visit won't count
  *   until the user clicks the step once.)
@@ -54,26 +56,11 @@ import {
  *   GET /api/shares and persist the flag if any share exists.
  * - dismissed: user closed the "You're set up" card.
  */
-const CHECKLIST_KEYS = {
-  mapSeen: 'omnis.checklist.map-seen',
-  shared: 'omnis.checklist.shared',
-  dismissed: 'omnis.checklist.dismissed',
-} as const
+type ChecklistState = { mapSeen?: boolean; shared?: boolean; dismissed?: boolean }
 
-function readChecklistFlag(key: string): boolean {
-  try {
-    return window.localStorage.getItem(key) === '1'
-  } catch {
-    return false
-  }
-}
-
-function writeChecklistFlag(key: string): void {
-  try {
-    window.localStorage.setItem(key, '1')
-  } catch {
-    // Private mode / storage disabled — flag simply won't persist.
-  }
+function readChecklist(preferences: unknown): ChecklistState {
+  const prefs = (preferences ?? {}) as Record<string, unknown>
+  return (prefs.checklist as ChecklistState) ?? {}
 }
 
 function getGreeting(): string {
@@ -92,7 +79,7 @@ function formatDate(): string {
 }
 
 export default function DashboardPage() {
-  const { profile } = useAuth()
+  const { profile, updateProfile } = useAuth()
   const { people, loading: peopleLoading } = usePeople()
   const { relationships, loading: relationshipsLoading } = useRelationships()
   const { groups, loading: groupsLoading } = useGroups()
@@ -106,12 +93,29 @@ export default function DashboardPage() {
   const [checklistDismissed, setChecklistDismissed] = useState(false)
   const [flagsLoaded, setFlagsLoaded] = useState(false)
 
+  // Persist a checklist flag change onto the profile (`preferences.checklist`).
+  // Local state already reflects it, so a failed write is harmless — the flag
+  // simply re-appears next session.
+  const persistChecklist = useCallback(
+    (patch: ChecklistState) => {
+      const prefs = (profile?.preferences ?? {}) as Record<string, unknown>
+      const checklist = { ...readChecklist(profile?.preferences), ...patch }
+      updateProfile({
+        preferences: { ...prefs, checklist },
+      } as Parameters<typeof updateProfile>[0]).catch(() => {})
+    },
+    [profile?.preferences, updateProfile],
+  )
+
+  // Hydrate checklist flags from the server-persisted profile once it loads.
   useEffect(() => {
-    setMapSeen(readChecklistFlag(CHECKLIST_KEYS.mapSeen))
-    setHasShared(readChecklistFlag(CHECKLIST_KEYS.shared))
-    setChecklistDismissed(readChecklistFlag(CHECKLIST_KEYS.dismissed))
+    if (!profile) return
+    const cl = readChecklist(profile.preferences)
+    setMapSeen(!!cl.mapSeen)
+    setHasShared(!!cl.shared)
+    setChecklistDismissed(!!cl.dismissed)
     setFlagsLoaded(true)
-  }, [])
+  }, [profile])
 
   // Self-heal the share flag: one cheap GET /api/shares, only while the
   // step is still unchecked and the card hasn't been dismissed.
@@ -121,20 +125,20 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!hasShared && shares.length > 0) {
-      writeChecklistFlag(CHECKLIST_KEYS.shared)
       setHasShared(true)
+      persistChecklist({ shared: true })
     }
   }, [shares.length, hasShared])
 
   const markMapSeen = useCallback(() => {
-    writeChecklistFlag(CHECKLIST_KEYS.mapSeen)
     setMapSeen(true)
-  }, [])
+    persistChecklist({ mapSeen: true })
+  }, [persistChecklist])
 
   const dismissChecklist = useCallback(() => {
-    writeChecklistFlag(CHECKLIST_KEYS.dismissed)
     setChecklistDismissed(true)
-  }, [])
+    persistChecklist({ dismissed: true })
+  }, [persistChecklist])
 
   // User's kin data
   const userKin = useMemo(() => {
