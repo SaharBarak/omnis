@@ -78,11 +78,11 @@ describe('golden vectors — astrology', () => {
       longitude: 34.9896,
     })
     const compact = {
-      sun: chart.planets.find((p) => p.planet === 'sun'),
-      moon: chart.planets.find((p) => p.planet === 'moon'),
+      sun: chart.planets.find((p) => p.planet.id === 'sun'),
+      moon: chart.planets.find((p) => p.planet.id === 'moon'),
       ascendant: chart.ascendant,
       midheaven: chart.midheaven,
-      houseCusps: chart.houses.map((h) => Math.round(h.cusp * 100) / 100),
+      houseCusps: (chart.houses ?? []).map((h) => h.cusp.formatted),
       aspectCount: chart.aspects.length,
     }
     expect(compact).toMatchSnapshot()
@@ -97,14 +97,25 @@ describe('golden vectors — human design', () => {
       latitude: 32.794,
       longitude: 34.9896,
     })
+    if (!('type' in result)) throw new Error('expected a full bodygraph')
     expect({
-      type: result.bodygraph?.type,
-      authority: result.bodygraph?.authority,
-      profile: result.bodygraph?.profile,
-      definition: result.bodygraph?.definition,
-      definedCenters: result.bodygraph?.definedCenters,
-      channels: result.bodygraph?.channels,
+      type: result.type,
+      authority: result.authority,
+      profile: result.profile,
+      definition: result.definition,
+      definedCenters: result.definedCenters,
+      channels: result.channels.map((c) => c.id),
+      gates: result.gates,
+      incarnationCross: result.incarnationCross,
     }).toMatchSnapshot()
+
+    const untimed = calculateBodygraph({
+      birthDate: '1988-08-17',
+      birthTime: null,
+      latitude: 32.794,
+      longitude: 34.9896,
+    })
+    expect('type' in untimed).toBe(false) // no time -> honest partial state
   })
 })
 
