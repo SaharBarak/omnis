@@ -31,6 +31,12 @@
       ],
       "@pleiad/engine/*": [
         "./packages/engine/src/*"
+      ],
+      "@pleiad/api-client": [
+        "./packages/api-client/src/index.ts"
+      ],
+      "@pleiad/api-client/*": [
+        "./packages/api-client/src/*"
       ]
     }
   },
