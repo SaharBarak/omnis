@@ -16,6 +16,11 @@ import {
 } from '@/lib/db/repositories/notifications-repo'
 import { getDailyPrediction, getPersonalDailyPrediction, COLOR_HEX } from '@pleiad/engine/services/predictions'
 import { EMAIL_FROM } from '@/lib/email/from'
+import {
+  deletePushTokens,
+  listPushTokensForUsers,
+} from '@/lib/db/repositories/push-tokens-repo'
+import { sendExpoPush, type PushMessage } from '@/lib/services/push'
 
 // Lazy initialization of Resend to avoid build-time errors
 let resendInstance: Resend | null = null
@@ -254,6 +259,7 @@ export async function processDailyDigestNotifications(): Promise<{
 
   let sent = 0
   let failed = 0
+  const pushDrafts: Array<{ userId: string; title: string; body: string }> = []
 
   for (const user of users) {
     try {
@@ -278,12 +284,45 @@ export async function processDailyDigestNotifications(): Promise<{
         failed++
       }
 
+      pushDrafts.push({
+        userId: user.userId,
+        title: `Kin ${prediction.kin} · ${prediction.sealName ?? 'Today'}`,
+        body:
+          prediction.events[0]?.title ??
+          'Your daily reading is ready across the systems.',
+      })
+
       // Rate limiting
       await new Promise((resolve) => setTimeout(resolve, 100))
     } catch (err) {
       console.error(`Error processing notification for user ${user.userId}:`, err)
       failed++
     }
+  }
+
+  // PUSH-M1: fan the same digest out to registered devices. Best-effort —
+  // push failures never fail the cron run; dead tokens are pruned.
+  try {
+    const tokens = await listPushTokensForUsers(pushDrafts.map((d) => d.userId))
+    if (tokens.length > 0) {
+      const byUser = new Map(pushDrafts.map((d) => [d.userId, d]))
+      const messages: PushMessage[] = tokens.flatMap((t) => {
+        const draft = byUser.get(t.user_id)
+        if (!draft) return []
+        return [
+          {
+            to: t.expo_push_token,
+            title: draft.title,
+            body: draft.body,
+            data: { url: '/' },
+          },
+        ]
+      })
+      const pushResult = await sendExpoPush(messages)
+      await deletePushTokens(pushResult.deadTokens)
+    }
+  } catch (err) {
+    console.error('Push fan-out failed:', err)
   }
 
   return { sent, failed }

@@ -432,3 +432,23 @@ export const content_chunks = pgTable(
   },
   (t) => [index('content_chunks_kb_idx').on(t.knowledge_base_id)]
 )
+
+/**
+ * Native-app push registrations (PUSH-M1). One row per device; token is the
+ * Expo push token. user_id is the Auth0 sub (text, not FK — see header).
+ */
+export const device_push_tokens = pgTable(
+  'device_push_tokens',
+  {
+    id: id(),
+    user_id: text('user_id').notNull(),
+    expo_push_token: text('expo_push_token').notNull(),
+    platform: text('platform').notNull(), // 'ios' | 'android'
+    created_at: createdAt(),
+    updated_at: updatedAt(),
+  },
+  (t) => [
+    uniqueIndex('device_push_tokens_token_uq').on(t.expo_push_token),
+    index('device_push_tokens_user_idx').on(t.user_id),
+  ]
+)
