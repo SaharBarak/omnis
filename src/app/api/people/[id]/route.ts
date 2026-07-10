@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { z } from 'zod'
 import { requireUserId } from '@/lib/auth-server'
 import { handleApiError } from '@/lib/api/respond'
 import {
@@ -8,33 +7,7 @@ import {
   restorePerson,
   permanentlyDeletePerson,
 } from '@/lib/db/repositories/people-repo'
-
-const birthPlaceSchema = z
-  .object({
-    lat: z.number().optional(),
-    lng: z.number().optional(),
-    name: z.string().optional(),
-  })
-  .nullable()
-
-const patchSchema = z.object({
-  updates: z
-    .object({
-      name: z.string().min(1).max(200).optional(),
-      hebrew_name: z.string().nullable().optional(),
-      birth_date: z.string().optional(),
-      birth_time: z.string().nullable().optional(),
-      birth_place: birthPlaceSchema.optional(),
-      avatar_url: z.string().nullable().optional(),
-      notes: z.string().nullable().optional(),
-      is_self: z.boolean().optional(),
-      deleted_at: z.string().nullable().optional(),
-    })
-    .default({}),
-  tagIds: z.array(z.string()).optional(),
-  // action: 'restore' clears the soft-delete flag
-  action: z.enum(['restore']).optional(),
-})
+import { patchSchema } from './schemas'
 
 type Ctx = { params: Promise<{ id: string }> }
 
