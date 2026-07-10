@@ -44,7 +44,7 @@ export interface Profile {
   avatar_url: string | null
   locale: 'he' | 'en'
   timezone: string
-  preferences: { systems?: SystemKey[] } & Record<string, unknown>
+  preferences: { systems?: Partial<Record<SystemKey, boolean>> } & Record<string, unknown>
   onboarding_completed: boolean
   created_at: string
   updated_at: string
