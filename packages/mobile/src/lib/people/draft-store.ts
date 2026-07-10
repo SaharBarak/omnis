@@ -7,6 +7,18 @@ import { create } from 'zustand'
  * the server confirms the create.
  */
 
+export interface PersonDraftValues {
+  name: string
+  birthDate: Date | null
+  birthTime: Date | null
+  timeUnknown: boolean
+  city: string
+  country: string
+  timezone: string | null
+  hebrewName: string
+  notes: string
+}
+
 interface PersonDraft {
   name: string
   /** null until the wheel is touched — birth date is required and explicit. */
@@ -31,6 +43,8 @@ interface PersonDraft {
   setTimezone: (value: string | null) => void
   setHebrewName: (value: string) => void
   setNotes: (value: string) => void
+  /** Replace the whole draft — S8 edit pre-fill (F4 → S7 reuse). */
+  prefill: (values: PersonDraftValues) => void
   reset: () => void
 }
 
@@ -57,5 +71,6 @@ export const usePersonDraft = create<PersonDraft>()((set) => ({
   setTimezone: (timezone) => set({ timezone }),
   setHebrewName: (hebrewName) => set({ hebrewName }),
   setNotes: (notes) => set({ notes }),
+  prefill: (values) => set({ ...values }),
   reset: () => set({ ...initialDraft }),
 }))

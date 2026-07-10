@@ -30,7 +30,12 @@ import { TextField } from '@/components/ui/text-field'
 import { formatBirthDate, formatBirthTime } from '@/lib/onboarding/draft-store'
 import { TIMEZONES } from '@/lib/onboarding/timezones'
 import { usePersonDraft } from '@/lib/people/draft-store'
-import { useCreatePerson, type PersonDraftInput } from '@/lib/people/hooks'
+import {
+  useCreatePerson,
+  useUpdatePerson,
+  type PersonDraftInput,
+  type PersonUpdates,
+} from '@/lib/people/hooks'
 import { COLORS, DURATION, FLAVORS, FONTS, RADII, SPACE, SPRING, TYPE } from '@/theme/tokens'
 
 /**
@@ -140,27 +145,37 @@ export function CaptureSheet({
   visible,
   onClose,
   onLimitExceeded,
+  editPersonId,
 }: {
   visible: boolean
   onClose: () => void
   /** 403 limit_exceeded — the screen opens the paywall; draft is retained. */
   onLimitExceeded: () => void
+  /** When set the sheet PATCHes this person instead of creating — S8 edit (F4). */
+  editPersonId?: string
 }) {
   const reduced = useReducedMotion()
   const insets = useSafeAreaInsets()
   const draft = usePersonDraft()
+  const editing = editPersonId !== undefined
 
   const [nameError, setNameError] = useState<string | undefined>(undefined)
   const [dateError, setDateError] = useState<string | undefined>(undefined)
 
+  // Clear the retained draft only if it still belongs to this save.
+  const clearDraftFor = (personName: string) => {
+    if (usePersonDraft.getState().name.trim() === personName) {
+      usePersonDraft.getState().reset()
+    }
+  }
+
   const create = useCreatePerson({
     onLimitExceeded,
-    onServerSuccess: (person) => {
-      // Clear the retained draft only if it still belongs to this save.
-      if (usePersonDraft.getState().name.trim() === person.name) {
-        usePersonDraft.getState().reset()
-      }
-    },
+    onServerSuccess: (person) => clearDraftFor(person.name),
+  })
+  const update = useUpdatePerson({
+    onLimitExceeded,
+    onServerSuccess: (person) => clearDraftFor(person.name),
   })
 
   const save = () => {
@@ -180,31 +195,45 @@ export function CaptureSheet({
     const notes = draft.notes.trim()
     const hasPlace = city.length > 0 || country.length > 0 || draft.timezone !== null
 
-    const input: PersonDraftInput = {
-      name,
-      birth_date: formatBirthDate(draft.birthDate),
-      ...(!draft.timeUnknown && draft.birthTime !== null
-        ? { birth_time: formatBirthTime(draft.birthTime) }
-        : {}),
-      ...(hasPlace
-        ? {
-            birth_place: {
-              ...(city.length > 0 ? { city } : {}),
-              ...(country.length > 0 ? { country } : {}),
-              ...(draft.timezone !== null ? { timezone: draft.timezone } : {}),
-              ...(city.length > 0 || country.length > 0
-                ? { name: [city, country].filter((part) => part.length > 0).join(', ') }
-                : {}),
-            },
-          }
-        : {}),
-      ...(hebrewName.length > 0 ? { hebrew_name: hebrewName } : {}),
-      ...(notes.length > 0 ? { notes } : {}),
+    const birthPlace = hasPlace
+      ? {
+          ...(city.length > 0 ? { city } : {}),
+          ...(country.length > 0 ? { country } : {}),
+          ...(draft.timezone !== null ? { timezone: draft.timezone } : {}),
+          ...(city.length > 0 || country.length > 0
+            ? { name: [city, country].filter((part) => part.length > 0).join(', ') }
+            : {}),
+        }
+      : null
+
+    const birthTime =
+      !draft.timeUnknown && draft.birthTime !== null ? formatBirthTime(draft.birthTime) : null
+
+    if (editPersonId !== undefined) {
+      // PATCH semantics: explicit nulls clear fields the person no longer has.
+      const updates: PersonUpdates = {
+        name,
+        birth_date: formatBirthDate(draft.birthDate),
+        birth_time: birthTime,
+        birth_place: birthPlace,
+        hebrew_name: hebrewName.length > 0 ? hebrewName : null,
+        notes: notes.length > 0 ? notes : null,
+      }
+      update.mutate({ id: editPersonId, updates })
+    } else {
+      const input: PersonDraftInput = {
+        name,
+        birth_date: formatBirthDate(draft.birthDate),
+        ...(birthTime !== null ? { birth_time: birthTime } : {}),
+        ...(birthPlace !== null ? { birth_place: birthPlace } : {}),
+        ...(hebrewName.length > 0 ? { hebrew_name: hebrewName } : {}),
+        ...(notes.length > 0 ? { notes } : {}),
+      }
+      // Optimistic: the row is already in the list; errors roll back and either
+      // toast or open the paywall (never both) from the mutation hook.
+      create.mutate(input)
     }
 
-    // Optimistic: the row is already in the list; errors roll back and either
-    // toast or open the paywall (never both) from the mutation hook.
-    create.mutate(input)
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     onClose()
   }
@@ -237,8 +266,12 @@ export function CaptureSheet({
         >
           <View style={styles.header}>
             <View style={styles.headerTitles}>
-              <Eyebrow color={FLAVORS.dreamspell.accentSoft}>NEW PERSON</Eyebrow>
-              <Text style={TYPE.section}>One birthday starts the reading.</Text>
+              <Eyebrow color={FLAVORS.dreamspell.accentSoft}>
+                {editing ? 'EDIT PERSON' : 'NEW PERSON'}
+              </Eyebrow>
+              <Text style={TYPE.section}>
+                {editing ? 'Refine the chart.' : 'One birthday starts the reading.'}
+              </Text>
             </View>
             <Pressable
               onPress={onClose}
@@ -382,8 +415,8 @@ export function CaptureSheet({
             />
           </ScrollView>
 
-          <Button onPress={save} disabled={create.isPending}>
-            Save to your map
+          <Button onPress={save} disabled={create.isPending || update.isPending}>
+            {editing ? 'Save changes' : 'Save to your map'}
           </Button>
         </Animated.View>
       </KeyboardAvoidingView>
