@@ -1,29 +1,33 @@
+import { useMemo } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { dateToKin } from '@pleiad/engine/calculations/dreamspell'
-import { SEALS } from '@pleiad/engine/data/seals'
-import { TONES } from '@pleiad/engine/data/tones'
+import { getTodayAcrossSystems } from '@pleiad/engine/services/today'
 
 import { BrandMark } from '@/components/brand-mark'
-import { Eyebrow, Panel, StatNumber } from '@/components/ui/primitives'
-import { COLORS, FLAVORS, SPACE, TYPE } from '@/theme/tokens'
+import { TodayBoard } from '@/components/today/board'
+import { Eyebrow, Panel } from '@/components/ui/primitives'
+import { SPACE, TYPE } from '@/theme/tokens'
 
 /**
- * Today (home) — S5. v0 slice: live on-device kin for today. Split-flap
- * board, daily reading, checklist and people rows arrive with M1/M2.
+ * Today (home) — S5. Live board computed on-device (offline-capable);
+ * Hebrew date degrades to an em dash where Hermes lacks the calendar.
  */
 export default function TodayScreen() {
   const insets = useSafeAreaInsets()
-  const today = new Date()
-  const isoDate = [
-    today.getFullYear(),
-    String(today.getMonth() + 1).padStart(2, '0'),
-    String(today.getDate()).padStart(2, '0'),
-  ].join('-')
-  const kin = dateToKin(isoDate)
-  const seal = SEALS[(kin - 1) % 20]
-  const tone = TONES[(kin - 1) % 13]
+  const today = useMemo(() => new Date(), [])
+  const board = useMemo(() => getTodayAcrossSystems(today), [today])
+
+  const rows = useMemo(
+    () => [
+      { label: 'Kin', value: board.kin.toUpperCase() },
+      { label: 'Moon', value: board.moon.toUpperCase() },
+      { label: 'Sun', value: board.sun.toUpperCase() },
+      { label: 'Gate', value: board.gate.toUpperCase() },
+      { label: 'Hebrew', value: (board.hebrewDate ?? '—').toUpperCase() },
+    ],
+    [board]
+  )
 
   return (
     <ScrollView
@@ -48,15 +52,9 @@ export default function TodayScreen() {
 
       <Text style={TYPE.zone}>Today, across the systems.</Text>
 
-      <Panel feature style={styles.board}>
-        <Eyebrow color={FLAVORS.dreamspell.accentSoft}>Dreamspell</Eyebrow>
-        <View style={styles.boardRow}>
-          <StatNumber value={`KIN ${kin}`} label={`${tone?.name ?? ''} ${seal?.english ?? ''}`} />
-        </View>
-        <Text style={TYPE.bodySm}>
-          The calendars never stop. Full board — moon, sun, gate, Hebrew date —
-          lands here next.
-        </Text>
+      <Panel feature>
+        <TodayBoard rows={rows} />
+        <Text style={[TYPE.bodySm, styles.caption]}>(the calendars never stop)</Text>
       </Panel>
     </ScrollView>
   )
@@ -77,12 +75,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  board: {
-    gap: 12,
-  },
-  boardRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 16,
+  caption: {
+    marginTop: 12,
   },
 })
