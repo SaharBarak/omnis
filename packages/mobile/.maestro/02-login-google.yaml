@@ -1,0 +1,21 @@
+# F1 sign-in: opens Auth0 Universal Login in the system browser.
+# Requires Auth0 native app configured (task #9) + test credentials.
+appId: host.exp.Exponent
+env:
+  TEST_EMAIL: ${TEST_EMAIL}
+  TEST_PASSWORD: ${TEST_PASSWORD}
+---
+- launchApp
+- tapOn: "Continue with email"
+# Auth0 Universal Login (web view) — selectors depend on tenant page:
+- runFlow:
+    when:
+      visible: "Log in"
+    commands:
+      - inputText: ${TEST_EMAIL}
+      - tapOn: "Continue"
+      - inputText: ${TEST_PASSWORD}
+      - tapOn: "Continue"
+- extendedWaitUntil:
+    visible: "Today, across the systems."
+    timeout: 20000

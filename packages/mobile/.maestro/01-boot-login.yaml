@@ -1,0 +1,7 @@
+# F1 boot: cold start reaches the login hero (signed out).
+appId: host.exp.Exponent   # Expo Go dev; replace with app.pleiad.mobile for dev-builds
+---
+- launchApp
+- assertVisible: "Map the people who shape your life."
+- assertVisible: "Continue with Google"
+- assertVisible: "Continue with email"

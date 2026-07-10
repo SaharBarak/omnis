@@ -1,0 +1,11 @@
+# F4: six-system pager renders; free tier shows locks.
+appId: host.exp.Exponent
+---
+- launchApp
+- tapOn: "People"
+- tapOn: "Lior Ben-Ami"
+- assertVisible: "KIN"
+- swipe: { direction: LEFT }
+- assertVisible: "Long Count"
+- swipe: { direction: LEFT }
+- assertVisible: ".*(Sun|EXPLORER UNLOCKS).*"

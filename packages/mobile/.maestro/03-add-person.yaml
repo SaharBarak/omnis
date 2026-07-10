@@ -1,0 +1,13 @@
+# F3 capture: add a person in under 30s, live preview visible before save.
+appId: host.exp.Exponent
+---
+- launchApp
+- tapOn: "People"
+- tapOn:
+    id: "fab-add-person"
+    optional: true
+- tapOn: "Add a person"
+- inputText: "Lior Ben-Ami"
+- assertVisible: "KIN .*"        # live preview chip after date defaults
+- tapOn: "Save"
+- assertVisible: "Lior Ben-Ami"
