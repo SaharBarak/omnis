@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import Link from 'next/link'
 import { usePeople } from '@/lib/hooks/use-people'
-import { getLunation, getMoonReading, MOON_PHASES } from '@/lib/calculations'
+import { getLunation, getMoonReading, MOON_PHASES } from '@pleiad/engine/calculations'
 import { MoonGlyph } from '@/components/moon/moon-glyph'
 import { Button } from '@/components/ui/button'
 

@@ -25,6 +25,12 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@pleiad/engine": [
+        "./packages/engine/src/index.ts"
+      ],
+      "@pleiad/engine/*": [
+        "./packages/engine/src/*"
       ]
     }
   },
@@ -42,7 +48,8 @@
     "next-app",
     "workers",
     "scripts",
-    "packages",
+    "packages/scraper",
+    "packages/*/node_modules",
     ".open-next"
   ]
 }

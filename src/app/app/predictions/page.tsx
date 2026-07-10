@@ -20,8 +20,8 @@ import {
   getMonthlyPrediction,
   getPersonalTimeline,
   getPersonalDailyPrediction,
-} from '@/lib/services/predictions'
-import type { PersonalTimeline, PredictionEvent } from '@/lib/types/prediction'
+} from '@pleiad/engine/services/predictions'
+import type { PersonalTimeline, PredictionEvent } from '@pleiad/engine/types/prediction'
 
 const colorClasses: Record<string, string> = {
   red: 'bg-red-500 text-white',

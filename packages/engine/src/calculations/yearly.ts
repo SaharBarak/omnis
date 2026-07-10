@@ -1,4 +1,4 @@
-import { asKin, type Kin, type SealNumber, type ToneNumber } from '../../core/types'
+import { asKin, type Kin, type SealNumber, type ToneNumber } from '../core/types'
 import { dateToKin, kinToSeal, kinToTone } from './dreamspell'
 import { parseDate } from './julian'
 

@@ -1,5 +1,5 @@
-import { asKin, type Kin, type SealNumber, type ToneNumber } from '@/core/types'
-import type { ColorFamily } from '@/lib/types/common'
+import { asKin, type Kin, type SealNumber, type ToneNumber } from '../core/types'
+import type { ColorFamily } from '../types/common'
 import {
   dateToKin,
   kinToSeal,
@@ -19,9 +19,9 @@ import {
   formatLongCount,
   type Wavespell,
   type Castle,
-} from '@/lib/calculations'
-import { getSeal, SEALS } from '@/lib/data/seals'
-import { getTone, TONES } from '@/lib/data/tones'
+} from '../calculations'
+import { getSeal, SEALS } from '../data/seals'
+import { getTone, TONES } from '../data/tones'
 import type {
   PredictionEvent,
   DailyPrediction,
@@ -35,7 +35,7 @@ import type {
   KatunBirthdayMilestone,
   CalendarRoundMilestone,
   calculateIntensity,
-} from '@/lib/types/prediction'
+} from '../types/prediction'
 
 // ============================================================================
 // Color Hex Values

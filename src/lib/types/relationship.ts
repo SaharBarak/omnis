@@ -1,7 +1,20 @@
 // Relationship Types for Pleiad Phase 2
 // Domain types for relationships, groups, and graph visualization
 
-import type { Person, Relationship, Group, SharedView } from './database.types'
+import type { Person, Relationship, SharedView } from './database.types'
+
+// Pure compatibility/group-analysis types live in the engine package;
+// re-exported here so existing web imports keep working.
+export type {
+  GroupMember,
+  GroupWithMembers,
+  HarmonyType,
+  DreamspellConnection,
+  DreamspellCompatibility,
+  CompatibilityMatrixEntry,
+  CompatibilityMatrix,
+  GroupAnalysis,
+} from '@pleiad/engine/types/relationship'
 
 // ============================================================================
 // RELATIONSHIP TYPES
@@ -173,68 +186,6 @@ export type GroupPreset =
   | 'friend-group'
   | 'work-team'
 
-export interface GroupWithMembers extends Group {
-  members: Array<{
-    id: string
-    name: string
-    hebrew_name: string | null
-    birth_date: string
-    birth_time?: string | null
-    birth_place?: { lat?: number | null; lng?: number | null } | null
-    added_at: string
-  }>
-}
-
-// ============================================================================
-// COMPATIBILITY TYPES
-// ============================================================================
-
-export type HarmonyType = 'supportive' | 'challenging' | 'transformative' | 'neutral'
-
-export interface DreamspellConnection {
-  type: 'analog' | 'antipode' | 'occult' | 'guide' | 'same-seal' | 'same-tone' | 'same-color'
-  description: string
-  descriptionHebrew: string
-  harmony: HarmonyType
-}
-
-export interface DreamspellCompatibility {
-  person1Kin: number
-  person2Kin: number
-  score: number
-  connections: DreamspellConnection[]
-}
-
-export interface CompatibilityMatrixEntry {
-  person1Id: string
-  person2Id: string
-  score: number
-  aspects: string[]
-}
-
-export interface CompatibilityMatrix {
-  system: 'dreamspell' | 'tzolkin' | 'astrology' | 'humandesign' | 'gematria'
-  matrix: CompatibilityMatrixEntry[]
-}
-
-// ============================================================================
-// GROUP ANALYSIS TYPES
-// ============================================================================
-
-export interface GroupAnalysis {
-  groupId: string
-  dreamspell: {
-    kinDistribution: Record<number, string[]>
-    sealDistribution: Record<number, string[]>
-    toneDistribution: Record<number, string[]>
-    colorBalance: Record<'red' | 'white' | 'blue' | 'yellow', number>
-  }
-  tzolkin: {
-    signDistribution: Record<number, string[]>
-    toneDistribution: Record<number, string[]>
-  }
-  compatibilityMatrix: CompatibilityMatrix
-}
 
 // ============================================================================
 // SHARING TYPES

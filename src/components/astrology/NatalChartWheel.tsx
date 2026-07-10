@@ -5,8 +5,8 @@ import type {
   NatalChart,
   PlanetPosition,
   Element,
-} from '@/lib/types/astrology'
-import { ZODIAC_SIGNS } from '@/lib/data/zodiac-signs'
+} from '@pleiad/engine/types/astrology'
+import { ZODIAC_SIGNS } from '@pleiad/engine/data/zodiac-signs'
 import { cn } from '@/lib/utils'
 
 // ─── Constants ───────────────────────────────────────────────────────

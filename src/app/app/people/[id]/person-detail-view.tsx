@@ -27,14 +27,14 @@ import { AstrologyDisplay } from '@/components/cards'
 import { HumanDesignDisplay } from '@/components/cards'
 import { GematriaDisplay } from '@/components/cards'
 import { CrossSystemInsights } from '@/components/cards'
-import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
-import { getSeal } from '@/lib/data/seals'
-import { getTone } from '@/lib/data/tones'
-import { getEarthFamily, getColorFamily } from '@/lib/calculations/cycles'
-import { getLongCountData } from '@/lib/calculations/long-count'
-import { calculateNatalChart, calculateSunSignChart } from '@/lib/calculations/astrology'
-import { calculateBodygraph } from '@/lib/calculations/human-design'
-import { standardGematria, digitalRoot as calcDigitalRoot } from '@/lib/calculations/gematria'
+import { dateToKin, kinToSeal, kinToTone } from '@pleiad/engine/calculations/dreamspell'
+import { getSeal } from '@pleiad/engine/data/seals'
+import { getTone } from '@pleiad/engine/data/tones'
+import { getEarthFamily, getColorFamily } from '@pleiad/engine/calculations/cycles'
+import { getLongCountData } from '@pleiad/engine/calculations/long-count'
+import { calculateNatalChart, calculateSunSignChart } from '@pleiad/engine/calculations/astrology'
+import { calculateBodygraph } from '@pleiad/engine/calculations/human-design'
+import { standardGematria, digitalRoot as calcDigitalRoot } from '@pleiad/engine/calculations/gematria'
 import { useSystemPreferences, type SystemKey } from '@/lib/hooks/use-system-preferences'
 
 type TabKey = SystemKey | 'insights'
@@ -145,7 +145,7 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
         longitude,
       })
       if (result.hasBirthTime) {
-        const bodygraph = result as import('@/lib/types/human-design').Bodygraph
+        const bodygraph = result as import('@pleiad/engine/types/human-design').Bodygraph
         hdType = bodygraph.type
         hdStrategy = bodygraph.typeDefinition.strategy
         hdAuthority = bodygraph.authority

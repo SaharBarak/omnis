@@ -6,7 +6,7 @@ import type {
   PredictionIntensity,
   PredictionEvent,
   DailyPrediction,
-} from '@/lib/types/prediction'
+} from '@pleiad/engine/types/prediction'
 import {
   getSettings,
   upsertSettings,
@@ -14,7 +14,7 @@ import {
   type NotificationSettingsData,
   type SerializedNotificationSettings,
 } from '@/lib/db/repositories/notifications-repo'
-import { getDailyPrediction, getPersonalDailyPrediction, COLOR_HEX } from './predictions'
+import { getDailyPrediction, getPersonalDailyPrediction, COLOR_HEX } from '@pleiad/engine/services/predictions'
 import { EMAIL_FROM } from '@/lib/email/from'
 
 // Lazy initialization of Resend to avoid build-time errors

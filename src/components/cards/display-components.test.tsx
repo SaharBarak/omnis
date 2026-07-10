@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react'
 import { WavespellDisplay, WavespellMini, WavespellProgress } from './WavespellDisplay'
 import { CastleDisplay, CastleMini } from './CastleDisplay'
 import { DreamspellYearDisplay, GalacticBirthdayDisplay, PersonalYearDisplay } from './YearlyDisplay'
-import { asKin } from '@/core/types'
+import { asKin } from '@pleiad/engine/core/types'
 
 vi.mock('next/image', () => ({
   default: function MockImage({

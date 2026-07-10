@@ -1,5 +1,5 @@
-import type { DreamspellKin, Oracle } from './dreamspell'
-import type { TzolkinDay } from './tzolkin'
+import type { DreamspellKin, Oracle } from '@pleiad/engine/types/dreamspell'
+import type { TzolkinDay } from '@pleiad/engine/types/tzolkin'
 
 export interface Person {
   name: string          // Hebrew name

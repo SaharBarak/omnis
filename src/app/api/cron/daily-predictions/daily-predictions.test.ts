@@ -19,7 +19,7 @@ vi.mock('@/lib/db/repositories/predictions-repo', () => ({
 }))
 
 // Mock predictions service
-vi.mock('@/lib/services/predictions', () => ({
+vi.mock('@pleiad/engine/services/predictions', () => ({
   getDailyPrediction: vi.fn(() => ({
     date: '2024-06-15',
     kin: 42,

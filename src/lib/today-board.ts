@@ -1,6 +1,6 @@
-import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
-import { SEALS } from '@/lib/data/seals'
-import { TONES } from '@/lib/data/tones'
+import { dateToKin, kinToSeal, kinToTone } from '@pleiad/engine/calculations/dreamspell'
+import { SEALS } from '@pleiad/engine/data/seals'
+import { TONES } from '@pleiad/engine/data/tones'
 
 /**
  * Server-side data for the split-flap "Today, across the systems" board

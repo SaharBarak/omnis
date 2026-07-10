@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { getSeal } from '@/lib/data/seals'
+import { getSeal } from '@pleiad/engine/data/seals'
 import { getSealGlyphPath } from '@/lib/dreamspell-assets'
 
 interface OracleWheelProps {

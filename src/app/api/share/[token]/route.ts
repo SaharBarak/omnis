@@ -8,7 +8,7 @@ import {
   verifySharePassword,
 } from '@/lib/db/repositories/shares-repo'
 import { getGroupWithMembers } from '@/lib/db/repositories/groups-repo'
-import { analyzeGroup } from '@/lib/services/group-analysis'
+import { analyzeGroup } from '@pleiad/engine/services/group-analysis'
 import {
   hashSharePassword,
   toPublicGroupAnalysis,

@@ -6,15 +6,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Header, Footer } from '@/components/landing'
-import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
-import { calculateOracle } from '@/lib/calculations/oracle'
-import { SEALS } from '@/lib/data/seals'
-import { TONES } from '@/lib/data/tones'
+import { dateToKin, kinToSeal, kinToTone } from '@pleiad/engine/calculations/dreamspell'
+import { calculateOracle } from '@pleiad/engine/calculations/oracle'
+import { SEALS } from '@pleiad/engine/data/seals'
+import { TONES } from '@pleiad/engine/data/tones'
 import {
   calculateFiveSystemCompatibility,
   getScoreColor,
   type CompatSystem,
-} from '@/lib/services/compatibility'
+} from '@pleiad/engine/services/compatibility'
 
 interface PersonData {
   name: string

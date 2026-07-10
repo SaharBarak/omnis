@@ -2,17 +2,17 @@
 
 import { Sparkles } from 'lucide-react'
 import { SealIcon } from './SealIcon'
-import type { Kin } from '@/core/types'
-import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
+import type { Kin } from '@pleiad/engine/core/types'
+import { dateToKin, kinToSeal, kinToTone } from '@pleiad/engine/calculations/dreamspell'
 import {
   getDreamspellYear,
   getGalacticBirthday,
   getCurrentPersonalYear,
   getPersonalCyclePosition,
   type DreamspellYear,
-} from '@/lib/calculations/yearly'
-import { getSeal } from '@/lib/data/seals'
-import { getTone } from '@/lib/data/tones'
+} from '@pleiad/engine/calculations/yearly'
+import { getSeal } from '@pleiad/engine/data/seals'
+import { getTone } from '@pleiad/engine/data/tones'
 import { cn } from '@/lib/utils'
 
 export interface DreamspellYearDisplayProps {

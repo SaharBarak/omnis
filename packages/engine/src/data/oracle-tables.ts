@@ -1,4 +1,4 @@
-import type { SealNumber } from '../../core/types'
+import type { SealNumber } from '../core/types'
 
 // Analog pairs from DREAMSPELL_SPEC.md (authoritative)
 // Dragon <-> Earth, Wind <-> Storm, etc.

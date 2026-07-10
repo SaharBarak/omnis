@@ -1,7 +1,7 @@
 import type {
   FullGroupAnalysis,
   GroupMemberAnalysis,
-} from '@/lib/services/group-analysis'
+} from '@pleiad/engine/services/group-analysis'
 import type { ShareOptions } from '@/lib/types/relationship'
 
 /**

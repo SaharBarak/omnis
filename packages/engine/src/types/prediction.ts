@@ -1,4 +1,4 @@
-import type { Kin, SealNumber, ToneNumber } from '@/core/types'
+import type { Kin, SealNumber, ToneNumber } from '../core/types'
 import type { ColorFamily } from './common'
 
 // ============================================================================

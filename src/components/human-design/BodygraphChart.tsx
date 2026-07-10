@@ -5,9 +5,9 @@ import type {
   Bodygraph,
   CenterId,
   Channel,
-} from '@/lib/types/human-design'
-import { CENTER_LABELS } from '@/lib/types/human-design'
-import { CHANNELS } from '@/lib/data/human-design-channels'
+} from '@pleiad/engine/types/human-design'
+import { CENTER_LABELS } from '@pleiad/engine/types/human-design'
+import { CHANNELS } from '@pleiad/engine/data/human-design-channels'
 // Gate data available via CHANNELS
 
 // =============================================================================

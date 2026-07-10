@@ -6,7 +6,7 @@ import {
   calculateNatalChart,
   formatPlanetPosition,
   getChartSummary,
-} from '@/lib/calculations/astrology'
+} from '@pleiad/engine/calculations/astrology'
 import type {
   NatalChart,
   PlanetPosition,
@@ -14,12 +14,12 @@ import type {
   ZodiacSign,
   Element,
   Modality,
-} from '@/lib/types/astrology'
+} from '@pleiad/engine/types/astrology'
 import {
   ELEMENT_LABELS,
   MODALITY_LABELS,
-} from '@/lib/types/astrology'
-import { getAspectColor } from '@/lib/data/aspects'
+} from '@pleiad/engine/types/astrology'
+import { getAspectColor } from '@pleiad/engine/data/aspects'
 import { NatalChartWheel } from '@/components/astrology/NatalChartWheel'
 
 // Props for the main display

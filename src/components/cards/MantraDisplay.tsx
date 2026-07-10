@@ -1,8 +1,8 @@
-import type { Kin } from '@/core/types'
-import { kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
-import { getSeal } from '@/lib/data/seals'
-import { getTone } from '@/lib/data/tones'
-import { generateMantra } from '@/lib/data/mantras'
+import type { Kin } from '@pleiad/engine/core/types'
+import { kinToSeal, kinToTone } from '@pleiad/engine/calculations/dreamspell'
+import { getSeal } from '@pleiad/engine/data/seals'
+import { getTone } from '@pleiad/engine/data/tones'
+import { generateMantra } from '@pleiad/engine/data/mantras'
 import { cn } from '@/lib/utils'
 
 const COLOR_BORDER = {

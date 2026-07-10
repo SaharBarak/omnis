@@ -8,10 +8,10 @@ import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PageHeader } from '@/components/dashboard'
 import { Pencil, Save, X } from 'lucide-react'
-import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
-import { getSeal } from '@/lib/data/seals'
-import { getTone } from '@/lib/data/tones'
-import { dateToTzolkin } from '@/lib/calculations/tzolkin'
+import { dateToKin, kinToSeal, kinToTone } from '@pleiad/engine/calculations/dreamspell'
+import { getSeal } from '@pleiad/engine/data/seals'
+import { getTone } from '@pleiad/engine/data/tones'
+import { dateToTzolkin } from '@pleiad/engine/calculations/tzolkin'
 
 export default function ProfilePage() {
   const { user, profile, updateProfile, loading: authLoading } = useAuth()

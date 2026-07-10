@@ -18,21 +18,21 @@ import {
   hasNotableMeaning,
   getLetterBreakdown,
   getGematriaSummary,
-} from '@/lib/calculations/gematria'
+} from '@pleiad/engine/calculations/gematria'
 import {
   getNotableNumber,
-} from '@/lib/data/hebrew-letters'
+} from '@pleiad/engine/data/hebrew-letters'
 import type {
   GematriaResult,
   GematriaValue,
   GematriaMethod,
   LetterBreakdown,
   NameComparison,
-} from '@/lib/types/gematria'
+} from '@pleiad/engine/types/gematria'
 import {
   GEMATRIA_METHOD_LABELS,
   DIGITAL_ROOT_LABELS,
-} from '@/lib/types/gematria'
+} from '@pleiad/engine/types/gematria'
 
 // =============================================================================
 // PROPS INTERFACES

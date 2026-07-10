@@ -25,7 +25,7 @@ vi.mock('resend', () => ({
 }))
 
 // Mock calculations
-vi.mock('@/lib/calculations', () => ({
+vi.mock('@pleiad/engine/calculations', () => ({
   dateToKin: vi.fn(() => 42),
   kinToSeal: vi.fn(() => 2),
   kinToTone: vi.fn(() => 3),
@@ -38,7 +38,7 @@ vi.mock('@/lib/calculations', () => ({
 }))
 
 // Mock data lookups
-vi.mock('@/lib/data/seals', () => ({
+vi.mock('@pleiad/engine/data/seals', () => ({
   getSeal: vi.fn((num: number) => ({
     number: num,
     english: 'Wind',
@@ -48,7 +48,7 @@ vi.mock('@/lib/data/seals', () => ({
   }))
 }))
 
-vi.mock('@/lib/data/tones', () => ({
+vi.mock('@pleiad/engine/data/tones', () => ({
   getTone: vi.fn((num: number) => ({
     number: num,
     name: 'Electric',
@@ -56,7 +56,7 @@ vi.mock('@/lib/data/tones', () => ({
   }))
 }))
 
-vi.mock('@/lib/data/mantras', () => ({
+vi.mock('@pleiad/engine/data/mantras', () => ({
   generateMantra: vi.fn(() => 'I activate in order to communicate\nBonding breath')
 }))
 
@@ -316,7 +316,7 @@ describe('GET /api/cron/daily-kin', () => {
     it('should return 500 for unexpected errors', async () => {
       // An error thrown during kin calculation (before the subscriber fetch)
       // falls through to the outer catch -> generic "Internal server error".
-      const { dateToKin } = await import('@/lib/calculations')
+      const { dateToKin } = await import('@pleiad/engine/calculations')
       vi.mocked(dateToKin).mockImplementationOnce(() => {
         throw new Error('Unexpected error')
       })

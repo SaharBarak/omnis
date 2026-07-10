@@ -1,4 +1,4 @@
-import { asJulianDay, type JulianDay } from '../../core/types'
+import { asJulianDay, type JulianDay } from '../core/types'
 
 export function isLeapYear(year: number): boolean {
   return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { IntensityBadge } from './IntensityBadge'
-import type { PersonalTimeline, TimelineMilestone } from '@/lib/types/prediction'
+import type { PersonalTimeline, TimelineMilestone } from '@pleiad/engine/types/prediction'
 import { cn } from '@/lib/utils'
 
 interface PredictionTimelineProps {

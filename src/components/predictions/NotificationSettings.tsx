@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import type { NotificationSettings as NotificationSettingsType, PredictionIntensity, PredictionSystem } from '@/lib/types/prediction'
+import type { NotificationSettings as NotificationSettingsType, PredictionIntensity, PredictionSystem } from '@pleiad/engine/types/prediction'
 
 interface NotificationSettingsProps {
   onSave?: (settings: NotificationSettingsType) => void

@@ -8,7 +8,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', 'packages/engine/src/**/*.test.ts'],
     css: false,
     coverage: {
       provider: 'v8',
@@ -19,6 +19,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@pleiad/engine': path.resolve(__dirname, './packages/engine/src'),
     },
   },
 })

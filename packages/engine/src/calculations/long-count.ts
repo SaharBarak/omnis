@@ -1,4 +1,4 @@
-import { asJulianDay, type JulianDay } from '../../core/types'
+import { asJulianDay, type JulianDay } from '../core/types'
 import { gregorianToJDN, parseDate } from './julian'
 import { dateToTzolkin } from './tzolkin'
 import type { TzolkinDay } from '../types/tzolkin'

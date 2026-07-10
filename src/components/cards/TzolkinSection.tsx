@@ -1,4 +1,4 @@
-import { dateToTzolkin } from '@/lib/calculations/tzolkin'
+import { dateToTzolkin } from '@pleiad/engine/calculations/tzolkin'
 import { SealIcon } from './SealIcon'
 
 export interface TzolkinSectionProps {

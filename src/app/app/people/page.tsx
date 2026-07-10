@@ -28,9 +28,9 @@ import { BirthTimeInput } from '@/components/ui/birth-time-input'
 import { LocationPicker, type BirthPlace } from '@/components/ui/location-picker'
 import { PageHeader, EmptyState } from '@/components/dashboard'
 import type { Person, Tag, Json } from '@/lib/types/database.types'
-import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
-import { getSeal } from '@/lib/data/seals'
-import { getTone } from '@/lib/data/tones'
+import { dateToKin, kinToSeal, kinToTone } from '@pleiad/engine/calculations/dreamspell'
+import { getSeal } from '@pleiad/engine/data/seals'
+import { getTone } from '@pleiad/engine/data/tones'
 import { Plus, MoreVertical, Search } from 'lucide-react'
 
 interface PersonWithTags extends Person {

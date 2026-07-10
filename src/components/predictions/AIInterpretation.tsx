@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import type { PredictionEvent, AIInterpretationResponse } from '@/lib/types/prediction'
+import type { PredictionEvent, AIInterpretationResponse } from '@pleiad/engine/types/prediction'
 import { cn } from '@/lib/utils'
 
 interface AIInterpretationProps {

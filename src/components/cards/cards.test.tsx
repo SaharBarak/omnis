@@ -7,7 +7,7 @@ import { TzolkinSection } from './TzolkinSection'
 import { OracleMap } from './OracleMap'
 import { MantraDisplay } from './MantraDisplay'
 import { SealIcon } from './SealIcon'
-import { asKin } from '@/core/types'
+import { asKin } from '@pleiad/engine/core/types'
 
 vi.mock('next/image', () => ({
   default: function MockImage({

@@ -3,8 +3,8 @@ import type {
   PredictionEvent,
   AIInterpretationRequest,
   AIInterpretationResponse,
-} from '@/lib/types/prediction'
-import type { Kin } from '@/core/types'
+} from '@pleiad/engine/types/prediction'
+import type { Kin } from '@pleiad/engine/core/types'
 import {
   getCachedInterpretation as getCachedInterpretationRow,
   cacheInterpretation as cacheInterpretationRow,

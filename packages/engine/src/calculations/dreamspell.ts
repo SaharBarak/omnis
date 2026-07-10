@@ -1,4 +1,4 @@
-import { asKin, asSeal, asTone, type Kin, type SealNumber, type ToneNumber } from '../../core/types'
+import { asKin, asSeal, asTone, type Kin, type SealNumber, type ToneNumber } from '../core/types'
 import { isLeapYear, gregorianToJDN, parseDate } from './julian'
 
 // Epoch: July 26, 1987 = Kin 34 (White Galactic Wizard)

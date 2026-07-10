@@ -9,7 +9,7 @@ import {
   type TunBirthday,
   type KatunBirthday,
   type CalendarRoundReturn,
-} from '@/lib/calculations/long-count'
+} from '@pleiad/engine/calculations/long-count'
 
 export interface MayanTimelineDisplayProps {
   birthDateStr: string

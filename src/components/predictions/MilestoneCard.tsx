@@ -9,7 +9,7 @@ import type {
   TunBirthdayMilestone,
   CalendarRoundMilestone,
   TimelineMilestone,
-} from '@/lib/types/prediction'
+} from '@pleiad/engine/types/prediction'
 import { cn } from '@/lib/utils'
 
 interface MilestoneCardProps {

@@ -5,7 +5,7 @@ import {
   calculateBodygraph,
   isCompleteBodygraph,
   getBodygraphSummary,
-} from '@/lib/calculations/human-design'
+} from '@pleiad/engine/calculations/human-design'
 import type {
   Bodygraph,
   PartialBodygraph,
@@ -14,12 +14,12 @@ import type {
   CenterId,
   PlanetaryActivation,
   Channel,
-} from '@/lib/types/human-design'
+} from '@pleiad/engine/types/human-design'
 import {
   CENTER_LABELS,
   DEFINITION_LABELS,
-} from '@/lib/types/human-design'
-import { getGate } from '@/lib/data/human-design-gates'
+} from '@pleiad/engine/types/human-design'
+import { getGate } from '@pleiad/engine/data/human-design-gates'
 import { BodygraphChart } from '@/components/human-design/BodygraphChart'
 
 // =============================================================================

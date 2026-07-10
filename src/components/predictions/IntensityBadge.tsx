@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import type { PredictionIntensity } from '@/lib/types/prediction'
+import type { PredictionIntensity } from '@pleiad/engine/types/prediction'
 
 interface IntensityBadgeProps {
   intensity: PredictionIntensity

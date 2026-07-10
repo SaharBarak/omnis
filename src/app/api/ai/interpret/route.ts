@@ -6,7 +6,7 @@ import {
 } from '@/lib/services/ai-interpretations'
 import { rateLimiters, rateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limit'
 import { requireLimit, trackUsage, LimitExceededError } from '@/lib/services/usage'
-import type { AIInterpretationRequest, PredictionEvent } from '@/lib/types/prediction'
+import type { AIInterpretationRequest, PredictionEvent } from '@pleiad/engine/types/prediction'
 
 export const dynamic = 'force-dynamic'
 

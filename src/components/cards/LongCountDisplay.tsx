@@ -8,7 +8,7 @@ import {
   daysSinceCreation,
   type LongCount,
   type LongCountData,
-} from '@/lib/calculations/long-count'
+} from '@pleiad/engine/calculations/long-count'
 
 export interface LongCountDisplayProps {
   dateStr: string

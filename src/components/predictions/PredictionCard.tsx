@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { IntensityBadge } from './IntensityBadge'
-import type { PredictionEvent, DailyPrediction } from '@/lib/types/prediction'
+import type { PredictionEvent, DailyPrediction } from '@pleiad/engine/types/prediction'
 import { cn } from '@/lib/utils'
 
 interface PredictionCardProps {

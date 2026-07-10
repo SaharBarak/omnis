@@ -5,7 +5,7 @@ import {
   getNotificationSettings,
   upsertNotificationSettings,
 } from '@/lib/services/notifications'
-import type { NotificationSettings } from '@/lib/types/prediction'
+import type { NotificationSettings } from '@pleiad/engine/types/prediction'
 
 export const dynamic = 'force-dynamic'
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { asKin, asTone } from '../../core/types'
+import { asKin, asTone } from '../core/types'
 import {
   kinToWavespellNumber,
   kinToWavespell,

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import type { PredictionEvent, CalendarEvent, ICSEvent } from '@/lib/types/prediction'
+import type { PredictionEvent, CalendarEvent, ICSEvent } from '@pleiad/engine/types/prediction'
 
 interface CalendarExportProps {
   events: PredictionEvent[]

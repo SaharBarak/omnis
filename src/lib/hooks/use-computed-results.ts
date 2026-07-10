@@ -3,33 +3,33 @@
 import { useCallback } from 'react'
 
 // Dreamspell imports
-import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
-import { calculateOracle } from '@/lib/calculations/oracle'
-import { kinToWavespell } from '@/lib/calculations/wavespell'
-import { kinToCastle, getEarthFamily, getColorFamily } from '@/lib/calculations/cycles'
-import { getSeal } from '@/lib/data/seals'
-import { getTone } from '@/lib/data/tones'
+import { dateToKin, kinToSeal, kinToTone } from '@pleiad/engine/calculations/dreamspell'
+import { calculateOracle } from '@pleiad/engine/calculations/oracle'
+import { kinToWavespell } from '@pleiad/engine/calculations/wavespell'
+import { kinToCastle, getEarthFamily, getColorFamily } from '@pleiad/engine/calculations/cycles'
+import { getSeal } from '@pleiad/engine/data/seals'
+import { getTone } from '@pleiad/engine/data/tones'
 
 // Tzolkin imports
-import { dateToTzolkin } from '@/lib/calculations/tzolkin'
+import { dateToTzolkin } from '@pleiad/engine/calculations/tzolkin'
 
 // Long Count imports
-import { getLongCountData } from '@/lib/calculations/long-count'
+import { getLongCountData } from '@pleiad/engine/calculations/long-count'
 
 // Astrology imports
-import { calculateNatalChart, calculateSunSignChart } from '@/lib/calculations/astrology'
+import { calculateNatalChart, calculateSunSignChart } from '@pleiad/engine/calculations/astrology'
 
 // Human Design imports
-import { calculateBodygraph } from '@/lib/calculations/human-design'
+import { calculateBodygraph } from '@pleiad/engine/calculations/human-design'
 
 // Gematria imports
-import { calculateGematria } from '@/lib/calculations/gematria'
+import { calculateGematria } from '@pleiad/engine/calculations/gematria'
 
 // Type imports
-import type { Seal } from '@/lib/types/seal'
-import type { Tone } from '@/lib/types/tone'
-import type { TzolkinDaySign } from '@/lib/types/tzolkin'
-import type { Bodygraph } from '@/lib/types/human-design'
+import type { Seal } from '@pleiad/engine/types/seal'
+import type { Tone } from '@pleiad/engine/types/tone'
+import type { TzolkinDaySign } from '@pleiad/engine/types/tzolkin'
+import type { Bodygraph } from '@pleiad/engine/types/human-design'
 
 // Client-facing shape mirrors the original Supabase computed_results row
 // contract (nullable, never undefined) so existing consumers keep type-checking.

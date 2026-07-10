@@ -1,9 +1,9 @@
 'use client'
 
-import type { Kin } from '@/core/types'
-import { dateToKin, kinToSeal, kinToTone } from '@/lib/calculations/dreamspell'
-import { getSeal } from '@/lib/data/seals'
-import { getTone } from '@/lib/data/tones'
+import type { Kin } from '@pleiad/engine/core/types'
+import { dateToKin, kinToSeal, kinToTone } from '@pleiad/engine/calculations/dreamspell'
+import { getSeal } from '@pleiad/engine/data/seals'
+import { getTone } from '@pleiad/engine/data/tones'
 import { OracleMap } from './OracleMap'
 import { MantraDisplay } from './MantraDisplay'
 import { WavespellDisplay } from './WavespellDisplay'

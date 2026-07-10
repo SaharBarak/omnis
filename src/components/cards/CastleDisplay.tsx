@@ -1,13 +1,13 @@
 'use client'
 
-import type { Kin } from '@/core/types'
+import type { Kin } from '@pleiad/engine/core/types'
 import {
   kinToCastle,
   getCastleWavespellDetails,
   getAllCastles,
   type Castle,
-} from '@/lib/calculations/cycles'
-import { kinToWavespellNumber } from '@/lib/calculations/wavespell'
+} from '@pleiad/engine/calculations/cycles'
+import { kinToWavespellNumber } from '@pleiad/engine/calculations/wavespell'
 import { cn } from '@/lib/utils'
 
 const CASTLE_COLORS: Record<string, string> = {
