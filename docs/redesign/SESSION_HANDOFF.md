@@ -381,3 +381,28 @@ on this branch:
 - M2a (Skia/SVG force map + pair compare) agent running.
 - Free-tier gating on mobile = plan tier (subscription features has NO
   per-system array — spec corrected by build).
+
+### Mobile build COMPLETE through M3 (2026-07-10 eve)
+
+All autonomous work done; loop stopped. Commits this run: spec set,
+AUTH-M1, API-M3, engine extraction, api-client, PUSH-M1, scaffold, M1a/b/c,
+M2a/b, M3, goldens (+fix), today service w/ GATE, split-flap Today,
+Maestro flows + RUNBOOK, prefs type fix. Suite 1007 · root+mobile
+typecheck clean · iOS Hermes export green · prod (old deploy) smoked
+read-only healthy.
+
+**To go live (user, in order — specs/mobile/RUNBOOK.md §1):**
+1. Auth0: create API https://api.pleiad.app + Native app "Pleiad Mobile"
+   (callbacks incl. pleiad:// scheme + exp:// dev).
+2. `wrangler secret put AUTH0_API_AUDIENCE` + .env.local.
+3. `npm run db:migrate` against prod (device_push_tokens, additive).
+4. `npm run deploy`.
+5. packages/mobile/.env from .env.example (domain/client-id/audience/api).
+6. `cd packages/mobile && npx expo start` (needs Xcode or Android SDK —
+   NEITHER present on this machine; simulators unavailable was the hard
+   stop for autonomous runtime verification).
+7. Maestro flows in packages/mobile/.maestro (brew install maestro).
+
+Known deferred (spec'd, not built): boards editing, PDF cards, native IAP
+(RevenueCat), offline mutation queue, he/RTL, EAS build track (M4),
+onboarding mural backdrops, geocoded place search, MMKV persistence.
