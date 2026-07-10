@@ -369,3 +369,15 @@ on this branch:
   classifier stops agent-run prod mutations.
 - **Gotcha:** don't add `"react"` to packages/mobile tsconfig paths — expo
   Metro reads tsconfig paths and will try to bundle @types/react.
+
+### Mobile progress log (2026-07-10, cont.)
+
+- **M1 COMPLETE** (auth+onboarding `834b962`, people+capture `a6e4067`,
+  person detail six-pager `7d2432b`). Engine golden parity suite
+  (`167dd36` + fix `2a7e294`), today service w/ real GATE (`ff44291` —
+  also upgraded the WEB landing board to 5 cells), mobile split-flap
+  Today board (`5d55bbc`). Suite 1006, both typechecks clean, iOS
+  export green.
+- M2a (Skia/SVG force map + pair compare) agent running.
+- Free-tier gating on mobile = plan tier (subscription features has NO
+  per-system array — spec corrected by build).
