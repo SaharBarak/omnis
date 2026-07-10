@@ -76,6 +76,7 @@ export interface TodayBoardData {
   readonly kin: string
   readonly moon: string
   readonly sun: string
+  readonly gate: string
   readonly hebrewDate: string
 }
 
@@ -84,6 +85,7 @@ export function TodayBoard({ data }: { readonly data: TodayBoardData }) {
     { label: 'Kin', value: data.kin.toUpperCase() },
     { label: 'Moon', value: data.moon.toUpperCase() },
     { label: 'Sun', value: data.sun.toUpperCase() },
+    { label: 'Gate', value: data.gate.toUpperCase() },
     { label: 'Hebrew', value: data.hebrewDate.toUpperCase() },
   ]
 
