@@ -2,6 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "omnisx",
   "main": ".open-next/worker.js",
+  "workers_dev": true,
   "routes": [
     { "pattern": "pleiad.io", "custom_domain": true },
     { "pattern": "www.pleiad.io", "custom_domain": true }
