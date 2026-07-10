@@ -140,6 +140,36 @@ describe('createPleiadClient', () => {
       expect(headersOf(calls[0]).Authorization).toBeUndefined()
       expect(shared.share.share_type).toBe('group')
     })
+
+    it('registers and unregisters a push device token', async () => {
+      const { fetchFn, calls } = stubFetch(
+        jsonResponse(201, { ok: true }),
+        jsonResponse(200, { ok: true })
+      )
+      const client = createPleiadClient({
+        baseUrl: 'https://pleiad.io',
+        getAccessToken: () => Promise.resolve('token-123'),
+        fetchFn,
+      })
+
+      await client.notifications.registerDevice({
+        expoPushToken: 'ExponentPushToken[abc]',
+        platform: 'ios',
+      })
+      await client.notifications.unregisterDevice('ExponentPushToken[abc]')
+
+      expect(calls[0].url).toBe('https://pleiad.io/api/notifications/devices')
+      expect(calls[0].init.method).toBe('POST')
+      expect(headersOf(calls[0]).Authorization).toBe('Bearer token-123')
+      expect(JSON.parse(calls[0].init.body as string)).toEqual({
+        expoPushToken: 'ExponentPushToken[abc]',
+        platform: 'ios',
+      })
+      expect(calls[1].url).toBe(
+        'https://pleiad.io/api/notifications/devices?token=ExponentPushToken%5Babc%5D'
+      )
+      expect(calls[1].init.method).toBe('DELETE')
+    })
   })
 
   describe('401 unauthorized', () => {

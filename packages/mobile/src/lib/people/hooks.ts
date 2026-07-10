@@ -10,6 +10,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { api } from '@/lib/api'
+import { maybePromptForPush } from '@/lib/notifications/opt-in'
 import { writeBehindComputedResults } from '@/lib/people/compute'
 import { showToast } from '@/lib/toast'
 
@@ -140,6 +141,9 @@ export function useCreatePerson(callbacks?: MutationCallbacks) {
       )
       writeBehindComputedResults(person.id, person)
       callbacks?.onServerSuccess?.(person)
+      // F9 opt-in moment: the first person is on the map — the one sanctioned
+      // time to invite the morning digest (never on launch; self-guarding).
+      void maybePromptForPush()
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: PEOPLE_QUERY_KEY })

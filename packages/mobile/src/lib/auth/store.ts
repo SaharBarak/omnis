@@ -68,6 +68,15 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   },
 
   signOut: async () => {
+    // Best-effort push unregister BEFORE the token wipe — the DELETE needs
+    // the bearer token. Dynamic import avoids a module cycle (push → api →
+    // this store); every failure path inside is already silent.
+    try {
+      const { unregisterPush } = await import('@/lib/notifications/push')
+      await unregisterPush()
+    } catch {
+      // Never block sign-out on push cleanup.
+    }
     tokens = null
     refreshPromise = null
     await clearTokens().catch(() => undefined)

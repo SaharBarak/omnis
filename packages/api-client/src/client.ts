@@ -466,6 +466,23 @@ export function createPleiadClient(options: PleiadClientOptions) {
     },
 
     notifications: {
+      /** POST /api/notifications/devices — register (or re-home) a push token. */
+      async registerDevice(input: {
+        expoPushToken: string
+        platform: 'ios' | 'android'
+      }): Promise<void> {
+        await request<{ ok: true }>('/api/notifications/devices', {
+          method: 'POST',
+          body: input,
+        })
+      },
+      /** DELETE /api/notifications/devices?token=... — sign-out / revoked. */
+      async unregisterDevice(expoPushToken: string): Promise<void> {
+        await request<{ ok: boolean }>('/api/notifications/devices', {
+          method: 'DELETE',
+          query: { token: expoPushToken },
+        })
+      },
       /** GET /api/notifications/settings — defaults when none exist yet. */
       async getSettings(): Promise<NotificationSettings> {
         const { data } = await request<{ success: true; data: NotificationSettings }>(

@@ -8,68 +8,73 @@ import {
 import { StyleSheet, View } from 'react-native'
 
 import { BrandMark } from '@/components/brand-mark'
+import { PushPromptHost } from '@/components/notifications/push-prompt-sheet'
 import { COLORS, FONTS } from '@/theme/tokens'
 
 /**
  * Five tabs, Map center and raised — MOBILE_APP_SPEC §4. The asterism marks
- * the hero feature.
+ * the hero feature. PushPromptHost lives here so the F9 opt-in moment can
+ * surface after a person is created from any tab.
  */
 export default function TabsLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        sceneStyle: { backgroundColor: 'transparent' },
-        tabBarStyle: styles.tabBar,
-        tabBarActiveTintColor: COLORS.brandSoft,
-        tabBarInactiveTintColor: COLORS.text35,
-        tabBarLabelStyle: styles.label,
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Today',
-          tabBarIcon: ({ color, size }) => <SunIcon color={String(color)} size={size} />,
+    <>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          sceneStyle: { backgroundColor: 'transparent' },
+          tabBarStyle: styles.tabBar,
+          tabBarActiveTintColor: COLORS.brandSoft,
+          tabBarInactiveTintColor: COLORS.text35,
+          tabBarLabelStyle: styles.label,
         }}
-      />
-      <Tabs.Screen
-        name="people"
-        options={{
-          title: 'People',
-          tabBarIcon: ({ color, size }) => (
-            <UsersThreeIcon color={String(color)} size={size} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="map"
-        options={{
-          title: 'Map',
-          tabBarIcon: ({ focused }) => (
-            <View style={[styles.mapTab, focused && styles.mapTabActive]}>
-              <BrandMark size={26} mono={focused ? '#FFFFFF' : undefined} />
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="circles"
-        options={{
-          title: 'Circles',
-          tabBarIcon: ({ color, size }) => (
-            <CirclesThreeIcon color={String(color)} size={size} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="library"
-        options={{
-          title: 'Library',
-          tabBarIcon: ({ color, size }) => <BooksIcon color={String(color)} size={size} />,
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'Today',
+            tabBarIcon: ({ color, size }) => <SunIcon color={String(color)} size={size} />,
+          }}
+        />
+        <Tabs.Screen
+          name="people"
+          options={{
+            title: 'People',
+            tabBarIcon: ({ color, size }) => (
+              <UsersThreeIcon color={String(color)} size={size} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="map"
+          options={{
+            title: 'Map',
+            tabBarIcon: ({ focused }) => (
+              <View style={[styles.mapTab, focused && styles.mapTabActive]}>
+                <BrandMark size={26} mono={focused ? '#FFFFFF' : undefined} />
+              </View>
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="circles"
+          options={{
+            title: 'Circles',
+            tabBarIcon: ({ color, size }) => (
+              <CirclesThreeIcon color={String(color)} size={size} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="library"
+          options={{
+            title: 'Library',
+            tabBarIcon: ({ color, size }) => <BooksIcon color={String(color)} size={size} />,
+          }}
+        />
+      </Tabs>
+      <PushPromptHost />
+    </>
   )
 }
 
