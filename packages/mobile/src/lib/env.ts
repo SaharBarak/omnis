@@ -14,6 +14,12 @@ export const ENV = {
   auth0Audience: process.env.EXPO_PUBLIC_AUTH0_AUDIENCE ?? '',
   /** Origin of the Pleiad API. */
   apiUrl: process.env.EXPO_PUBLIC_API_URL ?? DEFAULT_API_URL,
+  /**
+   * TestFlight escape hatch (F11): '1' lets iOS builds use the Android
+   * hosted-checkout path. Production iOS ships without it — the paywall
+   * shows the App Store reader pattern (copy the web pricing link) instead.
+   */
+  iosCheckout: process.env.EXPO_PUBLIC_IOS_CHECKOUT === '1',
 } as const
 
 /** True when the Auth0 vars required for sign-in are all present. */

@@ -19,7 +19,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { BondSheet } from '@/components/pair/bond-sheet'
-import { PaywallSheet } from '@/components/people/paywall-sheet'
+import { PaywallSheet } from '@/components/billing/paywall-sheet'
 import {
   DataRow,
   LockedPage,
@@ -546,8 +546,7 @@ export default function PairScreen() {
       <PaywallSheet
         visible={paywallOpen}
         onClose={() => setPaywallOpen(false)}
-        limit={subscription.data?.usage.profiles.limit ?? 3}
-        planName={subscription.data?.planName ?? 'Free'}
+        trigger="bond-lock"
       />
 
       <ToastHost />

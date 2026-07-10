@@ -26,7 +26,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { CaptureSheet } from '@/components/people/capture-sheet'
-import { PaywallSheet } from '@/components/people/paywall-sheet'
+import { PaywallSheet } from '@/components/billing/paywall-sheet'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Button, Divider, Eyebrow, Panel } from '@/components/ui/primitives'
 import { ToastHost } from '@/components/ui/toast'
@@ -306,8 +306,7 @@ export default function PeopleScreen() {
       <PaywallSheet
         visible={paywallOpen}
         onClose={() => setPaywallOpen(false)}
-        limit={profileLimit ?? 3}
-        planName={subscription.data?.planName ?? 'Free'}
+        trigger="people-cap"
       />
 
       <ToastHost />

@@ -3,18 +3,18 @@ import { getPersonalDailyPrediction } from '@pleiad/engine/services/predictions'
 import { getTodayAcrossSystems } from '@pleiad/engine/services/today'
 import type { DailyPrediction, PredictionEvent } from '@pleiad/engine/types/prediction'
 import { useRouter } from 'expo-router'
-import { PlusIcon } from 'phosphor-react-native'
+import { GearSixIcon, PlusIcon } from 'phosphor-react-native'
 import { useMemo, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { BrandMark } from '@/components/brand-mark'
 import { CaptureSheet } from '@/components/people/capture-sheet'
-import { PaywallSheet } from '@/components/people/paywall-sheet'
+import { PaywallSheet } from '@/components/billing/paywall-sheet'
 import { TodayBoard } from '@/components/today/board'
 import { Divider, Eyebrow, Panel, Pill } from '@/components/ui/primitives'
 import { ToastHost } from '@/components/ui/toast'
-import { useProfile, useSubscription } from '@/lib/api'
+import { useProfile } from '@/lib/api'
 import { usePeople } from '@/lib/people/hooks'
 import { nextGalacticBirthday } from '@/lib/people/reading'
 import { COLORS, FLAVORS, FONTS, RADII, SPACE, TYPE } from '@/theme/tokens'
@@ -196,7 +196,6 @@ export default function TodayScreen() {
   const board = useMemo(() => getTodayAcrossSystems(today), [today])
 
   const profile = useProfile()
-  const subscription = useSubscription()
   const { people, isPending, isError, refetch } = usePeople()
 
   const [captureOpen, setCaptureOpen] = useState(false)
@@ -254,15 +253,25 @@ export default function TodayScreen() {
       >
         <View style={styles.header}>
           <BrandMark size={26} />
-          <Eyebrow>
-            {today
-              .toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-              })
-              .toUpperCase()}
-          </Eyebrow>
+          <View style={styles.headerRight}>
+            <Eyebrow>
+              {today
+                .toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric',
+                })
+                .toUpperCase()}
+            </Eyebrow>
+            <Pressable
+              onPress={() => router.push('/settings')}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Settings"
+            >
+              <GearSixIcon size={20} color={COLORS.text50} />
+            </Pressable>
+          </View>
         </View>
 
         <Text style={TYPE.zone}>Today, across the systems.</Text>
@@ -310,8 +319,7 @@ export default function TodayScreen() {
       <PaywallSheet
         visible={paywallOpen}
         onClose={() => setPaywallOpen(false)}
-        limit={subscription.data?.usage.profiles.limit ?? 3}
-        planName={subscription.data?.planName ?? 'Free'}
+        trigger="people-cap"
       />
 
       <ToastHost />
@@ -333,6 +341,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
   },
   caption: {
     marginTop: 12,

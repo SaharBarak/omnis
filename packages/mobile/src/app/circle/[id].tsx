@@ -6,13 +6,14 @@ import {
   type GroupMemberAnalysis,
 } from '@pleiad/engine/services/group-analysis'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { CaretLeftIcon, PencilSimpleIcon } from 'phosphor-react-native'
+import { CaretLeftIcon, PencilSimpleIcon, ShareNetworkIcon } from 'phosphor-react-native'
 import { useMemo, useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { PaywallSheet } from '@/components/billing/paywall-sheet'
 import { CircleSheet, type CircleSheetInitial } from '@/components/circles/circle-sheet'
-import { PaywallSheet } from '@/components/people/paywall-sheet'
+import { ShareSheet } from '@/components/share/share-sheet'
 import {
   LockedPage,
   MeterBar,
@@ -182,6 +183,7 @@ export default function CircleScreen() {
 
   const [editOpen, setEditOpen] = useState(false)
   const [paywallOpen, setPaywallOpen] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
 
   const { analysis, analyzable, excluded } = useMemo(
     () => computeCircleAnalysis(group),
@@ -364,14 +366,24 @@ export default function CircleScreen() {
         </Pressable>
         <View style={styles.topBarSpacer} />
         {group !== undefined && (
-          <Pressable
-            onPress={() => setEditOpen(true)}
-            style={styles.iconButton}
-            accessibilityRole="button"
-            accessibilityLabel={`Edit ${group.name}`}
-          >
-            <PencilSimpleIcon size={20} color={COLORS.text70} />
-          </Pressable>
+          <>
+            <Pressable
+              onPress={() => setEditOpen(true)}
+              style={styles.iconButton}
+              accessibilityRole="button"
+              accessibilityLabel={`Edit ${group.name}`}
+            >
+              <PencilSimpleIcon size={20} color={COLORS.text70} />
+            </Pressable>
+            <Pressable
+              onPress={() => setShareOpen(true)}
+              style={styles.iconButton}
+              accessibilityRole="button"
+              accessibilityLabel={`Share ${group.name}`}
+            >
+              <ShareNetworkIcon size={20} color={COLORS.text70} />
+            </Pressable>
+          </>
         )}
       </View>
 
@@ -397,9 +409,16 @@ export default function CircleScreen() {
       <PaywallSheet
         visible={paywallOpen}
         onClose={() => setPaywallOpen(false)}
-        limit={subscription.data?.usage.profiles.limit ?? 3}
-        planName={subscription.data?.planName ?? 'Free'}
+        trigger="group-insights"
       />
+
+      {group !== undefined && (
+        <ShareSheet
+          visible={shareOpen}
+          onClose={() => setShareOpen(false)}
+          subject={{ type: 'group', groupId: group.id, title: group.name }}
+        />
+      )}
 
       <ToastHost />
     </View>

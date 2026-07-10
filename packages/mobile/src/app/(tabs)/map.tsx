@@ -18,11 +18,10 @@ import { TypeFilterChips } from '@/components/map/filter-chips'
 import { NodeCard } from '@/components/map/node-card'
 import { RelationshipGraph } from '@/components/map/relationship-graph'
 import { CaptureSheet } from '@/components/people/capture-sheet'
-import { PaywallSheet } from '@/components/people/paywall-sheet'
+import { PaywallSheet } from '@/components/billing/paywall-sheet'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Button, Eyebrow, Panel } from '@/components/ui/primitives'
 import { ToastHost } from '@/components/ui/toast'
-import { useSubscription } from '@/lib/api'
 import { seedPosition } from '@/lib/map/simulation'
 import { usePeople } from '@/lib/people/hooks'
 import { RELATIONSHIP_TYPES } from '@/lib/relationships/colors'
@@ -78,7 +77,6 @@ export default function MapScreen() {
 
   const people = usePeople()
   const relationships = useRelationships()
-  const subscription = useSubscription()
 
   const [activeTypes, setActiveTypes] = useState<ReadonlySet<RelationshipType>>(
     () => new Set(RELATIONSHIP_TYPES)
@@ -232,8 +230,7 @@ export default function MapScreen() {
       <PaywallSheet
         visible={paywallOpen}
         onClose={() => setPaywallOpen(false)}
-        limit={subscription.data?.usage.profiles.limit ?? 3}
-        planName={subscription.data?.planName ?? 'Free'}
+        trigger="people-cap"
       />
 
       <ToastHost />

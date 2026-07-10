@@ -5,7 +5,7 @@ import {
   PencilSimpleIcon,
   ShareNetworkIcon,
 } from 'phosphor-react-native'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import PagerView, {
   type PageScrollStateChangedNativeEvent,
@@ -13,7 +13,6 @@ import PagerView, {
 } from 'react-native-pager-view'
 import Animated, {
   FadeIn,
-  FadeOut,
   ZoomIn,
   useReducedMotion,
 } from 'react-native-reanimated'
@@ -21,9 +20,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import type { PersonWithTags } from '@pleiad/api-client'
 
+import { PaywallSheet, type PaywallTrigger } from '@/components/billing/paywall-sheet'
 import { PersonPickerSheet } from '@/components/pair/person-picker-sheet'
 import { CaptureSheet } from '@/components/people/capture-sheet'
-import { PaywallSheet } from '@/components/people/paywall-sheet'
+import { ShareSheet } from '@/components/share/share-sheet'
 import { AstrologyPage } from '@/components/person/astrology-page'
 import { DreamspellPage } from '@/components/person/dreamspell-page'
 import { FlavorTabs, type FlavorTab } from '@/components/person/flavor-tabs'
@@ -66,8 +66,6 @@ const SYSTEM_NAMES: Record<string, string> = {
   gematria: 'Kabbalah',
   insights: 'Insights',
 }
-
-const TOOLTIP_MS = 1800
 
 function initialsOf(name: string): string {
   const parts = name.trim().split(/\s+/).filter((part) => part.length > 0)
@@ -118,16 +116,10 @@ export default function PersonScreen() {
   const [viewed, setViewed] = useState<ReadonlySet<number>>(() => new Set([0]))
   const [editOpen, setEditOpen] = useState(false)
   const [paywallOpen, setPaywallOpen] = useState(false)
+  // The one sheet, two doors: the system lock pill and the edit cap (F11).
+  const [paywallTrigger, setPaywallTrigger] = useState<PaywallTrigger>('system-lock')
   const [compareOpen, setCompareOpen] = useState(false)
-  const [shareNote, setShareNote] = useState(false)
-  const shareTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useEffect(
-    () => () => {
-      if (shareTimer.current !== null) clearTimeout(shareTimer.current)
-    },
-    []
-  )
+  const [shareOpen, setShareOpen] = useState(false)
 
   const person = people.find((candidate) => candidate.id === id)
 
@@ -189,10 +181,9 @@ export default function PersonScreen() {
     setEditOpen(true)
   }
 
-  const showShareNote = () => {
-    setShareNote(true)
-    if (shareTimer.current !== null) clearTimeout(shareTimer.current)
-    shareTimer.current = setTimeout(() => setShareNote(false), TOOLTIP_MS)
+  const openPaywall = (trigger: PaywallTrigger) => {
+    setPaywallTrigger(trigger)
+    setPaywallOpen(true)
   }
 
   if (person === undefined) {
@@ -282,26 +273,14 @@ export default function PersonScreen() {
           <PencilSimpleIcon size={20} color={COLORS.text70} />
         </Pressable>
         <Pressable
-          onPress={showShareNote}
-          style={[styles.iconButton, styles.iconDisabled]}
+          onPress={() => setShareOpen(true)}
+          style={styles.iconButton}
           accessibilityRole="button"
-          accessibilityLabel="Share — arrives with M3"
-          accessibilityState={{ disabled: true }}
+          accessibilityLabel={`Share ${person.name}`}
         >
-          <ShareNetworkIcon size={20} color={COLORS.text35} />
+          <ShareNetworkIcon size={20} color={COLORS.text70} />
         </Pressable>
       </View>
-
-      {shareNote && (
-        <Animated.View
-          entering={reduced ? undefined : FadeIn.duration(DURATION.normal)}
-          exiting={reduced ? undefined : FadeOut.duration(DURATION.normal)}
-          style={styles.shareNote}
-          pointerEvents="none"
-        >
-          <Eyebrow>SHARING ARRIVES WITH M3</Eyebrow>
-        </Animated.View>
-      )}
 
       <View style={styles.header}>
         <Animated.View
@@ -350,7 +329,7 @@ export default function PersonScreen() {
                 <LockedPage
                   flavor={tab.flavor}
                   systemName={SYSTEM_NAMES[tab.key] ?? tab.label}
-                  onUnlock={() => setPaywallOpen(true)}
+                  onUnlock={() => openPaywall('system-lock')}
                 >
                   {renderPage(tab.key)}
                 </LockedPage>
@@ -364,7 +343,7 @@ export default function PersonScreen() {
         onClose={() => setEditOpen(false)}
         onLimitExceeded={() => {
           setEditOpen(false)
-          setPaywallOpen(true)
+          openPaywall('people-cap')
         }}
         editPersonId={person.id}
       />
@@ -372,8 +351,13 @@ export default function PersonScreen() {
       <PaywallSheet
         visible={paywallOpen}
         onClose={() => setPaywallOpen(false)}
-        limit={subscription.data?.usage.profiles.limit ?? 3}
-        planName={subscription.data?.planName ?? 'Free'}
+        trigger={paywallTrigger}
+      />
+
+      <ShareSheet
+        visible={shareOpen}
+        onClose={() => setShareOpen(false)}
+        subject={{ type: 'person', personId: person.id, title: person.name }}
       />
 
       <PersonPickerSheet
@@ -409,15 +393,6 @@ const styles = StyleSheet.create({
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  iconDisabled: {
-    opacity: 0.8,
-  },
-  shareNote: {
-    position: 'absolute',
-    top: 0,
-    right: SPACE.gutter,
-    zIndex: 1,
   },
   header: {
     flexDirection: 'row',
