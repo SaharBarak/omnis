@@ -42,14 +42,15 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
-    "src-mvp",
+    ".open-next",
     "backup-mvp",
     "next-app",
-    "workers",
-    "scripts",
-    "packages/scraper",
+    "node_modules",
     "packages/*/node_modules",
-    ".open-next"
+    "packages/mobile",
+    "packages/scraper",
+    "scripts",
+    "src-mvp",
+    "workers"
   ]
 }

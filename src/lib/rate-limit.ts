@@ -65,7 +65,7 @@ export function resetRateLimitStore() {
 }
 
 // Cleanup old entries periodically (every 5 minutes)
-let cleanupInterval: NodeJS.Timeout | null = null
+let cleanupInterval: ReturnType<typeof setInterval> | null = null
 
 function startCleanup() {
   if (cleanupInterval) return
@@ -80,10 +80,8 @@ function startCleanup() {
     },
     5 * 60 * 1000
   )
-  // Don't prevent process from exiting
-  if (cleanupInterval.unref) {
-    cleanupInterval.unref()
-  }
+  // Don't prevent process from exiting (no-op outside Node)
+  ;(cleanupInterval as { unref?: () => void }).unref?.()
 }
 
 /**
