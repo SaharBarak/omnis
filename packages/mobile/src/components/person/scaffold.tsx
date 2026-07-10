@@ -175,11 +175,17 @@ export function LockedPage({
   flavor,
   systemName,
   onUnlock,
+  pill = 'EXPLORER UNLOCKS THIS LAYER',
+  body,
   children,
 }: PropsWithChildren<{
   flavor: SystemFlavor
   systemName: string
   onUnlock: () => void
+  /** Pill copy — override when the gate isn't the Explorer tier. */
+  pill?: string
+  /** Body copy — defaults to the reading-under-a-veil line. */
+  body?: string
 }>) {
   return (
     <View style={styles.lockRoot}>
@@ -188,9 +194,10 @@ export function LockedPage({
       </View>
       <View style={styles.lockOverlay} pointerEvents="box-none">
         <View style={styles.lockPanel}>
-          <Pill accent={flavor.accent}>EXPLORER UNLOCKS THIS LAYER</Pill>
+          <Pill accent={flavor.accent}>{pill}</Pill>
           <Text style={styles.lockBody}>
-            The {systemName} reading is already computed and waiting under this veil.
+            {body ??
+              `The ${systemName} reading is already computed and waiting under this veil.`}
           </Text>
           <Button variant="secondary" onPress={onUnlock} style={styles.lockButton}>
             See plans

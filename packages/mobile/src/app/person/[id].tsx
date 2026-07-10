@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
+  ArrowsLeftRightIcon,
   CaretLeftIcon,
   PencilSimpleIcon,
   ShareNetworkIcon,
@@ -20,6 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import type { PersonWithTags } from '@pleiad/api-client'
 
+import { PersonPickerSheet } from '@/components/pair/person-picker-sheet'
 import { CaptureSheet } from '@/components/people/capture-sheet'
 import { PaywallSheet } from '@/components/people/paywall-sheet'
 import { AstrologyPage } from '@/components/person/astrology-page'
@@ -116,6 +118,7 @@ export default function PersonScreen() {
   const [viewed, setViewed] = useState<ReadonlySet<number>>(() => new Set([0]))
   const [editOpen, setEditOpen] = useState(false)
   const [paywallOpen, setPaywallOpen] = useState(false)
+  const [compareOpen, setCompareOpen] = useState(false)
   const [shareNote, setShareNote] = useState(false)
   const shareTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -263,6 +266,14 @@ export default function PersonScreen() {
         </Pressable>
         <View style={styles.topBarSpacer} />
         <Pressable
+          onPress={() => setCompareOpen(true)}
+          style={styles.iconButton}
+          accessibilityRole="button"
+          accessibilityLabel={`Compare ${person.name} with someone`}
+        >
+          <ArrowsLeftRightIcon size={20} color={COLORS.text70} />
+        </Pressable>
+        <Pressable
           onPress={openEdit}
           style={styles.iconButton}
           accessibilityRole="button"
@@ -363,6 +374,16 @@ export default function PersonScreen() {
         onClose={() => setPaywallOpen(false)}
         limit={subscription.data?.usage.profiles.limit ?? 3}
         planName={subscription.data?.planName ?? 'Free'}
+      />
+
+      <PersonPickerSheet
+        visible={compareOpen}
+        people={people.filter((candidate) => candidate.id !== person.id)}
+        onClose={() => setCompareOpen(false)}
+        onPick={(other) => {
+          setCompareOpen(false)
+          router.push(`/pair/${person.id}/${other.id}`)
+        }}
       />
 
       <ToastHost />
