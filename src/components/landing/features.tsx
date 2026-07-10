@@ -86,7 +86,7 @@ function AIChatVisual() {
         <div className="bg-muted/50 border border-border text-foreground text-sm px-4 py-3 rounded-lg">
           <p className="leading-relaxed">As a Generator 6/2, your strategy is to <span className="font-medium">wait to respond</span>. The 6th line means you go through three life phases: experimentation until ~30, withdrawal and observation until ~50, then becoming a <span className="font-medium">role model</span>...</p>
         </div>
-        <div className="text-[10px] text-muted-foreground mt-1">OmnisX AI</div>
+        <div className="text-[10px] text-muted-foreground mt-1">Pleiad AI</div>
       </motion.div>
 
       {/* Typing indicator */}

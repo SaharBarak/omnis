@@ -16,7 +16,7 @@ const PRIVATE_PATHS = [
 
 /**
  * AI search/answer crawlers are explicitly allowed on the public surface so
- * OmnisX can be cited by ChatGPT, Claude, Perplexity, Gemini, et al.
+ * Pleiad can be cited by ChatGPT, Claude, Perplexity, Gemini, et al.
  * (Blocking them would remove the site from AI answers entirely.)
  */
 const AI_CRAWLERS = [

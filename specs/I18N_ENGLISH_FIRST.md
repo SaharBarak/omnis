@@ -9,7 +9,7 @@
 
 ## Overview
 
-The Omnis application currently displays Hebrew as the primary language in many display components. This spec defines the work needed to make English the primary language while keeping Hebrew as a secondary/supplementary display.
+The Pleiad application currently displays Hebrew as the primary language in many display components. This spec defines the work needed to make English the primary language while keeping Hebrew as a secondary/supplementary display.
 
 ### Principle
 

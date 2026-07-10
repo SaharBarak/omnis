@@ -28,7 +28,7 @@ This file lists all images that require attribution under their respective licen
 - URL: https://commons.wikimedia.org/wiki/Category:SVG_astrological_symbols
 
 **Elemental Symbols** (`/astrology/elements/`)
-- Source: Created for Omnis Project
+- Source: Created for Pleiad Project
 - License: MIT
 - Files: fire.svg, water.svg, air.svg, earth.svg
 - Note: Traditional alchemical elemental triangles
@@ -59,13 +59,13 @@ This file lists all images that require attribution under their respective licen
 - Note: Original Mayan names: Imix, Ik, Akbal, Kan, Chicchan, Cimi, Manik, Lamat, Muluc, Oc, Chuen, Eb, Ben, Ix, Men, Cib, Caban, Etznab, Cauac, Ahau
 
 **Dreamspell Tones** (`/dreamspell/tones/`)
-- Source: Created for Omnis Project
+- Source: Created for Pleiad Project
 - License: MIT
 - Files: 01-magnetic.svg through 13-cosmic.svg
 - Note: Dot/circle patterns representing the 13 Dreamspell tones (1-13)
 
 **Decorative Diagrams** (`/dreamspell/decorative/`)
-- Source: Created for Omnis Project
+- Source: Created for Pleiad Project
 - License: MIT
 - Files: wavespell.svg, castle.svg, tzolkin-grid.svg
 - Note: Visual representations of Dreamspell calendar structures
@@ -73,19 +73,19 @@ This file lists all images that require attribution under their respective licen
 ### Human Design
 
 **Center Icons** (`/human-design/centers/`)
-- Source: Created for Omnis Project
+- Source: Created for Pleiad Project
 - License: MIT
 - Files: head.svg, ajna.svg, throat.svg, g-center.svg, heart.svg, sacral.svg, solar-plexus.svg, spleen.svg, root.svg (and corresponding *-defined.svg variants)
 - Note: Simple geometric shapes based on traditional Human Design bodygraph conventions
 
 **Type Icons** (`/human-design/types/`)
-- Source: Created for Omnis Project
+- Source: Created for Pleiad Project
 - License: MIT
 - Files: manifestor.svg, generator.svg, manifesting-generator.svg, projector.svg, reflector.svg
 - Note: Abstract geometric icons representing the 5 Human Design energy types
 
 **Bodygraph** (`/human-design/bodygraph/`)
-- Source: Created for Omnis Project
+- Source: Created for Pleiad Project
 - License: MIT
 - Files: bodygraph.svg
 - Note: Full bodygraph outline showing all 9 centers and connecting channels
@@ -93,7 +93,7 @@ This file lists all images that require attribution under their respective licen
 ### Tzolkin
 
 **Nawales / Mayan Day Signs** (`/tzolkin/nawales/`)
-- Source: Created for Omnis Project
+- Source: Created for Pleiad Project
 - License: MIT
 - Files: 01-batz.svg through 20-tzi.svg
 - Note: Stylized representations of the 20 traditional Mayan day signs (B'atz', E, Aj, I'x, Tz'ikin, Ajmaq, No'j, Tijax, Kawoq, Ajpu, Imox, Iq', Aq'ab'al, K'at, Kan, Kame, Kej, Q'anil, Toj, Tz'i')

@@ -157,7 +157,7 @@ export default function LearnPage() {
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/70">
             Five guides — Astrology, Dreamspell, the Tzolkin &amp; Long Count,
             Human Design, Kabbalah — written with respect for the lineages.
-            When OmnisX tells you something about a person, this is where it
+            When Pleiad tells you something about a person, this is where it
             learned it.
           </p>
 

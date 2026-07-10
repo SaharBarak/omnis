@@ -2,7 +2,7 @@
 
 ## Overview
 
-Comprehensive data models for the Omnis platform, using TypeScript with branded types for type safety and clear domain boundaries.
+Comprehensive data models for the Pleiad platform, using TypeScript with branded types for type safety and clear domain boundaries.
 
 ---
 

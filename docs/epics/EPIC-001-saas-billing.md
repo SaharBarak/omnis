@@ -10,7 +10,7 @@
 
 ## Problem Statement
 
-Omnis MVP is complete with all 6 calculation systems working, but there's no revenue model. Users get unlimited access to everything for free. The detailed BILLING.md spec exists but hasn't been implemented. Without billing:
+Pleiad MVP is complete with all 6 calculation systems working, but there's no revenue model. Users get unlimited access to everything for free. The detailed BILLING.md spec exists but hasn't been implemented. Without billing:
 
 - No sustainable business model
 - No ability to fund hosting/AI costs

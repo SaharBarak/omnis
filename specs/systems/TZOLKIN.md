@@ -147,7 +147,7 @@ function tzolkinFromJDN(jdn: number): TzolkinDay {
 | Purpose | Divination, ritual | Synchronicity, meditation |
 
 ### Same Person, Different Days
-A person born on the same Gregorian date will have **different** Tzolkin and Dreamspell signatures. Both are shown in Omnis.
+A person born on the same Gregorian date will have **different** Tzolkin and Dreamspell signatures. Both are shown in Pleiad.
 
 ---
 

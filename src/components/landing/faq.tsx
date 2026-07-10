@@ -21,7 +21,7 @@ export function FAQ() {
                 Frequently asked
               </h2>
               <p className="text-muted-foreground leading-relaxed mb-6">
-                Everything you need to know about OmnisX. Can&apos;t find what you&apos;re looking for?
+                Everything you need to know about Pleiad. Can&apos;t find what you&apos;re looking for?
               </p>
               <a
                 href="/contact"

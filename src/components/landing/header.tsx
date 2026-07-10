@@ -47,7 +47,7 @@ const learnItems = [
 ]
 
 const aboutItems = [
-  { name: 'About OmnisX', description: 'Our mission and story', href: '/about' },
+  { name: 'About Pleiad', description: 'Our mission and story', href: '/about' },
   { name: 'Contact', description: 'Get in touch', href: '/contact' },
   { name: 'Pricing', description: 'Plans and features', href: '#pricing' },
 ]
@@ -412,7 +412,7 @@ export function Header() {
                 </svg>
               </div>
               <span className="text-xl font-heading font-medium text-foreground group-hover:text-primary transition-colors duration-200">
-                OmnisX
+                Pleiad
               </span>
             </Link>
 

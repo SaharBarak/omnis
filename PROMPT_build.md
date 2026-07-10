@@ -1,6 +1,6 @@
-# PROJECT CONTEXT: Omnis Phase 1
+# PROJECT CONTEXT: Pleiad Phase 1
 
-**Omnis** is a personal symbolic mapping platform showing Dreamspell and Tzolkin data for people.
+**Pleiad** is a personal symbolic mapping platform showing Dreamspell and Tzolkin data for people.
 
 **Phase 1 Goal:** Transform MVP into a usable product with:
 - OAuth login (Google, Apple, Email Magic Link)

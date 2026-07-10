@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og'
 
-export const alt = 'OmnisX — Symbolic Life OS'
+export const alt = 'Pleiad — Symbolic Life OS'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -51,7 +51,7 @@ export default async function OGImage() {
             display: 'flex',
           }}
         >
-          OmnisX
+          Pleiad
         </div>
 
         {/* Tagline */}
@@ -102,7 +102,7 @@ export default async function OGImage() {
             display: 'flex',
           }}
         >
-          OmnisX
+          Pleiad
         </div>
       </div>
     ),

@@ -1,4 +1,4 @@
-// Group Analysis Service for OmnisX Phase 2.4
+// Group Analysis Service for Pleiad Phase 2.4
 // Analyzes groups for distributions and compatibility
 
 import type { GroupAnalysis, CompatibilityMatrix, CompatibilityMatrixEntry } from '../types/relationship'

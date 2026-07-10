@@ -10,7 +10,7 @@
 
 ## Problem Statement
 
-Omnis currently shows only internally-computed symbolic data. Users interested in daily spiritual guidance often visit multiple sites (horoscopes, tarot, etc.) scattered across the web. There's an opportunity to:
+Pleiad currently shows only internally-computed symbolic data. Users interested in daily spiritual guidance often visit multiple sites (horoscopes, tarot, etc.) scattered across the web. There's an opportunity to:
 
 1. **Drive organic traffic** via SEO for "daily horoscope", "tarot reading today" searches
 2. **Increase daily engagement** by giving users a reason to return every day

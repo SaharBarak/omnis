@@ -1,4 +1,4 @@
-// Canvas Export Service for OmnisX Phase 4
+// Canvas Export Service for Pleiad Phase 4
 // Provides functionality to export canvas to PNG, JPEG, SVG, PDF
 
 import type { ExportFormat, ExportOptions } from '@/lib/types/board'

@@ -10,7 +10,7 @@
 
 ## Problem Statement
 
-Omnis has **no README.md** and **no .env.example** file. This means:
+Pleiad has **no README.md** and **no .env.example** file. This means:
 
 1. **New developers cannot set up the project** - No instructions exist
 2. **Required environment variables are undocumented** - Developers must reverse-engineer from code
@@ -96,7 +96,7 @@ Extended setup guide with:
 
 ```bash
 # ===========================================
-# Omnis Environment Variables
+# Pleiad Environment Variables
 # Copy this file to .env.local and fill in values
 # ===========================================
 
@@ -126,7 +126,7 @@ CRON_SECRET=random-secret-for-cron-auth
 ## README.md Preview
 
 ```markdown
-# Omnis 🌟
+# Pleiad 🌟
 
 Symbolic calculation platform combining 6 ancient wisdom systems.
 

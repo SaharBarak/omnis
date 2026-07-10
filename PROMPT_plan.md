@@ -1,6 +1,6 @@
-# PROJECT CONTEXT: Omnis MVP
+# PROJECT CONTEXT: Pleiad MVP
 
-**Omnis** is a personal symbolic mapping platform showing Dreamspell and Tzolkin data for people.
+**Pleiad** is a personal symbolic mapping platform showing Dreamspell and Tzolkin data for people.
 
 **MVP Goal:** Render A5 cards for 16 people showing:
 - Name (Hebrew)

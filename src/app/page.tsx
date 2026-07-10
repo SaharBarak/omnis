@@ -37,7 +37,7 @@ export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: {
-    absolute: 'OmnisX - The Living Map of Your People | 6 Wisdom Systems',
+    absolute: 'Pleiad - The Living Map of Your People | 6 Wisdom Systems',
   },
   description:
     'Enter one birthday and read it through Astrology, Dreamspell, Tzolkin, Long Count, Human Design, and Hebrew Gematria at once. Save your people, map every relationship, and read group dynamics across all six systems.',
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'OmnisX - The Living Map of Your People',
+    title: 'Pleiad - The Living Map of Your People',
     description:
       'Everyone in your life, read through six wisdom systems at once — and remembered forever. Free six-system reading from one birthday.',
     url: '/',
@@ -114,7 +114,7 @@ export default function LandingPage() {
           flavor={SYSTEM_FLAVORS.dreamspell}
           pill="Then add one more"
           heading="Two charts. One chemistry."
-          body="Pick any two people and OmnisX reads the bond five ways — synastry, kin resonance, type mechanics, name harmonics — then says it plainly: where you flow, where you grind, what the friction is for. Partners, siblings, cofounders, oldest friends."
+          body="Pick any two people and Pleiad reads the bond five ways — synastry, kin resonance, type mechanics, name harmonics — then says it plainly: where you flow, where you grind, what the friction is for. Partners, siblings, cofounders, oldest friends."
           cta={{ label: 'Try compatibility', href: '/compatibility' }}
           compact
         >
@@ -128,7 +128,7 @@ export default function LandingPage() {
           flavor={SYSTEM_FLAVORS.tzolkin}
           pill="Never ask twice"
           heading="Enter a birthday once."
-          body="Everyone you chart joins your private library — birth time, place, name, all six readings, saved. The tenth time you check a friend's chart, you don't ask for their birth time again. You open OmnisX."
+          body="Everyone you chart joins your private library — birth time, place, name, all six readings, saved. The tenth time you check a friend's chart, you don't ask for their birth time again. You open Pleiad."
           triad={[
             {
               title: 'Private by default',
@@ -154,7 +154,7 @@ export default function LandingPage() {
           flavor={SYSTEM_FLAVORS.dreamspell}
           pill="The living map"
           heading="Your relationships become visible."
-          body="Every saved person is a node. OmnisX draws the lines — attraction, friction, resonance, completion — scored across all five systems, and every score opens into its evidence. Add twenty people and watch the geometry of your life appear."
+          body="Every saved person is a node. Pleiad draws the lines — attraction, friction, resonance, completion — scored across all five systems, and every score opens into its evidence. Add twenty people and watch the geometry of your life appear."
           triad={[
             {
               title: 'Every bond, scored five ways',

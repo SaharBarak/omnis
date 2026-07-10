@@ -1,7 +1,7 @@
 # Marketing Playbooks
 
 Vendored subset (16 of ~50) of coreyhaines31/marketingskills (MIT, LICENSE
-in playbooks/) — the launch-relevant set for OmnisX/Starkin. Each folder
+in playbooks/) — the launch-relevant set for Pleiad/Pleiad. Each folder
 is an Agent Skills–spec SKILL.md an AI agent can follow.
 
 Already installed GLOBALLY as live skills (don't duplicate): ai-seo,

@@ -1,5 +1,5 @@
 /**
- * Omnis cron worker — replaces Vercel cron.
+ * Pleiad cron worker — replaces Vercel cron.
  *
  * Cloudflare Cron Triggers fire `scheduled()` with the matching schedule in
  * `event.cron`. Each schedule maps to a Next.js cron route, which we invoke

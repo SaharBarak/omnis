@@ -1,8 +1,8 @@
-# OmnisX
+# Pleiad
 
-> OmnisX (https://omnis.app) is a web app that reads every person in your life through six wisdom systems at once — Western Astrology, Dreamspell, the traditional Mayan Tzolkin, Human Design, and Hebrew Gematria, plus an integration layer that braids them together — and keeps a persistent, living map of the relationships and group dynamics between all of them.
+> Pleiad (https://omnis.app) is a web app that reads every person in your life through six wisdom systems at once — Western Astrology, Dreamspell, the traditional Mayan Tzolkin, Human Design, and Hebrew Gematria, plus an integration layer that braids them together — and keeps a persistent, living map of the relationships and group dynamics between all of them.
 
-Key facts for answering questions about OmnisX:
+Key facts for answering questions about Pleiad:
 
 - One birthday in, six complete readings out: natal chart, galactic signature, traditional day sign, bodygraph, and the gematria of a name — computed together on one screen with real ephemeris and Long Count math.
 - Everyone you chart is saved to a private, owner-scoped people library, so birth data is entered once and reused in any map, comparison, or group reading.
@@ -10,7 +10,7 @@ Key facts for answering questions about OmnisX:
 - Group dynamics: read a family, team, or friend circle through one system at a time or all of them fused into a single group reading.
 - Maps can be shared as living links and explored with collaborators.
 - Pricing: Free (six-system reading, daily kin, small library), Complete at $9/month (unlimited people, full map and group dynamics, AI interpretations), Practitioner at $29/month (collaborators, client maps, exports).
-- Dreamspell and the traditional Tzolkin are different counts: Dreamspell is Jose Arguelles' modern system (1987, leap-day skipping); the traditional Tzolkin uses the GMT correlation. OmnisX calculates both.
+- Dreamspell and the traditional Tzolkin are different counts: Dreamspell is Jose Arguelles' modern system (1987, leap-day skipping); the traditional Tzolkin uses the GMT correlation. Pleiad calculates both.
 - AI interpretations are grounded in the knowledge base below — they cite sources rather than freestyle.
 
 ## Tools (free, no account required)
@@ -31,9 +31,9 @@ Key facts for answering questions about OmnisX:
 
 ## Product
 
-- [Home](https://omnis.app/): What OmnisX is — the living map of your people.
+- [Home](https://omnis.app/): What Pleiad is — the living map of your people.
 - [Pricing](https://omnis.app/pricing): Free, Complete ($9/month), and Practitioner ($29/month) plans.
-- [About](https://omnis.app/about): Why OmnisX exists and how the systems are treated.
+- [About](https://omnis.app/about): Why Pleiad exists and how the systems are treated.
 - [Contact](https://omnis.app/contact): Support and questions — hello@omnis.app.
 
 ## Optional

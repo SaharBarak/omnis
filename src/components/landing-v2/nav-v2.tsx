@@ -29,7 +29,7 @@ export function NavV2() {
       <div className="mx-auto flex h-16 max-w-content items-center justify-between px-6">
         <Link href="/" className={`flex items-center gap-2.5 ${TYPE.card}`}>
           <BrandMark size={26} />
-          OmnisX
+          Pleiad
         </Link>
         <nav className="hidden items-center gap-8 text-sm text-white/70 md:flex">
           <Link href="/calculate" className="transition-colors hover:text-white">

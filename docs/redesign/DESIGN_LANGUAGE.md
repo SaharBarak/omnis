@@ -1,4 +1,4 @@
-# Omnis Redesign — Design Language
+# Pleiad Redesign — Design Language
 
 Reference: railway.com homepage composition (verified via live screenshots,
 2026-07-03). What we borrow, what we make ours.
@@ -47,9 +47,9 @@ stats are a station departures board, the CTA is a boarding door, the copy
 says "All Aboard". The metaphor isn't decoration; it's the page's narrative
 arc: promise → product proof → social proof → live-scale proof → boarding.
 
-## Omnis translation — the cosmic pilgrimage
+## Pleiad translation — the cosmic pilgrimage
 
-Railway commits totally to the railway journey; Omnis commits totally to a
+Railway commits totally to the railway journey; Pleiad commits totally to a
 **pilgrimage through the five wisdom systems**. The night sky isn't a
 metaphor for us — it's the product. The scroll is a descent: cosmos
 (astrology) → galactic Maya (dreamspell) → stone codices (tzolkin) → body
@@ -57,7 +57,7 @@ blueprint (human design) → letters of creation (gematria/kabbalah).
 
 Metaphor mapping (element-for-element):
 
-| Railway | Omnis |
+| Railway | Pleiad |
 |---|---|
 | Train icon riding the rail on scroll | **Traveler glyph** (comet / kin star) riding the thread of light |
 | Rail line, color-tinted per section | Thread of light morphing per zone: constellation line → kin thread → carved groove → circuit channel → letter path |

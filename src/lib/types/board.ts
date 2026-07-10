@@ -1,4 +1,4 @@
-// Canvas Editor / Board Types for OmnisX Phase 4
+// Canvas Editor / Board Types for Pleiad Phase 4
 // Domain types for boards, canvas nodes, connections, layers, and annotations
 
 import type { Board as BoardRow, BoardShare } from './database.types'

@@ -1,4 +1,4 @@
-# Omnis Implementation Plan
+# Pleiad Implementation Plan
 
 > **Status:** MVP COMPLETE — P1 Issues Resolved, P2 Work Remaining
 > **Last Updated:** 2026-02-04
@@ -16,7 +16,7 @@
 
 ## Executive Summary
 
-The Omnis platform is a complete symbolic systems web application featuring:
+The Pleiad platform is a complete symbolic systems web application featuring:
 - **6 calculation systems:** Dreamspell, Tzolkin, Long Count, Human Design, Astrology, Gematria
 - **User management:** OAuth authentication (Google, Apple, Email Magic Link), profiles, onboarding
 - **People directory:** CRUD operations, tags, search, computed results caching

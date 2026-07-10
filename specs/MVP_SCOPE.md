@@ -1,4 +1,4 @@
-# Omnis — MVP Scope Document
+# Pleiad — MVP Scope Document
 
 ## Status: MVP COMPLETE
 
@@ -6,9 +6,9 @@
 
 ---
 
-## What Omnis Is (One Sentence)
+## What Pleiad Is (One Sentence)
 
-**Omnis** is a personal symbolic mapping platform that represents people through multiple traditional systems, starting with **Dreamspell and Tzolkin**, and later expanding into Astrology, Human Design, Gematria, relationships, timelines, and AI-based interpretation.
+**Pleiad** is a personal symbolic mapping platform that represents people through multiple traditional systems, starting with **Dreamspell and Tzolkin**, and later expanding into Astrology, Human Design, Gematria, relationships, timelines, and AI-based interpretation.
 
 ---
 

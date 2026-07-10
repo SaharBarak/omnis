@@ -204,7 +204,7 @@ export async function sendTestNotificationEmail(
     const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
       to: email,
-      subject: 'Test: OmnisX Notification',
+      subject: 'Test: Pleiad Notification',
       html: getTestEmailHtml(userName, prediction),
     })
 
@@ -361,7 +361,7 @@ function getDailyDigestEmailHtml(
     </div>
 
     <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-      <p style="color: #666; font-size: 12px; margin: 0 0 10px;">Daily Forecast from OmnisX</p>
+      <p style="color: #666; font-size: 12px; margin: 0 0 10px;">Daily Forecast from Pleiad</p>
       <p style="color: #666; font-size: 12px; margin: 0;">
         <a href="https://omnis.app/app/settings/notifications" style="color: #888;">Manage notifications</a>
       </p>
@@ -432,7 +432,7 @@ function getEventNotificationEmailHtml(userName: string, event: PredictionEvent)
     </div>
 
     <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-      <p style="color: #666; font-size: 12px; margin: 0 0 10px;">Event notification from OmnisX</p>
+      <p style="color: #666; font-size: 12px; margin: 0 0 10px;">Event notification from Pleiad</p>
       <p style="color: #666; font-size: 12px; margin: 0;">
         <a href="https://omnis.app/app/settings/notifications" style="color: #888;">Manage notifications</a>
       </p>
@@ -459,7 +459,7 @@ function getTestEmailHtml(userName: string, prediction: DailyPrediction): string
     </div>
 
     <div style="background: linear-gradient(180deg, rgba(201, 165, 92, 0.15) 0%, rgba(201, 165, 92, 0.05) 100%); border: 1px solid rgba(201, 165, 92, 0.3); border-radius: 16px; padding: 30px; margin-bottom: 30px; text-align: center;">
-      <p style="color: #888; font-size: 14px; margin: 0 0 20px;">Hi ${userName}, your OmnisX notifications are working!</p>
+      <p style="color: #888; font-size: 14px; margin: 0 0 20px;">Hi ${userName}, your Pleiad notifications are working!</p>
 
       <p style="color: #a0a0a0; font-size: 14px; margin: 0;">
         Today's Kin: <strong style="color: #fff;">Kin ${prediction.kin} - ${prediction.toneName} ${prediction.sealName}</strong>
@@ -468,7 +468,7 @@ function getTestEmailHtml(userName: string, prediction: DailyPrediction): string
 
     <div style="text-align: center;">
       <p style="color: #666; font-size: 12px; margin: 0;">
-        This is a test notification from OmnisX.
+        This is a test notification from Pleiad.
       </p>
     </div>
   </div>

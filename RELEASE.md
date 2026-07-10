@@ -1,4 +1,4 @@
-# Omnis — Release Plan
+# Pleiad — Release Plan
 
 ## Current State (March 2026)
 

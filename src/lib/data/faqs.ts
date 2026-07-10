@@ -1,10 +1,10 @@
 export const faqs = [
   {
     question: "What can I do with the free plan?",
-    answer: "Free lets you save 3 people with Dreamspell calculations and daily kin. It's designed to try OmnisX before upgrading. To hold up to 10 people across all 6 systems, get AI interpretations, or export PDFs, you'll need Complete ($9/mo); Practitioner ($29/mo) is unlimited for mapping clients or large groups.",
+    answer: "Free lets you save 3 people with Dreamspell calculations and daily kin. It's designed to try Pleiad before upgrading. To hold up to 10 people across all 6 systems, get AI interpretations, or export PDFs, you'll need Complete ($9/mo); Practitioner ($29/mo) is unlimited for mapping clients or large groups.",
   },
   {
-    question: "I don't know my exact birth time. Can I still use OmnisX?",
+    question: "I don't know my exact birth time. Can I still use Pleiad?",
     answer: "Yes. Your birth date alone gives you Dreamspell, Tzolkin, Long Count, and Kabbalah - four of the six systems. Human Design authority and astrology Moon/Rising require exact time. You can add it later if you find it (birth certificates often have it).",
   },
   {

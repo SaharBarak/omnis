@@ -597,13 +597,13 @@ async function handleExpiredTrials(): Promise<void> {
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  From:                           To:                            │
-│  Omnis Ltd.                      John Doe                       │
+│  Pleiad Ltd.                      John Doe                       │
 │  billing@omnis.app              john@example.com               │
 │                                                                 │
 ├─────────────────────────────────────────────────────────────────┤
 │  Description                     Amount                         │
 │  ──────────────────────────────────────────────────────────────│
-│  Omnis Complete - Monthly        $9.00                         │
+│  Pleiad Complete - Monthly        $9.00                         │
 │  (Jan 1 - Jan 31, 2025)                                        │
 │                                                                 │
 │  ──────────────────────────────────────────────────────────────│

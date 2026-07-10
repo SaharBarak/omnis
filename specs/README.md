@@ -1,6 +1,6 @@
-# Omnis Specifications
+# Pleiad Specifications
 
-Complete specification documentation for the Omnis symbolic mapping platform.
+Complete specification documentation for the Pleiad symbolic mapping platform.
 
 ---
 

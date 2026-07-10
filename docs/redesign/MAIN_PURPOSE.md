@@ -1,6 +1,6 @@
-# Omnis — Main Purpose
+# Pleiad — Main Purpose
 
-**This document defines what Omnis IS. Every design, copy, and product
+**This document defines what Pleiad IS. Every design, copy, and product
 decision in the redesign must serve this. The docs/knowledge base is the
 supporting cast — this is the lead.**
 
@@ -8,7 +8,7 @@ supporting cast — this is the lead.**
 
 ## The one-sentence thesis
 
-Omnis is a modern, cross-platform interface for reading yourself and every
+Pleiad is a modern, cross-platform interface for reading yourself and every
 person in your life through five wisdom systems at once — and a **living,
 persistent map** of the connections and group dynamics between all of them.
 
@@ -21,7 +21,7 @@ sign, Human Design bodygraph, Hebrew Gematria. No tab-hopping between five
 different single-system sites. Layered or side by side.
 
 ### 2. The map — relationships made visible
-Every person you chart becomes a node. Omnis draws the connections:
+Every person you chart becomes a node. Pleiad draws the connections:
 compatibility scores, synastry, kin resonance, channel electromagnetics —
 across all five systems. You *see* the geometry of your people: who
 harmonizes, who challenges, who completes.
@@ -53,7 +53,7 @@ product; the product is the map.
 
 ## Positioning line
 
-> Single-system sites give you a reading. Omnis gives you your world —
+> Single-system sites give you a reading. Pleiad gives you your world —
 > everyone you love, mapped across five traditions, remembered forever.
 
 ## Hierarchy for all surfaces (homepage, app, share pages)

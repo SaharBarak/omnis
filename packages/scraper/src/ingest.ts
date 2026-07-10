@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 /**
- * Knowledge-base ingestion pipeline (OmnisX).
+ * Knowledge-base ingestion pipeline (Pleiad).
  *
  * Corpus (src/lib/docs/content.ts, the /learn guides) -> section-aware chunks
  * -> local bge-small-en-v1.5 embeddings -> knowledge_base + content_chunks

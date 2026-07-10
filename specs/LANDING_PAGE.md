@@ -40,7 +40,7 @@ Based on industry leaders in the astrology/spiritual niche:
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                  │
-│  ✦ OMNIS                      Today's Kin  Features  [Sign In]  │
+│  ✦ PLEIAD                      Today's Kin  Features  [Sign In]  │
 │                                                                  │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
@@ -96,7 +96,7 @@ Based on industry leaders in the astrology/spiritual niche:
 | A | Discover Your Cosmic Blueprint | All your symbolic systems, unified |
 | B | Know Yourself at the Deepest Level | Dreamspell, Human Design, Astrology & more |
 | C | Your Personal Symbolic Map | Ancient wisdom meets modern technology |
-| D | The Universe Has a Message For You | Decode it with Omnis |
+| D | The Universe Has a Message For You | Decode it with Pleiad |
 
 ### Social Proof Bar
 
@@ -262,11 +262,11 @@ Based on industry leaders in the astrology/spiritual niche:
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                  │
-│              WHY OMNIS VS. CHECKING 5 DIFFERENT SITES            │
+│              WHY PLEIAD VS. CHECKING 5 DIFFERENT SITES            │
 │                                                                  │
 │  ┌─────────────────────────────────────────────────────────┐    │
 │  │                                                         │    │
-│  │            │ OTHER SITES │   OMNIS                     │    │
+│  │            │ OTHER SITES │   PLEIAD                     │    │
 │  │  ─────────────────────────────────────────────────────│    │
 │  │  Dreamspell│   Site A    │   ✅ Included              │    │
 │  │  Astrology │   Site B    │   ✅ Included              │    │
@@ -343,7 +343,7 @@ Based on industry leaders in the astrology/spiritual niche:
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                  │
-│                   SEE OMNIS IN ACTION                            │
+│                   SEE PLEIAD IN ACTION                            │
 │                                                                  │
 │  ┌─────────────────────────────────────────────────────────┐    │
 │  │                                                         │    │
@@ -367,7 +367,7 @@ Based on industry leaders in the astrology/spiritual niche:
 │                                                                  │
 │  ░░░░░░░░░░░░░░░░░ Subtle gradient background ░░░░░░░░░░░░░░░░  │
 │                                                                  │
-│   ✦ OMNIS                                                        │
+│   ✦ PLEIAD                                                        │
 │   Your cosmic blueprint                                          │
 │                                                                  │
 │   Made with ♡ for seekers                                       │
@@ -391,7 +391,7 @@ Based on industry leaders in the astrology/spiritual niche:
 │                                                                  │
 │   [Twitter] [Instagram] [TikTok] [YouTube]                       │
 │                                                                  │
-│   © 2026 Omnis. All rights reserved.                            │
+│   © 2026 Pleiad. All rights reserved.                            │
 │                                                                  │
 │   Built during Mercury Retrograde ☿℞ (just kidding)             │
 │                                                                  │
@@ -406,7 +406,7 @@ Based on industry leaders in the astrology/spiritual niche:
 
 ```
 ┌─────────────────────┐
-│ ✦ OMNIS    [≡]     │
+│ ✦ PLEIAD    [≡]     │
 ├─────────────────────┤
 │                     │
 │   DISCOVER YOUR     │

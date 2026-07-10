@@ -1,4 +1,4 @@
-# Omnis Feature Roadmap
+# Pleiad Feature Roadmap
 
 ## Phase 0 — MVP (Simple A5 Pages)
 
@@ -134,7 +134,7 @@
   - Per person
   - Per relationship
   - Per group
-- **"Ask Omnis" chat:**
+- **"Ask Pleiad" chat:**
   - Grounded in your computed data
 - **RAG:**
   - Curated corpus (your notes + selected sources)

@@ -1,4 +1,4 @@
-# Omnis — User Flows (current state)
+# Pleiad — User Flows (current state)
 
 Source of truth for the redesign. Every flow below exists in code today
 (branch base: `feat/cloudflare-foundation`). Each flow lists steps, pages,

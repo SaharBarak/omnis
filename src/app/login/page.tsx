@@ -56,7 +56,7 @@ function LoginForm() {
           <div className="w-10 h-10 flex items-center justify-center">
             <BrandMark size={36} className="w-9 h-9" />
           </div>
-          <span className="text-2xl font-display font-semibold tracking-tight text-white">OmnisX</span>
+          <span className="text-2xl font-display font-semibold tracking-tight text-white">Pleiad</span>
         </Link>
         <p className="text-white/50">Personal Symbolic Mapping System</p>
       </div>
@@ -152,7 +152,7 @@ function LoginFallback() {
         <div className="w-10 h-10 mx-auto mb-4">
           <BrandMark size={36} className="w-9 h-9" />
         </div>
-        <h1 className="text-2xl font-display font-semibold tracking-tight text-white">OmnisX</h1>
+        <h1 className="text-2xl font-display font-semibold tracking-tight text-white">Pleiad</h1>
         <p className="text-white/50">Personal Symbolic Mapping System</p>
       </div>
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8 flex items-center justify-center">

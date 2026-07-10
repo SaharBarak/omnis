@@ -2,7 +2,7 @@
 
 ### Design Agent
 
-Creates UI/UX designs for Omnis — a symbolic mapping platform with Hebrew RTL interface.
+Creates UI/UX designs for Pleiad — a symbolic mapping platform with Hebrew RTL interface.
 
 **Design Tokens (MUST USE):**
 ```css
@@ -57,7 +57,7 @@ Creates UI/UX designs for Omnis — a symbolic mapping platform with Hebrew RTL 
 
 ### Frontend Agent
 
-Implements Omnis in **vanilla TypeScript** with Web Components. No frameworks. Zero dependencies where possible.
+Implements Pleiad in **vanilla TypeScript** with Web Components. No frameworks. Zero dependencies where possible.
 
 **Philosophy:**
 - Native browser APIs over libraries

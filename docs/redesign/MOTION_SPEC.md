@@ -1,4 +1,4 @@
-# Omnis Homepage — Motion Spec
+# Pleiad Homepage — Motion Spec
 
 Definitive inventory of everything that moves. Two build lanes:
 

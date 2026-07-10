@@ -258,7 +258,7 @@ ${kinData.mantra}
     </div>
 
     <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-      <p style="color: #666; font-size: 12px; margin: 0 0 10px;">Daily Kin from OmnisX</p>
+      <p style="color: #666; font-size: 12px; margin: 0 0 10px;">Daily Kin from Pleiad</p>
       <p style="color: #666; font-size: 12px; margin: 0;">
         <a href="${unsubscribeUrl}" style="color: #888;">Unsubscribe</a>
       </p>

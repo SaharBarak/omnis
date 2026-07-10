@@ -10,10 +10,10 @@
 
 ## Problem Statement
 
-Omnis calculations are locked inside the web application. There's no way for:
+Pleiad calculations are locked inside the web application. There's no way for:
 
-1. **Developers** to integrate Omnis calculations into their own apps
-2. **Practitioners** to build custom tools on top of Omnis data
+1. **Developers** to integrate Pleiad calculations into their own apps
+2. **Practitioners** to build custom tools on top of Pleiad data
 3. **Third parties** to create integrations (Notion, Slack, etc.)
 4. **Power users** to automate workflows
 

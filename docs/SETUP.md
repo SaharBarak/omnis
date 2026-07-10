@@ -1,4 +1,4 @@
-# OmnisX — Setup & Deploy (Supabase + Auth0 + Paddle + Cloudflare)
+# Pleiad — Setup & Deploy (Supabase + Auth0 + Paddle + Cloudflare)
 
 Everything below needs secrets I can't safely pull from the browser. Fill
 `.env.local` (git-ignored) from `.env.example`, then run the commands. All

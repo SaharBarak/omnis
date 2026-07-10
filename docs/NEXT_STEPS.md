@@ -4,13 +4,13 @@ Transcribed from 12 reels (buildwithnico launch-checklist series + 1) and
 converted to work items. Source captions in scratchpad reels/; the
 actionable content is fully captured here.
 
-## Blocked on domain purchase (starkin.app decision pending)
+## Blocked on domain purchase (pleiad.app decision pending)
 
 1. **Domain launch checklist** — split app domain from marketing domain
    (app.* vs www); TWO extra email subdomains (mail.* transactional,
    notify.* marketing) so the root domain's reputation stays clean even
    if flagged; hello@/support@/noreply@ in Resend; Google Search Console
-   indexing + sitemap submit. Execute together with the Starkin rename
+   indexing + sitemap submit. Execute together with the Pleiad rename
    (Auth0 callbacks, Paddle webhook, canonicals, EMAIL_FROM, secrets).
 2. **Resend end-to-end** (task #14) — account + API key + domain verify
    are user steps; code is ready (EMAIL_FROM centralized).

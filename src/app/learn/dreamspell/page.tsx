@@ -54,7 +54,7 @@ const breadcrumbSchema = buildBreadcrumbs([
 const dreamspellFaqs = [
   {
     question: "How do I find my Dreamspell Kin?",
-    answer: "Enter your birth date into the free OmnisX Dreamspell calculator. The calculator will show your Kin number (1-260), Solar Seal, Galactic Tone, and your complete Oracle. No birth time is required — only your date of birth.",
+    answer: "Enter your birth date into the free Pleiad Dreamspell calculator. The calculator will show your Kin number (1-260), Solar Seal, Galactic Tone, and your complete Oracle. No birth time is required — only your date of birth.",
   },
   {
     question: "What are the 20 Solar Seals?",
@@ -62,7 +62,7 @@ const dreamspellFaqs = [
   },
   {
     question: "What is the difference between Dreamspell and Tzolkin?",
-    answer: "Dreamspell is Jose Arguelles' modern system (1987) synchronized to July 26 with leap-day skipping. The Traditional Tzolkin is the ancient Maya count using the GMT correlation — an unbroken count spanning over 2,500 years. They produce different Kin numbers for the same date. OmnisX calculates both systems.",
+    answer: "Dreamspell is Jose Arguelles' modern system (1987) synchronized to July 26 with leap-day skipping. The Traditional Tzolkin is the ancient Maya count using the GMT correlation — an unbroken count spanning over 2,500 years. They produce different Kin numbers for the same date. Pleiad calculates both systems.",
   },
   {
     question: "What is a Wavespell?",
@@ -117,7 +117,7 @@ export default function DreamspellDocsPage() {
 
         <QuickAnswer
           question="What is Dreamspell?"
-          answer="Dreamspell is a modern calendar system created by Jose Arguelles in 1987, based on the ancient Maya Tzolkin. It maps a 260-day cycle of 20 Solar Seals and 13 Galactic Tones to reveal your galactic signature — a unique archetype describing your cosmic purpose. Enter your birth date in the OmnisX calculator to find your Kin — no birth time needed."
+          answer="Dreamspell is a modern calendar system created by Jose Arguelles in 1987, based on the ancient Maya Tzolkin. It maps a 260-day cycle of 20 Solar Seals and 13 Galactic Tones to reveal your galactic signature — a unique archetype describing your cosmic purpose. Enter your birth date in the Pleiad calculator to find your Kin — no birth time needed."
         />
 
         {/* Hunab Ku accent */}

@@ -1,8 +1,8 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Sign In to OmnisX',
-  description: 'Sign in to your OmnisX account to access your cosmic blueprint, saved profiles, and personalized readings.',
+  title: 'Sign In to Pleiad',
+  description: 'Sign in to your Pleiad account to access your cosmic blueprint, saved profiles, and personalized readings.',
   robots: {
     index: false,
     follow: false,

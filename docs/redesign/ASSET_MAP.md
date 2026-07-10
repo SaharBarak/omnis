@@ -1,4 +1,4 @@
-# Omnis Redesign — Asset Map
+# Pleiad Redesign — Asset Map
 
 Two inventories: what we HAVE (keep/reuse) and what we GENERATE (Higgsfield).
 Generation prompts live here so the batch is reviewable before spending

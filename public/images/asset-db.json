@@ -63,50 +63,50 @@
     },
     {
       "files": "human-design/centers/*",
-      "source": "Created for Omnis",
-      "author": "Omnis Project",
+      "source": "Created for Pleiad",
+      "author": "Pleiad Project",
       "license": "MIT",
       "notes": "Simple geometric shapes based on traditional Human Design bodygraph"
     },
     {
       "files": "dreamspell/tones/*",
-      "source": "Created for Omnis",
-      "author": "Omnis Project",
+      "source": "Created for Pleiad",
+      "author": "Pleiad Project",
       "license": "MIT",
       "notes": "Dot/circle patterns representing the 13 Dreamspell tones"
     },
     {
       "files": "dreamspell/decorative/*",
-      "source": "Created for Omnis",
-      "author": "Omnis Project",
+      "source": "Created for Pleiad",
+      "author": "Pleiad Project",
       "license": "MIT",
       "notes": "Wavespell, Castle, and Tzolkin grid diagrams"
     },
     {
       "files": "human-design/types/*",
-      "source": "Created for Omnis",
-      "author": "Omnis Project",
+      "source": "Created for Pleiad",
+      "author": "Pleiad Project",
       "license": "MIT",
       "notes": "Abstract geometric icons representing the 5 Human Design energy types"
     },
     {
       "files": "human-design/bodygraph/*",
-      "source": "Created for Omnis",
-      "author": "Omnis Project",
+      "source": "Created for Pleiad",
+      "author": "Pleiad Project",
       "license": "MIT",
       "notes": "Full bodygraph outline showing 9 centers and channels"
     },
     {
       "files": "astrology/elements/*",
-      "source": "Created for Omnis",
-      "author": "Omnis Project",
+      "source": "Created for Pleiad",
+      "author": "Pleiad Project",
       "license": "MIT",
       "notes": "Traditional alchemical elemental triangles"
     },
     {
       "files": "tzolkin/nawales/*",
-      "source": "Created for Omnis",
-      "author": "Omnis Project",
+      "source": "Created for Pleiad",
+      "author": "Pleiad Project",
       "license": "MIT",
       "notes": "Stylized representations of 20 traditional Mayan day signs"
     }

@@ -235,7 +235,7 @@ export default function TzolkinDocsPage() {
             like gears into the <strong className="text-foreground">Calendar Round</strong> — a 52-year
             cycle (18,980 days) after which the same Tzolkin day and Haab date pair recurs.
           </p>
-          <DocInfoBox variant="primary" title="In OmnisX">
+          <DocInfoBox variant="primary" title="In Pleiad">
             <p className="leading-relaxed">
               Every profile&apos;s birth date is located in all of these counts: the traditional Tzolkin
               day, the Haab date, and the full Long Count — computed with the GMT correlation (584,283)
@@ -273,7 +273,7 @@ export default function TzolkinDocsPage() {
         <section className="doc-card p-8 sm:p-10 text-center mt-16">
           <h3 className="text-2xl font-heading text-foreground mb-4">Explore Both Perspectives</h3>
           <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-            OmnisX calculates both counts side by side — the traditional Tzolkin (GMT correlation)
+            Pleiad calculates both counts side by side — the traditional Tzolkin (GMT correlation)
             and the modern Dreamspell — for every person you chart. Understanding both traditions
             enriches your practice with deeper context.
           </p>

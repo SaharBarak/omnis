@@ -10,7 +10,7 @@
 
 ## Problem Statement
 
-Omnis has **no CI/CD pipeline** for code quality:
+Pleiad has **no CI/CD pipeline** for code quality:
 
 1. **No automated tests on PR** - Broken code can merge
 2. **No lint checks** - Code style inconsistencies creep in

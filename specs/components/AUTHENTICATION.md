@@ -486,7 +486,7 @@ async function exportUserData(userId: string): Promise<UserDataExport> {
 ┌─────────────────────────────────────────┐
 │                                         │
 │              [Logo]                     │
-│              Omnis                      │
+│              Pleiad                      │
 │                                         │
 │     ────────────────────────────        │
 │                                         │

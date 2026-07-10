@@ -51,7 +51,7 @@ const breadcrumbSchema = buildBreadcrumbs([
 const integrationFaqs = [
   {
     question: "Can I use multiple wisdom systems at the same time?",
-    answer: "Yes — that is exactly what OmnisX is designed for. Dreamspell, Human Design, Astrology, Kabbalah, and Tzolkin each illuminate different aspects of who you are. Rather than competing, they complement each other: Dreamspell reveals your timing and synchronicity, Human Design shows your strategy and authority, Astrology maps your psychological depth, and Kabbalah connects you to sacred tradition.",
+    answer: "Yes — that is exactly what Pleiad is designed for. Dreamspell, Human Design, Astrology, Kabbalah, and Tzolkin each illuminate different aspects of who you are. Rather than competing, they complement each other: Dreamspell reveals your timing and synchronicity, Human Design shows your strategy and authority, Astrology maps your psychological depth, and Kabbalah connects you to sacred tradition.",
   },
   {
     question: "How do these systems connect?",
@@ -103,7 +103,7 @@ export default function IntegrationDocsPage() {
 
         <QuickAnswer
           question="Can I use Dreamspell, Human Design, and Astrology together?"
-          answer="Yes. Each system illuminates a different facet of who you are: Dreamspell reveals your timing and cosmic purpose, the traditional Tzolkin grounds you in the living Maya count, Human Design shows your decision-making strategy and energy type, Astrology maps your psychological depth and life transits, and Kabbalah reads the numbers hidden in your name. When multiple systems agree on a theme, it signals a core quality in your design. OmnisX computes every lens from one profile — birth date, time, place, and name, entered once — for every person on your map."
+          answer="Yes. Each system illuminates a different facet of who you are: Dreamspell reveals your timing and cosmic purpose, the traditional Tzolkin grounds you in the living Maya count, Human Design shows your decision-making strategy and energy type, Astrology maps your psychological depth and life transits, and Kabbalah reads the numbers hidden in your name. When multiple systems agree on a theme, it signals a core quality in your design. Pleiad computes every lens from one profile — birth date, time, place, and name, entered once — for every person on your map."
         />
 
         {/* Introduction with drop cap */}
@@ -382,11 +382,11 @@ export default function IntegrationDocsPage() {
           </div>
         </DocSection>
 
-        {/* OmnisX Info Box */}
+        {/* Pleiad Info Box */}
         <section className="mb-12">
-          <DocInfoBox variant="secondary" title="OmnisX Does This For You">
+          <DocInfoBox variant="secondary" title="Pleiad Does This For You">
             <p className="leading-relaxed">
-              This is why OmnisX exists—to calculate your data across all systems and surface the patterns,
+              This is why Pleiad exists—to calculate your data across all systems and surface the patterns,
               so you can focus on living your design rather than computing it. Enter a birth once and it is
               remembered forever: every person you chart becomes a node on your map, ready for any new
               reading, comparison, or group.

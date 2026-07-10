@@ -1,4 +1,4 @@
-# Omnis Design System Specification
+# Pleiad Design System Specification
 
 > **Status:** PARTIAL (basic implementation complete, advanced features pending)
 > **Created:** 2026-01-25

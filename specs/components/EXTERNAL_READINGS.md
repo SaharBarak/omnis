@@ -1,4 +1,4 @@
-# Omnis External Readings Feature Spec
+# Pleiad External Readings Feature Spec
 
 **Fits into:** Phase 5.5 (between Predictions and AI Layer)
 **New spec file:** `/specs/components/EXTERNAL_READINGS.md`
@@ -393,7 +393,7 @@ interface DailyReadingsProps {
 //   - Region (optional)
 // - Reading cards grid
 // - Pagination or infinite scroll
-// - SEO: title="Daily Spiritual Readings | Omnis"
+// - SEO: title="Daily Spiritual Readings | Pleiad"
 // - Structured data (JSON-LD) for search
 ```
 
@@ -442,7 +442,7 @@ interface ReadingCardProps {
 4. **No full content display:** Full text stored but only snippet shown
 5. **Respect robots.txt:** Check before scraping, skip if disallowed
 6. **Rate limiting:** Minimum 2 seconds between requests to same domain
-7. **User-agent:** Identify as "OmnisBot/1.0 (+https://omnis.app/bot)"
+7. **User-agent:** Identify as "PleiadBot/1.0 (+https://omnis.app/bot)"
 
 ### Source Vetting
 Before adding a source:
@@ -523,7 +523,7 @@ If user has birth data:
   "datePublished": "2026-01-30",
   "author": {
     "@type": "Organization",
-    "name": "Omnis"
+    "name": "Pleiad"
   }
 }
 ```

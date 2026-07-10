@@ -10,7 +10,7 @@
 
 ## Problem Statement
 
-Omnis currently operates as a single-user platform. Users can add people and create boards, but there's no way to:
+Pleiad currently operates as a single-user platform. Users can add people and create boards, but there's no way to:
 
 1. **Collaborate** with family members or partners on shared profile data
 2. **Share access** to a household's profiles without sharing login credentials

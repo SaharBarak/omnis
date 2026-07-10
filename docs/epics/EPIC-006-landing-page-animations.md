@@ -19,7 +19,7 @@ The landing page exists but is marked PARTIAL in LANDING_PAGE.md. The basic stru
 - Static hero section instead of dynamic
 - Missing the "wow factor" that converts visitors
 
-The landing page is the first impression for potential users. A static page doesn't communicate the depth and magic of what Omnis offers.
+The landing page is the first impression for potential users. A static page doesn't communicate the depth and magic of what Pleiad offers.
 
 ## Proposed Solution
 

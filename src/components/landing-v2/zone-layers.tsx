@@ -111,7 +111,7 @@ export function ZoneLayers() {
             Same people. Five layers deep.
           </h2>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-white/70">
-            Every map and circle in OmnisX reads through one system at a time —
+            Every map and circle in Pleiad reads through one system at a time —
             the astrology layer, the dreamspell layer, the tzolkin, the design,
             the letters. Stack all five and read the whole truth at once.
           </p>

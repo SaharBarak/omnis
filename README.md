@@ -1,8 +1,8 @@
-# Omnis
+# Pleiad
 
 **Discover Your Cosmic Blueprint**
 
-Omnis is a symbolic mapping platform that integrates multiple ancient and modern wisdom systems to provide personalized insights. Calculate and explore your Dreamspell Galactic Signature, Tzolkin Day Sign, Human Design Bodygraph, Astrology Natal Chart, and Hebrew Gematria analysis—all in one unified experience.
+Pleiad is a symbolic mapping platform that integrates multiple ancient and modern wisdom systems to provide personalized insights. Calculate and explore your Dreamspell Galactic Signature, Tzolkin Day Sign, Human Design Bodygraph, Astrology Natal Chart, and Hebrew Gematria analysis—all in one unified experience.
 
 ## ✨ Features
 
@@ -42,8 +42,8 @@ Omnis is a symbolic mapping platform that integrates multiple ancient and modern
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/SaharBarak/Omnis.git
-cd Omnis
+git clone https://github.com/SaharBarak/Pleiad.git
+cd Pleiad
 ```
 
 ### 2. Install Dependencies
@@ -244,8 +244,8 @@ This project is proprietary software. All rights reserved.
 ## 🔗 Links
 
 - **Live App**: [https://omnis.app](https://omnis.app)
-- **Issues**: [GitHub Issues](https://github.com/SaharBarak/Omnis/issues)
+- **Issues**: [GitHub Issues](https://github.com/SaharBarak/Pleiad/issues)
 
 ---
 
-Built with 💫 by the Omnis team
+Built with 💫 by the Pleiad team

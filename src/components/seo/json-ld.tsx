@@ -10,7 +10,7 @@
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? 'https://omnis.app'
 
-export const SITE_NAME = 'OmnisX'
+export const SITE_NAME = 'Pleiad'
 
 export const ORGANIZATION_ID = `${SITE_URL}/#organization`
 

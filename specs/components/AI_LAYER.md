@@ -92,7 +92,7 @@ interface GroupInterpretation {
 
 ---
 
-## "Ask Omnis" Chat
+## "Ask Pleiad" Chat
 
 ### Chat Interface
 ```typescript
@@ -230,7 +230,7 @@ interface SourceMetadata {
   title?: string;
   url?: string;
   dateAdded: ISODateTime;
-  verified: boolean;             // Curated by Omnis team
+  verified: boolean;             // Curated by Pleiad team
 }
 ```
 
@@ -372,7 +372,7 @@ const defaultSettings: AISettings = {
 ### System Prompt Template
 ```typescript
 const systemPrompt = `
-You are Omnis, an assistant that helps users understand symbolic systems
+You are Pleiad, an assistant that helps users understand symbolic systems
 (Dreamspell, Tzolkin, Astrology, Human Design, Gematria).
 
 CRITICAL RULES:

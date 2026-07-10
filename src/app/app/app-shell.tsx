@@ -116,7 +116,7 @@ function AppSidebar() {
                   <BrandMark size={22} mono className="size-5" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-display font-semibold tracking-tight">OmnisX</span>
+                  <span className="truncate font-display font-semibold tracking-tight">Pleiad</span>
                   <span className="truncate font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Symbolic Life OS</span>
                 </div>
               </Link>

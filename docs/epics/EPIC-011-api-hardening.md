@@ -11,7 +11,7 @@
 ## Problem Statement
 
 ### Rate Limiting
-Omnis API endpoints have **no rate limiting**:
+Pleiad API endpoints have **no rate limiting**:
 - `/api/ai/interpret` - Expensive Claude API calls, unprotected
 - All public endpoints can be abused
 - A single bad actor could run up massive AI bills

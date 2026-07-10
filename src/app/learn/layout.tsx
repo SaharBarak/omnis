@@ -2,8 +2,8 @@ import { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | OmnisX Knowledge Base',
-    default: 'Learn - OmnisX Knowledge Base',
+    template: '%s | Pleiad Knowledge Base',
+    default: 'Learn - Pleiad Knowledge Base',
   },
   description: 'Comprehensive documentation for Dreamspell, Human Design, Astrology, Gematria, and traditional Tzolkin systems.',
 }

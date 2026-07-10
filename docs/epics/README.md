@@ -1,4 +1,4 @@
-# Omnis Epics
+# Pleiad Epics
 
 This directory contains feature epic specifications for post-MVP development.
 
@@ -23,11 +23,11 @@ This directory contains feature epic specifications for post-MVP development.
 | [EPIC-005](./EPIC-005-design-system-elevation.md) | Design System Elevation | P3.2 | Low-Medium | Proposed | |
 | [EPIC-006](./EPIC-006-landing-page-animations.md) | Landing Page Animations | P3.4 | Low | Proposed | |
 | [EPIC-007](./EPIC-007-public-api.md) | Public API | 8 | Low | Proposed | |
-| [EPIC-008](./EPIC-008-security-vulnerabilities.md) | NPM Security Vulnerability Fixes | Pre-Launch | **CRITICAL** | Proposed | [#8](https://github.com/SaharBarak/Omnis/issues/8) |
-| [EPIC-009](./EPIC-009-developer-documentation.md) | Developer Documentation | Pre-Launch | **CRITICAL** | Proposed | [#9](https://github.com/SaharBarak/Omnis/issues/9) |
-| [EPIC-010](./EPIC-010-cicd-pipeline.md) | CI/CD Pipeline | Pre-Launch | High | Proposed | [#10](https://github.com/SaharBarak/Omnis/issues/10) |
-| [EPIC-011](./EPIC-011-api-hardening.md) | API Hardening (Rate Limiting + Validation) | Pre-Launch | High | Proposed | [#11](https://github.com/SaharBarak/Omnis/issues/11) |
-| [EPIC-012](./EPIC-012-error-monitoring.md) | Error Monitoring (Sentry) | Pre-Launch | Medium | Proposed | [#12](https://github.com/SaharBarak/Omnis/issues/12) |
+| [EPIC-008](./EPIC-008-security-vulnerabilities.md) | NPM Security Vulnerability Fixes | Pre-Launch | **CRITICAL** | Proposed | [#8](https://github.com/SaharBarak/Pleiad/issues/8) |
+| [EPIC-009](./EPIC-009-developer-documentation.md) | Developer Documentation | Pre-Launch | **CRITICAL** | Proposed | [#9](https://github.com/SaharBarak/Pleiad/issues/9) |
+| [EPIC-010](./EPIC-010-cicd-pipeline.md) | CI/CD Pipeline | Pre-Launch | High | Proposed | [#10](https://github.com/SaharBarak/Pleiad/issues/10) |
+| [EPIC-011](./EPIC-011-api-hardening.md) | API Hardening (Rate Limiting + Validation) | Pre-Launch | High | Proposed | [#11](https://github.com/SaharBarak/Pleiad/issues/11) |
+| [EPIC-012](./EPIC-012-error-monitoring.md) | Error Monitoring (Sentry) | Pre-Launch | Medium | Proposed | [#12](https://github.com/SaharBarak/Pleiad/issues/12) |
 
 ## Recommended Implementation Order
 

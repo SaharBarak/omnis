@@ -13,10 +13,10 @@ function generateICS(events: ICSEvent[]): string {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//OmnisX//Predictions//EN',
+    'PRODID:-//Pleiad//Predictions//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    'X-WR-CALNAME:OmnisX Predictions',
+    'X-WR-CALNAME:Pleiad Predictions',
   ]
 
   for (const event of events) {
@@ -82,7 +82,7 @@ export function CalendarExport({ events, title = 'Export to Calendar' }: Calenda
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `omnisx-predictions-${new Date().toISOString().split('T')[0]}.ics`
+      link.download = `pleiad-predictions-${new Date().toISOString().split('T')[0]}.ics`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -130,7 +130,7 @@ export function SingleEventExport({ event }: SingleEventExportProps) {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `omnisx-${event.type}-${event.startDate}.ics`
+    link.download = `pleiad-${event.type}-${event.startDate}.ics`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)

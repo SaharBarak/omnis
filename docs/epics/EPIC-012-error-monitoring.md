@@ -10,7 +10,7 @@
 
 ## Problem Statement
 
-Omnis has **50+ console.error statements** in production code with no error aggregation:
+Pleiad has **50+ console.error statements** in production code with no error aggregation:
 
 1. **Errors are invisible** - No alerting when things break
 2. **No error context** - Stack traces lost in server logs

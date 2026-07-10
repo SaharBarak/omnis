@@ -480,7 +480,7 @@ interface CycleChange {
 ### Push Notification Format
 ```
 +--------------------------------+
-| Omnis                      now |
+| Pleiad                      now |
 +--------------------------------+
 | Tomorrow: New Wavespell begins |
 |                                |
@@ -530,7 +530,7 @@ async function exportToCalendar(
 ```
 BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//Omnis//Predictions//EN
+PRODID:-//Pleiad//Predictions//EN
 BEGIN:VEVENT
 DTSTART:20250121
 DTEND:20250122

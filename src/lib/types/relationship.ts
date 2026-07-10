@@ -1,4 +1,4 @@
-// Relationship Types for OmnisX Phase 2
+// Relationship Types for Pleiad Phase 2
 // Domain types for relationships, groups, and graph visualization
 
 import type { Person, Relationship, Group, SharedView } from './database.types'

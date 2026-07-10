@@ -1,4 +1,4 @@
-# Omnis Design System V2
+# Pleiad Design System V2
 
 ## Overview
 

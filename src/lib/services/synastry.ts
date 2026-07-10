@@ -1,4 +1,4 @@
-// Synastry (Relationship) Compatibility for OmnisX
+// Synastry (Relationship) Compatibility for Pleiad
 // Compares two natal charts and produces a bilingual 0-100 compatibility score
 // based on cross-aspects between key planets and Sun-sign element harmony.
 //

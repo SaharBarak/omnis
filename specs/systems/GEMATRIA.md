@@ -2,7 +2,7 @@
 
 ## Overview
 
-Gematria is a Hebrew alphanumeric code assigning numerical values to letters, words, and phrases. Omnis uses gematria to find numerical correlations between names and discover meaningful connections.
+Gematria is a Hebrew alphanumeric code assigning numerical values to letters, words, and phrases. Pleiad uses gematria to find numerical correlations between names and discover meaningful connections.
 
 ---
 

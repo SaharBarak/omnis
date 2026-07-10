@@ -1,4 +1,4 @@
-# Omnis Platform Migration Plan
+# Pleiad Platform Migration Plan
 
 Four concurrent migrations off the Supabase/Stripe/Anthropic/Vercel stack onto a
 MongoDB / Paddle / Gemini / Cloudflare stack.

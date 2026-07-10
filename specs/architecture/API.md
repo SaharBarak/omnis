@@ -2,7 +2,7 @@
 
 ## Overview
 
-RESTful API design for the Omnis platform with consistent patterns, authentication, and error handling.
+RESTful API design for the Pleiad platform with consistent patterns, authentication, and error handling.
 
 ---
 
@@ -966,7 +966,7 @@ const signature = crypto
   .update(JSON.stringify(payload))
   .digest('hex');
 
-// Header: X-Omnis-Signature: sha256=<signature>
+// Header: X-Pleiad-Signature: sha256=<signature>
 ```
 
 ---

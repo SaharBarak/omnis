@@ -1,4 +1,4 @@
-# Omnis Homepage — Copy, Composition & Structure (v2)
+# Pleiad Homepage — Copy, Composition & Structure (v2)
 
 **Produced by multi-provider synthesis (Codex + OpenCode + Claude drafts →
 cross-critique → resolution). Replaces the rejected v1.**
@@ -21,7 +21,7 @@ Translucent over mural; densifies on scroll.
 ## 1. HERO — mural top: cosmic night sky
 - Eyebrow (mono): `ASTROLOGY · DREAMSPELL · TZOLKIN · HUMAN DESIGN · KABBALAH`
 - H1 (serif display): **Map the people who shape your life.**
-- Body: Omnis reads every birth through five wisdom systems and draws the
+- Body: Pleiad reads every birth through five wisdom systems and draws the
   living map between them — family, friends, teams. Add a person once;
   the map remembers forever.
 - CTA primary: **Open your map →**  ·  secondary: **Try one reading**
@@ -53,7 +53,7 @@ Five system emblems in a quiet row.
 ## 4. ZONE — YOU + ONE 〔dreamspell / spectral flavor〕 (compact, half-height)
 - Pill: `Then add one more`
 - H2: **Two charts. One chemistry.**
-- Body: Pick any two people and Omnis reads the bond five ways — synastry,
+- Body: Pick any two people and Pleiad reads the bond five ways — synastry,
   kin resonance, type mechanics, name harmonics — then says it plainly:
   where you flow, where you grind, what the friction is for. Partners,
   siblings, cofounders, oldest friends.
@@ -66,7 +66,7 @@ Five system emblems in a quiet row.
 - H2: **Enter a birthday once.**
 - Body: Everyone you chart joins your private library — birth time, place,
   name, all five readings, saved. The tenth time you check a friend's
-  chart, you don't ask for their birth time again. You open Omnis.
+  chart, you don't ask for their birth time again. You open Pleiad.
 - Embed: people library — search, tags, instant re-open; quick actions
   `Open reading · Add to map · Compare · Invite`.
 - Triad: Private by default, owner-scoped · Reusable in any map or group ·
@@ -77,7 +77,7 @@ Five system emblems in a quiet row.
 ## 6. ZONE — THE MAP 〔all five flavors converge〕 ← CENTERPIECE
 - Pill: `The living map`
 - H2: **Your relationships become visible.**
-- Body: Every saved person is a node. Omnis draws the lines — attraction,
+- Body: Every saved person is a node. Pleiad draws the lines — attraction,
   friction, resonance, completion — scored across all five systems, and
   every score opens into its evidence. Add twenty people and watch the
   geometry of your life appear.
@@ -95,7 +95,7 @@ Five system emblems in a quiet row.
 ## 7. ZONE — THE FIVE LAYERS 〔all flavors, one per layer〕 ← SET PIECE #1
 - Pill: `Layer by layer`
 - H2: **Same people. Five layers deep.**
-- Body: Every map and circle in Omnis reads through one system at a time —
+- Body: Every map and circle in Pleiad reads through one system at a time —
   the astrology layer, the dreamspell layer, the tzolkin, the design, the
   letters. Slide a single layer out and see which tradition explains the
   tension. Stack all five and read the whole truth at once.

@@ -1,12 +1,12 @@
 # Session Handoff — Redesign (2026-07-05)
 
-Continue point for the Omnis knowledge-experience redesign. Read this +
+Continue point for the Pleiad knowledge-experience redesign. Read this +
 MAIN_PURPOSE.md first; everything else on demand.
 
 ## Branch state
 
 - **Active branch: `redesign/knowledge-experience`**. Product renamed
-  **OmnisX** (2026-07-04). Nothing pushed anywhere yet, no PRs.
+  **Pleiad** (2026-07-04). Nothing pushed anywhere yet, no PRs.
 - Health: typecheck ✓ · **937/937 tests ✓** · `next build` ✓ · deployed.
   **Lint is currently broken (pre-existing, not this work):** eslint.config.mjs
   references `react-hooks/*` and `import/*` rules but doesn't register those
@@ -63,7 +63,7 @@ tests added) · `next build` ✓ (48/48 pages).
 - **Copy+SEO (`79d674b`)** — framing: five traditions/flavors, SIX computed
   systems (Long Count rides inside Tzolkin; compatibility genuinely scores
   five — never say six there). Learn/about/contact/login canonicals
-  relative via metadataBase; OG wordmark omnis.app→OmnisX.
+  relative via metadataBase; OG wordmark omnis.app→Pleiad.
 - **Security (`d6ba2f2`)** — rate limiter now Cloudflare-KV fixed-window
   (in-memory fallback when binding absent/errors); CSP enforced (was
   report-only); share tokens+pw hashes minted server-side ONLY (fixed
@@ -216,13 +216,13 @@ flow assertions (same scripts as local; scratchpad/authed-flows.mjs pattern).
 - **Supabase**: password reset (new pw in .env.local), pooler URI runtime +
   session-pooler URI for migrations (direct host is IPv6-only — unreachable
   from this network). 21 tables + pgvector(384) migrated and verified.
-- **Auth0** (tenant `dev-kaipd4klyg48p0ai.us`): Regular Web App "OmnisX",
+- **Auth0** (tenant `dev-kaipd4klyg48p0ai.us`): Regular Web App "Pleiad",
   Google + Username-Password-Authentication enabled, callbacks/logout for
   :3100, :3000 and the workers.dev origin. NOTE: Universal Login default
   screen renders social-only; email path MUST pass
   `connection=Username-Password-Authentication` (fixed in use-auth.ts,
   commit 1fcd2f4).
-- **Paddle sandbox** (account "Two Circles Studios"): products OmnisX
+- **Paddle sandbox** (account "Two Circles Studios"): products Pleiad
   Complete pri_01kws4k6zh22zxbg9efjd4cwqr ($9/mo) + Practitioner
   pri_01kws4k77743e1px763pv91hbq ($29/mo), API key `omnisx-server`
   (all scopes), client token `omnisx-web`, webhook →

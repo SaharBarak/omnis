@@ -10,7 +10,7 @@
 
 ## Problem Statement
 
-The current Omnis UI is functional but has been described as a "generic admin template" rather than the intended "mystical but clean" aesthetic. Per DESIGN_SYSTEM.md (marked PARTIAL), the basic implementation is complete but advanced features are pending:
+The current Pleiad UI is functional but has been described as a "generic admin template" rather than the intended "mystical but clean" aesthetic. Per DESIGN_SYSTEM.md (marked PARTIAL), the basic implementation is complete but advanced features are pending:
 
 - Inconsistent spacing scale
 - Typography lacks hierarchy
@@ -26,7 +26,7 @@ Users working with symbolic/spiritual systems expect a visual experience that re
 Elevate the design system from "functional admin" to "mystical but clean":
 
 ### 1. Color System
-- Define Omnis brand palette (cosmic/mystical theme)
+- Define Pleiad brand palette (cosmic/mystical theme)
 - System-specific accent colors (Dreamspell purple, Tzolkin earth tones, etc.)
 - Light/dark mode refinement
 - Semantic color tokens
