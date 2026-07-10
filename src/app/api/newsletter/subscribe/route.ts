@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { rateLimiters, rateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limit'
 import { findByEmail, subscribe } from '@/lib/db/repositories/newsletter-repo'
 import { EMAIL_FROM } from '@/lib/email/from'
+import { verifyTurnstile } from '@/lib/security/turnstile'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,6 +26,18 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
+
+    // Bot protection — no-op unless TURNSTILE_SECRET is configured.
+    const turnstileOk = await verifyTurnstile(
+      body?.turnstileToken,
+      request.headers.get('CF-Connecting-IP'),
+    )
+    if (!turnstileOk) {
+      return NextResponse.json(
+        { error: 'Verification failed. Please try again.' },
+        { status: 403 },
+      )
+    }
 
     // Validate with Zod
     const parseResult = subscribeSchema.safeParse(body)

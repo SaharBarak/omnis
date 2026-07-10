@@ -4,6 +4,9 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { TurnstileWidget } from '@/components/security/turnstile-widget'
+
+const TURNSTILE_ENABLED = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 
 const footerLinks = {
   Product: [
@@ -33,10 +36,15 @@ export function Footer() {
   const [subscribed, setSubscribed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [token, setToken] = useState('')
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email || loading) return
+    if (TURNSTILE_ENABLED && !token) {
+      setError('Please complete the verification.')
+      return
+    }
 
     setLoading(true)
     setError('')
@@ -45,7 +53,7 @@ export function Footer() {
       const response = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.toLowerCase().trim() })
+        body: JSON.stringify({ email: email.toLowerCase().trim(), turnstileToken: token })
       })
 
       const data = await response.json()
@@ -97,6 +105,7 @@ export function Footer() {
                     {loading ? 'Subscribing...' : 'Subscribe'}
                   </Button>
                 </div>
+                <TurnstileWidget onVerify={setToken} />
                 {error && (
                   <p className="text-destructive text-sm">{error}</p>
                 )}
