@@ -25,6 +25,7 @@ import {
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect, useMemo } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { StatusBar } from 'expo-status-bar'
 
 import { BrandMark } from '@/components/brand-mark'
@@ -164,15 +165,17 @@ export default function RootLayout() {
   if (!fontsLoaded) return null
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider value={pleiadTheme}>
-        <View style={[styles.flex, { backgroundColor: COLORS.ground }]}>
-          <CosmicGround />
-          <StatusBar style="light" />
-          <RootNavigator status={status} />
-        </View>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <GestureHandlerRootView style={styles.flex}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider value={pleiadTheme}>
+          <View style={[styles.flex, { backgroundColor: COLORS.ground }]}>
+            <CosmicGround />
+            <StatusBar style="light" />
+            <RootNavigator status={status} />
+          </View>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   )
 }
 

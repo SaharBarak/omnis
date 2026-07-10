@@ -1,4 +1,4 @@
-import { createPleiadClient, type Profile } from '@pleiad/api-client'
+import { createPleiadClient, type Profile, type Subscription } from '@pleiad/api-client'
 import { useQuery } from '@tanstack/react-query'
 
 import { useAuthStore } from '@/lib/auth/store'
@@ -19,6 +19,16 @@ export function useProfile(enabled = true) {
   return useQuery<Profile>({
     queryKey: ['profile'],
     queryFn: () => api.profile.get(),
+    enabled,
+  })
+}
+
+/** GET /api/billing/subscription — plan, usage meters, features (§6). */
+export function useSubscription(enabled = true) {
+  return useQuery<Subscription>({
+    queryKey: ['subscription'],
+    queryFn: () => api.billing.getSubscription(),
+    staleTime: 5 * 60_000,
     enabled,
   })
 }
