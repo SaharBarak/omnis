@@ -30,6 +30,7 @@ export type FunnelEvent =
   | 'signup_started'
   | 'onboarding_completed'
   | 'person_created'
+  | 'group_created'
   | 'share_created'
 
 export type EventProperties = Record<string, string | number | boolean | null>

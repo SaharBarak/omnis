@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { track } from '@/lib/analytics/posthog'
 import type { Group } from '@/lib/types/database.types'
 import type {
   GroupWithMembers,
@@ -97,6 +98,8 @@ export function useGroups(): UseGroupsReturn {
           personIds: input.personIds,
         }),
       })
+      // North Star input: the lead "fused group dynamics" action.
+      track('group_created', { members: input.personIds?.length ?? 0 })
       await fetchGroups()
       return group
     },
