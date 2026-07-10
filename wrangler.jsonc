@@ -2,6 +2,10 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "omnisx",
   "main": ".open-next/worker.js",
+  "routes": [
+    { "pattern": "pleiad.io", "custom_domain": true },
+    { "pattern": "www.pleiad.io", "custom_domain": true }
+  ],
   "compatibility_date": "2025-06-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": {
@@ -38,6 +42,6 @@
     "enabled": true
   },
   "vars": {
-    "NEXT_PUBLIC_SITE_URL": "https://omnisx.sahar-h-barak.workers.dev"
+    "NEXT_PUBLIC_SITE_URL": "https://pleiad.io"
   }
 }

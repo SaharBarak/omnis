@@ -8,7 +8,7 @@
  */
 
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://omnis.app'
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://pleiad.io'
 
 export const SITE_NAME = 'Pleiad'
 
@@ -50,7 +50,7 @@ export const organizationSchema: JsonLdData = {
   contactPoint: {
     '@type': 'ContactPoint',
     contactType: 'customer support',
-    email: 'hello@omnis.app',
+    email: 'hello@pleiad.io',
     url: `${SITE_URL}/contact`,
   },
 }

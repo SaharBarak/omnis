@@ -394,7 +394,7 @@ function getDailyDigestEmailHtml(
     ` : ''}
 
     <div style="text-align: center; margin-bottom: 30px;">
-      <a href="https://omnis.app/app/predictions" style="display: inline-block; background: linear-gradient(90deg, #c9a55c 0%, #e8d5a3 50%, #c9a55c 100%); color: #0a0a0f; text-decoration: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+      <a href="https://pleiad.io/app/predictions" style="display: inline-block; background: linear-gradient(90deg, #c9a55c 0%, #e8d5a3 50%, #c9a55c 100%); color: #0a0a0f; text-decoration: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; font-size: 14px;">
         View Full Forecast
       </a>
     </div>
@@ -402,7 +402,7 @@ function getDailyDigestEmailHtml(
     <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
       <p style="color: #666; font-size: 12px; margin: 0 0 10px;">Daily Forecast from Pleiad</p>
       <p style="color: #666; font-size: 12px; margin: 0;">
-        <a href="https://omnis.app/app/settings/notifications" style="color: #888;">Manage notifications</a>
+        <a href="https://pleiad.io/app/settings/notifications" style="color: #888;">Manage notifications</a>
       </p>
     </div>
   </div>
@@ -465,7 +465,7 @@ function getEventNotificationEmailHtml(userName: string, event: PredictionEvent)
     </div>
 
     <div style="text-align: center; margin-bottom: 30px;">
-      <a href="https://omnis.app/app/predictions" style="display: inline-block; background: linear-gradient(90deg, #c9a55c 0%, #e8d5a3 50%, #c9a55c 100%); color: #0a0a0f; text-decoration: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+      <a href="https://pleiad.io/app/predictions" style="display: inline-block; background: linear-gradient(90deg, #c9a55c 0%, #e8d5a3 50%, #c9a55c 100%); color: #0a0a0f; text-decoration: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; font-size: 14px;">
         View Details
       </a>
     </div>
@@ -473,7 +473,7 @@ function getEventNotificationEmailHtml(userName: string, event: PredictionEvent)
     <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
       <p style="color: #666; font-size: 12px; margin: 0 0 10px;">Event notification from Pleiad</p>
       <p style="color: #666; font-size: 12px; margin: 0;">
-        <a href="https://omnis.app/app/settings/notifications" style="color: #888;">Manage notifications</a>
+        <a href="https://pleiad.io/app/settings/notifications" style="color: #888;">Manage notifications</a>
       </p>
     </div>
   </div>

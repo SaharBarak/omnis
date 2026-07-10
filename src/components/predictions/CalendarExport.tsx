@@ -54,7 +54,7 @@ function escapeICSText(text: string): string {
 }
 
 function generateUID(): string {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}@omnis.app`
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}@pleiad.io`
 }
 
 export function CalendarExport({ events, title = 'Export to Calendar' }: CalendarExportProps) {

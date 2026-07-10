@@ -41,7 +41,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://omnis.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://pleiad.io'),
   // NOTE: no `alternates.canonical` here — a canonical set in the root layout
   // is inherited by every page that doesn't override it, which would point
   // all sub-pages at the homepage. Each public page declares its own.

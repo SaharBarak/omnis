@@ -171,9 +171,10 @@ interface KinData {
  * identifier-free manual form rather than emit a forgeable link.
  */
 async function buildUnsubscribeUrl(subscriberEmail: string): Promise<string> {
+  const base = process.env.APP_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://pleiad.io'
   const sig = await signUnsubscribeToken(subscriberEmail)
-  if (!sig) return 'https://omnis.app/unsubscribe'
-  return `https://omnis.app/api/newsletter/unsubscribe?email=${encodeURIComponent(subscriberEmail)}&sig=${sig}`
+  if (!sig) return `${base}/unsubscribe`
+  return `${base}/api/newsletter/unsubscribe?email=${encodeURIComponent(subscriberEmail)}&sig=${sig}`
 }
 
 function getDailyKinEmailHtml(kinData: KinData, unsubscribeUrl: string): string {
@@ -252,7 +253,7 @@ ${kinData.mantra}
     </div>
 
     <div style="text-align: center; margin-bottom: 30px;">
-      <a href="https://omnis.app/today" style="display: inline-block; background: linear-gradient(90deg, #c9a55c 0%, #e8d5a3 50%, #c9a55c 100%); color: #0a0a0f; text-decoration: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+      <a href="https://pleiad.io/today" style="display: inline-block; background: linear-gradient(90deg, #c9a55c 0%, #e8d5a3 50%, #c9a55c 100%); color: #0a0a0f; text-decoration: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; font-size: 14px;">
         Explore Full Reading
       </a>
     </div>

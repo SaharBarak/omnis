@@ -103,13 +103,13 @@ function getWelcomeEmailHtml(): string {
       </ul>
     </div>
     <div style="text-align: center; margin-bottom: 30px;">
-      <a href="https://omnis.app/today" style="display: inline-block; background: linear-gradient(90deg, #c9a55c 0%, #e8d5a3 50%, #c9a55c 100%); color: #0a0a0f; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: 600;">
+      <a href="https://pleiad.io/today" style="display: inline-block; background: linear-gradient(90deg, #c9a55c 0%, #e8d5a3 50%, #c9a55c 100%); color: #0a0a0f; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: 600;">
         View Today's Kin
       </a>
     </div>
     <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
       <p style="color: #666; font-size: 12px;">
-        <a href="https://omnis.app/unsubscribe" style="color: #888;">Unsubscribe</a>
+        <a href="https://pleiad.io/unsubscribe" style="color: #888;">Unsubscribe</a>
       </p>
     </div>
   </div>

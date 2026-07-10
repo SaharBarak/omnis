@@ -411,7 +411,7 @@ export function ShareDemo() {
         <div className="mt-5 flex items-center gap-2 rounded-lg border border-white/15 bg-surface-2 px-3 py-2.5">
           <Link2 className="h-4 w-4 shrink-0 text-brand" />
           <span className="truncate font-mono text-xs text-white/70">
-            omnis.app/share/m0ms-side-x7f2
+            pleiad.io/share/m0ms-side-x7f2
           </span>
         </div>
       </div>

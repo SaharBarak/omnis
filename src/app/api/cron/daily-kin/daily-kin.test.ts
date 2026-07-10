@@ -259,7 +259,7 @@ describe('GET /api/cron/daily-kin', () => {
       const emailCall = mockResendSend.mock.calls[0][0]
       // Never emit a forgeable bare-email link.
       expect(emailCall.html).not.toContain('/api/newsletter/unsubscribe?email=')
-      expect(emailCall.html).toContain('https://omnis.app/unsubscribe')
+      expect(emailCall.html).toContain('/unsubscribe')
     })
   })
 

@@ -80,7 +80,7 @@ export function LocationPicker({ value, onChange, disabled, className }: Locatio
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`,
         {
           headers: {
-            'User-Agent': 'Pleiad App (https://omnis.app)',
+            'User-Agent': 'Pleiad App (https://pleiad.io)',
           },
         }
       )

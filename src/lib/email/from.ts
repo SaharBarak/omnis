@@ -5,4 +5,4 @@
  * "Pleiad <hello@yourdomain.com>". The fallback keeps payload shape valid
  * but will be rejected by Resend until a real domain is configured.
  */
-export const EMAIL_FROM = process.env.EMAIL_FROM || 'Pleiad <noreply@omnis.app>'
+export const EMAIL_FROM = process.env.EMAIL_FROM || 'Pleiad <noreply@pleiad.io>'

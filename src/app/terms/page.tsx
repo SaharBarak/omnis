@@ -88,7 +88,7 @@ export default function TermsPage() {
 
             <h2 className="text-lg font-semibold mt-6 mb-3">9. Contact</h2>
             <p>
-              For questions about these Terms, please contact us at support@omnis.app.
+              For questions about these Terms, please contact us at support@pleiad.io.
             </p>
 
             <div className="mt-8 pt-6 border-t">

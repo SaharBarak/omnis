@@ -106,7 +106,7 @@ export default function PrivacyPage() {
             <h2 className="text-lg font-semibold mt-6 mb-3">11. Contact Us</h2>
             <p>
               For privacy-related questions or to exercise your rights, contact us at
-              privacy@omnis.app.
+              privacy@pleiad.io.
             </p>
 
             <div className="mt-8 pt-6 border-t">

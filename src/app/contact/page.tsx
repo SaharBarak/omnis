@@ -149,10 +149,10 @@ export default function ContactPage() {
               You can also reach us directly at:
             </p>
             <a
-              href="mailto:hello@omnis.app"
+              href="mailto:hello@pleiad.io"
               className="text-primary hover:underline font-medium"
             >
-              hello@omnis.app
+              hello@pleiad.io
             </a>
           </div>
 
