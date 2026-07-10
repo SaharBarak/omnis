@@ -1,0 +1,508 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden vectors — astrology > full natal chart is stable (timed, placed) 1`] = `
+{
+  "ascendant": {
+    "degree": 18,
+    "formatted": "18°42' Aquarius",
+    "longitude": 318.7138,
+    "minute": 42,
+    "sign": {
+      "degreesEnd": 330,
+      "degreesStart": 300,
+      "element": "air",
+      "hebrew": "דלי",
+      "id": "aquarius",
+      "keywords": [
+        "innovation",
+        "community",
+        "independence",
+      ],
+      "modality": "fixed",
+      "name": "Aquarius",
+      "number": 11,
+      "ruler": "uranus",
+      "symbol": "♒",
+    },
+  },
+  "aspectCount": 33,
+  "houseCusps": [
+    NaN,
+    NaN,
+    NaN,
+    NaN,
+    NaN,
+    NaN,
+    NaN,
+    NaN,
+    NaN,
+    NaN,
+    NaN,
+    NaN,
+  ],
+  "midheaven": {
+    "degree": 3,
+    "formatted": "3°16' Sagittarius",
+    "longitude": 243.2673,
+    "minute": 16,
+    "sign": {
+      "degreesEnd": 270,
+      "degreesStart": 240,
+      "element": "fire",
+      "hebrew": "קשת",
+      "id": "sagittarius",
+      "keywords": [
+        "expansion",
+        "philosophy",
+        "adventure",
+      ],
+      "modality": "mutable",
+      "name": "Sagittarius",
+      "number": 9,
+      "ruler": "jupiter",
+      "symbol": "♐",
+    },
+  },
+  "moon": undefined,
+  "sun": undefined,
+}
+`;
+
+exports[`golden vectors — astrology > sun signs are stable 1`] = `
+[
+  {
+    "d": "1987-07-26",
+    "sun": "Leo",
+  },
+  {
+    "d": "1988-08-17",
+    "sun": "Leo",
+  },
+  {
+    "d": "1990-11-05",
+    "sun": "Scorpio",
+  },
+  {
+    "d": "1994-03-21",
+    "sun": "Aries",
+  },
+  {
+    "d": "1996-02-29",
+    "sun": "Pisces",
+  },
+  {
+    "d": "2000-01-01",
+    "sun": "Capricorn",
+  },
+  {
+    "d": "2000-02-29",
+    "sun": "Pisces",
+  },
+  {
+    "d": "2004-02-28",
+    "sun": "Pisces",
+  },
+  {
+    "d": "2004-03-01",
+    "sun": "Pisces",
+  },
+  {
+    "d": "2012-12-21",
+    "sun": "Capricorn",
+  },
+  {
+    "d": "2026-01-08",
+    "sun": "Capricorn",
+  },
+  {
+    "d": "1969-07-20",
+    "sun": "Cancer",
+  },
+  {
+    "d": "1955-02-24",
+    "sun": "Pisces",
+  },
+  {
+    "d": "2025-07-26",
+    "sun": "Leo",
+  },
+]
+`;
+
+exports[`golden vectors — dreamspell/tzolkin/long count > matches committed snapshots for all birth vectors 1`] = `
+[
+  {
+    "date": "1987-07-26",
+    "kin": 34,
+    "longCount": "12.18.14.4.0",
+    "oracle": {
+      "analog": 9,
+      "antipode": 4,
+      "guide": 18,
+      "occult": 7,
+      "occultTone": 6,
+    },
+    "seal": 14,
+    "tone": 8,
+    "tzolkin": {
+      "daySign": {
+        "english": "Lord",
+        "hebrew": "אדון",
+        "number": 20,
+        "yucatec": "Ajaw",
+      },
+      "tone": 6,
+    },
+  },
+  {
+    "date": "1988-08-17",
+    "kin": 161,
+    "longCount": "12.18.15.5.8",
+    "oracle": {
+      "analog": 17,
+      "antipode": 11,
+      "guide": 9,
+      "occult": 20,
+      "occultTone": 9,
+    },
+    "seal": 1,
+    "tone": 5,
+    "tzolkin": {
+      "daySign": {
+        "english": "Rabbit",
+        "hebrew": "ארנב",
+        "number": 8,
+        "yucatec": "Lamat",
+      },
+      "tone": 4,
+    },
+  },
+  {
+    "date": "1990-11-05",
+    "kin": 191,
+    "longCount": "12.18.17.9.18",
+    "oracle": {
+      "analog": 12,
+      "antipode": 1,
+      "guide": 7,
+      "occult": 10,
+      "occultTone": 5,
+    },
+    "seal": 11,
+    "tone": 9,
+    "tzolkin": {
+      "daySign": {
+        "english": "Flint",
+        "hebrew": "צור",
+        "number": 18,
+        "yucatec": "Etz'nab'",
+      },
+      "tone": 8,
+    },
+  },
+  {
+    "date": "1994-03-21",
+    "kin": 122,
+    "longCount": "12.19.0.17.10",
+    "oracle": {
+      "analog": 19,
+      "antipode": 12,
+      "guide": 10,
+      "occult": 19,
+      "occultTone": 9,
+    },
+    "seal": 2,
+    "tone": 5,
+    "tzolkin": {
+      "daySign": {
+        "english": "Dog",
+        "hebrew": "כלב",
+        "number": 10,
+        "yucatec": "Ok",
+      },
+      "tone": 5,
+    },
+  },
+  {
+    "date": "1996-02-29",
+    "kin": 51,
+    "longCount": "12.19.2.17.0",
+    "oracle": {
+      "analog": 12,
+      "antipode": 1,
+      "guide": 3,
+      "occult": 10,
+      "occultTone": 2,
+    },
+    "seal": 11,
+    "tone": 12,
+    "tzolkin": {
+      "daySign": {
+        "english": "Lord",
+        "hebrew": "אדון",
+        "number": 20,
+        "yucatec": "Ajaw",
+      },
+      "tone": 13,
+    },
+  },
+  {
+    "date": "2000-01-01",
+    "kin": 153,
+    "longCount": "12.19.6.15.2",
+    "oracle": {
+      "analog": 20,
+      "antipode": 3,
+      "guide": 1,
+      "occult": 8,
+      "occultTone": 4,
+    },
+    "seal": 13,
+    "tone": 10,
+    "tzolkin": {
+      "daySign": {
+        "english": "Wind",
+        "hebrew": "רוח",
+        "number": 2,
+        "yucatec": "Ik'",
+      },
+      "tone": 11,
+    },
+  },
+  {
+    "date": "2000-02-29",
+    "kin": 211,
+    "longCount": "12.19.7.0.1",
+    "oracle": {
+      "analog": 12,
+      "antipode": 1,
+      "guide": 15,
+      "occult": 10,
+      "occultTone": 11,
+    },
+    "seal": 11,
+    "tone": 3,
+    "tzolkin": {
+      "daySign": {
+        "english": "Crocodile",
+        "hebrew": "תנין",
+        "number": 1,
+        "yucatec": "Imix",
+      },
+      "tone": 5,
+    },
+  },
+  {
+    "date": "2004-02-28",
+    "kin": 111,
+    "longCount": "12.19.11.1.1",
+    "oracle": {
+      "analog": 12,
+      "antipode": 1,
+      "guide": 3,
+      "occult": 10,
+      "occultTone": 7,
+    },
+    "seal": 11,
+    "tone": 7,
+    "tzolkin": {
+      "daySign": {
+        "english": "Crocodile",
+        "hebrew": "תנין",
+        "number": 1,
+        "yucatec": "Imix",
+      },
+      "tone": 9,
+    },
+  },
+  {
+    "date": "2004-03-01",
+    "kin": 112,
+    "longCount": "12.19.11.1.3",
+    "oracle": {
+      "analog": 11,
+      "antipode": 2,
+      "guide": 16,
+      "occult": 9,
+      "occultTone": 6,
+    },
+    "seal": 12,
+    "tone": 8,
+    "tzolkin": {
+      "daySign": {
+        "english": "Night",
+        "hebrew": "לילה",
+        "number": 3,
+        "yucatec": "Ak'b'al",
+      },
+      "tone": 11,
+    },
+  },
+  {
+    "date": "2012-12-21",
+    "kin": 207,
+    "longCount": "13.0.0.0.0",
+    "oracle": {
+      "analog": 6,
+      "antipode": 17,
+      "guide": 19,
+      "occult": 14,
+      "occultTone": 2,
+    },
+    "seal": 7,
+    "tone": 12,
+    "tzolkin": {
+      "daySign": {
+        "english": "Lord",
+        "hebrew": "אדון",
+        "number": 20,
+        "yucatec": "Ajaw",
+      },
+      "tone": 4,
+    },
+  },
+  {
+    "date": "2026-01-08",
+    "kin": 30,
+    "longCount": "13.0.13.4.6",
+    "oracle": {
+      "analog": 5,
+      "antipode": 20,
+      "guide": 6,
+      "occult": 11,
+      "occultTone": 10,
+    },
+    "seal": 10,
+    "tone": 4,
+    "tzolkin": {
+      "daySign": {
+        "english": "Death",
+        "hebrew": "מוות",
+        "number": 6,
+        "yucatec": "Kimi",
+      },
+      "tone": 12,
+    },
+  },
+  {
+    "date": "1969-07-20",
+    "kin": 218,
+    "longCount": "12.17.15.17.0",
+    "oracle": {
+      "analog": 3,
+      "antipode": 8,
+      "guide": 6,
+      "occult": 3,
+      "occultTone": 4,
+    },
+    "seal": 18,
+    "tone": 10,
+    "tzolkin": {
+      "daySign": {
+        "english": "Lord",
+        "hebrew": "אדון",
+        "number": 20,
+        "yucatec": "Ajaw",
+      },
+      "tone": 4,
+    },
+  },
+  {
+    "date": "1955-02-24",
+    "kin": 162,
+    "longCount": "12.17.1.6.0",
+    "oracle": {
+      "analog": 19,
+      "antipode": 12,
+      "guide": 2,
+      "occult": 19,
+      "occultTone": 8,
+    },
+    "seal": 2,
+    "tone": 6,
+    "tzolkin": {
+      "daySign": {
+        "english": "Lord",
+        "hebrew": "אדון",
+        "number": 20,
+        "yucatec": "Ajaw",
+      },
+      "tone": 9,
+    },
+  },
+  {
+    "date": "2025-07-26",
+    "kin": 124,
+    "longCount": "13.0.12.14.0",
+    "oracle": {
+      "analog": 8,
+      "antipode": 14,
+      "guide": 16,
+      "occult": 17,
+      "occultTone": 7,
+    },
+    "seal": 4,
+    "tone": 7,
+    "tzolkin": {
+      "daySign": {
+        "english": "Lord",
+        "hebrew": "אדון",
+        "number": 20,
+        "yucatec": "Ajaw",
+      },
+      "tone": 2,
+    },
+  },
+]
+`;
+
+exports[`golden vectors — gematria > name values are stable incl. finals 1`] = `
+[
+  {
+    "atbash": 95,
+    "digitalRoot": 1,
+    "name": "שרה",
+    "ordinal": 46,
+    "standard": 505,
+  },
+  {
+    "atbash": 280,
+    "digitalRoot": 5,
+    "name": "דוד",
+    "ordinal": 14,
+    "standard": 14,
+  },
+  {
+    "atbash": 228,
+    "digitalRoot": 1,
+    "name": "מנחם מנדל",
+    "ordinal": 91,
+    "standard": 262,
+  },
+  {
+    "atbash": 5,
+    "digitalRoot": 9,
+    "name": "ץ",
+    "ordinal": 18,
+    "standard": 90,
+  },
+  {
+    "atbash": 803,
+    "digitalRoot": 5,
+    "name": "אברהם",
+    "ordinal": 41,
+    "standard": 248,
+  },
+]
+`;
+
+exports[`golden vectors — human design > bodygraph is stable (timed, placed) 1`] = `
+{
+  "authority": undefined,
+  "channels": undefined,
+  "definedCenters": undefined,
+  "definition": undefined,
+  "profile": undefined,
+  "type": undefined,
+}
+`;
