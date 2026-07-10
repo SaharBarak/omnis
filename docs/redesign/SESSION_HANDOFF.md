@@ -351,3 +351,21 @@ flow assertions (same scripts as local; scratchpad/authed-flows.mjs pattern).
 - Scratchpad (gone on session clear): raw PNGs of all generated assets +
   railway screenshot corpus + playwright shoot scripts. Repo webps are the
   durable copies; regenerate scripts trivially if needed.
+
+## Mobile app build (2026-07-10, autonomous loop)
+
+Spec set at `specs/mobile/` (7 docs — read README.md first). Build underway
+on this branch:
+
+- **Committed:** AUTH-M1 bearer-JWT API auth (additive, fails closed w/o
+  AUTH0_API_AUDIENCE) · API-M3 birth_place PATCH fix · engine extracted to
+  `packages/engine` (63 files, pure TS, shared web+mobile) ·
+  `packages/api-client` (34 typed methods) · PUSH-M1 backend
+  (device_push_tokens + Expo fan-out in digest cron) · Expo SDK 57 scaffold
+  at `packages/mobile` (5-tab shell, locked tokens, on-device kin on Today).
+  Suite: 995 tests, typecheck clean, root @types/react now v19 (types-only).
+- **Blocked on user:** Auth0 Native app + API audience (task list #9),
+  prod db:migrate + deploy + AUTH0_API_AUDIENCE secret (#10) — permission
+  classifier stops agent-run prod mutations.
+- **Gotcha:** don't add `"react"` to packages/mobile tsconfig paths — expo
+  Metro reads tsconfig paths and will try to bundle @types/react.
