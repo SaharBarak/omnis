@@ -36,6 +36,13 @@ vi.mock('@/lib/db/repositories/subscriptions-repo', () => ({
   upsertSubscriptionByUserId: mocks.upsertByUserId,
 }))
 
+// IP allowlisting is a separate defense-in-depth layer with its own tests in
+// src/lib/security/paddle-ips; these cases exercise signature/secret/sync
+// semantics, so treat the source IP as allowed.
+vi.mock('@/lib/security/paddle-ips', () => ({
+  isAllowedPaddleIp: async () => true,
+}))
+
 function webhookRequest(body: Record<string, unknown> = {}) {
   return new Request('https://example.com/api/billing/webhook', {
     method: 'POST',
