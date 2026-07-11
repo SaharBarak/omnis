@@ -38,7 +38,7 @@ run. Written 2026-07-10 after M0–M3 landed. Companion: VERIFICATION.md
    fill `EXPO_PUBLIC_AUTH0_DOMAIN=dev-kaipd4klyg48p0ai.us.auth0.com`,
    `EXPO_PUBLIC_AUTH0_CLIENT_ID=<native app client id>`,
    `EXPO_PUBLIC_AUTH0_AUDIENCE=https://api.pleiad.app`,
-   `EXPO_PUBLIC_API_URL=https://omnisx.sahar-h-barak.workers.dev`.
+   `EXPO_PUBLIC_API_URL=https://pleiad.io`.
 
 ## 2. Local run (Expo Go)
 

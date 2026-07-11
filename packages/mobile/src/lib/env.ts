@@ -3,7 +3,7 @@
  * vars (inlined by Metro at bundle time). Documented in .env.example.
  */
 
-const DEFAULT_API_URL = 'https://omnisx.sahar-h-barak.workers.dev'
+const DEFAULT_API_URL = 'https://pleiad.io'
 
 export const ENV = {
   /** Auth0 tenant domain, e.g. pleiad.eu.auth0.com (no scheme). */

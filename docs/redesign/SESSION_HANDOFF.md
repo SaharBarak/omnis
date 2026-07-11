@@ -431,3 +431,21 @@ runs prod Supabase + real Auth0). Results:
 
 Still pending (user-gated): Auth0 native app + audience secret + prod
 deploy + on-device mobile run (no Xcode/Android SDK on this machine).
+
+### Prod deploy + LIVE production E2E (2026-07-11, user-ordered push)
+
+- **DEPLOYED** (version 8cafbe25…): AUTH-M1 bearer path, PUSH-M1 routes,
+  API-M3 fix, GATE board cell — live on pleiad.io + workers.dev alias.
+  Deploy gotcha: opennext patch-vercel-og ENOENT → fix is
+  `rm -rf .next .open-next` first (stale build tree after workspace
+  installs).
+- **Full E2E re-run against PRODUCTION pleiad.io**: real Auth0 login,
+  dashboard, people create → prod rows, computed kin 122 = golden,
+  API-M3 birth_place roundtrip, profile/settings, share create + public
+  viewer, no data leakage. Test artifacts cleaned after.
+- **Found**: login initiated on the workers.dev alias breaks (state
+  cookie on workers.dev, callback forced to pleiad.io by APP_BASE_URL) —
+  alias is dead for login, fine for API. Mobile default API URL switched
+  to pleiad.io.
+- Auth0 dashboard unreachable for agent (no mgmt-API grant, no CLI, no
+  browser session — Chrome extension disconnected, Aside logged out).
