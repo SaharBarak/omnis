@@ -85,6 +85,15 @@ tree: the web session (this CURRENT STATE section) and the mobile session
   /app/graph, five-system pairwise scores server-computed + cached in
   computed_results, self pinned, violet resonance ramp, breakdown sheet.
   (Builder agent stalled on the route test only — small debt.)
+- **Composite Bodygraph + Penta** (`94f9864`) — MAPS_ROADMAP #2 DONE (not
+  yet deployed). Pair mode inside the matrix breakdown sheet: two charts
+  overlaid, channels classified electromagnetic/companionship/dominance/
+  compromise (engine services/composite-bodygraph.ts, cross-verified vs
+  hd-compatibility), per-person gate dots, emergent centers ringed violet.
+  Group mode: Penta tab on group analysis (3+ charted members) showing
+  group-only definition + contributor gates. SVG anatomy extracted to
+  components/human-design/bodygraph-layout.ts (shared by all 3 views).
+  Suite 1077.
 
 ### Open — USER-GATED (task board #s)
 1. **#25 Paddle production go-live**: KYB (user was mid-flow in Aside);
@@ -100,8 +109,8 @@ tree: the web session (this CURRENT STATE section) and the mobile session
    do NOT change it; dedicated tenant is the real fix.
 
 ### Open — BUILDABLE (no gates)
-- **Composite Bodygraph / Penta** — MAPS_ROADMAP #2, next build item.
-  Then Circle Calendar (#3, absorbs moon map), Tzolkin Galaxy (#4).
+- **Circle Calendar** — MAPS_ROADMAP #3 (absorbs moon map), next build
+  item. Then Tzolkin Galaxy (#4). (#2 Composite/Penta shipped `94f9864`.)
 - Matrix route test; homepage pricing teaser still 3 plans; #23 shadcn
   dashboard polish; Supabase Sydney latency (migrate while DB small).
 
