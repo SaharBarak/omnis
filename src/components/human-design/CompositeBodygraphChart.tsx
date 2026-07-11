@@ -12,10 +12,11 @@ import {
   CENTER_COLORS,
   CENTER_GLOW,
   CENTER_POSITIONS,
+  CHANNEL_PATHS,
   VIEW_HEIGHT,
   VIEW_WIDTH,
   getCenterPath,
-  lerp,
+  pointsToPath,
 } from './bodygraph-layout'
 
 /**
@@ -168,27 +169,27 @@ export function CompositeBodygraphChart({
 
         <rect width={VIEW_WIDTH} height={VIEW_HEIGHT} fill="url(#composite-bg)" rx="12" />
 
-        {/* Channels — open first so defined layers paint on top */}
+        {/* Channels — every channel on its own lane; thin states first so the
+            defined layers paint on top */}
         {[...composite.channels]
           .sort((a, b) => CHANNEL_STYLES[a.state].strokeWidth - CHANNEL_STYLES[b.state].strokeWidth)
           .map((pc) => {
-            const [c1Id, c2Id] = pc.channel.centers
-            const c1 = CENTER_POSITIONS[c1Id]
-            const c2 = CENTER_POSITIONS[c2Id]
+            const points = CHANNEL_PATHS[pc.channel.id]
+            if (!points) return null
             const style = CHANNEL_STYLES[pc.state]
             const interactive = pc.state !== 'open'
 
             return (
-              <line
+              <path
                 key={pc.channel.id}
-                x1={c1.x}
-                y1={c1.y}
-                x2={c2.x}
-                y2={c2.y}
+                data-channel={pc.channel.id}
+                d={pointsToPath(points)}
+                fill="none"
                 stroke={style.stroke}
                 strokeWidth={style.strokeWidth}
                 strokeDasharray={style.dash}
                 strokeLinecap="round"
+                strokeLinejoin="round"
                 opacity={style.opacity}
                 filter={style.glow ? 'url(#composite-glow)' : undefined}
                 style={{ cursor: interactive ? 'pointer' : 'default' }}
@@ -204,19 +205,18 @@ export function CompositeBodygraphChart({
             ['electromagnetic', 'dominance-a', 'dominance-b', 'compromise'].includes(pc.state)
           )
           .flatMap((pc) => {
-            const [c1Id, c2Id] = pc.channel.centers
-            const c1 = CENTER_POSITIONS[c1Id]
-            const c2 = CENTER_POSITIONS[c2Id]
+            const points = CHANNEL_PATHS[pc.channel.id]
+            if (!points) return []
             const [g0] = pc.channel.gates
             const markers: React.ReactNode[] = []
             const mark = (gate: number, color: string, key: string) => {
-              // Gate g0 lives at the c1 end, g1 at the c2 end.
-              const pos = gate === g0 ? lerp(c1, c2, 0.22) : lerp(c2, c1, 0.22)
+              // Gate g0 lives at the first path point, g1 at the last.
+              const pos = gate === g0 ? points[0] : points[points.length - 1]
               markers.push(
                 <circle
                   key={key}
-                  cx={pos.x}
-                  cy={pos.y}
+                  cx={pos[0]}
+                  cy={pos[1]}
                   r={4}
                   fill={color}
                   stroke="#0d0d1a"
@@ -250,23 +250,11 @@ export function CompositeBodygraphChart({
               )}
               <path
                 d={path}
-                fill={isDefined ? color : 'transparent'}
-                stroke={isEmergent ? ELECTROMAGNETIC_COLOR : isDefined ? color : '#555'}
-                strokeWidth={isEmergent ? 3 : isDefined ? 1.5 : 1}
+                fill={isDefined ? color : '#181828'}
+                stroke={isEmergent ? ELECTROMAGNETIC_COLOR : isDefined ? color : '#8A8AA0'}
+                strokeWidth={isEmergent ? 3 : isDefined ? 1.5 : 1.2}
                 strokeDasharray={isDefined ? undefined : '3,3'}
-                opacity={isDefined ? 1 : 0.5}
               />
-              <text
-                x={pos.x}
-                y={pos.y + 3}
-                textAnchor="middle"
-                fontSize="8"
-                fontWeight="600"
-                fill={isDefined ? '#0d0d1a' : '#888'}
-                style={{ pointerEvents: 'none' }}
-              >
-                {CENTER_LABELS[centerId]}
-              </text>
             </g>
           )
         })}

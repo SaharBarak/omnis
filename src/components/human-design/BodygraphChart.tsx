@@ -12,12 +12,14 @@ import {
   CENTER_COLORS,
   CENTER_GLOW,
   CENTER_POSITIONS,
+  CHANNEL_PATHS,
+  GATE_LABELS,
   VIEW_HEIGHT,
   VIEW_WIDTH,
   getCenterPath,
-  lerp,
+  pointsToPath,
+  splitPolyline,
 } from './bodygraph-layout'
-// Gate data available via CHANNELS
 
 // =============================================================================
 // TYPES
@@ -36,46 +38,34 @@ interface TooltipState {
   content: string[]
 }
 
-// =============================================================================
-// CHANNEL ACTIVATION ANALYSIS
-// =============================================================================
+// Classic chart convention adapted to the dark ground: design (unconscious)
+// is red, personality (conscious) is light, both is the striped pattern.
+const DESIGN_COLOR = '#D44C3C'
+const PERSONALITY_COLOR = '#E8E8E8'
+const BOTH_COLOR = '#F5C542'
 
-type ChannelActivationType = 'design' | 'personality' | 'both' | 'none'
+type GateActivation = 'design' | 'personality' | 'both' | 'none'
 
-function getChannelActivationTypes(
-  bodygraph: Bodygraph
-): Map<string, ChannelActivationType> {
-  const personalityGates = new Set(bodygraph.activations.personality.map(a => a.gate))
-  const designGates = new Set(bodygraph.activations.design.map(a => a.gate))
+function gateActivation(
+  gate: number,
+  personalityGates: ReadonlySet<number>,
+  designGates: ReadonlySet<number>
+): GateActivation {
+  const p = personalityGates.has(gate)
+  const d = designGates.has(gate)
+  if (p && d) return 'both'
+  if (p) return 'personality'
+  if (d) return 'design'
+  return 'none'
+}
 
-  const result = new Map<string, ChannelActivationType>()
-
-  for (const channel of bodygraph.channels) {
-    const [g1, g2] = channel.gates
-    const g1p = personalityGates.has(g1)
-    const g1d = designGates.has(g1)
-    const g2p = personalityGates.has(g2)
-    const g2d = designGates.has(g2)
-
-    const hasPersonality = (g1p && g2p)
-    const hasDesign = (g1d && g2d)
-    // If both gates activated by personality only → personality
-    // If both gates activated by design only → design
-    // If mix → both
-    if (hasPersonality && hasDesign) {
-      result.set(channel.id, 'both')
-    } else if (g1p || g2p) {
-      if (g1d || g2d) {
-        result.set(channel.id, 'both')
-      } else {
-        result.set(channel.id, 'personality')
-      }
-    } else {
-      result.set(channel.id, 'design')
-    }
+function halfStroke(activation: GateActivation): string | null {
+  switch (activation) {
+    case 'design': return DESIGN_COLOR
+    case 'personality': return PERSONALITY_COLOR
+    case 'both': return 'url(#stripe-both)'
+    case 'none': return null
   }
-
-  return result
 }
 
 // =============================================================================
@@ -90,18 +80,8 @@ export function BodygraphChart({
 }: BodygraphChartProps) {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
 
-  const channelActivations = useMemo(
-    () => getChannelActivationTypes(bodygraph),
-    [bodygraph]
-  )
-
   const definedChannelIds = useMemo(
     () => new Set(bodygraph.channels.map(c => c.id)),
-    [bodygraph]
-  )
-
-  const allGates = useMemo(
-    () => new Set(bodygraph.gates),
     [bodygraph]
   )
 
@@ -114,39 +94,6 @@ export function BodygraphChart({
     () => new Set(bodygraph.activations.design.map(a => a.gate)),
     [bodygraph]
   )
-
-  // Build gate-to-position map for displaying gate numbers
-  const gatePositions = useMemo(() => {
-    const positions: { gate: number; x: number; y: number; channelId: string }[] = []
-    const placedGates = new Set<string>() // "gate-channelId" to avoid duplicates
-
-    for (const channel of CHANNELS) {
-      const [g1, g2] = channel.gates
-      const [c1Id, c2Id] = channel.centers
-      const c1 = CENTER_POSITIONS[c1Id]
-      const c2 = CENTER_POSITIONS[c2Id]
-
-      // Only show gates that are activated
-      if (allGates.has(g1)) {
-        const key = `${g1}-${channel.id}`
-        if (!placedGates.has(key)) {
-          placedGates.add(key)
-          const pos = lerp(c1, c2, 0.15)
-          positions.push({ gate: g1, ...pos, channelId: channel.id })
-        }
-      }
-      if (allGates.has(g2)) {
-        const key = `${g2}-${channel.id}`
-        if (!placedGates.has(key)) {
-          placedGates.add(key)
-          const pos = lerp(c2, c1, 0.15)
-          positions.push({ gate: g2, ...pos, channelId: channel.id })
-        }
-      }
-    }
-
-    return positions
-  }, [allGates])
 
   const handleCenterHover = (centerId: CenterId, event: React.MouseEvent<SVGElement>) => {
     const state = bodygraph.centers[centerId]
@@ -165,17 +112,21 @@ export function BodygraphChart({
   }
 
   const handleChannelHover = (channel: Channel, event: React.MouseEvent<SVGElement>) => {
-    const activation = channelActivations.get(channel.id) || 'none'
-    const labels: Record<ChannelActivationType, string> = {
-      design: '🔴 Design (Unconscious)',
-      personality: '⚫ Personality (Conscious)',
-      both: '🔴⚫ Both',
-      none: '',
+    const [g0, g1] = channel.gates
+    const a0 = gateActivation(g0, personalityGates, designGates)
+    const a1 = gateActivation(g1, personalityGates, designGates)
+    const describe = (gate: number, a: GateActivation) => {
+      switch (a) {
+        case 'both': return `${gate}: both`
+        case 'personality': return `${gate}: personality`
+        case 'design': return `${gate}: design`
+        case 'none': return `${gate}: open`
+      }
     }
     const content = [
       `${channel.name} (${channel.id})`,
-      `${channel.nameHebrew}`,
-      labels[activation],
+      definedChannelIds.has(channel.id) ? '● Defined channel' : '◐ Hanging gate',
+      `${describe(g0, a0)} · ${describe(g1, a1)}`,
       `Circuit: ${channel.circuitry}`,
     ]
     const svg = event.currentTarget.closest('svg')
@@ -206,10 +157,10 @@ export function BodygraphChart({
           </feMerge>
         </filter>
 
-        {/* Striped pattern for "both" channels */}
+        {/* Striped pattern for gates activated by both personality and design */}
         <pattern id="stripe-both" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
-          <rect width="3" height="6" fill="#1a1a2e" />
-          <rect x="3" width="3" height="6" fill="#D44C3C" />
+          <rect width="3" height="6" fill={PERSONALITY_COLOR} />
+          <rect x="3" width="3" height="6" fill={DESIGN_COLOR} />
         </pattern>
 
         {/* Background gradient */}
@@ -235,50 +186,61 @@ export function BodygraphChart({
       ))}
 
       {/* === CHANNELS === */}
-      {/* Draw all 36 channels as faint lines, highlight defined ones */}
+      {/* Every channel gets its own lane; each half colors by its gate's
+          activation, so hanging gates read as half-filled channels. */}
       {CHANNELS.map((channel) => {
-        const [c1Id, c2Id] = channel.centers
-        const c1 = CENTER_POSITIONS[c1Id]
-        const c2 = CENTER_POSITIONS[c2Id]
+        const points = CHANNEL_PATHS[channel.id]
+        if (!points) return null
+        const [g0, g1] = channel.gates
+        const a0 = gateActivation(g0, personalityGates, designGates)
+        const a1 = gateActivation(g1, personalityGates, designGates)
+        const [half0, half1] = splitPolyline(points)
+        const stroke0 = halfStroke(a0)
+        const stroke1 = halfStroke(a1)
         const isDefined = definedChannelIds.has(channel.id)
-        const activation = channelActivations.get(channel.id)
-
-        let stroke = '#ffffff08'
-        let strokeWidth = 1
-
-        if (isDefined) {
-          strokeWidth = 3
-          switch (activation) {
-            case 'design':
-              stroke = '#D44C3C'
-              break
-            case 'personality':
-              stroke = '#e8e8e8'
-              break
-            case 'both':
-              stroke = 'url(#stripe-both)'
-              strokeWidth = 4
-              break
-            default:
-              stroke = '#D4813B'
-          }
-        }
+        const hasActivation = stroke0 !== null || stroke1 !== null
 
         return (
-          <line
+          <g
             key={channel.id}
-            x1={c1.x}
-            y1={c1.y}
-            x2={c2.x}
-            y2={c2.y}
-            stroke={stroke}
-            strokeWidth={strokeWidth}
-            strokeLinecap="round"
-            opacity={isDefined ? 0.9 : 0.15}
-            style={{ cursor: isDefined ? 'pointer' : 'default' }}
-            onMouseEnter={isDefined ? (e) => handleChannelHover(channel, e) : undefined}
+            data-channel={channel.id}
+            style={{ cursor: hasActivation ? 'pointer' : 'default' }}
+            onMouseEnter={hasActivation ? (e) => handleChannelHover(channel, e) : undefined}
             onMouseLeave={() => setTooltip(null)}
-          />
+          >
+            {/* Base lane (always visible, faint) */}
+            <path
+              d={pointsToPath(points)}
+              fill="none"
+              stroke="#ffffff"
+              strokeOpacity={0.05}
+              strokeWidth={5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {stroke0 && (
+              <path
+                d={pointsToPath(half0)}
+                fill="none"
+                stroke={stroke0}
+                strokeWidth={4.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={isDefined ? 1 : 0.85}
+              />
+            )}
+            {stroke1 && (
+              <path
+                d={pointsToPath(half1)}
+                fill="none"
+                stroke={stroke1}
+                strokeWidth={4.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={isDefined ? 1 : 0.85}
+              />
+            )}
+          </g>
         )
       })}
 
@@ -305,52 +267,44 @@ export function BodygraphChart({
                 filter="url(#glow)"
               />
             )}
-            {/* Center shape */}
+            {/* Center shape — names live in the hover tooltip, matching the
+                canonical unlabeled bodygraph so gate numbers stay legible */}
             <path
               d={path}
-              fill={isDefined ? color : 'transparent'}
-              stroke={isDefined ? color : '#555'}
-              strokeWidth={isDefined ? 1.5 : 1}
+              fill={isDefined ? color : '#181828'}
+              stroke={isDefined ? color : '#8A8AA0'}
+              strokeWidth={isDefined ? 1.5 : 1.2}
               strokeDasharray={isDefined ? undefined : '3,3'}
-              opacity={isDefined ? 1 : 0.5}
             />
-            {/* Center label */}
-            <text
-              x={pos.x}
-              y={pos.y + 3}
-              textAnchor="middle"
-              fontSize="8"
-              fontWeight="600"
-              fill={isDefined ? '#0d0d1a' : '#888'}
-              style={{ pointerEvents: 'none' }}
-            >
-              {CENTER_LABELS[centerId]}
-            </text>
           </g>
         )
       })}
 
       {/* === GATE NUMBERS === */}
-      {gatePositions.map(({ gate, x, y, channelId }) => {
-        const isPersonality = personalityGates.has(gate)
-        const isDesign = designGates.has(gate)
-        const color = isPersonality && isDesign
-          ? '#F5C542'
-          : isPersonality
-            ? '#e8e8e8'
-            : '#D44C3C'
+      {/* All 64 gates at their channel mouths; activated gates highlighted. */}
+      {Object.entries(GATE_LABELS).map(([gateStr, [x, y]]) => {
+        const gate = Number(gateStr)
+        const activation = gateActivation(gate, personalityGates, designGates)
+        const color =
+          activation === 'both'
+            ? BOTH_COLOR
+            : activation === 'personality'
+              ? PERSONALITY_COLOR
+              : activation === 'design'
+                ? DESIGN_COLOR
+                : '#666'
 
         return (
           <text
-            key={`gate-${gate}-${channelId}`}
+            key={`gate-${gate}`}
             x={x}
             y={y}
             textAnchor="middle"
             dominantBaseline="central"
-            fontSize="7"
-            fontWeight="bold"
+            fontSize="6.5"
+            fontWeight={activation === 'none' ? 'normal' : 'bold'}
             fill={color}
-            opacity={0.85}
+            opacity={activation === 'none' ? 0.55 : 1}
             style={{ pointerEvents: 'none' }}
           >
             {gate}
@@ -362,9 +316,9 @@ export function BodygraphChart({
       {tooltip && (
         <g style={{ pointerEvents: 'none' }}>
           <rect
-            x={tooltip.x - 70}
+            x={Math.min(Math.max(tooltip.x - 75, 4), VIEW_WIDTH - 154)}
             y={tooltip.y - tooltip.content.length * 14 - 8}
-            width={140}
+            width={150}
             height={tooltip.content.length * 14 + 12}
             rx={6}
             fill="#1a1a2eee"
@@ -374,7 +328,7 @@ export function BodygraphChart({
           {tooltip.content.map((line, i) => (
             <text
               key={i}
-              x={tooltip.x}
+              x={Math.min(Math.max(tooltip.x, 79), VIEW_WIDTH - 79)}
               y={tooltip.y - (tooltip.content.length - i - 1) * 14 - 8}
               textAnchor="middle"
               fontSize="9"

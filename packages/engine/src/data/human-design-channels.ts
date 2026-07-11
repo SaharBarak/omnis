@@ -289,13 +289,16 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     keywords: Object.freeze(['friendship', 'will', 'bargain']),
   },
   {
-    id: '6-59',
-    name: 'Mating',
-    nameHebrew: 'הזדווגות',
-    gates: Object.freeze([6, 59] as [number, number]),
-    centers: Object.freeze(['solar', 'sacral'] as [CenterId, CenterId]),
-    circuitry: 'tribal',
-    keywords: Object.freeze(['reproduction', 'intimacy', 'fertility']),
+    // Was a duplicate of 59-6 ('Mating'); the canonical 36th channel 34-57
+    // (Power, sacral-spleen) was missing — charts with gates 34+57 got no
+    // channel, which corrupted definition/type/authority for those people.
+    id: '34-57',
+    name: 'Power',
+    nameHebrew: 'כוח',
+    gates: Object.freeze([34, 57] as [number, number]),
+    centers: Object.freeze(['sacral', 'spleen'] as [CenterId, CenterId]),
+    circuitry: 'integration',
+    keywords: Object.freeze(['archetype', 'instinctive power', 'survival']),
   },
   {
     id: '49-19',

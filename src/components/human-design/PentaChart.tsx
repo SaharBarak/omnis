@@ -11,9 +11,11 @@ import {
   CENTER_COLORS,
   CENTER_GLOW,
   CENTER_POSITIONS,
+  CHANNEL_PATHS,
   VIEW_HEIGHT,
   VIEW_WIDTH,
   getCenterPath,
+  pointsToPath,
 } from './bodygraph-layout'
 
 /**
@@ -126,9 +128,8 @@ export function PentaChart({ members, width, height, className = '' }: PentaChar
             return order[a.state] - order[b.state]
           })
           .map((pc) => {
-            const [c1Id, c2Id] = pc.channel.centers
-            const c1 = CENTER_POSITIONS[c1Id]
-            const c2 = CENTER_POSITIONS[c2Id]
+            const points = CHANNEL_PATHS[pc.channel.id]
+            if (!points) return null
             const interactive = pc.state !== 'open'
 
             let stroke = '#ffffff08'
@@ -158,16 +159,16 @@ export function PentaChart({ members, width, height, className = '' }: PentaChar
             }
 
             return (
-              <line
+              <path
                 key={pc.channel.id}
-                x1={c1.x}
-                y1={c1.y}
-                x2={c2.x}
-                y2={c2.y}
+                data-channel={pc.channel.id}
+                d={pointsToPath(points)}
+                fill="none"
                 stroke={stroke}
                 strokeWidth={strokeWidth}
                 strokeDasharray={dash}
                 strokeLinecap="round"
+                strokeLinejoin="round"
                 opacity={opacity}
                 filter={glow ? 'url(#penta-glow)' : undefined}
                 style={{ cursor: interactive ? 'pointer' : 'default' }}
@@ -197,23 +198,11 @@ export function PentaChart({ members, width, height, className = '' }: PentaChar
               )}
               <path
                 d={path}
-                fill={isDefined ? color : 'transparent'}
-                stroke={isEmergent ? EMERGENT_COLOR : isDefined ? color : '#555'}
-                strokeWidth={isEmergent ? 3 : isDefined ? 1.5 : 1}
+                fill={isDefined ? color : '#181828'}
+                stroke={isEmergent ? EMERGENT_COLOR : isDefined ? color : '#8A8AA0'}
+                strokeWidth={isEmergent ? 3 : isDefined ? 1.5 : 1.2}
                 strokeDasharray={isDefined ? undefined : '3,3'}
-                opacity={isDefined ? 1 : 0.5}
               />
-              <text
-                x={pos.x}
-                y={pos.y + 3}
-                textAnchor="middle"
-                fontSize="8"
-                fontWeight="600"
-                fill={isDefined ? '#0d0d1a' : '#888'}
-                style={{ pointerEvents: 'none' }}
-              >
-                {CENTER_LABELS[centerId]}
-              </text>
             </g>
           )
         })}

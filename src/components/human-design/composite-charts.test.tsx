@@ -13,6 +13,7 @@ import { buildCompositePair, buildPenta } from '@pleiad/engine/services/composit
 import type { Bodygraph } from '@pleiad/engine/types/human-design'
 import { CompositeBodygraphChart } from './CompositeBodygraphChart'
 import { PentaChart } from './PentaChart'
+import { CHANNEL_PATHS, GATE_LABELS, splitPolyline } from './bodygraph-layout'
 
 function chart(birthDate: string, birthTime: string, lat: number, lng: number): Bodygraph {
   const result = calculateBodygraph({ birthDate, birthTime, latitude: lat, longitude: lng })
@@ -32,7 +33,7 @@ describe('CompositeBodygraphChart', () => {
         personB={{ name: 'Ben', bodygraph: B }}
       />
     )
-    expect(container.querySelectorAll('svg line')).toHaveLength(CHANNELS.length)
+    expect(container.querySelectorAll('svg [data-channel]')).toHaveLength(CHANNELS.length)
     expect(screen.getByText('Ada')).toBeInTheDocument()
     expect(screen.getByText('Ben')).toBeInTheDocument()
     expect(screen.getByText('Electromagnetic')).toBeInTheDocument()
@@ -50,7 +51,7 @@ describe('CompositeBodygraphChart', () => {
         personB={{ name: 'Ben', bodygraph: B }}
       />
     )
-    const violet = [...container.querySelectorAll('svg line')].filter(
+    const violet = [...container.querySelectorAll('svg [data-channel]')].filter(
       (l) => l.getAttribute('stroke') === '#A78FDF'
     )
     expect(violet).toHaveLength(emCount)
@@ -91,7 +92,7 @@ describe('PentaChart', () => {
         ]}
       />
     )
-    expect(container.querySelectorAll('svg line')).toHaveLength(CHANNELS.length)
+    expect(container.querySelectorAll('svg [data-channel]')).toHaveLength(CHANNELS.length)
     expect(screen.getByText('Group-only definition')).toBeInTheDocument()
     expect(screen.getByRole('img', { name: /group bodygraph of 3 members/i })).toBeInTheDocument()
   })
@@ -107,9 +108,33 @@ describe('PentaChart', () => {
         ]}
       />
     )
-    const violet = [...container.querySelectorAll('svg line')].filter(
+    const violet = [...container.querySelectorAll('svg [data-channel]')].filter(
       (l) => l.getAttribute('stroke') === '#A78FDF'
     )
     expect(violet).toHaveLength(penta.counts.emergent)
+  })
+})
+
+describe('bodygraph-layout', () => {
+  it('has a lane for every one of the 36 channels', () => {
+    for (const channel of CHANNELS) {
+      expect(CHANNEL_PATHS[channel.id], channel.id).toBeDefined()
+      expect(CHANNEL_PATHS[channel.id].length).toBeGreaterThanOrEqual(2)
+    }
+    expect(Object.keys(CHANNEL_PATHS)).toHaveLength(CHANNELS.length)
+  })
+
+  it('labels all 64 gates', () => {
+    expect(Object.keys(GATE_LABELS)).toHaveLength(64)
+  })
+
+  it('splitPolyline halves meet at the midpoint and preserve endpoints', () => {
+    for (const channel of CHANNELS) {
+      const points = CHANNEL_PATHS[channel.id]
+      const [h0, h1] = splitPolyline(points)
+      expect(h0[0]).toEqual(points[0])
+      expect(h1[h1.length - 1]).toEqual(points[points.length - 1])
+      expect(h0[h0.length - 1]).toEqual(h1[0])
+    }
   })
 })
