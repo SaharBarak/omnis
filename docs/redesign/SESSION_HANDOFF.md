@@ -3,13 +3,54 @@
 Continue point for the Pleiad knowledge-experience redesign. Read this +
 MAIN_PURPOSE.md first; everything else on demand.
 
+## MOBILE SESSION — RESUME HERE (2026-07-11)
+
+**The React Native app is BUILT (M0–M3) and its backend is LIVE + proven
+end-to-end against production.** Full details in the dated sections lower
+down; this is the fast resume.
+
+**Where it lives:** `packages/mobile` (Expo SDK 57, `@pleiad/mobile`),
+sharing `packages/engine` + `packages/api-client` with web. Specs in
+`specs/mobile/` (README first, then RUNBOOK.md).
+
+**Proven live** (deployed worker, real Auth0, prod Supabase): PKCE login →
+audience-scoped token → `/api/people` 200 + `/api/notifications/devices`
+201. Auth0 fully configured (API `https://api.pleiad.app`, Native app
+`Pleiad Mobile` cid `PcBpDL7E8HUkNwWG4j0w2E93M3J3q1FZ`, callback/logout
+URLs, connections, user-delegated API-access grant). `AUTH0_API_AUDIENCE`
+secret set; `device_push_tokens` migrated; `packages/mobile/.env` holds
+real creds (gitignored). Suite 1049 green, typecheck clean.
+
+**THE ONE THING LEFT — needs a phone / device SDK (absent on the build
+machine):**
+1. `cd packages/mobile && npx expo start` → open in Expo Go → sign in →
+   walk flows F1–F12 (specs/mobile/USER_FLOWS.md). Everything it calls is
+   live and verified; this is on-device visual/UX confirmation only.
+2. `eas init` (sets the projectId push registration needs) → EAS build →
+   TestFlight / Play internal. This is the M4 store track — not started.
+3. Deferred by design (spec'd, not built): boards editing, PDF cards,
+   native IAP (RevenueCat), offline write queue, he/RTL.
+Verification scripts to re-run anytime:
+`scratchpad/verify/pkce-prod.mjs` (bearer+push proof — regenerate if the
+scratchpad was cleared; pattern in git history + RUNBOOK §3–5).
+
+Aside/tooling gotchas learned this session: Auth0 callback/logout fields
+are tag-inputs (comma strings become ONE malformed chip — enter each URL
+then dispatch Enter keydown/keypress/keyup); Aside `t.fill` marks
+redux-form dirty (native value setter alone does not); one browser
+session per `aside repl`; screenshots return a Buffer (pipe base64
+through Bash, `fs` unavailable in the sandbox); Aside browser can die —
+`open -a Aside` + ~15s to revive.
+
+---
+
 ## CURRENT STATE (2026-07-11) — read this section first
 
 **Product: Pleiad · live at https://pleiad.io (+www; omnisx.workers.dev
-kept as alias — Auth0 works on BOTH).** Health: typecheck ✓ · 1041 web
-tests ✓ (mobile lint errors belong to the mobile session) · deployed +
-live-verified. TWO parallel sessions share this tree: this one (web) and
-a mobile session (packages/mobile — never touch, commits like 167dd36).
+kept as alias — Auth0 works on BOTH).** Health: typecheck ✓ · 1049 web
+tests ✓ · deployed + live-verified. TWO parallel sessions share this
+tree: the web session (this CURRENT STATE section) and the mobile session
+(packages/mobile — see MOBILE SESSION block above).
 
 ### Shipped by this session since the 07-05 sections below
 - **Self on map** (`0bdd933`, `adc3949`) — onboarding upserts an is_self
