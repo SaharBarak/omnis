@@ -94,6 +94,13 @@ tree: the web session (this CURRENT STATE section) and the mobile session
   group-only definition + contributor gates. SVG anatomy extracted to
   components/human-design/bodygraph-layout.ts (shared by all 3 views).
   Suite 1077.
+- **Bodygraph fixed** (`097cf84`) — TWO real bugs: (1) engine CHANNELS data
+  had 6-59 twice and NO 34-57 (Power) — wrong type/authority for anyone
+  with gates 34+57; (2) chart drew all 36 channels as overlapping
+  center-to-center lines. Now canonical: per-channel lanes (verified vs
+  reference charts via Aside), midpoint gate-halves (hanging gates render),
+  64 gate labels, integration bundle routed left of G, center names →
+  tooltips. Visual-verified via SSR preview + Aside screenshots. Suite 1080.
 
 ### Open — USER-GATED (task board #s)
 1. **#25 Paddle production go-live**: KYB (user was mid-flow in Aside);
