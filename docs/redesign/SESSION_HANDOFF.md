@@ -1,7 +1,78 @@
-# Session Handoff — Redesign (2026-07-05)
+# Session Handoff — Redesign (updated 2026-07-11)
 
 Continue point for the Pleiad knowledge-experience redesign. Read this +
 MAIN_PURPOSE.md first; everything else on demand.
+
+## CURRENT STATE (2026-07-11) — read this section first
+
+**Product: Pleiad · live at https://pleiad.io (+www; omnisx.workers.dev
+kept as alias — Auth0 works on BOTH).** Health: typecheck ✓ · 1041 web
+tests ✓ (mobile lint errors belong to the mobile session) · deployed +
+live-verified. TWO parallel sessions share this tree: this one (web) and
+a mobile session (packages/mobile — never touch, commits like 167dd36).
+
+### Shipped by this session since the 07-05 sections below
+- **Self on map** (`0bdd933`, `adc3949`) — onboarding upserts an is_self
+  person (cap-exempt, server-minted); You badge; graph render fixed
+  (initials discs, seal rings, brand halo '· You', zoom clamp 3.2 +
+  spread forces — was invisible gray-800 labels + giant discs).
+- **Moon Map** (`/app/moon`) — lunation from Sun–Moon elongation via the
+  astrology ephemeris (src/lib/calculations/moon.ts, eclipse-anchored
+  tests); natal-phase buckets; MoonGlyph SVG (elliptical terminator).
+- **Brand** — mark = **the Asterism** (core + kin nodes + map lines;
+  src/components/brand-mark.tsx, mono variant for sidebar tile). Icon
+  set + OGs regenerated via Chromium rasterize (ImageMagick DROPS SVG
+  strokes — never use it for this). Login reskinned dark. NOTE: app-dir
+  src/app/favicon.ico overrides public/ — update BOTH.
+- **Reel-wave** (`a4f619b`..`7000164`) — 6-step get-to-value checklist
+  (2nd session later moved persistence localStorage→profiles.preferences);
+  Paddle webhook re-fetch-as-truth + timing-safe sig + stale re-sync;
+  Founding Lifetime $79 one-time (sticky, never downgraded by sync);
+  PostHog scaffold env-gated (6 funnel events, identify/reset).
+- **Marketing playbooks** — docs/marketing/playbooks/ (16 vendored from
+  coreyhaines31/marketingskills, MIT) + docs/NEXT_STEPS.md ledger.
+- **pleiad.io cutover** (`13485ed`+) — custom domains via wrangler
+  routes (`workers_dev: true` REQUIRED or the alias 404s); all omnis.app
+  refs swapped; Paddle webhook + cron + secrets repointed; Paddle
+  products renamed "Pleiad *". 2nd session: Auth0 whitelisted pleiad.io,
+  Search Console verified, email DNS live, /refund page, .prod.vars +
+  scripts/set-prod-secrets.sh runbook.
+- **Turnstile hardened** — per-request env read (module-scope capture
+  saw an empty secret forever on Workers — real bug), fail-closed
+  verifier, 9 tests. Widget on the newsletter form.
+- **Resonance Matrix LIVE** — MAPS_ROADMAP #1: Map ↔ Matrix toggle on
+  /app/graph, five-system pairwise scores server-computed + cached in
+  computed_results, self pinned, violet resonance ramp, breakdown sheet.
+  (Builder agent stalled on the route test only — small debt.)
+
+### Open — USER-GATED (task board #s)
+1. **#25 Paddle production go-live**: KYB (user was mid-flow in Aside);
+   then live products/prices + live PADDLE_* + client token → .prod.vars;
+   sandbox checkout E2E separately needs the sandbox "Default Payment
+   Link" dashboard setting (scratchpad e2e-checkout.mjs is ready).
+2. **#14/#18 held secrets**: RESEND_API_KEY (email DNS live, domain
+   verifying), TURNSTILE_SECRET_KEY + NEXT_PUBLIC_TURNSTILE_SITE_KEY
+   (build-time var!). Then: set-prod-secrets.sh, PADDLE_ENV=production,
+   redeploy, live checkout + email E2E.
+3. **#24 Auth0 app logo**: needs M2M grant (read:clients update:clients)
+   on the Management API. Tenant branding is SHARED with Peace Board —
+   do NOT change it; dedicated tenant is the real fix.
+
+### Open — BUILDABLE (no gates)
+- **Composite Bodygraph / Penta** — MAPS_ROADMAP #2, next build item.
+  Then Circle Calendar (#3, absorbs moon map), Tzolkin Galaxy (#4).
+- Matrix route test; homepage pricing teaser still 3 plans; #23 shadcn
+  dashboard polish; Supabase Sydney latency (migrate while DB small).
+
+### Hard-won this session (gotchas)
+- E2E on prod: fresh-signup pattern in scratchpad e2e-signup-lib.mjs
+  (Auth0 signup → onboarding walk); test creds die with scratchpad.
+- Auth0 NEVER skips consent for localhost callbacks (accept once).
+- wrangler `routes`+custom_domain silently disables workers.dev unless
+  `workers_dev: true` is explicit.
+- Deploy script pins NEXT_PUBLIC_SITE_URL at BUILD time — .env.local
+  otherwise leaks localhost into prod canonicals (bit us once).
+- Parallel sessions: commit by EXPLICIT paths only, never `git add -A`.
 
 ## Branch state
 
