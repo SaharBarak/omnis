@@ -52,3 +52,4 @@ next-env.d.ts
 
 # production secrets (never commit)
 .prod.vars
+packages/mobile/.env
