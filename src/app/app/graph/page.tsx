@@ -13,6 +13,9 @@ import { getTone } from '@pleiad/engine/data/tones'
 import type { Person } from '@/lib/types/database.types'
 import type { RelationshipType, RelationshipWithPeople } from '@/lib/types/relationship'
 import { RELATIONSHIP_TYPE_LABELS } from '@/lib/types/relationship'
+import { ResonanceMatrix } from './resonance-matrix'
+
+type GraphView = 'map' | 'matrix'
 
 // Dynamically import ForceGraph2D to avoid SSR issues
 const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), { ssr: false })
@@ -181,6 +184,7 @@ export default function GraphPage() {
   const { people, loading: peopleLoading } = usePeople()
   const { relationships, loading: relLoading } = useRelationships()
 
+  const [view, setView] = useState<GraphView>('map')
   const [filterType, setFilterType] = useState<RelationshipType | null>(null)
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
@@ -320,46 +324,64 @@ export default function GraphPage() {
           </p>
         </div>
 
-        {/* Zoom controls */}
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleZoomOut}>
-            -
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleResetView}>
-            ⟳
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleZoomIn}>
-            +
-          </Button>
-        </div>
+        {/* Zoom controls (map view only) */}
+        {view === 'map' && (
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleZoomOut}>
+              -
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleResetView}>
+              ⟳
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleZoomIn}>
+              +
+            </Button>
+          </div>
+        )}
       </div>
 
-      {/* Filter badges */}
-      <div className="flex flex-wrap gap-2">
-        <Badge
-          variant={filterType === null ? 'default' : 'outline'}
-          className="cursor-pointer"
-          onClick={() => setFilterType(null)}
-        >
-          All
-        </Badge>
-        {(Object.entries(RELATIONSHIP_TYPE_LABELS) as [RelationshipType, typeof RELATIONSHIP_TYPE_LABELS[RelationshipType]][]).map(([type, info]) => (
+      {/* View toggle + filter badges */}
+      <div className="flex flex-wrap items-center gap-2">
+        {(['map', 'matrix'] as const).map((v) => (
           <Badge
-            key={type}
-            variant={filterType === type ? 'default' : 'outline'}
+            key={v}
+            variant={view === v ? 'default' : 'outline'}
             className="cursor-pointer"
-            style={filterType === type ? {
-              backgroundColor: info.color,
-              borderColor: info.color,
-            } : {
-              borderColor: info.color,
-              color: info.color,
-            }}
-            onClick={() => setFilterType(filterType === type ? null : type)}
+            onClick={() => setView(v)}
           >
-            {info.label}
+            {v === 'map' ? 'Map' : 'Matrix'}
           </Badge>
         ))}
+
+        {view === 'map' && (
+          <>
+            <span className="mx-1 h-4 w-px bg-border" aria-hidden />
+            <Badge
+              variant={filterType === null ? 'default' : 'outline'}
+              className="cursor-pointer"
+              onClick={() => setFilterType(null)}
+            >
+              All
+            </Badge>
+            {(Object.entries(RELATIONSHIP_TYPE_LABELS) as [RelationshipType, typeof RELATIONSHIP_TYPE_LABELS[RelationshipType]][]).map(([type, info]) => (
+              <Badge
+                key={type}
+                variant={filterType === type ? 'default' : 'outline'}
+                className="cursor-pointer"
+                style={filterType === type ? {
+                  backgroundColor: info.color,
+                  borderColor: info.color,
+                } : {
+                  borderColor: info.color,
+                  color: info.color,
+                }}
+                onClick={() => setFilterType(filterType === type ? null : type)}
+              >
+                {info.label}
+              </Badge>
+            ))}
+          </>
+        )}
       </div>
 
       {/* Graph container */}
@@ -368,7 +390,9 @@ export default function GraphPage() {
         className="earth-card bg-card flex-1 min-h-[500px] overflow-hidden"
         style={{ height: 'calc(100vh - 16rem)' }}
       >
-        {!hasData ? (
+        {view === 'matrix' ? (
+          <ResonanceMatrix />
+        ) : !hasData ? (
           <div className="flex flex-col items-center justify-center h-full p-12 text-center">
             <p className="text-muted-foreground mb-4">
               {people.length === 0

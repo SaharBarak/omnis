@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 
 import { getDb } from '@/lib/db/client'
 import { computed_results, people } from '@/lib/db/schema'
@@ -124,6 +124,81 @@ export async function upsertResult(
     .returning()
 
   return serialize(result)
+}
+
+/**
+ * Cached results of one system across many people, filtered to the people the
+ * user owns. Used by the resonance matrix to load every pair-cache row in a
+ * single query (system = 'compat_pair', person_id = lower id of the pair).
+ */
+export async function getResultsBySystemForPeople(
+  userId: string,
+  personIds: string[],
+  system: string
+) {
+  const db = getDb()
+  const requested = personIds.map(toEntityId)
+  const allowed = await ownedPersonIds(userId, requested)
+  if (allowed.length === 0) return []
+
+  const results = await db
+    .select()
+    .from(computed_results)
+    .where(
+      and(
+        inArray(computed_results.person_id, allowed),
+        eq(computed_results.system, system)
+      )
+    )
+  return serializeMany(results)
+}
+
+export interface BulkResultInput {
+  person_id: string
+  system: string
+  version: string
+  data: Record<string, unknown>
+}
+
+/**
+ * Upsert many computed results in one statement, keyed on the
+ * (person_id, system, version) unique index. Rows whose person is not owned
+ * by the user are silently dropped (never stores under a foreign person).
+ * Returns the number of rows written.
+ */
+export async function bulkUpsertResults(
+  userId: string,
+  rows: BulkResultInput[]
+): Promise<number> {
+  if (rows.length === 0) return 0
+  const db = getDb()
+
+  const requested = [...new Set(rows.map((r) => toEntityId(r.person_id)))]
+  const allowed = new Set(await ownedPersonIds(userId, requested))
+
+  const computedAt = new Date().toISOString()
+  const values = rows
+    .filter((r) => allowed.has(toEntityId(r.person_id)))
+    .map((r) => ({
+      person_id: toEntityId(r.person_id),
+      system: r.system,
+      version: r.version,
+      data: r.data,
+      computed_at: computedAt,
+    }))
+  if (values.length === 0) return 0
+
+  await db
+    .insert(computed_results)
+    .values(values)
+    .onConflictDoUpdate({
+      target: [computed_results.person_id, computed_results.system, computed_results.version],
+      set: {
+        data: sql`excluded.data`,
+        computed_at: sql`excluded.computed_at`,
+      },
+    })
+  return values.length
 }
 
 /**
