@@ -28,6 +28,7 @@ const footerLinks = {
   Legal: [
     { label: 'Privacy', href: '/privacy' },
     { label: 'Terms', href: '/terms' },
+    { label: 'Refund', href: '/refund' },
   ],
 }
 
