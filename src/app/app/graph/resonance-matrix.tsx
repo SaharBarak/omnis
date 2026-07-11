@@ -1,10 +1,17 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import type { CompatSystem } from '@pleiad/engine/services/compatibility'
+import type { Bodygraph } from '@pleiad/engine/types/human-design'
+import {
+  calculateBodygraph,
+  isCompleteBodygraph,
+} from '@pleiad/engine/calculations/human-design'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import type { CompatSystem } from '@pleiad/engine/services/compatibility'
+import { CompositeBodygraphChart } from '@/components/human-design/CompositeBodygraphChart'
+import { usePeople, type Person } from '@/lib/hooks/use-people'
 import {
   MATRIX_RAMP,
   type MatrixPairScore,
@@ -63,19 +70,74 @@ interface SelectedPair {
   pair: MatrixPairScore
 }
 
+/** Full bodygraph from a person row, or null when time/place are missing. */
+function personBodygraph(person: Person | undefined): Bodygraph | null {
+  if (
+    !person?.birth_time ||
+    typeof person.birth_place?.lat !== 'number' ||
+    typeof person.birth_place?.lng !== 'number'
+  ) {
+    return null
+  }
+  const result = calculateBodygraph({
+    birthDate: person.birth_date,
+    birthTime: person.birth_time,
+    latitude: person.birth_place.lat,
+    longitude: person.birth_place.lng,
+  })
+  return isCompleteBodygraph(result) ? result : null
+}
+
+/**
+ * The "why" behind the score — MAPS_ROADMAP #2 pair mode. Overlays the two
+ * bodygraphs with channels colored by connection type; falls back to a short
+ * note when either chart lacks birth time or place.
+ */
+function CompositeSection({
+  a,
+  b,
+  personsById,
+}: {
+  a: MatrixPerson
+  b: MatrixPerson
+  personsById: Map<string, Person>
+}) {
+  const bgA = useMemo(() => personBodygraph(personsById.get(a.id)), [personsById, a.id])
+  const bgB = useMemo(() => personBodygraph(personsById.get(b.id)), [personsById, b.id])
+
+  return (
+    <div className="space-y-2 pt-2 border-t border-white/10">
+      <h3 className="text-sm font-medium text-foreground/90">Composite bodygraph</h3>
+      {bgA && bgB ? (
+        <CompositeBodygraphChart
+          personA={{ name: a.name, bodygraph: bgA }}
+          personB={{ name: b.name, bodygraph: bgB }}
+        />
+      ) : (
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          Needs an exact birth time and place for both people. Missing for{' '}
+          {[!bgA && a.name, !bgB && b.name].filter(Boolean).join(' and ')}.
+        </p>
+      )}
+    </div>
+  )
+}
+
 function PairBreakdown({
   selected,
   onClose,
+  personsById,
 }: {
   selected: SelectedPair | null
   onClose: () => void
+  personsById: Map<string, Person>
 }) {
   if (!selected) return null
   const { a, b, pair } = selected
 
   return (
     <Sheet open={!!selected} onOpenChange={() => onClose()}>
-      <SheetContent side="right" className="w-80">
+      <SheetContent side="right" className="w-full sm:w-96 sm:max-w-96 overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="font-heading">
             {a.name} × {b.name}
@@ -125,6 +187,8 @@ function PairBreakdown({
           <p className="text-sm text-muted-foreground leading-relaxed">
             {pair.summary.english}
           </p>
+
+          <CompositeSection a={a} b={b} personsById={personsById} />
         </div>
       </SheetContent>
     </Sheet>
@@ -158,6 +222,12 @@ export function ResonanceMatrix() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selected, setSelected] = useState<SelectedPair | null>(null)
+  // Full person rows (birth data) power the composite bodygraph drill-down.
+  const { people: fullPeople } = usePeople()
+  const personsById = useMemo(
+    () => new Map<string, Person>(fullPeople.map((p) => [p.id, p])),
+    [fullPeople]
+  )
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -276,7 +346,11 @@ export function ResonanceMatrix() {
         <span>High resonance</span>
       </div>
 
-      <PairBreakdown selected={selected} onClose={() => setSelected(null)} />
+      <PairBreakdown
+        selected={selected}
+        onClose={() => setSelected(null)}
+        personsById={personsById}
+      />
     </div>
   )
 }

@@ -4,10 +4,17 @@ import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Zap, Flame, Sparkles } from 'lucide-react'
-import { useGroups } from '@/lib/hooks/use-groups'
 import { analyzeGroup, getScoreColor } from '@pleiad/engine/services/group-analysis'
 import type { FullGroupAnalysis, DistributionItem, GroupMemberAnalysis } from '@pleiad/engine/services/group-analysis'
+import { buildPenta } from '@pleiad/engine/services/composite-bodygraph'
+import {
+  calculateBodygraph,
+  isCompleteBodygraph,
+} from '@pleiad/engine/calculations/human-design'
+import { CENTER_LABELS } from '@pleiad/engine/types/human-design'
 import type { GroupWithMembers } from '@/lib/types/relationship'
+import { useGroups } from '@/lib/hooks/use-groups'
+import { PentaChart, type PentaMember } from '@/components/human-design/PentaChart'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -224,12 +231,137 @@ function InsightCard({ insight }: { insight: FullGroupAnalysis['insights'][0] })
   )
 }
 
+// Penta tab — MAPS_ROADMAP #2 group mode: what the group defines that no
+// individual member has. Needs exact birth time + place per member; members
+// without them are listed as uncharted rather than silently dropped.
+function PentaSection({ group }: { group: GroupWithMembers }) {
+  const charted: PentaMember[] = []
+  const uncharted: string[] = []
+
+  for (const member of group.members) {
+    const name = member.name || member.hebrew_name || 'Unnamed'
+    const lat = member.birth_place?.lat
+    const lng = member.birth_place?.lng
+    if (!member.birth_time || typeof lat !== 'number' || typeof lng !== 'number') {
+      uncharted.push(name)
+      continue
+    }
+    const result = calculateBodygraph({
+      birthDate: member.birth_date,
+      birthTime: member.birth_time,
+      latitude: lat,
+      longitude: lng,
+    })
+    if (isCompleteBodygraph(result)) {
+      charted.push({ name, bodygraph: result })
+    } else {
+      uncharted.push(name)
+    }
+  }
+
+  if (charted.length < 3) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Penta</CardTitle>
+          <CardDescription>The group bodygraph — read for 3-5 charted members</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <p className="text-muted-foreground text-sm">
+            The Penta needs at least three members with an exact birth time and place
+            ({charted.length} of {group.members.length} charted).
+            {charted.length === 2 &&
+              ' For two people, open their cell on the resonance matrix to see the pair composite.'}
+          </p>
+          {uncharted.length > 0 && (
+            <p className="text-muted-foreground text-sm">
+              Missing birth time or place: {uncharted.join(', ')}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const penta = buildPenta(charted.map((m) => m.bodygraph))
+  const emergent = penta.channels.filter((c) => c.state === 'emergent')
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <CardTitle>Penta</CardTitle>
+          <CardDescription>
+            {charted.length} charted members
+            {charted.length > 5 && ' — the Penta is classically read for 3-5'}
+            {uncharted.length > 0 && ` · uncharted: ${uncharted.join(', ')}`}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-center">
+            <PentaChart members={charted} className="w-full max-w-[400px]" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>What only the group defines</CardTitle>
+          <CardDescription>
+            Channels and centers no single member carries alone
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {emergent.length === 0 && penta.emergentCenters.size === 0 ? (
+            <p className="text-muted-foreground text-sm">
+              No emergent definition — every defined channel in this group is carried by
+              at least one member on their own.
+            </p>
+          ) : (
+            <>
+              {emergent.map((pc) => (
+                <div key={pc.channel.id} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-foreground/90 font-medium">
+                      {pc.channel.name}
+                      <span className="text-muted-foreground font-normal ml-1.5">
+                        ({pc.channel.id})
+                      </span>
+                    </span>
+                    <Badge variant="outline" className="text-xs border-primary/40 text-primary">
+                      Group-only
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {pc.contributors
+                      .map((ref) => `${charted[ref.index].name} brings gate ${ref.gates.join(', ')}`)
+                      .join(' · ')}
+                  </p>
+                </div>
+              ))}
+              {penta.emergentCenters.size > 0 && (
+                <p className="text-sm text-muted-foreground pt-2 border-t">
+                  Centers defined only together:{' '}
+                  <span className="text-foreground/90">
+                    {[...penta.emergentCenters].map((c) => CENTER_LABELS[c]).join(', ')}
+                  </span>
+                </p>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
 // Main page component
 export default function GroupAnalysisPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
   const { getGroupWithMembers } = useGroups()
   const [analysis, setAnalysis] = useState<FullGroupAnalysis | null>(null)
+  const [group, setGroup] = useState<GroupWithMembers | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -246,6 +378,7 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
         }
 
         const analysisResult = analyzeGroup(group)
+        setGroup(group)
         setAnalysis(analysisResult)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Something went wrong while loading the analysis')
@@ -373,8 +506,9 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
 
       {/* Tabs for detailed analysis */}
       <Tabs defaultValue="compatibility" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="compatibility">Compatibility</TabsTrigger>
+          <TabsTrigger value="penta">Penta</TabsTrigger>
           <TabsTrigger value="dreamspell">Dreamspell</TabsTrigger>
           <TabsTrigger value="tzolkin">Tzolkin</TabsTrigger>
           <TabsTrigger value="members">Members</TabsTrigger>
@@ -404,6 +538,10 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="penta" className="mt-6">
+          {group && <PentaSection group={group} />}
         </TabsContent>
 
         <TabsContent value="dreamspell" className="mt-6 space-y-6">
