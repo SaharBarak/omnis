@@ -1,11 +1,11 @@
 {
-  "name": "Pleiad - Your Cosmic Blueprint",
+  "name": "Pleiad — Symbolic Life OS",
   "short_name": "Pleiad",
-  "description": "Discover your cosmic blueprint with Dreamspell, Human Design, Astrology, and Gematria",
+  "description": "A living map of the people in your life across five symbolic traditions.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0f",
-  "theme_color": "#4A8B7F",
+  "background_color": "#0B0D16",
+  "theme_color": "#0B0D16",
   "orientation": "portrait-primary",
   "icons": [
     {

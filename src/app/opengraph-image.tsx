@@ -102,7 +102,7 @@ export default async function OGImage() {
             display: 'flex',
           }}
         >
-          Pleiad
+          pleiad.io
         </div>
       </div>
     ),
