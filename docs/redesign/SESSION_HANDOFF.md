@@ -520,3 +520,33 @@ deploy + on-device mobile run (no Xcode/Android SDK on this machine).
   to pleiad.io.
 - Auth0 dashboard unreachable for agent (no mgmt-API grant, no CLI, no
   browser session — Chrome extension disconnected, Aside logged out).
+
+### PRODUCTION FULLY LIVE + END-TO-END VERIFIED (2026-07-11)
+
+Auth0 configured entirely via Aside browser (user Touch-ID + named grants):
+- API "Pleiad API" (https://api.pleiad.app) created.
+- Native app "Pleiad Mobile" — client ID PcBpDL7E8HUkNwWG4j0w2E93M3J3q1FZ.
+  Callback URLs (pleiad:// ios+android, com.pleiad.mobile.auth0://, exp://
+  127.0.0.1:8081 + localhost:8081), Logout URLs, connections
+  (Username-Password-Authentication + google-oauth2), and user-delegated
+  API-access grant to Pleiad API (this tenant uses Auth0 API Access
+  Policies — the grant is REQUIRED even for first-party native).
+- AUTH0_API_AUDIENCE secret on worker + .env.local.
+- device_push_tokens migrated to prod DB (verified present).
+- packages/mobile/.env written (real client id/audience/pleiad.io).
+
+**End-to-end proof (scratchpad/verify/pkce-prod.mjs) against deployed
+worker:** real Auth0 PKCE login → audience-scoped access token → GET
+/api/people 200 (AUTH-M1 bearer LIVE) → POST /api/notifications/devices
+201 (PUSH-M1 + migration LIVE). Test token cleaned up after.
+
+Gotchas learned: Auth0 callback/logout fields are tag-inputs — comma
+strings become ONE malformed chip; must enter each URL + dispatch Enter
+keydown/keypress/keyup. Aside `t.fill` marks redux-form dirty (native
+value setter alone does not). Aside repl: one browser session per
+invocation; `openTab` returns the page handle; screenshots come back as a
+Buffer (pipe base64 through Bash, `fs` unavailable in the sandbox).
+
+**REMAINING (real device only — no simulator on this machine):** open
+packages/mobile in Expo Go (`npx expo start`), sign in, walk F1–F12;
+EAS build + TestFlight (M4). Everything server/auth/data is proven live.
