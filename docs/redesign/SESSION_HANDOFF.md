@@ -406,3 +406,28 @@ read-only healthy.
 Known deferred (spec'd, not built): boards editing, PDF cards, native IAP
 (RevenueCat), offline mutation queue, he/RTL, EAS build track (M4),
 onboarding mural backdrops, geocoded place search, MMKV persistence.
+
+### Verification pass (2026-07-11) — LIVE against real services
+
+Driven via Playwright through the local dev server (user's :3100, which
+runs prod Supabase + real Auth0). Results:
+
+- Anonymous: landing renders w/ GATE cell (Gate x.y live), /calculate
+  computes for real — 1988-08-17 → Kin 161 Overtone Dragon, EXACT match
+  with committed golden vectors; bogus bearer → 401.
+- Real Auth0 email SIGNUP (new test user sahar.h.barak+pleiadverify2@…,
+  creds NOT in repo; reset via Auth0 if needed) → callback → session →
+  onboarding → dashboard shell + content.
+- People: create persisted to prod DB; computed_results dreamspell row
+  kin 122 for 1994-03-21 — second exact golden parity match.
+- API-M3 verified live: PATCH birth_place round-trips city + timezone.
+- Profile + settings pages render (identity Kin 161, system toggles).
+- Share: server-minted link; public viewer opens with NO auth and leaks
+  no owner_id/password_hash. Test share revoked + test person deleted
+  after the pass (account kept for future verification).
+- Infra verified separately: migrations 0000+0001 clean-apply on fresh
+  pgvector Postgres, repo smoke 12/12, push-token repo smoke 8/8,
+  bearer path real-RS256 integration tests 7/7 (suite 1023).
+
+Still pending (user-gated): Auth0 native app + audience secret + prod
+deploy + on-device mobile run (no Xcode/Android SDK on this machine).
