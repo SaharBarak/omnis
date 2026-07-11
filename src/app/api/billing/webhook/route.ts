@@ -32,6 +32,7 @@ import {
   syncPaddleSubscription,
   verifyPaddleWebhookSignature,
 } from '@/lib/services/subscription-sync'
+import { isAllowedPaddleIp } from '@/lib/security/paddle-ips'
 
 interface PaddleTransactionData {
   id: string
@@ -54,6 +55,15 @@ const SUBSCRIPTION_EVENTS = new Set<string>([
 
 export async function POST(request: Request) {
   try {
+    // Defense-in-depth: reject source IPs not on Paddle's live allowlist. The
+    // HMAC signature below remains the primary control; this fails open if the
+    // allowlist can't be fetched, so a Paddle API blip never drops deliveries.
+    const clientIp = request.headers.get('CF-Connecting-IP')
+    if (!(await isAllowedPaddleIp(clientIp, Date.now()))) {
+      console.error('Paddle webhook rejected: source IP not allowlisted:', clientIp)
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const rawBody = await request.text()
     const signature = (await headers()).get('paddle-signature')
 
