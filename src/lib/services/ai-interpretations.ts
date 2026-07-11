@@ -1,4 +1,3 @@
-import { GoogleGenAI } from '@google/genai'
 import type {
   PredictionEvent,
   AIInterpretationRequest,
@@ -9,22 +8,9 @@ import {
   getCachedInterpretation as getCachedInterpretationRow,
   cacheInterpretation as cacheInterpretationRow,
 } from '@/lib/db/repositories/predictions-repo'
-
-// Lazy-initialized Gemini client
-let geminiClient: GoogleGenAI | null = null
-
-function getGeminiClient(): GoogleGenAI {
-  if (!geminiClient) {
-    if (!process.env.GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY is not configured')
-    }
-    geminiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
-  }
-  return geminiClient
-}
+import { generateJSON, generateText } from '@/lib/services/llm'
 
 // Configuration
-const AI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
 const AI_MAX_TOKENS = parseInt(process.env.AI_MAX_TOKENS || '1000', 10)
 
 // Cache TTL (30 days in milliseconds)
@@ -53,17 +39,8 @@ export async function generateInterpretation(
   const prompt = buildInterpretationPrompt(prediction, personContext, locale)
 
   try {
-    // Call Gemini API (JSON mode; existing parser handles extraction)
-    const result = await getGeminiClient().models.generateContent({
-      model: AI_MODEL,
-      contents: prompt,
-      config: {
-        maxOutputTokens: AI_MAX_TOKENS,
-        responseMimeType: 'application/json',
-      },
-    })
-
-    const responseText = result.text ?? ''
+    // Call the configured LLM provider in JSON mode; the parser handles extraction.
+    const responseText = await generateJSON(prompt, AI_MAX_TOKENS)
 
     // Parse the response
     const interpretation = parseInterpretationResponse(responseText)
@@ -280,15 +257,7 @@ Provide a brief, inspiring interpretation (2-3 sentences) for this cosmic event:
 Focus on personal empowerment and working with this energy. Be concise and meaningful.`
 
   try {
-    const result = await getGeminiClient().models.generateContent({
-      model: AI_MODEL,
-      contents: prompt,
-      config: {
-        maxOutputTokens: 300,
-      },
-    })
-
-    return result.text ?? ''
+    return await generateText(prompt, 300)
   } catch (error) {
     console.error('Error generating quick interpretation:', error)
     throw new Error('Failed to generate interpretation')

@@ -25,6 +25,11 @@ PADDLE_PRICE_LIFETIME=
 
 # Email / AI / analytics
 RESEND_API_KEY=
+# LLM provider for AI interpretations. Default 'groq' (free tier, privacy-safe:
+# not retained/trained on). Set GROQ_API_KEY from console.groq.com (no card).
+# Gemini stays a drop-in fallback (LLM_PROVIDER=gemini) for higher volume.
+LLM_PROVIDER=groq
+GROQ_API_KEY=
 GEMINI_API_KEY=
 NEXT_PUBLIC_POSTHOG_KEY=
 NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com

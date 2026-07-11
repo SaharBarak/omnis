@@ -4,6 +4,7 @@ import {
   generateInterpretation,
   generateQuickInterpretation,
 } from '@/lib/services/ai-interpretations'
+import { isLLMConfigured } from '@/lib/services/llm'
 import { rateLimiters, rateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limit'
 import { requireLimit, trackUsage, LimitExceededError } from '@/lib/services/usage'
 import type { AIInterpretationRequest, PredictionEvent } from '@pleiad/engine/types/prediction'
@@ -23,8 +24,8 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(request: NextRequest) {
   try {
-    // Check if AI is configured
-    if (!process.env.GEMINI_API_KEY) {
+    // Check if AI is configured (any supported LLM provider key present)
+    if (!isLLMConfigured()) {
       return NextResponse.json(
         { success: false, error: 'AI service not configured' },
         { status: 503 }
