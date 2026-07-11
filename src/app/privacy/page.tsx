@@ -61,11 +61,14 @@ export default function PrivacyPage() {
             </ul>
 
             <h2 className="text-lg font-semibold mt-6 mb-3">5. Third-Party Services</h2>
-            <p>We use the following third-party services:</p>
+            <p>We use the following third-party processors to operate the Service:</p>
             <ul className="list-disc pl-6 space-y-1">
-              <li><strong>Supabase:</strong> Authentication and database</li>
-              <li><strong>Google OAuth:</strong> Optional sign-in method</li>
-              <li><strong>Mapbox:</strong> Birth place geocoding (if location features are used)</li>
+              <li><strong>Auth0:</strong> Authentication and sign-in</li>
+              <li><strong>Supabase:</strong> Database and secure data storage</li>
+              <li><strong>Paddle:</strong> Payment processing and merchant of record (billing, tax)</li>
+              <li><strong>Resend:</strong> Transactional and newsletter email delivery</li>
+              <li><strong>PostHog:</strong> Privacy-respecting product analytics</li>
+              <li><strong>Cloudflare:</strong> Hosting, content delivery, and bot protection</li>
             </ul>
 
             <h2 className="text-lg font-semibold mt-6 mb-3">6. Your Rights</h2>
@@ -78,32 +81,55 @@ export default function PrivacyPage() {
               <li>Opt out of marketing communications</li>
             </ul>
 
-            <h2 className="text-lg font-semibold mt-6 mb-3">7. Data Retention</h2>
+            <h2 className="text-lg font-semibold mt-6 mb-3">7. Your GDPR Rights (EEA &amp; UK)</h2>
+            <p>
+              If you are in the European Economic Area or the United Kingdom, you have
+              rights under the GDPR: access, rectification, erasure, restriction of
+              processing, data portability, and the right to object. Our legal bases for
+              processing are your consent, performance of our contract with you (providing
+              the Service), and our legitimate interests in operating and improving Pleiad.
+              You may lodge a complaint with your local supervisory authority. To exercise
+              any right, contact us at{' '}
+              <a href="mailto:privacy@pleiad.io">privacy@pleiad.io</a>.
+            </p>
+
+            <h2 className="text-lg font-semibold mt-6 mb-3">8. Your California Privacy Rights (CCPA/CPRA)</h2>
+            <p>
+              If you are a California resident, you have the right to know what personal
+              information we collect and how it is used, to request deletion of your
+              personal information, to correct inaccurate information, and to opt out of the
+              &ldquo;sale&rdquo; or &ldquo;sharing&rdquo; of personal information. We do not
+              sell your personal information. We will not discriminate against you for
+              exercising these rights. To make a request, contact us at{' '}
+              <a href="mailto:privacy@pleiad.io">privacy@pleiad.io</a>.
+            </p>
+
+            <h2 className="text-lg font-semibold mt-6 mb-3">9. Data Retention</h2>
             <p>
               We retain your data as long as your account is active. If you delete your
               account, we will delete your personal data within 30 days, except where
               retention is required by law.
             </p>
 
-            <h2 className="text-lg font-semibold mt-6 mb-3">8. Cookies</h2>
+            <h2 className="text-lg font-semibold mt-6 mb-3">10. Cookies</h2>
             <p>
               We use essential cookies for authentication and session management. We do
               not use tracking or advertising cookies.
             </p>
 
-            <h2 className="text-lg font-semibold mt-6 mb-3">9. Children&apos;s Privacy</h2>
+            <h2 className="text-lg font-semibold mt-6 mb-3">11. Children&apos;s Privacy</h2>
             <p>
               The Service is not intended for children under 13. We do not knowingly
               collect information from children under 13.
             </p>
 
-            <h2 className="text-lg font-semibold mt-6 mb-3">10. Changes to This Policy</h2>
+            <h2 className="text-lg font-semibold mt-6 mb-3">12. Changes to This Policy</h2>
             <p>
               We may update this policy from time to time. We will notify you of
               significant changes via email or through the Service.
             </p>
 
-            <h2 className="text-lg font-semibold mt-6 mb-3">11. Contact Us</h2>
+            <h2 className="text-lg font-semibold mt-6 mb-3">13. Contact Us</h2>
             <p>
               For privacy-related questions or to exercise your rights, contact us at
               privacy@pleiad.io.

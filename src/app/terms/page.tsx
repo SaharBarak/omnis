@@ -64,29 +64,71 @@ export default function TermsPage() {
               <li>Scrape or harvest data from the Service</li>
             </ul>
 
-            <h2 className="text-lg font-semibold mt-6 mb-3">6. Disclaimer</h2>
+            <h2 className="text-lg font-semibold mt-6 mb-3">6. Disclaimer &amp; Warranty Disclaimer</h2>
             <p>
               The symbolic calculations and interpretations provided by Pleiad are for
               entertainment and personal exploration purposes only. They should not be
               used as a substitute for professional advice including medical, legal,
               financial, or psychological guidance.
             </p>
+            <p>
+              THE SERVICE IS PROVIDED &ldquo;AS IS&rdquo; AND &ldquo;AS AVAILABLE&rdquo;
+              WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT
+              LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+              PURPOSE, TITLE, AND NON-INFRINGEMENT. We do not warrant that the Service will
+              be uninterrupted, timely, secure, or error-free, or that results obtained
+              from it will be accurate or reliable.
+            </p>
 
             <h2 className="text-lg font-semibold mt-6 mb-3">7. Limitation of Liability</h2>
             <p>
               To the maximum extent permitted by law, Pleiad shall not be liable for any
               indirect, incidental, special, consequential, or punitive damages resulting
-              from your use of the Service.
+              from your use of the Service. Our total liability for any claim arising out of
+              or relating to the Service shall not exceed the amount you paid us in the
+              twelve (12) months preceding the event giving rise to the claim.
             </p>
 
-            <h2 className="text-lg font-semibold mt-6 mb-3">8. Changes to Terms</h2>
+            <h2 className="text-lg font-semibold mt-6 mb-3">8. Payments, Billing &amp; Fulfillment</h2>
+            <p>
+              Paid plans are billed through our merchant of record,{' '}
+              <strong>Paddle.com</strong>, who handles payment processing, invoicing, and
+              applicable sales tax/VAT. Pleiad is a digital service: access to purchased
+              features is provisioned to your account immediately upon successful payment,
+              with no physical goods shipped. Subscriptions renew automatically until
+              cancelled; you may cancel at any time from your billing settings.
+            </p>
+
+            <h2 className="text-lg font-semibold mt-6 mb-3">9. Refunds</h2>
+            <p>
+              Refunds are governed by our{' '}
+              <Link href="/refund">Refund Policy</Link>, which includes a 14-day
+              money-back guarantee on new purchases. Requests are processed through Paddle.
+            </p>
+
+            <h2 className="text-lg font-semibold mt-6 mb-3">10. Indemnification</h2>
+            <p>
+              You agree to indemnify and hold harmless Pleiad from any claims, damages, or
+              expenses arising out of your use of the Service or your violation of these
+              Terms.
+            </p>
+
+            <h2 className="text-lg font-semibold mt-6 mb-3">11. Governing Law</h2>
+            <p>
+              These Terms are governed by the laws of the State of Israel, without regard to
+              its conflict-of-laws rules. Nothing in these Terms limits any mandatory
+              consumer-protection rights available to you under the laws of your country of
+              residence.
+            </p>
+
+            <h2 className="text-lg font-semibold mt-6 mb-3">12. Changes to Terms</h2>
             <p>
               We reserve the right to modify these terms at any time. We will notify users
               of significant changes. Continued use of the Service after changes constitutes
               acceptance of the new terms.
             </p>
 
-            <h2 className="text-lg font-semibold mt-6 mb-3">9. Contact</h2>
+            <h2 className="text-lg font-semibold mt-6 mb-3">13. Contact</h2>
             <p>
               For questions about these Terms, please contact us at support@pleiad.io.
             </p>
