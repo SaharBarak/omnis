@@ -135,6 +135,22 @@ tree: the web session (this CURRENT STATE section) and the mobile session
   pair scores recompute with the fixed HD channel data. Smoked: landing
   200 + GATE cell, canonical pleiad.io, /app 307, APIs 401 fail-closed.
   Cron worker untouched (calls SITE_URL routes, bundles no engine).
+- **FULL PROD E2E PASS 2026-07-12** (then redeployed `dd74ac0e` w/ fix):
+  local 1080 tests ✓ · anon sweep (16 pages 200, gates 307, APIs 401,
+  webhook unsigned 403, share 404, knowledge search live) · Playwright
+  browser E2E on prod: fresh Auth0 signup → 5-step onboarding → self
+  person Kin 161 golden ✓ → person create (Kin 239) → bodygraph 36
+  canonical lanes LIVE → matrix (60/100, HD 97 after birth-place edit —
+  pair cache invalidation proven) → composite bodygraph in sheet ✓.
+  Test account sahar.h.barak+pleiadtest0712@gmail.com kept (pw died w/
+  scratchpad; reset via Auth0 if needed); test person deleted.
+  FIXED from findings: /onboarding was ungated (shell only, no data
+  leak) → now in PROTECTED_PATHS (`c725665`).
+  Backlog notes: geocoder suggestion not keyboard-selectable
+  (ArrowDown+Enter no-op, mouse-only); Map/Matrix toggle is a
+  clickable Badge (no button role); onboarding card still light-theme
+  (C4 backlog); 17 lint errors in packages/mobile (mobile session's,
+  unescaped apostrophes).
 
 ### Open — USER-GATED (task board #s)
 1. **#25 Paddle production go-live**: KYB (user was mid-flow in Aside);
