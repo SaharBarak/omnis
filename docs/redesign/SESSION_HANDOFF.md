@@ -101,6 +101,12 @@ tree: the web session (this CURRENT STATE section) and the mobile session
   reference charts via Aside), midpoint gate-halves (hanging gates render),
   64 gate labels, integration bundle routed left of G, center names →
   tooltips. Visual-verified via SSR preview + Aside screenshots. Suite 1080.
+- **DEPLOYED 2026-07-12** (version `ac62b701`) — everything above + the
+  LLM service (`9ee3922`, other session) + brand manifest fix live on
+  pleiad.io. MATRIX_ENGINE_VERSION bumped v1→v2 (`9f2780e`) so cached
+  pair scores recompute with the fixed HD channel data. Smoked: landing
+  200 + GATE cell, canonical pleiad.io, /app 307, APIs 401 fail-closed.
+  Cron worker untouched (calls SITE_URL routes, bundles no engine).
 
 ### Open — USER-GATED (task board #s)
 1. **#25 Paddle production go-live**: KYB (user was mid-flow in Aside);
