@@ -23,7 +23,8 @@ import type {
  */
 
 /** Bump when the five-system engine or the slim pair shape changes. */
-export const MATRIX_ENGINE_VERSION = 'five-system-v1'
+// v2: HD channel data fix (34-57 restored, 6-59 dedup) changed HD scores.
+export const MATRIX_ENGINE_VERSION = 'five-system-v2'
 
 /** computed_results.system discriminator for pairwise cache rows. */
 export const MATRIX_PAIR_SYSTEM = 'compat_pair'
