@@ -44,6 +44,34 @@ through Bash, `fs` unavailable in the sandbox); Aside browser can die —
 
 ---
 
+## GO-LIVE READY (2026-07-12) — user runs 2 commands
+
+Paddle live go-live + Higgsfield brand refresh done to the buildable edge.
+`.prod.vars` is FULLY loaded (verified): Paddle **LIVE** key + 4 live prices
++ webhook secret, RESEND_API_KEY, GROQ_API_KEY, LLM_PROVIDER=groq, and
+TURNSTILE_SECRET_KEY — every previously-held secret filled (only
+CLOUDFLARE_API_TOKEN blank; only GH-Actions needs it, manual deploy uses
+local wrangler auth). Worker still holds **sandbox** Paddle + lacks
+GROQ/RESEND/TURNSTILE secrets (agent-blocked from pushing). AI interpret is
+code-live (groq) but 503s until GROQ_API_KEY is on the worker.
+
+**THE TWO STEPS (classifier blocks agents — user runs, `!` prefix):**
+1. `./scripts/set-prod-secrets.sh` — pushes live Paddle + RESEND + GROQ +
+   LLM_PROVIDER + TURNSTILE to the worker (overwrites sandbox Paddle).
+2. `npm run deploy` — rebuilds (bakes live NEXT_PUBLIC_PADDLE_CLIENT_TOKEN
+   + turnstile site key) AND ships the new brand assets. Then real-card
+   checkout E2E + check og-image on a share-debugger.
+
+Committed this session: `9ee3922` provider-agnostic LLM service (Groq
+default, Gemini fallback) + capture/live-setup scripts; `6eca940` manifest
++ OG label brand fix; `ec594d9`+`bb58bc8` Higgsfield **Pleiades cluster**
+social card (og-image.png, Space Grotesk wordmark) + PWA icons
+(512/192/apple-touch/maskable) — favicon.ico kept geometric (16px
+legibility); removed the dynamic opengraph-image route so the static
+cluster card is the universal preview. HF art raws + composite scripts in
+scratchpad (regen: `scratchpad/compose-og.mjs` + `compose-icons.mjs`,
+prompts in `hf-brand-plan.md`).
+
 ## CURRENT STATE (2026-07-11) — read this section first
 
 **Product: Pleiad · live at https://pleiad.io (+www; omnisx.workers.dev
