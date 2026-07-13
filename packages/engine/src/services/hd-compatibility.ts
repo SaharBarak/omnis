@@ -12,6 +12,7 @@
 //
 // Pure, deterministic, side-effect free.
 
+import { buildHDRelation, type HDRelation } from './hd-relations'
 import type { Bodygraph, HumanDesignType } from '../types/human-design'
 import { TYPE_LABELS, TYPE_LABELS_HEBREW } from '../types/human-design'
 import { CHANNELS } from '../data/human-design-channels'
@@ -45,6 +46,14 @@ export interface HDConnection {
 export interface HDCompatibility {
   score: number
   connections: HDConnection[]
+  /**
+   * The relations that actually discriminate: emergent definition, the
+   * connection theme, split bridging, and COUNTS of the four channel types.
+   * The channel connections above are canonical but near-universal —
+   * electromagnetic alone fires on 95% of random pairs — so `connections` is
+   * evidence, and this is the finding. See services/hd-relations.ts.
+   */
+  relation: HDRelation | null
   type1?: HumanDesignType
   type2?: HumanDesignType
   typeDynamic?: {
@@ -60,7 +69,7 @@ export interface HDCompatibility {
 
 const BASE_SCORE = 20
 
-const CONNECTION_SCORE: Readonly<Record<HDConnectionType, number>> = Object.freeze({
+export const CONNECTION_SCORE: Readonly<Record<HDConnectionType, number>> = Object.freeze({
   electromagnetic: 12, // highest - the spark of attraction
   companionship: 8, // reinforcing, friendly
   dominance: 3, // mild / contextual
@@ -251,6 +260,7 @@ function toBodygraph(input: HDCompatInput): Bodygraph | null {
 const UNAVAILABLE: HDCompatibility = Object.freeze({
   score: 0,
   connections: [],
+  relation: null,
   available: false,
 })
 
@@ -335,6 +345,7 @@ export function calculateHDCompatibility(
   return {
     score,
     connections,
+    relation: buildHDRelation(bg1, bg2),
     type1: bg1.type,
     type2: bg2.type,
     typeDynamic: {
