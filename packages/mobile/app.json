@@ -2,6 +2,7 @@
   "expo": {
     "name": "Pleiad",
     "slug": "pleiad",
+    "owner": "moonwise",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -23,7 +24,7 @@
       "package": "app.pleiad.mobile"
     },
     "web": {
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -44,6 +45,12 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "backgroundColor": "#0B0D16"
+    "backgroundColor": "#0B0D16",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "efb32c9b-aaaf-4b4b-9ace-e8e9ab1c62c7"
+      }
+    }
   }
 }
