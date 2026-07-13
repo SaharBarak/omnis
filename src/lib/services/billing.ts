@@ -89,8 +89,9 @@ export const PLANS = {
     storeProductId: process.env.STORE_PRODUCT_COMPLETE,
     limits: {
       // A real map, not a cramped one — "everyone in your life" has to survive
-      // contact with an actual life.
-      profiles: 50,
+      // contact with an actual life. 25 keeps Practitioner's pull intact while
+      // still clearing the old 10-person cap that fought the pitch.
+      profiles: 25,
       systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria'],
       aiInterpretations: 50,
       boards: 5,

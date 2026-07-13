@@ -183,7 +183,7 @@ const PLANS = [
     price: '$9',
     tagline: 'Your whole map',
     features: [
-      'Up to 50 people, kept forever',
+      'Up to 25 people, kept forever',
       'Full map & group dynamics',
       'AI interpretations, grounded in sources',
     ],

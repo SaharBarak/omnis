@@ -57,7 +57,7 @@ export const PAID_PLANS: readonly PaidPlan[] = [
     price: '$9',
     tagline: 'Your whole map, all six systems',
     points: [
-      'Up to 50 people, kept forever',
+      'Up to 25 people, kept forever',
       'All six systems on every chart',
       '50 AI interpretations, grounded in sources',
       '5 boards & timeline view',
@@ -115,9 +115,9 @@ export interface LedgerRow {
 export const LEDGER_COLUMNS = ['Free', 'Explorer', 'Complete', 'Practitioner'] as const
 
 export const LEDGER_ROWS: readonly LedgerRow[] = [
-  { label: 'People saved', free: '3', explorer: '15', complete: '50', practitioner: 'Unlimited' },
+  { label: 'People saved', free: '3', explorer: '15', complete: '25', practitioner: 'Unlimited' },
   { label: 'Systems', free: 'Dreamspell', explorer: 'All six', complete: 'All six', practitioner: 'All six' },
-  { label: 'AI interpretations', free: '—', explorer: '5', complete: '50', practitioner: 'Unlimited' },
+  { label: 'AI interpretations', free: '—', explorer: '5', complete: '25', practitioner: 'Unlimited' },
   { label: 'Boards', free: '—', explorer: '2', complete: '5', practitioner: 'Unlimited' },
   { label: 'Timeline view', free: '—', explorer: 'Included', complete: 'Included', practitioner: 'Included' },
   { label: 'Relationship readings', free: '—', explorer: 'Basic', complete: 'Basic', practitioner: 'Advanced' },

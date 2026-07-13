@@ -131,7 +131,7 @@ const TIERS: readonly Tier[] = [
     price: '$9/mo',
     recommended: true,
     ledger: {
-      profiles: '50',
+      profiles: '25',
       systems: 'All six',
       ai: '50/mo',
       timeline: 'Yes',
