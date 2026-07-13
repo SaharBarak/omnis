@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   calculateFiveSystemCompatibility,
-  gematriaCompatibilityScore,
+  nameValueMatch,
   type PersonCompatInput,
 } from './compatibility'
 
@@ -37,20 +37,35 @@ describe('calculateFiveSystemCompatibility', () => {
     expect(r.systems.gematria.weight).toBe(0)
   })
 
-  it('adds gematria when both Hebrew names are present', () => {
+  it('reports a name-value comparison but never scores gematria', () => {
     const r = calculateFiveSystemCompatibility(
       { ...dateOnlyA, hebrewName: 'דוד' },
       { ...dateOnlyB, hebrewName: 'שרה' }
     )
-    expect(r.availableSystems).toContain('gematria')
-    expect(r.gematriaScore).not.toBeNull()
+    // Gematria has no traditional compatibility doctrine, so it contributes no
+    // score and no weight — only the one relation the tradition sanctions.
+    expect(r.availableSystems).not.toContain('gematria')
+    expect(r.systems.gematria.weight).toBe(0)
+    expect(r.nameMatch).not.toBeNull()
+    expect(r.nameMatch?.exact).toBe(false) // דוד=14, שרה=505
+  })
+
+  it('flags an exact name-value match', () => {
+    const r = calculateFiveSystemCompatibility(
+      { ...dateOnlyA, hebrewName: 'דוד' },
+      { ...dateOnlyB, hebrewName: 'דוד' }
+    )
+    expect(r.nameMatch?.exact).toBe(true)
   })
 
   it('runs all five systems with full birth data', () => {
     const r = calculateFiveSystemCompatibility(fullA, fullB)
+    // Four SCORED systems. Gematria is deliberately not among them — it has no
+    // traditional compatibility doctrine, so it contributes `nameMatch` only.
     expect(r.availableSystems).toEqual(
-      expect.arrayContaining(['dreamspell', 'tzolkin', 'astrology', 'humanDesign', 'gematria'])
+      expect.arrayContaining(['dreamspell', 'tzolkin', 'astrology', 'humanDesign'])
     )
+    expect(r.availableSystems).not.toContain('gematria')
     expect(r.hdDetail).not.toBeNull()
     expect(r.synastryDetail).not.toBeNull()
   })
@@ -68,9 +83,9 @@ describe('calculateFiveSystemCompatibility', () => {
     expect(a.overallScore).toBe(b.overallScore)
   })
 
-  it('gematriaCompatibilityScore returns null without both names', () => {
-    expect(gematriaCompatibilityScore('דוד', null)).toBeNull()
-    expect(gematriaCompatibilityScore('', 'שרה')).toBeNull()
-    expect(gematriaCompatibilityScore('דוד', 'דוד')).toBeGreaterThan(0)
+  it('nameValueMatch returns null without both names', () => {
+    expect(nameValueMatch('דוד', null)).toBeNull()
+    expect(nameValueMatch('', 'שרה')).toBeNull()
+    expect(nameValueMatch('דוד', 'דוד')?.exact).toBe(true)
   })
 })

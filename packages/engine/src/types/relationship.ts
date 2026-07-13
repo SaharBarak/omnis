@@ -32,8 +32,30 @@ export interface GroupWithMembers {
 
 export type HarmonyType = 'supportive' | 'challenging' | 'transformative' | 'neutral'
 
+/**
+ * The oracle relations (`guide`, `analog`, `antipode`, `occult`) are KIN-level:
+ * they require the paired seal AND the tone, exactly as Argüelles defines them.
+ * Each fires on 1 pair in 260. The seal-only variants — which fire on 1 in 20 —
+ * are named `*-seal` and are a genuinely weaker claim. Do not conflate them.
+ * See docs/redesign/CONNECTION_ATLAS.md §3.
+ */
 export interface DreamspellConnection {
-  type: 'analog' | 'antipode' | 'occult' | 'guide' | 'same-seal' | 'same-tone' | 'same-color'
+  type:
+    | 'same-kin'
+    | 'analog'
+    | 'antipode'
+    | 'occult'
+    | 'guide'
+    | 'analog-seal'
+    | 'antipode-seal'
+    | 'occult-seal'
+    | 'guide-seal'
+    | 'same-seal'
+    | 'same-tone'
+    | 'same-color'
+    | 'same-wavespell'
+    | 'same-castle'
+    | 'same-earth-family'
   description: string
   descriptionHebrew: string
   harmony: HarmonyType

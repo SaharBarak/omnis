@@ -310,6 +310,30 @@ function calculateModalityBalance(positions: PlanetPosition[]): Record<Modality,
   return counts
 }
 
+/** Raw house object from the horoscope library. */
+interface RawHouseData {
+  ChartPosition?: {
+    StartPosition?: { Ecliptic?: { DecimalDegrees?: number } }
+    Ecliptic?: { DecimalDegrees?: number }
+  }
+}
+
+/**
+ * Ecliptic longitude of a house cusp.
+ * The library nests it under ChartPosition.StartPosition.Ecliptic; the flat
+ * ChartPosition.Ecliptic path does not exist on a House. Falls back to the
+ * equal-house cusp only if the library shape ever changes.
+ */
+function houseCuspLongitude(houseData: RawHouseData | undefined, index: number): number {
+  const start = houseData?.ChartPosition?.StartPosition?.Ecliptic?.DecimalDegrees
+  if (typeof start === 'number') return start
+
+  const flat = houseData?.ChartPosition?.Ecliptic?.DecimalDegrees
+  if (typeof flat === 'number') return flat
+
+  return index * 30
+}
+
 /**
  * Calculate which house a planet is in based on house cusps
  */
@@ -401,6 +425,131 @@ function extractAspects(horoscope: Horoscope): AspectInstance[] {
   return aspects
 }
 
+// ============================================================================
+// VERTEX
+// ============================================================================
+
+const DEG = Math.PI / 180
+
+/** Highest |latitude| at which the Vertex is stable / meaningfully defined. */
+export const VERTEX_LATITUDE_LIMIT = 66
+
+const norm360 = (deg: number): number => ((deg % 360) + 360) % 360
+
+/** Mean obliquity of the ecliptic (degrees) for a given calendar year. */
+function meanObliquity(year: number): number {
+  const t = (year - 2000) / 100
+  return 23.439291 - 0.0130042 * t
+}
+
+/** Right ascension (deg) of an ecliptic longitude on the ecliptic (β = 0). */
+function rightAscension(lambdaDeg: number, epsDeg: number): number {
+  return norm360(
+    Math.atan2(
+      Math.sin(lambdaDeg * DEG) * Math.cos(epsDeg * DEG),
+      Math.cos(lambdaDeg * DEG)
+    ) / DEG
+  )
+}
+
+/** Declination (deg) of an ecliptic longitude on the ecliptic (β = 0). */
+function declination(lambdaDeg: number, epsDeg: number): number {
+  return Math.asin(Math.sin(epsDeg * DEG) * Math.sin(lambdaDeg * DEG)) / DEG
+}
+
+/** Hour angle in (-180, 180]. Positive = west of the meridian. */
+function hourAngle(ramcDeg: number, raDeg: number): number {
+  const h = norm360(ramcDeg - raDeg)
+  return h > 180 ? h - 360 : h
+}
+
+/**
+ * cos(azimuth) * cos(altitude) for an ecliptic point — zero exactly on the
+ * prime vertical (the great circle through East, zenith and West).
+ */
+function primeVerticalResidual(
+  lambdaDeg: number,
+  epsDeg: number,
+  latDeg: number,
+  ramcDeg: number
+): { readonly residual: number; readonly west: boolean } {
+  const ra = rightAscension(lambdaDeg, epsDeg)
+  const dec = declination(lambdaDeg, epsDeg) * DEG
+  const h = hourAngle(ramcDeg, ra) * DEG
+  const phi = latDeg * DEG
+
+  const residual =
+    Math.sin(dec) * Math.cos(phi) - Math.cos(dec) * Math.sin(phi) * Math.cos(h)
+
+  // Azimuth is due-west when sin(azimuth) < 0, i.e. sin(H) > 0.
+  return { residual, west: Math.sin(h) > 0 }
+}
+
+/**
+ * Ecliptic longitude of the Vertex: where the ecliptic crosses the prime
+ * vertical in the WEST.
+ *
+ * Solved numerically (scan + bisection) from the condition cos(azimuth) = 0
+ * with the point on the western half of the sky. Requires an exact birth time
+ * (via the Midheaven, which encodes local sidereal time) and a real latitude.
+ *
+ * Returns null — never a guess — when the Vertex is undefined or unstable:
+ * missing Midheaven, or |latitude| > 66° (near the poles the prime vertical
+ * approaches the ecliptic and the intersection degenerates).
+ */
+export function calculateVertexLongitude(params: {
+  readonly midheavenLongitude: number
+  readonly latitude: number
+  readonly year?: number
+}): number | null {
+  const { midheavenLongitude, latitude } = params
+
+  if (!Number.isFinite(midheavenLongitude) || !Number.isFinite(latitude)) return null
+  if (Math.abs(latitude) > VERTEX_LATITUDE_LIMIT) return null
+
+  const eps = meanObliquity(params.year ?? 2000)
+  // The Midheaven is, by definition, the ecliptic point whose right ascension
+  // equals the right ascension of the meridian (RAMC).
+  const ramc = rightAscension(norm360(midheavenLongitude), eps)
+
+  const step = 0.5
+  let prevLambda = 0
+  let prev = primeVerticalResidual(0, eps, latitude, ramc)
+
+  for (let lambda = step; lambda <= 360; lambda += step) {
+    const curr = primeVerticalResidual(lambda, eps, latitude, ramc)
+
+    const crosses = prev.residual === 0 || prev.residual * curr.residual < 0
+    if (crosses && (prev.west || curr.west)) {
+      // Bisect within the bracketing interval.
+      let lo = prevLambda
+      let hi = lambda
+      let loRes = prev.residual
+
+      for (let i = 0; i < 60; i++) {
+        const mid = (lo + hi) / 2
+        const midRes = primeVerticalResidual(mid, eps, latitude, ramc).residual
+        if (loRes * midRes <= 0) {
+          hi = mid
+        } else {
+          lo = mid
+          loRes = midRes
+        }
+      }
+
+      const root = norm360((lo + hi) / 2)
+      // Confirm the root really sits on the western side (the eastern root is
+      // the Antivertex).
+      if (primeVerticalResidual(root, eps, latitude, ramc).west) return root
+    }
+
+    prevLambda = lambda
+    prev = curr
+  }
+
+  return null
+}
+
 /**
  * Calculate a full natal chart
  */
@@ -446,11 +595,13 @@ export function calculateNatalChart(input: AstrologyInput): NatalChart {
   const planetPositions: PlanetPosition[] = []
   const houseCusps: number[] = []
 
-  // Extract house cusps for house placement calculation
+  // Extract house cusps for house placement calculation.
+  // The library exposes a house's cusp as ChartPosition.StartPosition.Ecliptic —
+  // there is no ChartPosition.Ecliptic on a House, so reading that yields
+  // undefined and silently degrades every chart to 30° buckets from 0° Aries.
   if (hasBirthTime && horoscope.Houses) {
     for (let i = 0; i < 12; i++) {
-      const houseData = horoscope.Houses[i]
-      const cusp = houseData?.ChartPosition?.Ecliptic?.DecimalDegrees ?? (i * 30)
+      const cusp = houseCuspLongitude(horoscope.Houses[i], i)
       houseCusps.push(cusp)
     }
   }
@@ -514,10 +665,8 @@ export function calculateNatalChart(input: AstrologyInput): NatalChart {
     housePositions = []
 
     for (let i = 0; i < 12; i++) {
-      const houseData = horoscope.Houses[i]
       const house = getHouseByNumber(i + 1)
-      const cuspLongitude = houseData?.ChartPosition?.Ecliptic?.DecimalDegrees ?? (i * 30)
-      const cusp = createZodiacPosition(cuspLongitude)
+      const cusp = createZodiacPosition(houseCuspLongitude(horoscope.Houses[i], i))
 
       // Find planets in this house
       const planetsInHouse = planetPositions
@@ -549,6 +698,19 @@ export function calculateNatalChart(input: AstrologyInput): NatalChart {
     if (typeof mcLong === 'number') {
       midheaven = createZodiacPosition(mcLong)
       imumCoeli = createZodiacPosition((mcLong + 180) % 360)
+    }
+  }
+
+  // Vertex — needs the Midheaven (i.e. an exact time) and a usable latitude.
+  let vertex: ZodiacPosition | null = null
+  if (hasBirthTime && midheaven) {
+    const vertexLongitude = calculateVertexLongitude({
+      midheavenLongitude: midheaven.longitude,
+      latitude: input.latitude,
+      year,
+    })
+    if (vertexLongitude !== null) {
+      vertex = createZodiacPosition(vertexLongitude)
     }
   }
 
@@ -585,6 +747,7 @@ export function calculateNatalChart(input: AstrologyInput): NatalChart {
     midheaven,
     descendant,
     imumCoeli,
+    vertex,
     sunSign,
     moonSign,
     risingSign,

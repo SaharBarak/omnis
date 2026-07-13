@@ -19,8 +19,8 @@ describe('Oracle Calculations', () => {
       const oracle = calculateOracle(asKin(34))
       // Guide: Tone 8 -> offset 4 -> (14-1+4)%20+1 = 18 (Mirror)
       expect(oracle.guide).toBe(18)
-      // Analog: Wizard (14) <-> Moon (9)
-      expect(oracle.analog).toBe(9)
+      // Analog: seals sum to 19 -> Wizard (14) <-> Serpent (5)
+      expect(oracle.analog).toBe(5)
       // Antipode: (14-1+10)%20+1 = 4 (Seed)
       expect(oracle.antipode).toBe(4)
       // Occult: 21-14 = 7 (Hand)
@@ -30,18 +30,25 @@ describe('Oracle Calculations', () => {
     })
   })
 
-  describe('getAnalog (from DREAMSPELL_SPEC.md analog pairs)', () => {
+  // The analog rule: the two seals sum to 19 (mod 20, so 19<->20 wraps).
+  // These tests previously asserted a hand-written table citing
+  // "DREAMSPELL_SPEC.md" -- a file that does not exist in this repository. That
+  // table had no consistent sum (1<->17 sums to 18, 2<->19 to 21, 13<->20 to 33)
+  // and it violated the colour rule that defines analog: it mapped Red->Red and
+  // White->Blue, where analog must swap Red<->White and Blue<->Yellow.
+  // See docs/redesign/CONNECTION_ATLAS.md §3 and data/__analog-check.test.ts.
+  describe('getAnalog (seals sum to 19)', () => {
     const analogPairs: [number, number][] = [
-      [1, 17],   // Dragon <-> Earth
-      [2, 19],   // Wind <-> Storm
-      [3, 18],   // Night <-> Mirror
-      [4, 8],    // Seed <-> Star
-      [5, 10],   // Serpent <-> Dog
-      [6, 7],    // World-Bridger <-> Hand
-      [9, 14],   // Moon <-> Wizard
-      [11, 12],  // Monkey <-> Human
-      [13, 20],  // Skywalker <-> Sun
-      [15, 16],  // Eagle <-> Warrior
+      [1, 18],   // Dragon <-> Mirror
+      [2, 17],   // Wind <-> Earth
+      [3, 16],   // Night <-> Warrior
+      [4, 15],   // Seed <-> Eagle
+      [5, 14],   // Serpent <-> Wizard
+      [6, 13],   // Worldbridger <-> Skywalker
+      [7, 12],   // Hand <-> Human
+      [8, 11],   // Star <-> Monkey
+      [9, 10],   // Moon <-> Dog
+      [19, 20],  // Storm <-> Sun
     ]
 
     analogPairs.forEach(([a, b]) => {

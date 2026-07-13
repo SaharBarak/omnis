@@ -113,10 +113,10 @@ describe('Compatibility Service', () => {
     it('should detect analog connection', () => {
       // Create specific test: person2's seal should be person1's analog
       const p1Data = getPersonKinData('1987-07-26') // Seal 14 (Wizard)
-      const analogSeal = getAnalog(p1Data.seal) // Should be 9 (Moon)
+      const analogSeal = getAnalog(p1Data.seal) // Seals sum to 19: 14 -> 5 (Serpent)
 
       // Wizard (14) and Moon (9) are analogs per oracle-tables
-      expect(analogSeal).toBe(9) // Wizard's analog is Moon
+      expect(analogSeal).toBe(5) // Wizard (14) + Serpent (5) = 19
     })
 
     it('should detect antipode connection', () => {
@@ -414,30 +414,30 @@ describe('Compatibility Service', () => {
   describe('Specific Oracle Relationships', () => {
     // Test specific known relationships based on DREAMSPELL_SPEC.md
 
-    it('should detect Dragon-Earth analog pair', () => {
+    it('should detect Dragon-Mirror analog pair', () => {
       // Dragon (1) and Earth (17) are analogs
       // Need to find dates where seals are 1 and 17
       const dragonSeal = 1
-      const earthSeal = 17
+      const mirrorSeal = 18 // 1 + 18 = 19
 
       const analog = getAnalog(dragonSeal as any)
+      expect(analog).toBe(mirrorSeal)
+    })
+
+    it('should detect Wind-Earth analog pair', () => {
+      const windSeal = 2
+      const earthSeal = 17 // 2 + 17 = 19
+
+      const analog = getAnalog(windSeal as any)
       expect(analog).toBe(earthSeal)
     })
 
-    it('should detect Wind-Storm analog pair', () => {
-      const windSeal = 2
-      const stormSeal = 19
-
-      const analog = getAnalog(windSeal as any)
-      expect(analog).toBe(stormSeal)
-    })
-
-    it('should detect Seed-Star analog pair', () => {
+    it('should detect Seed-Eagle analog pair', () => {
       const seedSeal = 4
-      const starSeal = 8
+      const eagleSeal = 15 // 4 + 15 = 19
 
       const analog = getAnalog(seedSeal as any)
-      expect(analog).toBe(starSeal)
+      expect(analog).toBe(eagleSeal)
     })
 
     it('should calculate antipode correctly (seal + 10)', () => {

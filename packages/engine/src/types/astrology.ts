@@ -152,6 +152,10 @@ export interface NatalChart {
   readonly descendant: ZodiacPosition | null
   readonly imumCoeli: ZodiacPosition | null
 
+  // Vertex — ecliptic ∩ prime vertical (west). Requires exact time + latitude,
+  // and is undefined near the poles (|lat| > 66°), where it is null.
+  readonly vertex: ZodiacPosition | null
+
   // Quick reference
   readonly sunSign: ZodiacSign
   readonly moonSign: ZodiacSign

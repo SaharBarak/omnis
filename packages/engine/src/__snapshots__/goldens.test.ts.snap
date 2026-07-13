@@ -27,18 +27,18 @@ exports[`golden vectors — astrology > full natal chart is stable (timed, place
   },
   "aspectCount": 33,
   "houseCusps": [
-    "0°00' Aries",
-    "0°00' Taurus",
-    "0°00' Gemini",
-    "0°00' Cancer",
-    "0°00' Leo",
-    "0°00' Virgo",
-    "0°00' Libra",
-    "0°00' Scorpio",
-    "0°00' Sagittarius",
-    "0°00' Capricorn",
-    "0°00' Aquarius",
-    "0°00' Pisces",
+    "18°42' Aquarius",
+    "0°29' Aries",
+    "6°34' Taurus",
+    "3°16' Gemini",
+    "26°14' Gemini",
+    "19°37' Cancer",
+    "18°42' Leo",
+    "0°29' Libra",
+    "6°34' Scorpio",
+    "3°16' Sagittarius",
+    "26°14' Sagittarius",
+    "19°37' Capricorn",
   ],
   "midheaven": {
     "degree": 3,
@@ -65,7 +65,7 @@ exports[`golden vectors — astrology > full natal chart is stable (timed, place
   },
   "moon": {
     "dignity": "neutral",
-    "house": 7,
+    "house": 8,
     "planet": {
       "hebrew": "ירח",
       "id": "moon",
@@ -105,7 +105,7 @@ exports[`golden vectors — astrology > full natal chart is stable (timed, place
   },
   "sun": {
     "dignity": "domicile",
-    "house": 5,
+    "house": 7,
     "planet": {
       "hebrew": "שמש",
       "id": "sun",
@@ -214,7 +214,7 @@ exports[`golden vectors — dreamspell/tzolkin/long count > matches committed sn
     "kin": 34,
     "longCount": "12.18.14.4.0",
     "oracle": {
-      "analog": 9,
+      "analog": 5,
       "antipode": 4,
       "guide": 18,
       "occult": 7,
@@ -237,7 +237,7 @@ exports[`golden vectors — dreamspell/tzolkin/long count > matches committed sn
     "kin": 161,
     "longCount": "12.18.15.5.8",
     "oracle": {
-      "analog": 17,
+      "analog": 18,
       "antipode": 11,
       "guide": 9,
       "occult": 20,
@@ -260,7 +260,7 @@ exports[`golden vectors — dreamspell/tzolkin/long count > matches committed sn
     "kin": 191,
     "longCount": "12.18.17.9.18",
     "oracle": {
-      "analog": 12,
+      "analog": 8,
       "antipode": 1,
       "guide": 7,
       "occult": 10,
@@ -283,7 +283,7 @@ exports[`golden vectors — dreamspell/tzolkin/long count > matches committed sn
     "kin": 122,
     "longCount": "12.19.0.17.10",
     "oracle": {
-      "analog": 19,
+      "analog": 17,
       "antipode": 12,
       "guide": 10,
       "occult": 19,
@@ -306,7 +306,7 @@ exports[`golden vectors — dreamspell/tzolkin/long count > matches committed sn
     "kin": 51,
     "longCount": "12.19.2.17.0",
     "oracle": {
-      "analog": 12,
+      "analog": 8,
       "antipode": 1,
       "guide": 3,
       "occult": 10,
@@ -329,7 +329,7 @@ exports[`golden vectors — dreamspell/tzolkin/long count > matches committed sn
     "kin": 153,
     "longCount": "12.19.6.15.2",
     "oracle": {
-      "analog": 20,
+      "analog": 6,
       "antipode": 3,
       "guide": 1,
       "occult": 8,
@@ -352,7 +352,7 @@ exports[`golden vectors — dreamspell/tzolkin/long count > matches committed sn
     "kin": 211,
     "longCount": "12.19.7.0.1",
     "oracle": {
-      "analog": 12,
+      "analog": 8,
       "antipode": 1,
       "guide": 15,
       "occult": 10,
@@ -375,7 +375,7 @@ exports[`golden vectors — dreamspell/tzolkin/long count > matches committed sn
     "kin": 111,
     "longCount": "12.19.11.1.1",
     "oracle": {
-      "analog": 12,
+      "analog": 8,
       "antipode": 1,
       "guide": 3,
       "occult": 10,
@@ -398,7 +398,7 @@ exports[`golden vectors — dreamspell/tzolkin/long count > matches committed sn
     "kin": 112,
     "longCount": "12.19.11.1.3",
     "oracle": {
-      "analog": 11,
+      "analog": 7,
       "antipode": 2,
       "guide": 16,
       "occult": 9,
@@ -421,7 +421,7 @@ exports[`golden vectors — dreamspell/tzolkin/long count > matches committed sn
     "kin": 207,
     "longCount": "13.0.0.0.0",
     "oracle": {
-      "analog": 6,
+      "analog": 12,
       "antipode": 17,
       "guide": 19,
       "occult": 14,
@@ -444,7 +444,7 @@ exports[`golden vectors — dreamspell/tzolkin/long count > matches committed sn
     "kin": 30,
     "longCount": "13.0.13.4.6",
     "oracle": {
-      "analog": 5,
+      "analog": 9,
       "antipode": 20,
       "guide": 6,
       "occult": 11,
@@ -467,7 +467,7 @@ exports[`golden vectors — dreamspell/tzolkin/long count > matches committed sn
     "kin": 218,
     "longCount": "12.17.15.17.0",
     "oracle": {
-      "analog": 3,
+      "analog": 1,
       "antipode": 8,
       "guide": 6,
       "occult": 3,
@@ -490,7 +490,7 @@ exports[`golden vectors — dreamspell/tzolkin/long count > matches committed sn
     "kin": 162,
     "longCount": "12.17.1.6.0",
     "oracle": {
-      "analog": 19,
+      "analog": 17,
       "antipode": 12,
       "guide": 2,
       "occult": 19,
@@ -513,7 +513,7 @@ exports[`golden vectors — dreamspell/tzolkin/long count > matches committed sn
     "kin": 124,
     "longCount": "13.0.12.14.0",
     "oracle": {
-      "analog": 8,
+      "analog": 15,
       "antipode": 14,
       "guide": 16,
       "occult": 17,
