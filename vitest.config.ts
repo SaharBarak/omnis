@@ -12,6 +12,9 @@ export default defineConfig({
       'src/**/*.test.{ts,tsx}',
       'packages/engine/src/**/*.test.ts',
       'packages/api-client/src/**/*.test.ts',
+      // Mobile: only pure modules (no React Native imports) — this runner has
+      // no RN transform, so anything importing `react-native` must not be here.
+      'packages/mobile/src/lib/auth/jwt.test.ts',
     ],
     css: false,
     coverage: {

@@ -16,5 +16,14 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    // Tests run in the root vitest (node) env, not the RN runtime, and are
+    // typechecked there. Keeping them out of the app tsconfig means the app
+    // never has to pull in node types just to satisfy a test helper.
+    "**/*.test.ts",
+    "**/*.test.tsx"
   ]
 }

@@ -280,37 +280,18 @@ export default function SettingsScreen() {
     ])
   }
 
-  const cancelPlan = () => {
-    Alert.alert(
-      'Cancel your plan?',
-      'It stays active until the end of the period, then returns to Free.',
-      [
-        { text: 'Keep it', style: 'cancel' },
-        {
-          text: 'Cancel plan',
-          style: 'destructive',
-          onPress: () => {
-            setBillingBusy(true)
-            api.billing
-              .cancelSubscription()
-              .then((result) => showToast(result.message))
-              .catch(() => showToast("The cancellation didn't go through. Try again."))
-              .finally(() => {
-                setBillingBusy(false)
-                void queryClient.invalidateQueries({ queryKey: ['subscription'] })
-              })
-          },
-        },
-      ]
-    )
-  }
-
-  const reactivatePlan = () => {
+  /**
+   * The App Store / Google Play own the subscription lifecycle — cancelling and
+   * resuming happen in the OS subscription settings, not here. This resolves the
+   * store's management deep link; whatever the user changes there flows back to
+   * us through the billing webhook.
+   */
+  const manageSubscription = () => {
     setBillingBusy(true)
     api.billing
-      .reactivateSubscription()
-      .then((result) => showToast(result.message))
-      .catch(() => showToast("The reactivation didn't go through. Try again."))
+      .portal()
+      .then(({ url }) => Linking.openURL(url))
+      .catch(() => showToast("Couldn't open your subscription settings."))
       .finally(() => {
         setBillingBusy(false)
         void queryClient.invalidateQueries({ queryKey: ['subscription'] })
@@ -511,13 +492,10 @@ export default function SettingsScreen() {
         >
           See plans
         </Button>
-        {sub.hasPaddleSubscription && !sub.cancelAtPeriodEnd && (
-          <LinkRow label="Cancel plan" destructive onPress={cancelPlan} last />
-        )}
-        {sub.hasPaddleSubscription && sub.cancelAtPeriodEnd && (
+        {sub.hasSubscription && (
           <LinkRow
-            label={billingBusy ? 'Reactivating…' : 'Reactivate plan'}
-            onPress={reactivatePlan}
+            label={billingBusy ? 'Opening…' : 'Manage subscription'}
+            onPress={manageSubscription}
             last
           />
         )}

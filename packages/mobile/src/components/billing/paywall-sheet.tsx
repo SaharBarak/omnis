@@ -1,34 +1,39 @@
-import type { PaidPlanTier, PlanTier, Subscription } from '@pleiad/api-client'
+import type { PlanTier, Subscription } from '@pleiad/api-client'
 import { useQueryClient } from '@tanstack/react-query'
 import * as Haptics from 'expo-haptics'
-import * as WebBrowser from 'expo-web-browser'
 import { XIcon } from 'phosphor-react-native'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
-  Clipboard,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native'
+import type { PurchasesOffering, PurchasesPackage } from 'react-native-purchases'
 import Animated, { FadeIn, SlideInDown, useReducedMotion } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Button, Divider, Eyebrow } from '@/components/ui/primitives'
 import { api, useSubscription } from '@/lib/api'
-import { ENV } from '@/lib/env'
+import {
+  getOffering,
+  isPurchasesConfigured,
+  purchase,
+  restore,
+} from '@/lib/billing/purchases'
 import { showToast } from '@/lib/toast'
 import { COLORS, DURATION, FONTS, RADII, SPACE, SPRING, TYPE } from '@/theme/tokens'
 
 /**
- * S18 paywall — F11. Trigger-specific headline, the five-tier ladder with
- * the §6 feature ledger, and platform-split checkout: Android (or the
- * EXPO_PUBLIC_IOS_CHECKOUT TestFlight flag) opens the Paddle hosted page and
- * polls the subscription until the plan flips; production iOS follows the
- * App Store reader pattern — no checkout button, copy the web pricing link.
+ * S18 paywall — F11. Trigger-specific headline, the five-tier ladder with the
+ * §6 feature ledger, and a real in-app purchase.
+ *
+ * The App Store / Google Play are the merchant of record. On success we ask the
+ * server for a forced re-sync, which re-fetches the entitlement straight from
+ * RevenueCat — so the plan flips immediately rather than racing the webhook,
+ * and the same purchase unlocks the user's account on the web.
  *
  * Client checks are UX only; the server 403 limit_exceeded is the truth.
  */
@@ -175,11 +180,26 @@ const LEDGER_ROWS: ReadonlyArray<{ key: keyof TierLedger; label: string }> = [
 /** Gold — the ONE gold accent, reserved for the recommended tier. */
 const GOLD = '#C9A227'
 
-const POLL_TRIES = 10
-const POLL_INTERVAL_MS = 3000
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+/**
+ * Resolve the RevenueCat package backing a tier.
+ *
+ * Convention: each package in the RevenueCat offering is given an identifier
+ * equal to the plan tier ('explorer' | 'complete' | 'practitioner' |
+ * 'lifetime') — the same names as the entitlements the server maps back to
+ * plans. The product-id fallback keeps an offering that was configured with
+ * RevenueCat's default package identifiers ($rc_monthly, …) working too.
+ */
+function findPackage(
+  offering: PurchasesOffering,
+  plan: PlanTier
+): PurchasesPackage | null {
+  return (
+    offering.availablePackages.find((p) => p.identifier === plan) ??
+    offering.availablePackages.find((p) =>
+      p.product.identifier.includes(plan)
+    ) ??
+    null
+  )
 }
 
 function meterLine(label: string, used: number, limit: number | null): string {
@@ -254,52 +274,87 @@ export function PaywallSheet({
   const subscription = useSubscription()
 
   const [selected, setSelected] = useState<PlanTier>('complete')
-  const [phase, setPhase] = useState<'idle' | 'opening' | 'polling'>('idle')
+  const [phase, setPhase] = useState<'idle' | 'purchasing' | 'restoring'>('idle')
+  const [offering, setOffering] = useState<PurchasesOffering | null>(null)
 
   const currentPlan = subscription.data?.plan ?? 'free'
   const planName = subscription.data?.planName ?? 'Free'
   const profileLimit = subscription.data?.usage.profiles.limit ?? 3
 
   const copy = TRIGGER_COPY[trigger]
-  const canCheckout = Platform.OS === 'android' || ENV.iosCheckout
-  const checkoutDisabled =
-    selected === 'free' || selected === currentPlan || phase !== 'idle'
+  const purchasable = isPurchasesConfigured()
 
-  const startCheckout = async () => {
-    if (selected === 'free' || phase !== 'idle') return
-    const plan = selected as PaidPlanTier
-    setPhase('opening')
+  // Load the offering when the sheet opens (products come from the store).
+  useEffect(() => {
+    if (!visible || !purchasable) return
+    let cancelled = false
+    void getOffering()
+      .then((current) => {
+        if (!cancelled) setOffering(current)
+      })
+      .catch(() => {
+        // Leave `offering` null — the CTA falls back to a disabled state.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [visible, purchasable])
+
+  const selectedPackage =
+    offering !== null && selected !== 'free'
+      ? findPackage(offering, selected)
+      : null
+
+  const buyDisabled =
+    selected === 'free' ||
+    selected === currentPlan ||
+    phase !== 'idle' ||
+    selectedPackage === null
+
+  /** Pull the server's view forward: it re-fetches RevenueCat, so no webhook race. */
+  const syncPlanFromServer = async (): Promise<Subscription> => {
+    const fresh = await api.billing.getSubscription({ refresh: true })
+    queryClient.setQueryData(['subscription'], fresh)
+    await queryClient.invalidateQueries({ queryKey: ['subscription'] })
+    return fresh
+  }
+
+  const buy = async () => {
+    if (selectedPackage === null || phase !== 'idle') return
+    setPhase('purchasing')
     try {
-      const { url } = await api.billing.checkout(plan)
-      await WebBrowser.openBrowserAsync(url)
+      const entitlements = await purchase(selectedPackage)
+      if (entitlements === null) return // user cancelled — not an error
 
-      // Back from the browser — Paddle's webhook is the truth; poll until
-      // the plan flips or we give up quietly.
-      setPhase('polling')
-      for (let attempt = 0; attempt < POLL_TRIES; attempt += 1) {
-        const fresh = await api.billing.getSubscription({ refresh: true })
-        if (fresh.plan !== currentPlan && fresh.plan !== 'free') {
-          queryClient.setQueryData(['subscription'], fresh)
-          await queryClient.invalidateQueries({ queryKey: ['subscription'] })
-          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-          onClose()
-          showToast(`Welcome to ${fresh.planName}.`)
-          return
-        }
-        await delay(POLL_INTERVAL_MS)
-      }
-      showToast('Checkout is still settling — your plan updates shortly.')
-      void queryClient.invalidateQueries({ queryKey: ['subscription'] })
+      const fresh = await syncPlanFromServer()
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      onClose()
+      showToast(`Welcome to ${fresh.planName}.`)
     } catch {
-      showToast("Checkout couldn't open. Try again.")
+      showToast("That purchase didn't go through. Nothing was charged.")
     } finally {
       setPhase('idle')
     }
   }
 
-  const copyPricingLink = () => {
-    Clipboard.setString(`${ENV.apiUrl}/pricing`)
-    showToast('Pricing link copied.')
+  /** App Store requires a visible way to re-apply an existing purchase. */
+  const restorePurchases = async () => {
+    if (phase !== 'idle') return
+    setPhase('restoring')
+    try {
+      const entitlements = await restore()
+      const fresh = await syncPlanFromServer()
+      if (entitlements.length === 0 && fresh.plan === 'free') {
+        showToast('No previous purchase found on this store account.')
+        return
+      }
+      onClose()
+      showToast(`Restored — you're on ${fresh.planName}.`)
+    } catch {
+      showToast("Couldn't restore purchases. Try again.")
+    } finally {
+      setPhase('idle')
+    }
   }
 
   return (
@@ -386,26 +441,38 @@ export function PaywallSheet({
               })}
             </View>
 
-            {canCheckout ? (
+            {purchasable ? (
               <>
-                <Button onPress={() => void startCheckout()} disabled={checkoutDisabled}>
-                  {phase === 'opening'
-                    ? 'Opening checkout…'
-                    : phase === 'polling'
-                      ? 'Confirming your plan…'
-                      : 'Continue to checkout'}
+                <Button onPress={() => void buy()} disabled={buyDisabled}>
+                  {phase === 'purchasing'
+                    ? 'Confirming your plan…'
+                    : selectedPackage !== null
+                      ? `Get ${selectedPackage.product.priceString}`
+                      : 'Continue'}
                 </Button>
+
                 {selected === currentPlan && selected !== 'free' && (
                   <Text style={styles.note}>THIS IS ALREADY YOUR PLAN</Text>
                 )}
+                {offering === null && (
+                  <Text style={styles.note}>LOADING PLANS…</Text>
+                )}
+
+                <Button
+                  variant="secondary"
+                  onPress={() => void restorePurchases()}
+                  disabled={phase !== 'idle'}
+                >
+                  {phase === 'restoring' ? 'Restoring…' : 'Restore purchases'}
+                </Button>
+
+                <Text style={styles.note}>
+                  BILLED BY THE APP STORE · CANCEL ANY TIME IN YOUR SUBSCRIPTION
+                  SETTINGS
+                </Text>
               </>
             ) : (
-              <>
-                <Text style={styles.note}>MANAGE YOUR PLAN ON THE WEB</Text>
-                <Button variant="secondary" onPress={copyPricingLink}>
-                  Copy link
-                </Button>
-              </>
+              <Text style={styles.note}>PURCHASES AREN&apos;T AVAILABLE HERE YET</Text>
             )}
           </ScrollView>
         </Animated.View>

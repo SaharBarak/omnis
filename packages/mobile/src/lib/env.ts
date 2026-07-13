@@ -15,11 +15,12 @@ export const ENV = {
   /** Origin of the Pleiad API. */
   apiUrl: process.env.EXPO_PUBLIC_API_URL ?? DEFAULT_API_URL,
   /**
-   * TestFlight escape hatch (F11): '1' lets iOS builds use the Android
-   * hosted-checkout path. Production iOS ships without it — the paywall
-   * shows the App Store reader pattern (copy the web pricing link) instead.
+   * RevenueCat public SDK keys (per platform). Paid plans are in-app purchases
+   * — the stores are the merchant of record. Safe to ship in the bundle: these
+   * are public keys; the secret key lives only on the server.
    */
-  iosCheckout: process.env.EXPO_PUBLIC_IOS_CHECKOUT === '1',
+  revenueCatIosKey: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? '',
+  revenueCatAndroidKey: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY ?? '',
 } as const
 
 /** True when the Auth0 vars required for sign-in are all present. */
