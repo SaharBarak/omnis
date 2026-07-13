@@ -257,15 +257,11 @@ export interface Subscription {
   status: SubscriptionStatus
   currentPeriodEnd: string | null | undefined
   cancelAtPeriodEnd: boolean
-  hasPaddleSubscription: boolean
+  hasSubscription: boolean
   usage: UsageSummary
   features: PlanFeatures
 }
 
-export interface BillingActionResult {
-  success: boolean
-  message: string
-}
 
 // ---------------------------------------------------------------------------
 // Boards (v1 read-only on mobile)

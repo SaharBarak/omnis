@@ -65,7 +65,8 @@ export default function PrivacyPage() {
             <ul className="list-disc pl-6 space-y-1">
               <li><strong>Auth0:</strong> Authentication and sign-in</li>
               <li><strong>Supabase:</strong> Database and secure data storage</li>
-              <li><strong>Paddle:</strong> Payment processing and merchant of record (billing, tax)</li>
+              <li><strong>Apple App Store / Google Play:</strong> Payment processing and merchant of record for in-app purchases (billing, tax, refunds)</li>
+              <li><strong>RevenueCat:</strong> Purchase and subscription status, so your plan unlocks on every device</li>
               <li><strong>Resend:</strong> Transactional and newsletter email delivery</li>
               <li><strong>PostHog:</strong> Privacy-respecting product analytics</li>
               <li><strong>Cloudflare:</strong> Hosting, content delivery, and bot protection</li>

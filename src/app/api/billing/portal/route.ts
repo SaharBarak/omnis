@@ -1,38 +1,36 @@
 /**
  * Billing Portal API
- * Creates a Paddle customer portal session for self-service management.
+ * Returns the deep link where the caller manages or cancels their purchase.
  *
- * USER context: reads the caller's own paddle_customer_id, scoped by
- * requireUserId().
+ * Paid access is an in-app purchase, so the store owns the subscription
+ * lifecycle — this resolves to the OS subscription-management screen
+ * (RevenueCat's `management_url`), not a hosted vendor portal. Any change the
+ * user makes there flows back through the billing webhook.
+ *
+ * USER context: scoped by requireUserId(); a caller can only ever resolve their
+ * own management URL.
  */
 
 import { NextResponse } from 'next/server'
 import { requireUserId } from '@/lib/auth-server'
 import { handleApiError } from '@/lib/api/respond'
-import { getSubscription } from '@/lib/db/repositories/subscriptions-repo'
-import { createPortalSession } from '@/lib/services/billing'
+import { getBillingProvider } from '@/lib/services/billing-provider'
 
 export async function POST() {
   try {
     const userId = await requireUserId()
 
-    // Get the caller's own subscription (for its Paddle customer id)
-    const subscription = await getSubscription(userId)
+    const provider = await getBillingProvider()
+    const url = await provider.getManagementUrl(userId)
 
-    if (!subscription?.paddle_customer_id) {
+    if (!url) {
+      // No store purchase to manage (free user, or the purchase was made on a
+      // platform that does not expose a management URL).
       return NextResponse.json(
-        { error: 'No active subscription found' },
+        { error: 'No manageable subscription found' },
         { status: 404 }
       )
     }
-
-    // Create Paddle customer portal session, scoped to the caller's subscription
-    const { url } = await createPortalSession(
-      subscription.paddle_customer_id,
-      subscription.paddle_subscription_id
-        ? [subscription.paddle_subscription_id]
-        : []
-    )
 
     return NextResponse.json({ url })
   } catch (error) {

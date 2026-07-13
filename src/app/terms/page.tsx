@@ -91,19 +91,23 @@ export default function TermsPage() {
 
             <h2 className="text-lg font-semibold mt-6 mb-3">8. Payments, Billing &amp; Fulfillment</h2>
             <p>
-              Paid plans are billed through our merchant of record,{' '}
-              <strong>Paddle.com</strong>, who handles payment processing, invoicing, and
-              applicable sales tax/VAT. Pleiad is a digital service: access to purchased
-              features is provisioned to your account immediately upon successful payment,
-              with no physical goods shipped. Subscriptions renew automatically until
-              cancelled; you may cancel at any time from your billing settings.
+              Paid plans are sold as in-app purchases through the{' '}
+              <strong>Apple App Store</strong> and <strong>Google Play</strong>, which act as
+              the merchant of record and handle payment processing, receipts, and applicable
+              sales tax/VAT. Pleiad is a digital service: access to purchased features is
+              provisioned to your account immediately upon successful payment, with no
+              physical goods shipped. Your paid plan unlocks Pleiad on the web as well, on the
+              same account you signed in with. Subscriptions renew automatically until
+              cancelled; you may cancel at any time from your device&rsquo;s subscription
+              settings.
             </p>
 
             <h2 className="text-lg font-semibold mt-6 mb-3">9. Refunds</h2>
             <p>
               Refunds are governed by our{' '}
-              <Link href="/refund">Refund Policy</Link>, which includes a 14-day
-              money-back guarantee on new purchases. Requests are processed through Paddle.
+              <Link href="/refund">Refund Policy</Link>. Because the App Store and Google Play
+              are the merchant of record, refund requests are made to and decided by Apple or
+              Google under their own policies.
             </p>
 
             <h2 className="text-lg font-semibold mt-6 mb-3">10. Indemnification</h2>

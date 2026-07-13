@@ -14,10 +14,11 @@ import { serialize } from '@/lib/db/serialize'
  * (Auth0 sub from `requireUserId()`) and filter by `user_id === userId`.
  * NEVER pass an owner id sourced from client input.
  *
- * The ONLY exception is {@link updateByPaddleCustomerId} /
- * {@link updateByPaddleSubscriptionId}, which run in SYSTEM context for the
- * Paddle webhook (authenticated by the Paddle signature, not a user session)
- * and therefore key off Paddle identifiers instead of an owner filter.
+ * The ONLY exception is {@link upsertSubscriptionByUserId}, which runs in
+ * SYSTEM context for the billing webhook (authenticated by the provider's
+ * verified webhook secret, not a user session). It is still keyed by `user_id`:
+ * the provider's customer id IS our user id (RevenueCat `app_user_id` === Auth0
+ * sub), so there is no provider-side identifier to resolve against.
  */
 
 export type SubscriptionPlan =
@@ -41,8 +42,10 @@ export interface SubscriptionRow {
   user_id: string
   plan: SubscriptionPlan
   status: SubscriptionStatus
-  paddle_customer_id: string | null
-  paddle_subscription_id: string | null
+  /** Which provider wrote this row (e.g. 'revenuecat'). */
+  billing_provider: string | null
+  billing_customer_id: string | null
+  billing_subscription_id: string | null
   current_period_start: string | null
   current_period_end: string | null
   cancel_at_period_end: boolean
@@ -73,8 +76,9 @@ export type UsageMetric =
 export interface SubscriptionWriteInput {
   plan?: SubscriptionPlan
   status?: SubscriptionStatus
-  paddle_customer_id?: string | null
-  paddle_subscription_id?: string | null
+  billing_provider?: string | null
+  billing_customer_id?: string | null
+  billing_subscription_id?: string | null
   current_period_start?: string | Date | null
   current_period_end?: string | Date | null
   cancel_at_period_end?: boolean
@@ -179,69 +183,17 @@ export async function getUserPlan(userId: string): Promise<SubscriptionPlan> {
 }
 
 // =============================================================================
-// SUBSCRIPTIONS — SYSTEM context (Paddle webhook only)
+// SUBSCRIPTIONS — SYSTEM context (billing webhook only)
 // =============================================================================
 //
-// These functions DO NOT filter by an owner id. They are reachable only from
-// the Paddle webhook handler, which is authenticated by the verified Paddle
-// signature (not a user session). They key off Paddle identifiers carried in
-// the verified event payload. Do not call them from user-facing routes.
+// Reachable only from the billing webhook handler, which is authenticated by
+// the provider's verified webhook secret (not a user session). Do not call from
+// user-facing routes.
 
 /**
- * SYSTEM context. Read the subscription row matching a Paddle subscription id.
- * Used by the webhook sync to check the current local plan (e.g. the lifetime
- * guard) before overwriting state from Paddle.
- */
-export async function getByPaddleSubscriptionId(
-  subscriptionId: string
-): Promise<SubscriptionRow | null> {
-  const db = getDb()
-  const [row] = await db
-    .select()
-    .from(subscriptions)
-    .where(eq(subscriptions.paddle_subscription_id, subscriptionId))
-    .limit(1)
-  return row ? serialize<SubscriptionRow>(row) : null
-}
-
-/**
- * SYSTEM context. Update the subscription matching a Paddle customer id.
- * Returns true if a row was matched.
- */
-export async function updateByPaddleCustomerId(
-  customerId: string,
-  data: SubscriptionWriteInput
-): Promise<boolean> {
-  const db = getDb()
-  const rows = await db
-    .update(subscriptions)
-    .set(toWrite(data))
-    .where(eq(subscriptions.paddle_customer_id, customerId))
-    .returning({ id: subscriptions.id })
-  return rows.length > 0
-}
-
-/**
- * SYSTEM context. Update the subscription matching a Paddle subscription id.
- * Returns true if a row was matched.
- */
-export async function updateByPaddleSubscriptionId(
-  subscriptionId: string,
-  data: SubscriptionWriteInput
-): Promise<boolean> {
-  const db = getDb()
-  const rows = await db
-    .update(subscriptions)
-    .set(toWrite(data))
-    .where(eq(subscriptions.paddle_subscription_id, subscriptionId))
-    .returning({ id: subscriptions.id })
-  return rows.length > 0
-}
-
-/**
- * SYSTEM context. Upsert a subscription keyed by `user_id` taken from verified
- * Paddle transaction/subscription custom data. Mirrors the prior
- * upsert-on-conflict(user_id) behavior.
+ * SYSTEM context. Upsert a subscription keyed by `user_id`, taken from a
+ * verified webhook event. The provider's customer id IS the user id (RevenueCat
+ * `app_user_id` === Auth0 sub), so no provider-side lookup is needed.
  */
 export async function upsertSubscriptionByUserId(
   userId: string,

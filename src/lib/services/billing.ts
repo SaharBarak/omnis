@@ -1,41 +1,24 @@
 /**
- * Billing Service — Paddle Integration
- * Handles subscriptions, checkout, and billing management.
+ * Billing Service — plans and entitlements.
  *
- * Paddle is the merchant of record. Checkout is a hosted Paddle transaction;
- * subscription lifecycle is reconciled via verified Paddle webhooks. Plan tiers
- * and entitlements below are billing-provider agnostic.
+ * Provider-free by design. Paid access is sold exclusively as an in-app
+ * purchase through the App Store / Google Play; the stores are the merchant of
+ * record. Entitlements are mirrored into our `subscriptions` table by the
+ * billing provider (see `billing-provider.ts`), and the web app gates on that
+ * table via `usage.ts`. Nothing here knows or cares which provider wrote it.
+ *
+ * RevenueCat entitlement identifiers are configured to match these plan tiers
+ * exactly (`explorer` | `complete` | `practitioner` | `lifetime`), which is what
+ * makes {@link getPlanFromEntitlementId} a straight lookup.
  */
-
-import {
-  Paddle,
-  Environment,
-  type Subscription as PaddleSubscription,
-} from '@paddle/paddle-node-sdk'
-
-// Lazy-initialized Paddle client
-let _paddle: Paddle | null = null
-
-function getPaddleClient(): Paddle {
-  if (!_paddle) {
-    const apiKey = process.env.PADDLE_API_KEY
-    if (!apiKey) {
-      throw new Error('PADDLE_API_KEY is not set')
-    }
-    const environment =
-      process.env.PADDLE_ENV === 'production'
-        ? Environment.production
-        : Environment.sandbox
-    _paddle = new Paddle(apiKey, { environment })
-  }
-  return _paddle
-}
 
 // Plan types
 export type PlanTier = 'free' | 'explorer' | 'complete' | 'practitioner' | 'lifetime'
 
-// Plans that can be purchased through Paddle checkout.
-// 'lifetime' is a one-time transaction (no billing_cycle), not a subscription.
+/**
+ * Plans that can be purchased. 'lifetime' is a one-time (non-consumable)
+ * purchase rather than a renewing subscription.
+ */
 export type PaidPlanTier = Exclude<PlanTier, 'free'>
 
 export const PAID_PLAN_TIERS: readonly PaidPlanTier[] = [
@@ -57,13 +40,16 @@ export type SubscriptionStatus =
   | 'canceled'
   | 'incomplete'
 
-// Plan configuration
+// Plan configuration.
+// `storeProductId` is the App Store / Play product identifier backing the tier.
+// It is informational here (the paywall renders RevenueCat Offerings); plan
+// resolution keys off the entitlement identifier, not the product id.
 export const PLANS = {
   free: {
     name: 'Free',
     price: 0,
     priceILS: 0,
-    paddlePriceId: null,
+    storeProductId: null,
     limits: {
       profiles: 3,
       systems: ['dreamspell'] as string[],
@@ -80,7 +66,7 @@ export const PLANS = {
     name: 'Explorer',
     price: 5,
     priceILS: 18,
-    paddlePriceId: process.env.PADDLE_PRICE_EXPLORER,
+    storeProductId: process.env.STORE_PRODUCT_EXPLORER,
     limits: {
       // The whole map at small scale: every system, a few people, no AI.
       profiles: 5,
@@ -98,7 +84,7 @@ export const PLANS = {
     name: 'Complete',
     price: 9,
     priceILS: 33,
-    paddlePriceId: process.env.PADDLE_PRICE_COMPLETE,
+    storeProductId: process.env.STORE_PRODUCT_COMPLETE,
     limits: {
       profiles: 10,
       systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria'],
@@ -115,7 +101,7 @@ export const PLANS = {
     name: 'Practitioner',
     price: 29,
     priceILS: 107,
-    paddlePriceId: process.env.PADDLE_PRICE_PRACTITIONER,
+    storeProductId: process.env.STORE_PRODUCT_PRACTITIONER,
     limits: {
       profiles: Infinity,
       systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria'],
@@ -134,7 +120,7 @@ export const PLANS = {
     name: 'Founding Lifetime',
     price: 79,
     priceILS: 292,
-    paddlePriceId: process.env.PADDLE_PRICE_LIFETIME,
+    storeProductId: process.env.STORE_PRODUCT_LIFETIME,
     limits: {
       profiles: 10,
       systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria'],
@@ -151,142 +137,40 @@ export const PLANS = {
 
 export type PlanLimits = typeof PLANS['free']['limits']
 
-export interface SubscriptionData {
-  userId: string
-  plan: PlanTier
-  status: SubscriptionStatus
-  paddleCustomerId?: string
-  paddleSubscriptionId?: string
-  currentPeriodStart?: Date
-  currentPeriodEnd?: Date
-  cancelAtPeriodEnd?: boolean
+/**
+ * Precedence when a customer somehow holds more than one active entitlement
+ * (e.g. an upgrade mid-period, or a lifetime purchase alongside a live
+ * subscription). Highest wins.
+ */
+const PLAN_RANK: Record<PlanTier, number> = {
+  free: 0,
+  explorer: 1,
+  complete: 2,
+  lifetime: 3,
+  practitioner: 4,
 }
 
-/**
- * Get or create a Paddle customer for a user, keyed by email and tagged with
- * the Pleiad user id in custom data.
- */
-export async function getOrCreatePaddleCustomer(
-  userId: string,
-  email: string,
-  name?: string
-): Promise<string> {
-  const paddle = getPaddleClient()
-
-  // Paddle enforces unique customer emails — reuse if present.
-  const existing = paddle.customers.list({ email: [email] })
-  for await (const customer of existing) {
-    if (customer.email === email) return customer.id
-  }
-
-  const created = await paddle.customers.create({
-    email,
-    name: name || undefined,
-    customData: { omnis_user_id: userId },
-  })
-  return created.id
+export function planRank(plan: PlanTier): number {
+  return PLAN_RANK[plan]
 }
 
-/**
- * Create a hosted Paddle checkout transaction for a paid plan.
- * Works for both recurring prices (subscription tiers) and one-time prices
- * ('lifetime' — no billing_cycle, so Paddle treats it as a plain transaction).
- * Returns the hosted checkout URL (null if Paddle did not provide one).
- */
-export async function createCheckoutTransaction(
-  userId: string,
-  email: string,
-  plan: PaidPlanTier
-): Promise<{ url: string | null }> {
-  const priceId = PLANS[plan].paddlePriceId
-  if (!priceId) {
-    throw new Error(`No Paddle price configured for plan: ${plan}`)
-  }
-
-  const customerId = await getOrCreatePaddleCustomer(userId, email)
-  const transaction = await getPaddleClient().transactions.create({
-    items: [{ priceId, quantity: 1 }],
-    customerId,
-    customData: { omnis_user_id: userId, omnis_plan: plan },
-  })
-
-  return { url: transaction.checkout?.url ?? null }
-}
-
-/**
- * Create a Paddle customer portal session for self-service management.
- */
-export async function createPortalSession(
-  paddleCustomerId: string,
-  subscriptionIds: string[] = []
-): Promise<{ url: string }> {
-  const session = await getPaddleClient().customerPortalSessions.create(
-    paddleCustomerId,
-    subscriptionIds
+/** Pick the strongest of a set of plan tiers. */
+export function highestPlan(plans: readonly PlanTier[]): PlanTier {
+  return plans.reduce<PlanTier>(
+    (best, p) => (planRank(p) > planRank(best) ? p : best),
+    'free'
   )
-  return { url: session.urls.general.overview }
 }
 
 /**
- * Cancel a subscription at the end of the current billing period.
+ * Map a store/RevenueCat entitlement identifier to our internal plan tier.
+ * Entitlements are named after the tiers, so this is a guarded lookup.
  */
-export async function cancelSubscription(
-  paddleSubscriptionId: string
-): Promise<PaddleSubscription> {
-  return getPaddleClient().subscriptions.cancel(paddleSubscriptionId, {
-    effectiveFrom: 'next_billing_period',
-  })
-}
-
-/**
- * Reactivate a subscription scheduled to cancel by clearing the scheduled change.
- */
-export async function reactivateSubscription(
-  paddleSubscriptionId: string
-): Promise<PaddleSubscription> {
-  return getPaddleClient().subscriptions.update(paddleSubscriptionId, {
-    scheduledChange: null,
-  })
-}
-
-/**
- * Verify and unmarshal a Paddle webhook into a typed event.
- */
-export async function unmarshalWebhookEvent(
-  rawBody: string,
-  signature: string
-) {
-  const secret = process.env.PADDLE_WEBHOOK_SECRET
-  if (!secret) {
-    throw new Error('PADDLE_WEBHOOK_SECRET not configured')
-  }
-  return getPaddleClient().webhooks.unmarshal(rawBody, secret, signature)
-}
-
-/** Map a Paddle price id to our internal plan tier. */
-export function getPlanFromPriceId(priceId: string | undefined | null): PlanTier {
-  if (!priceId) return 'free'
-  if (priceId === PLANS.explorer.paddlePriceId) return 'explorer'
-  if (priceId === PLANS.complete.paddlePriceId) return 'complete'
-  if (priceId === PLANS.practitioner.paddlePriceId) return 'practitioner'
-  if (priceId === PLANS.lifetime.paddlePriceId) return 'lifetime'
-  return 'free'
-}
-
-/** Map a Paddle subscription status to our internal status enum. */
-export function mapPaddleStatus(status: string): SubscriptionStatus {
-  switch (status) {
-    case 'active':
-      return 'active'
-    case 'trialing':
-      return 'trialing'
-    case 'past_due':
-      return 'past_due'
-    case 'canceled':
-      return 'canceled'
-    default:
-      return 'incomplete'
-  }
+export function getPlanFromEntitlementId(
+  entitlementId: string | undefined | null
+): PlanTier {
+  if (!entitlementId) return 'free'
+  return isPaidPlanTier(entitlementId) ? entitlementId : 'free'
 }
 
 /**
@@ -311,5 +195,3 @@ export function isPlanFeatureAvailable(
 export function getPlanLimits(plan: PlanTier) {
   return PLANS[plan].limits
 }
-
-export { getPaddleClient as paddle }

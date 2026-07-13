@@ -1,184 +1,106 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 import { POST } from './route'
 
 /**
- * Webhook route semantics tests (failure visibility):
- * - non-2xx on real processing failures so Paddle retries
- * - 2xx on deliberately ignored events and permanently unresolvable ones
- * - 400 on missing/invalid signatures
+ * Webhook route semantics (failure visibility):
+ * - 401 when the provider rejects the signature/secret
+ * - 500 on real processing failures so the provider retries
+ * - 200 once every affected user has been re-synced, and on permanently
+ *   unresolvable events so the provider stops redelivering
+ * - a TRANSFER event re-syncs both sides
  */
 
 const mocks = vi.hoisted(() => ({
-  headerGet: vi.fn(),
-  verify: vi.fn(),
+  verifyWebhook: vi.fn(),
   sync: vi.fn(),
-  unmarshal: vi.fn(),
-  upsertByUserId: vi.fn(),
 }))
 
-vi.mock('next/headers', () => ({
-  headers: async () => ({ get: mocks.headerGet }),
-}))
-
-vi.mock('@/lib/services/billing', () => ({
-  unmarshalWebhookEvent: mocks.unmarshal,
-  getPlanFromPriceId: (priceId?: string | null) =>
-    priceId === 'pri_lifetime' ? 'lifetime' : 'free',
+vi.mock('@/lib/services/billing-provider', () => ({
+  getBillingProvider: async () => ({
+    name: 'revenuecat',
+    verifyWebhook: mocks.verifyWebhook,
+  }),
 }))
 
 vi.mock('@/lib/services/subscription-sync', () => ({
-  verifyPaddleWebhookSignature: mocks.verify,
-  syncPaddleSubscription: mocks.sync,
-}))
-
-vi.mock('@/lib/db/repositories/subscriptions-repo', () => ({
-  upsertSubscriptionByUserId: mocks.upsertByUserId,
-}))
-
-// IP allowlisting is a separate defense-in-depth layer with its own tests in
-// src/lib/security/paddle-ips; these cases exercise signature/secret/sync
-// semantics, so treat the source IP as allowed.
-vi.mock('@/lib/security/paddle-ips', () => ({
-  isAllowedPaddleIp: async () => true,
+  syncSubscription: mocks.sync,
 }))
 
 function webhookRequest(body: Record<string, unknown> = {}) {
   return new Request('https://example.com/api/billing/webhook', {
     method: 'POST',
+    headers: { authorization: 'secret' },
     body: JSON.stringify(body),
   })
 }
 
-function subscriptionEvent(overrides: Record<string, unknown> = {}) {
-  return {
-    eventType: 'subscription.updated',
-    eventId: 'evt_1',
-    data: {
-      id: 'sub_123',
-      customData: { omnis_user_id: 'user-1' },
-    },
-    ...overrides,
-  }
-}
-
 beforeEach(() => {
   vi.clearAllMocks()
-  vi.stubEnv('PADDLE_WEBHOOK_SECRET', 'whsec_test')
-  mocks.headerGet.mockReturnValue('ts=1;h1=abc')
-  mocks.verify.mockResolvedValue(true)
-  mocks.unmarshal.mockResolvedValue(subscriptionEvent())
+  mocks.verifyWebhook.mockResolvedValue({
+    type: 'RENEWAL',
+    eventId: 'evt_1',
+    userIds: ['user-1'],
+  })
   mocks.sync.mockResolvedValue('synced')
 })
 
-afterEach(() => {
-  vi.unstubAllEnvs()
-})
-
 describe('POST /api/billing/webhook', () => {
-  it('returns 400 when the paddle-signature header is missing', async () => {
-    mocks.headerGet.mockReturnValue(null)
+  it('re-syncs the affected user and acknowledges', async () => {
+    const response = await POST(webhookRequest())
 
-    const res = await POST(webhookRequest())
+    expect(response.status).toBe(200)
+    expect(mocks.sync).toHaveBeenCalledWith('user-1')
+  })
 
-    expect(res.status).toBe(400)
+  it('rejects with 401 when the provider does not verify the request', async () => {
+    mocks.verifyWebhook.mockResolvedValue(null)
+
+    const response = await POST(webhookRequest())
+
+    expect(response.status).toBe(401)
+    // A forged request must never reach the sync.
     expect(mocks.sync).not.toHaveBeenCalled()
   })
 
-  it('returns 500 when the webhook secret is not configured', async () => {
-    vi.stubEnv('PADDLE_WEBHOOK_SECRET', '')
-
-    const res = await POST(webhookRequest())
-
-    expect(res.status).toBe(500)
-    expect(mocks.sync).not.toHaveBeenCalled()
-  })
-
-  it('returns 400 on a signature mismatch without touching the sync layer', async () => {
-    mocks.verify.mockResolvedValue(false)
-
-    const res = await POST(webhookRequest())
-
-    expect(res.status).toBe(400)
-    expect(mocks.unmarshal).not.toHaveBeenCalled()
-    expect(mocks.sync).not.toHaveBeenCalled()
-  })
-
-  it('re-syncs from the Paddle API on subscription events and returns 200', async () => {
-    const res = await POST(webhookRequest())
-
-    expect(res.status).toBe(200)
-    expect(mocks.sync).toHaveBeenCalledWith('sub_123', 'user-1')
-  })
-
-  it('returns 500 when the sync fails so Paddle retries the delivery', async () => {
-    mocks.sync.mockRejectedValue(new Error('paddle API down'))
-
-    const res = await POST(webhookRequest())
-
-    expect(res.status).toBe(500)
-  })
-
-  it('acknowledges (200) permanently unresolvable subscriptions', async () => {
-    mocks.unmarshal.mockResolvedValue(
-      subscriptionEvent({ data: { id: 'sub_123', customData: null } })
+  it('returns 500 when the webhook secret is unconfigured (so it retries once fixed)', async () => {
+    mocks.verifyWebhook.mockRejectedValue(
+      new Error('REVENUECAT_WEBHOOK_SECRET is not set')
     )
+
+    const response = await POST(webhookRequest())
+
+    expect(response.status).toBe(500)
+    expect(mocks.sync).not.toHaveBeenCalled()
+  })
+
+  it('returns 500 when the sync fails, so the provider retries', async () => {
+    mocks.sync.mockRejectedValue(new Error('revenuecat down'))
+
+    const response = await POST(webhookRequest())
+
+    expect(response.status).toBe(500)
+  })
+
+  it('acknowledges (200) an unresolvable user so the provider stops redelivering', async () => {
     mocks.sync.mockResolvedValue('unresolved_user')
 
-    const res = await POST(webhookRequest())
+    const response = await POST(webhookRequest())
 
-    expect(res.status).toBe(200)
-    expect(await res.json()).toMatchObject({ received: true, unresolved: 'sub_123' })
+    expect(response.status).toBe(200)
   })
 
-  it('acknowledges (200) events it deliberately ignores', async () => {
-    mocks.unmarshal.mockResolvedValue(
-      subscriptionEvent({ eventType: 'customer.updated' })
-    )
-
-    const res = await POST(webhookRequest())
-
-    expect(res.status).toBe(200)
-    expect(await res.json()).toMatchObject({ ignored: 'customer.updated' })
-    expect(mocks.sync).not.toHaveBeenCalled()
-  })
-
-  it('activates lifetime on transaction.completed with a lifetime price', async () => {
-    mocks.unmarshal.mockResolvedValue({
-      eventType: 'transaction.completed',
-      eventId: 'evt_txn',
-      data: {
-        id: 'txn_1',
-        customerId: 'ctm_1',
-        customData: { omnis_user_id: 'user-1' },
-        items: [{ price: { id: 'pri_lifetime' } }],
-      },
+  it('re-syncs both sides of a TRANSFER event', async () => {
+    mocks.verifyWebhook.mockResolvedValue({
+      type: 'TRANSFER',
+      eventId: 'evt_2',
+      userIds: ['user-from', 'user-to'],
     })
 
-    const res = await POST(webhookRequest())
+    const response = await POST(webhookRequest())
 
-    expect(res.status).toBe(200)
-    expect(mocks.upsertByUserId).toHaveBeenCalledWith(
-      'user-1',
-      expect.objectContaining({ plan: 'lifetime', status: 'active' })
-    )
-    expect(mocks.sync).not.toHaveBeenCalled()
-  })
-
-  it('ignores non-lifetime transaction.completed events', async () => {
-    mocks.unmarshal.mockResolvedValue({
-      eventType: 'transaction.completed',
-      eventId: 'evt_txn',
-      data: {
-        id: 'txn_2',
-        customData: { omnis_user_id: 'user-1' },
-        items: [{ price: { id: 'pri_complete' } }],
-      },
-    })
-
-    const res = await POST(webhookRequest())
-
-    expect(res.status).toBe(200)
-    expect(mocks.upsertByUserId).not.toHaveBeenCalled()
+    expect(response.status).toBe(200)
+    expect(mocks.sync).toHaveBeenCalledWith('user-from')
+    expect(mocks.sync).toHaveBeenCalledWith('user-to')
   })
 })

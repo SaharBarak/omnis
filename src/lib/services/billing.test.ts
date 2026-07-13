@@ -3,15 +3,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 /**
  * Billing plan/entitlement tests.
  *
- * PLANS captures PADDLE_PRICE_* env vars at module load, so price-id mapping
- * tests stub the env and re-import the module per test.
+ * PLANS captures STORE_PRODUCT_* env vars at module load, so tests stub the env
+ * and re-import the module per test.
  */
 
 const PRICE_IDS = {
-  PADDLE_PRICE_EXPLORER: 'pri_explorer_test',
-  PADDLE_PRICE_COMPLETE: 'pri_complete_test',
-  PADDLE_PRICE_PRACTITIONER: 'pri_practitioner_test',
-  PADDLE_PRICE_LIFETIME: 'pri_lifetime_test',
+  STORE_PRODUCT_EXPLORER: 'pleiad_explorer_monthly',
+  STORE_PRODUCT_COMPLETE: 'pleiad_complete_monthly',
+  STORE_PRODUCT_PRACTITIONER: 'pleiad_practitioner_monthly',
+  STORE_PRODUCT_LIFETIME: 'pleiad_founding_lifetime',
 } as const
 
 async function importBillingWithEnv() {
@@ -85,20 +85,35 @@ describe('PLANS', () => {
   })
 })
 
-describe('getPlanFromPriceId', () => {
-  it('maps each configured price id to its plan', async () => {
-    const { getPlanFromPriceId } = await importBillingWithEnv()
-    expect(getPlanFromPriceId(PRICE_IDS.PADDLE_PRICE_EXPLORER)).toBe('explorer')
-    expect(getPlanFromPriceId(PRICE_IDS.PADDLE_PRICE_COMPLETE)).toBe('complete')
-    expect(getPlanFromPriceId(PRICE_IDS.PADDLE_PRICE_PRACTITIONER)).toBe('practitioner')
-    expect(getPlanFromPriceId(PRICE_IDS.PADDLE_PRICE_LIFETIME)).toBe('lifetime')
+describe('getPlanFromEntitlementId', () => {
+  it('maps each store entitlement id to its plan', async () => {
+    const { getPlanFromEntitlementId } = await importBillingWithEnv()
+    expect(getPlanFromEntitlementId('explorer')).toBe('explorer')
+    expect(getPlanFromEntitlementId('complete')).toBe('complete')
+    expect(getPlanFromEntitlementId('practitioner')).toBe('practitioner')
+    expect(getPlanFromEntitlementId('lifetime')).toBe('lifetime')
   })
 
   it('falls back to free for unknown or missing ids', async () => {
-    const { getPlanFromPriceId } = await importBillingWithEnv()
-    expect(getPlanFromPriceId('pri_unknown')).toBe('free')
-    expect(getPlanFromPriceId(undefined)).toBe('free')
-    expect(getPlanFromPriceId(null)).toBe('free')
+    const { getPlanFromEntitlementId } = await importBillingWithEnv()
+    // An entitlement configured in RevenueCat that we do not know about must
+    // never accidentally grant a paid tier.
+    expect(getPlanFromEntitlementId('enterprise')).toBe('free')
+    expect(getPlanFromEntitlementId('free')).toBe('free')
+    expect(getPlanFromEntitlementId(undefined)).toBe('free')
+    expect(getPlanFromEntitlementId(null)).toBe('free')
+  })
+})
+
+describe('highestPlan', () => {
+  it('picks the strongest tier when several entitlements are active at once', async () => {
+    const { highestPlan } = await importBillingWithEnv()
+    expect(highestPlan(['explorer', 'complete'])).toBe('complete')
+    expect(highestPlan(['complete', 'practitioner'])).toBe('practitioner')
+    // Lifetime outranks the tier it mirrors, but not Practitioner.
+    expect(highestPlan(['complete', 'lifetime'])).toBe('lifetime')
+    expect(highestPlan(['lifetime', 'practitioner'])).toBe('practitioner')
+    expect(highestPlan([])).toBe('free')
   })
 })
 

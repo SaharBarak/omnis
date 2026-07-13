@@ -372,8 +372,12 @@ export const subscriptions = pgTable(
     user_id: text('user_id').notNull(),
     plan: text('plan').notNull().default('free'), // free|explorer|complete|practitioner|lifetime
     status: text('status').notNull().default('active'),
-    paddle_customer_id: text('paddle_customer_id'),
-    paddle_subscription_id: text('paddle_subscription_id'),
+    // Provider-neutral: 'revenuecat' today (App Store / Play IAP). billing_customer_id
+    // equals user_id for RevenueCat (app_user_id === Auth0 sub) but stays a distinct
+    // column so a web card acquirer can be added without another migration.
+    billing_provider: text('billing_provider'),
+    billing_customer_id: text('billing_customer_id'),
+    billing_subscription_id: text('billing_subscription_id'),
     current_period_start: ts('current_period_start'),
     current_period_end: ts('current_period_end'),
     trial_end: ts('trial_end'),
@@ -383,8 +387,8 @@ export const subscriptions = pgTable(
   },
   (t) => [
     uniqueIndex('subscriptions_user_uq').on(t.user_id),
-    index('subscriptions_paddle_customer_idx').on(t.paddle_customer_id),
-    index('subscriptions_paddle_sub_idx').on(t.paddle_subscription_id),
+    index('subscriptions_billing_customer_idx').on(t.billing_customer_id),
+    index('subscriptions_billing_sub_idx').on(t.billing_subscription_id),
   ]
 )
 

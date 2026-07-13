@@ -1,14 +1,12 @@
 import type {
   AiInterpretRequest,
   AiInterpretation,
-  BillingActionResult,
   Board,
   ComputedResult,
   GroupWithMembers,
   Group,
   KnowledgeSearchResult,
   NotificationSettings,
-  PaidPlanTier,
   PeopleList,
   Person,
   PersonRelationshipEdge,
@@ -433,33 +431,17 @@ export function createPleiadClient(options: PleiadClientOptions) {
       },
     },
 
+    // Paid access is an in-app purchase; the store owns the lifecycle. Purchases
+    // happen through the RevenueCat SDK on-device, not over this API — hence no
+    // checkout/cancel/reactivate methods here.
     billing: {
-      /** GET /api/billing/subscription — `refresh` forces a Paddle re-sync. */
+      /** GET /api/billing/subscription — `refresh` forces a provider re-sync. */
       getSubscription(opts?: { refresh?: boolean }): Promise<Subscription> {
         return request<Subscription>('/api/billing/subscription', {
           query: opts?.refresh ? { refresh: '1' } : undefined,
         })
       },
-      /** DELETE /api/billing/subscription — cancel at period end. */
-      cancelSubscription(): Promise<BillingActionResult> {
-        return request<BillingActionResult>('/api/billing/subscription', {
-          method: 'DELETE',
-        })
-      },
-      /** PATCH /api/billing/subscription — clear a scheduled cancellation. */
-      reactivateSubscription(): Promise<BillingActionResult> {
-        return request<BillingActionResult>('/api/billing/subscription', {
-          method: 'PATCH',
-        })
-      },
-      /** POST /api/billing/checkout — returns a hosted checkout URL to open. */
-      checkout(plan: PaidPlanTier): Promise<{ url: string }> {
-        return request<{ url: string }>('/api/billing/checkout', {
-          method: 'POST',
-          body: { plan },
-        })
-      },
-      /** POST /api/billing/portal — Paddle customer portal session URL. */
+      /** POST /api/billing/portal — deep link to the OS subscription settings. */
       portal(): Promise<{ url: string }> {
         return request<{ url: string }>('/api/billing/portal', { method: 'POST' })
       },

@@ -1,10 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Button } from '@/components/ui/button'
-import { TYPE } from '@/lib/design/landing-tokens'
 import {
   FREE_PLAN,
   EXPLORER_PLAN,
@@ -12,15 +9,17 @@ import {
   PAID_PLANS,
   LEDGER_COLUMNS,
   LEDGER_ROWS,
-  type PaidPlanId,
 } from './plan-data'
+import { Button } from '@/components/ui/button'
+import { TYPE } from '@/lib/design/landing-tokens'
+import { APP_STORE_URL, PLAY_STORE_URL } from '@/lib/store-links'
 
 // ============================================
 // Pricing page body — free tier leads, paid tiers follow with clear
 // hierarchy (featured Complete column), then the entitlement ledger.
-// Checkout reuses the existing Paddle flow: POST /api/billing/checkout
-// returns a hosted checkout URL; unauthenticated visitors go to login
-// and come back here.
+// Paid plans are in-app purchases (the App Store / Google Play are the
+// merchant of record), so every paid CTA points at the app rather than a
+// web checkout. Buying on the phone unlocks the same account on the web.
 // ============================================
 
 const easeOut = [0.4, 0, 0.2, 1] as const
@@ -33,65 +32,43 @@ const fadeUp = {
 } as const
 
 // --------------------------------------------
-// Checkout — reuse the hosted Paddle transaction flow
+// Paid CTA — the purchase happens in the app
 // --------------------------------------------
 
-function CheckoutButton({
-  plan,
+function GetInAppButton({
   label,
   featured,
 }: {
-  readonly plan: PaidPlanId
   readonly label: string
   readonly featured: boolean
 }) {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const href = APP_STORE_URL ?? PLAY_STORE_URL
 
-  const startCheckout = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const response = await fetch('/api/billing/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan }),
-      })
+  const className = `w-full rounded-xl active:scale-[0.98] ${
+    featured
+      ? 'bg-brand text-white hover:bg-brand-soft'
+      : 'bg-white/10 text-white hover:bg-white/20'
+  }`
 
-      if (response.status === 401) {
-        // Not signed in yet — come back to pricing after login.
-        window.location.href = `/login?redirectTo=${encodeURIComponent('/pricing')}`
-        return
-      }
-
-      const data = (await response.json()) as { url?: string; error?: string }
-      if (response.ok && data.url) {
-        window.location.href = data.url
-      } else {
-        throw new Error(data.error || 'Failed to create checkout session')
-      }
-    } catch {
-      setError('Could not start checkout. Please try again.')
-      setLoading(false)
-    }
+  if (!href) {
+    return (
+      <div>
+        <Button type="button" disabled className={className}>
+          {label}
+        </Button>
+        <p className="mt-2 text-center text-xs text-white/50">
+          Coming soon to the App Store and Google Play
+        </p>
+      </div>
+    )
   }
 
   return (
-    <div>
-      <Button
-        type="button"
-        onClick={startCheckout}
-        disabled={loading}
-        className={`w-full rounded-xl active:scale-[0.98] ${
-          featured
-            ? 'bg-brand text-white hover:bg-brand-soft'
-            : 'bg-white/10 text-white hover:bg-white/20'
-        }`}
-      >
-        {loading ? 'Opening checkout…' : label}
-      </Button>
-      {error && <p className="mt-2 text-center text-xs text-white/50">{error}</p>}
-    </div>
+    <Button asChild className={className}>
+      <a href={href} target="_blank" rel="noreferrer">
+        {label}
+      </a>
+    </Button>
   )
 }
 
@@ -169,8 +146,7 @@ function ExplorerRow() {
           </ul>
         </div>
         <div className="w-full md:w-52">
-          <CheckoutButton
-            plan={EXPLORER_PLAN.id}
+          <GetInAppButton
             label={EXPLORER_PLAN.cta}
             featured={false}
           />
@@ -217,8 +193,7 @@ function LifetimeBand() {
           </ul>
         </div>
         <div className="w-full md:w-52">
-          <CheckoutButton
-            plan={LIFETIME_PLAN.id}
+          <GetInAppButton
             label={LIFETIME_PLAN.cta}
             featured
           />
@@ -278,8 +253,7 @@ export function PaidTiers() {
               ))}
             </ul>
             <div className="mt-8">
-              <CheckoutButton
-                plan={plan.id}
+              <GetInAppButton
                 label={plan.cta}
                 featured={plan.featured}
               />
@@ -291,9 +265,10 @@ export function PaidTiers() {
         <LifetimeBand />
       </div>
       <p className="mt-6 text-center text-sm text-white/35">
-        Billed monthly through Paddle — Founding Lifetime is a single one-time
-        payment. Cancel any time — your plan runs to the end of the period, and
-        your people stay saved.
+        Plans are purchased in the Pleiad app and billed by the App Store or
+        Google Play — Founding Lifetime is a single one-time payment. Cancel any
+        time from your device&apos;s subscription settings; your plan runs to the
+        end of the period, and your people stay saved.
       </p>
     </section>
   )
