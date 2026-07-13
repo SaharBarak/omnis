@@ -16,7 +16,7 @@ export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: 'Pleiad Pricing - Free Chart Calculator & Premium Plans',
-  description: 'Free Dreamspell calculator, daily kin readings, and 3 profiles. Upgrade to Complete ($9/mo) for all 6 systems or Practitioner ($29/mo) for unlimited profiles and client tools.',
+  description: 'Free Dreamspell calculator, daily kin readings, and 3 profiles. Upgrade to Complete ($9/mo) for 50 people across all 6 systems, or Practitioner ($29/mo) for unlimited profiles and client tools.',
   alternates: {
     canonical: '/pricing',
   },

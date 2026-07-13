@@ -30,11 +30,11 @@ const plans = [
     period: '/month',
     description: 'Full access for personal use',
     features: [
-      'Up to 10 profiles',
+      'Up to 50 profiles',
       'All 6 systems: Dreamspell, Tzolkin, Long Count, Human Design, Astrology, Kabbalah',
       'Complete oracle maps & wavespells',
       'Personal timeline with galactic returns',
-      '30 AI interpretations/month',
+      '50 AI interpretations/month',
       'Export to PDF',
       'Basic relationship compatibility',
     ],

@@ -68,14 +68,16 @@ export const PLANS = {
     priceILS: 18,
     storeProductId: process.env.STORE_PRODUCT_EXPLORER,
     limits: {
-      // The whole map at small scale: every system, a few people, no AI.
-      profiles: 5,
+      // The whole map at small scale. Relationships are included on purpose:
+      // the map IS the product, and a paid tier that only produced individual
+      // readings would sell the commodity half of it.
+      profiles: 15,
       systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria'],
-      aiInterpretations: 0,
+      aiInterpretations: 5,
       boards: 2,
       exports: false,
       timeline: true,
-      relationships: false,
+      relationships: 'basic' as const,
       groupAnalysis: false,
       apiAccess: false,
     },
@@ -86,9 +88,11 @@ export const PLANS = {
     priceILS: 33,
     storeProductId: process.env.STORE_PRODUCT_COMPLETE,
     limits: {
-      profiles: 10,
+      // A real map, not a cramped one — "everyone in your life" has to survive
+      // contact with an actual life.
+      profiles: 50,
       systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria'],
-      aiInterpretations: 30,
+      aiInterpretations: 50,
       boards: 5,
       exports: true,
       timeline: true,
@@ -115,22 +119,25 @@ export const PLANS = {
     },
   },
   lifetime: {
-    // Founding Lifetime — one-time purchase, Complete entitlements forever.
-    // Mirrors PLANS.complete.limits (keep the two in lockstep; a test enforces it).
+    // Founding Lifetime — one-time purchase, top-tier entitlements forever.
+    // It carries the name "Founding", so it must actually be the best thing you
+    // can buy: unlimited people, advanced bonds, groups and API. Practitioner
+    // still outranks it on metered AI alone (see PLAN_RANK), which is the only
+    // axis where a live subscription buys more than the founding grant.
     name: 'Founding Lifetime',
     price: 79,
     priceILS: 292,
     storeProductId: process.env.STORE_PRODUCT_LIFETIME,
     limits: {
-      profiles: 10,
+      profiles: Infinity,
       systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria'],
-      aiInterpretations: 30,
-      boards: 5,
+      aiInterpretations: 50,
+      boards: Infinity,
       exports: true,
       timeline: true,
-      relationships: 'basic' as const,
-      groupAnalysis: false,
-      apiAccess: false,
+      relationships: 'advanced' as const,
+      groupAnalysis: true,
+      apiAccess: true,
     },
   },
 } as const

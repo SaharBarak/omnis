@@ -32,17 +32,19 @@ export interface PaidPlan {
 
 /**
  * Entry paid tier — rendered as a slim row above the Complete/Practitioner
- * grid, not as an equal third column. The whole map, small scale, no AI.
+ * grid, not as an equal third column. The whole map at small scale: bonds are
+ * included on purpose, because the map IS the product.
  */
 export const EXPLORER_PLAN: PaidPlan = {
   id: 'explorer',
   name: 'Explorer',
   price: '$5',
-  tagline: 'Every system, a few people',
+  tagline: 'Every system, your inner circle',
   points: [
-    'Up to 5 people',
+    'Up to 15 people',
     'All six systems on every chart',
-    '2 boards & timeline view',
+    'Relationship readings & timeline',
+    '5 AI interpretations a month',
   ],
   cta: 'Open the whole map',
   featured: false,
@@ -55,9 +57,9 @@ export const PAID_PLANS: readonly PaidPlan[] = [
     price: '$9',
     tagline: 'Your whole map, all six systems',
     points: [
-      'Up to 10 people, kept forever',
+      'Up to 50 people, kept forever',
       'All six systems on every chart',
-      '30 AI interpretations, grounded in sources',
+      '50 AI interpretations, grounded in sources',
       '5 boards & timeline view',
       'Relationship readings & PDF exports',
     ],
@@ -82,20 +84,21 @@ export const PAID_PLANS: readonly PaidPlan[] = [
 ] as const
 
 /**
- * Founding Lifetime — one-time launch offer rendered as a slim band under
- * the paid tiers grid. Complete-tier entitlements (billing.ts PLANS.lifetime
- * mirrors PLANS.complete), paid once, never billed again.
+ * Founding Lifetime — one-time launch offer rendered as a slim band under the
+ * paid tiers grid. Top-tier entitlements (see billing.ts PLANS.lifetime):
+ * unlimited people, advanced bonds, groups and API — paid once, never billed
+ * again. Practitioner still buys more metered AI; nothing else.
  */
 export const LIFETIME_PLAN = {
   id: 'lifetime',
   name: 'Founding Lifetime',
   price: '$79',
   priceNote: 'once',
-  tagline: 'Everything in Complete, forever. Early-supporter price.',
+  tagline: 'Unlimited people, forever. Early-supporter price.',
   points: [
-    'All Complete features, for life',
+    'Unlimited people, boards & bonds — for life',
+    'Group analysis & API access',
     'One payment — never billed again',
-    'Limited to early supporters',
   ],
   cta: 'Claim founding access',
 } as const
@@ -112,12 +115,12 @@ export interface LedgerRow {
 export const LEDGER_COLUMNS = ['Free', 'Explorer', 'Complete', 'Practitioner'] as const
 
 export const LEDGER_ROWS: readonly LedgerRow[] = [
-  { label: 'People saved', free: '3', explorer: '5', complete: '10', practitioner: 'Unlimited' },
+  { label: 'People saved', free: '3', explorer: '15', complete: '50', practitioner: 'Unlimited' },
   { label: 'Systems', free: 'Dreamspell', explorer: 'All six', complete: 'All six', practitioner: 'All six' },
-  { label: 'AI interpretations', free: '—', explorer: '—', complete: '30', practitioner: 'Unlimited' },
+  { label: 'AI interpretations', free: '—', explorer: '5', complete: '50', practitioner: 'Unlimited' },
   { label: 'Boards', free: '—', explorer: '2', complete: '5', practitioner: 'Unlimited' },
   { label: 'Timeline view', free: '—', explorer: 'Included', complete: 'Included', practitioner: 'Included' },
-  { label: 'Relationship readings', free: '—', explorer: '—', complete: 'Basic', practitioner: 'Advanced' },
+  { label: 'Relationship readings', free: '—', explorer: 'Basic', complete: 'Basic', practitioner: 'Advanced' },
   { label: 'PDF exports', free: '—', explorer: '—', complete: 'Included', practitioner: 'Included' },
   { label: 'Group analysis', free: '—', explorer: '—', complete: '—', practitioner: 'Included' },
   { label: 'API access', free: '—', explorer: '—', complete: '—', practitioner: 'Included' },

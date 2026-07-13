@@ -46,14 +46,33 @@ describe('PLANS', () => {
     expect(PLANS.practitioner.price).toBe(29)
   })
 
-  it('founding lifetime is a $79 one-time purchase with Complete entitlements', async () => {
+  it('founding lifetime is a $79 one-time purchase that is genuinely top-tier', async () => {
     const { PLANS } = await importBillingWithEnv()
+    const lifetime = PLANS.lifetime.limits
     expect(PLANS.lifetime.price).toBe(79)
-    // Entitlements mirror Complete exactly — lifetime is "Complete, forever".
-    expect(PLANS.lifetime.limits).toEqual(PLANS.complete.limits)
+    // It is sold as "Founding", so it must be the best thing you can buy —
+    // never a capped tier a founder is stuck behind forever.
+    expect(lifetime.profiles).toBe(Infinity)
+    expect(lifetime.boards).toBe(Infinity)
+    expect(lifetime.relationships).toBe('advanced')
+    expect(lifetime.groupAnalysis).toBe(true)
+    expect(lifetime.apiAccess).toBe(true)
+    // Metered AI is the ONE axis a live Practitioner subscription buys more of.
+    expect(lifetime.aiInterpretations).toBe(50)
   })
 
-  it('explorer holds the whole map at small scale with no AI', async () => {
+  it('every paid tier includes the map — relationships are the product', async () => {
+    const { PLANS } = await importBillingWithEnv()
+    // A paid tier that computed readings but drew no bonds would be selling the
+    // commodity half of Pleiad. Free is the only tier without the map.
+    expect(PLANS.free.limits.relationships).toBe(false)
+    expect(PLANS.explorer.limits.relationships).toBe('basic')
+    expect(PLANS.complete.limits.relationships).toBe('basic')
+    expect(PLANS.practitioner.limits.relationships).toBe('advanced')
+    expect(PLANS.lifetime.limits.relationships).toBe('advanced')
+  })
+
+  it('explorer holds the whole map at small scale', async () => {
     const { PLANS } = await importBillingWithEnv()
     const limits = PLANS.explorer.limits
     expect(limits.systems).toEqual([
@@ -64,24 +83,36 @@ describe('PLANS', () => {
       'astrology',
       'gematria',
     ])
-    expect(limits.profiles).toBe(5)
-    expect(limits.aiInterpretations).toBe(0)
+    expect(limits.profiles).toBe(15)
+    expect(limits.aiInterpretations).toBe(5)
     expect(limits.boards).toBe(2)
     expect(limits.timeline).toBe(true)
     expect(limits.exports).toBe(false)
-    expect(limits.relationships).toBe(false)
     expect(limits.groupAnalysis).toBe(false)
     expect(limits.apiAccess).toBe(false)
   })
 
   it('paid tiers never shrink limits relative to the tier below', async () => {
     const { PLANS } = await importBillingWithEnv()
-    expect(PLANS.explorer.limits.profiles).toBeGreaterThan(PLANS.free.limits.profiles - 1)
+    expect(PLANS.explorer.limits.profiles).toBeGreaterThan(PLANS.free.limits.profiles)
     expect(PLANS.complete.limits.profiles).toBeGreaterThan(PLANS.explorer.limits.profiles)
+    expect(PLANS.practitioner.limits.profiles).toBeGreaterThan(
+      PLANS.complete.limits.profiles
+    )
     expect(PLANS.complete.limits.boards).toBeGreaterThan(PLANS.explorer.limits.boards)
     expect(PLANS.complete.limits.aiInterpretations).toBeGreaterThan(
       PLANS.explorer.limits.aiInterpretations
     )
+  })
+
+  it('no cliff: the people cap never jumps more than ~4x between tiers', async () => {
+    const { PLANS } = await importBillingWithEnv()
+    // The old ladder went 10 -> Infinity, forcing a 3.2x price jump on the 11th
+    // person. Keep each finite step within reach of the one below it.
+    expect(PLANS.explorer.limits.profiles / PLANS.free.limits.profiles).toBeLessThanOrEqual(5)
+    expect(
+      PLANS.complete.limits.profiles / PLANS.explorer.limits.profiles
+    ).toBeLessThanOrEqual(4)
   })
 })
 
@@ -136,9 +167,11 @@ describe('isPlanFeatureAvailable', () => {
     const { isPlanFeatureAvailable } = await importBillingWithEnv()
     expect(isPlanFeatureAvailable('explorer', 'systems')).toBe(true)
     expect(isPlanFeatureAvailable('explorer', 'timeline')).toBe(true)
-    expect(isPlanFeatureAvailable('explorer', 'aiInterpretations')).toBe(false)
+    // Explorer gets the map (a small AI allowance and basic bonds); exports,
+    // groups and API are what the tiers above it sell.
+    expect(isPlanFeatureAvailable('explorer', 'aiInterpretations')).toBe(true)
+    expect(isPlanFeatureAvailable('explorer', 'relationships')).toBe(true)
     expect(isPlanFeatureAvailable('explorer', 'exports')).toBe(false)
-    expect(isPlanFeatureAvailable('explorer', 'relationships')).toBe(false)
     expect(isPlanFeatureAvailable('explorer', 'groupAnalysis')).toBe(false)
     expect(isPlanFeatureAvailable('explorer', 'apiAccess')).toBe(false)
   })
@@ -166,33 +199,46 @@ describe('usage enforcement for explorer', () => {
     return import('./usage')
   }
 
-  it('blocks AI interpretations outright', async () => {
+  it('meters AI interpretations rather than blocking them', async () => {
     const { checkLimit } = await importUsageWithRepo(null)
     const result = await checkLimit('user-1', 'ai_interpretations_used')
-    expect(result.allowed).toBe(false)
-    expect(result.limit).toBe(0)
+    expect(result.allowed).toBe(true)
+    expect(result.limit).toBe(5)
   })
 
-  it('allows profiles under the 5-person cap', async () => {
+  it('blocks the sixth AI interpretation', async () => {
     const { checkLimit } = await importUsageWithRepo({
       user_id: 'user-1',
       period: '2026-07',
-      profiles_count: 4,
+      profiles_count: 0,
+      ai_interpretations_used: 5,
+      boards_count: 0,
+      exports_count: 0,
+    })
+    const result = await checkLimit('user-1', 'ai_interpretations_used')
+    expect(result.allowed).toBe(false)
+  })
+
+  it('allows profiles under the 15-person cap', async () => {
+    const { checkLimit } = await importUsageWithRepo({
+      user_id: 'user-1',
+      period: '2026-07',
+      profiles_count: 14,
       ai_interpretations_used: 0,
       boards_count: 0,
       exports_count: 0,
     })
     const result = await checkLimit('user-1', 'profiles_count')
     expect(result.allowed).toBe(true)
-    expect(result.limit).toBe(5)
+    expect(result.limit).toBe(15)
   })
 
-  it('blocks the sixth profile', async () => {
+  it('blocks the sixteenth profile', async () => {
     const { checkLimit, requireLimit, LimitExceededError } =
       await importUsageWithRepo({
         user_id: 'user-1',
         period: '2026-07',
-        profiles_count: 5,
+        profiles_count: 15,
         ai_interpretations_used: 0,
         boards_count: 0,
         exports_count: 0,

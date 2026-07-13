@@ -1,7 +1,7 @@
 export const faqs = [
   {
     question: "What can I do with the free plan?",
-    answer: "Free lets you save 3 people with Dreamspell calculations and daily kin. It's designed to try Pleiad before upgrading. To hold up to 10 people across all 6 systems, get AI interpretations, or export PDFs, you'll need Complete ($9/mo); Practitioner ($29/mo) is unlimited for mapping clients or large groups.",
+    answer: "Free lets you save 3 people with Dreamspell calculations and daily kin. It's designed to try Pleiad before upgrading. Explorer ($5/mo) opens all 6 systems and relationship readings for up to 15 people; Complete ($9/mo) holds 50 people with 50 AI interpretations and PDF exports; Practitioner ($29/mo) is unlimited for mapping clients or large groups.",
   },
   {
     question: "I don't know my exact birth time. Can I still use Pleiad?",
@@ -17,7 +17,7 @@ export const faqs = [
   },
   {
     question: "Can I use this with clients?",
-    answer: "The Complete plan ($9/mo) lets you save up to 10 profiles with all 6 systems, 30 AI interpretations, and PDF exports - great for personal use. The Practitioner plan ($29/mo) unlocks unlimited profiles, unlimited AI, group analysis, and advanced relationship tools - designed for working with clients professionally.",
+    answer: "The Complete plan ($9/mo) lets you save up to 50 profiles with all 6 systems, 50 AI interpretations, and PDF exports - great for personal use. The Practitioner plan ($29/mo) unlocks unlimited profiles, unlimited AI, group analysis, and advanced relationship tools - designed for working with clients professionally.",
   },
   {
     question: "How is my data stored?",
