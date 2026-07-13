@@ -3,13 +3,14 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
+import { AmbientVideo } from './ambient-video'
+import { Magnetic } from './magnetic'
+import { EgoStar } from './ego-star'
 import { Button } from '@/components/ui/button'
 import { track } from '@/lib/analytics/posthog'
 import { MURAL_GROUND } from '@/lib/design/system-flavors'
 import { COLORS, TYPE } from '@/lib/design/landing-tokens'
-import { AmbientVideo } from './ambient-video'
-import { Magnetic } from './magnetic'
-import { DemoGraph } from './demo-graph'
+import type { EgoStarData } from '@/lib/data/homepage-demo'
 
 // ============================================
 // HERO — Railway-pattern: the sky lives inside an inset, rounded panel
@@ -22,7 +23,12 @@ const easeOut = [0.4, 0, 0.2, 1] as const
 
 const SURFACE_TABS = ['Map', 'People', 'Circles', 'Boards'] as const
 
-export function HeroV2() {
+interface HeroV2Props {
+  /** Engine-computed hero map: one person and their five kin relations. */
+  readonly star: EgoStarData
+}
+
+export function HeroV2({ star }: HeroV2Props) {
   return (
     <section className="relative px-3 pt-20 sm:px-5 md:pt-24">
       <div
@@ -139,12 +145,12 @@ export function HeroV2() {
                 ))}
               </div>
               <span className="font-mono text-xs text-white/50">
-                8 people · 3 circles
+                {star.spokes.length + 1} people · {star.spokes.length} named ties
               </span>
             </div>
 
             <div className="p-4 sm:p-6">
-              <DemoGraph />
+              <EgoStar data={star} />
             </div>
           </div>
         </motion.div>

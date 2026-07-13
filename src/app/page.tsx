@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import {
   NavV2,
   HeroV2,
@@ -5,6 +6,8 @@ import {
   StarParallax,
   Zone,
   ZoneLayers,
+  PeopleAtlas,
+  RelationshipCallouts,
   ReadingCycler,
   PairScores,
   LibraryDemo,
@@ -20,8 +23,17 @@ import {
   TodayBoard,
   PortalCta,
 } from '@/components/landing-v2'
-import type { Metadata } from 'next'
-import { SYSTEM_FLAVORS, MURAL_GROUND } from '@/lib/design/system-flavors'
+import { SYSTEM_FLAVORS, MURAL_GROUND, FLAVOR_DESCENT } from '@/lib/design/system-flavors'
+import {
+  buildHomepageDemo,
+  buildCallouts,
+  buildLayerEdges,
+  buildEgoStar,
+  buildReadingTabs,
+  buildPairScores,
+  buildLibraryPeople,
+  buildCircles,
+} from '@/lib/data/homepage-demo'
 import { getTodayAcrossSystems, getFooterLiveLine } from '@/lib/today-board'
 import {
   JsonLd,
@@ -62,6 +74,18 @@ const faqSchema = buildFaqPage(faqs)
 export default function LandingPage() {
   const today = getTodayAcrossSystems()
 
+  // The homepage's product proof. Every chart and every relationship rendered
+  // below is computed here by the real engine — nothing is mocked or drawn by
+  // hand. See src/lib/data/homepage-demo.ts and docs/redesign/HOMEPAGE_REDESIGN.md.
+  const demo = buildHomepageDemo()
+  const callouts = buildCallouts(demo.people, demo.pairs)
+  const layerEdges = buildLayerEdges(demo.people, demo.pairs, FLAVOR_DESCENT)
+  const star = buildEgoStar(demo.people, demo.charts, demo.pairs)
+  const readingTabs = buildReadingTabs(demo.charts)
+  const pairScores = buildPairScores(demo.people, demo.pairs, FLAVOR_DESCENT)
+  const libraryPeople = buildLibraryPeople(demo.people, demo.charts)
+  const circles = buildCircles(demo.people, demo.charts)
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: MURAL_GROUND }}>
       <JsonLd data={softwareApplicationSchema} id="json-ld-webapp" />
@@ -75,7 +99,7 @@ export default function LandingPage() {
 
       <main>
         {/* §1 Hero — the promise, with the live map */}
-        <HeroV2 />
+        <HeroV2 star={star} />
 
         {/* §2 Sigil band — breather */}
         <SigilBand />
@@ -104,7 +128,7 @@ export default function LandingPage() {
             },
           ]}
         >
-          <ReadingCycler />
+          <ReadingCycler tabs={readingTabs} />
         </Zone>
 
         {/* §4 YOU + ONE — compact bridge */}
@@ -118,7 +142,7 @@ export default function LandingPage() {
           cta={{ label: 'Try compatibility', href: '/compatibility' }}
           compact
         >
-          <PairScores />
+          <PairScores data={pairScores} />
         </Zone>
 
         {/* §5 YOUR PEOPLE, KEPT — persistence */}
@@ -144,7 +168,7 @@ export default function LandingPage() {
             },
           ]}
         >
-          <LibraryDemo />
+          <LibraryDemo people={libraryPeople} />
         </Zone>
 
         {/* §6 THE MAP — centerpiece */}
@@ -170,11 +194,19 @@ export default function LandingPage() {
             },
           ]}
         >
-          <MapCenterpiece />
+          <MapCenterpiece star={star} />
         </Zone>
 
-        {/* §7 THE FIVE LAYERS — scroll-pinned signature set piece */}
-        <ZoneLayers />
+        {/* §6b THE PEOPLE ATLAS — pick a person, page their five real charts,
+            open Connections to see every named tie. The product, shown. */}
+        <PeopleAtlas people={demo.people} charts={demo.charts} pairs={demo.pairs} />
+
+        {/* §6c NAMED RELATIONSHIPS — Guide, electromagnetic, antipode, trine.
+            Each card is a tie the engine actually found. */}
+        <RelationshipCallouts callouts={callouts} />
+
+        {/* §7 THE FIVE LAYERS — scroll-pinned set piece, edges now engine-computed */}
+        <ZoneLayers people={demo.people} layerEdges={layerEdges} />
 
         {/* §8 YOUR CIRCLES — group dynamics */}
         <Zone
@@ -199,7 +231,7 @@ export default function LandingPage() {
             },
           ]}
         >
-          <CirclesDemo />
+          <CirclesDemo circles={circles} />
         </Zone>
 
         {/* §9 BEYOND YOU — gifting & collaboration */}
@@ -225,7 +257,7 @@ export default function LandingPage() {
             },
           ]}
         >
-          <ShareDemo />
+          <ShareDemo star={star} />
         </Zone>
 
         {/* §10 KNOWLEDGE — trust layer */}
@@ -234,7 +266,7 @@ export default function LandingPage() {
           id="knowledge"
           pill="The source layer"
           heading="Every line on the map has sources."
-          body="Five deep, searchable guides — each written in the voice of its tradition. When a reading says Gate 34 or Kin 113, the source is one tap away."
+          body="Five deep, searchable guides — each written in the voice of its tradition. When a reading says Gate 34 or Kin 60, the source is one tap away."
           cta={{ label: 'Enter the library', href: '/learn' }}
           mural={false}
           accentOverride="#C9A227"

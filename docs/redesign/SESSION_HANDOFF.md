@@ -3,54 +3,130 @@
 Continue point for the Pleiad knowledge-experience redesign. Read this +
 MAIN_PURPOSE.md first; everything else on demand.
 
-## CURRENT STATE (2026-07-13) — READ FIRST
+## CURRENT STATE (2026-07-13, later) — READ FIRST
 
-Tree health: **typecheck ✓ · 1082/1082 tests ✓**. HEAD = `a36cd81`.
+Tree health: **typecheck ✓ · 1132/1132 tests ✓ · homepage renders 200**.
+HEAD = `6bc30a0` (the other session kept committing; my work sits on top, uncommitted).
 Two sessions share this tree. This section is written by the **web** session.
 
-### 1. Homepage redesign — BUILT, VERIFIED, **NOT COMMITTED**, not deployed
-Spec: `docs/redesign/HOMEPAGE_REDESIGN.md`. User's complaint was that the
-landing page's maps were "silly, irrelevant" and unintelligible. Root cause,
-confirmed in code: **the graphs were fabricated.**
-- `zone-layers.tsx` edges were hardcoded index pairs (`[[0,1],[1,2],…]`) —
-  they encoded nothing.
-- `demo-graph.tsx` (the HERO) was worse: it hardcoded readings that
-  **contradicted the engine** ("Maya · Kin 113 · מיה 55"; the engine says
-  kin 60 / 56) and invented two people (Lior, Shai) who don't exist.
+### 1. The engine was wrong. Four correctness bugs, all fixed. **NOT COMMITTED.**
 
-Fix: **everything on the homepage is now computed by the real engine** at build
-time (RSC → props). New `src/lib/data/homepage-demo.ts` pins six people whose
-birth dates were *searched* so the engine genuinely produces the showcase ties:
-Maya→Ari `guide`, Dana→Tal `antipode`, Noam→Omer `occult`, plus real HD
-`electromagnetic` channel completions and real synastry aspects. 151 real ties
-across 15 pairs. **If a tie doesn't exist, no line is drawn.**
+The homepage looked like decoration because it *was* decoration — but chasing that
+down turned into an engine audit, and the engine was the real problem. Read
+**`docs/redesign/CONNECTION_ATLAS.md`** first; it is now the authority for what
+any map may draw. Everything below is verified by measurement, not opinion.
 
-New/changed:
-- `src/lib/data/homepage-demo.ts` — buildHomepageDemo / buildGraph /
-  buildLayerEdges / buildCallouts / `byInterest`.
-- `src/components/landing-v2/people-atlas.tsx` — person selector → five real
-  charts (reuses the app's own `NatalChartWheel`, `BodygraphChart`) →
-  **Connections tab** naming every tie.
-- `src/components/landing-v2/relationship-callouts.tsx` — headlines *derived*
-  from ties, not authored.
-- `demo-graph.tsx` (hero) + `zone-layers.tsx` — now data-driven; hero labels
-  the single most telling tie (GUIDE).
-- `packages/engine`: exported `CONNECTION_DESCRIPTIONS` (compatibility.ts) and
-  `CONNECTION_SCORE` (hd-compatibility.ts) so the page reads scores from one
-  source of truth. Engine tests still 185/185.
+**🔴 BUG 1 — `getAnalog` was wrong. Every analog this engine ever emitted was incorrect.**
+`oracle-tables.ts` held a hardcoded map citing "DREAMSPELL_SPEC.md (authoritative)".
+**That file does not exist in this repository.** The pairs had no consistent sum
+(1↔17 sums to 18, 2↔19 to 21, 13↔20 to 33) and broke the colour rule that *defines*
+analog (it mapped Red→Red). Correct rule: the seals sum to 19. Now a formula, not a
+map, with `data/oracle-tables.test.ts` proving six invariants across all 20 seals.
+26 tests had encoded the bug — one describe block was literally named after the
+phantom spec. **Tests that assert a bug will defend it forever.**
 
-**GOTCHA — raw scores are NOT comparable across systems.** Gematria
-name-resonance scores 0-100; a Tzolkin `guide` scores 18. Sorting ties by score
-surfaces the blandest tie ("name resonance" fires on nearly every pair) and
-buries the meaningful one — the hero literally labelled itself "NAME
-RESONANCE". `byInterest()` / `TIE_INTEREST` in homepage-demo.ts fixes this.
-Use it anywhere ties are ranked.
+**🔴 BUG 2 — house cusps were never read.** `astrology.ts` looked for
+`ChartPosition.Ecliptic.DecimalDegrees` on a House; that field lives under
+`StartPosition`. It silently fell back to `i * 30`, so **every natal chart in the
+product used 30° buckets from 0° Aries, and `planet.house` was wrong on every
+chart.** The committed golden had it baked in as `0°00' Aries`, `0°00' Taurus`, …
+Nobody reads a snapshot. Now real, anchored to Asc (h1) and MC (h10), both hemispheres.
 
-Also: use `flavor.accentSoft`, not `.accent`, for system text on the near-black
-ground — Tzolkin `#2E6E5E` is unreadable.
+**🔴 BUG 3 — the Dreamspell oracle ignored tone.** `guide`/`analog`/`antipode`/`occult`
+compared seals only, firing ~20× too often (5% instead of 1-in-260). Now exact:
+occult collapses to `kin₁ + kin₂ = 261`. The seal-only matches survive as
+`analog-seal` etc. — a real but weaker claim, honestly named. Measured after the
+fix: guide 0.378%, occult 0.406%, analog 0.434% (theory 0.385%).
 
-Still open on the homepage: trust band (§6), pricing teaser (§7, still shows 3
-plans), sticky mobile CTA. Hero copy/layout untouched (only its map is fixed).
+**🔴 BUG 4 — `trecena-match` was not a trecena.** It bucketed day-sign 1-20 into
+halves (43.7% of pairs). Now the real 13-day run of the 260-count: **5.00%**, exactly theory.
+
+**🔴 DELETED — the gematria pair score was fabricated.** `30 + (sharedRoot ? 45 : 0) +
+25×(1−|v1−v2|/max)`. Difference-of-values, shared digital root, graded 0-100 — none
+have *any* traditional basis; that is 1900s Western numerology in Hebrew clothing.
+Replaced by `nameValueMatch` (exact equality, the only relation the tradition
+sanctions). Gematria's fusion weight is now 0 and it is absent from `availableSystems`.
+
+### 2. SURPRISAL is now the scoring spine — `packages/engine/src/services/rarity.ts`
+
+The core finding: **most ties fire on nearly everyone and therefore say nothing.**
+Measured over 780–7,140 random pairs: `cross-aspect` 100%, `dominance` 96.3%,
+`compromise` 96.0%, `electromagnetic` 95.4%, `house-overlay` 100%.
+
+So every tie is now weighted by `−log₂(measured base rate)`. A `guide` (0.38%) is
+8.0 bits; an `electromagnetic` (95.4%) is 0.07 bits. The traditions rated them 18 vs
+12 (1.5×). Information content rates them **115:1**, with no human opinion involved.
+Ranking, headline callouts and the pair "rarity" score all derive from this. The
+hand-written `TIE_INTEREST` table is gone.
+
+**⚠️ The method caught the published literature being wrong — twice.**
+- A 3-planet **stellium overlay** fires on **60.6%** of pairs, not the ~4% sources
+  claim (Sun/Mercury/Venus are never >76° apart; Placidus houses are wide). The
+  published 4% is really the *four*-planet rate (measured 7.4%).
+- A **double whammy** across all 15 planet pairs fires on **73.6%**. The famous
+  ~7-10% is per *specific* pair — Sun–Moon 9.4%, Venus–Mars 9.1%. Hence
+  `double-whammy-core` (rare, the headline) vs generic `double-whammy` (quiet).
+
+**If you add a relation, MEASURE its base rate before adding it to `BASE_RATE`.**
+A guessed rate silently reintroduces the exact problem that module exists to remove.
+
+### 3. New engine capability
+
+- `services/hd-relations.ts` — wires `composite-bodygraph.ts`, which was written,
+  tested and **called by nothing**. HD now leads with **emergent definition** (the
+  centres the pair defines that *neither has alone*), connection themes (9-0 → 5-4),
+  split bridging, profile harmony. Electromagnetic is demoted to a **count**.
+  Themes spread 35.5 / 33.8 / 22.6 / 6.5 / **1.0**% — real variation, where
+  existence-of-electromagnetic was a flat 95%.
+- `synastry.ts` rewritten — 8 new contact types exposed as a **`discriminators`**
+  list (T2/T3 only): `double-whammy`, `tight-aspect` (≤1°), `vertex-contact`,
+  `node-axis-integration`, `node-contact`, `angle-contact`, `house-overlay`,
+  `stellium-overlay`. Plus a real Vertex (`calculations/vertex.test.ts` asserts the
+  *definition* — due west on the prime vertical — because "houses 5-8" is a
+  mid-northern rule of thumb that fails in the southern hemisphere). Returns `null`
+  above |lat| 66° rather than guessing.
+- Dreamspell/Tzolk'in gained wavespell, castle, Earth Family, Year Bearers, Lords of
+  the Night. Every rate measured over 7,140 pairs; every one lands on theory.
+- **NEVER FABRICATE:** anything needing birth time or place returns nothing when that
+  data is absent. A Moon without a birth time carries ±7° error — larger than every
+  orb — so Moon-based claims are suppressed outright.
+
+### 4. Homepage — rebuilt on all of it
+
+- **`ego-star.tsx`** (new) — the hero map is the **Dreamspell oracle cross made of
+  people**: guide above, analog right, antipode left, occult below (the app's own
+  convention, `components/cards/OracleMap.tsx`). Position *is* the relation. Icons are
+  each person's real seal glyph. Layer chips select systems; "consolidate" combines them.
+- `demo-graph.tsx` **deleted** — the 15-edge hairball where every line was true and
+  worthless (a complete graph carries no information in its edges).
+- `homepage-demo.ts` — six people whose birth dates were **re-searched** so Maya's
+  five spokes are genuine 1-in-260 oracle relations (Ari kin 164 guide, Noam kin 99
+  analog, Tal kin 190 antipode, Omer kin 201 occult since 60+201=261, Dana kin 220
+  same-seal). `buildEgoStar` **throws** rather than draw a spoke the engine didn't
+  find — that throw is the design working.
+- Circles are computed by `buildPenta` (they previously listed people who **don't
+  exist** — "Shai", "Lior" — with invented insights). Callouts select themselves by
+  surprisal instead of a hardcoded list that had already gone stale.
+- `zone-embeds.tsx` fabrications gone: it asserted `Kin 113 · Leo · MG 5/1` for Maya
+  while the engine said kin 60, and labelled Maya↔Ari "Occult partners" when the
+  engine says `guide`.
+
+### Still open (recorded in CONNECTION_ATLAS.md §9)
+- **Arrows.** `guide` is asymmetric (5-cycles) and our impl is order-dependent;
+  house overlays and split-bridges are directional. Data carries direction; the map
+  doesn't draw it yet.
+- **GAP kin** deliberately NOT implemented — no reachable source enumerates the 52
+  portals in text, and a wrong list is worse than none.
+- **Per-system 0-100 scores are still tradition-weighted constants.** Surprisal
+  governs ranking and rarity; those numbers should be retired in favour of bits.
+- **Type/Strategy/Authority interplay** — what Jovian says to *lead* with. We compute
+  `profileFit`; it isn't surfaced.
+
+### Next actions
+1. **COMMIT.** 35 files, uncommitted, in a tree another session is actively
+   committing to. Engine semantics changed (analog, oracle, trecena, gematria, houses)
+   — mobile reads the same engine.
+2. Paddle orphans still live (see §2 below): revoke the ~5 stray live API keys.
 
 ### 2. Billing pivoted Paddle → store IAP (other session, committed `a36cd81`)
 **This supersedes the Paddle production cutover I completed earlier the same

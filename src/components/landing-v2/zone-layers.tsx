@@ -11,38 +11,37 @@ import { COLORS, TYPE } from '@/lib/design/landing-tokens'
 // acetate layer per system, ending fused. Spec: HOMEPAGE_SPEC §7.
 // ============================================
 
+/**
+ * The edges are REAL. `layerEdges` is computed by the engine on the server
+ * (src/lib/data/homepage-demo.ts) and passed in — previously these were
+ * hardcoded index pairs that encoded nothing, which is why the section read as
+ * a meaningless network diagram.
+ */
+export interface LayerEdge {
+  readonly x1: number
+  readonly y1: number
+  readonly x2: number
+  readonly y2: number
+  /** The engine's name for this tie — 'guide', 'electromagnetic', 'trine'… */
+  readonly type: string
+}
+
 interface LayerPerson {
   readonly name: string
   readonly x: number
   readonly y: number
 }
 
-const PEOPLE: readonly LayerPerson[] = [
-  { name: 'Maya', x: 180, y: 110 },
-  { name: 'Noam', x: 420, y: 80 },
-  { name: 'Dana', x: 610, y: 170 },
-  { name: 'Ari', x: 250, y: 300 },
-  { name: 'Tal', x: 480, y: 330 },
-  { name: 'Omer', x: 660, y: 380 },
-]
-
-/** Which people each layer connects (index pairs into PEOPLE). */
-const LAYER_LINKS: readonly (readonly (readonly [number, number])[])[] = [
-  [[0, 1], [1, 2], [3, 4]], // astrology — synastry lines
-  [[0, 3], [2, 5], [1, 4]], // dreamspell — kin threads
-  [[0, 4], [2, 4], [3, 5]], // tzolkin — day-sign resonance
-  [[1, 3], [4, 5], [0, 2]], // human design — circuits
-  [[0, 5], [1, 5], [2, 3]], // gematria — letter harmonics
-]
-
 const LAYER_DASH = ['none', '1 6', '4 4', '10 3', '2 3'] as const
 
 function Layer({
   index,
   progress,
+  edges,
 }: {
   readonly index: number
   readonly progress: MotionValue<number>
+  readonly edges: readonly LayerEdge[]
 }) {
   const flavor = SYSTEM_FLAVORS[FLAVOR_DESCENT[index]]
   // Layer i becomes visible in its scroll window and stays.
@@ -51,28 +50,33 @@ function Layer({
 
   return (
     <motion.g style={{ opacity }}>
-      {LAYER_LINKS[index].map(([a, b]) => {
-        const pa = PEOPLE[a]
-        const pb = PEOPLE[b]
-        return (
-          <line
-            key={`${index}-${a}-${b}`}
-            x1={pa.x}
-            y1={pa.y}
-            x2={pb.x}
-            y2={pb.y}
-            stroke={flavor.accent}
-            strokeWidth={1.6}
-            strokeDasharray={LAYER_DASH[index]}
-            opacity={0.8}
-          />
-        )
-      })}
+      {edges.map((e, i) => (
+        <line
+          key={`${index}-${i}`}
+          x1={e.x1}
+          y1={e.y1}
+          x2={e.x2}
+          y2={e.y2}
+          stroke={flavor.accent}
+          strokeWidth={1.6}
+          strokeDasharray={LAYER_DASH[index]}
+          opacity={0.8}
+        >
+          <title>{e.type}</title>
+        </line>
+      ))}
     </motion.g>
   )
 }
 
-export function ZoneLayers() {
+export interface ZoneLayersProps {
+  readonly people: readonly LayerPerson[]
+  /** One edge list per system, in FLAVOR_DESCENT order. Engine-computed. */
+  readonly layerEdges: readonly (readonly LayerEdge[])[]
+}
+
+export function ZoneLayers({ people, layerEdges }: ZoneLayersProps) {
+  const PEOPLE = people
   const containerRef = useRef<HTMLDivElement>(null)
   const reducedMotion = useReducedMotion()
   const { scrollYProgress } = useScroll({
@@ -158,26 +162,28 @@ export function ZoneLayers() {
                 />
               )}
 
-              {/* Five acetate layers */}
+              {/* Five acetate layers — edges computed by the engine */}
               {FLAVOR_DESCENT.map((key, i) =>
                 reducedMotion ? (
                   <g key={key} opacity={0.8}>
-                    {LAYER_LINKS[i].map(([a, b]) => (
+                    {(layerEdges[i] ?? []).map((e, j) => (
                       <line
-                        key={`${i}-${a}-${b}`}
-                        x1={PEOPLE[a].x}
-                        y1={PEOPLE[a].y}
-                        x2={PEOPLE[b].x}
-                        y2={PEOPLE[b].y}
+                        key={`${i}-${j}`}
+                        x1={e.x1}
+                        y1={e.y1}
+                        x2={e.x2}
+                        y2={e.y2}
                         stroke={SYSTEM_FLAVORS[key].accent}
                         strokeWidth={1.6}
                         strokeDasharray={LAYER_DASH[i]}
                         opacity={0.7}
-                      />
+                      >
+                        <title>{e.type}</title>
+                      </line>
                     ))}
                   </g>
                 ) : (
-                  <Layer key={key} index={i} progress={scrollYProgress} />
+                  <Layer key={key} index={i} progress={scrollYProgress} edges={layerEdges[i] ?? []} />
                 ),
               )}
 
@@ -200,9 +206,10 @@ export function ZoneLayers() {
             </svg>
           </div>
 
-          <p className="mt-6 max-w-xl text-sm text-white/50">
-            Isolate any single layer · compare layers side by side · fuse all
-            five into one reading, evidence still visible.
+          <p className="mt-6 max-w-2xl text-sm text-white/50">
+            Every line is a tie the engine actually found — a Guide kin, a
+            completed channel, a Sun–Moon trine. Isolate one layer, compare two,
+            or fuse all five into a single score. The evidence stays visible.
           </p>
         </div>
       </div>

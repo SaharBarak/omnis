@@ -6,6 +6,8 @@ export { Magnetic } from './magnetic'
 export { AmbientVideo } from './ambient-video'
 export { Zone } from './zone'
 export { ZoneLayers } from './zone-layers'
+export { PeopleAtlas } from './people-atlas'
+export { RelationshipCallouts } from './relationship-callouts'
 export {
   ReadingCycler,
   PairScores,

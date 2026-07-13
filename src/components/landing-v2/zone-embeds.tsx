@@ -4,13 +4,21 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Search, Link2, Users, Eye, MessageSquare, Pencil } from 'lucide-react'
+import { EgoStar } from './ego-star'
 import { SYSTEM_FLAVORS, FLAVOR_DESCENT, type SystemKey } from '@/lib/design/system-flavors'
 import { COLORS } from '@/lib/design/landing-tokens'
-import { DemoGraph } from './demo-graph'
+import type {
+  EgoStarData,
+  DemoCircle,
+  ReadingTabData,
+  PairScoresData,
+  LibraryPerson,
+} from '@/lib/data/homepage-demo'
 
 // ============================================
 // ZONE EMBEDS — the "real product UI" moments inside each zone.
-// Marketing-weight demo versions of app components, demo data only.
+// Marketing-weight demo versions of app components. Every reading, score, and
+// person below is computed by the engine and passed in — see homepage-demo.ts.
 // ============================================
 
 const easeOut = [0.4, 0, 0.2, 1] as const
@@ -19,68 +27,23 @@ const easeOut = [0.4, 0, 0.2, 1] as const
 // §3 YOU — five readings auto-cycling
 // --------------------------------------------
 
-interface ReadingTab {
-  readonly key: SystemKey
-  readonly title: string
-  readonly value: string
-  readonly detail: string
-  readonly icon: string
-}
 
-const READING_TABS: readonly ReadingTab[] = [
-  {
-    key: 'astrology',
-    title: 'Natal chart',
-    value: 'Sun in Leo · Moon in Pisces',
-    detail: 'Rising Scorpio — 12 placements, 34 aspects',
-    icon: '/images/astrology/signs/05-leo.svg',
-  },
-  {
-    key: 'dreamspell',
-    title: 'Galactic signature',
-    value: 'Kin 113 · Solar Skywalker',
-    detail: 'Red Skywalker, tone 9 — wavespell of the Serpent',
-    icon: '/images/dreamspell/seals/13-skywalker.svg',
-  },
-  {
-    key: 'tzolkin',
-    title: 'Day sign',
-    value: "B'en · 9",
-    detail: 'Reed — pillar between sky and earth',
-    icon: '/icons/tzolkin/signs/13-ben.svg',
-  },
-  {
-    key: 'humanDesign',
-    title: 'Bodygraph',
-    value: 'Manifesting Generator 5/1',
-    detail: 'Sacral authority — 4 centers defined',
-    icon: '/images/human-design/bodygraph/bodygraph.svg',
-  },
-  {
-    key: 'gematria',
-    title: 'Name value',
-    value: 'מיה — 55',
-    detail: 'Ten and five doubled — the walking gate',
-    icon: '/images/gematria/letters/13-mem.svg',
-  },
-]
-
-export function ReadingCycler() {
+export function ReadingCycler({ tabs }: { readonly tabs: readonly ReadingTabData[] }) {
   const [active, setActive] = useState(0)
 
   useEffect(() => {
-    const t = setInterval(() => setActive((a) => (a + 1) % READING_TABS.length), 4000)
+    const t = setInterval(() => setActive((a) => (a + 1) % tabs.length), 4000)
     return () => clearInterval(t)
   }, [])
 
-  const tab = READING_TABS[active]
+  const tab = tabs[active]
   const flavor = SYSTEM_FLAVORS[tab.key]
 
   return (
     <div className="mx-auto max-w-2xl rounded-2xl border border-white/10 bg-surface p-6 md:p-8">
       {/* Tab strip with progress hairline */}
       <div className="flex gap-1 border-b border-white/10 pb-3">
-        {READING_TABS.map((t, i) => (
+        {tabs.map((t, i) => (
           <button
             key={t.key}
             type="button"
@@ -137,24 +100,16 @@ export function ReadingCycler() {
 // §4 YOU + ONE — five-system score stack
 // --------------------------------------------
 
-const PAIR_SCORES: readonly { readonly key: SystemKey; readonly score: number; readonly note: string }[] = [
-  { key: 'astrology', score: 78, note: 'Moon trine Venus — ease' },
-  { key: 'dreamspell', score: 91, note: 'Occult partners' },
-  { key: 'tzolkin', score: 64, note: 'Same trecena' },
-  { key: 'humanDesign', score: 83, note: 'Electromagnetic 19-49' },
-  { key: 'gematria', score: 57, note: 'Names share a root' },
-]
-
-export function PairScores() {
+export function PairScores({ data }: { readonly data: PairScoresData }) {
   return (
     <div className="mx-auto max-w-xl rounded-2xl border border-white/10 bg-surface p-6 md:p-8">
       <div className="mb-6 flex items-center justify-center gap-4">
-        <PairAvatar name="Maya" color="#C0392B" />
+        <PairAvatar name={data.a.name} color="#C0392B" />
         <div className="h-px w-16 bg-gradient-to-r from-[#C0392B] to-[#2C3E90]" />
-        <PairAvatar name="Ari" color="#2C3E90" />
+        <PairAvatar name={data.b.name} color="#2C3E90" />
       </div>
       <div className="space-y-3">
-        {PAIR_SCORES.map(({ key, score, note }, i) => {
+        {data.rows.map(({ key, score, note }, i) => {
           const flavor = SYSTEM_FLAVORS[key]
           return (
             <div key={key} className="flex items-center gap-3">
@@ -199,13 +154,7 @@ function PairAvatar({ name, color }: { readonly name: string; readonly color: st
 // §5 YOUR PEOPLE, KEPT — library demo with typed search
 // --------------------------------------------
 
-const LIBRARY_PEOPLE = [
-  { name: 'Maya Cohen', meta: 'Kin 113 · Leo · MG 5/1', tags: ['family'] },
-  { name: 'Ari Levit', meta: 'Kin 42 · Sagittarius · Projector 3/5', tags: ['team'] },
-  { name: 'Dana Peled', meta: 'Kin 200 · Cancer · Generator 1/3', tags: ['family', 'circle'] },
-] as const
-
-export function LibraryDemo() {
+export function LibraryDemo({ people }: { readonly people: readonly LibraryPerson[] }) {
   const query = 'Maya'
   const [typed, setTyped] = useState('')
 
@@ -229,7 +178,7 @@ export function LibraryDemo() {
         </span>
       </div>
       <div className="mt-4 space-y-2">
-        {LIBRARY_PEOPLE.filter((p) => p.name.includes(typed) || typed.length < query.length).map(
+        {people.filter((p) => p.name.includes(typed) || typed.length < query.length).map(
           (p, i) => (
             <motion.div
               key={p.name}
@@ -263,48 +212,13 @@ export function LibraryDemo() {
 // §6 THE MAP — full-width graph with lens controls
 // --------------------------------------------
 
-export function MapCenterpiece() {
-  const [lens, setLens] = useState<SystemKey | null>(null)
-
+export function MapCenterpiece({ star }: { readonly star: EgoStarData }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-surface p-4 md:p-8">
-      <div className="mb-5 flex flex-wrap gap-2">
-        {FLAVOR_DESCENT.map((key) => {
-          const flavor = SYSTEM_FLAVORS[key]
-          const isActive = lens === key
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setLens(isActive ? null : key)}
-              className="rounded-full border px-3 py-1 text-[11px] uppercase tracking-widest transition-all active:scale-[0.98]"
-              style={{
-                borderColor: `${flavor.accent}55`,
-                color: flavor.accent,
-                backgroundColor: isActive ? `${flavor.accent}22` : `${flavor.accent}08`,
-                opacity: lens === null || isActive ? 1 : 0.4,
-              }}
-            >
-              {flavor.name}
-            </button>
-          )
-        })}
-        <button
-          type="button"
-          onClick={() => setLens(null)}
-          className="rounded-full border px-3 py-1 text-[11px] uppercase tracking-widest"
-          style={{
-            borderColor: `${COLORS.brand}55`,
-            color: COLORS.brand,
-            backgroundColor: lens === null ? `${COLORS.brand}22` : `${COLORS.brand}08`,
-          }}
-        >
-          Fused
-        </button>
-      </div>
-      <DemoGraph lens={lens} />
+      <EgoStar data={star} />
       <p className="mt-4 text-center text-xs text-white/35">
-        Hover any line for its five-system score. Tap a lens to isolate a layer.
+        Select layers above. Each strand is a system that found a real tie — and the
+        gaps are findings too.
       </p>
     </div>
   )
@@ -314,31 +228,10 @@ export function MapCenterpiece() {
 // §8 CIRCLES — three groups, same person, different role
 // --------------------------------------------
 
-const CIRCLES = [
-  {
-    name: 'Family',
-    accent: COLORS.brand,
-    members: ['Maya', 'Noam', 'Dana', 'Shai'],
-    insight: 'Maya bridges — the only defined throat in the room.',
-  },
-  {
-    name: 'Team',
-    accent: '#7FD4C1',
-    members: ['Maya', 'Ari', 'Tal', 'Omer'],
-    insight: 'Maya drives — sacral motor against three projectors.',
-  },
-  {
-    name: 'Friends',
-    accent: '#B387E8',
-    members: ['Maya', 'Lior', 'Shai'],
-    insight: 'Maya rests — occult kin on both sides.',
-  },
-] as const
-
-export function CirclesDemo() {
+export function CirclesDemo({ circles }: { readonly circles: readonly DemoCircle[] }) {
   return (
     <div className="grid gap-4 md:grid-cols-[2fr_1fr_1fr]">
-      {CIRCLES.map((circle, i) => (
+      {circles.map((circle, i) => (
         <motion.div
           key={circle.name}
           className={`rounded-2xl border border-white/10 bg-surface p-6 ${i === 0 ? 'md:p-8' : ''}`}
@@ -359,14 +252,14 @@ export function CirclesDemo() {
           <div className="mt-4 flex -space-x-2">
             {circle.members.map((m) => (
               <span
-                key={m}
+                key={m.id}
                 className={`flex h-9 w-9 items-center justify-center rounded-full border-2 border-surface text-xs font-medium text-white ${
-                  m === 'Maya' ? '' : 'bg-white/15'
+                  m.id === 'maya' ? '' : 'bg-white/15'
                 }`}
-                style={m === 'Maya' ? { backgroundColor: circle.accent } : undefined}
-                title={m}
+                style={m.id === 'maya' ? { backgroundColor: circle.accent } : undefined}
+                title={m.name}
               >
-                {m[0]}
+                {m.name[0]}
               </span>
             ))}
           </div>
@@ -381,7 +274,7 @@ export function CirclesDemo() {
 // §9 BEYOND YOU — share dialog + living link
 // --------------------------------------------
 
-export function ShareDemo() {
+export function ShareDemo({ star }: { readonly star: EgoStarData }) {
   return (
     <div className="mx-auto grid max-w-3xl items-center gap-6 md:grid-cols-2">
       <div className="rounded-2xl border border-white/10 bg-surface p-6">
@@ -428,7 +321,7 @@ export function ShareDemo() {
           <p className="text-[9px] uppercase tracking-widest text-white/50">Shared with you</p>
           <p className="mt-1 font-display text-sm text-white">Mom&rsquo;s side</p>
           <div className="mt-3">
-            <DemoGraph className="scale-[1.02]" />
+            <EgoStar data={star} className="scale-[1.02]" />
           </div>
         </div>
       </motion.div>
@@ -440,7 +333,7 @@ export function ShareDemo() {
 // §10 KNOWLEDGE — self-typing search + five portals
 // --------------------------------------------
 
-const KNOWLEDGE_QUERIES = ['Gate 34', 'Kin 113', 'Venus synastry', 'Tone 7', 'Gematria 26']
+const KNOWLEDGE_QUERIES = ['Gate 34', 'Kin 60', 'Venus synastry', 'Tone 7', 'Gematria 26']
 
 interface SearchHit {
   readonly title: string
