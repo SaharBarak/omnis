@@ -1,7 +1,97 @@
-# Session Handoff — Redesign (updated 2026-07-11)
+# Session Handoff — Redesign (updated 2026-07-13)
 
 Continue point for the Pleiad knowledge-experience redesign. Read this +
 MAIN_PURPOSE.md first; everything else on demand.
+
+## CURRENT STATE (2026-07-13) — READ FIRST
+
+Tree health: **typecheck ✓ · 1082/1082 tests ✓**. HEAD = `a36cd81`.
+Two sessions share this tree. This section is written by the **web** session.
+
+### 1. Homepage redesign — BUILT, VERIFIED, **NOT COMMITTED**, not deployed
+Spec: `docs/redesign/HOMEPAGE_REDESIGN.md`. User's complaint was that the
+landing page's maps were "silly, irrelevant" and unintelligible. Root cause,
+confirmed in code: **the graphs were fabricated.**
+- `zone-layers.tsx` edges were hardcoded index pairs (`[[0,1],[1,2],…]`) —
+  they encoded nothing.
+- `demo-graph.tsx` (the HERO) was worse: it hardcoded readings that
+  **contradicted the engine** ("Maya · Kin 113 · מיה 55"; the engine says
+  kin 60 / 56) and invented two people (Lior, Shai) who don't exist.
+
+Fix: **everything on the homepage is now computed by the real engine** at build
+time (RSC → props). New `src/lib/data/homepage-demo.ts` pins six people whose
+birth dates were *searched* so the engine genuinely produces the showcase ties:
+Maya→Ari `guide`, Dana→Tal `antipode`, Noam→Omer `occult`, plus real HD
+`electromagnetic` channel completions and real synastry aspects. 151 real ties
+across 15 pairs. **If a tie doesn't exist, no line is drawn.**
+
+New/changed:
+- `src/lib/data/homepage-demo.ts` — buildHomepageDemo / buildGraph /
+  buildLayerEdges / buildCallouts / `byInterest`.
+- `src/components/landing-v2/people-atlas.tsx` — person selector → five real
+  charts (reuses the app's own `NatalChartWheel`, `BodygraphChart`) →
+  **Connections tab** naming every tie.
+- `src/components/landing-v2/relationship-callouts.tsx` — headlines *derived*
+  from ties, not authored.
+- `demo-graph.tsx` (hero) + `zone-layers.tsx` — now data-driven; hero labels
+  the single most telling tie (GUIDE).
+- `packages/engine`: exported `CONNECTION_DESCRIPTIONS` (compatibility.ts) and
+  `CONNECTION_SCORE` (hd-compatibility.ts) so the page reads scores from one
+  source of truth. Engine tests still 185/185.
+
+**GOTCHA — raw scores are NOT comparable across systems.** Gematria
+name-resonance scores 0-100; a Tzolkin `guide` scores 18. Sorting ties by score
+surfaces the blandest tie ("name resonance" fires on nearly every pair) and
+buries the meaningful one — the hero literally labelled itself "NAME
+RESONANCE". `byInterest()` / `TIE_INTEREST` in homepage-demo.ts fixes this.
+Use it anywhere ties are ranked.
+
+Also: use `flavor.accentSoft`, not `.accent`, for system text on the near-black
+ground — Tzolkin `#2E6E5E` is unreadable.
+
+Still open on the homepage: trust band (§6), pricing teaser (§7, still shows 3
+plans), sticky mobile CTA. Hero copy/layout untouched (only its map is fixed).
+
+### 2. Billing pivoted Paddle → store IAP (other session, committed `a36cd81`)
+**This supersedes the Paddle production cutover I completed earlier the same
+day.** Paddle is now fully removed from `src` (0 refs); billing is App Store /
+Google Play IAP via RevenueCat behind a provider seam (`billing-provider.ts`,
+`billing-providers/`). `scripts/paddle-*.mjs` were deleted in that commit.
+
+**ORPHANED, needs cleanup — nobody has done this:**
+- Live Paddle **products, prices, and the `pleiad.io/api/billing/webhook`
+  notification destination** still exist in the Paddle account (I created them
+  live on 07-12). Wind them down or leave them dormant, but they are real.
+- Stray live Paddle **API keys** still Active: `pleiad-production`,
+  `pleiad-prod`, `pleiad-live`, `pleiad-map`, `pleiad-prod-live`, plus
+  duplicate `pleiad-prod-live` client tokens. **Revoke them** (Paddle →
+  Authentication). Revoking live payment creds is user-only; the agent
+  classifier blocks it.
+- `PADDLE_*` secrets are still set on the Cloudflare Worker — now unused.
+
+### 3. Shipped and live (earlier 07-12), still valid
+- **Groq is the LLM provider.** `src/lib/services/llm.ts` provider seam,
+  `LLM_PROVIDER=groq` (default), Gemini kept as fallback. Key captured +
+  validated (200, llama-3.3-70b). **Gemini's FREE tier trains on your prompts**
+  — never point it at real user birth data; paid key only.
+- Resend + Turnstile keys captured and pushed to the Worker.
+- `scripts/deploy-prod.sh` — **use this, not `npm run deploy`.** The plain
+  deploy bakes `.env.local` (dev/sandbox) values into the client bundle;
+  this wrapper sources the live `NEXT_PUBLIC_*` from `.prod.vars`.
+- Credential capture via Aside browser automation works well
+  (`scripts/groq-capture.mjs`, `resend-capture.mjs` as the pattern): Node
+  wrapper drives `aside repl`, reads the secret off stdout, writes
+  `.prod.vars`, prints only a char count. Aside repl has **no filesystem** and
+  **tabs don't persist between calls** — do a whole flow in one invocation.
+  Portal/SPA menus need **real pointer clicks** (`p.click`/`getByText`), not
+  DOM `.click()`.
+
+### Next actions
+1. Decide: commit the homepage work (it's cleanly separable from billing).
+2. Revoke the stray Paddle live keys + decide the fate of the live Paddle
+   products/webhook.
+3. Finish homepage §6/§7 + sticky mobile CTA, then deploy via
+   `./scripts/deploy-prod.sh`.
 
 ## MOBILE SESSION — RESUME HERE (2026-07-11)
 
@@ -43,6 +133,80 @@ through Bash, `fs` unavailable in the sandbox); Aside browser can die —
 `open -a Aside` + ~15s to revive.
 
 ---
+
+## BILLING PIVOTED: Paddle → store IAP (2026-07-13) — `a36cd81`, `4c7008f`
+
+**Paddle is dead and must not be retried.** It rejected pleiad.io on *category*:
+its AUP prohibits "digital services associated with pseudo-science, including
+… clairvoyance, horoscopes, fortune-telling". No copy rewrite fixes that (the
+app computes natal charts; checkout sat inside `/app`), and faking it risks a
+MATCH/TMF listing. Researched and also ruled out: **Polar** (prohibits the same,
+item 31), **Stripe** (restricts it AND does not support Israeli merchants at
+all), **Lemon Squeezy** (Stripe-owned), **PayPal** (bans psychic/fortune-teller).
+**Dodo** allows it + pays Israel but has public reports of frozen payouts.
+Root cause: an MoR carries the legal liability, so it polices categories — the
+whole MoR model is closed to this product. (Nebula/Obrio, the biggest astrology
+app, bills as its *own* entity with direct acquiring + store IAP.)
+
+**Decision: the stores are the biller.** Paid access is an in-app purchase;
+Apple/Google are the merchant of record (payment + global tax) and pay Israeli
+developers. The web is a free client that unlocks from the IAP entitlement.
+Nothing to migrate — Paddle never took a live payment.
+
+**Architecture.** RevenueCat's `app_user_id` IS the Auth0 sub, so a purchase on
+a phone unlocks the same account on the web. Everything keys by `user_id`.
+`usage.ts` / `PLANS.limits` / `requireLimit` were already provider-agnostic and
+are **untouched** — only what *writes* the `subscriptions` table changed.
+- `billing-provider.ts` = the seam (fetchEntitlement / verifyWebhook /
+  getManagementUrl); only normalized types cross it. A web card acquirer can be
+  added later without touching the webhook, sync, or gating.
+- `billing-providers/revenuecat.ts` = REST only, no SDK.
+- Re-fetch-as-truth preserved; Founding Lifetime still sticky; sync now
+  self-heals a paying user whose webhook was missed.
+- Web can't sell: `/api/billing/checkout` deleted; `/portal` now returns the OS
+  subscription-management deep link; every upgrade CTA points at the app.
+- DB: `paddle_*` → `billing_*` + `billing_provider` (migration `0002`, a
+  hand-written RENAME — drizzle's non-interactive diff would DROP+ADD).
+- Legal pages corrected (Apple/Google are MoR and decide refunds; the
+  self-processed 14-day guarantee is gone — it was no longer truthful).
+- Mobile: real IAP, Offerings + Restore Purchases, `Purchases.logIn(auth0Sub)`.
+  Expo Go still runs (RevenueCat Preview API Mode); real purchases need a dev build.
+
+Health: root+mobile typecheck ✓ · **1088 tests ✓** · lint 0 errors (web) ·
+`next build` ✓ 50/50 · iOS Hermes export ✓ · migrations clean on fresh pg16 ·
+smoke-repos 12/12.
+
+### REMAINING — all user-gated (this is now the ONLY path to revenue)
+1. **RevenueCat account** → project + API keys: secret key (server) +
+   public iOS/Android SDK keys (mobile `.env`).
+2. **App Store Connect + Play Console**: Apple Developer + Play accounts on the
+   Israeli entity; create the 4 products (`explorer`/`complete`/`practitioner`
+   monthly + `lifetime` non-consumable). Enroll in the **Apple Small Business
+   Program** (15% not 30%).
+3. **RevenueCat dashboard wiring** — entitlements MUST be named exactly
+   `explorer` | `complete` | `practitioner` | `lifetime` (the server maps
+   entitlement id → plan by name), and offering packages should carry the same
+   identifiers. Point the webhook at `https://pleiad.io/api/billing/webhook`
+   with an Authorization header value == `REVENUECAT_WEBHOOK_SECRET`.
+4. Secrets: `REVENUECAT_SECRET_KEY`, `REVENUECAT_WEBHOOK_SECRET`,
+   `BILLING_PROVIDER=revenuecat`, `STORE_PRODUCT_*`, and (once listed)
+   `NEXT_PUBLIC_APP_STORE_URL` / `NEXT_PUBLIC_PLAY_STORE_URL` →
+   `./scripts/set-prod-secrets.sh`.
+5. `npm run db:migrate` (applies `0002`) → `npm run deploy`.
+6. **EAS build → TestFlight / Play internal → submit.** Frame as
+   self-reflection/entertainment, no predictive claims (Apple 1.1.6).
+7. E2E to prove the whole idea: buy in TestFlight as Auth0 user U → log into
+   pleiad.io as U in a browser → paid features unlock.
+
+Trade-offs accepted: 15–30% store cut; **web/desktop users cannot buy** (the
+funnel ends at "download the app"); Apple is a single point of failure (ship
+Play too). If the cut bites later, add a web acquirer behind the seam —
+shortlist: Nuvei/SafeCharge (Israeli-founded), Solidgate (high-risk verticals,
+Nebula's ecosystem), Rapyd (Israeli), Cardcom/Tranzila (Israeli domestic).
+
+## GO-LIVE READY (2026-07-12) — SUPERSEDED by the billing pivot above
+(Paddle steps below are dead — kept only for the RESEND/GROQ/TURNSTILE secrets,
+which are still valid and still need pushing.)
 
 ## GO-LIVE READY (2026-07-12) — user runs 2 commands
 
