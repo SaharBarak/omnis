@@ -219,46 +219,114 @@ through Bash, `fs` unavailable in the sandbox); Aside browser can die —
 
 ---
 
-## BILLING SESSION — RESUME HERE (2026-07-14)
+## MOBILE + AUTH SESSION — RESUME HERE (2026-07-14, later)
 
-Billing pivot is **done and committed** (details in the next section). Plan ladder
-re-cut (`90ac8a0`, `6bc30a0`): people **3 / 15 / 25 / ∞**, every *paid* tier now
-includes relationships (the map is the product — Explorer previously sold six
-systems and no bonds), and **Founding Lifetime is now genuinely top-tier**
-(unlimited people/boards/bonds + groups + API; Practitioner still outranks it on
-metered AI alone). Health at handoff: root+mobile typecheck ✓ · 1091 tests ✓ ·
-web lint 0 errors · `next build` ✓ 50/50 · iOS Hermes export ✓.
+**Mobile login works end-to-end. Blocker #1 is dead.** Every flow (F1–F12 bar
+share/push) was walked on the Android emulator against the live API with a real
+account. Commits: `418629e` (auth), `f78412f` (the bugs that walk found).
+Health: root+mobile typecheck ✓ · **1132 tests ✓** · lint clean on touched files.
 
-### 🔴 BLOCKER #1 — Auth0 callback mismatch kills mobile login (1-field fix)
+### ✅ Blocker #1 was NOT a dashboard fix — the app was wrong
 
-The app on the Android emulator cannot sign in. Proof, pulled from the emulator's
-Chrome intent via `adb shell dumpsys activity activities`:
+`makeRedirectUri({ scheme: 'pleiad' })` emitted bare `pleiad://`, and **Auth0
+cannot accept that**: its callback-url validator requires a host, so the chip is
+rejected on save ("Payload validation error … format callback-url"). The
+previous handoff's "add `pleiad://` as a chip" instruction is impossible. The app
+moved instead → `pleiad://callback` (`packages/mobile/src/lib/auth/auth0.ts`).
+Android's intent filter matches on *scheme*, so no rebuild was needed.
 
-```
-redirect_uri = pleiad://        <-- Auth0 rejects this
-client_id    = PcBpDL7E8HUkNwWG4j0w2E93M3J3q1FZ   (Pleiad Mobile, native)
-audience     = https://api.pleiad.app
-```
+Also added `packages/mobile/src/app/callback.tsx` — expo-router was rendering its
+404 ("Unmatched Route") over the redirect while expo-auth-session consumed it.
 
-`makeRedirectUri({ scheme: 'pleiad' })` emits bare `pleiad://`. The handoff claims
-`pleiad://` is whitelisted, **but the rejection proves it is not** — most likely it
-was saved as `pleiad://callback`, or the callback field got mangled into ONE chip
-(that field is a tag-input; a comma-separated paste collapses into a single bad
-entry — a gotcha this project already hit once, and if it happened here the
-**Allowed Logout URLs are probably corrupted the same way**).
+### ✅ The Auth0 tenant was shared with FOUR other products
 
-**FIX (user, 60s):** Auth0 → Applications → **Pleiad Mobile** → Settings →
-**Allowed Callback URLs** → add `pleiad://` as its own chip (type it, press Enter;
-do NOT paste a comma list) → Save. Then retry login on the emulator.
+`dev-kaipd4klyg48p0ai` hosts Pleiad, Pleiad Mobile, Taroo, Taruu Web and
+**ThePeaceBoard** — all on one user database. Any Peace Board account could sign
+into Pleiad. **A second tenant is impossible on the free plan (1 tenant; Essentials
+$35/mo *drops* you 25k MAU → 500 — do not "upgrade", it buys less).**
 
-Cannot be automated: no M2M grant exists for the Management API (still open item
-#24), so the dashboard is the only door, and it is behind Auth0's TOTP MFA.
+What was done instead, $0, all verified persisted:
+- **`pleiad-users` database connection** (`con_ESITnZ6sioMejDR7`), enabled on ONLY
+  the two Pleiad clients. Code names it in one constant per platform
+  (`src/lib/auth-connections.ts`, mobile `DB_CONNECTION`) — it was hardcoded at
+  four call sites, and naming the wrong connection silently reunites the stores.
+- Web client renamed `OmnisX` → **Pleiad**; both clients carry a logo.
+- **Tenant branding is now Two Circles Studios** (logo + friendly name; the Peace
+  Board cover image is cleared). Login reads "Log in to Two Circles Studios to
+  continue to Pleiad Mobile". Per-app logos do NOT work in New Universal Login —
+  it reads *tenant* branding; the per-app `{{application.logo_url}}` template
+  workaround needs a custom domain, which the free plan lacks.
 
-**Note the emulator changes things:** the app is running as a **dev build** (it
-sends `pleiad://`, which Expo Go cannot do), and the Android SDK is now installed.
-So `react-native-purchases` will work for real — no Expo Go Preview-mode caveat.
+**⚠️ THE SPLIT IS NOT ARMED YET.** `Username-Password-Authentication` is still
+*enabled* on the Pleiad clients, so a Peace Board user can still sign in. Turning
+it off is one toggle (Auth0 → Authentication → Database → that connection →
+Applications) — but it kills any existing Pleiad email/password account.
+**Nobody has answered whether prod has real users.** Run:
+`set -a && . ./.prod.vars && set +a && npx tsx -e "…select count(*) from users…"`.
+Test accounts only → flip it. Real users → migrate/remap `owner_id` first.
 
-### 🔴 BLOCKER #2 — RevenueCat not set up yet (the only path to revenue)
+**Google stays shared regardless** — Auth0 allows one `google-oauth2` connection
+per tenant and it's enabled on all six apps. Mild (a Peace Board Google user just
+lands in an empty Pleiad account; app data keys off `sub` in a separate database)
+but it is an open signup door until Pleiad gets its own tenant or a custom OAuth2
+connection with your own Google Cloud client.
+
+**Long game for a multi-SaaS studio:** one free Auth0 account per product (1 free
+tenant each, 25k MAU, $0) — or move auth to Supabase Auth, which you already pay
+for and which is free per project.
+
+### 🔴 Bugs found by walking the app — FIXED in `f78412f`
+
+The worst was not a crash. **Onboarding silently wrote 1990-01-01 as a real
+birthday** for anyone who tapped Continue without touching the date wheel: the
+field *displayed* the fallback while the draft was null, and Continue committed
+`draft.birthDate ?? dateValue`. Every reading for such a user was confidently
+wrong. Wheels are nullable now; an unset value looks unset and the date must be
+picked. (The test account `sahar.h.barak+pm0714@gmail.com` still carries it.)
+
+- **Mobile had no geocoder** — free text + 4 hardcoded timezones, so no lat/lng,
+  so houses/Ascendant/Vertex had nothing to stand on. Added
+  `packages/mobile/src/lib/geocode.ts` + `components/ui/place-field.tsx` using
+  **Nominatim, the same source as web** (`Accept-Language: en` or it returns
+  Hebrew). Only a *located* place sets coordinates — typed text never fabricates.
+- **Three surfaces counted people three ways**: the cap counted rows (right),
+  settings/paywall read a monthly meter nothing increments for people (a
+  permanent `0 / 3`), and the list header counted the self entry against a cap
+  the server exempts it from ("4 OF 3 KEPT"). `getPersistentUsage()` in
+  `src/lib/services/usage.ts` is now the one count, called by both the enforcing
+  path and the displaying path. **The settings/paywall half needs a deploy to be
+  visible — mobile talks to the prod worker.**
+- Capture sheet retained its draft on *every* close, not just the paywall bounce
+  it was written for → next capture opened onto the last one's form.
+
+### Still open on mobile (feature gaps, not bugs)
+- **F1 has no anonymous "Try one reading" path** — welcome screen only offers
+  Google/email. The spec's whole cold-start funnel is missing.
+- **F2 reveal never plays** (reading assembling system-by-system) — it jumps
+  straight to Today.
+- Knowledge corpus is empty in prod → Library search says "The library is being
+  written". `npm run ingest:knowledge` when wanted.
+- Date/time pickers are the raw unstyled Android spinners.
+
+### Emulator gotchas (cost hours — read before driving it)
+- **`adb` is not on PATH**: `/opt/homebrew/share/android-commandlinetools/platform-tools/adb`.
+- Metro's LAN IP changes; the dev client caches the old one. Use
+  `adb reverse tcp:8081 tcp:8081` then
+  `adb shell am start -a android.intent.action.VIEW -d "pleiad://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"`.
+- **The Auth0 Custom Tab dies on a poisoned cookie jar** — every POST returned
+  `invalid_request: … couldn't find your session`, and a *cached error page* was
+  even restored with the SAME tracking id. The same authorize URL worked fine in
+  a desktop browser. Fix: Chrome → ⋮ → Delete browsing data → All time, and
+  `am force-stop com.android.chrome` before the flow so no tab is restored.
+- WebView text is invisible to `uiautomator dump` — tap Auth0's form by
+  coordinates; native RN screens can be tapped by text.
+- The Expo dev-client's floating bubble sits exactly on the app's settings gear.
+  Reach settings with `am start -a android.intent.action.VIEW -d "pleiad://settings"`.
+
+### 🔴 BLOCKER — RevenueCat not set up yet (the only path to revenue)
+
+Confirmed on device: the paywall renders the ladder and then says **"Purchases
+aren't available here yet"** — correct graceful degradation with no offerings.
 
 Nothing exists yet. Needed, in order:
 1. **RevenueCat account** → project → 3 keys: secret (server) + public iOS/Android SDK keys.
