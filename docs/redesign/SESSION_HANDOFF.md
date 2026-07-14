@@ -3,11 +3,20 @@
 Continue point for the Pleiad knowledge-experience redesign. Read this +
 MAIN_PURPOSE.md first; everything else on demand.
 
-## CURRENT STATE (2026-07-13, later) — READ FIRST
+## CURRENT STATE (2026-07-14) — READ FIRST
 
 Tree health: **typecheck ✓ · 1132/1132 tests ✓ · homepage renders 200**.
-HEAD = `6bc30a0` (the other session kept committing; my work sits on top, uncommitted).
+**PUSHED** — `e80da27`, `f0fd7b0`, `b8743e7`, `511f3a1` on
+`redesign/knowledge-experience` (first time the branch exists on origin).
 Two sessions share this tree. This section is written by the **web** session.
+
+➡️ **Full write-up: `docs/redesign/HANDOFF_2026-07-14_CONNECTIONS.md`.**
+➡️ **Authority for what any map may draw: `docs/redesign/CONNECTION_ATLAS.md`.**
+
+⚠️ **72 files are modified in the working tree and are NOT mine.** A
+`pnpm lint --fix` reordered imports repo-wide (cosmetic only). Do NOT bulk-revert:
+`packages/mobile/package.json` carries an uncommitted change from the parallel
+session (`expo start --android` → `expo run:android`).
 
 ### 1. The engine was wrong. Four correctness bugs, all fixed. **NOT COMMITTED.**
 
