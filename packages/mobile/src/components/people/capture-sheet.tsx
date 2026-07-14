@@ -25,6 +25,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { PlaceField } from '@/components/ui/place-field'
 import { Button, Eyebrow } from '@/components/ui/primitives'
 import { TextField } from '@/components/ui/text-field'
 import { formatBirthDate, formatBirthTime } from '@/lib/onboarding/draft-store'
@@ -52,21 +53,33 @@ function defaultNoon(): Date {
   return noon
 }
 
-/** Inline spinner on iOS; field + native dialog on Android. */
+/**
+ * Inline spinner on iOS; field + native dialog on Android.
+ *
+ * `value` is nullable and an unset value must LOOK unset. Rendering a fallback
+ * date in an untouched field is a lie the form then contradicts: the field read
+ * "1990-01-01" while the draft was still null, so Save failed with "we need
+ * their birth date" pointing at a field that appeared filled in. The fallback
+ * only seeds where the picker opens.
+ */
 function WheelField({
   mode,
   value,
   onChange,
+  fallback,
+  placeholder,
   maximumDate,
 }: {
   mode: 'date' | 'time'
-  value: Date
+  value: Date | null
   onChange: (next: Date) => void
+  fallback: Date
+  placeholder: string
   maximumDate?: Date
 }) {
   const [show, setShow] = useState(false)
 
-  if (Platform.OS === 'ios') {
+  if (Platform.OS === 'ios' && value !== null) {
     return (
       <DateTimePicker
         value={value}
@@ -81,19 +94,34 @@ function WheelField({
     )
   }
 
-  const label = mode === 'date' ? formatBirthDate(value) : formatBirthTime(value)
+  const label =
+    value === null
+      ? placeholder
+      : mode === 'date'
+        ? formatBirthDate(value)
+        : formatBirthTime(value)
+
   return (
     <>
       <Pressable
-        onPress={() => setShow(true)}
+        onPress={() => {
+          // iOS has no dialog: committing the seed swaps this field for the
+          // inline spinner, which the person then scrolls.
+          if (Platform.OS === 'ios') onChange(fallback)
+          else setShow(true)
+        }}
         style={styles.pickerField}
         accessibilityRole="button"
       >
-        <Text style={styles.pickerFieldText}>{label}</Text>
+        <Text
+          style={[styles.pickerFieldText, value === null && styles.pickerFieldPlaceholder]}
+        >
+          {label}
+        </Text>
       </Pressable>
       {show && (
         <DateTimePicker
-          value={value}
+          value={value ?? fallback}
           mode={mode}
           display="spinner"
           maximumDate={maximumDate}
@@ -169,6 +197,21 @@ export function CaptureSheet({
     }
   }
 
+  /**
+   * Walking away is not the same as being stopped at the paywall.
+   *
+   * The draft survives a *save* so a 403 doesn't cost the person their typing
+   * (it clears on server success). But dismissing the sheet by hand means "never
+   * mind" — keeping the draft then greets the next capture with a stranger's
+   * half-filled form, which is how a person named "MayaMaya" gets created.
+   */
+  const dismiss = () => {
+    if (!editing) usePersonDraft.getState().reset()
+    setNameError(undefined)
+    setDateError(undefined)
+    onClose()
+  }
+
   const create = useCreatePerson({
     onLimitExceeded,
     onServerSuccess: (person) => clearDraftFor(person.name),
@@ -199,6 +242,9 @@ export function CaptureSheet({
       ? {
           ...(city.length > 0 ? { city } : {}),
           ...(country.length > 0 ? { country } : {}),
+          ...(draft.coords !== null
+            ? { lat: draft.coords.lat, lng: draft.coords.lng }
+            : {}),
           ...(draft.timezone !== null ? { timezone: draft.timezone } : {}),
           ...(city.length > 0 || country.length > 0
             ? { name: [city, country].filter((part) => part.length > 0).join(', ') }
@@ -239,7 +285,7 @@ export function CaptureSheet({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="none" onRequestClose={dismiss}>
       <KeyboardAvoidingView
         style={styles.root}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -250,7 +296,7 @@ export function CaptureSheet({
         >
           <Pressable
             style={[StyleSheet.absoluteFill, styles.scrim]}
-            onPress={onClose}
+            onPress={dismiss}
             accessibilityRole="button"
             accessibilityLabel="Close"
           />
@@ -274,7 +320,7 @@ export function CaptureSheet({
               </Text>
             </View>
             <Pressable
-              onPress={onClose}
+              onPress={dismiss}
               hitSlop={12}
               accessibilityRole="button"
               accessibilityLabel="Close"
@@ -309,7 +355,9 @@ export function CaptureSheet({
               <Text style={TYPE.eyebrow}>BIRTH DATE</Text>
               <WheelField
                 mode="date"
-                value={draft.birthDate ?? WHEEL_DEFAULT_DATE}
+                value={draft.birthDate}
+                fallback={WHEEL_DEFAULT_DATE}
+                placeholder="Pick their birth date"
                 maximumDate={new Date()}
                 onChange={(next) => {
                   draft.setBirthDate(next)
@@ -335,7 +383,7 @@ export function CaptureSheet({
                       draft.timeUnknown && styles.unknownChipTextActive,
                     ]}
                   >
-                    I don't know
+                    I don&apos;t know
                   </Text>
                 </Pressable>
               </View>
@@ -343,7 +391,9 @@ export function CaptureSheet({
                 <>
                   <WheelField
                     mode="time"
-                    value={draft.birthTime ?? defaultNoon()}
+                    value={draft.birthTime}
+                    fallback={defaultNoon()}
+                    placeholder="Set the hour"
                     onChange={draft.setBirthTime}
                   />
                   <Text style={styles.helper}>Optional — the hour draws the bodygraph.</Text>
@@ -352,27 +402,31 @@ export function CaptureSheet({
             </View>
 
             <View style={styles.fieldBlock}>
-              <Text style={TYPE.eyebrow}>BIRTH PLACE</Text>
-              <View style={styles.placeRow}>
-                <TextField
-                  label="CITY"
-                  value={draft.city}
-                  onChangeText={draft.setCity}
-                  placeholder="Haifa"
-                  autoCapitalize="words"
-                  autoCorrect={false}
-                  style={styles.placeField}
-                />
-                <TextField
-                  label="COUNTRY"
-                  value={draft.country}
-                  onChangeText={draft.setCountry}
-                  placeholder="Israel"
-                  autoCapitalize="words"
-                  autoCorrect={false}
-                  style={styles.placeField}
-                />
-              </View>
+              <PlaceField
+                selected={
+                  draft.coords === null
+                    ? null
+                    : {
+                        name: [draft.city, draft.country]
+                          .filter((part) => part.length > 0)
+                          .join(', '),
+                        city: draft.city,
+                        country: draft.country,
+                        lat: draft.coords.lat,
+                        lng: draft.coords.lng,
+                        timezone: draft.timezone ?? 'UTC',
+                      }
+                }
+                onSelect={(place) =>
+                  draft.setPlace({
+                    city: place.city,
+                    country: place.country,
+                    timezone: place.timezone,
+                    coords: { lat: place.lat, lng: place.lng },
+                  })
+                }
+                onClear={draft.clearPlace}
+              />
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -484,6 +538,9 @@ const styles = StyleSheet.create({
     ...TYPE.stat,
     fontSize: 18,
     lineHeight: 24,
+  },
+  pickerFieldPlaceholder: {
+    color: COLORS.text50,
   },
   previewChip: {
     flexDirection: 'row',

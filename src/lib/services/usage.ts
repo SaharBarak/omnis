@@ -3,13 +3,15 @@
  * Tracks and enforces plan limits for users
  */
 
+import { PLANS, PlanTier, getPlanLimits } from './billing'
 import {
   getUserPlan as getUserPlanFromRepo,
   getUsage as getUsageFromRepo,
   incrementUsage as incrementUsageInRepo,
   type UsageMetric,
 } from '@/lib/db/repositories/subscriptions-repo'
-import { PLANS, PlanTier, getPlanLimits } from './billing'
+import { listPeopleWithTags } from '@/lib/db/repositories/people-repo'
+import { listBoards } from '@/lib/db/repositories/boards-repo'
 
 // Usage metrics (re-exported for existing consumers).
 export type { UsageMetric }
@@ -204,12 +206,46 @@ export class LimitExceededError extends Error {
 }
 
 /**
+ * People and boards are PERSISTENT resources, not monthly meters: what counts
+ * is how many rows you own right now, and deleting one gives the slot back.
+ * The monthly `usage_records` counters can't express that — nothing increments
+ * them for people, and a month rollover would zero them while the rows live on.
+ *
+ * So the caps count rows, and this is the single place that does it. Anything
+ * that *displays* a person/board count must call this, or it will disagree with
+ * the limit the server actually enforces — which is exactly what happened:
+ * settings and the paywall read the dead meter and said "0 / 3" forever.
+ *
+ * The self entry is free on every plan and is excluded here, matching the cap.
+ */
+export async function getPersistentUsage(
+  userId: string
+): Promise<{ profiles: number; boards: number }> {
+  const [people, boards] = await Promise.all([
+    listPeopleWithTags(userId),
+    listBoards(userId),
+  ])
+
+  const tracked = people.people.filter(
+    (p) => !(p as { is_self?: boolean }).is_self
+  )
+
+  return { profiles: tracked.length, boards: boards.length }
+}
+
+function percentage(used: number, limit: number): number {
+  if (limit === Infinity || limit === 0) return 0
+  return Math.round((used / limit) * 100)
+}
+
+/**
  * Get usage summary for billing page
  */
 export async function getUsageSummary(userId: string) {
-  const [plan, usage] = await Promise.all([
+  const [plan, usage, persistent] = await Promise.all([
     getUserPlan(userId),
     getCurrentUsage(userId),
+    getPersistentUsage(userId),
   ])
 
   const limits = getPlanLimits(plan)
@@ -219,19 +255,22 @@ export async function getUsageSummary(userId: string) {
     period: usage.period,
     usage: {
       profiles: {
-        used: usage.profilesCount,
+        used: persistent.profiles,
         limit: limits.profiles,
-        percentage: limits.profiles === Infinity ? 0 : Math.round((usage.profilesCount / limits.profiles) * 100),
+        percentage: percentage(persistent.profiles, limits.profiles),
       },
       aiInterpretations: {
         used: usage.aiInterpretationsUsed,
         limit: limits.aiInterpretations,
-        percentage: limits.aiInterpretations === Infinity ? 0 : Math.round((usage.aiInterpretationsUsed / limits.aiInterpretations) * 100),
+        percentage: percentage(
+          usage.aiInterpretationsUsed,
+          limits.aiInterpretations
+        ),
       },
       boards: {
-        used: usage.boardsCount,
+        used: persistent.boards,
         limit: limits.boards,
-        percentage: limits.boards === Infinity ? 0 : Math.round((usage.boardsCount / limits.boards) * 100),
+        percentage: percentage(persistent.boards, limits.boards),
       },
     },
     features: {

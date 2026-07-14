@@ -27,6 +27,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { PlaceField } from '@/components/ui/place-field'
 import { Button } from '@/components/ui/primitives'
 import { TextField } from '@/components/ui/text-field'
 import { api } from '@/lib/api'
@@ -86,16 +87,20 @@ function WheelPicker({
   mode,
   value,
   onChange,
+  fallback,
+  placeholder,
   maximumDate,
 }: {
   mode: 'date' | 'time'
-  value: Date
+  value: Date | null
   onChange: (next: Date) => void
+  fallback: Date
+  placeholder: string
   maximumDate?: Date
 }) {
   const [show, setShow] = useState(false)
 
-  if (Platform.OS === 'ios') {
+  if (Platform.OS === 'ios' && value !== null) {
     return (
       <DateTimePicker
         value={value}
@@ -111,21 +116,30 @@ function WheelPicker({
   }
 
   const label =
-    mode === 'date'
-      ? formatBirthDate(value)
-      : formatBirthTime(value)
+    value === null
+      ? placeholder
+      : mode === 'date'
+        ? formatBirthDate(value)
+        : formatBirthTime(value)
   return (
     <>
       <Pressable
-        onPress={() => setShow(true)}
+        onPress={() => {
+          if (Platform.OS === 'ios') onChange(fallback)
+          else setShow(true)
+        }}
         style={styles.pickerField}
         accessibilityRole="button"
       >
-        <Text style={styles.pickerFieldText}>{label}</Text>
+        <Text
+          style={[styles.pickerFieldText, value === null && styles.pickerFieldPlaceholder]}
+        >
+          {label}
+        </Text>
       </Pressable>
       {show && (
         <DateTimePicker
-          value={value}
+          value={value ?? fallback}
           mode={mode}
           display="spinner"
           maximumDate={maximumDate}
@@ -185,9 +199,13 @@ export default function OnboardingScreen() {
   const [direction, setDirection] = useState<1 | -1>(1)
   const [nameError, setNameError] = useState<string | null>(null)
 
-  // Local wheel values — committed to the draft on Continue.
-  const [dateValue, setDateValue] = useState<Date>(draft.birthDate ?? DEFAULT_BIRTH_DATE)
-  const [timeValue, setTimeValue] = useState<Date>(draft.birthTime ?? defaultNoon())
+  // Local wheel values — committed to the draft on Continue. Null means the
+  // person has not answered yet, which is NOT the same as the default that
+  // happens to be showing: committing an untouched wheel silently wrote
+  // 1990-01-01 as a real birthday, and every reading downstream believed it.
+  const [dateValue, setDateValue] = useState<Date | null>(draft.birthDate)
+  const [timeValue, setTimeValue] = useState<Date | null>(draft.birthTime)
+  const [dateError, setDateError] = useState<string | null>(null)
 
   const step = draft.step
   const meta = STEP_META[step] ?? STEP_META[0]
@@ -228,13 +246,16 @@ export default function OnboardingScreen() {
 
     const input: ProfileUpdateInput = {
       display_name: displayName,
-      birth_date: formatBirthDate(draft.birthDate ?? dateValue),
+      birth_date: formatBirthDate(draft.birthDate ?? dateValue ?? DEFAULT_BIRTH_DATE),
       ...(draft.birthTime !== null ? { birth_time: formatBirthTime(draft.birthTime) } : {}),
       ...(hasPlace
         ? {
             birth_place: {
               ...(city.length > 0 ? { city } : {}),
               ...(country.length > 0 ? { country } : {}),
+              ...(draft.birthCoords !== null
+                ? { lat: draft.birthCoords.lat, lng: draft.birthCoords.lng }
+                : {}),
               ...(draft.birthTimezone !== null ? { timezone: draft.birthTimezone } : {}),
               ...(city.length > 0 || country.length > 0
                 ? { name: [city, country].filter((part) => part.length > 0).join(', ') }
@@ -260,11 +281,18 @@ export default function OnboardingScreen() {
         return
       }
       case 1: {
+        if (dateValue === null) {
+          setDateError('Pick your birth date — the whole reading starts there.')
+          return
+        }
+        setDateError(null)
         draft.setBirthDate(dateValue)
         goTo(2, 1)
         return
       }
       case 2: {
+        // The hour is optional and skippable. Untouched means unknown — the
+        // engine suppresses Moon/houses rather than guessing at noon.
         draft.setBirthTime(timeValue)
         goTo(3, 1)
         return
@@ -374,35 +402,58 @@ export default function OnboardingScreen() {
             )}
 
             {step === 1 && (
-              <WheelPicker
-                mode="date"
-                value={dateValue}
-                onChange={setDateValue}
-                maximumDate={new Date()}
-              />
+              <>
+                <WheelPicker
+                  mode="date"
+                  value={dateValue}
+                  fallback={DEFAULT_BIRTH_DATE}
+                  placeholder="Pick your birth date"
+                  onChange={(next) => {
+                    setDateValue(next)
+                    setDateError(null)
+                  }}
+                  maximumDate={new Date()}
+                />
+                {dateError !== null && <Text style={styles.fieldError}>{dateError}</Text>}
+              </>
             )}
 
             {step === 2 && (
-              <WheelPicker mode="time" value={timeValue} onChange={setTimeValue} />
+              <WheelPicker
+                mode="time"
+                value={timeValue}
+                fallback={defaultNoon()}
+                placeholder="Set the hour"
+                onChange={setTimeValue}
+              />
             )}
 
             {step === 3 && (
               <View style={styles.placeFields}>
-                <TextField
-                  label="CITY"
-                  value={draft.birthCity}
-                  onChangeText={draft.setBirthCity}
-                  placeholder="Haifa"
-                  autoCapitalize="words"
-                  autoCorrect={false}
-                />
-                <TextField
-                  label="COUNTRY"
-                  value={draft.birthCountry}
-                  onChangeText={draft.setBirthCountry}
-                  placeholder="Israel"
-                  autoCapitalize="words"
-                  autoCorrect={false}
+                <PlaceField
+                  selected={
+                    draft.birthCoords === null
+                      ? null
+                      : {
+                          name: [draft.birthCity, draft.birthCountry]
+                            .filter((part) => part.length > 0)
+                            .join(', '),
+                          city: draft.birthCity,
+                          country: draft.birthCountry,
+                          lat: draft.birthCoords.lat,
+                          lng: draft.birthCoords.lng,
+                          timezone: draft.birthTimezone ?? 'UTC',
+                        }
+                  }
+                  onSelect={(place) =>
+                    draft.setBirthPlace({
+                      city: place.city,
+                      country: place.country,
+                      timezone: place.timezone,
+                      coords: { lat: place.lat, lng: place.lng },
+                    })
+                  }
+                  onClear={draft.clearBirthPlace}
                 />
                 <TimezoneList
                   selected={draft.birthTimezone}
@@ -519,6 +570,13 @@ const styles = StyleSheet.create({
     ...TYPE.stat,
     fontSize: 18,
     lineHeight: 24,
+  },
+  pickerFieldPlaceholder: {
+    color: COLORS.text50,
+  },
+  fieldError: {
+    ...TYPE.bodySm,
+    color: COLORS.destructive,
   },
   timezoneBlock: {
     gap: 8,

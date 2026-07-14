@@ -96,6 +96,12 @@ function prefillDraft(person: PersonWithTags): void {
     city: person.birth_place?.city ?? '',
     country: person.birth_place?.country ?? '',
     timezone: person.birth_place?.timezone ?? null,
+    // Only a located place has coordinates; an older row saved from free text
+    // has none, and editing it must not invent them.
+    coords:
+      person.birth_place?.lat !== undefined && person.birth_place?.lng !== undefined
+        ? { lat: person.birth_place.lat, lng: person.birth_place.lng }
+        : null,
     hebrewName: person.hebrew_name ?? '',
     notes: person.notes ?? '',
   })

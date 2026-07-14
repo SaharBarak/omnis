@@ -17,6 +17,8 @@ interface OnboardingDraft {
   birthTime: Date | null
   birthCity: string
   birthCountry: string
+  /** Coordinates from place search; null when the place is unknown. */
+  birthCoords: { lat: number; lng: number } | null
   /** IANA zone id from the static shortlist; null = not chosen. */
   birthTimezone: string | null
   hebrewName: string
@@ -28,6 +30,14 @@ interface OnboardingDraft {
   setBirthCity: (value: string) => void
   setBirthCountry: (value: string) => void
   setBirthTimezone: (value: string | null) => void
+  /** City, country, timezone and coordinates are one fact — set them together. */
+  setBirthPlace: (value: {
+    city: string
+    country: string
+    timezone: string
+    coords: { lat: number; lng: number }
+  }) => void
+  clearBirthPlace: () => void
   setHebrewName: (value: string) => void
   reset: () => void
 }
@@ -39,6 +49,7 @@ const initialDraft = {
   birthTime: null,
   birthCity: '',
   birthCountry: '',
+  birthCoords: null,
   birthTimezone: null,
   hebrewName: '',
 } as const
@@ -52,6 +63,15 @@ export const useOnboardingDraft = create<OnboardingDraft>()((set) => ({
   setBirthCity: (birthCity) => set({ birthCity }),
   setBirthCountry: (birthCountry) => set({ birthCountry }),
   setBirthTimezone: (birthTimezone) => set({ birthTimezone }),
+  setBirthPlace: ({ city, country, timezone, coords }) =>
+    set({
+      birthCity: city,
+      birthCountry: country,
+      birthTimezone: timezone,
+      birthCoords: coords,
+    }),
+  clearBirthPlace: () =>
+    set({ birthCity: '', birthCountry: '', birthTimezone: null, birthCoords: null }),
   setHebrewName: (hebrewName) => set({ hebrewName }),
   reset: () => set({ ...initialDraft }),
 }))

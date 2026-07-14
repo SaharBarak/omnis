@@ -15,6 +15,8 @@ export interface PersonDraftValues {
   city: string
   country: string
   timezone: string | null
+  /** Real coordinates from place search; null when the place is unknown. */
+  coords: { lat: number; lng: number } | null
   hebrewName: string
   notes: string
 }
@@ -29,8 +31,14 @@ interface PersonDraft {
   timeUnknown: boolean
   city: string
   country: string
-  /** IANA zone id from the static shortlist; null = not chosen. */
+  /** IANA zone id — from place search, or the static shortlist as an override. */
   timezone: string | null
+  /**
+   * Latitude/longitude of the birth place. Houses, the Ascendant and the Vertex
+   * are functions of it; without it the engine leaves them out rather than
+   * guessing. Only place search can set this — typed text never fabricates one.
+   */
+  coords: { lat: number; lng: number } | null
   hebrewName: string
   notes: string
 
@@ -41,6 +49,14 @@ interface PersonDraft {
   setCity: (value: string) => void
   setCountry: (value: string) => void
   setTimezone: (value: string | null) => void
+  /** Set city, country, timezone and coordinates together — they are one fact. */
+  setPlace: (value: {
+    city: string
+    country: string
+    timezone: string
+    coords: { lat: number; lng: number }
+  }) => void
+  clearPlace: () => void
   setHebrewName: (value: string) => void
   setNotes: (value: string) => void
   /** Replace the whole draft — S8 edit pre-fill (F4 → S7 reuse). */
@@ -56,6 +72,7 @@ const initialDraft = {
   city: '',
   country: '',
   timezone: null,
+  coords: null,
   hebrewName: '',
   notes: '',
 } as const
@@ -69,6 +86,9 @@ export const usePersonDraft = create<PersonDraft>()((set) => ({
   setCity: (city) => set({ city }),
   setCountry: (country) => set({ country }),
   setTimezone: (timezone) => set({ timezone }),
+  setPlace: ({ city, country, timezone, coords }) =>
+    set({ city, country, timezone, coords }),
+  clearPlace: () => set({ city: '', country: '', timezone: null, coords: null }),
   setHebrewName: (hebrewName) => set({ hebrewName }),
   setNotes: (notes) => set({ notes }),
   prefill: (values) => set({ ...values }),

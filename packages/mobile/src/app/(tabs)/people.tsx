@@ -196,11 +196,18 @@ export default function PeopleScreen() {
     )
   }, [people, search])
 
+  // The self entry is free on every plan, so it must not count against the cap —
+  // counting it produced "4 OF 3 KEPT". The server excludes it; so do we.
+  const trackedCount = useMemo(
+    () => people.filter((person) => !person.is_self).length,
+    [people]
+  )
+
   const profileLimit = subscription.data?.usage.profiles.limit ?? null
   const countLabel =
-    profileLimit !== null
-      ? `${people.length} OF ${profileLimit} KEPT`
-      : `${people.length} KEPT`
+    profileLimit !== null && Number.isFinite(profileLimit)
+      ? `${trackedCount} OF ${profileLimit} KEPT`
+      : `${trackedCount} KEPT`
 
   const openCapture = () => setSheetOpen(true)
 
