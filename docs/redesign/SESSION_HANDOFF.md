@@ -1,11 +1,23 @@
-# Session Handoff — Redesign (updated 2026-07-13)
+# Session Handoff — Redesign (updated 2026-07-14, evening)
 
 Continue point for the Pleiad knowledge-experience redesign. Read this +
 MAIN_PURPOSE.md first; everything else on demand.
 
-## CURRENT STATE (2026-07-14) — READ FIRST
+## CURRENT STATE (2026-07-14 evening) — READ FIRST
 
-Tree health: **typecheck ✓ · 1132/1132 tests ✓ · homepage renders 200**.
+Tree health at handoff: **typecheck ✓** · full test suite last complete run
+**1132/1132 ✓ but predates the final learn-content batch and the legacy
+design-system deletion — RE-RUN `pnpm test` FIRST**. Everything below is
+**UNCOMMITTED** on `redesign/knowledge-experience`.
+
+➡️ **Latest write-up: `docs/redesign/HANDOFF_2026-07-14_SITE_UNIFICATION.md`** —
+homepage 16→9 sections, hero graph + bodygraph rebuilt from agent reviews, all 11
+legacy light-theme pages ported to dark v2, `src/components/{landing,docs}` DELETED,
+contact form now really sends (needs `RESEND_API_KEY`/`CONTACT_EMAIL`), 2 of 3
+critique rounds completed with round-3 findings listed for pickup.
+
+## PREVIOUS STATE (2026-07-14, morning)
+
 **PUSHED** — `e80da27`, `f0fd7b0`, `b8743e7`, `511f3a1` on
 `redesign/knowledge-experience` (first time the branch exists on origin).
 Two sessions share this tree. This section is written by the **web** session.
