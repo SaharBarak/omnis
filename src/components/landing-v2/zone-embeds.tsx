@@ -279,7 +279,9 @@ export function ShareDemo({ star }: { readonly star: EgoStarData }) {
     <div className="mx-auto grid max-w-3xl items-center gap-6 md:grid-cols-2">
       <div className="rounded-2xl border border-white/10 bg-surface p-6">
         <p className="text-xs uppercase tracking-[0.18em] text-white/50">Share this map</p>
-        <p className="mt-2 font-display text-xl text-white">Mom&rsquo;s side — 12 people</p>
+        <p className="mt-2 font-display text-xl text-white">
+          Mom&rsquo;s side — {star.spokes.length + 1} people
+        </p>
         <div className="mt-5 space-y-2.5">
           {[
             { icon: Eye, label: 'View only', on: true },
@@ -321,7 +323,7 @@ export function ShareDemo({ star }: { readonly star: EgoStarData }) {
           <p className="text-[9px] uppercase tracking-widest text-white/50">Shared with you</p>
           <p className="mt-1 font-display text-sm text-white">Mom&rsquo;s side</p>
           <div className="mt-3">
-            <EgoStar data={star} className="scale-[1.02]" />
+            <EgoStar data={star} compact />
           </div>
         </div>
       </motion.div>

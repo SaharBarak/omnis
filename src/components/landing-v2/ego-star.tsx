@@ -93,10 +93,17 @@ const DEFAULT_LAYERS: readonly SystemKey[] = ['dreamspell']
 
 interface EgoStarProps {
   readonly data: EgoStarData
+  /**
+   * A preview, not the instrument: no layer chips, no hover strip, no captions
+   * beyond the name, and smaller glyphs. The full star assumes ~820px of canvas
+   * and positions people at absolute percentages; squeezed into a half-column it
+   * piles them on top of each other, which is exactly what it did.
+   */
+  readonly compact?: boolean
   readonly className?: string
 }
 
-export function EgoStar({ data, className }: EgoStarProps) {
+export function EgoStar({ data, compact = false, className }: EgoStarProps) {
   const { center, spokes } = data
   const [layers, setLayers] = useState<readonly SystemKey[]>(DEFAULT_LAYERS)
   const [hovered, setHovered] = useState<EgoSpoke | null>(null)
@@ -138,6 +145,7 @@ export function EgoStar({ data, className }: EgoStarProps) {
   return (
     <div className={`relative ${className ?? ''}`}>
       {/* ---- Layer selection. The chips are the legend. ---- */}
+      {!compact && (
       <div className="mb-4 flex flex-wrap items-center justify-center gap-2">
         {FLAVOR_DESCENT.map((key) => {
           const flavor = SYSTEM_FLAVORS[key]
@@ -179,10 +187,13 @@ export function EgoStar({ data, className }: EgoStarProps) {
           {allOn ? 'Reset to Dreamspell' : 'Consolidate all five'}
         </button>
       </div>
+      )}
 
       <ContextMenu>
         <ContextMenuTrigger asChild>
-      <div className="relative mx-auto aspect-[16/11] w-full max-w-[820px]">
+      <div
+        className={`relative mx-auto w-full ${compact ? 'aspect-square max-w-[300px]' : 'aspect-[16/11] max-w-[820px]'}`}
+      >
         {/* ------------------------------------------------------------------
             ONE LINE PER PERSON. Never a bundle.
 
@@ -241,7 +252,7 @@ export function EgoStar({ data, className }: EgoStarProps) {
         </svg>
 
         {/* ---- What the engine named, and who else agrees. ---- */}
-        {spokes.map((spoke) => {
+        {!compact && spokes.map((spoke) => {
           const p = SLOT_POS[spoke.slot]
           const { t, dx } = PILL[spoke.slot]
           const on = hovered?.person.id === spoke.person.id
@@ -296,6 +307,7 @@ export function EgoStar({ data, className }: EgoStarProps) {
           color={center.color}
           pos={c}
           isCenter
+          compact={compact}
           dimmed={false}
           onClick={() => setCard(card === 'center' ? null : 'center')}
         />
@@ -312,6 +324,7 @@ export function EgoStar({ data, className }: EgoStarProps) {
                 color={spoke.color}
                 pos={SLOT_POS[spoke.slot]}
                 rarity={spoke.rarity}
+                compact={compact}
                 captionAbove={CAPTION_ABOVE[spoke.slot] ?? false}
                 delay={0.3 + i * 0.08}
                 dimmed={hovered !== null && hovered.person.id !== spoke.person.id}
@@ -480,6 +493,7 @@ export function EgoStar({ data, className }: EgoStarProps) {
       </ContextMenu>
 
       {/* Every selected layer's verdict on the hovered pair, side by side. */}
+      {!compact && (
       <div className="mt-6 min-h-[54px]">
         {hovered ? (
           <div className="flex flex-wrap items-center justify-center gap-2">
@@ -517,11 +531,14 @@ export function EgoStar({ data, className }: EgoStarProps) {
           </p>
         )}
       </div>
+      )}
 
-      <p className="mt-2 text-center text-xs text-white/40">
-        The Dreamspell oracle, drawn with people — guide above, analog right, antipode left, occult
-        below. The cross sets position; the layers set the strands.
-      </p>
+      {!compact && (
+        <p className="mt-2 text-center text-xs text-white/40">
+          The Dreamspell oracle, drawn with people — guide above, analog right, antipode left,
+          occult below. The cross sets position; the layers set the strands.
+        </p>
+      )}
     </div>
   )
 }
@@ -542,6 +559,8 @@ interface PersonProps {
    */
   readonly rarity?: number
   readonly isCenter?: boolean
+  /** Preview sizing: smaller glyph, name only, no kin/rarity lines. */
+  readonly compact?: boolean
   readonly captionAbove?: boolean
   readonly dimmed: boolean
   readonly delay?: number
@@ -565,6 +584,7 @@ const Person = forwardRef<HTMLButtonElement, PersonProps>(function Person(
     pos,
     rarity,
     isCenter = false,
+    compact = false,
     captionAbove = false,
     dimmed,
     delay = 0,
@@ -598,30 +618,41 @@ const Person = forwardRef<HTMLButtonElement, PersonProps>(function Person(
       <span
         className="grid place-items-center rounded-full border-2 transition-transform hover:scale-105"
         style={{
-          width: isCenter ? 76 : 58,
-          height: isCenter ? 76 : 58,
+          width: compact ? (isCenter ? 40 : 30) : isCenter ? 76 : 58,
+          height: compact ? (isCenter ? 40 : 30) : isCenter ? 76 : 58,
           backgroundColor: `${color}22`,
           borderColor: isCenter ? COLORS.brand : `${color}88`,
           boxShadow: isCenter ? `0 0 32px ${COLORS.brand}44` : undefined,
         }}
       >
-        <SealIcon sealNumber={seal} size={isCenter ? 'lg' : 'md'} />
+        <SealIcon sealNumber={seal} size={compact ? 'xs' : isCenter ? 'lg' : 'md'} />
       </span>
 
       {/* Grouped so flipping the caption above/below never reorders these. */}
       <span className="flex flex-col items-center gap-1">
         <span
-          className={`leading-none ${isCenter ? 'text-[15px] text-white' : 'text-[13px] text-white/80'}`}
+          className={
+            compact
+              ? `leading-none ${isCenter ? 'text-[10px] text-white' : 'text-[9px] text-white/70'}`
+              : `leading-none ${isCenter ? 'text-[15px] text-white' : 'text-[13px] text-white/80'}`
+          }
         >
           {name}
         </span>
-        <span className="whitespace-nowrap font-mono text-[10px] leading-none text-white/40">
-          Kin {kin} · {sealName}
-        </span>
-        {rarity !== undefined && (
-          <span className="whitespace-nowrap font-mono text-[10px] leading-none text-white/30">
-            rarity {rarity}
-          </span>
+
+        {/* The preview is a card, not the instrument — a name is all it can carry
+            at this size without the labels colliding, which is what they did. */}
+        {!compact && (
+          <>
+            <span className="whitespace-nowrap font-mono text-[10px] leading-none text-white/40">
+              Kin {kin} · {sealName}
+            </span>
+            {rarity !== undefined && (
+              <span className="whitespace-nowrap font-mono text-[10px] leading-none text-white/30">
+                rarity {rarity}
+              </span>
+            )}
+          </>
         )}
       </span>
     </motion.button>
