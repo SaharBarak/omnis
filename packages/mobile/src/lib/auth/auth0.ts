@@ -17,10 +17,15 @@ import { ENV, isAuthConfigured } from '@/lib/env'
  * OIDC metadata and cached for the process lifetime.
  */
 
-export type AuthConnection =
-  | 'google-oauth2'
-  | 'apple'
-  | 'Username-Password-Authentication'
+/**
+ * The Auth0 tenant is shared with other products; connections are enabled
+ * per-application, so Pleiad has its own database connection and only the
+ * Pleiad clients can see it. Naming the shared connection here would reunite
+ * the user stores. Web keeps its copy in src/lib/auth-connections.ts.
+ */
+export const DB_CONNECTION = 'pleiad-users'
+
+export type AuthConnection = 'google-oauth2' | 'apple' | typeof DB_CONNECTION
 
 const SCOPES = ['openid', 'profile', 'email', 'offline_access']
 
@@ -44,7 +49,10 @@ function getDiscovery(): Promise<DiscoveryDocument> {
 }
 
 function getRedirectUri(): string {
-  return makeRedirectUri({ scheme: 'pleiad' })
+  // Auth0 rejects a bare `pleiad://` (its callback-url validator requires a host),
+  // so the scheme must carry one. The Android intent filter matches on scheme, so
+  // any host works — but it must match the whitelisted callback exactly.
+  return makeRedirectUri({ scheme: 'pleiad', path: 'callback' })
 }
 
 function toTokens(

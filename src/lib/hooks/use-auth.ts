@@ -3,6 +3,11 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useUser } from '@auth0/nextjs-auth0'
 import { identifyUser, resetIdentity } from '@/lib/analytics/posthog'
+import {
+  APPLE_CONNECTION,
+  DB_CONNECTION,
+  GOOGLE_CONNECTION,
+} from '@/lib/auth-connections'
 import type { profiles } from '@/lib/db/schema'
 
 export type Profile = typeof profiles.$inferSelect
@@ -66,14 +71,14 @@ export function useAuth() {
 
   const signInWithGoogle = useCallback(async (redirectTo?: string) => {
     window.location.href = loginUrl({
-      connection: 'google-oauth2',
+      connection: GOOGLE_CONNECTION,
       returnTo: redirectTo || '/app',
     })
   }, [])
 
   const signInWithApple = useCallback(async (redirectTo?: string) => {
     window.location.href = loginUrl({
-      connection: 'apple',
+      connection: APPLE_CONNECTION,
       returnTo: redirectTo || '/app',
     })
   }, [])
@@ -81,7 +86,7 @@ export function useAuth() {
   const signInWithEmail = useCallback(
     async (email: string, redirectTo?: string) => {
       window.location.href = loginUrl({
-        connection: 'Username-Password-Authentication',
+        connection: DB_CONNECTION,
         login_hint: email,
         returnTo: redirectTo || '/app',
       })

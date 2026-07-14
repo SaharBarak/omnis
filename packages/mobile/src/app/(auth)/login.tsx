@@ -13,7 +13,7 @@ import * as WebBrowser from 'expo-web-browser'
 
 import { BrandMark } from '@/components/brand-mark'
 import { Button, Eyebrow } from '@/components/ui/primitives'
-import { useAuth, type AuthConnection } from '@/lib/auth'
+import { useAuth, DB_CONNECTION, type AuthConnection } from '@/lib/auth'
 import { COLORS, DURATION, SPACE, TYPE } from '@/theme/tokens'
 
 // Completes the pending auth session when the browser redirects back (web).
@@ -115,10 +115,10 @@ export default function LoginScreen() {
         <FadeUp index={isIos ? 6 : 5}>
           <Button
             variant="secondary"
-            onPress={() => void handleSignIn('Username-Password-Authentication')}
+            onPress={() => void handleSignIn(DB_CONNECTION)}
             disabled={pending !== null}
           >
-            {pending === 'Username-Password-Authentication'
+            {pending === DB_CONNECTION
               ? 'Opening sign-in…'
               : 'Continue with email'}
           </Button>
