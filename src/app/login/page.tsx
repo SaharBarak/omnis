@@ -2,8 +2,9 @@
 
 import { Suspense, useState } from 'react'
 import Link from 'next/link'
-import { BrandMark } from '@/components/brand-mark'
 import { useSearchParams } from 'next/navigation'
+import { BrandMark } from '@/components/brand-mark'
+import { StarParallax } from '@/components/landing-v2'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,6 +15,7 @@ function LoginForm() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [linkSent, setLinkSent] = useState(false)
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') || '/app'
 
@@ -31,8 +33,8 @@ function LoginForm() {
     }
   }
 
-  // Auth0 Universal Login is redirect-based: the email only prefills the hosted
-  // login form. This navigates away, so there is no "link sent" state.
+  // Email is a magic link: it resolves in place rather than navigating, so the
+  // form has to say so — otherwise a successful send looks like a dead button.
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email) return
@@ -42,8 +44,10 @@ function LoginForm() {
     setError(null)
     try {
       await signInWithEmail(email, redirectTo)
+      setLinkSent(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error continuing with email')
+    } finally {
       setLoading(false)
     }
   }
@@ -58,7 +62,7 @@ function LoginForm() {
           </div>
           <span className="text-2xl font-display font-semibold tracking-tight text-white">Pleiad</span>
         </Link>
-        <p className="text-white/50">Personal Symbolic Mapping System</p>
+        <p className="text-white/50">The living map of your people</p>
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8">
@@ -105,27 +109,43 @@ function LoginForm() {
             </div>
 
             {/* Email Magic Link Form */}
-            <form onSubmit={handleEmailSignIn} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-white/70">Email address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="h-11 bg-white/[0.04] border-white/15 text-white placeholder:text-white/30"
-                />
+            {linkSent ? (
+              <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4 text-center">
+                <p className="text-sm text-white">Check your inbox</p>
+                <p className="mt-1 text-xs text-white/50">
+                  We sent a sign-in link to {email}. Open it on this device.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setLinkSent(false)}
+                  className="mt-3 text-xs text-brand-soft hover:underline"
+                >
+                  Use a different email
+                </button>
               </div>
-              <Button
-                type="submit"
-                className="w-full h-11 rounded-xl bg-brand hover:bg-brand/90 text-white active:scale-[0.98]"
-                disabled={loading || !email}
-              >
-                {loading ? 'Redirecting...' : 'Continue with email'}
-              </Button>
-            </form>
+            ) : (
+              <form onSubmit={handleEmailSignIn} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-white/70">Email address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="h-11 bg-white/[0.04] border-white/15 text-white placeholder:text-white/30"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full h-11 rounded-xl bg-brand hover:bg-brand/90 text-white active:scale-[0.98]"
+                  disabled={loading || !email}
+                >
+                  {loading ? 'Sending link…' : 'Continue with email'}
+                </Button>
+              </form>
+            )}
 
             {error && (
               <div className="mt-4 text-sm text-destructive text-center">
@@ -153,7 +173,7 @@ function LoginFallback() {
           <BrandMark size={36} className="w-9 h-9" />
         </div>
         <h1 className="text-2xl font-display font-semibold tracking-tight text-white">Pleiad</h1>
-        <p className="text-white/50">Personal Symbolic Mapping System</p>
+        <p className="text-white/50">The living map of your people</p>
       </div>
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8 flex items-center justify-center">
         <div className="text-white/50">Loading...</div>
@@ -164,10 +184,15 @@ function LoginFallback() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-[100dvh] flex items-center justify-center bg-[#0B0D16] p-6">
-      <Suspense fallback={<LoginFallback />}>
-        <LoginForm />
-      </Suspense>
+    <div className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden bg-[#0B0D16] p-6">
+      {/* Same ambient sky as every other page — a bare black void read as a
+          different product. */}
+      <StarParallax />
+      <div className="relative">
+        <Suspense fallback={<LoginFallback />}>
+          <LoginForm />
+        </Suspense>
+      </div>
     </div>
   )
 }

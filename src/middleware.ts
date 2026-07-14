@@ -1,50 +1,62 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { auth0 } from '@/lib/auth0'
+import { createServerClient } from '@supabase/ssr'
 
 const PROTECTED_PATHS = ['/app', '/dashboard', '/people', '/profile', '/onboarding']
 const AUTH_PATHS = ['/login', '/signup']
 
 export async function middleware(request: NextRequest) {
-  // Auth0 v4 mounts /auth/login, /auth/logout, /auth/callback, /auth/profile
-  // here and keeps the session cookie rolling on every request.
-  const authResponse = await auth0.middleware(request)
+  // The response carries Supabase's refreshed auth cookies. Every branch below
+  // must copy them onto whatever it returns, or the rolling session never
+  // refreshes on gated paths and active users get logged out mid-session.
+  let response = NextResponse.next({ request })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll: () => request.cookies.getAll(),
+        setAll: (cookiesToSet) => {
+          for (const { name, value } of cookiesToSet) {
+            request.cookies.set(name, value)
+          }
+          response = NextResponse.next({ request })
+          for (const { name, value, options } of cookiesToSet) {
+            response.cookies.set(name, value, options)
+          }
+        },
+      },
+    }
+  )
+
+  // getUser() revalidates against Supabase; getSession() would trust the cookie.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
-  if (pathname.startsWith('/auth')) {
-    return authResponse
-  }
 
-  // Optimistic session check (cookie decrypt, no network). Routes still
-  // enforce the real session via requireUserId().
-  const session = await auth0.getSession(request)
-  const hasSession = Boolean(session?.user)
-
-  // Redirects must carry authResponse's Set-Cookie headers, or Auth0's rolling
-  // session cookie never refreshes on gated paths and active users get logged
-  // out mid-session.
   const redirectWithSession = (pathnameTo: string, withRedirectParam = false) => {
     const url = request.nextUrl.clone()
     url.pathname = pathnameTo
     url.search = ''
     if (withRedirectParam) url.searchParams.set('redirectTo', pathname)
-    const res = NextResponse.redirect(url)
-    authResponse.headers.forEach((value, key) => {
-      if (key.toLowerCase() === 'set-cookie') res.headers.append(key, value)
-    })
-    return res
+    const redirect = NextResponse.redirect(url)
+    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie))
+    return redirect
   }
 
   const isProtected = PROTECTED_PATHS.some((p) => pathname.startsWith(p))
-  if (isProtected && !hasSession) {
+  if (isProtected && !user) {
     return redirectWithSession('/login', true)
   }
 
   const isAuthPath = AUTH_PATHS.some((p) => pathname === p)
-  if (isAuthPath && hasSession) {
+  if (isAuthPath && user) {
     return redirectWithSession('/app')
   }
 
-  return authResponse
+  return response
 }
 
 export const config = {

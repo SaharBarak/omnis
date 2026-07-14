@@ -1,40 +1,74 @@
 'use client'
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
-import { useUser } from '@auth0/nextjs-auth0'
+import type { User } from '@supabase/supabase-js'
 import { identifyUser, resetIdentity } from '@/lib/analytics/posthog'
-import {
-  APPLE_CONNECTION,
-  DB_CONNECTION,
-  GOOGLE_CONNECTION,
-} from '@/lib/auth-connections'
+import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import type { profiles } from '@/lib/db/schema'
 
 export type Profile = typeof profiles.$inferSelect
 
-function loginUrl(params: Record<string, string>): string {
-  const qs = new URLSearchParams(params)
-  return `/auth/login?${qs.toString()}`
+/**
+ * App-facing auth hook. Identity comes from the Supabase session; the app
+ * profile still loads from /api/profile.
+ *
+ * OAuth is redirect-based (navigates away). Email is a magic link: it resolves
+ * without navigating, so callers must surface a "check your inbox" state.
+ */
+
+/** Same-origin relative paths only — an absolute URL here is an open redirect. */
+function safeRedirect(redirectTo?: string): string {
+  if (!redirectTo?.startsWith('/') || redirectTo.startsWith('//')) return '/app'
+  return redirectTo
 }
 
-/**
- * App-facing auth hook — same API as the Better Auth era. Identity comes
- * from the Auth0 session (via /auth/profile); the app profile still loads
- * from /api/profile. Sign-in is redirect-based (Auth0 Universal Login), so
- * the signIn* helpers navigate instead of resolving.
- */
+function callbackUrl(redirectTo?: string): string {
+  const params = new URLSearchParams({ redirectTo: safeRedirect(redirectTo) })
+  return `${window.location.origin}/auth/callback?${params.toString()}`
+}
+
 export function useAuth() {
-  const { user: auth0User, isLoading: sessionLoading } = useUser()
+  const supabase = useMemo(() => getSupabaseBrowserClient(), [])
+  const [supabaseUser, setSupabaseUser] = useState<User | null>(null)
+  const [sessionLoading, setSessionLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+
+    supabase.auth.getUser().then(({ data }) => {
+      if (cancelled) return
+      setSupabaseUser(data.user ?? null)
+      setSessionLoading(false)
+    })
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSupabaseUser(session?.user ?? null)
+      setSessionLoading(false)
+    })
+
+    return () => {
+      cancelled = true
+      listener.subscription.unsubscribe()
+    }
+  }, [supabase])
 
   const user = useMemo(() => {
-    if (!auth0User?.sub) return null
-    return {
-      id: auth0User.sub,
-      email: auth0User.email ?? '',
-      name: auth0User.name ?? null,
-      image: auth0User.picture ?? null,
+    if (!supabaseUser) return null
+    const meta = supabaseUser.user_metadata ?? {}
+    const pick = (...keys: string[]): string | null => {
+      for (const key of keys) {
+        const value = meta[key]
+        if (typeof value === 'string' && value.length > 0) return value
+      }
+      return null
     }
-  }, [auth0User])
+    return {
+      id: supabaseUser.id,
+      email: supabaseUser.email ?? '',
+      name: pick('name', 'full_name', 'preferred_username'),
+      image: pick('avatar_url', 'picture'),
+    }
+  }, [supabaseUser])
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [profileLoading, setProfileLoading] = useState(false)
@@ -69,35 +103,44 @@ export function useAuth() {
     }
   }, [user])
 
-  const signInWithGoogle = useCallback(async (redirectTo?: string) => {
-    window.location.href = loginUrl({
-      connection: GOOGLE_CONNECTION,
-      returnTo: redirectTo || '/app',
-    })
-  }, [])
+  const signInWithOAuth = useCallback(
+    async (provider: 'google' | 'apple', redirectTo?: string) => {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: callbackUrl(redirectTo) },
+      })
+      if (error) throw new Error(error.message)
+    },
+    [supabase]
+  )
 
-  const signInWithApple = useCallback(async (redirectTo?: string) => {
-    window.location.href = loginUrl({
-      connection: APPLE_CONNECTION,
-      returnTo: redirectTo || '/app',
-    })
-  }, [])
+  const signInWithGoogle = useCallback(
+    (redirectTo?: string) => signInWithOAuth('google', redirectTo),
+    [signInWithOAuth]
+  )
 
+  const signInWithApple = useCallback(
+    (redirectTo?: string) => signInWithOAuth('apple', redirectTo),
+    [signInWithOAuth]
+  )
+
+  /** Sends a magic link. Resolves without navigating — show a "check inbox" state. */
   const signInWithEmail = useCallback(
     async (email: string, redirectTo?: string) => {
-      window.location.href = loginUrl({
-        connection: DB_CONNECTION,
-        login_hint: email,
-        returnTo: redirectTo || '/app',
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: callbackUrl(redirectTo) },
       })
+      if (error) throw new Error(error.message)
     },
-    []
+    [supabase]
   )
 
   const signOut = useCallback(async () => {
     resetIdentity()
-    window.location.href = '/auth/logout'
-  }, [])
+    await supabase.auth.signOut()
+    window.location.href = '/'
+  }, [supabase])
 
   const updateProfile = useCallback(
     async (updates: Partial<Profile>) => {
@@ -120,7 +163,7 @@ export function useAuth() {
 
   return {
     user,
-    session: auth0User ?? null,
+    session: supabaseUser,
     profile,
     loading: sessionLoading || profileLoading,
     signInWithGoogle,
