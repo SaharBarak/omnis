@@ -210,6 +210,91 @@ through Bash, `fs` unavailable in the sandbox); Aside browser can die —
 
 ---
 
+## BILLING SESSION — RESUME HERE (2026-07-14)
+
+Billing pivot is **done and committed** (details in the next section). Plan ladder
+re-cut (`90ac8a0`, `6bc30a0`): people **3 / 15 / 25 / ∞**, every *paid* tier now
+includes relationships (the map is the product — Explorer previously sold six
+systems and no bonds), and **Founding Lifetime is now genuinely top-tier**
+(unlimited people/boards/bonds + groups + API; Practitioner still outranks it on
+metered AI alone). Health at handoff: root+mobile typecheck ✓ · 1091 tests ✓ ·
+web lint 0 errors · `next build` ✓ 50/50 · iOS Hermes export ✓.
+
+### 🔴 BLOCKER #1 — Auth0 callback mismatch kills mobile login (1-field fix)
+
+The app on the Android emulator cannot sign in. Proof, pulled from the emulator's
+Chrome intent via `adb shell dumpsys activity activities`:
+
+```
+redirect_uri = pleiad://        <-- Auth0 rejects this
+client_id    = PcBpDL7E8HUkNwWG4j0w2E93M3J3q1FZ   (Pleiad Mobile, native)
+audience     = https://api.pleiad.app
+```
+
+`makeRedirectUri({ scheme: 'pleiad' })` emits bare `pleiad://`. The handoff claims
+`pleiad://` is whitelisted, **but the rejection proves it is not** — most likely it
+was saved as `pleiad://callback`, or the callback field got mangled into ONE chip
+(that field is a tag-input; a comma-separated paste collapses into a single bad
+entry — a gotcha this project already hit once, and if it happened here the
+**Allowed Logout URLs are probably corrupted the same way**).
+
+**FIX (user, 60s):** Auth0 → Applications → **Pleiad Mobile** → Settings →
+**Allowed Callback URLs** → add `pleiad://` as its own chip (type it, press Enter;
+do NOT paste a comma list) → Save. Then retry login on the emulator.
+
+Cannot be automated: no M2M grant exists for the Management API (still open item
+#24), so the dashboard is the only door, and it is behind Auth0's TOTP MFA.
+
+**Note the emulator changes things:** the app is running as a **dev build** (it
+sends `pleiad://`, which Expo Go cannot do), and the Android SDK is now installed.
+So `react-native-purchases` will work for real — no Expo Go Preview-mode caveat.
+
+### 🔴 BLOCKER #2 — RevenueCat not set up yet (the only path to revenue)
+
+Nothing exists yet. Needed, in order:
+1. **RevenueCat account** → project → 3 keys: secret (server) + public iOS/Android SDK keys.
+2. **Apple Developer** ($99/yr) + **Google Play** ($25) on the Israeli entity.
+   Enroll in Apple's **Small Business Program** (15%, not 30% — easy to miss).
+3. Store products for the 4 tiers; RevenueCat **entitlements named EXACTLY**
+   `explorer` | `complete` | `practitioner` | `lifetime` — the server maps
+   entitlement id → plan **by name** (`getPlanFromEntitlementId`). Off by one
+   character = silently no entitlement. Offering package identifiers: same names.
+4. Webhook → `https://pleiad.io/api/billing/webhook`, Authorization header value
+   == `REVENUECAT_WEBHOOK_SECRET`.
+5. Secrets → `./scripts/set-prod-secrets.sh`; `npm run db:migrate` (applies `0002`);
+   `npm run deploy`.
+6. E2E that proves the whole design: buy on the emulator as Auth0 user U → open
+   pleiad.io as U in a browser → paid features unlock.
+
+Bundle id (both platforms): **`app.pleiad.mobile`**.
+
+### Still unpushed from before the pivot
+RESEND / GROQ / TURNSTILE secrets were never pushed to the worker → AI interpret
+503s and newsletter Turnstile fails closed in prod. One command:
+`./scripts/set-prod-secrets.sh`.
+
+### ⚠️ Aside browser — how it ACTUALLY works (I got this wrong for many turns)
+- `aside repl` globals: `openTab, listBrowserTabs, attachBrowserTab,
+  attachActiveBrowserTab, getTabByTargetId, closeTab, snapshot,
+  annotatedScreenshot, installPageScript, sleep, display`. Page has
+  `goto/click/fill/evaluate/screenshot/bringToFront/_sendToTarget` (raw CDP) —
+  but **no `context()`**, so cookies must be cleared via
+  `p._sendToTarget('Network.clearBrowserCookies', {})`.
+- **`openTab` tabs DIE when the repl process exits.** A flow that needs the user
+  to interact (MFA) must keep ONE session alive. Pattern that works: `mkfifo`,
+  hold the write end open with a background `sleep 7200 > fifo`, run
+  `aside repl < fifo > log &`, then `echo "cmd" > fifo` from later calls.
+- `aside exec` drives the user's **real Chrome via its extension** and fails with
+  "Chrome extension not connected for the requested browser profile" when it
+  isn't attached. `attachActiveBrowserTab()` → "No active browser tab is
+  available to attach." **Connecting that extension is the thing that would make
+  dashboard work easy** — it acts inside the user's already-authenticated Chrome,
+  so no MFA replay.
+- `aside account` reports **signed out** (`sahar.h.barak@gmail.com`) → blocks
+  `exec`'s built-in models; `repl` still works.
+- Pages get disposed mid-flight ("Page … is disposed"); revive with `open -a Aside`.
+- **MFA cannot be automated.** Auth0 dashboard TOTP gates everything above.
+
 ## BILLING PIVOTED: Paddle → store IAP (2026-07-13) — `a36cd81`, `4c7008f`
 
 **Paddle is dead and must not be retried.** It rejected pleiad.io on *category*:
