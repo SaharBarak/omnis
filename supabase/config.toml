@@ -327,6 +327,19 @@ max_frequency = "5s"
 # Use an external OAuth provider. The full list of providers are: `apple`, `azure`, `bitbucket`,
 # `discord`, `facebook`, `github`, `gitlab`, `google`, `keycloak`, `linkedin_oidc`, `notion`, `twitch`,
 # `twitter`, `x`, `slack`, `spotify`, `workos`, `zoom`.
+
+# Google sign-in. Flip enabled = true once the two env vars are set in .prod.vars
+# and the Google Cloud OAuth client lists this project's callback as an
+# authorized redirect URI:
+#   https://vgqncswfgetxwujrfavb.supabase.co/auth/v1/callback
+# Then `supabase config push`. The secret is never committed — it resolves from
+# the environment at push time.
+[auth.external.google]
+enabled = false
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+skip_nonce_check = false
+
 [auth.external.apple]
 enabled = false
 client_id = ""
