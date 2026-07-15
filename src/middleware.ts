@@ -29,10 +29,12 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // getUser() revalidates against Supabase; getSession() would trust the cookie.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // getClaims() verifies the token locally against cached JWKS — no per-request
+  // network hop. Gating here is optimistic anyway; routes enforce the real check
+  // via requireUserId(). The createServerClient cookie plumbing above still
+  // refreshes an expiring token and writes the rolling cookie.
+  const { data } = await supabase.auth.getClaims()
+  const user = data?.claims?.sub ? data.claims : null
 
   const { pathname } = request.nextUrl
 

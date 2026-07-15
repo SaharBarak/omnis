@@ -26,8 +26,8 @@ export interface AppSession {
   user: SessionUser
 }
 
-type SupabaseUserLike = {
-  id: string
+type Claims = {
+  sub: string
   email?: string | null
   user_metadata?: Record<string, unknown> | null
 }
@@ -38,8 +38,8 @@ type SupabaseUserLike = {
  * every spelling rather than trusting one, or a display name silently becomes
  * null for some providers.
  */
-function toSessionUser(user: SupabaseUserLike): SessionUser {
-  const meta = user.user_metadata ?? {}
+function toSessionUser(claims: Claims): SessionUser {
+  const meta = claims.user_metadata ?? {}
   const pick = (...keys: string[]): string | null => {
     for (const key of keys) {
       const value = meta[key]
@@ -48,8 +48,8 @@ function toSessionUser(user: SupabaseUserLike): SessionUser {
     return null
   }
   return {
-    id: user.id,
-    email: user.email ?? pick('email') ?? '',
+    id: claims.sub,
+    email: claims.email ?? pick('email') ?? '',
     name: pick('name', 'full_name', 'preferred_username'),
     image: pick('avatar_url', 'picture'),
   }
@@ -57,11 +57,14 @@ function toSessionUser(user: SupabaseUserLike): SessionUser {
 
 export async function getSession(): Promise<AppSession | null> {
   const supabase = await getSupabaseServerClient()
-  // getUser() revalidates the token against Supabase — unlike getSession(),
-  // which trusts the cookie. Never trust the cookie for authorization.
-  const { data, error } = await supabase.auth.getUser()
-  if (!error && data.user) {
-    return { user: toSessionUser(data.user) }
+  // getClaims() verifies the token's signature LOCALLY against the project's
+  // cached JWKS (asymmetric ES256) — no network round trip per request, unlike
+  // getUser(). It checks signature + expiry but not server-side revocation; for
+  // this app that trade (a revoked token stays valid until it expires, ≤1h) is
+  // worth eliminating a ~400ms hop on every authorized call.
+  const { data, error } = await supabase.auth.getClaims()
+  if (!error && data?.claims?.sub) {
+    return { user: toSessionUser(data.claims as Claims) }
   }
   return getBearerSession()
 }
@@ -85,9 +88,9 @@ async function getBearerSession(): Promise<AppSession | null> {
   const supabase = createClient(url, anonKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
-  const { data, error } = await supabase.auth.getUser(token)
-  if (error || !data.user) return null
-  return { user: toSessionUser(data.user) }
+  const { data, error } = await supabase.auth.getClaims(token)
+  if (error || !data?.claims?.sub) return null
+  return { user: toSessionUser(data.claims as Claims) }
 }
 
 export async function getCurrentUserId(): Promise<string | null> {
