@@ -12,8 +12,8 @@ export type Profile = typeof profiles.$inferSelect
  * App-facing auth hook. Identity comes from the Supabase session; the app
  * profile still loads from /api/profile.
  *
- * OAuth is redirect-based (navigates away). Email is a magic link: it resolves
- * without navigating, so callers must surface a "check your inbox" state.
+ * Email + password only — no OAuth. signIn/signUp resolve in place (no
+ * redirect); resetPassword sends a link that returns through /auth/callback.
  */
 
 /** Same-origin relative paths only — an absolute URL here is an open redirect. */
@@ -103,33 +103,38 @@ export function useAuth() {
     }
   }, [user])
 
-  const signInWithOAuth = useCallback(
-    async (provider: 'google' | 'apple', redirectTo?: string) => {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: { redirectTo: callbackUrl(redirectTo) },
-      })
+  const signInWithPassword = useCallback(
+    async (email: string, password: string) => {
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw new Error(error.message)
     },
     [supabase]
   )
 
-  const signInWithGoogle = useCallback(
-    (redirectTo?: string) => signInWithOAuth('google', redirectTo),
-    [signInWithOAuth]
-  )
-
-  const signInWithApple = useCallback(
-    (redirectTo?: string) => signInWithOAuth('apple', redirectTo),
-    [signInWithOAuth]
-  )
-
-  /** Sends a magic link. Resolves without navigating — show a "check inbox" state. */
-  const signInWithEmail = useCallback(
-    async (email: string, redirectTo?: string) => {
-      const { error } = await supabase.auth.signInWithOtp({
+  /**
+   * Creates the account and, when confirmations are off, signs in immediately.
+   * `needsConfirmation` is true when Supabase requires an email click before the
+   * session is live, so the caller can show "check your inbox" instead of
+   * assuming it's logged in.
+   */
+  const signUp = useCallback(
+    async (email: string, password: string, redirectTo?: string) => {
+      const { data, error } = await supabase.auth.signUp({
         email,
+        password,
         options: { emailRedirectTo: callbackUrl(redirectTo) },
+      })
+      if (error) throw new Error(error.message)
+      return { needsConfirmation: !data.session }
+    },
+    [supabase]
+  )
+
+  /** Sends a reset link that returns through /auth/callback with a live session. */
+  const resetPassword = useCallback(
+    async (email: string) => {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: callbackUrl('/app'),
       })
       if (error) throw new Error(error.message)
     },
@@ -166,9 +171,9 @@ export function useAuth() {
     session: supabaseUser,
     profile,
     loading: sessionLoading || profileLoading,
-    signInWithGoogle,
-    signInWithApple,
-    signInWithEmail,
+    signInWithPassword,
+    signUp,
+    resetPassword,
     signOut,
     updateProfile,
     isAuthenticated: !!user,

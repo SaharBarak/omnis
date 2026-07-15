@@ -3,9 +3,9 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
 
 /**
- * OAuth / email-link return leg. Supabase redirects here with a one-time code
- * which we exchange for a session; the cookies are set on the response by the
- * server client.
+ * Email-link return leg — password reset and email confirmation. Supabase
+ * redirects here with a one-time code which we exchange for a session; the
+ * cookies are set on the response by the server client.
  *
  * `redirectTo` is attacker-controllable, so only same-origin relative paths are
  * honoured — an absolute URL here would be an open redirect.
