@@ -1,18 +1,21 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { patchSchema } from './schemas'
 import { requireUserId } from '@/lib/auth-server'
 import { handleApiError } from '@/lib/api/respond'
+import { rateLimiters, rateLimitResponse } from '@/lib/rate-limit'
 import {
   updatePerson,
   softDeletePerson,
   restorePerson,
   permanentlyDeletePerson,
 } from '@/lib/db/repositories/people-repo'
-import { patchSchema } from './schemas'
 
 type Ctx = { params: Promise<{ id: string }> }
 
-export async function PATCH(request: Request, { params }: Ctx) {
+export async function PATCH(request: NextRequest, { params }: Ctx) {
   try {
+    const rl = await rateLimiters.authenticatedApi.check(request, 'people:update')
+    if (!rl.success) return rateLimitResponse(rl)
     const userId = await requireUserId()
     const { id } = await params
     const body = await request.json()
@@ -32,8 +35,10 @@ export async function PATCH(request: Request, { params }: Ctx) {
   }
 }
 
-export async function DELETE(request: Request, { params }: Ctx) {
+export async function DELETE(request: NextRequest, { params }: Ctx) {
   try {
+    const rl = await rateLimiters.authenticatedApi.check(request, 'people:delete')
+    if (!rl.success) return rateLimitResponse(rl)
     const userId = await requireUserId()
     const { id } = await params
     const permanent =

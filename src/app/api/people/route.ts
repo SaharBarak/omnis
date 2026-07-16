@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireUserId } from '@/lib/auth-server'
 import { handleApiError } from '@/lib/api/respond'
+import { rateLimiters, rateLimitResponse } from '@/lib/rate-limit'
 import { listPeopleWithTags, createPerson } from '@/lib/db/repositories/people-repo'
 import { getUserPlan, getPersistentUsage } from '@/lib/services/usage'
 import { getPlanLimits, PLANS } from '@/lib/services/billing'
@@ -40,8 +41,10 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const rl = await rateLimiters.authenticatedApi.check(request, 'people:create')
+    if (!rl.success) return rateLimitResponse(rl)
     const userId = await requireUserId()
     const body = await request.json()
     const { person, tagIds } = createSchema.parse(body)
