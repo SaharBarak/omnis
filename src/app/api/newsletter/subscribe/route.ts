@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { rateLimiters, rateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limit'
 import { findByEmail, subscribe } from '@/lib/db/repositories/newsletter-repo'
-import { sendMarketingEmail } from '@/lib/email'
+import { sendMarketingEmail, addAudienceContact } from '@/lib/email'
 import { buildUnsubscribeUrl } from '@/lib/email/unsubscribe'
 import { verifyTurnstileToken } from '@/lib/security/turnstile'
 
@@ -62,6 +62,9 @@ export async function POST(request: NextRequest) {
     // Upsert on the unique email index: inserts a new subscriber or reactivates
     // a previously unsubscribed one. `created` is true only on first insert.
     const { created } = await subscribe(normalizedEmail)
+
+    // Mirror into the Resend audience (best-effort; never blocks the signup).
+    await addAudienceContact(normalizedEmail)
 
     // Send welcome email only for genuinely new subscribers (not re-subscribes).
     // Marketing send: carries a signed one-click unsubscribe. Never fails the

@@ -3,6 +3,10 @@ import { dateToKin, kinToSeal, kinToTone, calculateOracle } from '@pleiad/engine
 import { getSeal } from '@pleiad/engine/data/seals'
 import { getTone } from '@pleiad/engine/data/tones'
 import { generateMantra } from '@pleiad/engine/data/mantras'
+import {
+  getDailyAstroPhenomena,
+  type AstroPhenomena,
+} from '@pleiad/engine/services/astro-phenomena'
 import { isAuthorizedCron } from '@/lib/api/cron-auth'
 import { sendMarketingEmail } from '@/lib/email'
 import { buildUnsubscribeUrl } from '@/lib/email/unsubscribe'
@@ -66,6 +70,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Today's astronomical phenomena — moon phase, retrogrades, transitions.
+    const astro = getDailyAstroPhenomena(kinData.date)
+
     // Get active subscribers (confirmed + not unsubscribed)
     let subscribers
     try {
@@ -99,8 +106,8 @@ export async function GET(request: NextRequest) {
         const result = await sendMarketingEmail({
           to: subscriber.email,
           subject,
-          preheader: `${kinData.tone.name} ${kinData.seal.name} — your guidance for today.`,
-          bodyHtml: dailyKinBody(kinData),
+          preheader: `${kinData.tone.name} ${kinData.seal.name} · ${astro.summary}`,
+          bodyHtml: dailyKinBody(kinData, astro),
           footerText: 'Daily Kin from the Pleiad newsletter.',
           unsubscribeUrl: await buildUnsubscribeUrl(subscriber.email),
         })
@@ -161,8 +168,35 @@ interface KinData {
   }
 }
 
+/** The "Sky today" block — moon phase, retrogrades, and day-over-day transitions. */
+function astroSection(astro: AstroPhenomena): string {
+  const retro = astro.retrogrades.length
+    ? `<p style="color:rgba(255,255,255,0.5);font-size:13px;margin:0 0 4px;text-align:center;">${astro.retrogrades
+        .map((r) => `${r.symbol} ${r.planet}`)
+        .join(' · ')} retrograde</p>`
+    : ''
+  const transitions = astro.transitions.length
+    ? `<div style="margin-top:10px;">${astro.transitions
+        .map(
+          (t) =>
+            `<p style="color:#A78FDF;font-size:13px;margin:2px 0;text-align:center;">${t.detail}</p>`
+        )
+        .join('')}</div>`
+    : ''
+  return `
+    <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:20px;margin-bottom:24px;">
+      <h3 style="color:#A78FDF;font-size:15px;margin:0 0 10px;text-align:center;">Sky today</h3>
+      <p style="color:rgba(255,255,255,0.7);font-size:14px;margin:0 0 4px;text-align:center;">
+        ${astro.moon.phase} · ${Math.round(astro.moon.illumination * 100)}% illuminated · Sun in ${astro.sun.sign}
+      </p>
+      ${retro}
+      ${transitions}
+    </div>
+  `
+}
+
 /** Inner content of the daily-kin email; the branded shell is renderEmail(). */
-function dailyKinBody(kinData: KinData): string {
+function dailyKinBody(kinData: KinData, astro: AstroPhenomena): string {
   const sealColors: Record<string, string> = {
     red: '#ef4444',
     white: '#f5f5f5',
@@ -223,6 +257,7 @@ ${kinData.mantra}
         </tr>
       </table>
     </div>
+    ${astroSection(astro)}
     <div style="text-align:center;">
       <a href="https://pleiad.io/today" style="display:inline-block;background:#7D5BC9;color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:8px;font-weight:600;font-size:14px;">
         Explore Full Reading

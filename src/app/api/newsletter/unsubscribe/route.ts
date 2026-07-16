@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { rateLimiters, rateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limit'
 import { verifyUnsubscribeToken } from '@/lib/api/unsubscribe-token'
 import { unsubscribe } from '@/lib/db/repositories/newsletter-repo'
+import { unsubscribeAudienceContact } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,6 +36,8 @@ export async function POST(request: NextRequest) {
     const { email: normalizedEmail } = parseResult.data
 
     await unsubscribe(normalizedEmail)
+    // Mirror the opt-out into the Resend audience (best-effort).
+    await unsubscribeAudienceContact(normalizedEmail)
 
     const response = NextResponse.json({ success: true, message: 'Unsubscribed successfully' })
     return addRateLimitHeaders(response, rateLimitResult)
@@ -71,6 +74,8 @@ export async function GET(request: NextRequest) {
   }
 
   await unsubscribe(normalizedEmail)
+  // Mirror the opt-out into the Resend audience (best-effort).
+  await unsubscribeAudienceContact(normalizedEmail)
 
   // Redirect to unsubscribe confirmation page
   return NextResponse.redirect(new URL('/unsubscribe?success=true', request.url))

@@ -52,6 +52,7 @@ export * from './services/synastry'
 export * from './services/hd-compatibility'
 export * from './services/predictions'
 export * from './services/group-analysis'
+export * from './services/astro-phenomena'
 
 // Explicit re-exports for names that would otherwise be ambiguous
 // (star exports silently drop names exported by more than one module).
