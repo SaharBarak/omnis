@@ -4,8 +4,8 @@ import { createClient } from '@/lib/supabase/client'
 // Initialize Resend with API key from environment
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-// Email sender identity
-const FROM_EMAIL = 'Omnis <noreply@omnis.app>'
+// Email sender identity (override via EMAIL_FROM; domain must be verified in Resend)
+const FROM_EMAIL = process.env.EMAIL_FROM || 'Omnis <noreply@omnis.app>'
 
 // Platform owner inbox for admin notifications (new signups, alerts, etc.)
 const ADMIN_NOTIFICATION_EMAIL =
