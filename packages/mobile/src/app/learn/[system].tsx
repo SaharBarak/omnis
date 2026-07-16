@@ -1,30 +1,59 @@
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import { Image } from 'expo-image'
 import * as Linking from 'expo-linking'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import { ArrowSquareOutIcon, CaretLeftIcon } from 'phosphor-react-native'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
-import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated'
+import { ScrollView, StyleSheet, View } from 'react-native'
+import Animated, {
+  FadeInUp,
+  interpolate,
+  useAnimatedStyle,
+  useReducedMotion,
+} from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import {
+  Button,
+  Divider,
+  IconButton,
+  Text,
+  TopAppBar,
+  useScrollProgress,
+} from '@/components/m3'
 import { EmptyState } from '@/components/ui/empty-state'
-import { Eyebrow } from '@/components/ui/primitives'
 import { ENV } from '@/lib/env'
 import { LIBRARY_DOCS, type LibrarySystemKey } from '@/lib/library/content'
-import { COLORS, DURATION, RADII, SPACE, TYPE } from '@/theme/tokens'
+import { muralFor } from '@/lib/library/murals'
+import { DURATION, SPACE, SHAPE, alpha, useTheme } from '@/theme/m3'
 
 /**
- * S14 doc reader — F10. One flavored header band, calm typography, sections
- * separated by flavor-tinted hairlines. Content is bundled
- * (lib/library/content.ts) so the codex reads fully offline; the footer chip
- * hands off to the full web codex.
+ * The doc reader. Content is bundled (lib/library/content.ts) so the codex
+ * reads fully offline; the footer button hands off to the full web codex.
  */
 
 const STAGGER_MS = 60
 
+const BANNER_HEIGHT = 200
+/** How far the mural travels while the page scrolls it away — a half-speed drift. */
+const BANNER_PARALLAX = 48
+
+/** The banner is a backdrop for the header text, so it is held well under it. */
+const MURAL_OPACITY = 0.5
+const MURAL_SCRIM_OPACITY = 0.45
+
 export default function LearnDocScreen() {
   const insets = useSafeAreaInsets()
   const router = useRouter()
+  const theme = useTheme()
   const reduced = useReducedMotion()
   const { system } = useLocalSearchParams<{ system: string }>()
+  const { progress, onScroll } = useScrollProgress(BANNER_HEIGHT)
+
+  // The mural collapses with the scroll rather than sliding away with the
+  // content: it fades as it drifts, so the top app bar's tint takes over.
+  const bannerStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(progress.value, [0, 1], [1, 0]),
+    transform: [{ translateY: interpolate(progress.value, [0, 1], [0, -BANNER_PARALLAX]) }],
+  }))
 
   const doc =
     system !== undefined && system in LIBRARY_DOCS
@@ -36,9 +65,18 @@ export default function LearnDocScreen() {
     else router.replace('/library')
   }
 
+  const backButton = (
+    <IconButton
+      icon={(color) => <CaretLeftIcon size={24} color={color} />}
+      onPress={goBack}
+      accessibilityLabel="Back"
+    />
+  )
+
   if (doc === undefined) {
     return (
-      <View style={[styles.screen, { paddingTop: insets.top + SPACE.gutter }]}>
+      <View style={styles.screen}>
+        <TopAppBar title="" navigationIcon={backButton} />
         <EmptyState
           title="This page of the codex is blank."
           body="The system you followed doesn't exist here."
@@ -49,84 +87,111 @@ export default function LearnDocScreen() {
     )
   }
 
+  const mural = muralFor(doc.key)
+
   return (
-    <View style={[styles.screen, { paddingTop: insets.top + SPACE.unit * 2 }]}>
-      <View style={styles.topBar}>
-        <Pressable
-          onPress={goBack}
-          style={styles.iconButton}
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-        >
-          <CaretLeftIcon size={20} color={COLORS.text70} />
-        </Pressable>
-      </View>
+    <View style={styles.screen}>
+      <TopAppBar title={doc.name} navigationIcon={backButton} progress={progress} />
 
-      <ScrollView
+      <Animated.ScrollView
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: insets.bottom + SPACE.xxl * 2 },
+        ]}
       >
-        {/* Flavored header band — accent bar, name, lineage. */}
-        <Animated.View
-          entering={reduced ? undefined : FadeInUp.duration(DURATION.slow)}
-          style={styles.headerBand}
-        >
-          <View style={[styles.accentBar, { backgroundColor: doc.flavor.accent }]} />
-          <View style={styles.headerText}>
-            <Eyebrow color={doc.flavor.accentSoft}>{doc.name.toUpperCase()}</Eyebrow>
-            <Text style={TYPE.zone}>{doc.title}</Text>
-            <Text style={styles.lineage}>{doc.lineage}</Text>
+        <View style={[styles.header, mural !== undefined && styles.headerWithMural]}>
+          {mural !== undefined && (
+            <Animated.View
+              pointerEvents="none"
+              style={[StyleSheet.absoluteFill, reduced ? undefined : bannerStyle]}
+            >
+              <Image
+                source={mural}
+                contentFit="cover"
+                style={[StyleSheet.absoluteFill, styles.mural]}
+                alt=""
+                accessible={false}
+              />
+              <View
+                style={[
+                  StyleSheet.absoluteFill,
+                  { backgroundColor: alpha(theme.colors.surface, MURAL_SCRIM_OPACITY) },
+                ]}
+              />
+            </Animated.View>
+          )}
+
+          <View style={styles.headerRow}>
+            <View style={[styles.accentRail, { backgroundColor: doc.flavor.accent }]} />
+            <View style={styles.headerText}>
+              <Text variant="labelLarge" color={doc.flavor.accentSoft}>
+                {doc.name}
+              </Text>
+              <Text variant="headlineSmall" color="onSurface">
+                {doc.title}
+              </Text>
+              <Text variant="bodyMedium" color="onSurfaceVariant">
+                {doc.lineage}
+              </Text>
+            </View>
           </View>
-        </Animated.View>
+        </View>
 
-        {doc.intro.map((paragraph, index) => (
-          <Animated.Text
-            key={index}
-            entering={
-              reduced
-                ? undefined
-                : FadeInUp.duration(DURATION.slow).delay((index + 1) * STAGGER_MS)
-            }
-            style={styles.intro}
-          >
-            {paragraph}
-          </Animated.Text>
-        ))}
+        <View style={styles.body}>
+          {doc.intro.map((paragraph, index) => (
+            <Animated.View
+              key={index}
+              entering={
+                reduced
+                  ? undefined
+                  : FadeInUp.duration(DURATION.medium4).delay((index + 1) * STAGGER_MS)
+              }
+            >
+              <Text variant="bodyLarge" color="onSurfaceVariant">
+                {paragraph}
+              </Text>
+            </Animated.View>
+          ))}
 
-        {doc.sections.map((section, index) => (
-          <Animated.View
-            key={section.title}
-            entering={
-              reduced
-                ? undefined
-                : FadeInUp.duration(DURATION.slow).delay(
-                    (doc.intro.length + index + 1) * STAGGER_MS
-                  )
-            }
-            style={styles.section}
-          >
-            <View
-              style={[styles.sectionHairline, { backgroundColor: doc.flavor.accent }]}
-            />
-            <Text style={TYPE.section}>{section.title}</Text>
-            <Text style={styles.sectionBody}>{section.body}</Text>
-          </Animated.View>
-        ))}
+          {doc.sections.map((section, index) => (
+            <Animated.View
+              key={section.title}
+              entering={
+                reduced
+                  ? undefined
+                  : FadeInUp.duration(DURATION.medium4).delay(
+                      (doc.intro.length + index + 1) * STAGGER_MS
+                    )
+              }
+              style={styles.section}
+            >
+              <Divider />
+              <Text variant="titleMedium" color="onSurface">
+                {section.title}
+              </Text>
+              <Text variant="bodyLarge" color="onSurfaceVariant">
+                {section.body}
+              </Text>
+            </Animated.View>
+          ))}
 
-        <Pressable
-          onPress={() => {
-            void Linking.openURL(`${ENV.apiUrl}/learn/${doc.key}`)
-          }}
-          style={[styles.webChip, { borderColor: doc.flavor.accent }]}
-          accessibilityRole="button"
-          accessibilityLabel="Read the full codex on the web"
-        >
-          <Text style={[TYPE.eyebrow, { color: doc.flavor.accentSoft }]}>
-            READ THE FULL CODEX ON THE WEB
-          </Text>
-          <ArrowSquareOutIcon size={14} color={doc.flavor.accentSoft} />
-        </Pressable>
-      </ScrollView>
+          <View style={styles.webLink}>
+            <Button
+              variant="outlined"
+              fullWidth
+              onPress={() => {
+                void Linking.openURL(`${ENV.apiUrl}/learn/${doc.key}`)
+              }}
+              icon={(color) => <ArrowSquareOutIcon size={18} color={color} />}
+            >
+              Read the full codex on the web
+            </Button>
+          </View>
+        </View>
+      </Animated.ScrollView>
     </View>
   )
 }
@@ -134,68 +199,45 @@ export default function LearnDocScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: 'transparent',
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACE.gutter - 8,
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   content: {
-    paddingHorizontal: SPACE.gutter,
-    paddingTop: SPACE.cardPad,
-    paddingBottom: SPACE.section * 2,
-    gap: SPACE.cardPad,
+    gap: SPACE.xl,
   },
-  headerBand: {
+  header: {
+    justifyContent: 'flex-end',
+    overflow: 'hidden',
+    paddingHorizontal: SPACE.margin,
+    paddingBottom: SPACE.lg,
+  },
+  headerWithMural: {
+    minHeight: BANNER_HEIGHT,
+    paddingTop: SPACE.xxl,
+  },
+  mural: {
+    opacity: MURAL_OPACITY,
+  },
+  headerRow: {
     flexDirection: 'row',
-    gap: SPACE.cardPad - 4,
-    paddingBottom: SPACE.unit * 2,
+    gap: SPACE.md,
   },
-  accentBar: {
-    width: 3,
-    borderRadius: RADII.pill,
+  accentRail: {
+    width: 4,
+    alignSelf: 'stretch',
+    borderRadius: SHAPE.full,
   },
   headerText: {
     flex: 1,
-    gap: 8,
+    gap: SPACE.sm,
   },
-  lineage: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
-  },
-  intro: {
-    ...TYPE.body,
-    color: COLORS.text70,
+  body: {
+    paddingHorizontal: SPACE.margin,
+    gap: SPACE.lg,
   },
   section: {
-    gap: 10,
-    paddingTop: SPACE.unit * 3,
+    gap: SPACE.md,
+    paddingTop: SPACE.sm,
   },
-  sectionHairline: {
-    height: StyleSheet.hairlineWidth,
-    opacity: 0.35,
-    marginBottom: 6,
-  },
-  sectionBody: {
-    ...TYPE.body,
-    color: COLORS.text70,
-  },
-  webChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: 8,
-    marginTop: SPACE.cardPad,
-    borderRadius: RADII.pill,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+  webLink: {
+    paddingTop: SPACE.lg,
   },
 })

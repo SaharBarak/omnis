@@ -16,6 +16,7 @@ import {
 import { QueryClientProvider } from '@tanstack/react-query'
 import {
   DarkTheme,
+  DefaultTheme,
   Stack,
   ThemeProvider,
   useRouter,
@@ -23,64 +24,74 @@ import {
   type Href,
 } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
-import { useEffect, useMemo } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
-import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { StatusBar } from 'expo-status-bar'
+import { useEffect, useMemo } from 'react'
+import { StyleSheet, View } from 'react-native'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
 import { BrandMark } from '@/components/brand-mark'
 import { CosmicGround } from '@/components/cosmic-ground'
-import { Button, Eyebrow, Panel } from '@/components/ui/primitives'
+import { Button, Card, SnackbarHost, Text } from '@/components/m3'
 import { useProfile } from '@/lib/api'
 import { useAuthStore, type AuthStatus } from '@/lib/auth'
 import { queryClient } from '@/lib/query-client'
-import { COLORS, SPACE, TYPE } from '@/theme/tokens'
+import { SPACE, useTheme, type M3Theme } from '@/theme/m3'
 
 void SplashScreen.preventAutoHideAsync()
 
-/** Dark only — the product is the night sky. */
-const pleiadTheme = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    background: COLORS.ground,
-    card: COLORS.surface,
-    primary: COLORS.brand,
-    border: COLORS.border,
-    text: COLORS.text90,
-  },
+/** React Navigation's theme, fed from the M3 scheme so the two never disagree. */
+function navigationTheme(theme: M3Theme) {
+  const base = theme.dark ? DarkTheme : DefaultTheme
+  return {
+    ...base,
+    dark: theme.dark,
+    colors: {
+      ...base.colors,
+      // Transparent: the atmosphere canvas is painted behind the navigator and
+      // an opaque background here would cover it on every screen.
+      background: 'transparent',
+      card: theme.surfaceAt(2),
+      primary: theme.colors.primary,
+      border: theme.colors.outlineVariant,
+      text: theme.colors.onSurface,
+      notification: theme.colors.error,
+    },
+  }
 }
 
-/** Quiet cosmic moment while auth hydrates / the profile bootstraps. */
+/** Shown while auth hydrates and the profile bootstraps. */
 function BootVeil() {
   return (
     <View style={styles.veil}>
-      <BrandMark size={44} />
-      <Eyebrow>PREPARING YOUR SKY</Eyebrow>
+      <BrandMark size={48} />
+      <Text variant="bodyMedium" color="onSurfaceVariant">
+        Preparing your sky
+      </Text>
     </View>
   )
 }
 
-/** F1: network down at profile fetch → retry, cached-token session kept. */
 function ProfileRetry({ onRetry, retrying }: { onRetry: () => void; retrying: boolean }) {
   return (
     <View style={styles.retryScreen}>
-      <Panel style={styles.retryPanel}>
-        <Text style={TYPE.section}>The sky is out of reach.</Text>
-        <Text style={styles.retryBody}>
-          We couldn't load your profile. Check your connection — your session is safe.
+      <Card variant="filled">
+        <Text variant="headlineSmall" color="onSurface">
+          The sky is out of reach.
+        </Text>
+        <Text variant="bodyMedium" color="onSurfaceVariant" style={styles.retryBody}>
+          We couldn&apos;t load your profile. Check your connection — your session is safe.
         </Text>
         <Button onPress={onRetry} disabled={retrying}>
           {retrying ? 'Trying…' : 'Try again'}
         </Button>
-      </Panel>
+      </Card>
     </View>
   )
 }
 
 /**
- * Declarative auth guards — expo-router useSegments pattern:
- * signedOut → /login · signedIn without onboarding → /onboarding · else tabs.
+ * Auth guards — expo-router's `useSegments` pattern:
+ * signed out → /login · signed in without onboarding → /onboarding · else tabs.
  */
 function RootNavigator({ status }: { status: AuthStatus }) {
   const segments: string[] = useSegments()
@@ -90,7 +101,6 @@ function RootNavigator({ status }: { status: AuthStatus }) {
   const inAuthGroup = segments[0] === '(auth)'
   const onOnboarding = inAuthGroup && segments[1] === 'onboarding'
 
-  // Ready = auth hydrated and, when signed in, the profile query settled.
   const ready =
     status !== 'loading' &&
     (status === 'signedOut' || profileQuery.isSuccess || profileQuery.isError)
@@ -103,7 +113,7 @@ function RootNavigator({ status }: { status: AuthStatus }) {
   const target = useMemo<Href | null>(() => {
     if (!ready) return null
     if (status === 'signedOut') return inAuthGroup && !onOnboarding ? null : '/login'
-    if (profile === undefined) return null // fetch failed — retry screen below
+    if (profile === undefined) return null // fetch failed — the retry screen below
     if (!profile.onboarding_completed) return onOnboarding ? null : '/onboarding'
     return inAuthGroup ? '/' : null
   }, [ready, status, profile, inAuthGroup, onOnboarding])
@@ -112,8 +122,6 @@ function RootNavigator({ status }: { status: AuthStatus }) {
     if (target !== null) router.replace(target)
   }, [target, router])
 
-  // No flicker: nothing renders while loading (native splash still covers
-  // cold boot; post-login shows the quiet veil).
   if (!ready) return <BootVeil />
 
   if (status === 'signedIn' && profileQuery.isError) {
@@ -136,11 +144,39 @@ function RootNavigator({ status }: { status: AuthStatus }) {
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
       </Stack>
-      {/* Mask the single frame between mount and the redirect committing. */}
-      {target !== null && (
-        <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.mask]} />
-      )}
+      {/* Masks the single frame between mount and the redirect committing. */}
+      {target !== null && <MaskFrame />}
     </View>
+  )
+}
+
+function MaskFrame() {
+  const theme = useTheme()
+  return (
+    <View
+      pointerEvents="none"
+      style={[StyleSheet.absoluteFill, { backgroundColor: theme.colors.background }]}
+    />
+  )
+}
+
+function App({ status }: { status: AuthStatus }) {
+  const theme = useTheme()
+
+  return (
+    <ThemeProvider value={navigationTheme(theme)}>
+      <View style={styles.flex}>
+        <CosmicGround />
+        <StatusBar style={theme.dark ? 'light' : 'dark'} />
+        <RootNavigator status={status} />
+        {/*
+         * One snackbar host for the whole app. Screens used to mount their own,
+         * which meant a toast raised from inside a sheet could be unmounted
+         * along with the sheet before anyone read it.
+         */}
+        <SnackbarHost />
+      </View>
+    </ThemeProvider>
   )
 }
 
@@ -167,13 +203,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.flex}>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider value={pleiadTheme}>
-          <View style={[styles.flex, { backgroundColor: COLORS.ground }]}>
-            <CosmicGround />
-            <StatusBar style="light" />
-            <RootNavigator status={status} />
-          </View>
-        </ThemeProvider>
+        <App status={status} />
       </QueryClientProvider>
     </GestureHandlerRootView>
   )
@@ -187,21 +217,15 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: SPACE.cardPad,
+    gap: SPACE.lg,
   },
   retryScreen: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: SPACE.gutter,
-  },
-  retryPanel: {
-    gap: SPACE.cardPad,
+    paddingHorizontal: SPACE.margin,
   },
   retryBody: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
-  },
-  mask: {
-    backgroundColor: COLORS.ground,
+    marginTop: SPACE.sm,
+    marginBottom: SPACE.lg,
   },
 })

@@ -15,11 +15,11 @@ import * as Haptics from 'expo-haptics'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { CaretDownIcon, CaretLeftIcon, CaretUpIcon } from 'phosphor-react-native'
 import { useMemo, useState, type PropsWithChildren, type ReactNode } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { StyleSheet, View } from 'react-native'
 
 import { BondSheet } from '@/components/pair/bond-sheet'
 import { PaywallSheet } from '@/components/billing/paywall-sheet'
+import { Button, IconButton, Text, TopAppBar, Touchable } from '@/components/m3'
 import {
   DataRow,
   LockedPage,
@@ -28,14 +28,14 @@ import {
   ReadingPage,
 } from '@/components/person/scaffold'
 import { EmptyState } from '@/components/ui/empty-state'
-import { Button, Eyebrow } from '@/components/ui/primitives'
-import { ToastHost } from '@/components/ui/toast'
 import { useSubscription } from '@/lib/api'
 import { useCountUp } from '@/lib/motion/use-count-up'
 import { usePeople } from '@/lib/people/hooks'
+import { sentenceCase, initialsOf  } from '@/lib/text'
 import { useCreateRelationship } from '@/lib/relationships/hooks'
 import { showToast } from '@/lib/toast'
-import { COLORS, FLAVORS, SPACE, TYPE, type SystemFlavor } from '@/theme/tokens'
+import { SHAPE, SPACE, useTheme } from '@/theme/m3'
+import { FLAVORS, type SystemFlavor } from '@/theme/tokens'
 
 /**
  * S9 Pair compare (F5) — the five-system reading of a bond, computed
@@ -54,44 +54,38 @@ const SYSTEM_ORDER: ReadonlyArray<{
 }> = [
   {
     key: 'dreamspell',
-    label: 'DREAMSPELL',
+    label: 'Dreamspell',
     flavor: FLAVORS.dreamspell,
-    missingNote: 'NEEDS BIRTH DATES',
+    missingNote: 'Needs birth dates',
   },
   {
     key: 'tzolkin',
-    label: 'TZOLKIN',
+    label: 'Tzolkin',
     flavor: FLAVORS.tzolkin,
-    missingNote: 'NEEDS BIRTH DATES',
+    missingNote: 'Needs birth dates',
   },
   {
     key: 'astrology',
-    label: 'ASTROLOGY',
+    label: 'Astrology',
     flavor: FLAVORS.astrology,
-    missingNote: 'NEEDS BIRTH DATA',
+    missingNote: 'Needs birth data',
   },
   {
     key: 'humanDesign',
-    label: 'HUMAN DESIGN',
+    label: 'Human Design',
     flavor: FLAVORS.humanDesign,
-    missingNote: 'NEEDS BOTH BIRTH TIMES',
+    missingNote: 'Needs both birth times',
   },
   {
     key: 'gematria',
-    label: 'KABBALAH',
+    label: 'Kabbalah',
     flavor: FLAVORS.gematria,
-    missingNote: 'NEEDS BOTH HEBREW NAMES',
+    missingNote: 'Needs both Hebrew names',
   },
 ]
 
 const TOP_ASPECTS = 3
-
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/).filter((part) => part.length > 0)
-  const first = parts[0]?.[0] ?? ''
-  const second = parts[1]?.[0] ?? ''
-  return `${first}${second}`.toUpperCase() || '·'
-}
+const AVATAR_SIZE = 48
 
 function toCompatInput(person: PersonWithTags): PersonCompatInput {
   return {
@@ -103,12 +97,47 @@ function toCompatInput(person: PersonWithTags): PersonCompatInput {
   }
 }
 
+function PairAvatars({ name1, name2 }: { name1: string; name2: string }) {
+  const theme = useTheme()
+  return (
+    <View style={styles.avatars}>
+      <View
+        style={[styles.avatar, { backgroundColor: theme.colors.primaryContainer }]}
+      >
+        <Text variant="labelLarge" color={theme.colors.onPrimaryContainer}>
+          {initialsOf(name1)}
+        </Text>
+      </View>
+      <View
+        style={[
+          styles.avatar,
+          styles.avatarOverlap,
+          {
+            backgroundColor: theme.colors.secondaryContainer,
+            borderColor: theme.colors.surface,
+          },
+        ]}
+      >
+        <Text variant="labelLarge" color={theme.colors.onSecondaryContainer}>
+          {initialsOf(name2)}
+        </Text>
+      </View>
+    </View>
+  )
+}
+
 /** Micro line inside an expanded system detail. */
 function DetailLine({ eyebrow, body }: { eyebrow?: string; body: string }) {
   return (
     <View style={styles.detailLine}>
-      {eyebrow !== undefined && <Text style={styles.detailEyebrow}>{eyebrow}</Text>}
-      <Text style={styles.detailBody}>{body}</Text>
+      {eyebrow !== undefined && (
+        <Text variant="labelMedium" color="onSurfaceVariant">
+          {eyebrow}
+        </Text>
+      )}
+      <Text variant="bodyMedium" color="onSurfaceVariant">
+        {body}
+      </Text>
     </View>
   )
 }
@@ -128,14 +157,17 @@ function SystemRow({
   score: number
   weight: number
 }>) {
+  const theme = useTheme()
   const [expanded, setExpanded] = useState(false)
   const display = useCountUp(score)
   const Caret = expanded ? CaretUpIcon : CaretDownIcon
 
   return (
     <PageSection index={index} flavor={flavor} eyebrow={label}>
-      <Pressable
+      <Touchable
         onPress={() => setExpanded((value) => !value)}
+        radius={SHAPE.small}
+        stateLayerColor={theme.colors.onSurface}
         accessibilityRole="button"
         accessibilityState={{ expanded }}
         accessibilityLabel={`${label} detail`}
@@ -149,8 +181,8 @@ function SystemRow({
             flavor={flavor}
           />
         </View>
-        <Caret size={14} color={COLORS.text50} />
-      </Pressable>
+        <Caret size={18} color={theme.colors.onSurfaceVariant} />
+      </Touchable>
       {expanded && <View style={styles.detailBlock}>{children}</View>}
     </PageSection>
   )
@@ -170,7 +202,9 @@ function MissingRow({
 }) {
   return (
     <PageSection index={index} flavor={flavor} eyebrow={label}>
-      <Text style={styles.missingNote}>{note}</Text>
+      <Text variant="labelMedium" color="onSurfaceVariant">
+        {note}
+      </Text>
     </PageSection>
   )
 }
@@ -193,7 +227,9 @@ function PreviewRow({
 }) {
   return (
     <View style={styles.previewRow}>
-      <Eyebrow color={flavor.accentSoft}>{label}</Eyebrow>
+      <Text variant="labelLarge" color={flavor.accentSoft}>
+        {label}
+      </Text>
       {available ? (
         <MeterBar
           label={`${Math.round(weight * 100)}%`}
@@ -202,7 +238,9 @@ function PreviewRow({
           flavor={flavor}
         />
       ) : (
-        <Text style={styles.missingNote}>{missingNote}</Text>
+        <Text variant="labelMedium" color="onSurfaceVariant">
+          {missingNote}
+        </Text>
       )}
     </View>
   )
@@ -220,7 +258,7 @@ function systemDetail(
       return (
         <>
           <DataRow
-            label="KINS"
+            label="Kins"
             value={`${detail.person1Kin} × ${detail.person2Kin}`}
             mono
             last={detail.connections.length === 0}
@@ -231,7 +269,7 @@ function systemDetail(
             detail.connections.map((connection) => (
               <DetailLine
                 key={connection.type}
-                eyebrow={getHarmonyLabel(connection.harmony).english.toUpperCase()}
+                eyebrow={getHarmonyLabel(connection.harmony).english}
                 body={connection.description}
               />
             ))
@@ -244,7 +282,7 @@ function systemDetail(
       return (
         <>
           <DataRow
-            label="SIGN · TONE"
+            label="Sign · tone"
             value={`${detail.person1Sign}·${detail.person1Tone} × ${detail.person2Sign}·${detail.person2Tone}`}
             mono
             last={detail.connections.length === 0}
@@ -276,7 +314,7 @@ function systemDetail(
           {aspects.map((connection, index) => (
             <DetailLine
               key={`${connection.planet1 ?? 'p1'}-${connection.planet2 ?? 'p2'}-${index}`}
-              eyebrow={(connection.aspect ?? 'aspect').toUpperCase()}
+              eyebrow={sentenceCase(connection.aspect ?? 'aspect')}
               body={connection.description}
             />
           ))}
@@ -296,13 +334,13 @@ function systemDetail(
         <>
           {detail.type1 !== undefined && detail.type2 !== undefined && (
             <DataRow
-              label="TYPES"
+              label="Types"
               value={`${detail.type1} × ${detail.type2}`}
               last={false}
             />
           )}
           {detail.typeDynamic !== undefined && (
-            <DetailLine eyebrow="TYPE DYNAMIC" body={detail.typeDynamic.english} />
+            <DetailLine eyebrow="Type dynamic" body={detail.typeDynamic.english} />
           )}
           {electromagnetic.length === 0 ? (
             <DetailLine body="No electromagnetic channels — this bond runs on companionship, not spark." />
@@ -310,7 +348,7 @@ function systemDetail(
             electromagnetic.map((connection) => (
               <DetailLine
                 key={connection.channelId}
-                eyebrow={`CHANNEL ${connection.gates[0]}–${connection.gates[1]}`}
+                eyebrow={`Channel ${connection.gates[0]}–${connection.gates[1]}`}
                 body={connection.description}
               />
             ))
@@ -327,13 +365,13 @@ function systemDetail(
         return (
           <>
             <DataRow
-              label="VALUES"
+              label="Values"
               value={`${comparison.value1} × ${comparison.value2}`}
               mono
               last={false}
             />
             <DataRow
-              label="SHARED ROOT"
+              label="Shared root"
               value={comparison.sharedDigitalRoot ? 'Yes' : 'No'}
               last={false}
             />
@@ -352,7 +390,6 @@ function systemDetail(
 }
 
 export default function PairScreen() {
-  const insets = useSafeAreaInsets()
   const router = useRouter()
   const { id1, id2 } = useLocalSearchParams<{ id1: string; id2: string }>()
 
@@ -391,6 +428,14 @@ export default function PairScreen() {
     else router.replace('/map')
   }
 
+  const backButton = (
+    <IconButton
+      icon={(color) => <CaretLeftIcon size={24} color={color} />}
+      onPress={goBack}
+      accessibilityLabel="Back"
+    />
+  )
+
   const keepBond = (type: RelationshipType, strength: RelationshipStrength) => {
     if (person1 === undefined || person2 === undefined) return
     setBondOpen(false)
@@ -409,7 +454,8 @@ export default function PairScreen() {
 
   if (invalidPair || person1 === undefined || person2 === undefined || fusion === null) {
     return (
-      <View style={[styles.screen, { paddingTop: insets.top + SPACE.gutter }]}>
+      <View style={styles.screen}>
+        <TopAppBar title="" navigationIcon={backButton} />
         <EmptyState
           title={
             isPending && !invalidPair ? 'Aligning the charts…' : "This pair isn't on your map."
@@ -472,39 +518,27 @@ export default function PairScreen() {
   })
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top + SPACE.unit * 2 }]}>
-      <View style={styles.topBar}>
-        <Pressable
-          onPress={goBack}
-          style={styles.iconButton}
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-        >
-          <CaretLeftIcon size={20} color={COLORS.text70} />
-        </Pressable>
-      </View>
+    <View style={styles.screen}>
+      <TopAppBar
+        title={`${person1.name} × ${person2.name}`}
+        navigationIcon={backButton}
+      />
 
       <View style={styles.header}>
-        <View style={styles.avatars}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initialsOf(person1.name)}</Text>
-          </View>
-          <View style={[styles.avatar, styles.avatarOverlap]}>
-            <Text style={styles.avatarText}>{initialsOf(person2.name)}</Text>
-          </View>
-        </View>
-        <Text style={TYPE.zone} numberOfLines={2}>
-          {person1.name} × {person2.name}
-        </Text>
+        <PairAvatars name1={person1.name} name2={person2.name} />
       </View>
 
       <ReadingPage>
-        <PageSection index={0} flavor={FLAVORS.integration} eyebrow="RESONANCE">
+        <PageSection index={0} flavor={FLAVORS.integration} eyebrow="Resonance">
           <CompositeScore
             score={compositeScore}
-            label={unlocked ? 'COMPOSITE' : 'DREAMSPELL ONLY'}
+            label={unlocked ? 'Composite' : 'Dreamspell only'}
           />
-          {unlocked && <Text style={styles.summary}>{fusion.summary.english}</Text>}
+          {unlocked && (
+            <Text variant="bodyMedium" color="onSurfaceVariant">
+              {fusion.summary.english}
+            </Text>
+          )}
         </PageSection>
 
         {unlocked ? (
@@ -516,7 +550,7 @@ export default function PairScreen() {
               <LockedPage
                 flavor={FLAVORS.integration}
                 systemName="full compatibility"
-                pill="COMPLETE UNLOCKS THIS BOND"
+                pill="Complete unlocks this bond"
                 body="Four more systems are already computed for this pair — synastry, Human Design, Tzolkin and name resonance wait under the veil."
                 onUnlock={() => setPaywallOpen(true)}
               >
@@ -530,10 +564,19 @@ export default function PairScreen() {
           index={SYSTEM_ORDER.length + 1}
           flavor={FLAVORS.integration}
         >
-          <Button disabled={!unlocked} onPress={() => setBondOpen(true)}>
+          {/* The one filled button on the page — this is the page's whole point. */}
+          <Button fullWidth disabled={!unlocked} onPress={() => setBondOpen(true)}>
             Keep this bond
           </Button>
-          {!unlocked && <Text style={styles.gateNote}>BONDS OPEN WITH COMPLETE</Text>}
+          {!unlocked && (
+            <Text
+              variant="labelMedium"
+              color="onSurfaceVariant"
+              style={styles.gateNote}
+            >
+              Bonds open with Complete
+            </Text>
+          )}
         </PageSection>
       </ReadingPage>
 
@@ -548,19 +591,21 @@ export default function PairScreen() {
         onClose={() => setPaywallOpen(false)}
         trigger="bond-lock"
       />
-
-      <ToastHost />
     </View>
   )
 }
 
-/** The big number — counts up once, tabular mono, brandBright. */
+/** The big number — counts up once, tabular. */
 function CompositeScore({ score, label }: { score: number; label: string }) {
   const display = useCountUp(score)
   return (
     <View>
-      <Text style={styles.compositeValue}>{display}</Text>
-      <Text style={TYPE.statLabel}>{label}</Text>
+      <Text variant="dataLarge" color="primary">
+        {String(display)}
+      </Text>
+      <Text variant="labelMedium" color="onSurfaceVariant">
+        {label}
+      </Text>
     </View>
   )
 }
@@ -568,96 +613,55 @@ function CompositeScore({ score, label }: { score: number; label: string }) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: 'transparent',
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACE.gutter - 8,
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    paddingHorizontal: SPACE.gutter,
-    paddingTop: SPACE.unit * 2,
-    paddingBottom: SPACE.cardPad,
+    paddingHorizontal: SPACE.margin,
+    paddingBottom: SPACE.sm,
   },
   avatars: {
     flexDirection: 'row',
   },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.surface2,
-    borderWidth: 1,
-    borderColor: COLORS.brandSoft,
   },
   avatarOverlap: {
-    marginLeft: -14,
-    borderColor: COLORS.border,
-  },
-  avatarText: {
-    ...TYPE.eyebrow,
-    color: COLORS.text70,
-    letterSpacing: 1,
-  },
-  compositeValue: {
-    ...TYPE.stat,
-    fontSize: 56,
-    lineHeight: 62,
-  },
-  summary: {
-    ...TYPE.bodySm,
-    color: COLORS.text70,
+    marginLeft: -SPACE.md,
+    // The ring is the surface itself — it's what separates the two discs where
+    // they overlap, without introducing a colour that isn't already on screen.
+    borderWidth: 2,
   },
   meterRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: SPACE.md,
+    // The meter is 4dp tall; the row it lives in is the tap target.
+    minHeight: 48,
   },
   meterWrap: {
     flex: 1,
   },
   detailBlock: {
-    gap: 12,
+    gap: SPACE.md,
   },
   detailLine: {
-    gap: 3,
-  },
-  detailEyebrow: {
-    ...TYPE.statLabel,
-  },
-  detailBody: {
-    ...TYPE.bodySm,
-    color: COLORS.text70,
-  },
-  missingNote: {
-    ...TYPE.statLabel,
-    color: COLORS.text35,
+    gap: SPACE.xs,
   },
   lockWrap: {
     minHeight: 360,
   },
   lockPreviewRows: {
-    gap: SPACE.cardPad,
-    paddingTop: SPACE.unit * 2,
+    gap: SPACE.lg,
+    paddingTop: SPACE.sm,
   },
   previewRow: {
-    gap: 8,
+    gap: SPACE.sm,
   },
   gateNote: {
-    ...TYPE.statLabel,
     textAlign: 'center',
-    marginTop: 10,
+    marginTop: SPACE.sm,
   },
 })

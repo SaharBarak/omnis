@@ -5,24 +5,23 @@ import { getTone } from '@pleiad/engine/data/tones'
 import * as Haptics from 'expo-haptics'
 import { CheckIcon, XIcon } from 'phosphor-react-native'
 import { useEffect, useState } from 'react'
-import {
-  FlatList,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
-import Animated, { FadeIn, SlideInDown, useReducedMotion } from 'react-native-reanimated'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { FlatList, StyleSheet, View } from 'react-native'
 
-import { Button, Divider, Eyebrow } from '@/components/ui/primitives'
-import { TextField } from '@/components/ui/text-field'
+import { Glyph } from '@/components/glyph'
+import {
+  BottomSheet,
+  Button,
+  Divider,
+  IconButton,
+  Text,
+  TextField,
+  Touchable,
+} from '@/components/m3'
 import { useCreateGroup, useSetGroupMembers, useUpdateGroup } from '@/lib/groups/hooks'
 import { usePeople } from '@/lib/people/hooks'
-import { COLORS, FLAVORS, RADII, SPACE, SPRING, DURATION, TYPE } from '@/theme/tokens'
+import { SHAPE, SPACE, useTheme } from '@/theme/m3'
+import { FLAVORS } from '@/theme/tokens'
+import { initialsOf } from '@/lib/text'
 
 /**
  * S11 circle sheet — create or edit a circle: name, description, and a
@@ -37,21 +36,23 @@ export interface CircleSheetInitial {
   memberIds: string[]
 }
 
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/).filter((part) => part.length > 0)
-  const first = parts[0]?.[0] ?? ''
-  const second = parts[1]?.[0] ?? ''
-  return `${first}${second}`.toUpperCase() || '·'
-}
-
 function kinLine(birthDate: string): string {
   try {
     const kin = dateToKin(birthDate)
     const seal = getSeal(kinToSeal(kin))
     const tone = getTone(kinToTone(kin))
-    return `KIN ${kin} · ${tone.name} ${seal.english}`.toUpperCase()
+    return `Kin ${kin} · ${tone.name} ${seal.english}`
   } catch {
     return birthDate
+  }
+}
+
+/** The person's Dreamspell seal number, or null for an uncomputable date. */
+function sealNumberOf(birthDate: string): number | null {
+  try {
+    return kinToSeal(dateToKin(birthDate))
+  } catch {
+    return null
   }
 }
 
@@ -64,29 +65,68 @@ function MemberRow({
   selected: boolean
   onToggle: () => void
 }) {
+  const theme = useTheme()
+  const seal = sealNumberOf(person.birth_date)
+
   return (
-    <Pressable
+    <Touchable
       onPress={onToggle}
-      style={styles.memberRow}
+      stateLayerColor={theme.colors.onSurface}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: selected }}
       accessibilityLabel={person.name}
+      style={styles.memberRow}
     >
-      <View style={[styles.avatar, selected && styles.avatarSelected]}>
-        <Text style={styles.avatarText}>{initialsOf(person.name)}</Text>
+      <View
+        style={[
+          styles.avatar,
+          {
+            backgroundColor: theme.colors.surfaceContainerHighest,
+            borderColor: selected ? theme.colors.primary : theme.colors.outlineVariant,
+          },
+        ]}
+      >
+        <Text variant="labelLarge" color="onSurfaceVariant">
+          {initialsOf(person.name)}
+        </Text>
+        {seal !== null && (
+          <View
+            style={[
+              styles.avatarBadge,
+              {
+                backgroundColor: theme.colors.surface,
+                borderColor: theme.colors.outlineVariant,
+              },
+            ]}
+          >
+            <Glyph seal={seal} size={13} color={FLAVORS.dreamspell.accent} />
+          </View>
+        )}
       </View>
+
       <View style={styles.memberBody}>
-        <Text style={TYPE.card} numberOfLines={1}>
+        <Text variant="bodyLarge" numberOfLines={1}>
           {person.name}
         </Text>
-        <Text style={styles.memberLine} numberOfLines={1}>
+        <Text variant="labelMedium" color="onSurfaceVariant" numberOfLines={1}>
           {kinLine(person.birth_date)}
         </Text>
       </View>
-      <View style={[styles.checkRing, selected && styles.checkRingActive]}>
-        {selected && <CheckIcon size={14} color={COLORS.text90} weight="bold" />}
+
+      {/* The ring is filled *and* checked: colour alone can't carry selection. */}
+      <View
+        style={[
+          styles.checkRing,
+          { borderColor: theme.colors.outline },
+          selected && {
+            backgroundColor: theme.colors.primary,
+            borderColor: theme.colors.primary,
+          },
+        ]}
+      >
+        {selected && <CheckIcon size={14} color={theme.colors.onPrimary} weight="bold" />}
       </View>
-    </Pressable>
+    </Touchable>
   )
 }
 
@@ -100,8 +140,6 @@ export function CircleSheet({
   /** When set the sheet renames + replaces members instead of creating. */
   initial?: CircleSheetInitial
 }) {
-  const reduced = useReducedMotion()
-  const insets = useSafeAreaInsets()
   const editing = initial !== undefined
   const { people } = usePeople()
 
@@ -168,204 +206,160 @@ export function CircleSheet({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
-      <KeyboardAvoidingView
-        style={styles.root}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <Animated.View
-          entering={reduced ? undefined : FadeIn.duration(DURATION.normal)}
-          style={StyleSheet.absoluteFill}
-        >
-          <Pressable
-            style={[StyleSheet.absoluteFill, styles.scrim]}
-            onPress={onClose}
-            accessibilityRole="button"
-            accessibilityLabel="Close"
-          />
-        </Animated.View>
+    <BottomSheet visible={visible} onClose={onClose}>
+      <View style={styles.header}>
+        <View style={styles.headerTitles}>
+          <Text variant="labelLarge" color="primary">
+            {editing ? 'Edit circle' : 'New circle'}
+          </Text>
+          <Text variant="headlineSmall">
+            {editing ? 'Reshape the circle.' : 'Name the dynamic you live in.'}
+          </Text>
+        </View>
+        <IconButton
+          icon={(color) => <XIcon size={24} color={color} />}
+          onPress={onClose}
+          accessibilityLabel="Close"
+        />
+      </View>
 
-        <Animated.View
-          entering={
-            reduced
-              ? undefined
-              : SlideInDown.springify().damping(SPRING.damping).stiffness(SPRING.stiffness)
-          }
-          style={[styles.sheet, { paddingBottom: insets.bottom + SPACE.cardPad }]}
-        >
-          <View style={styles.header}>
-            <View style={styles.headerTitles}>
-              <Eyebrow color={FLAVORS.dreamspell.accentSoft}>
-                {editing ? 'EDIT CIRCLE' : 'NEW CIRCLE'}
-              </Eyebrow>
-              <Text style={TYPE.section}>
-                {editing ? 'Reshape the circle.' : 'Name the dynamic you live in.'}
-              </Text>
-            </View>
-            <Pressable
-              onPress={onClose}
-              hitSlop={12}
-              accessibilityRole="button"
-              accessibilityLabel="Close"
-            >
-              <XIcon size={20} color={COLORS.text50} />
-            </Pressable>
+      <View style={styles.form}>
+        <TextField
+          label="Name"
+          value={name}
+          onChangeText={(value) => {
+            setName(value)
+            if (nameError !== undefined && value.trim().length > 0) {
+              setNameError(undefined)
+            }
+          }}
+          supportingText="Family, founding team, the band"
+          autoCapitalize="words"
+          autoCorrect={false}
+          maxLength={200}
+          error={nameError}
+        />
+
+        <TextField
+          label="Description"
+          value={description}
+          onChangeText={setDescription}
+          supportingText="What holds these people together"
+          autoCapitalize="sentences"
+        />
+
+        <View style={styles.membersBlock}>
+          <View style={styles.membersHeader}>
+            <Text variant="labelLarge" color="onSurfaceVariant">
+              Members
+            </Text>
+            <Text variant="labelMedium" color="onSurfaceVariant">
+              {memberIds.size} chosen
+            </Text>
           </View>
+          {people.length === 0 ? (
+            <Text variant="bodyMedium" color="onSurfaceVariant">
+              A circle needs people — add someone to your map first.
+            </Text>
+          ) : (
+            <FlatList
+              data={people}
+              keyExtractor={(person) => person.id}
+              ItemSeparatorComponent={Divider}
+              style={styles.memberList}
+              keyboardShouldPersistTaps="handled"
+              renderItem={({ item }) => (
+                <MemberRow
+                  person={item}
+                  selected={memberIds.has(item.id)}
+                  onToggle={() => toggleMember(item.id)}
+                />
+              )}
+            />
+          )}
+        </View>
 
-          <TextField
-            label="NAME"
-            value={name}
-            onChangeText={(value) => {
-              setName(value)
-              if (nameError !== undefined && value.trim().length > 0) {
-                setNameError(undefined)
-              }
-            }}
-            placeholder="Family, founding team, the band"
-            autoCapitalize="words"
-            autoCorrect={false}
-            maxLength={200}
-            error={nameError}
-          />
-
-          <TextField
-            label="DESCRIPTION"
-            value={description}
-            onChangeText={setDescription}
-            placeholder="What holds these people together"
-            autoCapitalize="sentences"
-          />
-
-          <View style={styles.membersBlock}>
-            <View style={styles.membersHeader}>
-              <Text style={TYPE.eyebrow}>MEMBERS</Text>
-              <Text style={styles.membersCount}>{memberIds.size} CHOSEN</Text>
-            </View>
-            {people.length === 0 ? (
-              <Text style={styles.membersEmpty}>
-                A circle needs people — add someone to your map first.
-              </Text>
-            ) : (
-              <FlatList
-                data={people}
-                keyExtractor={(person) => person.id}
-                ItemSeparatorComponent={Divider}
-                style={styles.memberList}
-                keyboardShouldPersistTaps="handled"
-                renderItem={({ item }) => (
-                  <MemberRow
-                    person={item}
-                    selected={memberIds.has(item.id)}
-                    onToggle={() => toggleMember(item.id)}
-                  />
-                )}
-              />
-            )}
-          </View>
-
-          <Button
-            onPress={save}
-            disabled={createGroup.isPending || updateGroup.isPending || setMembers.isPending}
-          >
-            {editing ? 'Save the circle' : 'Form the circle'}
-          </Button>
-        </Animated.View>
-      </KeyboardAvoidingView>
-    </Modal>
+        <Button
+          fullWidth
+          onPress={save}
+          disabled={createGroup.isPending || updateGroup.isPending || setMembers.isPending}
+        >
+          {editing ? 'Save the circle' : 'Form the circle'}
+        </Button>
+      </View>
+    </BottomSheet>
   )
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  scrim: {
-    backgroundColor: 'rgba(11,13,22,0.72)',
-  },
-  sheet: {
-    maxHeight: '88%',
-    backgroundColor: COLORS.surface,
-    borderTopLeftRadius: RADII.feature,
-    borderTopRightRadius: RADII.feature,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingHorizontal: SPACE.featurePad,
-    paddingTop: SPACE.featurePad,
-    gap: SPACE.cardPad,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: SPACE.md,
+    marginBottom: SPACE.lg,
   },
   headerTitles: {
     flex: 1,
-    gap: 6,
+    gap: SPACE.xs,
+  },
+  form: {
+    gap: SPACE.xl,
   },
   membersBlock: {
     flexShrink: 1,
-    gap: 8,
+    gap: SPACE.sm,
   },
   membersHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  membersCount: {
-    ...TYPE.statLabel,
-  },
-  membersEmpty: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
-  },
+  /**
+   * The list runs to the sheet's edges so a row's state layer reaches them
+   * too — the row keeps the 16dp margin as its own padding.
+   */
   memberList: {
     flexGrow: 0,
+    marginHorizontal: -SPACE.margin,
   },
   memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    paddingVertical: 12,
+    gap: SPACE.lg,
+    minHeight: 72,
+    paddingHorizontal: SPACE.margin,
+    paddingVertical: SPACE.sm,
   },
   memberBody: {
     flex: 1,
-    gap: 3,
-  },
-  memberLine: {
-    ...TYPE.eyebrow,
-    color: COLORS.text50,
+    gap: 2,
   },
   avatar: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: SHAPE.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.surface2,
     borderWidth: 1,
-    borderColor: COLORS.border,
   },
-  avatarSelected: {
-    borderColor: COLORS.brandSoft,
-  },
-  avatarText: {
-    ...TYPE.eyebrow,
-    color: COLORS.text70,
-    letterSpacing: 1,
+  avatarBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   checkRing: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: SHAPE.full,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  checkRingActive: {
-    backgroundColor: COLORS.brand,
-    borderColor: COLORS.brandSoft,
   },
 })

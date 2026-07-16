@@ -1,8 +1,8 @@
 import type { RelationshipType } from '@pleiad/api-client'
 import { useRouter } from 'expo-router'
 import { XIcon } from 'phosphor-react-native'
-import { useEffect, useMemo, useState } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { StyleSheet, View } from 'react-native'
 import Animated, {
   FadeIn,
   FadeOut,
@@ -14,19 +14,28 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { PaywallSheet } from '@/components/billing/paywall-sheet'
+import { Button, NAVIGATION_BAR_HEIGHT, Surface, Text } from '@/components/m3'
 import { TypeFilterChips } from '@/components/map/filter-chips'
 import { NodeCard } from '@/components/map/node-card'
 import { RelationshipGraph } from '@/components/map/relationship-graph'
 import { CaptureSheet } from '@/components/people/capture-sheet'
-import { PaywallSheet } from '@/components/billing/paywall-sheet'
 import { EmptyState } from '@/components/ui/empty-state'
-import { Button, Eyebrow, Panel } from '@/components/ui/primitives'
-import { ToastHost } from '@/components/ui/toast'
+import { ErrorState } from '@/components/ui/error-state'
+import { useAuthStore } from '@/lib/auth'
+import {
+  loadPinnedLayout,
+  savePinnedLayout,
+  type PinnedLayout,
+} from '@/lib/map/layout-store'
 import { seedPosition } from '@/lib/map/simulation'
 import { usePeople } from '@/lib/people/hooks'
 import { RELATIONSHIP_TYPES } from '@/lib/relationships/colors'
 import { useRelationships } from '@/lib/relationships/hooks'
-import { COLORS, DURATION, SPACE, TYPE } from '@/theme/tokens'
+import { DURATION, SHAPE, SPACE, useTheme } from '@/theme/m3'
+
+/** Stable identity for "no pins yet" so the layout seed effect fires only on load. */
+const EMPTY_LAYOUT: PinnedLayout = {}
 
 /**
  * S10 Map — the hero surface (F6). A force-settled constellation of your
@@ -36,9 +45,13 @@ import { COLORS, DURATION, SPACE, TYPE } from '@/theme/tokens'
  */
 
 const SKELETON_STARS = 6
+const SKELETON_STAR_SIZE = 40
+/** The filter chip's drawn height. The compare banner clears the chip row. */
+const CHIP_HEIGHT = 32
 
 /** Skeleton — a dim constellation breathing at 2s, never a spinner. */
 function MapSkeleton() {
+  const theme = useTheme()
   const reduced = useReducedMotion()
   const pulse = useSharedValue(0.35)
 
@@ -59,13 +72,19 @@ function MapSkeleton() {
               key={index}
               style={[
                 styles.skeletonStar,
-                { transform: [{ translateX: seed.x }, { translateY: seed.y }] },
+                {
+                  backgroundColor: theme.surfaceAt(2),
+                  borderColor: theme.colors.outlineVariant,
+                  transform: [{ translateX: seed.x }, { translateY: seed.y }],
+                },
               ]}
             />
           )
         })}
       </Animated.View>
-      <Eyebrow>DRAWING YOUR MAP</Eyebrow>
+      <Text variant="labelLarge" color="onSurfaceVariant">
+        Drawing your map
+      </Text>
     </View>
   )
 }
@@ -78,6 +97,8 @@ export default function MapScreen() {
   const people = usePeople()
   const relationships = useRelationships()
 
+  const userId = useAuthStore((state) => state.userId)
+
   const [activeTypes, setActiveTypes] = useState<ReadonlySet<RelationshipType>>(
     () => new Set(RELATIONSHIP_TYPES)
   )
@@ -85,6 +106,32 @@ export default function MapScreen() {
   const [compareFromId, setCompareFromId] = useState<string | null>(null)
   const [captureOpen, setCaptureOpen] = useState(false)
   const [paywallOpen, setPaywallOpen] = useState(false)
+  const [initialPinned, setInitialPinned] = useState<PinnedLayout>(EMPTY_LAYOUT)
+  const [pinnedCount, setPinnedCount] = useState(0)
+
+  // Load the saved arrangement once per account; a new object identity signals
+  // the graph to seed those stars and hold them fixed. Signed-out clears it.
+  useEffect(() => {
+    let alive = true
+    const run = async () => {
+      const layout = userId === null ? EMPTY_LAYOUT : await loadPinnedLayout(userId)
+      if (!alive) return
+      setInitialPinned(layout)
+      setPinnedCount(Object.keys(layout).length)
+    }
+    void run()
+    return () => {
+      alive = false
+    }
+  }, [userId])
+
+  const persistPinned = useCallback(
+    (layout: PinnedLayout) => {
+      setPinnedCount(Object.keys(layout).length)
+      if (userId !== null) void savePinnedLayout(userId, layout)
+    },
+    [userId]
+  )
 
   const selectedPerson = useMemo(
     () => people.people.find((person) => person.id === selectedId),
@@ -130,22 +177,16 @@ export default function MapScreen() {
     if (isPending) return <MapSkeleton />
 
     if (isError) {
+      const retrying = people.isRefetching || relationships.isRefetching
       return (
         <View style={styles.errorWrap}>
-          <Panel style={styles.errorPanel}>
-            <Text style={TYPE.card}>The map is out of reach.</Text>
-            <Text style={styles.errorBody}>
-              We couldn't load your constellation. Check your connection — nothing is
-              lost.
-            </Text>
-            <Button
-              variant="secondary"
-              onPress={retry}
-              disabled={people.isRefetching || relationships.isRefetching}
-            >
-              {people.isRefetching || relationships.isRefetching ? 'Trying…' : 'Try again'}
-            </Button>
-          </Panel>
+          <ErrorState
+            message="The map is out of reach. We couldn't load your constellation — nothing is lost; check your connection."
+            retryLabel={retrying ? 'Trying…' : 'Try again'}
+            onRetry={() => {
+              if (!retrying) retry()
+            }}
+          />
         </View>
       )
     }
@@ -169,6 +210,8 @@ export default function MapScreen() {
         filtering={activeTypes.size < RELATIONSHIP_TYPES.length}
         selectedId={selectedId}
         onSelectNode={onSelectNode}
+        initialPinned={initialPinned}
+        onPinnedChange={persistPinned}
       />
     )
   }
@@ -180,29 +223,56 @@ export default function MapScreen() {
       {renderBody()}
 
       {showChrome && (
-        <View style={[styles.chipsRow, { top: insets.top + SPACE.unit * 2 }]}>
+        <View style={[styles.chipsRow, { top: insets.top + SPACE.sm }]}>
           <TypeFilterChips active={activeTypes} onToggle={toggleType} />
         </View>
       )}
 
       {compareFromId !== null && (
         <Animated.View
-          entering={reduced ? undefined : FadeIn.duration(DURATION.normal)}
-          exiting={reduced ? undefined : FadeOut.duration(DURATION.normal)}
-          style={[styles.compareBanner, { top: insets.top + SPACE.unit * 2 + 44 }]}
+          entering={reduced ? undefined : FadeIn.duration(DURATION.short4)}
+          exiting={reduced ? undefined : FadeOut.duration(DURATION.short4)}
+          style={[
+            styles.compareBannerRoot,
+            { top: insets.top + SPACE.sm + CHIP_HEIGHT + SPACE.md },
+          ]}
         >
-          <Eyebrow color={COLORS.brandSoft}>PICK A SECOND STAR</Eyebrow>
-          <Pressable
-            onPress={() => setCompareFromId(null)}
-            style={styles.cancelChip}
-            accessibilityRole="button"
-            accessibilityLabel="Cancel compare"
-          >
-            <XIcon size={12} color={COLORS.text50} />
-            <Text style={styles.cancelText}>CANCEL</Text>
-          </Pressable>
+          {/* Real shadow: this is transient chrome floating over the canvas. */}
+          <Surface level={3} radius={SHAPE.full} shadow style={styles.compareBanner}>
+            <Text variant="labelLarge" color="primary">
+              Pick a second star
+            </Text>
+            <Button
+              variant="text"
+              onPress={() => setCompareFromId(null)}
+              icon={(color) => <XIcon size={18} color={color} />}
+            >
+              Cancel
+            </Button>
+          </Surface>
         </Animated.View>
       )}
+
+      {showChrome &&
+        pinnedCount === 0 &&
+        selectedPerson === undefined &&
+        compareFromId === null && (
+          <Animated.View
+            pointerEvents="none"
+            entering={reduced ? undefined : FadeIn.duration(DURATION.medium2)}
+            exiting={reduced ? undefined : FadeOut.duration(DURATION.short4)}
+            style={[
+              styles.hintRoot,
+              { bottom: NAVIGATION_BAR_HEIGHT + insets.bottom + SPACE.md },
+            ]}
+          >
+            <Surface level={2} radius={SHAPE.full} style={styles.hint}>
+              <Text variant="labelMedium" color="onSurfaceVariant">
+                Drag a star to keep it in place
+              </Text>
+            </Surface>
+          </Animated.View>
+        )}
 
       {selectedPerson !== undefined && compareFromId === null && (
         <NodeCard
@@ -232,8 +302,6 @@ export default function MapScreen() {
         onClose={() => setPaywallOpen(false)}
         trigger="people-cap"
       />
-
-      <ToastHost />
     </View>
   )
 }
@@ -241,6 +309,7 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+    // The cosmic ground is painted behind every screen; the map sits on it.
     backgroundColor: 'transparent',
   },
   chipsRow: {
@@ -248,33 +317,34 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
   },
-  compareBanner: {
+  compareBannerRoot: {
     position: 'absolute',
-    left: SPACE.gutter,
-    right: SPACE.gutter,
+    left: SPACE.margin,
+    right: SPACE.margin,
+  },
+  compareBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.cardFill,
+    paddingLeft: SPACE.lg,
+    paddingRight: SPACE.xs,
+    paddingVertical: SPACE.xs,
   },
-  cancelChip: {
-    flexDirection: 'row',
+  hintRoot: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
     alignItems: 'center',
-    gap: 5,
   },
-  cancelText: {
-    ...TYPE.statLabel,
+  hint: {
+    paddingHorizontal: SPACE.lg,
+    paddingVertical: SPACE.sm,
   },
   skeletonRoot: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: SPACE.section,
+    gap: SPACE.xxl,
   },
   skeletonField: {
     width: 1,
@@ -284,23 +354,14 @@ const styles = StyleSheet.create({
   },
   skeletonStar: {
     position: 'absolute',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.surface2,
+    width: SKELETON_STAR_SIZE,
+    height: SKELETON_STAR_SIZE,
+    borderRadius: SKELETON_STAR_SIZE / 2,
     borderWidth: 1,
-    borderColor: COLORS.border,
   },
   errorWrap: {
     flex: 1,
     justifyContent: 'center',
-  },
-  errorPanel: {
-    marginHorizontal: SPACE.gutter,
-    gap: 14,
-  },
-  errorBody: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
+    paddingHorizontal: SPACE.margin,
   },
 })

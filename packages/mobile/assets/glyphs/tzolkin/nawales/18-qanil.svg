@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="currentColor">
+  <title>Q'anil - Seed, Ripeness, Fertility</title>
+  <!-- Stylized seed/corn glyph -->
+  <circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="3"/>
+  <!-- Four seeds in cardinal directions (like corn kernels) -->
+  <ellipse cx="50" cy="30" rx="8" ry="12" fill="currentColor"/>
+  <ellipse cx="50" cy="70" rx="8" ry="12" fill="currentColor"/>
+  <ellipse cx="30" cy="50" rx="12" ry="8" fill="currentColor"/>
+  <ellipse cx="70" cy="50" rx="12" ry="8" fill="currentColor"/>
+  <!-- Center connection -->
+  <circle cx="50" cy="50" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
+  <!-- Growth lines -->
+  <line x1="50" y1="42" x2="50" y2="35" stroke="currentColor" stroke-width="1"/>
+  <line x1="50" y1="58" x2="50" y2="65" stroke="currentColor" stroke-width="1"/>
+  <line x1="42" y1="50" x2="35" y2="50" stroke="currentColor" stroke-width="1"/>
+  <line x1="58" y1="50" x2="65" y2="50" stroke="currentColor" stroke-width="1"/>
+</svg>

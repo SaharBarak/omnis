@@ -5,15 +5,7 @@ import { getTone } from '@pleiad/engine/data/tones'
 import { useRouter } from 'expo-router'
 import { MagnifyingGlassIcon, PlusIcon, TrashIcon } from 'phosphor-react-native'
 import { useEffect, useMemo, useState } from 'react'
-import {
-  Alert,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native'
+import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native'
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable'
 import Animated, {
   FadeInUp,
@@ -23,54 +15,117 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { CaptureSheet } from '@/components/people/capture-sheet'
 import { PaywallSheet } from '@/components/billing/paywall-sheet'
+import { Glyph } from '@/components/glyph'
+import {
+  Divider,
+  Fab,
+  LARGE_TITLE_COLLAPSE_DISTANCE,
+  ListItem,
+  NAVIGATION_BAR_HEIGHT,
+  Text,
+  TextField,
+  TopAppBar,
+  Touchable,
+  useScrollProgress,
+} from '@/components/m3'
+import { CaptureSheet } from '@/components/people/capture-sheet'
 import { EmptyState } from '@/components/ui/empty-state'
-import { Button, Divider, Eyebrow, Panel } from '@/components/ui/primitives'
-import { ToastHost } from '@/components/ui/toast'
+import { ErrorState } from '@/components/ui/error-state'
 import { useSubscription } from '@/lib/api'
 import { useDeletePerson, usePeople } from '@/lib/people/hooks'
-import { COLORS, DURATION, FLAVORS, RADII, SPACE, TYPE } from '@/theme/tokens'
+import { DURATION, SHAPE, SPACE, useTheme } from '@/theme/m3'
+import { FLAVORS } from '@/theme/tokens'
+import { initialsOf, sentenceCase } from '@/lib/text'
 
 /**
- * S6 People — the library. Hairline-divided rows (never boxed), inline
- * dreamspell line per person, capture FAB, swipe-to-remove. All four states
- * ship: skeleton, invitation, inline retry, tactile success (via the sheet).
+ * People — the library. One M3 list item per person, the dreamspell line as its
+ * supporting text, an extended FAB to capture a new one, swipe-left to remove.
+ * All four states ship: skeleton, invitation, inline retry, tactile success
+ * (via the sheet).
  */
 
 const SKELETON_ROWS = 6
 const STAGGER_CAP = 8
-
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/).filter((part) => part.length > 0)
-  const first = parts[0]?.[0] ?? ''
-  const second = parts[1]?.[0] ?? ''
-  return `${first}${second}`.toUpperCase() || '·'
-}
+const LIST_ITEM_HEIGHT = 72
+/** Matches the 40dp leading element `Divider inset` indents past. */
+const AVATAR_SIZE = 40
 
 function dreamspellLine(birthDate: string): string {
   try {
     const kin = dateToKin(birthDate)
     const seal = getSeal(kinToSeal(kin))
     const tone = getTone(kinToTone(kin))
-    return `KIN ${kin} · ${seal.color} ${tone.name} ${seal.english}`.toUpperCase()
+    return `Kin ${kin} · ${sentenceCase(seal.color)} ${tone.name} ${seal.english}`
   } catch {
     return birthDate
   }
 }
 
-function DeleteAction({ onPress }: { onPress: () => void }) {
+/** The person's Dreamspell seal number, or null for an uncomputable date. */
+function sealNumberOf(birthDate: string): number | null {
+  try {
+    return kinToSeal(dateToKin(birthDate))
+  } catch {
+    return null
+  }
+}
+
+function PersonAvatar({
+  name,
+  isSelf,
+  seal,
+}: {
+  name: string
+  isSelf: boolean
+  seal: number | null
+}) {
+  const theme = useTheme()
+  // You are the one person on this list who isn't someone you added, and the
+  // primary container is how M3 says so — the old brand-tinted hairline read as
+  // an accident.
+  const container = isSelf
+    ? theme.colors.primaryContainer
+    : theme.colors.surfaceContainerHighest
+  const content = isSelf ? theme.colors.onPrimaryContainer : theme.colors.onSurfaceVariant
+
   return (
-    <Pressable
+    <View style={[styles.avatar, { backgroundColor: container }]}>
+      <Text variant="labelLarge" color={content}>
+        {initialsOf(name)}
+      </Text>
+      {/* The seal badge ties the face to its kin — the one reading every person
+          has, so it rides every avatar. */}
+      {seal !== null && (
+        <View
+          style={[
+            styles.avatarBadge,
+            {
+              backgroundColor: theme.colors.surface,
+              borderColor: theme.colors.outlineVariant,
+            },
+          ]}
+        >
+          <Glyph seal={seal} size={13} color={FLAVORS.dreamspell.accent} />
+        </View>
+      )}
+    </View>
+  )
+}
+
+function DeleteAction({ onPress }: { onPress: () => void }) {
+  const theme = useTheme()
+  return (
+    <Touchable
       onPress={onPress}
-      style={styles.deleteAction}
+      stateLayerColor={theme.colors.onErrorContainer}
       accessibilityRole="button"
       accessibilityLabel="Remove person"
+      style={[styles.deleteAction, { backgroundColor: theme.colors.errorContainer }]}
     >
-      <TrashIcon size={20} color={COLORS.text90} />
-    </Pressable>
+      <TrashIcon size={24} color={theme.colors.onErrorContainer} />
+    </Touchable>
   )
 }
 
@@ -87,7 +142,9 @@ function PersonRow({
   onPress: () => void
   onDelete: () => void
 }) {
+  const theme = useTheme()
   const line = useMemo(() => dreamspellLine(person.birth_date), [person.birth_date])
+  const seal = useMemo(() => sealNumberOf(person.birth_date), [person.birth_date])
 
   const confirmDelete = () => {
     Alert.alert(
@@ -104,7 +161,7 @@ function PersonRow({
     <Animated.View
       entering={
         animateIn
-          ? FadeInUp.duration(DURATION.slow).delay(Math.min(index, STAGGER_CAP) * 60)
+          ? FadeInUp.duration(DURATION.medium2).delay(Math.min(index, STAGGER_CAP) * 60)
           : undefined
       }
     >
@@ -112,31 +169,34 @@ function PersonRow({
         overshootRight={false}
         renderRightActions={() => <DeleteAction onPress={confirmDelete} />}
       >
-        <Pressable
-          onPress={onPress}
-          style={styles.row}
-          accessibilityRole="button"
-          accessibilityLabel={person.name}
-        >
-          <View style={[styles.avatar, person.is_self && styles.avatarSelf]}>
-            <Text style={styles.avatarText}>{initialsOf(person.name)}</Text>
-          </View>
-          <View style={styles.rowBody}>
-            <Text style={TYPE.card} numberOfLines={1}>
-              {person.name}
-            </Text>
-            <Text style={styles.rowLine} numberOfLines={1}>
-              {line}
-            </Text>
-          </View>
-        </Pressable>
+        {/*
+         * The row is opaque — and it has to be, because it slides over the
+         * delete action underneath it. A transparent row would show the red
+         * through the person's name for the whole gesture.
+         */}
+        <View style={{ backgroundColor: theme.colors.surface }}>
+          <ListItem
+            headline={person.name}
+            supportingText={line}
+            leading={
+              <PersonAvatar name={person.name} isSelf={person.is_self} seal={seal} />
+            }
+            onPress={onPress}
+            accessibilityLabel={person.name}
+          />
+        </View>
       </ReanimatedSwipeable>
     </Animated.View>
   )
 }
 
+function RowSeparator() {
+  return <Divider inset />
+}
+
 /** Skeleton rows matching the final layout — shimmer 2s, never a spinner. */
 function SkeletonRows() {
+  const theme = useTheme()
   const reduced = useReducedMotion()
   const pulse = useSharedValue(0.45)
 
@@ -146,19 +206,20 @@ function SkeletonRows() {
   }, [reduced, pulse])
 
   const shimmer = useAnimatedStyle(() => ({ opacity: pulse.value }))
+  const block = { backgroundColor: theme.colors.surfaceContainerHighest }
 
   return (
     <View>
       {Array.from({ length: SKELETON_ROWS }, (_, index) => (
         <View key={index}>
-          <Animated.View style={[styles.row, shimmer]}>
-            <View style={[styles.avatar, styles.skeletonBlock]} />
-            <View style={styles.rowBody}>
-              <View style={[styles.skeletonBlock, styles.skeletonName]} />
-              <View style={[styles.skeletonBlock, styles.skeletonLine]} />
+          <Animated.View style={[styles.skeletonRow, shimmer]}>
+            <View style={[styles.avatar, block]} />
+            <View style={styles.skeletonBody}>
+              <View style={[styles.skeletonBlock, styles.skeletonName, block]} />
+              <View style={[styles.skeletonBlock, styles.skeletonLine, block]} />
             </View>
           </Animated.View>
-          {index < SKELETON_ROWS - 1 && <Divider />}
+          {index < SKELETON_ROWS - 1 && <Divider inset />}
         </View>
       ))}
     </View>
@@ -166,8 +227,10 @@ function SkeletonRows() {
 }
 
 export default function PeopleScreen() {
-  const insets = useSafeAreaInsets()
   const router = useRouter()
+  const theme = useTheme()
+  const { progress, onScroll } = useScrollProgress(LARGE_TITLE_COLLAPSE_DISTANCE)
+
   const { people, isPending, isError, isRefetching, refetch } = usePeople()
   const subscription = useSubscription()
   const deletePerson = useDeletePerson()
@@ -197,7 +260,7 @@ export default function PeopleScreen() {
   }, [people, search])
 
   // The self entry is free on every plan, so it must not count against the cap —
-  // counting it produced "4 OF 3 KEPT". The server excludes it; so do we.
+  // counting it produced "4 of 3 kept". The server excludes it; so do we.
   const trackedCount = useMemo(
     () => people.filter((person) => !person.is_self).length,
     [people]
@@ -206,25 +269,37 @@ export default function PeopleScreen() {
   const profileLimit = subscription.data?.usage.profiles.limit ?? null
   const countLabel =
     profileLimit !== null && Number.isFinite(profileLimit)
-      ? `${trackedCount} OF ${profileLimit} KEPT`
-      : `${trackedCount} KEPT`
+      ? `${trackedCount} of ${profileLimit} kept`
+      : `${trackedCount} kept`
+
+  const showFab = !isPending && !isError && people.length > 0
 
   const openCapture = () => setSheetOpen(true)
+
+  const refreshControl = (
+    <RefreshControl
+      refreshing={isRefetching && !isPending}
+      onRefresh={refetch}
+      tintColor={theme.colors.primary}
+      colors={[theme.colors.primary]}
+      progressBackgroundColor={theme.surfaceAt(2)}
+    />
+  )
 
   const renderBody = () => {
     if (isPending) return <SkeletonRows />
 
     if (isError) {
       return (
-        <Panel style={styles.errorPanel}>
-          <Text style={TYPE.card}>Your people are out of reach.</Text>
-          <Text style={styles.errorBody}>
-            We couldn't load the library. They're safe — check your connection.
-          </Text>
-          <Button variant="secondary" onPress={refetch} disabled={isRefetching}>
-            {isRefetching ? 'Trying…' : 'Try again'}
-          </Button>
-        </Panel>
+        <View style={styles.errorWrap}>
+          <ErrorState
+            message="Your people are out of reach. We couldn't load the library — they're safe; check your connection."
+            retryLabel={isRefetching ? 'Trying…' : 'Try again'}
+            onRetry={() => {
+              if (!isRefetching) refetch()
+            }}
+          />
+        </View>
       )
     }
 
@@ -242,18 +317,23 @@ export default function PeopleScreen() {
     if (filtered.length === 0) {
       return (
         <View style={styles.searchEmpty}>
-          <Text style={styles.searchEmptyText}>No one answers to that name yet.</Text>
+          <Text variant="bodyLarge" color="onSurfaceVariant">
+            No one answers to that name yet.
+          </Text>
         </View>
       )
     }
 
     return (
-      <FlatList
+      <Animated.FlatList
         data={filtered}
         keyExtractor={(person) => person.id}
-        ItemSeparatorComponent={Divider}
+        ItemSeparatorComponent={RowSeparator}
         contentContainerStyle={styles.listContent}
         keyboardShouldPersistTaps="handled"
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        refreshControl={refreshControl}
         renderItem={({ item, index }) => (
           <PersonRow
             person={item}
@@ -270,36 +350,41 @@ export default function PeopleScreen() {
   }
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top + SPACE.gutter }]}>
-      <View style={styles.header}>
-        <Eyebrow>{countLabel}</Eyebrow>
-        <Text style={TYPE.zone}>People</Text>
-      </View>
+    <View style={styles.screen}>
+      <TopAppBar title="People" variant="large" progress={progress} />
 
-      <View style={styles.searchField}>
-        <MagnifyingGlassIcon size={18} color={COLORS.text35} />
-        <TextInput
+      <View style={styles.header}>
+        <Text variant="labelLarge" color="onSurfaceVariant">
+          {countLabel}
+        </Text>
+
+        <TextField
+          label="Search your people"
           value={search}
           onChangeText={setSearch}
-          placeholder="Search your people"
-          placeholderTextColor={COLORS.text35}
-          style={styles.searchInput}
-          keyboardAppearance="dark"
+          leadingIcon={(color) => <MagnifyingGlassIcon size={20} color={color} />}
           autoCorrect={false}
-          accessibilityLabel="Search your people"
         />
       </View>
 
       <View style={styles.body}>{renderBody()}</View>
 
-      <Pressable
-        onPress={openCapture}
-        style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
-        accessibilityRole="button"
-        accessibilityLabel="Add a person"
-      >
-        <PlusIcon size={24} color="#FFFFFF" />
-      </Pressable>
+      {/*
+       * The FAB stands down while the empty state is up — that screen already
+       * offers this action as its one filled button, and M3 gives a screen one
+       * primary action.
+       */}
+      {showFab && (
+        <View style={styles.fab}>
+          <Fab
+            icon={(color) => <PlusIcon size={24} color={color} />}
+            label="Add person"
+            collapseProgress={progress}
+            onPress={openCapture}
+            accessibilityLabel="Add a person"
+          />
+        </View>
+      )}
 
       <CaptureSheet
         visible={sheetOpen}
@@ -315,8 +400,6 @@ export default function PeopleScreen() {
         onClose={() => setPaywallOpen(false)}
         trigger="people-cap"
       />
-
-      <ToastHost />
     </View>
   )
 }
@@ -324,82 +407,55 @@ export default function PeopleScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: 'transparent',
   },
   header: {
-    paddingHorizontal: SPACE.gutter,
-    gap: 6,
-  },
-  searchField: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginHorizontal: SPACE.gutter,
-    marginTop: SPACE.cardPad,
-    height: 44,
-    paddingHorizontal: 14,
-    borderRadius: RADII.input,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surface2,
-  },
-  searchInput: {
-    flex: 1,
-    fontFamily: TYPE.body.fontFamily,
-    fontSize: TYPE.bodySm.fontSize,
-    color: COLORS.text90,
-    paddingVertical: 0,
+    paddingHorizontal: SPACE.margin,
+    gap: SPACE.md,
   },
   body: {
     flex: 1,
-    marginTop: SPACE.unit * 3,
+    marginTop: SPACE.lg,
   },
   listContent: {
-    paddingBottom: 96,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    paddingVertical: 16,
-    paddingHorizontal: SPACE.gutter,
-    backgroundColor: COLORS.ground,
-  },
-  rowBody: {
-    flex: 1,
-    gap: 3,
-  },
-  rowLine: {
-    ...TYPE.eyebrow,
-    color: COLORS.text50,
+    paddingBottom: NAVIGATION_BAR_HEIGHT + SPACE.xxl,
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.surface2,
+  },
+  avatarBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  avatarSelf: {
-    borderColor: COLORS.brandSoft,
-  },
-  avatarText: {
-    ...TYPE.eyebrow,
-    color: COLORS.text70,
-    letterSpacing: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   deleteAction: {
     width: 76,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.destructive,
+  },
+  skeletonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACE.lg,
+    minHeight: LIST_ITEM_HEIGHT,
+    paddingHorizontal: SPACE.margin,
+    paddingVertical: SPACE.sm,
+  },
+  skeletonBody: {
+    flex: 1,
+    gap: SPACE.sm,
   },
   skeletonBlock: {
-    backgroundColor: COLORS.surface2,
-    borderRadius: RADII.button,
+    borderRadius: SHAPE.extraSmall,
   },
   skeletonName: {
     height: 16,
@@ -409,39 +465,16 @@ const styles = StyleSheet.create({
     height: 10,
     width: '72%',
   },
-  errorPanel: {
-    marginHorizontal: SPACE.gutter,
-    gap: 14,
-  },
-  errorBody: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
+  errorWrap: {
+    paddingHorizontal: SPACE.margin,
   },
   searchEmpty: {
-    paddingTop: SPACE.section,
+    paddingTop: SPACE.xxl,
     alignItems: 'center',
-  },
-  searchEmptyText: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
   },
   fab: {
     position: 'absolute',
-    right: SPACE.gutter,
-    bottom: SPACE.gutter + 4,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.brand,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    shadowOpacity: 0.25,
-    elevation: 4,
-  },
-  fabPressed: {
-    transform: [{ scale: 0.98 }],
+    right: SPACE.margin,
+    bottom: SPACE.lg,
   },
 })

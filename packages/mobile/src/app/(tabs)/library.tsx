@@ -1,39 +1,62 @@
 import type { KnowledgeSearchResult } from '@pleiad/api-client'
 import { useQuery } from '@tanstack/react-query'
-import { useRouter } from 'expo-router'
+import { Image } from 'expo-image'
 import * as Linking from 'expo-linking'
+import { useRouter } from 'expo-router'
 import { CaretRightIcon, MagnifyingGlassIcon } from 'phosphor-react-native'
 import { useEffect, useState } from 'react'
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native'
+import { ScrollView, StyleSheet, View } from 'react-native'
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { Divider, Eyebrow } from '@/components/ui/primitives'
+import {
+  Card,
+  Divider,
+  LARGE_TITLE_COLLAPSE_DISTANCE,
+  ListItem,
+  NAVIGATION_BAR_HEIGHT,
+  Text,
+  TextField,
+  TopAppBar,
+  useScrollProgress,
+} from '@/components/m3'
+import { ErrorState } from '@/components/ui/error-state'
 import { api } from '@/lib/api'
 import {
   LIBRARY_DOCS,
   LIBRARY_ORDER,
   docKeyFromSourceUrl,
+  type LibraryDoc,
 } from '@/lib/library/content'
-import { COLORS, DURATION, FONTS, RADII, SPACE, TYPE } from '@/theme/tokens'
+import { muralFor } from '@/lib/library/murals'
+import { DURATION, SHAPE, SPACE, alpha, useTheme } from '@/theme/m3'
 
 /**
- * S14 Library — F10. Semantic search over the public knowledge corpus
- * (debounced, no auth) above six flavored doc portals. The portals read from
- * bundled content, so the codex works offline; only search needs the wire.
+ * Library — semantic search over the public knowledge corpus above six doc
+ * portals. The portals read from bundled content, so the codex works offline;
+ * only search needs the wire.
  */
 
 const SEARCH_DEBOUNCE_MS = 400
 const MIN_QUERY_LENGTH = 2
 const SEARCH_LIMIT = 6
 const STAGGER_MS = 60
+
+/** The M3 three-line list item. Search rows and their skeletons share it. */
+const RESULT_HEIGHT = 88
+
+const PORTAL_HEIGHT = 140
+
+/**
+ * The mural is atmosphere, not content: it is held under a scrim so the name
+ * and the lineage stay the loudest things on the card. Both values are tuned
+ * against the *dark* scheme, where a mural at full strength would out-shout
+ * `onSurface` text.
+ */
+const MURAL_OPACITY = 0.5
+const MURAL_SCRIM_OPACITY = 0.45
+
+/** A tradition with no mural is washed in its own flavour instead. */
+const FLAVOR_WASH_OPACITY = 0.12
 
 function useDebounced(value: string, delayMs: number): string {
   const [debounced, setDebounced] = useState(value)
@@ -44,30 +67,23 @@ function useDebounced(value: string, delayMs: number): string {
   return debounced
 }
 
-function SearchResultRow({
-  result,
-  onOpen,
-}: {
-  result: KnowledgeSearchResult
-  onOpen: (result: KnowledgeSearchResult) => void
-}) {
+function SearchSkeleton() {
+  const theme = useTheme()
+  const bar = { backgroundColor: theme.colors.surfaceContainerHighest }
+
   return (
-    <Pressable
-      onPress={() => onOpen(result)}
-      style={styles.resultRow}
-      accessibilityRole="button"
-      accessibilityLabel={result.title}
-    >
-      <Eyebrow color={COLORS.brandSoft}>
-        {`${Math.round(result.similarity * 100)}% MATCH`}
-      </Eyebrow>
-      <Text style={TYPE.card} numberOfLines={1}>
-        {result.title}
-      </Text>
-      <Text style={styles.resultSnippet} numberOfLines={2}>
-        {result.snippet}
-      </Text>
-    </Pressable>
+    <View>
+      {[0, 1].map((row, index, rows) => (
+        <View key={row}>
+          <View style={styles.skeletonRow}>
+            <View style={[styles.skeletonOverline, bar]} />
+            <View style={[styles.skeletonHeadline, bar]} />
+            <View style={[styles.skeletonSupporting, bar]} />
+          </View>
+          {index < rows.length - 1 && <Divider />}
+        </View>
+      ))}
+    </View>
   )
 }
 
@@ -84,32 +100,35 @@ function SearchResults({
     staleTime: 5 * 60_000,
   })
 
-  if (search.isPending) {
-    return (
-      <View style={styles.resultsBlock}>
-        <View style={styles.skeletonRow} />
-        <View style={[styles.skeletonRow, styles.skeletonNarrow]} />
-      </View>
-    )
-  }
+  if (search.isPending) return <SearchSkeleton />
 
   if (search.isError) {
     return (
-      <Text style={styles.quietLine}>
-        Search needs a connection — the codex below still reads offline.
-      </Text>
+      <ErrorState
+        message="Search needs a connection — the codex below still reads offline."
+        onRetry={() => void search.refetch()}
+      />
     )
   }
 
   if (search.data.length === 0) {
-    return <Text style={styles.quietLine}>The library is being written.</Text>
+    return (
+      <Text variant="bodyMedium" color="onSurfaceVariant" style={styles.quietLine}>
+        The library is being written.
+      </Text>
+    )
   }
 
   return (
-    <View style={styles.resultsBlock}>
+    <View>
       {search.data.map((result, index) => (
         <View key={`${result.sourceUrl}-${index}`}>
-          <SearchResultRow result={result} onOpen={onOpen} />
+          <ListItem
+            overline={`${Math.round(result.similarity * 100)}% match`}
+            headline={result.title}
+            supportingText={result.snippet}
+            onPress={() => onOpen(result)}
+          />
           {index < search.data.length - 1 && <Divider />}
         </View>
       ))}
@@ -117,103 +136,144 @@ function SearchResults({
   )
 }
 
+/**
+ * A tradition, as a portal rather than a row: its mural carries the card, its
+ * flavour accent marks the leading edge, and the lineage line says what the
+ * tradition claims. Four of the six have murals; the other two fall back to a
+ * tonal card washed in their flavour, which must read as deliberate rather
+ * than as a card whose image failed to load.
+ */
+function TraditionPortal({ doc, onOpen }: { doc: LibraryDoc; onOpen: () => void }) {
+  const theme = useTheme()
+  const mural = muralFor(doc.key)
+
+  return (
+    <Card
+      onPress={onOpen}
+      accessibilityLabel={`Read the ${doc.name} codex`}
+      style={styles.portal}
+    >
+      {mural === undefined ? (
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: alpha(doc.flavor.accent, FLAVOR_WASH_OPACITY) },
+          ]}
+        />
+      ) : (
+        <>
+          <Image
+            source={mural}
+            contentFit="cover"
+            style={[StyleSheet.absoluteFill, styles.mural]}
+            alt=""
+            accessible={false}
+          />
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: alpha(theme.colors.surface, MURAL_SCRIM_OPACITY) },
+            ]}
+          />
+        </>
+      )}
+
+      <View style={styles.portalRow}>
+        <View style={[styles.portalAccent, { backgroundColor: doc.flavor.accent }]} />
+        <View style={styles.portalBody}>
+          <Text variant="titleMedium" color="onSurface">
+            {doc.name}
+          </Text>
+          <Text variant="bodyMedium" color="onSurfaceVariant" numberOfLines={2}>
+            {doc.lineage}
+          </Text>
+        </View>
+        <CaretRightIcon size={20} color={theme.colors.onSurfaceVariant} />
+      </View>
+    </Card>
+  )
+}
+
 export default function LibraryScreen() {
-  const insets = useSafeAreaInsets()
   const router = useRouter()
+  const theme = useTheme()
   const reduced = useReducedMotion()
+  const { progress, onScroll } = useScrollProgress(LARGE_TITLE_COLLAPSE_DISTANCE)
 
   const [query, setQuery] = useState('')
-  const [focused, setFocused] = useState(false)
   const debouncedQuery = useDebounced(query.trim(), SEARCH_DEBOUNCE_MS)
   const searching = debouncedQuery.length >= MIN_QUERY_LENGTH
+
+  const openDoc = (key: LibraryDoc['key']) => {
+    router.push({ pathname: '/learn/[system]', params: { system: key } })
+  }
 
   const openResult = (result: KnowledgeSearchResult) => {
     const key = docKeyFromSourceUrl(result.sourceUrl)
     if (key !== null) {
-      router.push({ pathname: '/learn/[system]', params: { system: key } })
+      openDoc(key)
       return
     }
+    // A source that isn't one of the bundled docs still has a home on the web.
     void Linking.openURL(result.sourceUrl)
   }
 
   return (
     <View style={styles.screen}>
-      <ScrollView
+      <TopAppBar title="Library" variant="large" progress={progress} />
+
+      <Animated.ScrollView
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.content,
-          { paddingTop: insets.top + SPACE.gutter },
-        ]}
+        contentContainerStyle={styles.content}
       >
-        <Eyebrow>LIBRARY</Eyebrow>
-        <Text style={TYPE.zone}>Every line on the map has sources.</Text>
+        <Text variant="bodyLarge" color="onSurfaceVariant">
+          Every line on the map has sources.
+        </Text>
 
-        <View style={[styles.searchField, focused && styles.searchFieldFocused]}>
-          <MagnifyingGlassIcon size={18} color={COLORS.text35} />
-          <TextInput
-            value={query}
-            onChangeText={setQuery}
-            placeholder="Search the six traditions"
-            placeholderTextColor={COLORS.text35}
-            style={styles.searchInput}
-            keyboardAppearance="dark"
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="search"
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            accessibilityLabel="Search the library"
-          />
-        </View>
+        <TextField
+          label="Search the six traditions"
+          value={query}
+          onChangeText={setQuery}
+          leadingIcon={(color) => <MagnifyingGlassIcon size={24} color={color} />}
+          autoCapitalize="none"
+          autoCorrect={false}
+          returnKeyType="search"
+          accessibilityLabel="Search the library"
+        />
 
         {searching && (
-          <View style={styles.searchSection}>
-            <Eyebrow>FROM THE SOURCES</Eyebrow>
+          <View style={styles.section}>
+            <Text variant="labelLarge" color="onSurfaceVariant">
+              From the sources
+            </Text>
             <SearchResults query={debouncedQuery} onOpen={openResult} />
           </View>
         )}
 
-        <View style={styles.portals}>
-          <Eyebrow>THE SIX TRADITIONS</Eyebrow>
-          <View>
-            {LIBRARY_ORDER.map((key, index) => {
-              const doc = LIBRARY_DOCS[key]
-              return (
-                <Animated.View
-                  key={key}
-                  entering={
-                    reduced
-                      ? undefined
-                      : FadeInUp.duration(DURATION.slow).delay(index * STAGGER_MS)
-                  }
-                >
-                  <Pressable
-                    onPress={() =>
-                      router.push({ pathname: '/learn/[system]', params: { system: key } })
-                    }
-                    style={styles.portalRow}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Read the ${doc.name} codex`}
-                  >
-                    <View
-                      style={[styles.portalAccent, { backgroundColor: doc.flavor.accent }]}
-                    />
-                    <View style={styles.portalBody}>
-                      <Text style={TYPE.card}>{doc.name}</Text>
-                      <Text style={styles.portalLineage} numberOfLines={2}>
-                        {doc.lineage}
-                      </Text>
-                    </View>
-                    <CaretRightIcon size={16} color={COLORS.text35} />
-                  </Pressable>
-                  {index < LIBRARY_ORDER.length - 1 && <Divider />}
-                </Animated.View>
-              )
-            })}
+        <View style={styles.section}>
+          <Text variant="labelLarge" color="onSurfaceVariant">
+            The six traditions
+          </Text>
+
+          <View style={styles.portals}>
+            {LIBRARY_ORDER.map((key, index) => (
+              <Animated.View
+                key={key}
+                entering={
+                  reduced
+                    ? undefined
+                    : FadeInUp.duration(DURATION.medium4).delay(index * STAGGER_MS)
+                }
+              >
+                <TraditionPortal doc={LIBRARY_DOCS[key]} onOpen={() => openDoc(key)} />
+              </Animated.View>
+            ))}
           </View>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   )
 }
@@ -221,81 +281,66 @@ export default function LibraryScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: 'transparent',
   },
   content: {
-    paddingHorizontal: SPACE.gutter,
-    paddingBottom: SPACE.section,
-    gap: SPACE.cardPad,
+    paddingHorizontal: SPACE.margin,
+    paddingBottom: NAVIGATION_BAR_HEIGHT + SPACE.xxl,
+    gap: SPACE.xl,
   },
-  searchField: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    height: 52,
-    borderRadius: RADII.input,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surface2,
-    paddingHorizontal: 16,
-  },
-  searchFieldFocused: {
-    borderColor: COLORS.brand,
-  },
-  searchInput: {
-    flex: 1,
-    fontFamily: FONTS.body,
-    fontSize: 16,
-    color: COLORS.text90,
-  },
-  searchSection: {
-    gap: 10,
-  },
-  resultsBlock: {
-    gap: 2,
-  },
-  resultRow: {
-    gap: 5,
-    paddingVertical: 14,
-  },
-  resultSnippet: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
+  section: {
+    gap: SPACE.sm,
   },
   quietLine: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
-    paddingVertical: 10,
+    paddingVertical: SPACE.md,
   },
   skeletonRow: {
-    height: 64,
-    borderRadius: RADII.button,
-    backgroundColor: COLORS.surface2,
+    minHeight: RESULT_HEIGHT,
+    justifyContent: 'center',
+    gap: SPACE.sm,
+    paddingHorizontal: SPACE.margin,
+    paddingVertical: SPACE.sm,
   },
-  skeletonNarrow: {
-    width: '72%',
+  skeletonOverline: {
+    height: 12,
+    width: 84,
+    borderRadius: SHAPE.extraSmall,
+  },
+  skeletonHeadline: {
+    height: 16,
+    width: '62%',
+    borderRadius: SHAPE.extraSmall,
+  },
+  skeletonSupporting: {
+    height: 14,
+    width: '88%',
+    borderRadius: SHAPE.extraSmall,
   },
   portals: {
-    gap: 10,
-    paddingTop: SPACE.unit * 2,
+    gap: SPACE.md,
+  },
+  portal: {
+    // The card owns no padding of its own: the mural runs edge to edge under
+    // the text, which sits in its own padded row anchored to the bottom.
+    padding: 0,
+    minHeight: PORTAL_HEIGHT,
+    justifyContent: 'flex-end',
+  },
+  mural: {
+    opacity: MURAL_OPACITY,
   },
   portalRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACE.cardPad - 4,
-    paddingVertical: 16,
+    gap: SPACE.md,
+    padding: SPACE.lg,
   },
   portalAccent: {
-    width: 3,
+    width: 4,
     alignSelf: 'stretch',
-    borderRadius: RADII.pill,
+    borderRadius: SHAPE.full,
   },
   portalBody: {
     flex: 1,
-    gap: 4,
-  },
-  portalLineage: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
+    gap: SPACE.xs,
   },
 })

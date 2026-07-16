@@ -1,33 +1,29 @@
 import type { PropsWithChildren } from 'react'
 import {
-  Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
   type StyleProp,
   type ViewStyle,
 } from 'react-native'
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated'
 
-import { Button, Eyebrow, Pill } from '@/components/ui/primitives'
-import { COLORS, DURATION, RADII, SPACE, TYPE, type SystemFlavor } from '@/theme/tokens'
+import { Button, Card, Chip, Divider, Text } from '@/components/m3'
+import { DURATION, SHAPE, SPACE, alpha, useTheme } from '@/theme/m3'
+import type { SystemFlavor } from '@/theme/tokens'
+
+export { SEAL_COLOR_HEX } from '@/theme/tokens'
 
 /**
- * S8 page grammar — one scaffold, five flavored skins (DESIGN_LANGUAGE §1.3).
- * Sections separate with flavor-tinted hairlines, never card boxes; content
- * staggers up 60ms per section on the page's first view.
+ * The grammar every reading page is written in — one scaffold, six systems.
+ *
+ * A system's flavour reaches exactly two things: the eyebrow above a section,
+ * and the meter fills. Layout, spacing, type, and every surface underneath come
+ * from the M3 theme and are identical across all six, so switching systems
+ * changes the reading, not the furniture.
  */
 
 const STAGGER_MS = 60
-
-/** Dreamspell seal colors — vivid, untouched (DESIGN_LANGUAGE §1.3). */
-export const SEAL_COLOR_HEX: Record<string, string> = {
-  red: 'hsl(4, 72%, 58%)',
-  white: 'hsl(0, 0%, 96%)',
-  blue: 'hsl(215, 65%, 62%)',
-  yellow: 'hsl(45, 90%, 55%)',
-}
 
 export function ReadingPage({ children }: PropsWithChildren) {
   return (
@@ -41,7 +37,7 @@ export function ReadingPage({ children }: PropsWithChildren) {
   )
 }
 
-/** One content section: flavored hairline (after the first), eyebrow, body. */
+/** One section: a flavoured label, a hairline above it, and the content. */
 export function PageSection({
   index,
   flavor,
@@ -55,23 +51,28 @@ export function PageSection({
   style?: StyleProp<ViewStyle>
 }>) {
   const reduced = useReducedMotion()
+
   return (
     <Animated.View
       entering={
-        reduced ? undefined : FadeInUp.duration(DURATION.slow).delay(index * STAGGER_MS)
+        reduced
+          ? undefined
+          : FadeInUp.duration(DURATION.medium4).delay(index * STAGGER_MS)
       }
       style={[styles.section, style]}
     >
-      {index > 0 && (
-        <View style={[styles.flavorHairline, { backgroundColor: flavor.accent }]} />
+      {index > 0 && <Divider />}
+      {eyebrow !== undefined && (
+        <Text variant="labelLarge" color={flavor.accentSoft}>
+          {eyebrow}
+        </Text>
       )}
-      {eyebrow !== undefined && <Eyebrow color={flavor.accentSoft}>{eyebrow}</Eyebrow>}
       {children}
     </Animated.View>
   )
 }
 
-/** Hairline data row: mono label left, value right. Lists, never boxes. */
+/** Label left, value right, hairline under. The workhorse of every reading. */
 export function DataRow({
   label,
   value,
@@ -82,21 +83,37 @@ export function DataRow({
   label: string
   value: string
   detail?: string
+  /** Numerals — kin, gates, gematria values. Renders tabular. */
   mono?: boolean
   last?: boolean
 }) {
   return (
-    <View style={[styles.dataRow, !last && styles.dataRowBorder]}>
-      <Text style={styles.dataLabel}>{label}</Text>
-      <View style={styles.dataValueBlock}>
-        <Text style={[mono ? styles.dataValueMono : styles.dataValue]}>{value}</Text>
-        {detail !== undefined && <Text style={styles.dataDetail}>{detail}</Text>}
+    <View>
+      <View style={styles.dataRow}>
+        <Text variant="bodyMedium" color="onSurfaceVariant" style={styles.dataLabel}>
+          {label}
+        </Text>
+        <View style={styles.dataValueBlock}>
+          <Text
+            variant={mono ? 'dataMedium' : 'bodyLarge'}
+            color="onSurface"
+            style={styles.right}
+          >
+            {value}
+          </Text>
+          {detail !== undefined && (
+            <Text variant="bodySmall" color="onSurfaceVariant" style={styles.right}>
+              {detail}
+            </Text>
+          )}
+        </View>
       </View>
+      {!last && <Divider />}
     </View>
   )
 }
 
-/** Word-sized stat (sign names, HD words) — mono, brandBright, statLabel. */
+/** A word-sized figure — a sign name, a Human Design type. */
 export function StatWord({
   value,
   label,
@@ -108,37 +125,38 @@ export function StatWord({
 }) {
   return (
     <View style={style}>
-      <Text style={styles.statWord} numberOfLines={1} adjustsFontSizeToFit>
+      <Text
+        variant="titleLarge"
+        color="primary"
+        numberOfLines={1}
+        adjustsFontSizeToFit
+      >
         {value}
       </Text>
-      <Text style={TYPE.statLabel}>{label}</Text>
+      <Text variant="labelMedium" color="onSurfaceVariant">
+        {label}
+      </Text>
     </View>
   )
 }
 
-/** Flavored action chip — the honest-partial-state path back to the sheet. */
+/**
+ * The way out of an honest-partial reading: the chart is missing a birth time
+ * or a Hebrew name, and this is the chip that goes and gets it.
+ */
 export function AddDataChip({
   label,
-  flavor,
   onPress,
 }: {
   label: string
-  flavor: SystemFlavor
+  /** Kept for call-site symmetry with the other scaffold parts. */
+  flavor?: SystemFlavor
   onPress: () => void
 }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={[styles.addChip, { borderColor: flavor.accent }]}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-    >
-      <Text style={[TYPE.eyebrow, { color: flavor.accentSoft }]}>{label}</Text>
-    </Pressable>
-  )
+  return <Chip label={label} variant="assist" onPress={onPress} />
 }
 
-/** Thin horizontal balance bar — no chart lib, flavor accent fill. */
+/** A thin balance bar. No chart library — it's one div's worth of information. */
 export function MeterBar({
   label,
   value,
@@ -150,11 +168,20 @@ export function MeterBar({
   max: number
   flavor: SystemFlavor
 }) {
+  const theme = useTheme()
   const ratio = max > 0 ? Math.min(1, value / max) : 0
+
   return (
     <View style={styles.meterRow}>
-      <Text style={styles.meterLabel}>{label}</Text>
-      <View style={styles.meterTrack}>
+      <Text variant="bodyMedium" color="onSurfaceVariant" style={styles.meterLabel}>
+        {label}
+      </Text>
+      <View
+        style={[
+          styles.meterTrack,
+          { backgroundColor: theme.colors.surfaceContainerHighest },
+        ]}
+      >
         <View
           style={[
             styles.meterFill,
@@ -162,47 +189,61 @@ export function MeterBar({
           ]}
         />
       </View>
-      <Text style={styles.meterValue}>{value}</Text>
+      <Text variant="dataSmall" color="onSurfaceVariant" style={styles.meterValue}>
+        {String(value)}
+      </Text>
     </View>
   )
 }
 
 /**
- * Entitlement lock — blurred-feel preview (opacity, no real blur) under a
- * centered flavor-accented lock panel. Dreamspell never renders this.
+ * A locked system — the reading exists and is already computed; the user just
+ * can't read it yet.
+ *
+ * The preview stays visible underneath at low opacity rather than being
+ * replaced by a wall, because what's being sold is the thing behind the veil.
  */
 export function LockedPage({
-  flavor,
   systemName,
   onUnlock,
-  pill = 'EXPLORER UNLOCKS THIS LAYER',
+  pill = 'Explorer unlocks this layer',
   body,
   children,
 }: PropsWithChildren<{
-  flavor: SystemFlavor
+  flavor?: SystemFlavor
   systemName: string
   onUnlock: () => void
-  /** Pill copy — override when the gate isn't the Explorer tier. */
   pill?: string
-  /** Body copy — defaults to the reading-under-a-veil line. */
   body?: string
 }>) {
+  const theme = useTheme()
+
   return (
     <View style={styles.lockRoot}>
       <View style={styles.lockPreview} pointerEvents="none">
         {children}
       </View>
+
+      {/* A scrim over the preview — legible text needs a floor under it. */}
+      <View
+        pointerEvents="none"
+        style={[
+          StyleSheet.absoluteFill,
+          { backgroundColor: alpha(theme.colors.scrim, 0.4) },
+        ]}
+      />
+
       <View style={styles.lockOverlay} pointerEvents="box-none">
-        <View style={styles.lockPanel}>
-          <Pill accent={flavor.accent}>{pill}</Pill>
-          <Text style={styles.lockBody}>
+        <Card variant="elevated">
+          <Chip label={pill} variant="suggestion" />
+          <Text variant="bodyLarge" color="onSurface" style={styles.lockBody}>
             {body ??
               `The ${systemName} reading is already computed and waiting under this veil.`}
           </Text>
-          <Button variant="secondary" onPress={onUnlock} style={styles.lockButton}>
+          <Button onPress={onUnlock} fullWidth>
             See plans
           </Button>
-        </View>
+        </Card>
       </View>
     </View>
   )
@@ -213,91 +254,53 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pageContent: {
-    paddingHorizontal: SPACE.gutter,
-    paddingTop: SPACE.cardPad,
-    paddingBottom: SPACE.section * 2,
-    gap: SPACE.section,
+    paddingHorizontal: SPACE.margin,
+    paddingTop: SPACE.lg,
+    paddingBottom: SPACE.xxl * 2,
+    gap: SPACE.xl,
   },
   section: {
-    gap: 14,
-  },
-  flavorHairline: {
-    height: StyleSheet.hairlineWidth,
-    opacity: 0.35,
-    marginBottom: 4,
+    gap: SPACE.md,
   },
   dataRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    gap: SPACE.cardPad,
-    paddingVertical: 14,
-  },
-  dataRowBorder: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: COLORS.border,
+    gap: SPACE.lg,
+    paddingVertical: SPACE.md,
   },
   dataLabel: {
-    ...TYPE.eyebrow,
-    paddingTop: 3,
+    paddingTop: 2,
   },
   dataValueBlock: {
     flex: 1,
     alignItems: 'flex-end',
     gap: 2,
   },
-  dataValue: {
-    ...TYPE.body,
-    color: COLORS.text90,
+  right: {
     textAlign: 'right',
-  },
-  dataValueMono: {
-    ...TYPE.stat,
-    fontSize: 16,
-    lineHeight: 22,
-    textAlign: 'right',
-  },
-  dataDetail: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
-    textAlign: 'right',
-  },
-  statWord: {
-    ...TYPE.stat,
-    fontSize: 18,
-    lineHeight: 24,
-  },
-  addChip: {
-    alignSelf: 'flex-start',
-    borderRadius: RADII.pill,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
   },
   meterRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 6,
+    gap: SPACE.md,
+    paddingVertical: SPACE.xs,
   },
   meterLabel: {
-    ...TYPE.eyebrow,
-    width: 76,
+    width: 84,
   },
   meterTrack: {
     flex: 1,
     height: 4,
-    borderRadius: RADII.pill,
-    backgroundColor: COLORS.surface2,
+    borderRadius: SHAPE.full,
     overflow: 'hidden',
   },
   meterFill: {
     height: '100%',
-    borderRadius: RADII.pill,
+    borderRadius: SHAPE.full,
   },
   meterValue: {
-    ...TYPE.statLabel,
-    width: 24,
+    width: 28,
     textAlign: 'right',
   },
   lockRoot: {
@@ -305,7 +308,7 @@ const styles = StyleSheet.create({
   },
   lockPreview: {
     flex: 1,
-    opacity: 0.35,
+    opacity: 0.4,
   },
   lockOverlay: {
     position: 'absolute',
@@ -313,25 +316,12 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    alignItems: 'center',
+    alignItems: 'stretch',
     justifyContent: 'center',
-    paddingHorizontal: SPACE.section,
-  },
-  lockPanel: {
-    alignSelf: 'stretch',
-    alignItems: 'flex-start',
-    gap: 14,
-    backgroundColor: COLORS.cardFill,
-    borderRadius: RADII.feature,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    padding: SPACE.featurePad,
+    paddingHorizontal: SPACE.xl,
   },
   lockBody: {
-    ...TYPE.body,
-    color: COLORS.text70,
-  },
-  lockButton: {
-    alignSelf: 'stretch',
+    marginTop: SPACE.md,
+    marginBottom: SPACE.lg,
   },
 })

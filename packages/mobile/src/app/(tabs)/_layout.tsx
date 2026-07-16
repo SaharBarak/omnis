@@ -1,107 +1,102 @@
-import { Tabs } from 'expo-router'
+import { Tabs, TabList, TabSlot, TabTrigger } from 'expo-router/ui'
 import {
   BooksIcon,
   CirclesThreeIcon,
   SunIcon,
   UsersThreeIcon,
 } from 'phosphor-react-native'
-import { StyleSheet, View } from 'react-native'
 
 import { BrandMark } from '@/components/brand-mark'
+import { NavItem, NavigationBar } from '@/components/m3'
 import { PushPromptHost } from '@/components/notifications/push-prompt-sheet'
-import { COLORS, FONTS } from '@/theme/tokens'
 
 /**
- * Five tabs, Map center and raised — MOBILE_APP_SPEC §4. The asterism marks
- * the hero feature. PushPromptHost lives here so the F9 opt-in moment can
- * surface after a person is created from any tab.
+ * Five destinations in an M3 navigation bar.
+ *
+ * Two Material conventions do the work here. The active destination's icon
+ * switches to its *filled* weight — Phosphor's `fill` — while the inactive ones
+ * stay regular; and the active one sits on a `secondaryContainer` pill. Between
+ * them a user can tell where they are without reading a label, which is the
+ * whole job of a nav bar.
+ *
+ * The map keeps the asterism rather than a generic icon, because it is the
+ * product's one hero surface. It no longer sits raised above the bar: a
+ * protruding centre tab is an iOS idiom, and M3 gives every destination equal
+ * standing.
  */
+
+const ICON_SIZE = 24
+
 export default function TabsLayout() {
   return (
     <>
-      <Tabs
-        screenOptions={{
-          headerShown: false,
-          sceneStyle: { backgroundColor: 'transparent' },
-          tabBarStyle: styles.tabBar,
-          tabBarActiveTintColor: COLORS.brandSoft,
-          tabBarInactiveTintColor: COLORS.text35,
-          tabBarLabelStyle: styles.label,
-        }}
-      >
-        <Tabs.Screen
-          name="index"
-          options={{
-            title: 'Today',
-            tabBarIcon: ({ color, size }) => <SunIcon color={String(color)} size={size} />,
-          }}
-        />
-        <Tabs.Screen
-          name="people"
-          options={{
-            title: 'People',
-            tabBarIcon: ({ color, size }) => (
-              <UsersThreeIcon color={String(color)} size={size} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="map"
-          options={{
-            title: 'Map',
-            tabBarIcon: ({ focused }) => (
-              <View style={[styles.mapTab, focused && styles.mapTabActive]}>
-                <BrandMark size={26} mono={focused ? '#FFFFFF' : undefined} />
-              </View>
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="circles"
-          options={{
-            title: 'Circles',
-            tabBarIcon: ({ color, size }) => (
-              <CirclesThreeIcon color={String(color)} size={size} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="library"
-          options={{
-            title: 'Library',
-            tabBarIcon: ({ color, size }) => <BooksIcon color={String(color)} size={size} />,
-          }}
-        />
+      <Tabs>
+        <TabSlot />
+        <TabList asChild>
+          <NavigationBar>
+            <TabTrigger name="index" href="/" asChild>
+              <NavItem
+                label="Today"
+                icon={(color, focused) => (
+                  <SunIcon
+                    color={color}
+                    size={ICON_SIZE}
+                    weight={focused ? 'fill' : 'regular'}
+                  />
+                )}
+              />
+            </TabTrigger>
+
+            <TabTrigger name="people" href="/people" asChild>
+              <NavItem
+                label="People"
+                icon={(color, focused) => (
+                  <UsersThreeIcon
+                    color={color}
+                    size={ICON_SIZE}
+                    weight={focused ? 'fill' : 'regular'}
+                  />
+                )}
+              />
+            </TabTrigger>
+
+            <TabTrigger name="map" href="/map" asChild>
+              <NavItem
+                label="Map"
+                icon={(color) => <BrandMark size={ICON_SIZE} mono={color} />}
+              />
+            </TabTrigger>
+
+            <TabTrigger name="circles" href="/circles" asChild>
+              <NavItem
+                label="Circles"
+                icon={(color, focused) => (
+                  <CirclesThreeIcon
+                    color={color}
+                    size={ICON_SIZE}
+                    weight={focused ? 'fill' : 'regular'}
+                  />
+                )}
+              />
+            </TabTrigger>
+
+            <TabTrigger name="library" href="/library" asChild>
+              <NavItem
+                label="Library"
+                icon={(color, focused) => (
+                  <BooksIcon
+                    color={color}
+                    size={ICON_SIZE}
+                    weight={focused ? 'fill' : 'regular'}
+                  />
+                )}
+              />
+            </TabTrigger>
+          </NavigationBar>
+        </TabList>
       </Tabs>
+
       <PushPromptHost />
     </>
   )
 }
-
-const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: COLORS.surface,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-  },
-  label: {
-    fontFamily: FONTS.mono,
-    fontSize: 10,
-    letterSpacing: 0.5,
-  },
-  mapTab: {
-    marginTop: -18,
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.surface2,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  mapTabActive: {
-    backgroundColor: COLORS.brand,
-    borderColor: COLORS.brandSoft,
-  },
-})

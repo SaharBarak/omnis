@@ -2,7 +2,7 @@ import type { Group } from '@pleiad/api-client'
 import { useRouter } from 'expo-router'
 import { PlusIcon, TrashIcon } from 'phosphor-react-native'
 import { useEffect, useState } from 'react'
-import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native'
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable'
 import Animated, {
   FadeInUp,
@@ -12,49 +12,75 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { CircleSheet } from '@/components/circles/circle-sheet'
+import {
+  Divider,
+  Fab,
+  LARGE_TITLE_COLLAPSE_DISTANCE,
+  ListItem,
+  NAVIGATION_BAR_HEIGHT,
+  Text,
+  TopAppBar,
+  Touchable,
+  useScrollProgress,
+} from '@/components/m3'
 import { EmptyState } from '@/components/ui/empty-state'
-import { Button, Divider, Eyebrow, Panel } from '@/components/ui/primitives'
-import { ToastHost } from '@/components/ui/toast'
+import { ErrorState } from '@/components/ui/error-state'
 import { useDeleteGroup, useGroup, useGroups } from '@/lib/groups/hooks'
-import { COLORS, DURATION, RADII, SPACE, TYPE } from '@/theme/tokens'
+import { DURATION, SHAPE, SPACE, useTheme } from '@/theme/m3'
+import { initialsOf } from '@/lib/text'
 
 /**
- * S11 Circles — the group library (F7). Hairline-divided rows: name, member
- * avatar stack (initials, max five + overflow), member-count eyebrow. FAB
+ * Circles — the group library (F7). One M3 list item per circle: member count
+ * as the overline, the name, the description, and a member avatar stack
+ * (initials, max five + overflow) as the trailing element. The extended FAB
  * opens the create sheet; swipe-left removes with a confirm.
  */
 
 const SKELETON_ROWS = 4
 const STAGGER_CAP = 8
 const STACK_MAX = 5
-
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/).filter((part) => part.length > 0)
-  const first = parts[0]?.[0] ?? ''
-  const second = parts[1]?.[0] ?? ''
-  return `${first}${second}`.toUpperCase() || '·'
-}
+const LIST_ITEM_HEIGHT = 88
+const STACK_AVATAR_SIZE = 32
 
 /** Overlapping initials circles — max five, then a '+N' overflow disc. */
 function AvatarStack({ names }: { names: string[] }) {
+  const theme = useTheme()
   const shown = names.slice(0, STACK_MAX)
   const overflow = names.length - shown.length
+
+  const disc = {
+    backgroundColor: theme.colors.surfaceContainerHighest,
+    borderColor: theme.colors.outlineVariant,
+  }
+
   return (
     <View style={styles.stack}>
       {shown.map((name, index) => (
         <View
           key={`${name}-${index}`}
-          style={[styles.stackAvatar, index > 0 && styles.stackOverlap]}
+          style={[styles.stackAvatar, disc, index > 0 && styles.stackOverlap]}
         >
-          <Text style={styles.stackText}>{initialsOf(name)}</Text>
+          <Text variant="labelSmall" color="onSurfaceVariant">
+            {initialsOf(name)}
+          </Text>
         </View>
       ))}
       {overflow > 0 && (
-        <View style={[styles.stackAvatar, styles.stackOverlap, styles.stackMore]}>
-          <Text style={styles.stackText}>+{overflow}</Text>
+        <View
+          style={[
+            styles.stackAvatar,
+            disc,
+            styles.stackOverlap,
+            // The counter reads as the odd one out, so it sits a step lower on
+            // the surface ladder than the faces it's counting.
+            { backgroundColor: theme.colors.surfaceContainerHigh },
+          ]}
+        >
+          <Text variant="labelSmall" color="onSurfaceVariant">
+            +{overflow}
+          </Text>
         </View>
       )}
     </View>
@@ -62,15 +88,17 @@ function AvatarStack({ names }: { names: string[] }) {
 }
 
 function DeleteAction({ onPress }: { onPress: () => void }) {
+  const theme = useTheme()
   return (
-    <Pressable
+    <Touchable
       onPress={onPress}
-      style={styles.deleteAction}
+      stateLayerColor={theme.colors.onErrorContainer}
       accessibilityRole="button"
       accessibilityLabel="Remove circle"
+      style={[styles.deleteAction, { backgroundColor: theme.colors.errorContainer }]}
     >
-      <TrashIcon size={20} color={COLORS.text90} />
-    </Pressable>
+      <TrashIcon size={24} color={theme.colors.onErrorContainer} />
+    </Touchable>
   )
 }
 
@@ -87,14 +115,20 @@ function CircleRow({
   onPress: () => void
   onDelete: () => void
 }) {
+  const theme = useTheme()
+
   // Detail rows share the ['groups', id] cache with the analysis screen, so
   // the stack fills in as each circle's members land (and stays cached).
   const { group: detail } = useGroup(group.id)
   const memberNames = detail?.members.map((member) => member.name) ?? []
+
   const countLabel =
     detail === undefined
-      ? 'CIRCLE'
-      : `${detail.members.length} ${detail.members.length === 1 ? 'PERSON' : 'PEOPLE'}`
+      ? 'Circle'
+      : `${detail.members.length} ${detail.members.length === 1 ? 'person' : 'people'}`
+
+  const description =
+    group.description !== null && group.description.length > 0 ? group.description : undefined
 
   const confirmDelete = () => {
     Alert.alert(
@@ -111,7 +145,7 @@ function CircleRow({
     <Animated.View
       entering={
         animateIn
-          ? FadeInUp.duration(DURATION.slow).delay(Math.min(index, STAGGER_CAP) * 60)
+          ? FadeInUp.duration(DURATION.medium2).delay(Math.min(index, STAGGER_CAP) * 60)
           : undefined
       }
     >
@@ -119,32 +153,38 @@ function CircleRow({
         overshootRight={false}
         renderRightActions={() => <DeleteAction onPress={confirmDelete} />}
       >
-        <Pressable
-          onPress={onPress}
-          style={styles.row}
-          accessibilityRole="button"
-          accessibilityLabel={group.name}
-        >
-          <View style={styles.rowBody}>
-            <Eyebrow>{countLabel}</Eyebrow>
-            <Text style={TYPE.card} numberOfLines={1}>
-              {group.name}
-            </Text>
-            {group.description !== null && group.description.length > 0 && (
-              <Text style={styles.rowDescription} numberOfLines={1}>
-                {group.description}
-              </Text>
-            )}
-          </View>
-          {memberNames.length > 0 && <AvatarStack names={memberNames} />}
-        </Pressable>
+        {/*
+         * The row is opaque — and it has to be, because it slides over the
+         * delete action underneath it. A transparent row would show the red
+         * through the circle's name for the whole gesture.
+         */}
+        <View style={{ backgroundColor: theme.colors.surface }}>
+          <ListItem
+            overline={countLabel}
+            headline={group.name}
+            supportingText={description}
+            trailing={memberNames.length > 0 ? <AvatarStack names={memberNames} /> : undefined}
+            onPress={onPress}
+            accessibilityLabel={group.name}
+          />
+        </View>
       </ReanimatedSwipeable>
     </Animated.View>
   )
 }
 
+/**
+ * Full-bleed, not inset: a circle row has no leading element, so its text
+ * starts at the screen margin. M3's inset divider indents past a 40dp leading
+ * avatar, and here that would start the rule well to the right of the text.
+ */
+function RowSeparator() {
+  return <Divider />
+}
+
 /** Skeleton rows matching the final layout — shimmer, never a spinner. */
 function SkeletonRows() {
+  const theme = useTheme()
   const reduced = useReducedMotion()
   const pulse = useSharedValue(0.45)
 
@@ -154,17 +194,18 @@ function SkeletonRows() {
   }, [reduced, pulse])
 
   const shimmer = useAnimatedStyle(() => ({ opacity: pulse.value }))
+  const block = { backgroundColor: theme.colors.surfaceContainerHighest }
 
   return (
     <View>
       {Array.from({ length: SKELETON_ROWS }, (_, index) => (
         <View key={index}>
-          <Animated.View style={[styles.row, shimmer]}>
-            <View style={styles.rowBody}>
-              <View style={[styles.skeletonBlock, styles.skeletonLine]} />
-              <View style={[styles.skeletonBlock, styles.skeletonName]} />
+          <Animated.View style={[styles.skeletonRow, shimmer]}>
+            <View style={styles.skeletonBody}>
+              <View style={[styles.skeletonBlock, styles.skeletonLine, block]} />
+              <View style={[styles.skeletonBlock, styles.skeletonName, block]} />
             </View>
-            <View style={[styles.skeletonBlock, styles.skeletonStack]} />
+            <View style={[styles.skeletonBlock, styles.skeletonStack, block]} />
           </Animated.View>
           {index < SKELETON_ROWS - 1 && <Divider />}
         </View>
@@ -174,10 +215,15 @@ function SkeletonRows() {
 }
 
 export default function CirclesScreen() {
-  const insets = useSafeAreaInsets()
   const router = useRouter()
+  const theme = useTheme()
+  const { progress, onScroll } = useScrollProgress(LARGE_TITLE_COLLAPSE_DISTANCE)
+
   const { groups, isPending, isError, isRefetching, refetch } = useGroups()
   const deleteGroup = useDeleteGroup()
+
+  // The empty state carries this same action as its one filled button.
+  const showFab = !isPending && !isError && groups.length > 0
 
   const [sheetOpen, setSheetOpen] = useState(false)
   const [hasSettled, setHasSettled] = useState(false)
@@ -191,22 +237,22 @@ export default function CirclesScreen() {
     return undefined
   }, [isPending, hasSettled])
 
-  const countLabel = `${groups.length} ${groups.length === 1 ? 'CIRCLE' : 'CIRCLES'}`
+  const countLabel = `${groups.length} ${groups.length === 1 ? 'circle' : 'circles'}`
 
   const renderBody = () => {
     if (isPending) return <SkeletonRows />
 
     if (isError) {
       return (
-        <Panel style={styles.errorPanel}>
-          <Text style={TYPE.card}>Your circles are out of reach.</Text>
-          <Text style={styles.errorBody}>
-            We couldn't load them. They're safe — check your connection.
-          </Text>
-          <Button variant="secondary" onPress={refetch} disabled={isRefetching}>
-            {isRefetching ? 'Trying…' : 'Try again'}
-          </Button>
-        </Panel>
+        <View style={styles.errorWrap}>
+          <ErrorState
+            message="Your circles are out of reach. We couldn't load them — they're safe; check your connection."
+            retryLabel={isRefetching ? 'Trying…' : 'Try again'}
+            onRetry={() => {
+              if (!isRefetching) refetch()
+            }}
+          />
+        </View>
       )
     }
 
@@ -222,11 +268,22 @@ export default function CirclesScreen() {
     }
 
     return (
-      <FlatList
+      <Animated.FlatList
         data={groups}
         keyExtractor={(group) => group.id}
-        ItemSeparatorComponent={Divider}
+        ItemSeparatorComponent={RowSeparator}
         contentContainerStyle={styles.listContent}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching && !isPending}
+            onRefresh={refetch}
+            tintColor={theme.colors.primary}
+            colors={[theme.colors.primary]}
+            progressBackgroundColor={theme.surfaceAt(2)}
+          />
+        }
         renderItem={({ item, index }) => (
           <CircleRow
             group={item}
@@ -243,26 +300,37 @@ export default function CirclesScreen() {
   }
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top + SPACE.gutter }]}>
+    <View style={styles.screen}>
+      <TopAppBar title="Circles" variant="large" progress={progress} />
+
       <View style={styles.header}>
-        <Eyebrow>{countLabel}</Eyebrow>
-        <Text style={TYPE.zone}>Circles</Text>
+        <Text variant="labelLarge" color="onSurfaceVariant">
+          {countLabel}
+        </Text>
       </View>
 
       <View style={styles.body}>{renderBody()}</View>
 
-      <Pressable
-        onPress={() => setSheetOpen(true)}
-        style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
-        accessibilityRole="button"
-        accessibilityLabel="Create a circle"
-      >
-        <PlusIcon size={24} color="#FFFFFF" />
-      </Pressable>
+
+      {/*
+       * The FAB stands down while the empty state is up. That screen already
+       * offers this exact action as its one filled button, and M3 allows a
+       * screen one primary action — two of them, three inches apart, saying the
+       * same thing, is just a question about which one is the real one.
+       */}
+      {showFab && (
+        <View style={styles.fab}>
+          <Fab
+            icon={(color) => <PlusIcon size={24} color={color} />}
+            label="Create circle"
+            collapseProgress={progress}
+            onPress={() => setSheetOpen(true)}
+            accessibilityLabel="Create a circle"
+          />
+        </View>
+      )}
 
       <CircleSheet visible={sheetOpen} onClose={() => setSheetOpen(false)} />
-
-      <ToastHost />
     </View>
   )
 }
@@ -270,70 +338,51 @@ export default function CirclesScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: 'transparent',
   },
   header: {
-    paddingHorizontal: SPACE.gutter,
-    gap: 6,
+    paddingHorizontal: SPACE.margin,
   },
   body: {
     flex: 1,
-    marginTop: SPACE.unit * 3,
+    marginTop: SPACE.lg,
   },
   listContent: {
-    paddingBottom: 96,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    paddingVertical: 16,
-    paddingHorizontal: SPACE.gutter,
-    backgroundColor: COLORS.ground,
-  },
-  rowBody: {
-    flex: 1,
-    gap: 3,
-  },
-  rowDescription: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
+    paddingBottom: NAVIGATION_BAR_HEIGHT + SPACE.xxl,
   },
   stack: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   stackAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: STACK_AVATAR_SIZE,
+    height: STACK_AVATAR_SIZE,
+    borderRadius: STACK_AVATAR_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.surface2,
     borderWidth: 1,
-    borderColor: COLORS.border,
   },
   stackOverlap: {
     marginLeft: -10,
-  },
-  stackMore: {
-    backgroundColor: COLORS.surface,
-  },
-  stackText: {
-    ...TYPE.eyebrow,
-    fontSize: 9,
-    letterSpacing: 0.5,
-    color: COLORS.text70,
   },
   deleteAction: {
     width: 76,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.destructive,
+  },
+  skeletonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACE.lg,
+    minHeight: LIST_ITEM_HEIGHT,
+    paddingHorizontal: SPACE.margin,
+    paddingVertical: SPACE.sm,
+  },
+  skeletonBody: {
+    flex: 1,
+    gap: SPACE.sm,
   },
   skeletonBlock: {
-    backgroundColor: COLORS.surface2,
-    borderRadius: RADII.button,
+    borderRadius: SHAPE.extraSmall,
   },
   skeletonName: {
     height: 16,
@@ -344,35 +393,16 @@ const styles = StyleSheet.create({
     width: '32%',
   },
   skeletonStack: {
-    height: 32,
+    height: STACK_AVATAR_SIZE,
     width: 96,
-    borderRadius: 16,
+    borderRadius: SHAPE.large,
   },
-  errorPanel: {
-    marginHorizontal: SPACE.gutter,
-    gap: 14,
-  },
-  errorBody: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
+  errorWrap: {
+    paddingHorizontal: SPACE.margin,
   },
   fab: {
     position: 'absolute',
-    right: SPACE.gutter,
-    bottom: SPACE.gutter + 4,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.brand,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    shadowOpacity: 0.25,
-    elevation: 4,
-  },
-  fabPressed: {
-    transform: [{ scale: 0.98 }],
+    right: SPACE.margin,
+    bottom: SPACE.lg,
   },
 })

@@ -1,5 +1,5 @@
 import { useEffect, useState, type PropsWithChildren } from 'react'
-import { Platform, StyleSheet, Text, View } from 'react-native'
+import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Animated, {
   Easing,
@@ -12,23 +12,23 @@ import Animated, {
 import * as WebBrowser from 'expo-web-browser'
 
 import { BrandMark } from '@/components/brand-mark'
-import { Button, Eyebrow } from '@/components/ui/primitives'
+import { Button, Text } from '@/components/m3'
+import { Notice } from '@/components/ui/notice'
 import { useAuth, DB_CONNECTION, type AuthConnection } from '@/lib/auth'
-import { COLORS, DURATION, SPACE, TYPE } from '@/theme/tokens'
+import { DURATION, EASING, SPACE } from '@/theme/m3'
 
 // Completes the pending auth session when the browser redirects back (web).
 WebBrowser.maybeCompleteAuthSession()
 
 const STAGGER_MS = 70
 const RISE_PT = 16
-const EASE_SMOOTH = Easing.bezier(0.4, 0, 0.2, 1)
 
 /** Staggered fade-up entrance — transform+opacity only, 60–80ms cascade. */
 function FadeUp({
   index,
   children,
   style,
-}: PropsWithChildren<{ index: number; style?: object }>) {
+}: PropsWithChildren<{ index: number; style?: StyleProp<ViewStyle> }>) {
   const reduced = useReducedMotion()
   const progress = useSharedValue(reduced ? 1 : 0)
 
@@ -36,7 +36,10 @@ function FadeUp({
     if (!reduced) {
       progress.value = withDelay(
         index * STAGGER_MS,
-        withTiming(1, { duration: DURATION.slower, easing: EASE_SMOOTH })
+        withTiming(1, {
+          duration: DURATION.long1,
+          easing: Easing.bezier(...EASING.emphasizedDecelerate),
+        })
       )
     }
   }, [index, reduced, progress])
@@ -78,22 +81,31 @@ export default function LoginScreen() {
           <BrandMark size={44} />
         </FadeUp>
         <FadeUp index={1} style={styles.eyebrowBlock}>
-          <Eyebrow>ASTROLOGY · DREAMSPELL · TZOLKIN · HUMAN DESIGN · KABBALAH</Eyebrow>
+          <Text variant="labelLarge" color="onSurfaceVariant">
+            Astrology · Dreamspell · Tzolkin · Human Design · Kabbalah
+          </Text>
         </FadeUp>
         <FadeUp index={2}>
-          <Text style={TYPE.hero}>Map the people who shape your life.</Text>
+          <Text variant="displaySmall" color="onSurface">
+            Map the people who shape your life.
+          </Text>
         </FadeUp>
         <FadeUp index={3}>
-          <Text style={styles.subline}>
+          <Text variant="bodyLarge" color="onSurfaceVariant">
             Every birthday you care about, read through five wisdom systems.
           </Text>
         </FadeUp>
       </View>
 
       <View style={styles.actions}>
+        {/*
+         * One filled button per screen: the platform's own sign-in. Everything
+         * else is a real alternative, so it takes the outlined emphasis.
+         */}
         {isIos && (
           <FadeUp index={4}>
             <Button
+              fullWidth
               onPress={() => void handleSignIn('apple')}
               disabled={pending !== null}
             >
@@ -103,7 +115,8 @@ export default function LoginScreen() {
         )}
         <FadeUp index={isIos ? 5 : 4}>
           <Button
-            variant={isIos ? 'secondary' : 'primary'}
+            fullWidth
+            variant={isIos ? 'outlined' : 'filled'}
             onPress={() => void handleSignIn('google-oauth2')}
             disabled={pending !== null}
           >
@@ -114,7 +127,8 @@ export default function LoginScreen() {
         </FadeUp>
         <FadeUp index={isIos ? 6 : 5}>
           <Button
-            variant="secondary"
+            fullWidth
+            variant="outlined"
             onPress={() => void handleSignIn(DB_CONNECTION)}
             disabled={pending !== null}
           >
@@ -123,7 +137,7 @@ export default function LoginScreen() {
               : 'Continue with email'}
           </Button>
         </FadeUp>
-        {error !== null && <Text style={styles.error}>{error}</Text>}
+        {error !== null && <Notice variant="error">{error}</Notice>}
       </View>
     </SafeAreaView>
   )
@@ -132,29 +146,19 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    paddingHorizontal: SPACE.gutter,
+    paddingHorizontal: SPACE.margin,
   },
   hero: {
     flex: 1,
     justifyContent: 'center',
-    gap: SPACE.cardPad,
-    paddingBottom: SPACE.section,
+    gap: SPACE.lg,
+    paddingBottom: SPACE.xxl,
   },
   eyebrowBlock: {
-    marginTop: SPACE.unit,
-  },
-  subline: {
-    ...TYPE.body,
-    color: COLORS.text50,
+    marginTop: SPACE.xs,
   },
   actions: {
-    gap: 12,
-    paddingBottom: SPACE.section,
-  },
-  error: {
-    ...TYPE.bodySm,
-    color: COLORS.destructive,
-    textAlign: 'center',
-    marginTop: SPACE.unit,
+    gap: SPACE.md,
+    paddingBottom: SPACE.xxl,
   },
 })

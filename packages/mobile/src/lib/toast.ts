@@ -1,10 +1,13 @@
 import { create } from 'zustand'
 
 /**
- * App toast state — a single calm notice at a time (DESIGN_LANGUAGE §7:
- * success/error confirmations are subtle, bottom-sheet style). Rendered by
- * ToastHost (src/components/ui/toast.tsx); non-React code (mutation hooks)
- * raises toasts through `showToast`.
+ * Snackbar state — one message at a time.
+ *
+ * Rendered by `SnackbarHost`, which is mounted once at the app root. It used to
+ * be mounted per screen, which meant a message raised from inside a sheet could
+ * be torn down along with the sheet before anyone read it.
+ *
+ * Non-React code (mutation hooks) raises messages through `showToast`.
  */
 
 interface ToastState {

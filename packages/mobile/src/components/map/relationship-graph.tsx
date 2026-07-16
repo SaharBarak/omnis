@@ -7,7 +7,7 @@ import { dateToKin, kinToSeal } from '@pleiad/engine/calculations/dreamspell'
 import { getSeal } from '@pleiad/engine/data/seals'
 import { Canvas, Line } from '@shopify/react-native-skia'
 import { useEffect, useMemo, useState } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import Animated, {
   cancelAnimation,
@@ -21,10 +21,13 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated'
 
-import { SEAL_COLOR_HEX } from '@/components/person/scaffold'
 import { useForceLayout, type NodePosition } from '@/components/map/use-force-layout'
+import { Text } from '@/components/m3'
+import type { PinnedLayout } from '@/lib/map/layout-store'
 import { RELATIONSHIP_COLORS } from '@/lib/relationships/colors'
-import { COLORS, TYPE } from '@/theme/tokens'
+import { useTheme } from '@/theme/m3'
+import { SEAL_COLOR_HEX } from '@/theme/tokens'
+import { initialsOf } from '@/lib/text'
 
 /**
  * S10 relationship graph — force-settled constellation on a Skia canvas
@@ -43,20 +46,13 @@ const EDGE_OPACITY = 0.55
 const DIMMED_OPACITY = 0.35
 const PULSE_MS = 1250 // half of the 2.5s gentle cycle
 
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/).filter((part) => part.length > 0)
-  const first = parts[0]?.[0] ?? ''
-  const second = parts[1]?.[0] ?? ''
-  return `${first}${second}`.toUpperCase() || '·'
-}
-
 /** Vivid dreamspell seal color for the node ring; neutral when uncomputable. */
-function sealRingColor(birthDate: string): string {
+function sealRingColor(birthDate: string, fallback: string): string {
   try {
     const seal = getSeal(kinToSeal(dateToKin(birthDate)))
-    return SEAL_COLOR_HEX[seal.color] ?? COLORS.text50
+    return SEAL_COLOR_HEX[seal.color] ?? fallback
   } catch {
-    return COLORS.text50
+    return fallback
   }
 }
 
@@ -81,6 +77,7 @@ function EdgeLine({
 
 /** Isolated pulse — mounts only on the selected node, 2.5s gentle cycle. */
 function SelectedPulse({ size }: { size: number }) {
+  const theme = useTheme()
   const progress = useSharedValue(0)
 
   useEffect(() => {
@@ -97,7 +94,8 @@ function SelectedPulse({ size }: { size: number }) {
     <Animated.View
       pointerEvents="none"
       style={[
-        styles.pulseRing,
+        styles.ring,
+        { borderColor: theme.colors.primary, borderWidth: 1.5 },
         { width: size + 12, height: size + 12, borderRadius: (size + 12) / 2 },
         style,
       ]}
@@ -112,6 +110,7 @@ function GraphNode({
   centerY,
   dimmed,
   selected,
+  pinned,
   reducedMotion,
 }: {
   person: PersonWithTags
@@ -120,10 +119,16 @@ function GraphNode({
   centerY: number
   dimmed: boolean
   selected: boolean
+  /** User has dragged/anchored this star; the sim holds it fixed. */
+  pinned: boolean
   reducedMotion: boolean
 }) {
+  const theme = useTheme()
   const size = person.is_self ? SELF_SIZE : NODE_SIZE
-  const ringColor = useMemo(() => sealRingColor(person.birth_date), [person.birth_date])
+  const ringColor = useMemo(
+    () => sealRingColor(person.birth_date, theme.colors.outline),
+    [person.birth_date, theme.colors.outline]
+  )
 
   const positionStyle = useAnimatedStyle(() => ({
     transform: [
@@ -141,8 +146,9 @@ function GraphNode({
       {selected && reducedMotion && (
         <View
           style={[
-            styles.pulseRing,
+            styles.ring,
             styles.staticRing,
+            { borderColor: theme.colors.primary, borderWidth: 1.5 },
             { width: size + 12, height: size + 12, borderRadius: (size + 12) / 2 },
           ]}
         />
@@ -150,7 +156,18 @@ function GraphNode({
       {person.is_self && (
         <View
           style={[
-            styles.selfRing,
+            styles.ring,
+            { borderColor: theme.colors.primary, borderWidth: 1 },
+            { width: size + 8, height: size + 8, borderRadius: (size + 8) / 2 },
+          ]}
+        />
+      )}
+      {/* A pinned star wears a quiet secondary halo — the mark of "I placed this". */}
+      {pinned && !person.is_self && (
+        <View
+          style={[
+            styles.ring,
+            { borderColor: theme.colors.secondary, borderWidth: 1.5 },
             { width: size + 8, height: size + 8, borderRadius: (size + 8) / 2 },
           ]}
         />
@@ -162,12 +179,16 @@ function GraphNode({
             width: size,
             height: size,
             borderRadius: size / 2,
+            // A star is a raised surface over the sky — tint, not shadow.
+            backgroundColor: theme.surfaceAt(2),
             borderColor: ringColor,
             opacity: dimmed ? DIMMED_OPACITY : 1,
           },
         ]}
       >
-        <Text style={styles.initials}>{initialsOf(person.name)}</Text>
+        <Text variant="labelMedium" color="onSurfaceVariant">
+          {initialsOf(person.name)}
+        </Text>
       </View>
     </Animated.View>
   )
@@ -186,6 +207,8 @@ export function RelationshipGraph({
   filtering,
   selectedId,
   onSelectNode,
+  initialPinned,
+  onPinnedChange,
 }: {
   people: PersonWithTags[]
   relationships: RelationshipWithPeople[]
@@ -195,6 +218,10 @@ export function RelationshipGraph({
   filtering: boolean
   selectedId: string | null
   onSelectNode: (id: string | null) => void
+  /** Persisted pinned positions (stable identity once loaded). */
+  initialPinned: PinnedLayout
+  /** Called when the user pins or releases a star. */
+  onPinnedChange: (layout: PinnedLayout) => void
 }) {
   const reducedMotion = useReducedMotion()
   const [size, setSize] = useState<{ width: number; height: number } | null>(null)
@@ -226,7 +253,13 @@ export function RelationshipGraph({
     return pairs
   }, [edges])
 
-  const positions = useForceLayout(people, layoutPairs, size, reducedMotion)
+  const { positions, activeDragId, pinnedIds, startDrag, endDrag, unpin } = useForceLayout(
+    people,
+    layoutPairs,
+    size,
+    reducedMotion,
+    { initial: initialPinned, onChange: onPinnedChange }
+  )
 
   const visibleEdges = useMemo(
     () => edges.filter((edge) => visibleTypes.has(edge.type)),
@@ -265,15 +298,68 @@ export function RelationshipGraph({
   const width = size?.width ?? 0
   const height = size?.height ?? 0
 
+  // Nearest star within HIT_RADIUS of a screen point, in content space. Shared
+  // by tap-select, double-tap-pin, and the drag branch of the pan gesture.
+  const hitTest = (screenX: number, screenY: number): string | null => {
+    'worklet'
+    const contentX = (screenX - width / 2 - translateX.value) / scale.value
+    const contentY = (screenY - height / 2 - translateY.value) / scale.value
+    let hit: string | null = null
+    let best = HIT_RADIUS * HIT_RADIUS
+    for (const target of hitTargets) {
+      const dx = target.x.value - contentX
+      const dy = target.y.value - contentY
+      const distSq = dx * dx + dy * dy
+      if (distSq < best) {
+        best = distSq
+        hit = target.id
+      }
+    }
+    return hit
+  }
+
+  // Double-tap toggles a star's pin: release it if pinned, else anchor in place.
+  const togglePin = (id: string) => {
+    if (pinnedIds.has(id)) unpin(id)
+    else endDrag(id)
+  }
+
+  // Pan does double duty: drag a star (when it starts on one) or pan the canvas.
   const pan = Gesture.Pan()
     .averageTouches(true)
-    .onStart(() => {
-      savedX.value = translateX.value
-      savedY.value = translateY.value
+    .onStart((event) => {
+      const id = hitTest(event.x, event.y)
+      if (id !== null) {
+        activeDragId.value = id
+        runOnJS(startDrag)(id)
+      } else {
+        activeDragId.value = null
+        savedX.value = translateX.value
+        savedY.value = translateY.value
+      }
     })
     .onUpdate((event) => {
-      translateX.value = savedX.value + event.translationX
-      translateY.value = savedY.value + event.translationY
+      const id = activeDragId.value
+      if (id !== null) {
+        const contentX = (event.x - width / 2 - translateX.value) / scale.value
+        const contentY = (event.y - height / 2 - translateY.value) / scale.value
+        for (const target of hitTargets) {
+          if (target.id === id) {
+            target.x.value = contentX
+            target.y.value = contentY
+          }
+        }
+      } else {
+        translateX.value = savedX.value + event.translationX
+        translateY.value = savedY.value + event.translationY
+      }
+    })
+    .onEnd(() => {
+      const id = activeDragId.value
+      if (id !== null) {
+        runOnJS(endDrag)(id)
+        activeDragId.value = null
+      }
     })
 
   const pinch = Gesture.Pinch()
@@ -294,23 +380,22 @@ export function RelationshipGraph({
 
   const tap = Gesture.Tap().onEnd((event, success) => {
     if (!success) return
-    const contentX = (event.x - width / 2 - translateX.value) / scale.value
-    const contentY = (event.y - height / 2 - translateY.value) / scale.value
-    let hit: string | null = null
-    let best = HIT_RADIUS * HIT_RADIUS
-    for (const target of hitTargets) {
-      const dx = target.x.value - contentX
-      const dy = target.y.value - contentY
-      const distSq = dx * dx + dy * dy
-      if (distSq < best) {
-        best = distSq
-        hit = target.id
-      }
-    }
-    runOnJS(onSelectNode)(hit)
+    runOnJS(onSelectNode)(hitTest(event.x, event.y))
   })
 
-  const gesture = Gesture.Race(tap, Gesture.Simultaneous(pan, pinch))
+  const doubleTap = Gesture.Tap()
+    .numberOfTaps(2)
+    .maxDuration(300)
+    .onEnd((event, success) => {
+      if (!success) return
+      const id = hitTest(event.x, event.y)
+      if (id !== null) runOnJS(togglePin)(id)
+    })
+
+  const gesture = Gesture.Race(
+    Gesture.Exclusive(doubleTap, tap),
+    Gesture.Simultaneous(pan, pinch)
+  )
 
   const contentStyle = useAnimatedStyle(() => ({
     transform: [
@@ -364,6 +449,7 @@ export function RelationshipGraph({
                   centerY={centerY}
                   dimmed={filtering && !connectedIds.has(person.id)}
                   selected={person.id === selectedId}
+                  pinned={pinnedIds.has(person.id)}
                   reducedMotion={reducedMotion}
                 />
               )
@@ -390,23 +476,10 @@ const styles = StyleSheet.create({
   circle: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.surface2,
     borderWidth: 2,
   },
-  initials: {
-    ...TYPE.eyebrow,
-    color: COLORS.text70,
-    letterSpacing: 1,
-  },
-  selfRing: {
+  ring: {
     position: 'absolute',
-    borderWidth: 1,
-    borderColor: COLORS.brandSoft,
-  },
-  pulseRing: {
-    position: 'absolute',
-    borderWidth: 1.5,
-    borderColor: COLORS.brandSoft,
   },
   staticRing: {
     opacity: 0.6,

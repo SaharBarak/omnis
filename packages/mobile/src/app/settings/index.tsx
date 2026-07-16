@@ -9,22 +9,28 @@ import * as Notifications from 'expo-notifications'
 import { useRouter } from 'expo-router'
 import { ArrowSquareOutIcon, CaretLeftIcon } from 'phosphor-react-native'
 import { useCallback, useEffect, useState } from 'react'
-import {
-  Alert,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-} from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Alert, Platform, ScrollView, StyleSheet, Switch, View } from 'react-native'
+import Animated, {
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated'
 
 import { PaywallSheet } from '@/components/billing/paywall-sheet'
+import {
+  Button,
+  Divider,
+  IconButton,
+  LARGE_TITLE_COLLAPSE_DISTANCE,
+  ListItem,
+  Text,
+  TopAppBar,
+  useScrollProgress,
+} from '@/components/m3'
 import { ProfileEditSheet } from '@/components/settings/profile-edit-sheet'
-import { Button, Divider, Eyebrow } from '@/components/ui/primitives'
-import { ToastHost } from '@/components/ui/toast'
+import { ErrorState } from '@/components/ui/error-state'
 import { api, useProfile, useSubscription } from '@/lib/api'
 import { useAuthStore } from '@/lib/auth'
 import { ENV } from '@/lib/env'
@@ -35,12 +41,14 @@ import {
   useUpdateNotificationSettings,
 } from '@/lib/notifications/settings'
 import { showToast } from '@/lib/toast'
-import { COLORS, FONTS, RADII, SPACE, TYPE } from '@/theme/tokens'
+import { SHAPE, SPACE, useTheme } from '@/theme/m3'
 
 /**
- * S17 Settings — F12. Hairline groups, no cards: profile, system toggles,
+ * S17 Settings — F12. One M3 list per group: profile, system toggles,
  * notifications, plan + usage, account, about. Destructive actions confirm
- * natively; sign-out wipes tokens and the query cache (auth store).
+ * natively — the red lives in the confirmation dialog, which is where a
+ * destructive decision is actually made; sign-out wipes tokens and the query
+ * cache (auth store).
  */
 
 /** Stored shape of profile.preferences.systems — mirrors the web
@@ -91,9 +99,9 @@ type PushStatus = 'unknown' | 'granted' | 'denied' | 'undetermined'
 
 function SectionHeader({ title }: { title: string }) {
   return (
-    <View style={styles.sectionHeader}>
-      <Eyebrow>{title}</Eyebrow>
-    </View>
+    <Text variant="labelLarge" color="primary" style={styles.sectionHeader}>
+      {title}
+    </Text>
   )
 }
 
@@ -110,12 +118,18 @@ function ValueRow({
 }) {
   return (
     <>
-      <View style={styles.row}>
-        <Text style={styles.rowLabel}>{label}</Text>
-        <Text style={mono ? styles.rowValueMono : styles.rowValue} numberOfLines={1}>
-          {value}
-        </Text>
-      </View>
+      <ListItem
+        headline={label}
+        trailing={
+          <Text
+            variant={mono ? 'dataMedium' : 'bodyMedium'}
+            color="onSurfaceVariant"
+            numberOfLines={1}
+          >
+            {value}
+          </Text>
+        }
+      />
       {!last && <Divider />}
     </>
   )
@@ -134,19 +148,33 @@ function ToggleRow({
   disabled?: boolean
   last?: boolean
 }) {
+  const theme = useTheme()
+
   return (
     <>
-      <View style={styles.row}>
-        <Text style={styles.rowLabel}>{label}</Text>
-        <Switch
-          value={value}
-          onValueChange={onChange}
-          disabled={disabled}
-          trackColor={{ false: COLORS.surface2, true: COLORS.brand }}
-          thumbColor={COLORS.brandBright}
-          accessibilityLabel={label}
-        />
-      </View>
+      {/*
+       * The row itself toggles. A bare Switch is 31dp tall and misses the 48dp
+       * floor; the list item around it clears 56 and is the target M3 intends.
+       */}
+      <ListItem
+        headline={label}
+        onPress={disabled ? undefined : () => onChange(!value)}
+        accessibilityLabel={label}
+        trailing={
+          <Switch
+            value={value}
+            onValueChange={onChange}
+            disabled={disabled}
+            trackColor={{
+              false: theme.colors.surfaceContainerHighest,
+              true: theme.colors.primary,
+            }}
+            thumbColor={value ? theme.colors.onPrimary : theme.colors.outline}
+            ios_backgroundColor={theme.colors.surfaceContainerHighest}
+            accessibilityLabel={label}
+          />
+        }
+      />
       {!last && <Divider />}
     </>
   )
@@ -155,39 +183,71 @@ function ToggleRow({
 function LinkRow({
   label,
   onPress,
-  destructive = false,
   external = false,
   last = false,
+  destructive = false,
 }: {
   label: string
   onPress: () => void
-  destructive?: boolean
   external?: boolean
   last?: boolean
+  destructive?: boolean
 }) {
+  const theme = useTheme()
+
   return (
     <>
-      <Pressable
+      <ListItem
+        headline={label}
         onPress={onPress}
-        style={styles.row}
-        accessibilityRole="button"
         accessibilityLabel={label}
-      >
-        <Text style={[styles.rowLabel, destructive && styles.rowDestructive]}>
-          {label}
-        </Text>
-        {external && <ArrowSquareOutIcon size={16} color={COLORS.text35} />}
-      </Pressable>
+        destructive={destructive}
+        trailing={
+          external ? (
+            <ArrowSquareOutIcon size={18} color={theme.colors.onSurfaceVariant} />
+          ) : undefined
+        }
+      />
       {!last && <Divider />}
     </>
   )
 }
 
+/** Loading blocks that hold the shape of the rows they'll become. */
+function SkeletonBlock({ lines = 2 }: { lines?: number }) {
+  const theme = useTheme()
+  const reduced = useReducedMotion()
+  const pulse = useSharedValue(0.45)
+
+  useEffect(() => {
+    if (reduced) return
+    pulse.value = withRepeat(withTiming(1, { duration: 1000 }), -1, true)
+  }, [reduced, pulse])
+
+  const shimmer = useAnimatedStyle(() => ({ opacity: pulse.value }))
+
+  return (
+    <Animated.View style={[styles.skeletonBlock, shimmer]}>
+      {Array.from({ length: lines }).map((_, index) => (
+        <View
+          key={index}
+          style={[
+            styles.skeletonLine,
+            { backgroundColor: theme.colors.surfaceContainerHighest },
+            index === lines - 1 && styles.skeletonNarrow,
+          ]}
+        />
+      ))}
+    </Animated.View>
+  )
+}
+
 export default function SettingsScreen() {
-  const insets = useSafeAreaInsets()
   const router = useRouter()
+  const theme = useTheme()
   const queryClient = useQueryClient()
   const signOut = useAuthStore((state) => state.signOut)
+  const { progress, onScroll } = useScrollProgress(LARGE_TITLE_COLLAPSE_DISTANCE)
 
   const profile = useProfile()
   const subscription = useSubscription()
@@ -304,22 +364,15 @@ export default function SettingsScreen() {
   }
 
   const renderProfileSection = () => {
-    if (profile.isPending) {
-      return (
-        <View style={styles.skeletonBlock}>
-          <View style={styles.skeletonLine} />
-          <View style={[styles.skeletonLine, styles.skeletonNarrow]} />
-        </View>
-      )
-    }
+    if (profile.isPending) return <SkeletonBlock />
     if (profile.isError || profile.data === undefined) {
       return (
-        <Text style={styles.quietLine}>
-          Your profile is out of reach.{' '}
-          <Text style={styles.retryText} onPress={() => void profile.refetch()}>
-            Try again
-          </Text>
-        </Text>
+        <View style={styles.inset}>
+          <ErrorState
+            message="Your profile is out of reach."
+            onRetry={() => void profile.refetch()}
+          />
+        </View>
       )
     }
     const data = profile.data
@@ -336,13 +389,11 @@ export default function SettingsScreen() {
         <ValueRow label="Time" value={data.birth_time ?? 'Unknown'} mono />
         <ValueRow label="Place" value={place} />
         <ValueRow label="Hebrew name" value={data.hebrew_name ?? '—'} last />
-        <Button
-          variant="secondary"
-          onPress={() => setEditOpen(true)}
-          style={styles.sectionAction}
-        >
-          Edit
-        </Button>
+        <View style={styles.sectionAction}>
+          <Button variant="outlined" onPress={() => setEditOpen(true)}>
+            Edit
+          </Button>
+        </View>
       </View>
     )
   }
@@ -351,52 +402,42 @@ export default function SettingsScreen() {
     const settings = notificationSettings.data
     return (
       <View>
-        <View style={styles.row}>
-          <Text style={styles.rowLabel}>Push</Text>
-          <Text style={styles.rowValue}>
-            {pushStatus === 'granted'
+        <ValueRow
+          label="Push"
+          value={
+            pushStatus === 'granted'
               ? 'On'
               : pushStatus === 'denied'
                 ? 'Off in system settings'
                 : pushStatus === 'undetermined'
                   ? 'Not enabled yet'
-                  : '—'}
-          </Text>
-        </View>
-        <Divider />
+                  : '—'
+          }
+        />
         {pushStatus === 'undetermined' && (
-          <Button
-            variant="secondary"
-            onPress={() => void enablePush()}
-            style={styles.sectionAction}
-          >
-            Enable the morning digest
-          </Button>
+          <View style={styles.sectionAction}>
+            <Button variant="outlined" onPress={() => void enablePush()}>
+              Enable the morning digest
+            </Button>
+          </View>
         )}
         {pushStatus === 'denied' && (
-          <Button
-            variant="secondary"
-            onPress={() => void Linking.openSettings()}
-            style={styles.sectionAction}
-          >
-            Open system settings
-          </Button>
+          <View style={styles.sectionAction}>
+            <Button variant="outlined" onPress={() => void Linking.openSettings()}>
+              Open system settings
+            </Button>
+          </View>
         )}
 
         {notificationSettings.isPending ? (
-          <View style={styles.skeletonBlock}>
-            <View style={styles.skeletonLine} />
-          </View>
+          <SkeletonBlock lines={1} />
         ) : notificationSettings.isError || settings === undefined ? (
-          <Text style={styles.quietLine}>
-            Digest preferences are out of reach.{' '}
-            <Text
-              style={styles.retryText}
-              onPress={() => void notificationSettings.refetch()}
-            >
-              Try again
-            </Text>
-          </Text>
+          <View style={styles.inset}>
+            <ErrorState
+              message="Digest preferences are out of reach."
+              onRetry={() => void notificationSettings.refetch()}
+            />
+          </View>
         ) : (
           <View>
             <ToggleRow
@@ -408,21 +449,22 @@ export default function SettingsScreen() {
             />
             {settings.dailyDigest && (
               <>
-                <Pressable
+                <ListItem
+                  headline="Digest time"
                   onPress={() => setDigestPickerOpen((previous) => !previous)}
-                  style={styles.row}
-                  accessibilityRole="button"
                   accessibilityLabel="Change the digest time"
-                >
-                  <Text style={styles.rowLabel}>Digest time</Text>
-                  <Text style={styles.rowValueMono}>{settings.dailyDigestTime}</Text>
-                </Pressable>
+                  trailing={
+                    <Text variant="dataMedium" color="onSurfaceVariant">
+                      {settings.dailyDigestTime}
+                    </Text>
+                  }
+                />
                 {digestPickerOpen && (
                   <DateTimePicker
                     value={parseDigestTime(settings.dailyDigestTime)}
                     mode="time"
                     display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    themeVariant="dark"
+                    themeVariant={theme.dark ? 'dark' : 'light'}
                     onChange={(_event: DateTimePickerEvent, next?: Date) => {
                       if (Platform.OS !== 'ios') setDigestPickerOpen(false)
                       if (next !== undefined) {
@@ -442,22 +484,15 @@ export default function SettingsScreen() {
   }
 
   const renderPlanSection = () => {
-    if (subscription.isPending) {
-      return (
-        <View style={styles.skeletonBlock}>
-          <View style={styles.skeletonLine} />
-          <View style={[styles.skeletonLine, styles.skeletonNarrow]} />
-        </View>
-      )
-    }
+    if (subscription.isPending) return <SkeletonBlock />
     if (subscription.isError || subscription.data === undefined) {
       return (
-        <Text style={styles.quietLine}>
-          Your plan is out of reach.{' '}
-          <Text style={styles.retryText} onPress={() => void subscription.refetch()}>
-            Try again
-          </Text>
-        </Text>
+        <View style={styles.inset}>
+          <ErrorState
+            message="Your plan is out of reach."
+            onRetry={() => void subscription.refetch()}
+          />
+        </View>
       )
     }
     const sub = subscription.data
@@ -485,13 +520,11 @@ export default function SettingsScreen() {
           mono
           last
         />
-        <Button
-          variant="secondary"
-          onPress={() => setPaywallOpen(true)}
-          style={styles.sectionAction}
-        >
-          See plans
-        </Button>
+        <View style={styles.sectionAction}>
+          <Button variant="outlined" onPress={() => setPaywallOpen(true)}>
+            See plans
+          </Button>
+        </View>
         {sub.hasSubscription && (
           <LinkRow
             label={billingBusy ? 'Opening…' : 'Manage subscription'}
@@ -504,31 +537,33 @@ export default function SettingsScreen() {
   }
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top + SPACE.unit * 2 }]}>
-      <View style={styles.topBar}>
-        <Pressable
-          onPress={goBack}
-          style={styles.iconButton}
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-        >
-          <CaretLeftIcon size={20} color={COLORS.text70} />
-        </Pressable>
-      </View>
+    <View style={styles.screen}>
+      <TopAppBar
+        title="Settings"
+        variant="large"
+        progress={progress}
+        navigationIcon={
+          <IconButton
+            icon={(color) => <CaretLeftIcon size={24} color={color} />}
+            onPress={goBack}
+            accessibilityLabel="Back"
+          />
+        }
+      />
 
-      <ScrollView
+      <Animated.ScrollView
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
       >
-        <Text style={TYPE.zone}>Settings</Text>
-
         <View style={styles.section}>
-          <SectionHeader title="PROFILE" />
+          <SectionHeader title="Profile" />
           {renderProfileSection()}
         </View>
 
         <View style={styles.section}>
-          <SectionHeader title="SYSTEMS" />
+          <SectionHeader title="Systems" />
           {SYSTEM_TOGGLES.map(({ key, label }, index) => (
             <ToggleRow
               key={key}
@@ -542,29 +577,32 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <SectionHeader title="NOTIFICATIONS" />
+          <SectionHeader title="Notifications" />
           {renderNotificationsSection()}
         </View>
 
         <View style={styles.section}>
-          <SectionHeader title="PLAN" />
+          <SectionHeader title="Plan" />
           {renderPlanSection()}
         </View>
 
         <View style={styles.section}>
-          <SectionHeader title="ACCOUNT" />
-          <LinkRow label="Sign out" destructive onPress={confirmSignOut} />
+          <SectionHeader title="Account" />
+          <LinkRow label="Sign out" onPress={confirmSignOut} destructive />
           <LinkRow
             label="Delete account"
             external
+            destructive
             onPress={() => void Linking.openURL(`${ENV.apiUrl}/app/settings`)}
             last
           />
-          <Text style={styles.footnote}>ACCOUNT DELETION HAPPENS ON THE WEB</Text>
+          <Text variant="labelSmall" color="onSurfaceVariant" style={styles.footnote}>
+            Account deletion happens on the web
+          </Text>
         </View>
 
         <View style={styles.section}>
-          <SectionHeader title="ABOUT" />
+          <SectionHeader title="About" />
           <ValueRow
             label="Version"
             value={Constants.expoConfig?.version ?? '1.0.0'}
@@ -582,7 +620,7 @@ export default function SettingsScreen() {
             last
           />
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
       {profile.data !== undefined && (
         <ProfileEditSheet
@@ -597,8 +635,6 @@ export default function SettingsScreen() {
         onClose={() => setPaywallOpen(false)}
         trigger="generic"
       />
-
-      <ToastHost />
     </View>
   )
 }
@@ -606,82 +642,40 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: 'transparent',
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACE.gutter - 8,
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   content: {
-    paddingHorizontal: SPACE.gutter,
-    paddingTop: SPACE.unit * 2,
-    paddingBottom: SPACE.section * 2,
-    gap: SPACE.section,
+    paddingBottom: SPACE.xxl * 2,
+    gap: SPACE.xl,
   },
   section: {
-    gap: 4,
+    gap: SPACE.xs,
   },
+  // The rows carry the screen margin themselves (ListItem does), so everything
+  // that isn't a row has to be inset to line up with them.
   sectionHeader: {
-    paddingBottom: 6,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: SPACE.cardPad,
-    paddingVertical: 14,
-  },
-  rowLabel: {
-    ...TYPE.body,
-    color: COLORS.text90,
-  },
-  rowDestructive: {
-    color: COLORS.destructive,
-  },
-  rowValue: {
-    ...TYPE.body,
-    color: COLORS.text50,
-    flexShrink: 1,
-    textAlign: 'right',
-  },
-  rowValueMono: {
-    fontFamily: FONTS.mono,
-    fontSize: 15,
-    lineHeight: 20,
-    color: COLORS.text70,
-    fontVariant: ['tabular-nums'],
+    paddingHorizontal: SPACE.margin,
+    paddingBottom: SPACE.xs,
   },
   sectionAction: {
-    marginTop: 10,
-    marginBottom: 6,
+    paddingHorizontal: SPACE.margin,
+    paddingTop: SPACE.md,
+    paddingBottom: SPACE.xs,
   },
-  quietLine: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
-    paddingVertical: 10,
-  },
-  retryText: {
-    color: COLORS.brandSoft,
+  inset: {
+    paddingHorizontal: SPACE.margin,
   },
   footnote: {
-    ...TYPE.statLabel,
-    paddingTop: 8,
+    paddingHorizontal: SPACE.margin,
+    paddingTop: SPACE.sm,
   },
   skeletonBlock: {
-    gap: 10,
-    paddingVertical: 10,
+    gap: SPACE.md,
+    paddingHorizontal: SPACE.margin,
+    paddingVertical: SPACE.md,
   },
   skeletonLine: {
     height: 18,
-    borderRadius: RADII.pill,
-    backgroundColor: COLORS.surface2,
+    borderRadius: SHAPE.full,
   },
   skeletonNarrow: {
     width: '58%',

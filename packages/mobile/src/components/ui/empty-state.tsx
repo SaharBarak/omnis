@@ -1,10 +1,13 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 
 import { BrandMark } from '@/components/brand-mark'
-import { Button } from '@/components/ui/primitives'
-import { SPACE, TYPE } from '@/theme/tokens'
+import { Button, Text } from '@/components/m3'
+import { SPACE } from '@/theme/m3'
 
-/** Composed empty state — DESIGN_LANGUAGE §7. Never a bare "no data". */
+/**
+ * An empty surface, composed rather than blank: the mark, a sentence that says
+ * what would fill it, and the one action that would.
+ */
 export function EmptyState({
   title,
   body,
@@ -18,13 +21,22 @@ export function EmptyState({
 }) {
   return (
     <View style={styles.root}>
-      <BrandMark size={44} />
-      <Text style={[TYPE.section, styles.centered]}>{title}</Text>
-      {body != null && <Text style={[TYPE.body, styles.centered]}>{body}</Text>}
-      {actionLabel != null && (
-        <Button onPress={onAction} style={styles.action}>
-          {actionLabel}
-        </Button>
+      <BrandMark size={48} />
+
+      <Text variant="headlineSmall" color="onSurface" style={styles.centered}>
+        {title}
+      </Text>
+
+      {body !== undefined && (
+        <Text variant="bodyLarge" color="onSurfaceVariant" style={styles.centered}>
+          {body}
+        </Text>
+      )}
+
+      {actionLabel !== undefined && (
+        <View style={styles.action}>
+          <Button onPress={onAction}>{actionLabel}</Button>
+        </View>
       )}
     </View>
   )
@@ -35,14 +47,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 16,
-    paddingHorizontal: SPACE.section,
+    gap: SPACE.md,
+    paddingHorizontal: SPACE.xxl,
   },
   centered: {
     textAlign: 'center',
   },
   action: {
-    alignSelf: 'stretch',
-    marginTop: 8,
+    marginTop: SPACE.sm,
   },
 })

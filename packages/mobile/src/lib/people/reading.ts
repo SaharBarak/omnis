@@ -31,6 +31,8 @@ import type { Bodygraph } from '@pleiad/engine/types/human-design'
 import type { Seal } from '@pleiad/engine/types/seal'
 import type { Tone } from '@pleiad/engine/types/tone'
 
+import { sentenceCase } from '@/lib/text'
+
 /**
  * S8 reading layer — F4. Everything here is pure and synchronous: the person
  * detail screen renders straight from on-device engine calls (never the
@@ -263,10 +265,6 @@ const DIGITAL_ROOT_MEANINGS: Record<number, string> = {
   9: 'completion and mastery',
 }
 
-function titleCase(value: string): string {
-  return value.charAt(0).toUpperCase() + value.slice(1)
-}
-
 function toneTypeResonance(toneNumber: number, hdType: string): boolean {
   const type = hdType.toLowerCase()
   const initiating = [1, 5, 9].includes(toneNumber)
@@ -293,12 +291,12 @@ export function buildInsights(reading: PersonReading): InsightLine[] {
     const sealElement = SEAL_COLOR_TO_ELEMENT[dreamspell.seal.color]
     if (sealElement === sunSign.element) {
       lines.push({
-        eyebrow: 'ELEMENTAL ALIGNMENT',
+        eyebrow: 'Elemental alignment',
         body: `The ${dreamspell.seal.color} seal and a ${sunSign.name} sun both carry ${sealElement} — two systems reading one element.`,
       })
     } else {
       lines.push({
-        eyebrow: 'ELEMENT WEAVE',
+        eyebrow: 'Element weave',
         body: `Dreamspell reads ${dreamspell.seal.color} as ${sealElement}; the ${sunSign.name} sun answers with ${sunSign.element}. Two currents, not one.`,
       })
     }
@@ -312,7 +310,7 @@ export function buildInsights(reading: PersonReading): InsightLine[] {
     const sealElement = SEAL_COLOR_TO_ELEMENT[dreamspell.seal.color]
     if (dominant === sealElement) {
       lines.push({
-        eyebrow: 'DOMINANT ELEMENT',
+        eyebrow: 'Dominant element',
         body: `The chart's strongest element, ${dominant}, matches the seal's color family — the whole sky leans the same way.`,
       })
     }
@@ -322,7 +320,7 @@ export function buildInsights(reading: PersonReading): InsightLine[] {
     const { typeDefinition } = humanDesign.bodygraph
     const resonant = toneTypeResonance(dreamspell.tone.number, typeDefinition.name)
     lines.push({
-      eyebrow: 'TONE × TYPE',
+      eyebrow: 'Tone × type',
       body: resonant
         ? `Tone ${dreamspell.tone.number} (${dreamspell.tone.name}) resonates with the ${typeDefinition.name} pattern — the same energy read twice.`
         : `Tone ${dreamspell.tone.number} (${dreamspell.tone.name}) moves through a ${typeDefinition.name} — strategy: ${typeDefinition.strategy.toLowerCase()}.`,
@@ -334,12 +332,12 @@ export function buildInsights(reading: PersonReading): InsightLine[] {
     const meaning = DIGITAL_ROOT_MEANINGS[nameRoot] ?? ''
     if (nameRoot === dreamspell.tone.number) {
       lines.push({
-        eyebrow: 'SHARED NUMBER',
-        body: `The name's digital root ${nameRoot} equals the galactic tone — ${titleCase(meaning)}.`,
+        eyebrow: 'Shared number',
+        body: `The name's digital root ${nameRoot} equals the galactic tone — ${sentenceCase(meaning)}.`,
       })
     } else if (nameRoot === digitalRoot(dreamspell.kin)) {
       lines.push({
-        eyebrow: 'NUMERIC RESONANCE',
+        eyebrow: 'Numeric resonance',
         body: `Name and Kin ${dreamspell.kin} share the digital root ${nameRoot}: ${meaning}.`,
       })
     }
@@ -347,7 +345,7 @@ export function buildInsights(reading: PersonReading): InsightLine[] {
 
   if (mayan !== null && mayan.longCount.baktun === 13 && lines.length < MAX_INSIGHTS) {
     lines.push({
-      eyebrow: 'LONG COUNT ERA',
+      eyebrow: 'Long count era',
       body: 'Born in the 13th Baktun — the Long Count places this life in an era of completion and transformation.',
     })
   }

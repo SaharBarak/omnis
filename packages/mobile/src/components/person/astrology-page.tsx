@@ -1,6 +1,8 @@
 import type { Element, Modality, PlanetPosition } from '@pleiad/engine/types/astrology'
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 
+import { Glyph } from '@/components/glyph'
+import { Divider, Text } from '@/components/m3'
 import {
   AddDataChip,
   MeterBar,
@@ -8,14 +10,15 @@ import {
   ReadingPage,
   StatWord,
 } from '@/components/person/scaffold'
-import { StatNumber } from '@/components/ui/primitives'
 import type { AstrologyReading } from '@/lib/people/reading'
-import { COLORS, FLAVORS, RADII, SPACE, TYPE } from '@/theme/tokens'
+import { sentenceCase } from '@/lib/text'
+import { SHAPE, SPACE, useTheme } from '@/theme/m3'
+import { FLAVORS } from '@/theme/tokens'
 
 /**
- * S8 Astrology page — sun/moon/rising summary, the planets table, and
- * element/modality balance bars. Without a birth time it stays honest:
- * sun sign only, with the path back to the edit sheet.
+ * Astrology — sun/moon/rising summary, the planets table, and element/modality
+ * balance bars. Without a birth time it stays honest: sun sign only, with the
+ * path back to the edit sheet.
  */
 
 const FLAVOR = FLAVORS.astrology
@@ -24,20 +27,52 @@ const ELEMENT_ORDER: Element[] = ['fire', 'earth', 'air', 'water']
 const MODALITY_ORDER: Modality[] = ['cardinal', 'fixed', 'mutable']
 
 function PlanetRow({ position, last }: { position: PlanetPosition; last: boolean }) {
+  const theme = useTheme()
+
   return (
-    <View style={[styles.planetRow, !last && styles.planetRowBorder]}>
-      <Text style={styles.planetName}>{position.planet.name}</Text>
-      <Text style={styles.planetSign}>{position.position.sign.name}</Text>
-      <View style={styles.planetRight}>
-        <Text style={styles.planetDegree}>
-          {position.position.degree}°{String(position.position.minute).padStart(2, '0')}′
-        </Text>
-        {position.retrograde && (
-          <View style={styles.retroChip}>
-            <Text style={styles.retroText}>R</Text>
-          </View>
-        )}
+    <View>
+      <View style={styles.planetRow}>
+        <View style={styles.planetNameCell}>
+          <Glyph
+            planet={position.planet.name}
+            size={20}
+            color={theme.colors.onSurface}
+          />
+          <Text variant="bodyMedium" color="onSurface">
+            {position.planet.name}
+          </Text>
+        </View>
+        <View style={styles.planetSignCell}>
+          <Glyph
+            sign={position.position.sign.number}
+            size={18}
+            color={theme.colors.onSurfaceVariant}
+          />
+          <Text variant="bodyMedium" color="onSurfaceVariant">
+            {position.position.sign.name}
+          </Text>
+        </View>
+        <View style={styles.planetRight}>
+          <Text variant="dataSmall" color="onSurfaceVariant">
+            {position.position.degree}°
+            {String(position.position.minute).padStart(2, '0')}′
+          </Text>
+          {position.retrograde && (
+            // Retrograde is an astrological fact, not a UI state, so the badge
+            // wears the system's own accent rather than a theme role.
+            <View style={[styles.retroChip, { borderColor: FLAVOR.accent }]}>
+              <Text
+                variant="labelSmall"
+                color={FLAVOR.accentSoft}
+                style={styles.retroText}
+              >
+                R
+              </Text>
+            </View>
+          )}
+        </View>
       </View>
+      {!last && <Divider />}
     </View>
   )
 }
@@ -52,9 +87,9 @@ export function AstrologyPage({
   if (astrology === null) {
     return (
       <ReadingPage>
-        <PageSection index={0} flavor={FLAVOR} eyebrow="ASTROLOGY">
-          <Text style={styles.quietBody}>
-            The sky didn't compute for this date. Edit the birth data to redraw it.
+        <PageSection index={0} flavor={FLAVOR} eyebrow="Astrology">
+          <Text variant="bodyMedium" color="onSurfaceVariant">
+            {"The sky didn't compute for this date. Edit the birth data to redraw it."}
           </Text>
         </PageSection>
       </ReadingPage>
@@ -64,13 +99,21 @@ export function AstrologyPage({
   if (!astrology.hasBirthTime) {
     return (
       <ReadingPage>
-        <PageSection index={0} flavor={FLAVOR} eyebrow="ASTROLOGY">
-          <StatNumber value={astrology.sunSign.name.toUpperCase()} label="SUN SIGN" />
-          <Text style={styles.quietBody}>
+        <PageSection index={0} flavor={FLAVOR} eyebrow="Astrology">
+          <View style={styles.sunStat}>
+            <Glyph
+              sign={astrology.sunSign.number}
+              size={34}
+              color={FLAVOR.accent}
+              style={styles.summaryGlyph}
+            />
+            <StatWord value={astrology.sunSign.name} label="Sun sign" />
+          </View>
+          <Text variant="bodyMedium" color="onSurfaceVariant">
             Without the hour, only the sun is certain. Moon, rising and the houses
             wait on a birth time.
           </Text>
-          <AddDataChip label="ADD BIRTH TIME" flavor={FLAVOR} onPress={onAddBirthTime} />
+          <AddDataChip label="Add birth time" onPress={onAddBirthTime} />
         </PageSection>
       </ReadingPage>
     )
@@ -78,28 +121,33 @@ export function AstrologyPage({
 
   const { chart } = astrology
   const planets = [...chart.planets]
-  const bigThree: Array<{ label: string; value: string }> = [
-    { label: 'SUN', value: chart.sunSign.name },
-    { label: 'MOON', value: chart.moonSign.name },
-    { label: 'RISING', value: chart.risingSign?.name ?? '—' },
+  const bigThree: Array<{ label: string; value: string; sign?: number }> = [
+    { label: 'Sun', value: chart.sunSign.name, sign: chart.sunSign.number },
+    { label: 'Moon', value: chart.moonSign.name, sign: chart.moonSign.number },
+    { label: 'Rising', value: chart.risingSign?.name ?? '—', sign: chart.risingSign?.number },
   ]
 
   return (
     <ReadingPage>
-      <PageSection index={0} flavor={FLAVOR} eyebrow="ASTROLOGY">
+      <PageSection index={0} flavor={FLAVOR} eyebrow="Astrology">
         <View style={styles.summaryRow}>
           {bigThree.map((entry) => (
-            <StatWord
-              key={entry.label}
-              value={entry.value.toUpperCase()}
-              label={entry.label}
-              style={styles.summaryCell}
-            />
+            <View key={entry.label} style={styles.summaryCell}>
+              {entry.sign !== undefined && (
+                <Glyph
+                  sign={entry.sign}
+                  size={30}
+                  color={FLAVOR.accent}
+                  style={styles.summaryGlyph}
+                />
+              )}
+              <StatWord value={entry.value} label={entry.label} />
+            </View>
           ))}
         </View>
       </PageSection>
 
-      <PageSection index={1} flavor={FLAVOR} eyebrow="PLANETS">
+      <PageSection index={1} flavor={FLAVOR} eyebrow="Planets">
         <View>
           {planets.map((position, index) => (
             <PlanetRow
@@ -111,11 +159,11 @@ export function AstrologyPage({
         </View>
       </PageSection>
 
-      <PageSection index={2} flavor={FLAVOR} eyebrow="ELEMENTS">
+      <PageSection index={2} flavor={FLAVOR} eyebrow="Elements">
         {ELEMENT_ORDER.map((element) => (
           <MeterBar
             key={element}
-            label={element.toUpperCase()}
+            label={sentenceCase(element)}
             value={chart.elementBalance[element]}
             max={planets.length}
             flavor={FLAVOR}
@@ -123,11 +171,11 @@ export function AstrologyPage({
         ))}
       </PageSection>
 
-      <PageSection index={3} flavor={FLAVOR} eyebrow="MODALITIES">
+      <PageSection index={3} flavor={FLAVOR} eyebrow="Modalities">
         {MODALITY_ORDER.map((modality) => (
           <MeterBar
             key={modality}
-            label={modality.toUpperCase()}
+            label={sentenceCase(modality)}
             value={chart.modalityBalance[modality]}
             max={planets.length}
             flavor={FLAVOR}
@@ -141,57 +189,49 @@ export function AstrologyPage({
 const styles = StyleSheet.create({
   summaryRow: {
     flexDirection: 'row',
-    gap: SPACE.cardPad,
+    gap: SPACE.lg,
   },
   summaryCell: {
     flex: 1,
-    gap: 3,
+  },
+  summaryGlyph: {
+    marginBottom: SPACE.xs,
+  },
+  sunStat: {
+    alignItems: 'flex-start',
+    gap: SPACE.xs,
   },
   planetRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 12,
+    gap: SPACE.md,
+    paddingVertical: SPACE.md,
   },
-  planetRowBorder: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: COLORS.border,
+  planetNameCell: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACE.sm,
+    width: 120,
   },
-  planetName: {
-    ...TYPE.bodySm,
-    color: COLORS.text90,
-    width: 96,
-  },
-  planetSign: {
-    ...TYPE.bodySm,
-    color: COLORS.text70,
+  planetSignCell: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACE.sm,
   },
   planetRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  planetDegree: {
-    ...TYPE.statLabel,
-    letterSpacing: 0.5,
-    color: COLORS.text50,
+    gap: SPACE.sm,
   },
   retroChip: {
-    borderRadius: RADII.pill,
+    borderRadius: SHAPE.full,
     borderWidth: 1,
-    borderColor: FLAVOR.accent,
     paddingHorizontal: 6,
     paddingVertical: 1,
   },
   retroText: {
-    ...TYPE.statLabel,
-    fontSize: 9,
-    letterSpacing: 1,
-    color: FLAVOR.accentSoft,
-  },
-  quietBody: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
+    // A single glyph: labelSmall's tracking would push the R off-centre.
+    letterSpacing: 0,
   },
 })

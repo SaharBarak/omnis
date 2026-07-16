@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 
-import { TextField } from '@/components/ui/text-field'
+import { Button, Card, ListItem, Surface, Text, TextField } from '@/components/m3'
 import { searchPlaces, type PlaceResult } from '@/lib/geocode'
-import { COLORS, RADII, SPACE, TYPE } from '@/theme/tokens'
+import { SHAPE, SPACE } from '@/theme/m3'
 
 /**
  * Birth-place search. Selecting a result yields real coordinates — the thing
@@ -69,105 +69,88 @@ export function PlaceField({
 
   if (selected !== null) {
     return (
-      <View style={styles.selectedRow}>
-        <View style={styles.selectedText}>
-          <Text style={styles.selectedName} numberOfLines={2}>
-            {selected.name}
-          </Text>
-          <Text style={styles.selectedCoords}>
-            {selected.lat.toFixed(3)}, {selected.lng.toFixed(3)} · {selected.timezone}
-          </Text>
+      <Card variant="outlined">
+        <View style={styles.selectedRow}>
+          <View style={styles.selectedText}>
+            <Text variant="bodyLarge" numberOfLines={2}>
+              {selected.name}
+            </Text>
+            <Text variant="dataSmall" color="onSurfaceVariant">
+              {selected.lat.toFixed(3)}, {selected.lng.toFixed(3)} · {selected.timezone}
+            </Text>
+          </View>
+          <Button
+            variant="text"
+            onPress={() => {
+              setQuery('')
+              setResults([])
+              onClear()
+            }}
+          >
+            Change
+          </Button>
         </View>
-        <Pressable
-          onPress={() => {
-            setQuery('')
-            setResults([])
-            onClear()
-          }}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel="Change birth place"
-        >
-          <Text style={styles.change}>CHANGE</Text>
-        </Pressable>
-      </View>
+      </Card>
     )
   }
 
   return (
     <View style={styles.block}>
       <TextField
-        label="BIRTH PLACE"
+        label="Birth place"
         value={query}
         onChangeText={setQuery}
-        placeholder="Search a city"
+        supportingText="Search a city"
         autoCapitalize="words"
         autoCorrect={false}
         error={error}
       />
-      {searching && <ActivityIndicator size="small" color={COLORS.brandSoft} />}
-      {results.map((place) => (
-        <Pressable
-          key={`${place.lat},${place.lng}`}
-          onPress={() => {
-            setResults([])
-            setQuery('')
-            onSelect(place)
-          }}
-          style={styles.resultRow}
-          accessibilityRole="button"
-        >
-          <Text style={styles.resultName} numberOfLines={2}>
-            {place.name}
-          </Text>
-        </Pressable>
-      ))}
+
+      {/* Quiet mono search state — never a spinner (MOTION spec). */}
+      {searching && (
+        <Text variant="labelMedium" color="onSurfaceVariant" style={styles.searching}>
+          Searching…
+        </Text>
+      )}
+
+      {results.length > 0 && (
+        <Surface level={2} radius={SHAPE.extraSmall} shadow style={styles.menu}>
+          {results.map((place) => (
+            <ListItem
+              key={`${place.lat},${place.lng}`}
+              headline={place.name}
+              onPress={() => {
+                setResults([])
+                setQuery('')
+                onSelect(place)
+              }}
+            />
+          ))}
+        </Surface>
+      )}
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   block: {
-    gap: 8,
+    gap: SPACE.sm,
   },
-  resultRow: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: RADII.input,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surface2,
+  searching: {
+    marginHorizontal: SPACE.lg,
   },
-  resultName: {
-    ...TYPE.bodySm,
-    color: COLORS.text70,
+  /** A menu — one of the few M3 components that genuinely floats. */
+  menu: {
+    overflow: 'hidden',
+    paddingVertical: SPACE.sm,
   },
   selectedRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: SPACE.cardPad,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: RADII.input,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surface2,
+    gap: SPACE.md,
   },
   selectedText: {
     flex: 1,
     gap: 2,
-  },
-  selectedName: {
-    ...TYPE.bodySm,
-    color: COLORS.text70,
-  },
-  selectedCoords: {
-    ...TYPE.statLabel,
-    color: COLORS.text50,
-  },
-  change: {
-    ...TYPE.statLabel,
-    color: COLORS.brandSoft,
   },
 })

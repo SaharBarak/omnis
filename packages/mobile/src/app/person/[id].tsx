@@ -6,21 +6,18 @@ import {
   ShareNetworkIcon,
 } from 'phosphor-react-native'
 import { useMemo, useRef, useState } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import PagerView, {
   type PageScrollStateChangedNativeEvent,
   type PagerViewOnPageSelectedEvent,
 } from 'react-native-pager-view'
-import Animated, {
-  FadeIn,
-  ZoomIn,
-  useReducedMotion,
-} from 'react-native-reanimated'
+import Animated, { ZoomIn, useReducedMotion } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import type { PersonWithTags } from '@pleiad/api-client'
 
 import { PaywallSheet, type PaywallTrigger } from '@/components/billing/paywall-sheet'
+import { IconButton, Text, TopAppBar } from '@/components/m3'
 import { PersonPickerSheet } from '@/components/pair/person-picker-sheet'
 import { CaptureSheet } from '@/components/people/capture-sheet'
 import { ShareSheet } from '@/components/share/share-sheet'
@@ -33,22 +30,26 @@ import { KabbalahPage } from '@/components/person/kabbalah-page'
 import { LockedPage } from '@/components/person/scaffold'
 import { TzolkinPage } from '@/components/person/tzolkin-page'
 import { EmptyState } from '@/components/ui/empty-state'
-import { Eyebrow } from '@/components/ui/primitives'
-import { ToastHost } from '@/components/ui/toast'
 import { useSubscription } from '@/lib/api'
 import { usePersonDraft } from '@/lib/people/draft-store'
 import { usePeople } from '@/lib/people/hooks'
 import { buildInsights, computeReading } from '@/lib/people/reading'
-import { COLORS, DURATION, FLAVORS, SPACE, SPRING, TYPE } from '@/theme/tokens'
+import { SPACE, SPRING, useTheme } from '@/theme/m3'
+import { FLAVORS } from '@/theme/tokens'
+import { initialsOf } from '@/lib/text'
 
 /**
- * S8 Person detail — the core reading artifact (F4). Six flavored pages in a
- * swipeable pager synced to segmented pills; every reading computed
- * on-device, synchronously, from the ['people'] cache. Entitlements: free
- * plan reads Dreamspell only — the other pages render a dimmed preview under
- * a lock panel (upsell surface, not a wall). Subscription loading/error is
- * treated as free so a locked page never flashes open.
+ * Person detail — the core reading artifact. Six pages in a swipeable pager
+ * synced to a segmented button; every reading computed on-device,
+ * synchronously, from the ['people'] cache.
+ *
+ * Entitlements: free reads Dreamspell only — the other pages render a dimmed
+ * preview under a lock card (an upsell surface, not a wall). Subscription
+ * loading and error are both treated as free, so a locked page never flashes
+ * open while the plan resolves.
  */
+
+const AVATAR_SIZE = 56
 
 const TABS: FlavorTab[] = [
   { key: 'dreamspell', label: 'Dreamspell', flavor: FLAVORS.dreamspell },
@@ -67,13 +68,6 @@ const SYSTEM_NAMES: Record<string, string> = {
   insights: 'Insights',
 }
 
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/).filter((part) => part.length > 0)
-  const first = parts[0]?.[0] ?? ''
-  const second = parts[1]?.[0] ?? ''
-  return `${first}${second}`.toUpperCase() || '·'
-}
-
 function parseBirthDate(isoDate: string): Date {
   const [year = 1990, month = 1, day = 1] = isoDate.split('-').map(Number)
   return new Date(year, month - 1, day)
@@ -86,7 +80,7 @@ function parseBirthTime(time: string): Date {
   return value
 }
 
-/** Pre-fill the S7 draft from the saved person — the S8 edit path. */
+/** Pre-fill the capture draft from the saved person — the edit path. */
 function prefillDraft(person: PersonWithTags): void {
   usePersonDraft.getState().prefill({
     name: person.name,
@@ -110,6 +104,7 @@ function prefillDraft(person: PersonWithTags): void {
 export default function PersonScreen() {
   const insets = useSafeAreaInsets()
   const router = useRouter()
+  const theme = useTheme()
   const reduced = useReducedMotion()
   const { id } = useLocalSearchParams<{ id: string }>()
   const { people, isPending } = usePeople()
@@ -122,7 +117,7 @@ export default function PersonScreen() {
   const [viewed, setViewed] = useState<ReadonlySet<number>>(() => new Set([0]))
   const [editOpen, setEditOpen] = useState(false)
   const [paywallOpen, setPaywallOpen] = useState(false)
-  // The one sheet, two doors: the system lock pill and the edit cap (F11).
+  // The one sheet, two doors: the system lock and the edit cap.
   const [paywallTrigger, setPaywallTrigger] = useState<PaywallTrigger>('system-lock')
   const [compareOpen, setCompareOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
@@ -194,7 +189,7 @@ export default function PersonScreen() {
 
   if (person === undefined) {
     return (
-      <View style={[styles.screen, { paddingTop: insets.top + SPACE.gutter }]}>
+      <View style={[styles.screen, { paddingTop: insets.top + SPACE.margin }]}>
         <EmptyState
           title={isPending ? 'Finding them…' : "They aren't on your map."}
           body={isPending ? undefined : 'This person may have been removed.'}
@@ -208,12 +203,11 @@ export default function PersonScreen() {
   const dreamspell = reading?.dreamspell ?? null
   const kinLine =
     dreamspell !== null
-      ? `KIN ${dreamspell.kin} · ${dreamspell.tone.name} ${dreamspell.seal.english}`.toUpperCase()
+      ? `Kin ${dreamspell.kin} · ${dreamspell.tone.name} ${dreamspell.seal.english}`
       : person.birth_date
 
   const missingBirthTime = person.birth_time === null
   const missingHebrewName = (person.hebrew_name ?? '').trim().length === 0
-  const activeFlavor = TABS[activeIndex]?.flavor ?? FLAVORS.dreamspell
 
   const renderPage = (key: string) => {
     if (reading === null) return null
@@ -251,73 +245,71 @@ export default function PersonScreen() {
   }
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top + SPACE.unit * 2 }]}>
-      <View style={styles.topBar}>
-        <Pressable
-          onPress={goBack}
-          style={styles.iconButton}
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-        >
-          <CaretLeftIcon size={20} color={COLORS.text70} />
-        </Pressable>
-        <View style={styles.topBarSpacer} />
-        <Pressable
-          onPress={() => setCompareOpen(true)}
-          style={styles.iconButton}
-          accessibilityRole="button"
-          accessibilityLabel={`Compare ${person.name} with someone`}
-        >
-          <ArrowsLeftRightIcon size={20} color={COLORS.text70} />
-        </Pressable>
-        <Pressable
-          onPress={openEdit}
-          style={styles.iconButton}
-          accessibilityRole="button"
-          accessibilityLabel={`Edit ${person.name}`}
-        >
-          <PencilSimpleIcon size={20} color={COLORS.text70} />
-        </Pressable>
-        <Pressable
-          onPress={() => setShareOpen(true)}
-          style={styles.iconButton}
-          accessibilityRole="button"
-          accessibilityLabel={`Share ${person.name}`}
-        >
-          <ShareNetworkIcon size={20} color={COLORS.text70} />
-        </Pressable>
-      </View>
+    <View style={styles.screen}>
+      {/*
+       * The bar's title is empty on purpose: the person is the hero directly
+       * beneath it, and repeating the name in a 22dp slot squeezed between four
+       * icon buttons would truncate it. Back is the navigation icon, not an
+       * action, so the bar carries exactly the three actions M3 allows.
+       */}
+      <TopAppBar
+        title=""
+        navigationIcon={
+          <IconButton
+            icon={(color) => <CaretLeftIcon size={24} color={color} />}
+            onPress={goBack}
+            accessibilityLabel="Back"
+          />
+        }
+        actions={
+          <>
+            <IconButton
+              icon={(color) => <ArrowsLeftRightIcon size={24} color={color} />}
+              onPress={() => setCompareOpen(true)}
+              accessibilityLabel={`Compare ${person.name} with someone`}
+            />
+            <IconButton
+              icon={(color) => <PencilSimpleIcon size={24} color={color} />}
+              onPress={openEdit}
+              accessibilityLabel={`Edit ${person.name}`}
+            />
+            <IconButton
+              icon={(color) => <ShareNetworkIcon size={24} color={color} />}
+              onPress={() => setShareOpen(true)}
+              accessibilityLabel={`Share ${person.name}`}
+            />
+          </>
+        }
+      />
 
       <View style={styles.header}>
         <Animated.View
           entering={
             reduced
               ? undefined
-              : ZoomIn.springify().damping(SPRING.damping).stiffness(SPRING.stiffness)
+              : ZoomIn.springify()
+                  .damping(SPRING.spatial.damping)
+                  .stiffness(SPRING.spatial.stiffness)
           }
-          style={styles.avatar}
+          style={[styles.avatar, { backgroundColor: theme.colors.primaryContainer }]}
         >
-          <Text style={styles.avatarText}>{initialsOf(person.name)}</Text>
+          <Text variant="titleMedium" color={theme.colors.onPrimaryContainer}>
+            {initialsOf(person.name)}
+          </Text>
         </Animated.View>
         <View style={styles.headerText}>
-          <Text style={TYPE.zone} numberOfLines={1}>
+          <Text variant="headlineSmall" color="onSurface" numberOfLines={1}>
             {person.name}
           </Text>
-          <Eyebrow color={FLAVORS.dreamspell.accentSoft}>{kinLine}</Eyebrow>
+          {/* The kin line is a Dreamspell fact, so it wears Dreamspell's accent
+              whichever system is open. */}
+          <Text variant="labelLarge" color={FLAVORS.dreamspell.accentSoft}>
+            {kinLine}
+          </Text>
         </View>
       </View>
 
-      <View style={styles.tabsBlock}>
-        <FlavorTabs tabs={TABS} activeIndex={activeIndex} onSelect={selectTab} />
-        {/* Active flavor tint crossfades 200ms under the tabs. */}
-        <View style={styles.accentTrack}>
-          <Animated.View
-            key={activeFlavor.accent}
-            entering={reduced ? undefined : FadeIn.duration(DURATION.normal)}
-            style={[styles.accentLine, { backgroundColor: activeFlavor.accent }]}
-          />
-        </View>
-      </View>
+      <FlavorTabs tabs={TABS} activeIndex={activeIndex} onSelect={selectTab} />
 
       <PagerView
         ref={pagerRef}
@@ -333,7 +325,6 @@ export default function PersonScreen() {
                 renderPage(tab.key)
               ) : (
                 <LockedPage
-                  flavor={tab.flavor}
                   systemName={SYSTEM_NAMES[tab.key] ?? tab.label}
                   onUnlock={() => openPaywall('system-lock')}
                 >
@@ -375,8 +366,6 @@ export default function PersonScreen() {
           router.push(`/pair/${person.id}/${other.id}`)
         }}
       />
-
-      <ToastHost />
     </View>
   )
 }
@@ -384,62 +373,24 @@ export default function PersonScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: 'transparent',
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACE.gutter - 8,
-  },
-  topBarSpacer: {
-    flex: 1,
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    paddingHorizontal: SPACE.gutter,
-    paddingTop: SPACE.unit * 2,
-    paddingBottom: SPACE.cardPad,
+    gap: SPACE.lg,
+    paddingHorizontal: SPACE.margin,
+    paddingBottom: SPACE.lg,
   },
   avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.surface2,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  avatarText: {
-    ...TYPE.card,
-    color: COLORS.text70,
   },
   headerText: {
     flex: 1,
-    gap: 5,
-  },
-  tabsBlock: {
-    gap: 10,
-  },
-  accentTrack: {
-    height: StyleSheet.hairlineWidth,
-    marginHorizontal: SPACE.gutter,
-  },
-  accentLine: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    opacity: 0.45,
+    gap: SPACE.xs,
   },
   pager: {
     flex: 1,

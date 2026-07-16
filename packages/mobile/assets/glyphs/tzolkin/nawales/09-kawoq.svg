@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="currentColor">
+  <title>Kawoq - Storm, Thunder, Community</title>
+  <!-- Stylized storm/lightning glyph -->
+  <circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="3"/>
+  <!-- Cloud -->
+  <ellipse cx="50" cy="30" rx="25" ry="12" fill="none" stroke="currentColor" stroke-width="2"/>
+  <!-- Lightning bolt -->
+  <polygon points="55,35 40,55 50,55 35,80 60,50 48,50"/>
+  <!-- Rain drops -->
+  <circle cx="30" cy="65" r="3"/>
+  <circle cx="70" cy="65" r="3"/>
+  <circle cx="25" cy="75" r="2"/>
+  <circle cx="75" cy="75" r="2"/>
+</svg>

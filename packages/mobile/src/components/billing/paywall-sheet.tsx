@@ -3,19 +3,10 @@ import { useQueryClient } from '@tanstack/react-query'
 import * as Haptics from 'expo-haptics'
 import { XIcon } from 'phosphor-react-native'
 import { useEffect, useState } from 'react'
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { ScrollView, StyleSheet, View } from 'react-native'
 import type { PurchasesOffering, PurchasesPackage } from 'react-native-purchases'
-import Animated, { FadeIn, SlideInDown, useReducedMotion } from 'react-native-reanimated'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { Button, Divider, Eyebrow } from '@/components/ui/primitives'
+import { BottomSheet, Button, Card, Divider, IconButton, Text } from '@/components/m3'
 import { api, useSubscription } from '@/lib/api'
 import {
   getOffering,
@@ -24,7 +15,7 @@ import {
   restore,
 } from '@/lib/billing/purchases'
 import { showToast } from '@/lib/toast'
-import { COLORS, DURATION, FONTS, RADII, SPACE, SPRING, TYPE } from '@/theme/tokens'
+import { SHAPE, SPACE, useTheme } from '@/theme/m3'
 
 /**
  * S18 paywall — F11. Trigger-specific headline, the five-tier ladder with the
@@ -53,27 +44,27 @@ interface TriggerCopy {
 
 const TRIGGER_COPY: Record<PaywallTrigger, TriggerCopy> = {
   'people-cap': {
-    eyebrow: 'YOUR MAP IS FULL',
+    eyebrow: 'Your map is full',
     headline: (limit, planName) => `Your map holds ${limit} people on ${planName}.`,
     body: 'Every person you keep gets the full five-system reading. Larger maps open with a plan — nothing you typed is lost.',
   },
   'system-lock': {
-    eyebrow: 'FOUR MORE SYSTEMS',
+    eyebrow: 'Four more systems',
     headline: () => 'One person, five readings.',
     body: 'Tzolkin, Astrology, Human Design and Kabbalah are already computed for everyone on your map. A plan lifts the veil.',
   },
   'bond-lock': {
-    eyebrow: 'THE BOND RUNS DEEPER',
+    eyebrow: 'The bond runs deeper',
     headline: () => 'Compatibility reads five systems deep.',
     body: 'Synastry, Human Design, Tzolkin and name resonance are waiting for this pair. Complete opens the full stack — and lets you keep the bond on your map.',
   },
   'group-insights': {
-    eyebrow: 'THE CIRCLE IS READ',
+    eyebrow: 'The circle is read',
     headline: () => "Group insight is a practitioner's craft.",
     body: 'Strengths, gaps and patterns across the whole circle are already computed. Practitioner unlocks the reading.',
   },
   generic: {
-    eyebrow: 'GO FURTHER',
+    eyebrow: 'Go further',
     headline: () => 'The whole map opens with a plan.',
     body: 'More people, every system, AI interpretation, timelines and the bonds between charts.',
   },
@@ -169,16 +160,13 @@ const TIERS: readonly Tier[] = [
 ] as const
 
 const LEDGER_ROWS: ReadonlyArray<{ key: keyof TierLedger; label: string }> = [
-  { key: 'profiles', label: 'PEOPLE' },
-  { key: 'systems', label: 'SYSTEMS' },
-  { key: 'ai', label: 'AI READINGS' },
-  { key: 'timeline', label: 'TIMELINE' },
-  { key: 'bonds', label: 'BONDS' },
-  { key: 'groups', label: 'GROUP INSIGHTS' },
+  { key: 'profiles', label: 'People' },
+  { key: 'systems', label: 'Systems' },
+  { key: 'ai', label: 'AI readings' },
+  { key: 'timeline', label: 'Timeline' },
+  { key: 'bonds', label: 'Bonds' },
+  { key: 'groups', label: 'Group insights' },
 ] as const
-
-/** Gold — the ONE gold accent, reserved for the recommended tier. */
-const GOLD = '#C9A227'
 
 /**
  * Resolve the RevenueCat package backing a tier.
@@ -211,11 +199,12 @@ function UsageMeters({ subscription }: { subscription: Subscription }) {
   const showAi = aiInterpretations.limit === null || aiInterpretations.limit > 0
   return (
     <View style={styles.usageRow}>
-      <Text style={styles.usageText}>
-        {meterLine('PEOPLE', profiles.used, profiles.limit)}
+      {/* Meter readouts stay bright — they are the number being argued about. */}
+      <Text variant="dataSmall" color="primary">
+        {meterLine('People', profiles.used, profiles.limit)}
       </Text>
       {showAi && (
-        <Text style={styles.usageText}>
+        <Text variant="dataSmall" color="primary">
           {meterLine('AI', aiInterpretations.used, aiInterpretations.limit)}
         </Text>
       )}
@@ -234,28 +223,44 @@ function TierRow({
   selected: boolean
   onSelect: () => void
 }) {
+  const theme = useTheme()
+
   return (
-    <Pressable
+    <Card
+      variant="outlined"
       onPress={onSelect}
+      accessibilityLabel={`${tier.name} — ${tier.price}`}
       style={[
         styles.tierRow,
-        selected && styles.tierRowSelected,
-        tier.recommended === true && styles.tierRowRecommended,
+        selected && {
+          borderColor: theme.colors.primary,
+          backgroundColor: theme.surfaceAt(2),
+        },
+        // The recommendation outranks the selection: gold survives either way.
+        tier.recommended === true && { borderColor: theme.colors.tertiary },
       ]}
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      accessibilityLabel={`${tier.name} — ${tier.price}`}
     >
       <View style={styles.tierText}>
-        <Text style={TYPE.card}>{tier.name}</Text>
+        <Text variant="titleMedium">{tier.name}</Text>
         {tier.recommended === true && (
-          <Text style={[styles.tierBadge, { color: GOLD }]}>RECOMMENDED</Text>
+          <Text variant="labelMedium" color="tertiary">
+            Recommended
+          </Text>
         )}
-        {tier.note !== undefined && <Text style={styles.tierNote}>{tier.note}</Text>}
-        {current && <Text style={styles.tierBadge}>YOUR PLAN</Text>}
+        {tier.note !== undefined && (
+          <Text variant="bodySmall" color="onSurfaceVariant">
+            {tier.note}
+          </Text>
+        )}
+        {current && (
+          <Text variant="labelMedium" color="onSurfaceVariant">
+            Your plan
+          </Text>
+        )}
       </View>
-      <Text style={styles.tierPrice}>{tier.price}</Text>
-    </Pressable>
+      {/* Prices are emphasised numerals, not quiet settings data. */}
+      <Text variant="dataMedium">{tier.price}</Text>
+    </Card>
   )
 }
 
@@ -268,8 +273,7 @@ export function PaywallSheet({
   onClose: () => void
   trigger: PaywallTrigger
 }) {
-  const reduced = useReducedMotion()
-  const insets = useSafeAreaInsets()
+  const theme = useTheme()
   const queryClient = useQueryClient()
   const subscription = useSubscription()
 
@@ -358,241 +362,165 @@ export function PaywallSheet({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
-      <View style={styles.root}>
-        <Animated.View
-          entering={reduced ? undefined : FadeIn.duration(DURATION.normal)}
-          style={StyleSheet.absoluteFill}
-        >
-          <Pressable
-            style={[StyleSheet.absoluteFill, styles.scrim]}
-            onPress={onClose}
-            accessibilityRole="button"
-            accessibilityLabel="Close"
-          />
-        </Animated.View>
-
-        <Animated.View
-          entering={
-            reduced
-              ? undefined
-              : SlideInDown.springify().damping(SPRING.damping).stiffness(SPRING.stiffness)
-          }
-          style={[styles.sheet, { paddingBottom: insets.bottom + SPACE.cardPad }]}
-        >
-          <View style={styles.header}>
-            <Eyebrow color={COLORS.brandSoft}>{copy.eyebrow}</Eyebrow>
-            <Pressable
-              onPress={onClose}
-              hitSlop={12}
-              accessibilityRole="button"
-              accessibilityLabel="Close"
-            >
-              <XIcon size={20} color={COLORS.text50} />
-            </Pressable>
-          </View>
-
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-          >
-            <Text style={TYPE.zone}>{copy.headline(profileLimit, planName)}</Text>
-            <Text style={styles.body}>{copy.body}</Text>
-
-            {/* Current plan + usage — only once the subscription is real. */}
-            {subscription.data !== undefined && (
-              <View style={styles.currentBlock}>
-                <Eyebrow>{`ON ${subscription.data.planName.toUpperCase()}`}</Eyebrow>
-                <UsageMeters subscription={subscription.data} />
-              </View>
-            )}
-            {subscription.isPending && (
-              <View style={styles.usageSkeleton}>
-                <View style={styles.skeletonLine} />
-              </View>
-            )}
-
-            <View style={styles.ladder}>
-              {TIERS.map((tier) => (
-                <TierRow
-                  key={tier.plan}
-                  tier={tier}
-                  current={tier.plan === currentPlan}
-                  selected={tier.plan === selected}
-                  onSelect={() => setSelected(tier.plan)}
-                />
-              ))}
-            </View>
-
-            <View style={styles.ledger}>
-              {LEDGER_ROWS.map(({ key, label }, index) => {
-                const tier = TIERS.find((candidate) => candidate.plan === selected)
-                return (
-                  <View key={key}>
-                    <View style={styles.ledgerRow}>
-                      <Text style={TYPE.eyebrow}>{label}</Text>
-                      <Text style={styles.ledgerValue}>
-                        {tier?.ledger[key] ?? '—'}
-                      </Text>
-                    </View>
-                    {index < LEDGER_ROWS.length - 1 && <Divider />}
-                  </View>
-                )
-              })}
-            </View>
-
-            {purchasable ? (
-              <>
-                <Button onPress={() => void buy()} disabled={buyDisabled}>
-                  {phase === 'purchasing'
-                    ? 'Confirming your plan…'
-                    : selectedPackage !== null
-                      ? `Get ${selectedPackage.product.priceString}`
-                      : 'Continue'}
-                </Button>
-
-                {selected === currentPlan && selected !== 'free' && (
-                  <Text style={styles.note}>THIS IS ALREADY YOUR PLAN</Text>
-                )}
-                {offering === null && (
-                  <Text style={styles.note}>LOADING PLANS…</Text>
-                )}
-
-                <Button
-                  variant="secondary"
-                  onPress={() => void restorePurchases()}
-                  disabled={phase !== 'idle'}
-                >
-                  {phase === 'restoring' ? 'Restoring…' : 'Restore purchases'}
-                </Button>
-
-                <Text style={styles.note}>
-                  BILLED BY THE APP STORE · CANCEL ANY TIME IN YOUR SUBSCRIPTION
-                  SETTINGS
-                </Text>
-              </>
-            ) : (
-              <Text style={styles.note}>PURCHASES AREN&apos;T AVAILABLE HERE YET</Text>
-            )}
-          </ScrollView>
-        </Animated.View>
+    <BottomSheet visible={visible} onClose={onClose}>
+      <View style={styles.header}>
+        <Text variant="labelLarge" color="primary">
+          {copy.eyebrow}
+        </Text>
+        <IconButton
+          icon={(color) => <XIcon size={24} color={color} />}
+          onPress={onClose}
+          accessibilityLabel="Close"
+        />
       </View>
-    </Modal>
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <Text variant="headlineSmall">{copy.headline(profileLimit, planName)}</Text>
+        <Text variant="bodyLarge" color="onSurfaceVariant">
+          {copy.body}
+        </Text>
+
+        {/* Current plan + usage — only once the subscription is real. */}
+        {subscription.data !== undefined && (
+          <View style={styles.currentBlock}>
+            <Text variant="labelLarge" color="onSurfaceVariant">
+              {`On ${subscription.data.planName}`}
+            </Text>
+            <UsageMeters subscription={subscription.data} />
+          </View>
+        )}
+        {subscription.isPending && (
+          <View
+            style={[
+              styles.skeletonLine,
+              { backgroundColor: theme.colors.surfaceContainerHighest },
+            ]}
+          />
+        )}
+
+        <View style={styles.ladder}>
+          {TIERS.map((tier) => (
+            <TierRow
+              key={tier.plan}
+              tier={tier}
+              current={tier.plan === currentPlan}
+              selected={tier.plan === selected}
+              onSelect={() => setSelected(tier.plan)}
+            />
+          ))}
+        </View>
+
+        <View style={styles.ledger}>
+          {LEDGER_ROWS.map(({ key, label }, index) => {
+            const tier = TIERS.find((candidate) => candidate.plan === selected)
+            return (
+              <View key={key}>
+                <View style={styles.ledgerRow}>
+                  <Text variant="labelLarge" color="onSurfaceVariant">
+                    {label}
+                  </Text>
+                  <Text variant="bodyMedium">{tier?.ledger[key] ?? '—'}</Text>
+                </View>
+                {index < LEDGER_ROWS.length - 1 && <Divider />}
+              </View>
+            )
+          })}
+        </View>
+
+        {purchasable ? (
+          <>
+            <Button fullWidth onPress={() => void buy()} disabled={buyDisabled}>
+              {phase === 'purchasing'
+                ? 'Confirming your plan…'
+                : selectedPackage !== null
+                  ? `Get ${selectedPackage.product.priceString}`
+                  : 'Continue'}
+            </Button>
+
+            {selected === currentPlan && selected !== 'free' && (
+              <Text variant="labelMedium" color="onSurfaceVariant" style={styles.note}>
+                This is already your plan
+              </Text>
+            )}
+            {offering === null && (
+              <Text variant="labelMedium" color="onSurfaceVariant" style={styles.note}>
+                Loading plans…
+              </Text>
+            )}
+
+            <Button
+              variant="text"
+              fullWidth
+              onPress={() => void restorePurchases()}
+              disabled={phase !== 'idle'}
+            >
+              {phase === 'restoring' ? 'Restoring…' : 'Restore purchases'}
+            </Button>
+
+            <Text variant="labelMedium" color="onSurfaceVariant" style={styles.note}>
+              Billed by the App Store · cancel any time in your subscription settings
+            </Text>
+          </>
+        ) : (
+          <Text variant="labelMedium" color="onSurfaceVariant" style={styles.note}>
+            Purchases aren&apos;t available here yet
+          </Text>
+        )}
+      </ScrollView>
+    </BottomSheet>
   )
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  scrim: {
-    backgroundColor: 'rgba(11,13,22,0.72)',
-  },
-  sheet: {
-    maxHeight: '90%',
-    backgroundColor: COLORS.surface,
-    borderTopLeftRadius: RADII.feature,
-    borderTopRightRadius: RADII.feature,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingHorizontal: SPACE.featurePad,
-    paddingTop: SPACE.featurePad,
-    gap: SPACE.cardPad,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: SPACE.sm,
   },
   scrollContent: {
-    gap: SPACE.cardPad,
-    paddingBottom: SPACE.unit * 2,
-  },
-  body: {
-    ...TYPE.body,
-    color: COLORS.text70,
+    gap: SPACE.lg,
+    paddingBottom: SPACE.xl,
   },
   currentBlock: {
-    gap: 8,
+    gap: SPACE.sm,
   },
   usageRow: {
     flexDirection: 'row',
-    gap: SPACE.cardPad,
-  },
-  usageText: {
-    fontFamily: FONTS.monoMedium,
-    fontSize: 13,
-    lineHeight: 18,
-    letterSpacing: 0.5,
-    color: COLORS.brandBright,
-    fontVariant: ['tabular-nums'],
-  },
-  usageSkeleton: {
-    paddingVertical: 4,
+    gap: SPACE.lg,
   },
   skeletonLine: {
     height: 16,
     width: '48%',
-    borderRadius: RADII.pill,
-    backgroundColor: COLORS.surface2,
+    borderRadius: SHAPE.full,
   },
   ladder: {
-    gap: 10,
+    gap: SPACE.md,
   },
   tierRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: SPACE.cardPad,
-    borderRadius: RADII.panel,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.cardFill,
-    paddingHorizontal: SPACE.cardPad,
-    paddingVertical: 14,
-  },
-  tierRowSelected: {
-    borderColor: COLORS.brandSoft,
-    backgroundColor: COLORS.surface2,
-  },
-  tierRowRecommended: {
-    borderColor: GOLD,
+    gap: SPACE.lg,
   },
   tierText: {
     flex: 1,
-    gap: 3,
-  },
-  tierBadge: {
-    ...TYPE.statLabel,
-  },
-  tierNote: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
-  },
-  tierPrice: {
-    fontFamily: FONTS.monoMedium,
-    fontSize: 16,
-    lineHeight: 22,
-    color: COLORS.brandBright,
-    fontVariant: ['tabular-nums'],
+    gap: 2,
   },
   ledger: {
-    paddingTop: SPACE.unit,
+    paddingTop: SPACE.sm,
   },
   ledgerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: SPACE.cardPad,
-    paddingVertical: 12,
-  },
-  ledgerValue: {
-    ...TYPE.bodySm,
-    color: COLORS.text90,
+    gap: SPACE.lg,
+    paddingVertical: SPACE.md,
   },
   note: {
-    ...TYPE.statLabel,
     textAlign: 'center',
   },
 })

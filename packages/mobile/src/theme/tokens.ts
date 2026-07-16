@@ -1,28 +1,18 @@
 /**
- * Pleiad mobile design tokens — transcribed from the locked web system.
- * Sources: src/lib/design/landing-tokens.ts, system-flavors.ts,
- * dashboard.css. See specs/mobile/DESIGN_LANGUAGE.md. Do not invent values
- * here; change the spec first.
+ * Domain colours — the six knowledge systems, the four Dreamspell seals, and
+ * the five relationship types.
+ *
+ * These are not theme tokens and they do not come from the M3 palette. They are
+ * *content*: a Dreamspell seal is red because the tradition says it is red, and
+ * it stays red in the light scheme, in the dark scheme, and under any seed.
+ * Everything that is genuinely UI — surfaces, text, buttons, state — lives in
+ * `@/theme/m3` and is derived from the seed there.
+ *
+ * The line between the two files is the line between "what the app is showing"
+ * and "what the app looks like".
  */
 
-export const COLORS = {
-  ground: '#0B0D16',
-  surface: '#0D101A',
-  surface2: '#12151F',
-  brand: '#7D5BC9',
-  brandSoft: '#A78FDF',
-  brandBright: '#EFEAFA',
-  border: 'rgba(228,232,245,0.07)',
-  borderHover: 'rgba(228,232,245,0.12)',
-  cardFill: 'rgba(13,16,26,0.82)',
-  muted: '#8B90A8',
-  destructive: '#D64545',
-  // Text emphasis — exactly four steps, never ad-hoc grays.
-  text90: 'rgba(255,255,255,0.90)',
-  text70: 'rgba(255,255,255,0.70)',
-  text50: 'rgba(255,255,255,0.50)',
-  text35: 'rgba(255,255,255,0.35)',
-} as const
+import type { RelationshipType } from '@pleiad/api-client'
 
 export type SystemKey =
   | 'astrology'
@@ -47,106 +37,35 @@ export const FLAVORS: Record<SystemKey, SystemFlavor> = {
   integration: { name: 'Integration', accent: '#C9A227', accentSoft: '#E7D08A' },
 } as const
 
-export const FONTS = {
-  display: 'SpaceGrotesk_600SemiBold',
-  displayMedium: 'SpaceGrotesk_500Medium',
-  body: 'Barlow_400Regular',
-  bodyMedium: 'Barlow_500Medium',
-  bodySemi: 'Barlow_600SemiBold',
-  mono: 'IBMPlexMono_400Regular',
-  monoMedium: 'IBMPlexMono_500Medium',
-} as const
+/** Dreamspell seal colours — vivid, and never themed. */
+export const SEAL_COLOR_HEX: Record<string, string> = {
+  red: 'hsl(4, 72%, 58%)',
+  white: 'hsl(0, 0%, 96%)',
+  blue: 'hsl(215, 65%, 62%)',
+  yellow: 'hsl(45, 90%, 55%)',
+}
 
-/** Type ramp — DESIGN_LANGUAGE.md §2.1. Weight carries hierarchy. */
-export const TYPE = {
-  hero: {
-    fontFamily: FONTS.display,
-    fontSize: 34,
-    lineHeight: 36,
-    letterSpacing: -1,
-    color: COLORS.text90,
-  },
-  zone: {
-    fontFamily: FONTS.display,
-    fontSize: 28,
-    lineHeight: 30,
-    letterSpacing: -0.5,
-    color: COLORS.text90,
-  },
-  section: {
-    fontFamily: FONTS.display,
-    fontSize: 22,
-    lineHeight: 26,
-    letterSpacing: -0.4,
-    color: COLORS.text90,
-  },
-  card: {
-    fontFamily: FONTS.displayMedium,
-    fontSize: 18,
-    lineHeight: 24,
-    color: COLORS.text90,
-  },
-  body: {
-    fontFamily: FONTS.body,
-    fontSize: 16,
-    lineHeight: 24,
-    color: COLORS.text70,
-  },
-  bodySm: {
-    fontFamily: FONTS.body,
-    fontSize: 14,
-    lineHeight: 20,
-    color: COLORS.text70,
-  },
-  eyebrow: {
-    fontFamily: FONTS.monoMedium,
-    fontSize: 11,
-    lineHeight: 16,
-    letterSpacing: 2.2,
-    textTransform: 'uppercase' as const,
-    color: COLORS.text50,
-  },
-  stat: {
-    fontFamily: FONTS.monoMedium,
-    fontSize: 30,
-    lineHeight: 36,
-    letterSpacing: -0.5,
-    fontVariant: ['tabular-nums'] as Array<'tabular-nums'>,
-    color: COLORS.brandBright,
-  },
-  statLabel: {
-    fontFamily: FONTS.mono,
-    fontSize: 11,
-    lineHeight: 16,
-    letterSpacing: 2,
-    textTransform: 'uppercase' as const,
-    color: COLORS.text50,
-  },
+/**
+ * Relationship-type colours — the map's categorical scale.
+ *
+ * Domain, not theme, on the §1.3 test: the hue *is* the datum. A pink line on
+ * the map and a pink dot on a filter chip are the same claim about two people,
+ * and a claim cannot change when the seed changes or the scheme flips.
+ *
+ * M3 also has nowhere to put them. It ships three accent families and an error
+ * role — not a five-category qualitative scale — and spending `error` on
+ * "professional" would be a lie about what that role means. Re-deriving the
+ * scale from roles would additionally recolour every user's map the day the
+ * brand seed moves, which is the one thing a categorical encoding must not do.
+ *
+ * `other` is the absence of a category, so it gets the absence of a hue: the
+ * neutral grey that the old 50%-white token already resolved to over the night
+ * sky, pinned to a value that also survives the light scheme.
+ */
+export const RELATIONSHIP_COLORS: Record<RelationshipType, string> = {
+  family: '#E8A87C',
+  romantic: '#D46A8E',
+  friend: '#7FB5A6',
+  professional: '#8FA8D8',
+  other: '#8B8593',
 } as const
-
-export const RADII = {
-  panel: 16,
-  feature: 20,
-  heroInset: 32,
-  button: 12,
-  input: 12,
-  pill: 999,
-} as const
-
-export const SPACE = {
-  unit: 4,
-  gutter: 20,
-  section: 32,
-  cardPad: 20,
-  featurePad: 24,
-} as const
-
-export const DURATION = {
-  fast: 120,
-  normal: 200,
-  slow: 300,
-  slower: 500,
-} as const
-
-/** Reanimated spring defaults — MOTION spec. Nothing bounces. */
-export const SPRING = { stiffness: 100, damping: 20 } as const

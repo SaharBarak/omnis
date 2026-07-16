@@ -1,17 +1,34 @@
 import type { RelationshipType } from '@pleiad/api-client'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { CheckIcon } from 'phosphor-react-native'
+import { ScrollView, StyleSheet, View } from 'react-native'
 
+import { Chip } from '@/components/m3'
 import {
   RELATIONSHIP_COLORS,
   RELATIONSHIP_LABELS,
   RELATIONSHIP_TYPES,
 } from '@/lib/relationships/colors'
-import { COLORS, RADII, SPACE, TYPE } from '@/theme/tokens'
+import { SPACE } from '@/theme/m3'
 
 /**
  * S10 filter chips — one toggle per relationship type. Toggling a type off
  * hides its edges; nodes left with no visible edge dim on the graph.
+ *
+ * The chips are M3 filter chips, and the type colour and the M3 selected state
+ * do not share a slot. Selection is M3's alone: the `secondaryContainer` fill
+ * plus the checkmark, which is the one cue that survives a colour-blind user.
+ * The type colour lives in the leading dot of an *un*selected chip, where it is
+ * the swatch for the family of light you have just hidden. Once the chip is on,
+ * that colour is back out on the map in front of you and the slot is better
+ * spent saying so.
  */
+
+const DOT_SIZE = 8
+
+function TypeDot({ color }: { color: string }) {
+  return <View style={[styles.dot, { backgroundColor: color }]} />
+}
+
 export function TypeFilterChips({
   active,
   onToggle,
@@ -27,23 +44,21 @@ export function TypeFilterChips({
     >
       {RELATIONSHIP_TYPES.map((type) => {
         const on = active.has(type)
-        const color = RELATIONSHIP_COLORS[type]
         return (
-          <Pressable
+          <Chip
             key={type}
+            variant="filter"
+            selected={on}
+            label={RELATIONSHIP_LABELS[type]}
             onPress={() => onToggle(type)}
-            style={[styles.chip, on && { borderColor: color }]}
-            accessibilityRole="button"
-            accessibilityState={{ selected: on }}
-            accessibilityLabel={`${RELATIONSHIP_LABELS[type]} edges ${on ? 'shown' : 'hidden'}`}
-          >
-            <View
-              style={[styles.dot, { backgroundColor: color }, !on && styles.dotOff]}
-            />
-            <Text style={[styles.label, on && styles.labelOn]}>
-              {RELATIONSHIP_LABELS[type].toUpperCase()}
-            </Text>
-          </Pressable>
+            icon={(content) =>
+              on ? (
+                <CheckIcon size={18} color={content} weight="bold" />
+              ) : (
+                <TypeDot color={RELATIONSHIP_COLORS[type]} />
+              )
+            }
+          />
         )
       })}
     </ScrollView>
@@ -52,33 +67,12 @@ export function TypeFilterChips({
 
 const styles = StyleSheet.create({
   row: {
-    gap: 8,
-    paddingHorizontal: SPACE.gutter,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-    height: 32,
-    paddingHorizontal: 12,
-    borderRadius: RADII.pill,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.cardFill,
+    gap: SPACE.sm,
+    paddingHorizontal: SPACE.margin,
   },
   dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  dotOff: {
-    opacity: 0.35,
-  },
-  label: {
-    ...TYPE.eyebrow,
-    color: COLORS.text35,
-  },
-  labelOn: {
-    color: COLORS.text90,
+    width: DOT_SIZE,
+    height: DOT_SIZE,
+    borderRadius: DOT_SIZE / 2,
   },
 })

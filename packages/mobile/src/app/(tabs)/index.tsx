@@ -5,41 +5,51 @@ import type { DailyPrediction, PredictionEvent } from '@pleiad/engine/types/pred
 import { useRouter } from 'expo-router'
 import { GearSixIcon, PlusIcon } from 'phosphor-react-native'
 import { useMemo, useState } from 'react'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native'
+import Animated from 'react-native-reanimated'
 
-import { BrandMark } from '@/components/brand-mark'
-import { CaptureSheet } from '@/components/people/capture-sheet'
 import { PaywallSheet } from '@/components/billing/paywall-sheet'
+import { Glyph } from '@/components/glyph'
+import {
+  Card,
+  Chip,
+  Divider,
+  IconButton,
+  LARGE_TITLE_COLLAPSE_DISTANCE,
+  ListItem,
+  NAVIGATION_BAR_HEIGHT,
+  Text,
+  TopAppBar,
+  Touchable,
+  useScrollProgress,
+} from '@/components/m3'
+import { CaptureSheet } from '@/components/people/capture-sheet'
 import { TodayBoard } from '@/components/today/board'
-import { Divider, Eyebrow, Panel, Pill } from '@/components/ui/primitives'
-import { ToastHost } from '@/components/ui/toast'
 import { useProfile } from '@/lib/api'
 import { usePeople } from '@/lib/people/hooks'
 import { nextGalacticBirthday } from '@/lib/people/reading'
-import { COLORS, FLAVORS, FONTS, RADII, SPACE, TYPE } from '@/theme/tokens'
+import { SHAPE, SPACE, useTheme } from '@/theme/m3'
+import { FLAVORS } from '@/theme/tokens'
+import { initialsOf } from '@/lib/text'
 
 /**
- * Today (home) — S5, enriched per F9. The split-flap board stays the set
- * piece; beneath it: your personal daily line (on-device engine), galactic
- * birthdays landing within a week, and the recent-people row.
+ * Today — the home surface.
+ *
+ * A large top app bar that collapses as you scroll, then three blocks in
+ * descending order of how much they're about *you*: the board of what every
+ * system says about this date, your own kin reading, and the people whose
+ * galactic birthdays land this week.
  */
 
 const BIRTHDAY_WINDOW_DAYS = 7
-const RECENT_COUNT = 5
+const RECENT_COUNT = 8
+const AVATAR_SIZE = 56
 
 function localIsoDate(date: Date): string {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
-}
-
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/).filter((part) => part.length > 0)
-  const first = parts[0]?.[0] ?? ''
-  const second = parts[1]?.[0] ?? ''
-  return `${first}${second}`.toUpperCase() || '·'
 }
 
 const INTENSITY_RANK: Record<string, number> = { low: 0, medium: 1, high: 2, peak: 3 }
@@ -51,7 +61,7 @@ function topEvent(prediction: DailyPrediction): PredictionEvent | null {
   )[0]
 }
 
-/** Personal daily line — engine-computed, shown once the profile carries a date. */
+/** Your own daily line. Only appears once the profile carries a birth date. */
 function KinToday({ birthDate, todayIso }: { birthDate: string; todayIso: string }) {
   const prediction = useMemo(() => {
     try {
@@ -71,18 +81,25 @@ function KinToday({ birthDate, todayIso }: { birthDate: string; todayIso: string
     `Day ${prediction.wavespell.day} of the ${prediction.wavespell.name} wavespell — ${prediction.wavespell.role.toLowerCase()}.`
 
   return (
-    <Panel>
+    // Elevated, because this is the one card on the screen that is about the
+    // person reading it. Everything else is about the date.
+    <Card variant="elevated">
       <View style={styles.kinHeader}>
-        <Eyebrow color={FLAVORS.dreamspell.accentSoft}>YOUR KIN TODAY</Eyebrow>
-        <Pill accent={FLAVORS.dreamspell.accent}>
-          {prediction.intensity.toUpperCase()}
-        </Pill>
+        <Text variant="labelLarge" color="primary">
+          Your kin today
+        </Text>
+        <Chip label={prediction.intensity} variant="suggestion" />
       </View>
-      <Text style={[TYPE.card, styles.kinTitle]}>{title}</Text>
-      <Text style={styles.kinBody} numberOfLines={2}>
+      <View style={styles.kinTitleRow}>
+        <Glyph seal={prediction.seal} size={38} color={FLAVORS.dreamspell.accent} />
+        <Text variant="titleMedium" color="onSurface" style={styles.kinTitleText}>
+          {title}
+        </Text>
+      </View>
+      <Text variant="bodyMedium" color="onSurfaceVariant" numberOfLines={3}>
         {body}
       </Text>
-    </Panel>
+    </Card>
   )
 }
 
@@ -91,128 +108,113 @@ interface UpcomingBirthday {
   daysUntil: number
 }
 
-function GalacticBirthdays({
-  birthdays,
-  onOpen,
-}: {
-  birthdays: UpcomingBirthday[]
-  onOpen: (personId: string) => void
-}) {
+function PersonAvatar({ name }: { name: string }) {
+  const theme = useTheme()
   return (
-    <View style={styles.section}>
-      <Eyebrow color={FLAVORS.dreamspell.accentSoft}>GALACTIC BIRTHDAYS</Eyebrow>
-      <View>
-        {birthdays.map(({ person, daysUntil }, index) => (
-          <View key={person.id}>
-            <Pressable
-              onPress={() => onOpen(person.id)}
-              style={styles.birthdayRow}
-              accessibilityRole="button"
-              accessibilityLabel={`${person.name} — galactic birthday ${
-                daysUntil === 0 ? 'today' : `in ${daysUntil} days`
-              }`}
-            >
-              <Text style={TYPE.card} numberOfLines={1}>
-                {person.name}
-              </Text>
-              <Text style={styles.birthdayValue}>
-                {daysUntil === 0 ? 'TODAY' : `IN ${daysUntil}D`}
-              </Text>
-            </Pressable>
-            {index < birthdays.length - 1 && <Divider />}
-          </View>
-        ))}
-      </View>
+    <View
+      style={[
+        styles.avatar,
+        { backgroundColor: theme.colors.primaryContainer },
+      ]}
+    >
+      <Text variant="titleMedium" color={theme.colors.onPrimaryContainer}>
+        {initialsOf(name)}
+      </Text>
     </View>
   )
 }
 
 function RecentPeople({
   people,
-  isPending,
   onOpen,
   onAdd,
 }: {
   people: PersonWithTags[]
-  isPending: boolean
   onOpen: (personId: string) => void
   onAdd: () => void
 }) {
+  const theme = useTheme()
+
   return (
     <View style={styles.section}>
-      <Eyebrow>RECENT PEOPLE</Eyebrow>
+      <Text variant="titleMedium" color="onSurface" style={styles.sectionTitle}>
+        Recent people
+      </Text>
+
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.chipRow}
       >
-        {isPending ? (
-          Array.from({ length: 4 }, (_, index) => (
-            <View key={index} style={styles.chip}>
-              <View style={[styles.chipAvatar, styles.chipSkeleton]} />
-              <View style={styles.chipNameSkeleton} />
-            </View>
-          ))
-        ) : people.length === 0 ? (
-          <Pressable
-            onPress={onAdd}
-            style={styles.chip}
-            accessibilityRole="button"
-            accessibilityLabel="Add a person"
+        <Touchable
+          onPress={onAdd}
+          radius={SHAPE.full}
+          stateLayerColor={theme.colors.onSurface}
+          accessibilityRole="button"
+          accessibilityLabel="Add a person"
+          style={styles.personChip}
+        >
+          <View
+            style={[
+              styles.avatar,
+              styles.addAvatar,
+              { borderColor: theme.colors.outline },
+            ]}
           >
-            <View style={[styles.chipAvatar, styles.chipAdd]}>
-              <PlusIcon size={18} color={COLORS.brandSoft} />
-            </View>
-            <Text style={styles.chipName}>ADD</Text>
-          </Pressable>
-        ) : (
-          people.map((person) => (
-            <Pressable
-              key={person.id}
-              onPress={() => onOpen(person.id)}
-              style={styles.chip}
-              accessibilityRole="button"
-              accessibilityLabel={person.name}
-            >
-              <View style={styles.chipAvatar}>
-                <Text style={styles.chipInitials}>{initialsOf(person.name)}</Text>
-              </View>
-              <Text style={styles.chipName} numberOfLines={1}>
-                {person.name.split(/\s+/)[0]?.toUpperCase() ?? ''}
-              </Text>
-            </Pressable>
-          ))
-        )}
+            <PlusIcon size={24} color={theme.colors.primary} />
+          </View>
+          <Text variant="labelMedium" color="onSurfaceVariant" numberOfLines={1}>
+            Add
+          </Text>
+        </Touchable>
+
+        {people.map((person) => (
+          <Touchable
+            key={person.id}
+            onPress={() => onOpen(person.id)}
+            radius={SHAPE.full}
+            stateLayerColor={theme.colors.onSurface}
+            accessibilityRole="button"
+            accessibilityLabel={person.name}
+            style={styles.personChip}
+          >
+            <PersonAvatar name={person.name} />
+            <Text variant="labelMedium" color="onSurfaceVariant" numberOfLines={1}>
+              {person.name.split(/\s+/)[0] ?? ''}
+            </Text>
+          </Touchable>
+        ))}
       </ScrollView>
     </View>
   )
 }
 
 export default function TodayScreen() {
-  const insets = useSafeAreaInsets()
   const router = useRouter()
+  const theme = useTheme()
+  const { progress, onScroll } = useScrollProgress(LARGE_TITLE_COLLAPSE_DISTANCE)
+
   const today = useMemo(() => new Date(), [])
   const todayIso = useMemo(() => localIsoDate(today), [today])
   const board = useMemo(() => getTodayAcrossSystems(today), [today])
 
   const profile = useProfile()
-  const { people, isPending, isError, refetch } = usePeople()
+  const { people, isPending, isRefetching, refetch } = usePeople()
 
   const [captureOpen, setCaptureOpen] = useState(false)
   const [paywallOpen, setPaywallOpen] = useState(false)
 
   const rows = useMemo(
     () => [
-      { label: 'Kin', value: board.kin.toUpperCase() },
-      { label: 'Moon', value: board.moon.toUpperCase() },
-      { label: 'Sun', value: board.sun.toUpperCase() },
-      { label: 'Gate', value: board.gate.toUpperCase() },
-      { label: 'Hebrew', value: (board.hebrewDate ?? '—').toUpperCase() },
+      { label: 'Kin', value: board.kin },
+      { label: 'Moon', value: board.moon },
+      { label: 'Sun', value: board.sun },
+      { label: 'Gate', value: board.gate },
+      { label: 'Hebrew', value: board.hebrewDate ?? '—' },
     ],
     [board]
   )
 
-  // People whose kin recurs today or within the week — omitted when none.
   const birthdays = useMemo<UpcomingBirthday[]>(
     () =>
       people
@@ -241,71 +243,86 @@ export default function TodayScreen() {
     router.push({ pathname: '/person/[id]', params: { id: personId } })
   }
 
+  const dateLine = today.toLocaleDateString(undefined, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  })
+
   return (
     <View style={styles.screen}>
-      <ScrollView
-        style={styles.screen}
-        contentContainerStyle={[
-          styles.content,
-          { paddingTop: insets.top + SPACE.gutter },
-        ]}
+      <TopAppBar
+        title="Today"
+        variant="large"
+        progress={progress}
+        actions={
+          <IconButton
+            icon={(color) => <GearSixIcon size={24} color={color} />}
+            onPress={() => router.push('/settings')}
+            accessibilityLabel="Settings"
+          />
+        }
+      />
+
+      <Animated.ScrollView
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching && !isPending}
+            onRefresh={refetch}
+            tintColor={theme.colors.primary}
+            colors={[theme.colors.primary]}
+            progressBackgroundColor={theme.surfaceAt(2)}
+          />
+        }
       >
-        <View style={styles.header}>
-          <BrandMark size={26} />
-          <View style={styles.headerRight}>
-            <Eyebrow>
-              {today
-                .toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  month: 'long',
-                  day: 'numeric',
-                })
-                .toUpperCase()}
-            </Eyebrow>
-            <Pressable
-              onPress={() => router.push('/settings')}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel="Settings"
-            >
-              <GearSixIcon size={20} color={COLORS.text50} />
-            </Pressable>
-          </View>
-        </View>
+        <Text variant="bodyLarge" color="onSurfaceVariant">
+          {dateLine}
+        </Text>
 
-        <Text style={TYPE.zone}>Today, across the systems.</Text>
-
-        <Panel feature>
+        <Card variant="outlined">
+          <Text variant="titleMedium" color="onSurface" style={styles.boardTitle}>
+            Across the systems
+          </Text>
           <TodayBoard rows={rows} />
-          <Text style={[TYPE.bodySm, styles.caption]}>(the calendars never stop)</Text>
-        </Panel>
+        </Card>
 
         {birthDate !== null && <KinToday birthDate={birthDate} todayIso={todayIso} />}
 
         {birthdays.length > 0 && (
-          <GalacticBirthdays birthdays={birthdays} onOpen={openPerson} />
+          <View style={styles.section}>
+            <Text variant="titleMedium" color="onSurface" style={styles.sectionTitle}>
+              Galactic birthdays
+            </Text>
+            <View>
+              {birthdays.map(({ person, daysUntil }, index) => (
+                <View key={person.id}>
+                  <ListItem
+                    headline={person.name}
+                    leading={<PersonAvatar name={person.name} />}
+                    trailing={
+                      <Text variant="dataSmall" color="primary">
+                        {daysUntil === 0 ? 'Today' : `${daysUntil}d`}
+                      </Text>
+                    }
+                    onPress={() => openPerson(person.id)}
+                  />
+                  {index < birthdays.length - 1 && <Divider inset />}
+                </View>
+              ))}
+            </View>
+          </View>
         )}
 
-        {isError ? (
-          <View style={styles.section}>
-            <Eyebrow>RECENT PEOPLE</Eyebrow>
-            <Text style={styles.errorLine}>
-              Your people are out of reach right now.{' '}
-              <Text style={styles.errorRetry} onPress={refetch}>
-                Try again
-              </Text>
-            </Text>
-          </View>
-        ) : (
-          <RecentPeople
-            people={recent}
-            isPending={isPending}
-            onOpen={openPerson}
-            onAdd={() => setCaptureOpen(true)}
-          />
-        )}
-      </ScrollView>
+        <RecentPeople
+          people={recent}
+          onOpen={openPerson}
+          onAdd={() => setCaptureOpen(true)}
+        />
+      </Animated.ScrollView>
 
       <CaptureSheet
         visible={captureOpen}
@@ -321,8 +338,6 @@ export default function TodayScreen() {
         onClose={() => setPaywallOpen(false)}
         trigger="people-cap"
       />
-
-      <ToastHost />
     </View>
   )
 }
@@ -330,103 +345,57 @@ export default function TodayScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: 'transparent',
   },
   content: {
-    paddingHorizontal: SPACE.gutter,
-    gap: SPACE.section,
-    paddingBottom: SPACE.section,
+    paddingHorizontal: SPACE.margin,
+    paddingBottom: NAVIGATION_BAR_HEIGHT + SPACE.xxl,
+    gap: SPACE.xl,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-  caption: {
-    marginTop: 12,
+  boardTitle: {
+    marginBottom: SPACE.sm,
   },
   kinHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: SPACE.md,
   },
-  kinTitle: {
-    marginTop: 12,
-  },
-  kinBody: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
-    marginTop: 6,
-  },
-  section: {
-    gap: 10,
-  },
-  birthdayRow: {
+  kinTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: SPACE.cardPad,
-    paddingVertical: 14,
+    gap: SPACE.md,
+    marginTop: SPACE.md,
+    marginBottom: SPACE.xs,
   },
-  birthdayValue: {
-    ...TYPE.stat,
-    fontSize: 16,
-    lineHeight: 22,
+  kinTitleText: {
+    flex: 1,
+  },
+  section: {
+    gap: SPACE.sm,
+  },
+  sectionTitle: {
+    marginBottom: SPACE.xs,
   },
   chipRow: {
-    gap: 14,
-    paddingVertical: 4,
+    gap: SPACE.lg,
+    paddingVertical: SPACE.xs,
   },
-  chip: {
+  personChip: {
     alignItems: 'center',
-    gap: 6,
-    width: 64,
+    gap: SPACE.sm,
+    width: 72,
+    paddingVertical: SPACE.xs,
   },
-  chipAvatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+  avatar: {
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.surface2,
+  },
+  addAvatar: {
+    backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  chipAdd: {
-    borderColor: COLORS.brandSoft,
     borderStyle: 'dashed',
-  },
-  chipInitials: {
-    ...TYPE.eyebrow,
-    color: COLORS.text70,
-    letterSpacing: 1,
-  },
-  chipName: {
-    fontFamily: FONTS.mono,
-    fontSize: 10,
-    letterSpacing: 1,
-    color: COLORS.text50,
-  },
-  chipSkeleton: {
-    borderWidth: 0,
-  },
-  chipNameSkeleton: {
-    height: 8,
-    width: 36,
-    borderRadius: RADII.pill,
-    backgroundColor: COLORS.surface2,
-  },
-  errorLine: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
-  },
-  errorRetry: {
-    color: COLORS.brandSoft,
   },
 })

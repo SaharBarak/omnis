@@ -1,13 +1,15 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 
+import { Text } from '@/components/m3'
 import { AddDataChip, PageSection, ReadingPage } from '@/components/person/scaffold'
 import type { InsightLine } from '@/lib/people/reading'
-import { COLORS, FLAVORS, TYPE } from '@/theme/tokens'
+import { SPACE } from '@/theme/m3'
+import { FLAVORS } from '@/theme/tokens'
 
 /**
- * S8 Insights page — cross-system lines computed on-device, each one an
- * assertion derivable from the reading itself. Sparse charts get an
- * invitation to complete the data, never filler.
+ * Insights — cross-system lines computed on-device, each one an assertion
+ * derivable from the reading itself. Sparse charts get an invitation to
+ * complete the data, never filler.
  */
 
 const FLAVOR = FLAVORS.integration
@@ -28,19 +30,21 @@ export function InsightsPage({
   if (lines.length === 0) {
     return (
       <ReadingPage>
-        <PageSection index={0} flavor={FLAVOR} eyebrow="INSIGHTS">
-          <Text style={TYPE.section}>The systems haven't crossed yet.</Text>
-          <Text style={styles.quietBody}>
+        <PageSection index={0} flavor={FLAVOR} eyebrow="Insights">
+          <Text variant="titleLarge" color="onSurface">
+            {"The systems haven't crossed yet."}
+          </Text>
+          <Text variant="bodyMedium" color="onSurfaceVariant">
             Cross-readings surface where two systems agree. Complete the chart and
             the threads appear.
           </Text>
           {missingAnything && (
             <View style={styles.chipRow}>
               {missingBirthTime && (
-                <AddDataChip label="ADD BIRTH TIME" flavor={FLAVOR} onPress={onAddData} />
+                <AddDataChip label="Add birth time" onPress={onAddData} />
               )}
               {missingHebrewName && (
-                <AddDataChip label="ADD HEBREW NAME" flavor={FLAVOR} onPress={onAddData} />
+                <AddDataChip label="Add Hebrew name" onPress={onAddData} />
               )}
             </View>
           )}
@@ -53,21 +57,23 @@ export function InsightsPage({
     <ReadingPage>
       {lines.map((line, index) => (
         <PageSection key={line.eyebrow} index={index} flavor={FLAVOR} eyebrow={line.eyebrow}>
-          <Text style={styles.insightBody}>{line.body}</Text>
+          <Text variant="bodyLarge" color="onSurfaceVariant">
+            {line.body}
+          </Text>
         </PageSection>
       ))}
 
       {missingAnything && (
-        <PageSection index={lines.length} flavor={FLAVOR} eyebrow="COMPLETE THE CHART">
-          <Text style={styles.quietBody}>
+        <PageSection index={lines.length} flavor={FLAVOR} eyebrow="Complete the chart">
+          <Text variant="bodyMedium" color="onSurfaceVariant">
             More data, more threads — each field opens another cross-reading.
           </Text>
           <View style={styles.chipRow}>
             {missingBirthTime && (
-              <AddDataChip label="ADD BIRTH TIME" flavor={FLAVOR} onPress={onAddData} />
+              <AddDataChip label="Add birth time" onPress={onAddData} />
             )}
             {missingHebrewName && (
-              <AddDataChip label="ADD HEBREW NAME" flavor={FLAVOR} onPress={onAddData} />
+              <AddDataChip label="Add Hebrew name" onPress={onAddData} />
             )}
           </View>
         </PageSection>
@@ -77,17 +83,9 @@ export function InsightsPage({
 }
 
 const styles = StyleSheet.create({
-  insightBody: {
-    ...TYPE.body,
-    color: COLORS.text70,
-  },
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
-  },
-  quietBody: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
+    gap: SPACE.sm,
   },
 })

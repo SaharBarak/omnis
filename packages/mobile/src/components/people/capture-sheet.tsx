@@ -8,26 +8,20 @@ import { getTone } from '@pleiad/engine/data/tones'
 import * as Haptics from 'expo-haptics'
 import { XIcon } from 'phosphor-react-native'
 import { useMemo, useState } from 'react'
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
-import Animated, {
-  FadeIn,
-  SlideInDown,
-  useReducedMotion,
-} from 'react-native-reanimated'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Platform, ScrollView, StyleSheet, View } from 'react-native'
+import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated'
 
+import {
+  BottomSheet,
+  Button,
+  Card,
+  Chip,
+  IconButton,
+  Text,
+  TextField,
+  Touchable,
+} from '@/components/m3'
 import { PlaceField } from '@/components/ui/place-field'
-import { Button, Eyebrow } from '@/components/ui/primitives'
-import { TextField } from '@/components/ui/text-field'
 import { formatBirthDate, formatBirthTime } from '@/lib/onboarding/draft-store'
 import { TIMEZONES } from '@/lib/onboarding/timezones'
 import { usePersonDraft } from '@/lib/people/draft-store'
@@ -37,7 +31,9 @@ import {
   type PersonDraftInput,
   type PersonUpdates,
 } from '@/lib/people/hooks'
-import { COLORS, DURATION, FLAVORS, FONTS, RADII, SPACE, SPRING, TYPE } from '@/theme/tokens'
+import { DURATION, SHAPE, SPACE, useTheme } from '@/theme/m3'
+import { FLAVORS } from '@/theme/tokens'
+import { sentenceCase } from '@/lib/text'
 
 /**
  * S7 capture sheet — the 30-second add (F3). Draft lives in a store so the
@@ -77,6 +73,7 @@ function WheelField({
   placeholder: string
   maximumDate?: Date
 }) {
+  const theme = useTheme()
   const [show, setShow] = useState(false)
 
   if (Platform.OS === 'ios' && value !== null) {
@@ -85,7 +82,7 @@ function WheelField({
         value={value}
         mode={mode}
         display="spinner"
-        themeVariant="dark"
+        themeVariant={theme.dark ? 'dark' : 'light'}
         maximumDate={maximumDate}
         onChange={(_event: DateTimePickerEvent, next?: Date) => {
           if (next !== undefined) onChange(next)
@@ -103,22 +100,23 @@ function WheelField({
 
   return (
     <>
-      <Pressable
+      <Touchable
         onPress={() => {
           // iOS has no dialog: committing the seed swaps this field for the
           // inline spinner, which the person then scrolls.
           if (Platform.OS === 'ios') onChange(fallback)
           else setShow(true)
         }}
-        style={styles.pickerField}
+        radius={SHAPE.extraSmall}
+        stateLayerColor={theme.colors.onSurface}
         accessibilityRole="button"
+        accessibilityLabel={label}
+        style={[styles.pickerField, { borderColor: theme.colors.outline }]}
       >
-        <Text
-          style={[styles.pickerFieldText, value === null && styles.pickerFieldPlaceholder]}
-        >
+        <Text variant="bodyLarge" color={value === null ? 'onSurfaceVariant' : 'onSurface'}>
           {label}
         </Text>
-      </Pressable>
+      </Touchable>
       {show && (
         <DateTimePicker
           value={value ?? fallback}
@@ -149,22 +147,28 @@ function PreviewChip({ birthDate }: { birthDate: Date }) {
     const sun = getSunSign(iso)
     return {
       kin: Number(kin),
-      line: `${seal.color} ${tone.name} ${seal.english}`.toUpperCase(),
-      sun: `${sun.name} SUN`.toUpperCase(),
+      line: `${sentenceCase(seal.color)} ${tone.name} ${seal.english}`,
+      sun: `${sun.name} sun`,
     }
   }, [birthDate])
 
   return (
     <Animated.View
       key={preview.kin}
-      entering={reduced ? undefined : FadeIn.duration(DURATION.normal)}
-      style={styles.previewChip}
+      entering={reduced ? undefined : FadeIn.duration(DURATION.medium1)}
     >
-      <Text style={styles.previewKin}>KIN {preview.kin}</Text>
-      <View style={styles.previewLines}>
-        <Text style={styles.previewLine}>{preview.line}</Text>
-        <Text style={styles.previewSun}>{preview.sun}</Text>
-      </View>
+      {/* The border is the Dreamspell accent — a domain colour, not a role. */}
+      <Card variant="filled" style={[styles.preview, { borderColor: FLAVORS.dreamspell.accent }]}>
+        <Text variant="dataLarge">KIN {preview.kin}</Text>
+        <View style={styles.previewLines}>
+          <Text variant="labelMedium" color={FLAVORS.dreamspell.accentSoft} numberOfLines={1}>
+            {preview.line}
+          </Text>
+          <Text variant="labelMedium" color="onSurfaceVariant" numberOfLines={1}>
+            {preview.sun}
+          </Text>
+        </View>
+      </Card>
     </Animated.View>
   )
 }
@@ -182,8 +186,6 @@ export function CaptureSheet({
   /** When set the sheet PATCHes this person instead of creating — S8 edit (F4). */
   editPersonId?: string
 }) {
-  const reduced = useReducedMotion()
-  const insets = useSafeAreaInsets()
   const draft = usePersonDraft()
   const editing = editPersonId !== undefined
 
@@ -285,343 +287,211 @@ export function CaptureSheet({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={dismiss}>
-      <KeyboardAvoidingView
-        style={styles.root}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    <BottomSheet visible={visible} onClose={dismiss}>
+      <View style={styles.header}>
+        <View style={styles.headerTitles}>
+          <Text variant="labelLarge" color="primary">
+            {editing ? 'Edit person' : 'New person'}
+          </Text>
+          <Text variant="headlineSmall">
+            {editing ? 'Refine the chart.' : 'One birthday starts the reading.'}
+          </Text>
+        </View>
+        <IconButton
+          icon={(color) => <XIcon size={24} color={color} />}
+          onPress={dismiss}
+          accessibilityLabel="Close"
+        />
+      </View>
+
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <Animated.View
-          entering={reduced ? undefined : FadeIn.duration(DURATION.normal)}
-          style={StyleSheet.absoluteFill}
-        >
-          <Pressable
-            style={[StyleSheet.absoluteFill, styles.scrim]}
-            onPress={dismiss}
-            accessibilityRole="button"
-            accessibilityLabel="Close"
+        <TextField
+          label="Name"
+          value={draft.name}
+          onChangeText={(value) => {
+            draft.setName(value)
+            if (nameError !== undefined && value.trim().length > 0) {
+              setNameError(undefined)
+            }
+          }}
+          supportingText="Who are they to you?"
+          autoCapitalize="words"
+          autoCorrect={false}
+          maxLength={200}
+          error={nameError}
+        />
+
+        <View style={styles.fieldBlock}>
+          <Text variant="labelLarge" color="onSurfaceVariant">
+            Birth date
+          </Text>
+          <WheelField
+            mode="date"
+            value={draft.birthDate}
+            fallback={WHEEL_DEFAULT_DATE}
+            placeholder="Pick their birth date"
+            maximumDate={new Date()}
+            onChange={(next) => {
+              draft.setBirthDate(next)
+              setDateError(undefined)
+            }}
           />
-        </Animated.View>
+          {dateError !== undefined && (
+            <Text variant="bodySmall" color="error">
+              {dateError}
+            </Text>
+          )}
+          {draft.birthDate !== null && <PreviewChip birthDate={draft.birthDate} />}
+        </View>
 
-        <Animated.View
-          entering={
-            reduced
-              ? undefined
-              : SlideInDown.springify().damping(SPRING.damping).stiffness(SPRING.stiffness)
-          }
-          style={[styles.sheet, { paddingBottom: insets.bottom + SPACE.cardPad }]}
-        >
-          <View style={styles.header}>
-            <View style={styles.headerTitles}>
-              <Eyebrow color={FLAVORS.dreamspell.accentSoft}>
-                {editing ? 'EDIT PERSON' : 'NEW PERSON'}
-              </Eyebrow>
-              <Text style={TYPE.section}>
-                {editing ? 'Refine the chart.' : 'One birthday starts the reading.'}
-              </Text>
-            </View>
-            <Pressable
-              onPress={dismiss}
-              hitSlop={12}
-              accessibilityRole="button"
-              accessibilityLabel="Close"
-            >
-              <XIcon size={20} color={COLORS.text50} />
-            </Pressable>
+        <View style={styles.fieldBlock}>
+          <View style={styles.timeHeader}>
+            <Text variant="labelLarge" color="onSurfaceVariant">
+              Birth time
+            </Text>
+            <Chip
+              variant="filter"
+              label="I don't know"
+              selected={draft.timeUnknown}
+              onPress={() => draft.setTimeUnknown(!draft.timeUnknown)}
+            />
           </View>
-
-          <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            <TextField
-              label="NAME"
-              value={draft.name}
-              onChangeText={(value) => {
-                draft.setName(value)
-                if (nameError !== undefined && value.trim().length > 0) {
-                  setNameError(undefined)
-                }
-              }}
-              placeholder="Who are they to you?"
-              autoCapitalize="words"
-              autoCorrect={false}
-              maxLength={200}
-              error={nameError}
-            />
-
-            <View style={styles.fieldBlock}>
-              <Text style={TYPE.eyebrow}>BIRTH DATE</Text>
+          {!draft.timeUnknown && (
+            <>
               <WheelField
-                mode="date"
-                value={draft.birthDate}
-                fallback={WHEEL_DEFAULT_DATE}
-                placeholder="Pick their birth date"
-                maximumDate={new Date()}
-                onChange={(next) => {
-                  draft.setBirthDate(next)
-                  setDateError(undefined)
-                }}
+                mode="time"
+                value={draft.birthTime}
+                fallback={defaultNoon()}
+                placeholder="Set the hour"
+                onChange={draft.setBirthTime}
               />
-              {dateError !== undefined && <Text style={styles.fieldError}>{dateError}</Text>}
-              {draft.birthDate !== null && <PreviewChip birthDate={draft.birthDate} />}
-            </View>
+              <Text variant="bodySmall" color="onSurfaceVariant">
+                Optional — the hour draws the bodygraph.
+              </Text>
+            </>
+          )}
+        </View>
 
-            <View style={styles.fieldBlock}>
-              <View style={styles.timeHeader}>
-                <Text style={TYPE.eyebrow}>BIRTH TIME</Text>
-                <Pressable
-                  onPress={() => draft.setTimeUnknown(!draft.timeUnknown)}
-                  style={[styles.unknownChip, draft.timeUnknown && styles.unknownChipActive]}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: draft.timeUnknown }}
-                >
-                  <Text
-                    style={[
-                      styles.unknownChipText,
-                      draft.timeUnknown && styles.unknownChipTextActive,
-                    ]}
-                  >
-                    I don&apos;t know
-                  </Text>
-                </Pressable>
-              </View>
-              {!draft.timeUnknown && (
-                <>
-                  <WheelField
-                    mode="time"
-                    value={draft.birthTime}
-                    fallback={defaultNoon()}
-                    placeholder="Set the hour"
-                    onChange={draft.setBirthTime}
-                  />
-                  <Text style={styles.helper}>Optional — the hour draws the bodygraph.</Text>
-                </>
-              )}
-            </View>
-
-            <View style={styles.fieldBlock}>
-              <PlaceField
-                selected={
-                  draft.coords === null
-                    ? null
-                    : {
-                        name: [draft.city, draft.country]
-                          .filter((part) => part.length > 0)
-                          .join(', '),
-                        city: draft.city,
-                        country: draft.country,
-                        lat: draft.coords.lat,
-                        lng: draft.coords.lng,
-                        timezone: draft.timezone ?? 'UTC',
-                      }
+        <View style={styles.fieldBlock}>
+          <PlaceField
+            selected={
+              draft.coords === null
+                ? null
+                : {
+                    name: [draft.city, draft.country]
+                      .filter((part) => part.length > 0)
+                      .join(', '),
+                    city: draft.city,
+                    country: draft.country,
+                    lat: draft.coords.lat,
+                    lng: draft.coords.lng,
+                    timezone: draft.timezone ?? 'UTC',
+                  }
+            }
+            onSelect={(place) =>
+              draft.setPlace({
+                city: place.city,
+                country: place.country,
+                timezone: place.timezone,
+                coords: { lat: place.lat, lng: place.lng },
+              })
+            }
+            onClear={draft.clearPlace}
+          />
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.timezoneRow}
+          >
+            {TIMEZONES.map((zone) => (
+              <Chip
+                key={zone.id}
+                variant="filter"
+                label={zone.label}
+                selected={zone.id === draft.timezone}
+                onPress={() =>
+                  draft.setTimezone(zone.id === draft.timezone ? null : zone.id)
                 }
-                onSelect={(place) =>
-                  draft.setPlace({
-                    city: place.city,
-                    country: place.country,
-                    timezone: place.timezone,
-                    coords: { lat: place.lat, lng: place.lng },
-                  })
-                }
-                onClear={draft.clearPlace}
               />
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.timezoneRow}
-              >
-                {TIMEZONES.map((zone) => {
-                  const active = zone.id === draft.timezone
-                  return (
-                    <Pressable
-                      key={zone.id}
-                      onPress={() => draft.setTimezone(active ? null : zone.id)}
-                      style={[styles.zoneChip, active && styles.zoneChipActive]}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: active }}
-                    >
-                      <Text style={[styles.zoneChipText, active && styles.zoneChipTextActive]}>
-                        {zone.label}
-                      </Text>
-                    </Pressable>
-                  )
-                })}
-              </ScrollView>
-            </View>
-
-            <TextField
-              label="HEBREW NAME"
-              value={draft.hebrewName}
-              onChangeText={draft.setHebrewName}
-              placeholder="שם עברי"
-              autoCorrect={false}
-              helper="Optional — its letters carry a number."
-            />
-
-            <TextField
-              label="NOTES"
-              value={draft.notes}
-              onChangeText={draft.setNotes}
-              placeholder="How you know them, what to remember"
-              autoCapitalize="sentences"
-            />
+            ))}
           </ScrollView>
+        </View>
 
-          <Button onPress={save} disabled={create.isPending || update.isPending}>
-            {editing ? 'Save changes' : 'Save to your map'}
-          </Button>
-        </Animated.View>
-      </KeyboardAvoidingView>
-    </Modal>
+        <TextField
+          label="Hebrew name"
+          value={draft.hebrewName}
+          onChangeText={draft.setHebrewName}
+          supportingText="Optional — its letters carry a number."
+          autoCorrect={false}
+        />
+
+        <TextField
+          label="Notes"
+          value={draft.notes}
+          onChangeText={draft.setNotes}
+          supportingText="How you know them, what to remember"
+          autoCapitalize="sentences"
+        />
+      </ScrollView>
+
+      <Button fullWidth onPress={save} disabled={create.isPending || update.isPending}>
+        {editing ? 'Save changes' : 'Save to your map'}
+      </Button>
+    </BottomSheet>
   )
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  scrim: {
-    backgroundColor: 'rgba(11,13,22,0.72)',
-  },
-  sheet: {
-    maxHeight: '90%',
-    backgroundColor: COLORS.surface,
-    borderTopLeftRadius: RADII.feature,
-    borderTopRightRadius: RADII.feature,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingHorizontal: SPACE.featurePad,
-    paddingTop: SPACE.featurePad,
-    gap: SPACE.cardPad,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: SPACE.md,
+    marginBottom: SPACE.lg,
   },
   headerTitles: {
     flex: 1,
-    gap: 6,
+    gap: SPACE.xs,
   },
   scroll: {
     flexGrow: 0,
   },
   scrollContent: {
-    gap: SPACE.cardPad,
-    paddingBottom: SPACE.unit,
+    gap: SPACE.xl,
+    paddingBottom: SPACE.xl,
   },
   fieldBlock: {
-    gap: 8,
-  },
-  fieldError: {
-    ...TYPE.bodySm,
-    color: COLORS.destructive,
-  },
-  helper: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
+    gap: SPACE.sm,
   },
   pickerField: {
-    height: 52,
-    borderRadius: RADII.input,
+    height: 56,
     borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surface2,
-    paddingHorizontal: 16,
+    paddingHorizontal: SPACE.lg,
     justifyContent: 'center',
   },
-  pickerFieldText: {
-    ...TYPE.stat,
-    fontSize: 18,
-    lineHeight: 24,
-  },
-  pickerFieldPlaceholder: {
-    color: COLORS.text50,
-  },
-  previewChip: {
+  preview: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACE.cardPad,
-    marginTop: SPACE.unit,
-    paddingHorizontal: SPACE.cardPad,
-    paddingVertical: 14,
-    borderRadius: RADII.panel,
+    gap: SPACE.lg,
     borderWidth: 1,
-    borderColor: FLAVORS.dreamspell.accent,
-    backgroundColor: COLORS.surface2,
-  },
-  previewKin: {
-    ...TYPE.stat,
-    fontSize: 24,
-    lineHeight: 28,
+    marginTop: SPACE.xs,
   },
   previewLines: {
     flex: 1,
     gap: 2,
-  },
-  previewLine: {
-    ...TYPE.eyebrow,
-    color: FLAVORS.dreamspell.accentSoft,
-  },
-  previewSun: {
-    ...TYPE.eyebrow,
-    color: COLORS.text50,
   },
   timeHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  unknownChip: {
-    borderRadius: RADII.pill,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-  },
-  unknownChipActive: {
-    borderColor: COLORS.brandSoft,
-  },
-  unknownChipText: {
-    fontFamily: FONTS.body,
-    fontSize: 13,
-    lineHeight: 18,
-    color: COLORS.text50,
-  },
-  unknownChipTextActive: {
-    color: COLORS.brandSoft,
-  },
-  placeRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  placeField: {
-    flex: 1,
-  },
   timezoneRow: {
-    gap: 8,
+    gap: SPACE.sm,
     paddingVertical: 2,
-  },
-  zoneChip: {
-    borderRadius: RADII.pill,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  zoneChipActive: {
-    borderColor: COLORS.brand,
-    backgroundColor: COLORS.surface2,
-  },
-  zoneChipText: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
-  },
-  zoneChipTextActive: {
-    color: COLORS.text90,
   },
 })

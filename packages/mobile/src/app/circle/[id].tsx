@@ -7,12 +7,19 @@ import {
 } from '@pleiad/engine/services/group-analysis'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { CaretLeftIcon, PencilSimpleIcon, ShareNetworkIcon } from 'phosphor-react-native'
-import { useMemo, useState } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useEffect, useMemo, useState } from 'react'
+import { StyleSheet, View } from 'react-native'
+import Animated, {
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated'
 
 import { PaywallSheet } from '@/components/billing/paywall-sheet'
 import { CircleSheet, type CircleSheetInitial } from '@/components/circles/circle-sheet'
+import { IconButton, Text, TopAppBar, Touchable } from '@/components/m3'
 import { ShareSheet } from '@/components/share/share-sheet'
 import {
   LockedPage,
@@ -22,12 +29,13 @@ import {
   SEAL_COLOR_HEX,
 } from '@/components/person/scaffold'
 import { EmptyState } from '@/components/ui/empty-state'
-import { Button, Eyebrow, Panel, StatNumber } from '@/components/ui/primitives'
-import { ToastHost } from '@/components/ui/toast'
+import { ErrorState } from '@/components/ui/error-state'
 import { useSubscription } from '@/lib/api'
 import { useGroup } from '@/lib/groups/hooks'
 import { useCountUp } from '@/lib/motion/use-count-up'
-import { COLORS, FLAVORS, RADII, SPACE, TYPE, type SystemFlavor } from '@/theme/tokens'
+import { initialsOf, sentenceCase } from '@/lib/text'
+import { SHAPE, SPACE, useTheme } from '@/theme/m3'
+import { FLAVORS, type SystemFlavor } from '@/theme/tokens'
 
 /**
  * S12 Circle analysis (F7) — the whole reading computed on-device from the
@@ -38,6 +46,8 @@ import { COLORS, FLAVORS, RADII, SPACE, TYPE, type SystemFlavor } from '@/theme/
  */
 
 const TOP_ROWS = 5
+const SKELETON_ROWS = 3
+const AVATAR_SIZE = 48
 
 interface CircleAnalysis {
   analysis: FullGroupAnalysis | null
@@ -81,13 +91,6 @@ function computeCircleAnalysis(
   }
 }
 
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/).filter((part) => part.length > 0)
-  const first = parts[0]?.[0] ?? ''
-  const second = parts[1]?.[0] ?? ''
-  return `${first}${second}`.toUpperCase() || '·'
-}
-
 const COLOR_FLAVORS: Array<{ key: 'red' | 'white' | 'blue' | 'yellow'; flavor: SystemFlavor }> = [
   { key: 'red', flavor: { name: 'Red', accent: SEAL_COLOR_HEX.red, accentSoft: SEAL_COLOR_HEX.red } },
   { key: 'white', flavor: { name: 'White', accent: SEAL_COLOR_HEX.white, accentSoft: SEAL_COLOR_HEX.white } },
@@ -95,16 +98,54 @@ const COLOR_FLAVORS: Array<{ key: 'red' | 'white' | 'blue' | 'yellow'; flavor: S
   { key: 'yellow', flavor: { name: 'Yellow', accent: SEAL_COLOR_HEX.yellow, accentSoft: SEAL_COLOR_HEX.yellow } },
 ]
 
-/** Average compatibility — counts up once per mount, tabular mono. */
+/** Average compatibility — counts up once per mount, tabular. */
 function AverageScore({ score }: { score: number }) {
   const display = useCountUp(score)
-  return <StatNumber value={`${display}%`} label="AVERAGE COMPATIBILITY" />
+  return (
+    <View>
+      <Text variant="dataLarge" color="primary">
+        {`${display}%`}
+      </Text>
+      <Text variant="labelMedium" color="onSurfaceVariant">
+        Average compatibility
+      </Text>
+    </View>
+  )
+}
+
+/** Skeleton blocks in the shape of the meters they become. Never a spinner. */
+function SkeletonRows() {
+  const theme = useTheme()
+  const reduced = useReducedMotion()
+  const pulse = useSharedValue(0.45)
+
+  useEffect(() => {
+    if (reduced) return
+    pulse.value = withRepeat(withTiming(1, { duration: 1000 }), -1, true)
+  }, [reduced, pulse])
+
+  const shimmer = useAnimatedStyle(() => ({ opacity: pulse.value }))
+
+  return (
+    <Animated.View style={[styles.stateBlock, shimmer]}>
+      {Array.from({ length: SKELETON_ROWS }).map((_, index) => (
+        <View
+          key={index}
+          style={[
+            styles.skeletonBlock,
+            { backgroundColor: theme.colors.surfaceContainerHighest },
+            index === SKELETON_ROWS - 1 && styles.skeletonNarrow,
+          ]}
+        />
+      ))}
+    </Animated.View>
+  )
 }
 
 function InsightLines({ analysis }: { analysis: FullGroupAnalysis }) {
   if (analysis.insights.length === 0) {
     return (
-      <Text style={styles.quietLine}>
+      <Text variant="bodyMedium" color="onSurfaceVariant">
         The circle reads even — no single pattern dominates yet.
       </Text>
     )
@@ -113,13 +154,59 @@ function InsightLines({ analysis }: { analysis: FullGroupAnalysis }) {
     <View style={styles.insightList}>
       {analysis.insights.map((insight, index) => (
         <View key={index} style={styles.insightRow}>
-          <Eyebrow color={FLAVORS.integration.accentSoft}>
-            {insight.type.toUpperCase()}
-          </Eyebrow>
-          <Text style={styles.insightBody}>{insight.english}</Text>
+          <Text variant="labelLarge" color={FLAVORS.integration.accentSoft}>
+            {sentenceCase(insight.type)}
+          </Text>
+          <Text variant="bodyMedium" color="onSurfaceVariant">
+            {insight.english}
+          </Text>
         </View>
       ))}
     </View>
+  )
+}
+
+function MemberCell({
+  name,
+  caption,
+  captionColor,
+  onPress,
+}: {
+  name: string
+  caption: string
+  captionColor: string
+  onPress: () => void
+}) {
+  const theme = useTheme()
+
+  return (
+    <Touchable
+      onPress={onPress}
+      radius={SHAPE.medium}
+      stateLayerColor={theme.colors.onSurface}
+      accessibilityRole="button"
+      accessibilityLabel={name}
+      style={styles.memberCell}
+    >
+      <View
+        style={[styles.memberAvatar, { backgroundColor: theme.colors.primaryContainer }]}
+      >
+        <Text variant="labelLarge" color={theme.colors.onPrimaryContainer}>
+          {initialsOf(name)}
+        </Text>
+      </View>
+      <Text
+        variant="bodySmall"
+        color="onSurface"
+        numberOfLines={1}
+        style={styles.memberName}
+      >
+        {name}
+      </Text>
+      <Text variant="labelMedium" color={captionColor} numberOfLines={1}>
+        {caption}
+      </Text>
+    </Touchable>
   )
 }
 
@@ -132,50 +219,33 @@ function MemberGrid({
   excluded: GroupMember[]
   onOpen: (personId: string) => void
 }) {
+  const theme = useTheme()
+
   return (
     <View style={styles.memberGrid}>
       {members.map((member) => (
-        <Pressable
+        <MemberCell
           key={member.id}
+          name={member.name}
+          caption={`Kin ${member.dreamspell.kin}`}
+          captionColor={FLAVORS.dreamspell.accentSoft}
           onPress={() => onOpen(member.id)}
-          style={styles.memberCell}
-          accessibilityRole="button"
-          accessibilityLabel={member.name}
-        >
-          <View style={styles.memberAvatar}>
-            <Text style={styles.memberAvatarText}>{initialsOf(member.name)}</Text>
-          </View>
-          <Text style={styles.memberName} numberOfLines={1}>
-            {member.name}
-          </Text>
-          <Eyebrow color={FLAVORS.dreamspell.accentSoft}>
-            {`KIN ${member.dreamspell.kin}`}
-          </Eyebrow>
-        </Pressable>
+        />
       ))}
       {excluded.map((member) => (
-        <Pressable
+        <MemberCell
           key={member.id}
+          name={member.name}
+          caption="No birth data"
+          captionColor={theme.colors.onSurfaceVariant}
           onPress={() => onOpen(member.id)}
-          style={styles.memberCell}
-          accessibilityRole="button"
-          accessibilityLabel={member.name}
-        >
-          <View style={styles.memberAvatar}>
-            <Text style={styles.memberAvatarText}>{initialsOf(member.name)}</Text>
-          </View>
-          <Text style={styles.memberName} numberOfLines={1}>
-            {member.name}
-          </Text>
-          <Eyebrow>NO BIRTH DATA</Eyebrow>
-        </Pressable>
+        />
       ))}
     </View>
   )
 }
 
 export default function CircleScreen() {
-  const insets = useSafeAreaInsets()
   const router = useRouter()
   const { id } = useLocalSearchParams<{ id: string }>()
   const { group, isPending, isError, isRefetching, refetch } = useGroup(id)
@@ -213,28 +283,18 @@ export default function CircleScreen() {
         }
 
   const renderBody = () => {
-    if (isPending) {
-      return (
-        <View style={styles.stateBlock}>
-          <View style={[styles.skeletonBlock, styles.skeletonWide]} />
-          <View style={[styles.skeletonBlock, styles.skeletonWide]} />
-          <View style={[styles.skeletonBlock, styles.skeletonNarrow]} />
-        </View>
-      )
-    }
+    if (isPending) return <SkeletonRows />
 
     if (isError || group === undefined) {
       return (
         <View style={styles.stateBlock}>
-          <Panel style={styles.errorPanel}>
-            <Text style={TYPE.card}>This circle is out of reach.</Text>
-            <Text style={styles.errorBody}>
-              We couldn't load it. It's safe — check your connection.
-            </Text>
-            <Button variant="secondary" onPress={refetch} disabled={isRefetching}>
-              {isRefetching ? 'Trying…' : 'Try again'}
-            </Button>
-          </Panel>
+          <ErrorState
+            message="This circle is out of reach. We couldn't load it — it's safe; check your connection."
+            retryLabel={isRefetching ? 'Trying…' : 'Try again'}
+            onRetry={() => {
+              if (!isRefetching) refetch()
+            }}
+          />
         </View>
       )
     }
@@ -271,19 +331,23 @@ export default function CircleScreen() {
 
     return (
       <ReadingPage>
+        <Text variant="labelLarge" color="onSurfaceVariant">
+          {`${group.members.length} ${group.members.length === 1 ? 'person' : 'people'} · Circle`}
+        </Text>
+
         {excluded.length > 0 && (
-          <Text style={styles.quietLine}>
+          <Text variant="bodyMedium" color="onSurfaceVariant">
             {excluded.length === 1
               ? `${excluded[0].name} is missing a readable birth date and sits outside this reading.`
               : `${excluded.length} members are missing a readable birth date and sit outside this reading.`}
           </Text>
         )}
 
-        <PageSection index={0} flavor={FLAVORS.dreamspell} eyebrow="SEAL DISTRIBUTION">
+        <PageSection index={0} flavor={FLAVORS.dreamspell} eyebrow="Seal distribution">
           {topSeals.map((item) => (
             <MeterBar
               key={item.value}
-              label={item.name.toUpperCase()}
+              label={item.name}
               value={item.count}
               max={memberCount}
               flavor={FLAVORS.dreamspell}
@@ -291,11 +355,11 @@ export default function CircleScreen() {
           ))}
         </PageSection>
 
-        <PageSection index={1} flavor={FLAVORS.dreamspell} eyebrow="TONE DISTRIBUTION">
+        <PageSection index={1} flavor={FLAVORS.dreamspell} eyebrow="Tone distribution">
           {topTones.map((item) => (
             <MeterBar
               key={item.value}
-              label={item.name.toUpperCase()}
+              label={item.name}
               value={item.count}
               max={memberCount}
               flavor={FLAVORS.dreamspell}
@@ -303,11 +367,11 @@ export default function CircleScreen() {
           ))}
         </PageSection>
 
-        <PageSection index={2} flavor={FLAVORS.dreamspell} eyebrow="COLOR BALANCE">
+        <PageSection index={2} flavor={FLAVORS.dreamspell} eyebrow="Color balance">
           {COLOR_FLAVORS.map(({ key, flavor }) => (
             <MeterBar
               key={key}
-              label={flavor.name.toUpperCase()}
+              label={flavor.name}
               value={analysis.dreamspell.colorBalance[key].count}
               max={memberCount}
               flavor={flavor}
@@ -316,10 +380,10 @@ export default function CircleScreen() {
         </PageSection>
 
         {memberCount >= 2 && (
-          <PageSection index={3} flavor={FLAVORS.dreamspell} eyebrow="RESONANCE">
+          <PageSection index={3} flavor={FLAVORS.dreamspell} eyebrow="Resonance">
             <AverageScore score={analysis.compatibility.averageScore} />
             {analysis.compatibility.highestPair !== null && (
-              <Text style={styles.quietLine}>
+              <Text variant="bodyMedium" color="onSurfaceVariant">
                 {analysis.compatibility.highestPair.person1} and{' '}
                 {analysis.compatibility.highestPair.person2} carry the strongest
                 resonance at {analysis.compatibility.highestPair.score}%.
@@ -328,7 +392,7 @@ export default function CircleScreen() {
           </PageSection>
         )}
 
-        <PageSection index={4} flavor={FLAVORS.integration} eyebrow="INSIGHTS">
+        <PageSection index={4} flavor={FLAVORS.integration} eyebrow="Insights">
           {insightsUnlocked ? (
             <InsightLines analysis={analysis} />
           ) : (
@@ -336,7 +400,7 @@ export default function CircleScreen() {
               <LockedPage
                 flavor={FLAVORS.integration}
                 systemName="group insight"
-                pill="PRACTITIONER UNLOCKS GROUP INSIGHTS"
+                pill="Practitioner unlocks group insights"
                 body="The circle's strengths, gaps and patterns are already read and waiting under this veil."
                 onUnlock={() => setPaywallOpen(true)}
               >
@@ -346,7 +410,7 @@ export default function CircleScreen() {
           )}
         </PageSection>
 
-        <PageSection index={5} flavor={FLAVORS.dreamspell} eyebrow="MEMBERS">
+        <PageSection index={5} flavor={FLAVORS.dreamspell} eyebrow="Members">
           <MemberGrid members={analyzable} excluded={excluded} onOpen={openPerson} />
         </PageSection>
       </ReadingPage>
@@ -354,49 +418,33 @@ export default function CircleScreen() {
   }
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top + SPACE.unit * 2 }]}>
-      <View style={styles.topBar}>
-        <Pressable
-          onPress={goBack}
-          style={styles.iconButton}
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-        >
-          <CaretLeftIcon size={20} color={COLORS.text70} />
-        </Pressable>
-        <View style={styles.topBarSpacer} />
-        {group !== undefined && (
-          <>
-            <Pressable
-              onPress={() => setEditOpen(true)}
-              style={styles.iconButton}
-              accessibilityRole="button"
-              accessibilityLabel={`Edit ${group.name}`}
-            >
-              <PencilSimpleIcon size={20} color={COLORS.text70} />
-            </Pressable>
-            <Pressable
-              onPress={() => setShareOpen(true)}
-              style={styles.iconButton}
-              accessibilityRole="button"
-              accessibilityLabel={`Share ${group.name}`}
-            >
-              <ShareNetworkIcon size={20} color={COLORS.text70} />
-            </Pressable>
-          </>
-        )}
-      </View>
-
-      {group !== undefined && (
-        <View style={styles.header}>
-          <Eyebrow>
-            {`${group.members.length} ${group.members.length === 1 ? 'PERSON' : 'PEOPLE'} · CIRCLE`}
-          </Eyebrow>
-          <Text style={TYPE.zone} numberOfLines={1}>
-            {group.name}
-          </Text>
-        </View>
-      )}
+    <View style={styles.screen}>
+      <TopAppBar
+        title={group?.name ?? 'Circle'}
+        navigationIcon={
+          <IconButton
+            icon={(color) => <CaretLeftIcon size={24} color={color} />}
+            onPress={goBack}
+            accessibilityLabel="Back"
+          />
+        }
+        actions={
+          group !== undefined ? (
+            <>
+              <IconButton
+                icon={(color) => <PencilSimpleIcon size={24} color={color} />}
+                onPress={() => setEditOpen(true)}
+                accessibilityLabel={`Edit ${group.name}`}
+              />
+              <IconButton
+                icon={(color) => <ShareNetworkIcon size={24} color={color} />}
+                onPress={() => setShareOpen(true)}
+                accessibilityLabel={`Share ${group.name}`}
+              />
+            </>
+          ) : undefined
+        }
+      />
 
       <View style={styles.body}>{renderBody()}</View>
 
@@ -419,8 +467,6 @@ export default function CircleScreen() {
           subject={{ type: 'group', groupId: group.id, title: group.name }}
         />
       )}
-
-      <ToastHost />
     </View>
   )
 }
@@ -428,67 +474,27 @@ export default function CircleScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: 'transparent',
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACE.gutter - 8,
-  },
-  topBarSpacer: {
-    flex: 1,
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  header: {
-    paddingHorizontal: SPACE.gutter,
-    paddingTop: SPACE.unit * 2,
-    paddingBottom: SPACE.unit * 2,
-    gap: 6,
   },
   body: {
     flex: 1,
   },
   stateBlock: {
-    paddingHorizontal: SPACE.gutter,
-    paddingTop: SPACE.cardPad,
-    gap: 14,
+    paddingHorizontal: SPACE.margin,
+    paddingTop: SPACE.lg,
+    gap: SPACE.lg,
   },
   skeletonBlock: {
-    backgroundColor: COLORS.surface2,
-    borderRadius: RADII.button,
-  },
-  skeletonWide: {
     height: 56,
+    borderRadius: SHAPE.medium,
   },
   skeletonNarrow: {
-    height: 56,
     width: '62%',
   },
-  errorPanel: {
-    gap: 14,
-  },
-  errorBody: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
-  },
-  quietLine: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
-  },
   insightList: {
-    gap: SPACE.cardPad,
+    gap: SPACE.lg,
   },
   insightRow: {
-    gap: 4,
-  },
-  insightBody: {
-    ...TYPE.body,
-    color: COLORS.text70,
+    gap: SPACE.xs,
   },
   lockHost: {
     minHeight: 260,
@@ -496,32 +502,22 @@ const styles = StyleSheet.create({
   memberGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 14,
+    gap: SPACE.md,
   },
   memberCell: {
     width: '30%',
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 10,
+    gap: SPACE.xs,
+    paddingVertical: SPACE.sm,
   },
   memberAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.surface2,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  memberAvatarText: {
-    ...TYPE.eyebrow,
-    color: COLORS.text70,
-    letterSpacing: 1,
   },
   memberName: {
-    ...TYPE.bodySm,
-    color: COLORS.text90,
     textAlign: 'center',
   },
 })

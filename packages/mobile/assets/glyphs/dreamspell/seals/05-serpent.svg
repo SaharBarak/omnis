@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="currentColor">
+  <title>Red Serpent - Chicchan</title>
+  <path d="M25 75 Q35 60, 50 65 Q65 70, 75 55 Q85 40, 70 30 Q55 20, 45 35" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="45" cy="35" r="8"/>
+  <circle cx="40" cy="32" r="2" fill="none" stroke="currentColor" stroke-width="1"/>
+</svg>

@@ -1,75 +1,142 @@
-import { StyleSheet, View } from 'react-native'
+import {
+  Canvas,
+  Circle,
+  Fill,
+  Group,
+  Image,
+  LinearGradient,
+  Mask,
+  RadialGradient,
+  Rect,
+  useImage,
+  vec,
+} from '@shopify/react-native-skia'
+import { useEffect } from 'react'
+import { useWindowDimensions } from 'react-native'
+import {
+  Easing,
+  useDerivedValue,
+  useReducedMotion,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated'
 
-import { COLORS } from '@/theme/tokens'
+import { alpha, useTheme } from '@/theme/m3'
 
 /**
- * Fixed background stack behind every authed screen — DESIGN_LANGUAGE §3.1.
- * Ground solid + two radial brand glows + sparse static star dots. Mounted
- * once behind the navigator; never re-renders (pure static views).
+ * The atmosphere behind every screen.
+ *
+ * This is the one place the app departs from stock Material, deliberately: M3's
+ * `background` role is a single flat colour, and a flat colour is the least
+ * immersive thing a night-sky product could sit on. Everything *in* the
+ * foreground is M3; the backdrop it sits on is not.
+ *
+ * The previous version approximated this with two `borderRadius: 240` Views at
+ * 7% opacity, which renders as two visible hard-edged discs, not glows — React
+ * Native has no radial gradient. Skia does, and it was already in the bundle
+ * for the relationship map. So were the murals: `hero-sky.webp` has shipped in
+ * `assets/` since onboarding was built, and no authed screen ever drew it.
+ *
+ * Three layers, painted once, never re-rendered:
+ *
+ *   1. the M3 `background` role, flat
+ *   2. the hero-sky mural across the top, masked into a vertical fade so it
+ *      dissolves into the background rather than ending on a seam
+ *   3. two soft radial glows in the seed's own primary and tertiary
+ *
+ * The whole stack drifts ±6dp over 40 seconds. It is under the threshold of
+ * noticing, which is the point — it keeps the background from reading as a
+ * static image without ever pulling the eye off the content.
  */
 
-const STARS: Array<{ top: string; left: string; size: number; alpha: number }> = [
-  { top: '8%', left: '78%', size: 2, alpha: 0.16 },
-  { top: '16%', left: '22%', size: 1.5, alpha: 0.12 },
-  { top: '31%', left: '61%', size: 2, alpha: 0.09 },
-  { top: '52%', left: '12%', size: 1.5, alpha: 0.14 },
-  { top: '67%', left: '84%', size: 2, alpha: 0.11 },
-  { top: '81%', left: '38%', size: 1.5, alpha: 0.1 },
-  { top: '91%', left: '68%', size: 2, alpha: 0.13 },
-]
+/** How far down the screen the mural reaches before it has fully dissolved. */
+const MURAL_FADE_RATIO = 0.55
+
+const DRIFT_DISTANCE = 6
+const DRIFT_PERIOD_MS = 20_000
 
 export function CosmicGround() {
+  const theme = useTheme()
+  const { width, height } = useWindowDimensions()
+  const reduced = useReducedMotion()
+
+  const sky = useImage(require('../../assets/mural/hero-sky.webp'))
+
+  const drift = useSharedValue(0)
+
+  useEffect(() => {
+    if (reduced) return
+    drift.value = withRepeat(
+      withTiming(1, { duration: DRIFT_PERIOD_MS, easing: Easing.inOut(Easing.sin) }),
+      -1,
+      true
+    )
+  }, [reduced, drift])
+
+  // Skia reads the transform straight off the UI thread — the drift never
+  // touches JS, so it costs nothing per frame.
+  const transform = useDerivedValue(
+    () => [{ translateY: -DRIFT_DISTANCE + drift.value * DRIFT_DISTANCE * 2 }],
+    [drift]
+  )
+
+  const muralHeight = height * MURAL_FADE_RATIO
+
   return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <View style={styles.ground} />
-      <View style={[styles.glow, styles.glowTopRight]} />
-      <View style={[styles.glow, styles.glowBottomLeft]} />
-      {STARS.map((star, index) => (
-        <View
-          key={index}
-          style={{
-            position: 'absolute',
-            top: star.top as `${number}%`,
-            left: star.left as `${number}%`,
-            width: star.size,
-            height: star.size,
-            borderRadius: star.size / 2,
-            backgroundColor: COLORS.brandBright,
-            opacity: star.alpha,
-          }}
-        />
-      ))}
-    </View>
+    <Canvas style={{ position: 'absolute', width, height }} pointerEvents="none">
+      <Fill color={theme.colors.background} />
+
+      <Group transform={transform}>
+        {sky !== null && (
+          <Mask
+            mode="luminance"
+            mask={
+              <Rect x={0} y={0} width={width} height={muralHeight}>
+                <LinearGradient
+                  start={vec(0, 0)}
+                  end={vec(0, muralHeight)}
+                  colors={['white', 'black']}
+                />
+              </Rect>
+            }
+          >
+            {/*
+             * Skia's Image paints into a canvas — it is not an <img>, has no
+             * alt, and is never in the accessibility tree. jsx-a11y can't tell
+             * the two apart by element name.
+             */}
+            {/* eslint-disable-next-line jsx-a11y/alt-text */}
+            <Image
+              image={sky}
+              x={0}
+              y={0}
+              width={width}
+              height={muralHeight}
+              fit="cover"
+              // Atmosphere, not content. In the light scheme it has to be
+              // fainter still or it turns a white page grey.
+              opacity={theme.dark ? 0.5 : 0.12}
+            />
+          </Mask>
+        )}
+
+        <Circle cx={width} cy={0} r={width * 0.9}>
+          <RadialGradient
+            c={vec(width, 0)}
+            r={width * 0.9}
+            colors={[alpha(theme.colors.primary, theme.dark ? 0.16 : 0.1), 'transparent']}
+          />
+        </Circle>
+
+        <Circle cx={0} cy={height} r={width * 0.8}>
+          <RadialGradient
+            c={vec(0, height)}
+            r={width * 0.8}
+            colors={[alpha(theme.colors.tertiary, theme.dark ? 0.1 : 0.06), 'transparent']}
+          />
+        </Circle>
+      </Group>
+    </Canvas>
   )
 }
-
-const GLOW_SIZE = 480
-
-const styles = StyleSheet.create({
-  ground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: COLORS.ground,
-  },
-  glow: {
-    position: 'absolute',
-    width: GLOW_SIZE,
-    height: GLOW_SIZE,
-    borderRadius: GLOW_SIZE / 2,
-  },
-  glowTopRight: {
-    top: -GLOW_SIZE / 3,
-    right: -GLOW_SIZE / 3,
-    backgroundColor: COLORS.brand,
-    opacity: 0.07,
-  },
-  glowBottomLeft: {
-    bottom: -GLOW_SIZE / 3,
-    left: -GLOW_SIZE / 3,
-    backgroundColor: COLORS.brandSoft,
-    opacity: 0.045,
-  },
-})

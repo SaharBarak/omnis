@@ -5,31 +5,29 @@ import type { Profile, ProfileUpdateInput } from '@pleiad/api-client'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import * as Haptics from 'expo-haptics'
 import { useRouter } from 'expo-router'
-import { CaretLeftIcon } from 'phosphor-react-native'
-import { useEffect, useMemo, useState } from 'react'
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { CaretLeftIcon, CheckIcon } from 'phosphor-react-native'
+import { useMemo, useState } from 'react'
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native'
 import Animated, {
+  FadeIn,
   FadeInLeft,
   FadeInRight,
   FadeOut,
-  useAnimatedStyle,
   useReducedMotion,
-  useSharedValue,
-  withSpring,
 } from 'react-native-reanimated'
+import { Image } from 'expo-image'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import {
+  Button,
+  IconButton,
+  LinearProgress,
+  ListItem,
+  Text,
+  TextField,
+  Touchable,
+} from '@/components/m3'
 import { PlaceField } from '@/components/ui/place-field'
-import { Button } from '@/components/ui/primitives'
-import { TextField } from '@/components/ui/text-field'
 import { api } from '@/lib/api'
 import {
   ONBOARDING_STEP_COUNT,
@@ -38,15 +36,29 @@ import {
   useOnboardingDraft,
 } from '@/lib/onboarding/draft-store'
 import { TIMEZONES } from '@/lib/onboarding/timezones'
-import { COLORS, DURATION, RADII, SPACE, SPRING, TYPE } from '@/theme/tokens'
+import { DURATION, SHAPE, SPACE, useTheme } from '@/theme/m3'
 
 /**
  * S4 onboarding ritual — USER_FLOWS F2. Five paged steps in one screen;
- * centered content is the sanctioned exception (DESIGN_LANGUAGE §6).
- * TODO(asset bundle): paint each step on its system mural backdrop.
+ * centered content is the sanctioned exception (DESIGN_LANGUAGE §4).
+ * Each step is painted on the mural of the system it unlocks — a very
+ * faint full-bleed backdrop scrimmed into the background so the type ramp holds.
  */
 
 const DEFAULT_BIRTH_DATE = new Date(1990, 0, 1)
+
+/**
+ * Per-step ritual backdrop — the mural of the system each answer unlocks:
+ * name → hero sky, date → Dreamspell, hour → Human Design (the bodygraph),
+ * place → Astrology (rising sign and houses), Hebrew name → Kabbalah.
+ */
+const STEP_MURALS = [
+  require('../../../assets/mural/hero-sky.webp'),
+  require('../../../assets/mural/zone-dreamspell.webp'),
+  require('../../../assets/mural/zone-human-design.webp'),
+  require('../../../assets/mural/zone-astrology.webp'),
+  require('../../../assets/mural/zone-gematria.webp'),
+] as const
 
 function defaultNoon(): Date {
   const noon = new Date()
@@ -56,33 +68,33 @@ function defaultNoon(): Date {
 
 const STEP_META: ReadonlyArray<{ eyebrow: string; title: string; helper: string }> = [
   {
-    eyebrow: 'STEP 1 · YOU',
+    eyebrow: 'Step 1 · You',
     title: 'What should we call you?',
     helper: 'Your name sits at the center of the map.',
   },
   {
-    eyebrow: 'STEP 2 · DREAMSPELL',
+    eyebrow: 'Step 2 · Dreamspell',
     title: 'When were you born?',
     helper: 'One date unlocks your kin, seal, and tone.',
   },
   {
-    eyebrow: 'STEP 3 · HUMAN DESIGN',
+    eyebrow: 'Step 3 · Human Design',
     title: 'What time of day?',
     helper: 'The birth hour draws your bodygraph. Honest answer only — skipping is fine.',
   },
   {
-    eyebrow: 'STEP 4 · ASTROLOGY',
+    eyebrow: 'Step 4 · Astrology',
     title: 'Where were you born?',
     helper: 'Place sharpens your rising sign and houses.',
   },
   {
-    eyebrow: 'STEP 5 · KABBALAH',
+    eyebrow: 'Step 5 · Kabbalah',
     title: 'Do you carry a Hebrew name?',
     helper: 'Its letters carry a number. We read both.',
   },
 ]
 
-/** Inline on iOS; field + native dialog on Android. Spinner style, dark. */
+/** Inline on iOS; field + native dialog on Android. Spinner style. */
 function WheelPicker({
   mode,
   value,
@@ -98,6 +110,7 @@ function WheelPicker({
   placeholder: string
   maximumDate?: Date
 }) {
+  const theme = useTheme()
   const [show, setShow] = useState(false)
 
   if (Platform.OS === 'ios' && value !== null) {
@@ -106,7 +119,7 @@ function WheelPicker({
         value={value}
         mode={mode}
         display="spinner"
-        themeVariant="dark"
+        themeVariant={theme.dark ? 'dark' : 'light'}
         maximumDate={maximumDate}
         onChange={(_event: DateTimePickerEvent, next?: Date) => {
           if (next !== undefined) onChange(next)
@@ -123,20 +136,25 @@ function WheelPicker({
         : formatBirthTime(value)
   return (
     <>
-      <Pressable
+      {/* The unanswered state of a wheel — an M3 field that opens the picker. */}
+      <Touchable
         onPress={() => {
           if (Platform.OS === 'ios') onChange(fallback)
           else setShow(true)
         }}
-        style={styles.pickerField}
+        radius={SHAPE.extraSmall}
+        stateLayerColor={theme.colors.onSurface}
         accessibilityRole="button"
+        accessibilityLabel={label}
+        style={[styles.pickerField, { borderColor: theme.colors.outline }]}
       >
         <Text
-          style={[styles.pickerFieldText, value === null && styles.pickerFieldPlaceholder]}
+          variant="bodyLarge"
+          color={value === null ? 'onSurfaceVariant' : 'onSurface'}
         >
           {label}
         </Text>
-      </Pressable>
+      </Touchable>
       {show && (
         <DateTimePicker
           value={value ?? fallback}
@@ -160,29 +178,39 @@ function TimezoneList({
   selected: string | null
   onSelect: (id: string | null) => void
 }) {
+  const theme = useTheme()
+
   return (
     <View style={styles.timezoneBlock}>
-      <Text style={TYPE.eyebrow}>TIMEZONE</Text>
+      <Text variant="labelLarge" color="onSurfaceVariant">
+        Timezone
+      </Text>
       <ScrollView
-        style={styles.timezoneList}
-        contentContainerStyle={styles.timezoneListContent}
+        style={[styles.timezoneList, { borderColor: theme.colors.outline }]}
         nestedScrollEnabled
       >
         {TIMEZONES.map((zone) => {
           const active = zone.id === selected
           return (
-            <Pressable
+            <View
               key={zone.id}
-              onPress={() => onSelect(active ? null : zone.id)}
-              style={[styles.timezoneRow, active && styles.timezoneRowActive]}
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
+              style={active && { backgroundColor: theme.colors.secondaryContainer }}
             >
-              <Text style={[styles.timezoneLabel, active && styles.timezoneLabelActive]}>
-                {zone.label}
-              </Text>
-              <Text style={styles.timezoneId}>{zone.id}</Text>
-            </Pressable>
+              <ListItem
+                headline={zone.label}
+                onPress={() => onSelect(active ? null : zone.id)}
+                accessibilityLabel={zone.label}
+                trailing={
+                  <View style={styles.timezoneTrailing}>
+                    {/* The check, not the fill, is what a colour-blind user reads. */}
+                    {active && <CheckIcon size={18} color={theme.colors.onSecondaryContainer} />}
+                    <Text variant="dataSmall" color="onSurfaceVariant">
+                      {zone.id}
+                    </Text>
+                  </View>
+                }
+              />
+            </View>
           )
         })}
       </ScrollView>
@@ -192,6 +220,7 @@ function TimezoneList({
 
 export default function OnboardingScreen() {
   const router = useRouter()
+  const theme = useTheme()
   const queryClient = useQueryClient()
   const reduced = useReducedMotion()
   const draft = useOnboardingDraft()
@@ -210,16 +239,6 @@ export default function OnboardingScreen() {
   const step = draft.step
   const meta = STEP_META[step] ?? STEP_META[0]
   const isLast = step === ONBOARDING_STEP_COUNT - 1
-
-  // Progress hairline — springs to (step+1)/5, scaleX from the left edge.
-  const progress = useSharedValue((step + 1) / ONBOARDING_STEP_COUNT)
-  useEffect(() => {
-    const target = (step + 1) / ONBOARDING_STEP_COUNT
-    progress.value = reduced ? target : withSpring(target, SPRING)
-  }, [step, reduced, progress])
-  const progressStyle = useAnimatedStyle(() => ({
-    transform: [{ scaleX: progress.value }],
-  }))
 
   const finish = useMutation({
     mutationFn: (input: ProfileUpdateInput) => api.profile.update(input),
@@ -335,9 +354,9 @@ export default function OnboardingScreen() {
 
   const entering = useMemo(() => {
     if (reduced) return undefined
-    return (direction === 1 ? FadeInRight : FadeInLeft).duration(DURATION.slow)
+    return (direction === 1 ? FadeInRight : FadeInLeft).duration(DURATION.medium4)
   }, [direction, reduced])
-  const exiting = reduced ? undefined : FadeOut.duration(DURATION.fast)
+  const exiting = reduced ? undefined : FadeOut.duration(DURATION.short4)
 
   const skippable = step >= 2
   const skipLabel = step === 2 ? "I don't know" : 'Skip for now'
@@ -348,25 +367,44 @@ export default function OnboardingScreen() {
     : 'Continue'
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <View style={styles.root}>
+      <Animated.View
+        key={`mural-${step}`}
+        entering={reduced ? undefined : FadeIn.duration(DURATION.long2)}
+        exiting={reduced ? undefined : FadeOut.duration(DURATION.long2)}
+        style={styles.muralHost}
+      >
+        <Image
+          source={STEP_MURALS[step] ?? STEP_MURALS[0]}
+          contentFit="cover"
+          style={styles.mural}
+          accessible={false}
+        />
+        {/* A veil in the background role, so the type ramp keeps its contrast. */}
+        <View
+          style={[styles.muralScrim, { backgroundColor: theme.colors.background }]}
+        />
+      </Animated.View>
+      <SafeAreaView style={styles.screen}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.header}>
-          <Pressable
-            onPress={handleBack}
-            disabled={step === 0 || finish.isPending}
-            style={[styles.backButton, step === 0 && styles.backHidden]}
-            accessibilityRole="button"
-            accessibilityLabel="Back"
-          >
-            <CaretLeftIcon size={20} color={COLORS.text70} />
-          </Pressable>
-          <View style={styles.progressTrack}>
-            <Animated.View style={[styles.progressFill, progressStyle]} />
+          <View style={step === 0 && styles.backHidden}>
+            <IconButton
+              icon={(color) => <CaretLeftIcon size={24} color={color} />}
+              onPress={handleBack}
+              disabled={step === 0 || finish.isPending}
+              accessibilityLabel="Back"
+            />
           </View>
-          <Text style={styles.stepCounter}>
+          <LinearProgress
+            progress={(step + 1) / ONBOARDING_STEP_COUNT}
+            style={styles.progress}
+            accessibilityLabel={`Step ${step + 1} of ${ONBOARDING_STEP_COUNT}`}
+          />
+          <Text variant="dataSmall" color="onSurfaceVariant">
             {step + 1}/{ONBOARDING_STEP_COUNT}
           </Text>
         </View>
@@ -377,20 +415,30 @@ export default function OnboardingScreen() {
           exiting={exiting}
           style={styles.stepBody}
         >
-          <Text style={[TYPE.eyebrow, styles.centered]}>{meta.eyebrow}</Text>
-          <Text style={[TYPE.zone, styles.centered, styles.title]}>{meta.title}</Text>
-          <Text style={[TYPE.bodySm, styles.centered, styles.helper]}>{meta.helper}</Text>
+          <Text variant="labelLarge" color="primary" style={styles.centered}>
+            {meta.eyebrow}
+          </Text>
+          <Text
+            variant="headlineMedium"
+            color="onSurface"
+            style={[styles.centered, styles.title]}
+          >
+            {meta.title}
+          </Text>
+          <Text variant="bodyMedium" color="onSurfaceVariant" style={styles.centered}>
+            {meta.helper}
+          </Text>
 
           <View style={styles.fieldArea}>
             {step === 0 && (
               <TextField
-                label="YOUR NAME"
+                label="Your name"
+                supportingText="The name people know you by"
                 value={draft.displayName}
                 onChangeText={(value) => {
                   draft.setDisplayName(value)
                   if (nameError !== null && value.trim().length > 0) setNameError(null)
                 }}
-                placeholder="The name people know you by"
                 autoFocus
                 autoCapitalize="words"
                 autoCorrect={false}
@@ -414,7 +462,11 @@ export default function OnboardingScreen() {
                   }}
                   maximumDate={new Date()}
                 />
-                {dateError !== null && <Text style={styles.fieldError}>{dateError}</Text>}
+                {dateError !== null && (
+                  <Text variant="bodySmall" color="error">
+                    {dateError}
+                  </Text>
+                )}
               </>
             )}
 
@@ -464,10 +516,10 @@ export default function OnboardingScreen() {
 
             {step === 4 && (
               <TextField
-                label="HEBREW NAME"
+                label="Hebrew name"
+                supportingText="שם עברי"
                 value={draft.hebrewName}
                 onChangeText={draft.setHebrewName}
-                placeholder="שם עברי"
                 autoCorrect={false}
                 returnKeyType="done"
                 onSubmitEditing={handleContinue}
@@ -478,30 +530,53 @@ export default function OnboardingScreen() {
 
         <View style={styles.footer}>
           {finish.isError && (
-            <Text style={styles.finishError}>
+            <Text variant="bodySmall" color="error" style={styles.centered}>
               {finish.error instanceof Error
                 ? finish.error.message
                 : 'Something went wrong. Try again.'}
             </Text>
           )}
-          <Button onPress={handleContinue} disabled={finish.isPending}>
+          <Button fullWidth onPress={handleContinue} disabled={finish.isPending}>
             {continueLabel}
           </Button>
           {skippable && (
-            <Button variant="secondary" onPress={handleSkip} disabled={finish.isPending}>
+            <Button
+              fullWidth
+              variant="text"
+              onPress={handleSkip}
+              disabled={finish.isPending}
+            >
               {skipLabel}
             </Button>
           )}
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  /** Full-bleed backdrop layer — crossfades per step, never catches touches. */
+  muralHost: {
+    ...StyleSheet.absoluteFill,
+    pointerEvents: 'none',
+  },
+  /** VERY faint — the mural is atmosphere, not content. */
+  mural: {
+    ...StyleSheet.absoluteFill,
+    opacity: 0.28,
+  },
+  muralScrim: {
+    ...StyleSheet.absoluteFill,
+    opacity: 0.55,
+  },
   screen: {
     flex: 1,
-    paddingHorizontal: SPACE.gutter,
+    paddingHorizontal: SPACE.margin,
   },
   flex: {
     flex: 1,
@@ -509,117 +584,55 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 12,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
+    gap: SPACE.md,
+    paddingVertical: SPACE.sm,
   },
   backHidden: {
     opacity: 0,
   },
-  progressTrack: {
+  progress: {
     flex: 1,
-    height: 2,
-    backgroundColor: COLORS.border,
-    borderRadius: 1,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: 2,
-    width: '100%',
-    backgroundColor: COLORS.brand,
-    transformOrigin: 'left',
-  },
-  stepCounter: {
-    ...TYPE.statLabel,
   },
   stepBody: {
     flex: 1,
     justifyContent: 'center',
-    gap: 8,
+    gap: SPACE.sm,
   },
   centered: {
     textAlign: 'center',
   },
   title: {
-    marginTop: SPACE.unit,
-  },
-  helper: {
-    color: COLORS.text50,
+    marginTop: SPACE.xs,
   },
   fieldArea: {
-    marginTop: SPACE.section,
+    marginTop: SPACE.xxl,
+    gap: SPACE.sm,
   },
   placeFields: {
-    gap: SPACE.cardPad,
+    gap: SPACE.lg,
   },
   pickerField: {
-    height: 52,
-    borderRadius: RADII.input,
+    height: 56,
     borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surface2,
-    paddingHorizontal: 16,
+    borderRadius: SHAPE.extraSmall,
+    paddingHorizontal: SPACE.lg,
     justifyContent: 'center',
   },
-  pickerFieldText: {
-    ...TYPE.stat,
-    fontSize: 18,
-    lineHeight: 24,
-  },
-  pickerFieldPlaceholder: {
-    color: COLORS.text50,
-  },
-  fieldError: {
-    ...TYPE.bodySm,
-    color: COLORS.destructive,
-  },
   timezoneBlock: {
-    gap: 8,
+    gap: SPACE.sm,
   },
   timezoneList: {
     maxHeight: 176,
-    borderRadius: RADII.input,
     borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surface2,
+    borderRadius: SHAPE.extraSmall,
   },
-  timezoneListContent: {
-    paddingVertical: 4,
-  },
-  timezoneRow: {
+  timezoneTrailing: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  timezoneRowActive: {
-    backgroundColor: COLORS.surface,
-  },
-  timezoneLabel: {
-    ...TYPE.bodySm,
-    color: COLORS.text70,
-  },
-  timezoneLabelActive: {
-    color: COLORS.text90,
-  },
-  timezoneId: {
-    ...TYPE.statLabel,
-    textTransform: 'none',
-    letterSpacing: 0,
+    gap: SPACE.sm,
   },
   footer: {
-    gap: 12,
-    paddingBottom: SPACE.cardPad,
-  },
-  finishError: {
-    ...TYPE.bodySm,
-    color: COLORS.destructive,
-    textAlign: 'center',
+    gap: SPACE.sm,
+    paddingBottom: SPACE.lg,
   },
 })

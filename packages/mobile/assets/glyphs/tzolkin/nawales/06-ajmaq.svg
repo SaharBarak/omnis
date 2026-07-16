@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="currentColor">
+  <title>Ajmaq - Owl, Ancestors, Forgiveness</title>
+  <!-- Stylized owl glyph representing ancestors -->
+  <circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="3"/>
+  <!-- Owl eyes (large) -->
+  <circle cx="38" cy="42" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+  <circle cx="62" cy="42" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+  <circle cx="38" cy="42" r="4"/>
+  <circle cx="62" cy="42" r="4"/>
+  <!-- Owl beak -->
+  <polygon points="50,50 45,60 50,65 55,60"/>
+  <!-- Owl ears/feathers -->
+  <path d="M30 30 Q38 25, 38 35" fill="none" stroke="currentColor" stroke-width="2"/>
+  <path d="M70 30 Q62 25, 62 35" fill="none" stroke="currentColor" stroke-width="2"/>
+</svg>

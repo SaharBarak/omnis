@@ -4,20 +4,35 @@ import {
   type GematriaMethod,
   type GematriaResult,
 } from '@pleiad/engine/types/gematria'
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 
-import { AddDataChip, DataRow, PageSection, ReadingPage } from '@/components/person/scaffold'
-import { StatNumber } from '@/components/ui/primitives'
 import type { PersonWithTags } from '@pleiad/api-client'
-import { COLORS, FLAVORS, TYPE } from '@/theme/tokens'
+import { Glyph } from '@/components/glyph'
+import { Text } from '@/components/m3'
+import { AddDataChip, DataRow, PageSection, ReadingPage } from '@/components/person/scaffold'
+import { SHAPE, SPACE, useTheme } from '@/theme/m3'
+import { FLAVORS } from '@/theme/tokens'
 
 /**
- * S8 Kabbalah page — gematria of the Hebrew name: digital root, the letter
- * breakdown, and all seven calculation methods. Without a Hebrew name: an
- * honest empty state with a path to the edit sheet.
+ * Kabbalah — gematria of the Hebrew name: digital root, the letter breakdown,
+ * and all seven calculation methods. Without a Hebrew name: an honest empty
+ * state with a path to the edit sheet.
  */
 
 const FLAVOR = FLAVORS.gematria
+
+/** The 22 base letters in order; a letter's position is its glyph number. */
+const HEBREW_ORDER = [
+  'aleph', 'bet', 'gimel', 'dalet', 'he', 'vav', 'zayin', 'chet', 'tet', 'yod',
+  'kaf', 'lamed', 'mem', 'nun', 'samech', 'ayin', 'pe', 'tsadi', 'qof', 'resh',
+  'shin', 'tav',
+]
+
+/** letterId → glyph number (1-22); a final form folds to its base letter. */
+function letterGlyphNumber(letterId: string): number | undefined {
+  const index = HEBREW_ORDER.indexOf(letterId.replace(/-final$/, ''))
+  return index === -1 ? undefined : index + 1
+}
 
 const METHOD_ORDER: GematriaMethod[] = [
   'standard',
@@ -38,20 +53,23 @@ export function KabbalahPage({
   gematria: GematriaResult | null
   onAddHebrewName: () => void
 }) {
+  const theme = useTheme()
+
   if (gematria === null) {
     const hasName = (person.hebrew_name ?? '').trim().length > 0
     return (
       <ReadingPage>
-        <PageSection index={0} flavor={FLAVOR} eyebrow="KABBALAH">
-          <Text style={TYPE.section}>Every letter carries a number.</Text>
-          <Text style={styles.quietBody}>
+        <PageSection index={0} flavor={FLAVOR} eyebrow="Kabbalah">
+          <Text variant="titleLarge" color="onSurface">
+            Every letter carries a number.
+          </Text>
+          <Text variant="bodyMedium" color="onSurfaceVariant">
             {hasName
               ? "The Hebrew name on file didn't resolve into letters. Check its spelling."
               : 'Gematria reads the Hebrew name. Add one and seven counting methods open.'}
           </Text>
           <AddDataChip
-            label={hasName ? 'EDIT HEBREW NAME' : 'ADD HEBREW NAME'}
-            flavor={FLAVOR}
+            label={hasName ? 'Edit Hebrew name' : 'Add Hebrew name'}
             onPress={onAddHebrewName}
           />
         </PageSection>
@@ -64,38 +82,64 @@ export function KabbalahPage({
 
   return (
     <ReadingPage>
-      <PageSection index={0} flavor={FLAVOR} eyebrow="KABBALAH">
-        <Text style={styles.hebrewName}>{gematria.cleanedText}</Text>
-        <StatNumber
-          value={String(gematria.methods.standard.value)}
-          label="STANDARD VALUE — MISPAR HECHRACHI"
-        />
+      <PageSection index={0} flavor={FLAVOR} eyebrow="Kabbalah">
+        <Text variant="headlineMedium" color="onSurface" style={styles.hebrewName}>
+          {gematria.cleanedText}
+        </Text>
+        <Text variant="dataLarge" color="onSurface">
+          {gematria.methods.standard.value}
+        </Text>
+        <Text variant="labelMedium" color="onSurfaceVariant">
+          Standard value — Mispar Hechrachi
+        </Text>
       </PageSection>
 
-      <PageSection index={1} flavor={FLAVOR} eyebrow="LETTERS">
+      <PageSection index={1} flavor={FLAVOR} eyebrow="Letters">
         <View style={styles.letterRow}>
-          {breakdown.map((letter, index) => (
-            <View key={`${letter.letterId}-${index}`} style={styles.letterCell}>
-              <Text style={styles.letterGlyph}>{letter.letter}</Text>
-              <Text style={styles.letterValue}>{letter.value}</Text>
-            </View>
-          ))}
+          {breakdown.map((letter, index) => {
+            const glyphNumber = letterGlyphNumber(letter.letterId)
+            return (
+              <View
+                key={`${letter.letterId}-${index}`}
+                style={[
+                  styles.letterCell,
+                  {
+                    backgroundColor: theme.surfaceAt(1),
+                    borderColor: theme.colors.outlineVariant,
+                  },
+                ]}
+              >
+                {glyphNumber === undefined ? (
+                  <Text variant="titleLarge" color={FLAVOR.accentSoft}>
+                    {letter.letter}
+                  </Text>
+                ) : (
+                  <Glyph letter={glyphNumber} size={30} color={FLAVOR.accentSoft} />
+                )}
+                <Text variant="dataSmall" color="onSurfaceVariant">
+                  {letter.value}
+                </Text>
+              </View>
+            )
+          })}
         </View>
       </PageSection>
 
-      <PageSection index={2} flavor={FLAVOR} eyebrow="DIGITAL ROOT">
-        <StatNumber
-          value={String(gematria.methods.standard.digitalRoot)}
-          label={rootMeaning !== undefined ? rootMeaning.meaning.toUpperCase() : 'REDUCTION'}
-        />
+      <PageSection index={2} flavor={FLAVOR} eyebrow="Digital root">
+        <Text variant="dataLarge" color="onSurface">
+          {gematria.methods.standard.digitalRoot}
+        </Text>
+        <Text variant="labelMedium" color="onSurfaceVariant">
+          {rootMeaning !== undefined ? rootMeaning.meaning : 'Reduction'}
+        </Text>
       </PageSection>
 
-      <PageSection index={3} flavor={FLAVOR} eyebrow="SEVEN METHODS">
+      <PageSection index={3} flavor={FLAVOR} eyebrow="Seven methods">
         <View>
           {METHOD_ORDER.map((method, index) => (
             <DataRow
               key={method}
-              label={GEMATRIA_METHOD_LABELS[method].label.toUpperCase()}
+              label={GEMATRIA_METHOD_LABELS[method].label}
               value={String(gematria.methods[method].value)}
               detail={GEMATRIA_METHOD_LABELS[method].labelHebrew}
               mono
@@ -110,35 +154,21 @@ export function KabbalahPage({
 
 const styles = StyleSheet.create({
   hebrewName: {
-    ...TYPE.zone,
     writingDirection: 'rtl',
   },
   letterRow: {
+    // The name reads right-to-left, so the cells must lay out that way too.
     flexDirection: 'row-reverse',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: SPACE.sm,
   },
   letterCell: {
     alignItems: 'center',
     gap: 2,
     minWidth: 44,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    borderRadius: 12,
+    paddingVertical: SPACE.sm,
+    paddingHorizontal: SPACE.sm,
+    borderRadius: SHAPE.medium,
     borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.cardFill,
-  },
-  letterGlyph: {
-    ...TYPE.section,
-    color: FLAVOR.accentSoft,
-  },
-  letterValue: {
-    ...TYPE.statLabel,
-    letterSpacing: 0.5,
-  },
-  quietBody: {
-    ...TYPE.bodySm,
-    color: COLORS.text50,
   },
 })

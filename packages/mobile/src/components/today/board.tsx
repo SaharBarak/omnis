@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -9,12 +9,20 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 
-import { COLORS, FONTS, SPACE } from '@/theme/tokens'
+import { Divider, Text } from '@/components/m3'
+import { DURATION, EASING, SPACE } from '@/theme/m3'
 
 /**
- * "Today, across the systems" split-flap board — the ONE theatrical set
- * piece on this screen (MOTION spec). Each cell flips in (rotateX) with a
- * 15–25ms cascade jitter; reduced motion renders static values.
+ * The split-flap board — the one theatrical moment on Today, and the only
+ * place in the app that gets a set-piece animation.
+ *
+ * Each row flips down on its own delay, the way a departures board does. The
+ * jitter is derived from the index rather than randomised, so the cascade is
+ * identical on every mount and doesn't shimmer differently each time you open
+ * the app.
+ *
+ * Values are `dataMedium` — tabular figures — because a kin number that
+ * re-flows its width as it flips would ruin the effect.
  */
 
 export interface BoardRow {
@@ -22,73 +30,70 @@ export interface BoardRow {
   value: string
 }
 
-function FlapCell({ row, index }: { row: BoardRow; index: number }) {
+function FlapCell({ row, index, last }: { row: BoardRow; index: number; last: boolean }) {
   const reduced = useReducedMotion()
   const progress = useSharedValue(reduced ? 1 : 0)
-  // Deterministic per-index jitter (15–25ms) — no Math.random, replay-stable.
   const delay = useMemo(() => index * 90 + (index % 3) * 8 + 15, [index])
 
   useEffect(() => {
     if (reduced) return
     progress.value = withDelay(
       delay,
-      withTiming(1, { duration: 380, easing: Easing.bezier(0.4, 0, 0.2, 1) })
+      withTiming(1, {
+        duration: DURATION.medium4,
+        easing: Easing.bezier(...EASING.emphasizedDecelerate),
+      })
     )
   }, [delay, progress, reduced])
 
   const flapStyle = useAnimatedStyle(() => ({
     opacity: progress.value,
-    transform: [
-      { perspective: 600 },
-      { rotateX: `${(1 - progress.value) * -85}deg` },
-    ],
+    transform: [{ perspective: 600 }, { rotateX: `${(1 - progress.value) * -85}deg` }],
   }))
 
   return (
-    <View style={styles.row}>
-      <Text style={styles.label}>{row.label}</Text>
-      <Animated.View style={flapStyle}>
-        <Text style={styles.value} numberOfLines={1} adjustsFontSizeToFit>
-          {row.value}
+    <View>
+      <View style={styles.row}>
+        <Text variant="labelMedium" color="onSurfaceVariant">
+          {row.label}
         </Text>
-      </Animated.View>
+        <Animated.View style={flapStyle}>
+          <Text
+            variant="dataMedium"
+            color="primary"
+            numberOfLines={1}
+            adjustsFontSizeToFit
+          >
+            {row.value}
+          </Text>
+        </Animated.View>
+      </View>
+      {!last && <Divider />}
     </View>
   )
 }
 
 export function TodayBoard({ rows }: { rows: BoardRow[] }) {
   return (
-    <View style={styles.board}>
+    <View>
       {rows.map((row, index) => (
-        <FlapCell key={row.label} row={row} index={index} />
+        <FlapCell
+          key={row.label}
+          row={row}
+          index={index}
+          last={index === rows.length - 1}
+        />
       ))}
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  board: {
-    gap: 14,
-  },
   row: {
-    gap: 4,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: COLORS.border,
-    paddingBottom: 14,
-  },
-  label: {
-    fontFamily: FONTS.mono,
-    fontSize: 11,
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    color: COLORS.text50,
-  },
-  value: {
-    fontFamily: FONTS.monoMedium,
-    fontSize: 22,
-    letterSpacing: -0.3,
-    fontVariant: ['tabular-nums'],
-    color: COLORS.brandBright,
-    paddingRight: SPACE.unit,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACE.lg,
+    paddingVertical: SPACE.md,
   },
 })

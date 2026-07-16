@@ -1,66 +1,35 @@
-import { useEffect } from 'react'
-import { Pressable, ScrollView, StyleSheet, Text } from 'react-native'
-import Animated, {
-  interpolateColor,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated'
+import { useMemo } from 'react'
+import { StyleSheet, View } from 'react-native'
+import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated'
 
-import { COLORS, RADII, SPACE, SPRING, TYPE, type SystemFlavor } from '@/theme/tokens'
+import { SegmentedButton, type Segment } from '@/components/m3'
+import { DURATION, SHAPE, SPACE } from '@/theme/m3'
+import type { SystemFlavor } from '@/theme/tokens'
 
 /**
- * S8 segmented flavor tabs — horizontally scrolling pills, one per system.
- * The active pill's border springs to its flavor accent (stiffness 100,
- * damping 20 — nothing bounces) and the text lifts to accentSoft.
+ * The six systems, as an M3 single-select segmented button driving the pager.
+ *
+ * Flavour vs. the M3 selected state — the one design call on this screen:
+ *
+ * The old pills each wore their own system's accent on their border, which
+ * meant selection was signalled by colour alone and six competing colours were
+ * on screen at once. M3's selected segment owns `secondaryContainer` plus a
+ * checkmark; two signals, one of which survives a colour-blind user and a
+ * sunlit screen. Selection is a *control* state and it is the same in every
+ * control in the app, so the control's colour is not a system's to take.
+ *
+ * So M3 wins the segment, and flavour moves to where it actually means
+ * something — the page. It survives in three places, none of which fight the
+ * selected state because none of them are selection: the band below (the
+ * page's top edge, crossfading to the incoming system as you swipe), the
+ * section eyebrows, and the meter fills. Identity belongs to the reading, not
+ * to the tab that opens it.
  */
 
 export interface FlavorTab {
   key: string
   label: string
   flavor: SystemFlavor
-}
-
-function FlavorPill({
-  tab,
-  active,
-  onPress,
-}: {
-  tab: FlavorTab
-  active: boolean
-  onPress: () => void
-}) {
-  const progress = useSharedValue(active ? 1 : 0)
-
-  useEffect(() => {
-    progress.value = withSpring(active ? 1 : 0, SPRING)
-  }, [active, progress])
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    borderColor: interpolateColor(
-      progress.value,
-      [0, 1],
-      [COLORS.border, tab.flavor.accent]
-    ),
-  }))
-
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="tab"
-      accessibilityState={{ selected: active }}
-      accessibilityLabel={tab.label}
-    >
-      <Animated.View style={[styles.pill, animatedStyle]}>
-        <Text
-          style={[TYPE.eyebrow, active && { color: tab.flavor.accentSoft }]}
-          numberOfLines={1}
-        >
-          {tab.label.toUpperCase()}
-        </Text>
-      </Animated.View>
-    </Pressable>
-  )
 }
 
 export function FlavorTabs({
@@ -72,36 +41,47 @@ export function FlavorTabs({
   activeIndex: number
   onSelect: (index: number) => void
 }) {
+  const reduced = useReducedMotion()
+
+  const segments = useMemo<Segment[]>(
+    () => tabs.map(({ key, label }) => ({ key, label })),
+    [tabs]
+  )
+
+  const flavor = tabs[activeIndex]?.flavor
+
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.row}
-      accessibilityRole="tablist"
-    >
-      {tabs.map((tab, index) => (
-        <FlavorPill
-          key={tab.key}
-          tab={tab}
-          active={index === activeIndex}
-          onPress={() => onSelect(index)}
-        />
-      ))}
-    </ScrollView>
+    <View style={styles.root}>
+      {/* Six systems is one over M3's five-segment cap, which is exactly what
+          `scrollable` is for — the labels stay readable rather than shrinking. */}
+      <SegmentedButton
+        segments={segments}
+        selectedIndex={activeIndex}
+        onSelect={onSelect}
+        scrollable
+      />
+
+      <View style={styles.band}>
+        {flavor !== undefined && (
+          <Animated.View
+            key={flavor.accent}
+            entering={reduced ? undefined : FadeIn.duration(DURATION.short4)}
+            style={[StyleSheet.absoluteFill, { backgroundColor: flavor.accent }]}
+          />
+        )}
+      </View>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  row: {
-    gap: 8,
-    paddingHorizontal: SPACE.gutter,
-    paddingVertical: 2,
+  root: {
+    gap: SPACE.md,
   },
-  pill: {
-    borderRadius: RADII.pill,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    backgroundColor: COLORS.surface,
+  band: {
+    height: 2,
+    marginHorizontal: SPACE.margin,
+    borderRadius: SHAPE.full,
+    overflow: 'hidden',
   },
 })
