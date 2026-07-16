@@ -71,6 +71,13 @@ const mask = (email) => {
 const isUsableEmail = (email) =>
   typeof email === 'string' && email.includes('@') && !email.endsWith('@undefined')
 
+/**
+ * Auth0 subs carry a connection prefix (`auth0|…`, `google-oauth2|…`). A plain
+ * UUID id means the row is already a Supabase user — a prior login or a prior
+ * run — so it must not be re-migrated (re-inserting its own id would conflict).
+ */
+const isAuth0Id = (id) => typeof id === 'string' && id.includes('|')
+
 async function tableExists(name) {
   const [row] = await sql`select to_regclass(${'public.' + name}) as t`
   return row.t !== null
@@ -82,7 +89,12 @@ async function main() {
 
   const byEmail = new Map()
   const skipped = []
+  const alreadySupabase = []
   for (const user of users) {
+    if (!isAuth0Id(user.id)) {
+      alreadySupabase.push(user)
+      continue
+    }
     if (!isUsableEmail(user.email)) {
       skipped.push(user)
       continue
@@ -90,6 +102,12 @@ async function main() {
     const email = user.email.toLowerCase()
     if (!byEmail.has(email)) byEmail.set(email, [])
     byEmail.get(email).push(user)
+  }
+
+  if (alreadySupabase.length > 0) {
+    console.log('ALREADY SUPABASE — skipped (not an Auth0 id):')
+    for (const user of alreadySupabase) console.log(`  ${user.id}  ${mask(user.email)}`)
+    console.log()
   }
 
   if (skipped.length > 0) {
