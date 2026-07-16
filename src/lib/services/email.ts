@@ -186,6 +186,52 @@ export async function sendNewUserAdminNotification(
   }
 }
 
+export interface PlatformDigestMetric {
+  label: string
+  /** Count within the reporting window (last 24h). null if the query failed. */
+  today: number | null
+  /** All-time total. null if the query failed. */
+  total: number | null
+}
+
+export interface PlatformDigestData {
+  /** Human-readable report date, e.g. "Thursday, July 16, 2026". */
+  date: string
+  metrics: PlatformDigestMetric[]
+}
+
+/**
+ * Send the daily platform-health digest to the platform owner.
+ * Sent to ADMIN_NOTIFICATION_EMAIL (defaults to hi@saharbarak.dev).
+ */
+export async function sendPlatformDigestEmail(
+  digest: PlatformDigestData
+): Promise<{ success: boolean; id?: string }> {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('RESEND_API_KEY not configured, skipping platform digest email')
+    return { success: false }
+  }
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: ADMIN_NOTIFICATION_EMAIL,
+      subject: `Omnis daily digest — ${digest.date}`,
+      html: getPlatformDigestEmailHtml(digest),
+    })
+
+    if (error) {
+      console.error('Error sending platform digest email:', error)
+      return { success: false }
+    }
+
+    return { success: true, id: data?.id }
+  } catch (err) {
+    console.error('Exception sending platform digest email:', err)
+    return { success: false }
+  }
+}
+
 /**
  * Send welcome email to new subscriber
  */
@@ -273,6 +319,74 @@ export async function sendDailyKinToAllSubscribers(kinData: DailyKinData): Promi
 }
 
 // Email HTML templates
+
+function getPlatformDigestEmailHtml(digest: PlatformDigestData): string {
+  const fmt = (n: number | null) =>
+    n === null ? '<span style="color:#555;">—</span>' : n.toLocaleString('en-US')
+
+  const metricRows = digest.metrics
+    .map((m, i) => {
+      const bg = i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent'
+      const todayBadge =
+        m.today && m.today > 0
+          ? `<span style="color:#7bd88f;font-weight:600;">+${m.today.toLocaleString('en-US')}</span>`
+          : fmt(m.today)
+      return `
+      <tr style="background:${bg};">
+        <td style="color:#e8e8e8;font-size:14px;padding:12px 16px;">${m.label}</td>
+        <td style="font-size:14px;padding:12px 16px;text-align:right;">${todayBadge}</td>
+        <td style="color:#c9a55c;font-size:14px;padding:12px 16px;text-align:right;font-weight:600;">${fmt(m.total)}</td>
+      </tr>`
+    })
+    .join('')
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Omnis daily digest</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0a0a0f; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+    <!-- Header -->
+    <div style="text-align: center; margin-bottom: 30px;">
+      <span style="color: #c9a55c; font-size: 28px;">*</span>
+      <h1 style="color: #ffffff; font-size: 24px; margin: 12px 0 4px;">Omnis Daily Digest</h1>
+      <p style="color: #666; font-size: 13px; margin: 0;">${digest.date}</p>
+    </div>
+
+    <!-- Metrics table -->
+    <div style="background: linear-gradient(180deg, rgba(201, 165, 92, 0.1) 0%, rgba(201, 165, 92, 0.03) 100%); border: 1px solid rgba(201, 165, 92, 0.25); border-radius: 12px; overflow: hidden; margin-bottom: 24px;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="border-bottom: 1px solid rgba(201, 165, 92, 0.2);">
+            <th style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;text-align:left;padding:12px 16px;">Metric</th>
+            <th style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;text-align:right;padding:12px 16px;">Last 24h</th>
+            <th style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;text-align:right;padding:12px 16px;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${metricRows}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 18px;">
+      <p style="color: #555; font-size: 12px; margin: 0 0 6px;">
+        Automated platform health digest from Omnis.
+      </p>
+      <p style="color: #555; font-size: 12px; margin: 0;">
+        <a href="https://omnis.app/app" style="color: #888;">Open dashboard</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+`
+}
 
 function getNewUserAdminEmailHtml(user: NewUserNotificationData): string {
   const signedUpAt = user.signedUpAt ? new Date(user.signedUpAt) : new Date()
