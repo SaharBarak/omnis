@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Resend } from 'resend'
-import { isAuthorizedCron } from '@/lib/api/cron-auth'
-import { signUnsubscribeToken } from '@/lib/api/unsubscribe-token'
 import { dateToKin, kinToSeal, kinToTone, calculateOracle } from '@pleiad/engine/calculations'
 import { getSeal } from '@pleiad/engine/data/seals'
 import { getTone } from '@pleiad/engine/data/tones'
 import { generateMantra } from '@pleiad/engine/data/mantras'
-import { EMAIL_FROM } from '@/lib/email/from'
+import { isAuthorizedCron } from '@/lib/api/cron-auth'
+import { sendMarketingEmail } from '@/lib/email'
+import { buildUnsubscribeUrl } from '@/lib/email/unsubscribe'
 import {
   listSubscribersForCron,
   logEmailSend,
@@ -84,8 +83,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Send emails
-    const resend = new Resend(process.env.RESEND_API_KEY)
-    const subject = `Today's Kin: ${kinData.seal.name} - Kin ${kinData.kin}`
+    const subject = `Today's Kin: ${kinData.seal.name} — Kin ${kinData.kin}`
     let sent = 0
     let failed = 0
     let skipped = 0
@@ -98,18 +96,17 @@ export async function GET(request: NextRequest) {
           continue
         }
 
-        const { data: sendData, error: sendError } = await resend.emails.send({
-          from: EMAIL_FROM,
+        const result = await sendMarketingEmail({
           to: subscriber.email,
           subject,
-          html: getDailyKinEmailHtml(
-            kinData,
-            await buildUnsubscribeUrl(subscriber.email)
-          )
+          preheader: `${kinData.tone.name} ${kinData.seal.name} — your guidance for today.`,
+          bodyHtml: dailyKinBody(kinData),
+          footerText: 'Daily Kin from the Pleiad newsletter.',
+          unsubscribeUrl: await buildUnsubscribeUrl(subscriber.email),
         })
 
-        if (sendError) {
-          console.error(`Failed to send to ${subscriber.email}:`, sendError)
+        if (!result.ok) {
+          console.error(`Failed to send to ${subscriber.email}`)
           failed++
         } else {
           sent++
@@ -118,7 +115,7 @@ export async function GET(request: NextRequest) {
             subscriber_id: subscriber.id,
             email_type: 'daily_kin',
             subject,
-            resend_id: sendData?.id ?? null,
+            resend_id: result.id ?? null,
             status: 'sent',
           })
         }
@@ -164,20 +161,8 @@ interface KinData {
   }
 }
 
-/**
- * One-click unsubscribe URL carrying an HMAC signature over the email so the
- * endpoint can prove the link came from us (a bare email would let anyone
- * unsubscribe anyone). When UNSUBSCRIBE_SECRET is unset we fall back to the
- * identifier-free manual form rather than emit a forgeable link.
- */
-async function buildUnsubscribeUrl(subscriberEmail: string): Promise<string> {
-  const base = process.env.APP_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://pleiad.io'
-  const sig = await signUnsubscribeToken(subscriberEmail)
-  if (!sig) return `${base}/unsubscribe`
-  return `${base}/api/newsletter/unsubscribe?email=${encodeURIComponent(subscriberEmail)}&sig=${sig}`
-}
-
-function getDailyKinEmailHtml(kinData: KinData, unsubscribeUrl: string): string {
+/** Inner content of the daily-kin email; the branded shell is renderEmail(). */
+function dailyKinBody(kinData: KinData): string {
   const sealColors: Record<string, string> = {
     red: '#ef4444',
     white: '#f5f5f5',
@@ -185,7 +170,7 @@ function getDailyKinEmailHtml(kinData: KinData, unsubscribeUrl: string): string 
     yellow: '#eab308'
   }
 
-  const sealColor = sealColors[kinData.seal.color] || '#c9a55c'
+  const sealColor = sealColors[kinData.seal.color] || '#7D5BC9'
   const dateFormatted = new Date(kinData.date).toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -194,78 +179,54 @@ function getDailyKinEmailHtml(kinData: KinData, unsubscribeUrl: string): string 
   })
 
   return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
-<body style="margin: 0; padding: 0; background-color: #0a0a0f; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-    <div style="text-align: center; margin-bottom: 30px;">
-      <span style="color: #c9a55c; font-size: 24px;">*</span>
-      <p style="color: #666; font-size: 14px; margin: 10px 0 0;">${dateFormatted}</p>
+    <div style="text-align:center;margin-bottom:20px;">
+      <p style="color:rgba(255,255,255,0.5);font-size:14px;margin:0;">${dateFormatted}</p>
     </div>
-
-    <div style="background: linear-gradient(180deg, rgba(201, 165, 92, 0.15) 0%, rgba(201, 165, 92, 0.05) 100%); border: 1px solid rgba(201, 165, 92, 0.3); border-radius: 16px; padding: 30px; margin-bottom: 30px; text-align: center;">
-      <div style="background: ${sealColor}; color: ${kinData.seal.color === 'white' ? '#000' : '#fff'}; display: inline-block; padding: 8px 20px; border-radius: 20px; font-weight: 600; margin-bottom: 20px;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="background:${sealColor};color:${kinData.seal.color === 'white' ? '#000' : '#fff'};display:inline-block;padding:8px 20px;border-radius:20px;font-weight:600;margin-bottom:16px;">
         Kin ${kinData.kin}
       </div>
-
-      <h1 style="color: #ffffff; font-size: 28px; margin: 0 0 5px;">
+      <h1 style="color:#ffffff;font-size:26px;margin:0 0 4px;">
         ${kinData.tone.name} ${kinData.seal.name}
       </h1>
-      <p style="color: #888; font-size: 14px; margin: 0 0 20px;">
+      <p style="color:rgba(255,255,255,0.5);font-size:14px;margin:0 0 18px;">
         ${kinData.tone.nameHebrew} ${kinData.seal.nameHebrew}
       </p>
-
-      <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 20px; margin-top: 20px;">
-        <p style="color: #c9a55c; font-style: italic; line-height: 1.6; margin: 0; white-space: pre-line;">
+      <div style="background:rgba(0,0,0,0.25);border-radius:8px;padding:18px;">
+        <p style="color:#A78FDF;font-style:italic;line-height:1.6;margin:0;white-space:pre-line;">
 ${kinData.mantra}
         </p>
       </div>
     </div>
-
-    <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 25px; margin-bottom: 30px;">
-      <h3 style="color: #c9a55c; font-size: 16px; margin: 0 0 15px; text-align: center;">Today's Oracle</h3>
-      <table style="width: 100%; border-collapse: collapse;">
+    <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:20px;margin-bottom:24px;">
+      <h3 style="color:#A78FDF;font-size:15px;margin:0 0 14px;text-align:center;">Today's Oracle</h3>
+      <table style="width:100%;border-collapse:collapse;">
         <tr>
-          <td style="text-align: center; padding: 10px; width: 50%;">
-            <span style="color: ${sealColors[kinData.oracle.guide.color] || '#888'}; font-size: 12px; text-transform: uppercase;">Guide</span>
-            <p style="color: #fff; margin: 5px 0 0; font-size: 14px;">${kinData.oracle.guide.name}</p>
+          <td style="text-align:center;padding:8px;width:50%;">
+            <span style="color:${sealColors[kinData.oracle.guide.color] || 'rgba(255,255,255,0.5)'};font-size:12px;text-transform:uppercase;">Guide</span>
+            <p style="color:#fff;margin:4px 0 0;font-size:14px;">${kinData.oracle.guide.name}</p>
           </td>
-          <td style="text-align: center; padding: 10px; width: 50%;">
-            <span style="color: ${sealColors[kinData.oracle.analog.color] || '#888'}; font-size: 12px; text-transform: uppercase;">Analog</span>
-            <p style="color: #fff; margin: 5px 0 0; font-size: 14px;">${kinData.oracle.analog.name}</p>
+          <td style="text-align:center;padding:8px;width:50%;">
+            <span style="color:${sealColors[kinData.oracle.analog.color] || 'rgba(255,255,255,0.5)'};font-size:12px;text-transform:uppercase;">Analog</span>
+            <p style="color:#fff;margin:4px 0 0;font-size:14px;">${kinData.oracle.analog.name}</p>
           </td>
         </tr>
         <tr>
-          <td style="text-align: center; padding: 10px; width: 50%;">
-            <span style="color: ${sealColors[kinData.oracle.antipode.color] || '#888'}; font-size: 12px; text-transform: uppercase;">Antipode</span>
-            <p style="color: #fff; margin: 5px 0 0; font-size: 14px;">${kinData.oracle.antipode.name}</p>
+          <td style="text-align:center;padding:8px;width:50%;">
+            <span style="color:${sealColors[kinData.oracle.antipode.color] || 'rgba(255,255,255,0.5)'};font-size:12px;text-transform:uppercase;">Antipode</span>
+            <p style="color:#fff;margin:4px 0 0;font-size:14px;">${kinData.oracle.antipode.name}</p>
           </td>
-          <td style="text-align: center; padding: 10px; width: 50%;">
-            <span style="color: ${sealColors[kinData.oracle.occult.color] || '#888'}; font-size: 12px; text-transform: uppercase;">Occult</span>
-            <p style="color: #fff; margin: 5px 0 0; font-size: 14px;">${kinData.oracle.occult.name}</p>
+          <td style="text-align:center;padding:8px;width:50%;">
+            <span style="color:${sealColors[kinData.oracle.occult.color] || 'rgba(255,255,255,0.5)'};font-size:12px;text-transform:uppercase;">Occult</span>
+            <p style="color:#fff;margin:4px 0 0;font-size:14px;">${kinData.oracle.occult.name}</p>
           </td>
         </tr>
       </table>
     </div>
-
-    <div style="text-align: center; margin-bottom: 30px;">
-      <a href="https://pleiad.io/today" style="display: inline-block; background: linear-gradient(90deg, #c9a55c 0%, #e8d5a3 50%, #c9a55c 100%); color: #0a0a0f; text-decoration: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+    <div style="text-align:center;">
+      <a href="https://pleiad.io/today" style="display:inline-block;background:#7D5BC9;color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:8px;font-weight:600;font-size:14px;">
         Explore Full Reading
       </a>
     </div>
-
-    <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-      <p style="color: #666; font-size: 12px; margin: 0 0 10px;">Daily Kin from Pleiad</p>
-      <p style="color: #666; font-size: 12px; margin: 0;">
-        <a href="${unsubscribeUrl}" style="color: #888;">Unsubscribe</a>
-      </p>
-    </div>
-  </div>
-</body>
-</html>
-`
+  `
 }

@@ -1,4 +1,3 @@
-import { Resend } from 'resend'
 import type {
   NotificationSettings,
   NotificationChannel,
@@ -7,6 +6,7 @@ import type {
   PredictionEvent,
   DailyPrediction,
 } from '@pleiad/engine/types/prediction'
+import { getDailyPrediction, getPersonalDailyPrediction, COLOR_HEX } from '@pleiad/engine/services/predictions'
 import {
   getSettings,
   upsertSettings,
@@ -14,28 +14,16 @@ import {
   type NotificationSettingsData,
   type SerializedNotificationSettings,
 } from '@/lib/db/repositories/notifications-repo'
-import { getDailyPrediction, getPersonalDailyPrediction, COLOR_HEX } from '@pleiad/engine/services/predictions'
-import { EMAIL_FROM } from '@/lib/email/from'
+import { sendTransactionalEmail, esc } from '@/lib/email'
 import {
   deletePushTokens,
   listPushTokensForUsers,
 } from '@/lib/db/repositories/push-tokens-repo'
 import { sendExpoPush, type PushMessage } from '@/lib/services/push'
 
-// Lazy initialization of Resend to avoid build-time errors
-let resendInstance: Resend | null = null
-
-function getResend(): Resend | null {
-  if (!process.env.RESEND_API_KEY) {
-    return null
-  }
-  if (!resendInstance) {
-    resendInstance = new Resend(process.env.RESEND_API_KEY)
-  }
-  return resendInstance
-}
-
-const FROM_EMAIL = EMAIL_FROM
+/** Where recipients opt out of these notification emails. */
+const MANAGE_NOTIFICATIONS_URL = 'https://pleiad.io/app/settings/notifications'
+const MANAGE_LINK = { url: MANAGE_NOTIFICATIONS_URL, label: 'Manage notifications' }
 
 // ============================================================================
 // Notification Settings (data layer: notifications-repo / MongoDB)
@@ -129,30 +117,15 @@ export async function sendDailyDigestEmail(
   prediction: DailyPrediction,
   events: PredictionEvent[]
 ): Promise<{ success: boolean; id?: string }> {
-  const resend = getResend()
-  if (!resend) {
-    console.warn('RESEND_API_KEY not configured, skipping email')
-    return { success: false }
-  }
-
-  try {
-    const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
-      to: email,
-      subject: `Daily Forecast: ${prediction.toneName} ${prediction.sealName} - Kin ${prediction.kin}`,
-      html: getDailyDigestEmailHtml(userName, prediction, events),
-    })
-
-    if (error) {
-      console.error('Error sending daily digest:', error)
-      return { success: false }
-    }
-
-    return { success: true, id: data?.id }
-  } catch (err) {
-    console.error('Exception sending daily digest:', err)
-    return { success: false }
-  }
+  const result = await sendTransactionalEmail({
+    to: email,
+    subject: `Daily Forecast: ${prediction.toneName} ${prediction.sealName} — Kin ${prediction.kin}`,
+    preheader: `${prediction.toneName} ${prediction.sealName} — your forecast for today.`,
+    bodyHtml: dailyDigestBody(userName, prediction, events),
+    footerText: 'Daily Forecast from Pleiad',
+    footerLink: MANAGE_LINK,
+  })
+  return { success: result.ok, id: result.id }
 }
 
 /**
@@ -163,30 +136,15 @@ export async function sendEventNotificationEmail(
   userName: string,
   event: PredictionEvent
 ): Promise<{ success: boolean; id?: string }> {
-  const resend = getResend()
-  if (!resend) {
-    console.warn('RESEND_API_KEY not configured, skipping email')
-    return { success: false }
-  }
-
-  try {
-    const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
-      to: email,
-      subject: `Upcoming: ${event.title}`,
-      html: getEventNotificationEmailHtml(userName, event),
-    })
-
-    if (error) {
-      console.error('Error sending event notification:', error)
-      return { success: false }
-    }
-
-    return { success: true, id: data?.id }
-  } catch (err) {
-    console.error('Exception sending event notification:', err)
-    return { success: false }
-  }
+  const result = await sendTransactionalEmail({
+    to: email,
+    subject: `Upcoming: ${event.title}`,
+    preheader: event.description,
+    bodyHtml: eventBody(userName, event),
+    footerText: 'Event notification from Pleiad',
+    footerLink: MANAGE_LINK,
+  })
+  return { success: result.ok, id: result.id }
 }
 
 /**
@@ -196,33 +154,18 @@ export async function sendTestNotificationEmail(
   email: string,
   userName: string
 ): Promise<{ success: boolean; id?: string }> {
-  const resend = getResend()
-  if (!resend) {
-    console.warn('RESEND_API_KEY not configured, skipping email')
-    return { success: false }
-  }
-
   const today = new Date().toISOString().split('T')[0]
   const prediction = getDailyPrediction(today)
 
-  try {
-    const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
-      to: email,
-      subject: 'Test: Pleiad Notification',
-      html: getTestEmailHtml(userName, prediction),
-    })
-
-    if (error) {
-      console.error('Error sending test notification:', error)
-      return { success: false }
-    }
-
-    return { success: true, id: data?.id }
-  } catch (err) {
-    console.error('Exception sending test notification:', err)
-    return { success: false }
-  }
+  const result = await sendTransactionalEmail({
+    to: email,
+    subject: 'Test: Pleiad Notification',
+    preheader: 'Your Pleiad notifications are working.',
+    title: 'Test notification',
+    bodyHtml: testBody(userName, prediction),
+    footerText: 'This is a test notification from Pleiad.',
+  })
+  return { success: result.ok, id: result.id }
 }
 
 // ============================================================================
@@ -332,7 +275,7 @@ export async function processDailyDigestNotifications(): Promise<{
 // Email Templates
 // ============================================================================
 
-function getDailyDigestEmailHtml(
+function dailyDigestBody(
   userName: string,
   prediction: DailyPrediction,
   events: PredictionEvent[]
@@ -346,72 +289,47 @@ function getDailyDigestEmailHtml(
 
   const eventsHtml = events.length > 0
     ? events.map((e) => `
-      <div style="background: rgba(201, 165, 92, 0.1); border-radius: 8px; padding: 15px; margin: 10px 0;">
-        <p style="color: #c9a55c; font-weight: 600; margin: 0 0 5px;">${e.title}</p>
-        <p style="color: #888; font-size: 14px; margin: 0;">${e.description}</p>
+      <div style="background:rgba(167,143,223,0.1);border-radius:8px;padding:14px;margin:10px 0;">
+        <p style="color:#A78FDF;font-weight:600;margin:0 0 4px;">${esc(e.title)}</p>
+        <p style="color:rgba(255,255,255,0.5);font-size:14px;margin:0;">${esc(e.description)}</p>
       </div>
     `).join('')
     : ''
 
   return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
-<body style="margin: 0; padding: 0; background-color: #0a0a0f; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-    <div style="text-align: center; margin-bottom: 30px;">
-      <span style="color: #c9a55c; font-size: 24px;">*</span>
-      <p style="color: #888; font-size: 14px; margin: 10px 0 0;">${dateFormatted}</p>
+    <div style="text-align:center;margin-bottom:20px;">
+      <p style="color:rgba(255,255,255,0.5);font-size:14px;margin:0 0 8px;">${dateFormatted}</p>
+      <p style="color:rgba(255,255,255,0.7);font-size:14px;margin:0;">Good morning, ${esc(userName)}</p>
     </div>
-
-    <div style="background: linear-gradient(180deg, rgba(201, 165, 92, 0.15) 0%, rgba(201, 165, 92, 0.05) 100%); border: 1px solid rgba(201, 165, 92, 0.3); border-radius: 16px; padding: 30px; margin-bottom: 30px; text-align: center;">
-      <p style="color: #888; font-size: 14px; margin: 0 0 10px;">Good morning, ${userName}</p>
-
-      <div style="background: ${prediction.colorHex}; color: ${prediction.color === 'white' ? '#000' : '#fff'}; display: inline-block; padding: 8px 20px; border-radius: 20px; font-weight: 600; margin-bottom: 20px;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="background:${prediction.colorHex};color:${prediction.color === 'white' ? '#000' : '#fff'};display:inline-block;padding:8px 20px;border-radius:20px;font-weight:600;margin-bottom:16px;">
         Kin ${prediction.kin}
       </div>
-
-      <h1 style="color: #ffffff; font-size: 28px; margin: 0 0 5px;">
+      <h1 style="color:#ffffff;font-size:26px;margin:0 0 12px;">
         ${prediction.toneName} ${prediction.sealName}
       </h1>
-
-      <div style="margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-        <p style="color: #888; font-size: 14px; margin: 0;">
+      <div style="padding:14px;background:rgba(0,0,0,0.2);border-radius:8px;">
+        <p style="color:rgba(255,255,255,0.5);font-size:14px;margin:0;">
           Day ${prediction.wavespell.day} of ${prediction.wavespell.name} Wavespell<br/>
           Theme: ${prediction.wavespell.role}
         </p>
       </div>
     </div>
-
     ${eventsHtml ? `
-    <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 25px; margin-bottom: 30px;">
-      <h3 style="color: #c9a55c; font-size: 16px; margin: 0 0 15px;">Today's Events</h3>
+    <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:20px;margin-bottom:24px;">
+      <h3 style="color:#A78FDF;font-size:15px;margin:0 0 12px;">Today's Events</h3>
       ${eventsHtml}
     </div>
     ` : ''}
-
-    <div style="text-align: center; margin-bottom: 30px;">
-      <a href="https://pleiad.io/app/predictions" style="display: inline-block; background: linear-gradient(90deg, #c9a55c 0%, #e8d5a3 50%, #c9a55c 100%); color: #0a0a0f; text-decoration: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+    <div style="text-align:center;">
+      <a href="https://pleiad.io/app/predictions" style="display:inline-block;background:#7D5BC9;color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:8px;font-weight:600;font-size:14px;">
         View Full Forecast
       </a>
     </div>
-
-    <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-      <p style="color: #666; font-size: 12px; margin: 0 0 10px;">Daily Forecast from Pleiad</p>
-      <p style="color: #666; font-size: 12px; margin: 0;">
-        <a href="https://pleiad.io/app/settings/notifications" style="color: #888;">Manage notifications</a>
-      </p>
-    </div>
-  </div>
-</body>
-</html>
-`
+  `
 }
 
-function getEventNotificationEmailHtml(userName: string, event: PredictionEvent): string {
+function eventBody(userName: string, event: PredictionEvent): string {
   const startDate = new Date(event.startDate).toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -426,92 +344,39 @@ function getEventNotificationEmailHtml(userName: string, event: PredictionEvent)
   }
 
   return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
-<body style="margin: 0; padding: 0; background-color: #0a0a0f; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-    <div style="text-align: center; margin-bottom: 30px;">
-      <span style="color: #c9a55c; font-size: 24px;">*</span>
+    <p style="color:rgba(255,255,255,0.7);font-size:14px;margin:0 0 12px;">Hi ${esc(userName)},</p>
+    <div style="display:inline-block;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600;margin-bottom:14px;background:${intensityColors[event.intensity]};color:#fff;">
+      ${event.intensity.toUpperCase()} INTENSITY
     </div>
-
-    <div style="background: linear-gradient(180deg, rgba(201, 165, 92, 0.15) 0%, rgba(201, 165, 92, 0.05) 100%); border: 1px solid rgba(201, 165, 92, 0.3); border-radius: 16px; padding: 30px; margin-bottom: 30px;">
-      <p style="color: #888; font-size: 14px; margin: 0 0 10px;">Hi ${userName},</p>
-
-      <div style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-bottom: 15px; background: ${intensityColors[event.intensity]}; color: #fff;">
-        ${event.intensity.toUpperCase()} INTENSITY
-      </div>
-
-      <h1 style="color: #ffffff; font-size: 24px; margin: 0 0 10px;">
-        ${event.title}
-      </h1>
-
-      <p style="color: #c9a55c; font-size: 14px; margin: 0 0 20px;">
-        ${startDate}
-      </p>
-
-      <p style="color: #a0a0a0; line-height: 1.6; margin: 0;">
-        ${event.description}
-      </p>
-
-      ${event.themes.length > 0 ? `
-      <div style="margin-top: 20px;">
-        ${event.themes.map((t) => `<span style="display: inline-block; background: rgba(201, 165, 92, 0.2); color: #c9a55c; padding: 4px 10px; border-radius: 12px; font-size: 12px; margin: 2px;">${t}</span>`).join('')}
-      </div>
-      ` : ''}
+    <h1 style="color:#ffffff;font-size:22px;margin:0 0 8px;">
+      ${esc(event.title)}
+    </h1>
+    <p style="color:#A78FDF;font-size:14px;margin:0 0 16px;">
+      ${startDate}
+    </p>
+    <p style="color:rgba(255,255,255,0.7);line-height:1.6;margin:0;">
+      ${esc(event.description)}
+    </p>
+    ${event.themes.length > 0 ? `
+    <div style="margin-top:16px;">
+      ${event.themes.map((t) => `<span style="display:inline-block;background:rgba(167,143,223,0.18);color:#A78FDF;padding:4px 10px;border-radius:12px;font-size:12px;margin:2px;">${esc(t)}</span>`).join('')}
     </div>
-
-    <div style="text-align: center; margin-bottom: 30px;">
-      <a href="https://pleiad.io/app/predictions" style="display: inline-block; background: linear-gradient(90deg, #c9a55c 0%, #e8d5a3 50%, #c9a55c 100%); color: #0a0a0f; text-decoration: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+    ` : ''}
+    <div style="text-align:center;margin-top:24px;">
+      <a href="https://pleiad.io/app/predictions" style="display:inline-block;background:#7D5BC9;color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:8px;font-weight:600;font-size:14px;">
         View Details
       </a>
     </div>
-
-    <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-      <p style="color: #666; font-size: 12px; margin: 0 0 10px;">Event notification from Pleiad</p>
-      <p style="color: #666; font-size: 12px; margin: 0;">
-        <a href="https://pleiad.io/app/settings/notifications" style="color: #888;">Manage notifications</a>
-      </p>
-    </div>
-  </div>
-</body>
-</html>
-`
+  `
 }
 
-function getTestEmailHtml(userName: string, prediction: DailyPrediction): string {
+function testBody(userName: string, prediction: DailyPrediction): string {
   return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
-<body style="margin: 0; padding: 0; background-color: #0a0a0f; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-    <div style="text-align: center; margin-bottom: 30px;">
-      <span style="color: #c9a55c; font-size: 24px;">*</span>
-      <h1 style="color: #ffffff; font-size: 24px; margin: 10px 0;">Test Notification</h1>
-    </div>
-
-    <div style="background: linear-gradient(180deg, rgba(201, 165, 92, 0.15) 0%, rgba(201, 165, 92, 0.05) 100%); border: 1px solid rgba(201, 165, 92, 0.3); border-radius: 16px; padding: 30px; margin-bottom: 30px; text-align: center;">
-      <p style="color: #888; font-size: 14px; margin: 0 0 20px;">Hi ${userName}, your Pleiad notifications are working!</p>
-
-      <p style="color: #a0a0a0; font-size: 14px; margin: 0;">
-        Today's Kin: <strong style="color: #fff;">Kin ${prediction.kin} - ${prediction.toneName} ${prediction.sealName}</strong>
+    <div style="text-align:center;">
+      <p style="color:rgba(255,255,255,0.7);font-size:14px;margin:0 0 18px;">Hi ${esc(userName)}, your Pleiad notifications are working.</p>
+      <p style="color:rgba(255,255,255,0.7);font-size:14px;margin:0;">
+        Today's Kin: <strong style="color:#fff;">Kin ${prediction.kin} — ${prediction.toneName} ${prediction.sealName}</strong>
       </p>
     </div>
-
-    <div style="text-align: center;">
-      <p style="color: #666; font-size: 12px; margin: 0;">
-        This is a test notification from Pleiad.
-      </p>
-    </div>
-  </div>
-</body>
-</html>
-`
+  `
 }

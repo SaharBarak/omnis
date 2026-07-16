@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Resend } from 'resend'
 import { z } from 'zod'
 import { rateLimiters, rateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limit'
 import { findByEmail, subscribe } from '@/lib/db/repositories/newsletter-repo'
-import { EMAIL_FROM } from '@/lib/email/from'
+import { sendMarketingEmail } from '@/lib/email'
+import { buildUnsubscribeUrl } from '@/lib/email/unsubscribe'
 import { verifyTurnstileToken } from '@/lib/security/turnstile'
 
 export const dynamic = 'force-dynamic'
@@ -63,21 +63,19 @@ export async function POST(request: NextRequest) {
     // a previously unsubscribed one. `created` is true only on first insert.
     const { created } = await subscribe(normalizedEmail)
 
-    // Send welcome email only for genuinely new subscribers (not re-subscribes),
-    // and only if Resend is configured.
-    if (created && process.env.RESEND_API_KEY) {
-      try {
-        const resend = new Resend(process.env.RESEND_API_KEY)
-        await resend.emails.send({
-          from: EMAIL_FROM,
-          to: normalizedEmail,
-          subject: 'Welcome to Pleiad - Your Cosmic Journey Begins',
-          html: getWelcomeEmailHtml(),
-        })
-      } catch (emailError) {
-        // Log but don't fail the subscription
-        console.error('Error sending welcome email:', emailError)
-      }
+    // Send welcome email only for genuinely new subscribers (not re-subscribes).
+    // Marketing send: carries a signed one-click unsubscribe. Never fails the
+    // subscription — sendMarketingEmail returns {ok:false} rather than throwing.
+    if (created) {
+      await sendMarketingEmail({
+        to: normalizedEmail,
+        subject: 'Welcome to Pleiad — your cosmic journey begins',
+        preheader: 'Daily cosmic guidance from the Dreamspell calendar.',
+        title: 'Welcome to Pleiad',
+        bodyHtml: welcomeBody(),
+        footerText: 'You joined the Pleiad newsletter.',
+        unsubscribeUrl: await buildUnsubscribeUrl(normalizedEmail),
+      })
     }
 
     const message = wasUnsubscribed ? 'Welcome back!' : 'Subscribed successfully'
@@ -89,44 +87,23 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function getWelcomeEmailHtml(): string {
+/** Inner content of the welcome email; the branded shell is renderEmail(). */
+function welcomeBody(): string {
   return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
-<body style="margin: 0; padding: 0; background-color: #0a0a0f; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-    <div style="text-align: center; margin-bottom: 40px;">
-      <span style="color: #c9a55c; font-size: 32px;">*</span>
-      <h1 style="color: #ffffff; font-size: 28px; margin: 10px 0;">Welcome to Pleiad</h1>
-    </div>
-    <div style="background: linear-gradient(180deg, rgba(201, 165, 92, 0.1) 0%, rgba(201, 165, 92, 0.05) 100%); border: 1px solid rgba(201, 165, 92, 0.3); border-radius: 12px; padding: 30px; margin-bottom: 30px;">
-      <h2 style="color: #c9a55c; font-size: 20px; margin: 0 0 15px;">Your Cosmic Journey Begins</h2>
-      <p style="color: #a0a0a0; line-height: 1.6; margin: 0 0 20px;">
-        Thank you for joining Pleiad! You'll now receive daily cosmic guidance featuring Today's Kin from the Dreamspell calendar.
-      </p>
-      <ul style="color: #a0a0a0; line-height: 1.8; margin: 0 0 20px; padding-left: 20px;">
-        <li>The day's galactic signature (Kin)</li>
-        <li>Solar Seal and Galactic Tone meanings</li>
-        <li>Your daily affirmation (mantra)</li>
-        <li>Oracle relationships for deeper insight</li>
-      </ul>
-    </div>
-    <div style="text-align: center; margin-bottom: 30px;">
-      <a href="https://pleiad.io/today" style="display: inline-block; background: linear-gradient(90deg, #c9a55c 0%, #e8d5a3 50%, #c9a55c 100%); color: #0a0a0f; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: 600;">
+    <h2 style="color:#A78FDF;font-size:20px;margin:0 0 14px;">Your cosmic journey begins</h2>
+    <p style="color:rgba(255,255,255,0.7);line-height:1.6;margin:0 0 18px;">
+      Thanks for joining Pleiad. You'll now receive daily cosmic guidance featuring Today's Kin from the Dreamspell calendar.
+    </p>
+    <ul style="color:rgba(255,255,255,0.7);line-height:1.8;margin:0 0 24px;padding-left:20px;">
+      <li>The day's galactic signature (Kin)</li>
+      <li>Solar Seal and Galactic Tone meanings</li>
+      <li>Your daily affirmation (mantra)</li>
+      <li>Oracle relationships for deeper insight</li>
+    </ul>
+    <div style="text-align:center;">
+      <a href="https://pleiad.io/today" style="display:inline-block;background:#7D5BC9;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:600;">
         View Today's Kin
       </a>
     </div>
-    <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-      <p style="color: #666; font-size: 12px;">
-        <a href="https://pleiad.io/unsubscribe" style="color: #888;">Unsubscribe</a>
-      </p>
-    </div>
-  </div>
-</body>
-</html>
-`
+  `
 }
