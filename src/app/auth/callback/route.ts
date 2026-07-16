@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
+import { sendNewUserAdminNotification } from '@/lib/services/email'
 
 type CookieToSet = { name: string; value: string; options?: CookieOptions }
 
@@ -78,6 +79,19 @@ export async function GET(request: NextRequest) {
           avatar_url: data.user.user_metadata?.avatar_url as string | undefined,
           onboarding_completed: false,
         })
+
+        // Notify the platform owner of the new signup (best-effort, non-blocking).
+        try {
+          await sendNewUserAdminNotification({
+            email: data.user.email ?? 'unknown',
+            displayName,
+            provider: data.user.app_metadata?.provider,
+            userId: data.user.id,
+            signedUpAt: data.user.created_at,
+          })
+        } catch (notifyError) {
+          console.error('[AuthCallback] Failed to send new-user admin notification:', notifyError)
+        }
 
         return NextResponse.redirect(`${origin}/onboarding`)
       }

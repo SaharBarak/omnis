@@ -7,6 +7,10 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 // Email sender identity
 const FROM_EMAIL = 'Omnis <noreply@omnis.app>'
 
+// Platform owner inbox for admin notifications (new signups, alerts, etc.)
+const ADMIN_NOTIFICATION_EMAIL =
+  process.env.ADMIN_NOTIFICATION_EMAIL || 'hi@saharbarak.dev'
+
 export interface EmailSubscriber {
   id: string
   email: string
@@ -140,6 +144,48 @@ export async function getActiveSubscribers(): Promise<EmailSubscriber[]> {
   return data || []
 }
 
+export interface NewUserNotificationData {
+  email: string
+  displayName: string
+  provider?: string
+  userId: string
+  signedUpAt?: string
+}
+
+/**
+ * Notify the platform owner that a new user just signed up.
+ * Sent to ADMIN_NOTIFICATION_EMAIL (defaults to hi@saharbarak.dev).
+ * Best-effort: never throws, so it can't block the signup flow.
+ */
+export async function sendNewUserAdminNotification(
+  user: NewUserNotificationData
+): Promise<{ success: boolean; id?: string }> {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('RESEND_API_KEY not configured, skipping new-user admin notification')
+    return { success: false }
+  }
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: ADMIN_NOTIFICATION_EMAIL,
+      replyTo: user.email,
+      subject: `New Omnis signup: ${user.displayName}`,
+      html: getNewUserAdminEmailHtml(user),
+    })
+
+    if (error) {
+      console.error('Error sending new-user admin notification:', error)
+      return { success: false }
+    }
+
+    return { success: true, id: data?.id }
+  } catch (err) {
+    console.error('Exception sending new-user admin notification:', err)
+    return { success: false }
+  }
+}
+
 /**
  * Send welcome email to new subscriber
  */
@@ -227,6 +273,67 @@ export async function sendDailyKinToAllSubscribers(kinData: DailyKinData): Promi
 }
 
 // Email HTML templates
+
+function getNewUserAdminEmailHtml(user: NewUserNotificationData): string {
+  const signedUpAt = user.signedUpAt ? new Date(user.signedUpAt) : new Date()
+  const signedUpLabel = signedUpAt.toLocaleString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  })
+  const provider = user.provider
+    ? user.provider.charAt(0).toUpperCase() + user.provider.slice(1)
+    : 'Email'
+
+  const row = (label: string, value: string) => `
+    <tr>
+      <td style="color: #666; font-size: 13px; padding: 8px 0; width: 120px; vertical-align: top;">${label}</td>
+      <td style="color: #e8e8e8; font-size: 14px; padding: 8px 0; word-break: break-word;">${value}</td>
+    </tr>`
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>New Omnis signup</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0a0a0f; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <div style="max-width: 560px; margin: 0 auto; padding: 40px 20px;">
+    <!-- Header -->
+    <div style="text-align: center; margin-bottom: 30px;">
+      <span style="color: #c9a55c; font-size: 28px;">*</span>
+      <h1 style="color: #ffffff; font-size: 22px; margin: 12px 0 4px;">New user signed up</h1>
+      <p style="color: #666; font-size: 13px; margin: 0;">A new soul joined Omnis</p>
+    </div>
+
+    <!-- Detail card -->
+    <div style="background: linear-gradient(180deg, rgba(201, 165, 92, 0.12) 0%, rgba(201, 165, 92, 0.04) 100%); border: 1px solid rgba(201, 165, 92, 0.3); border-radius: 12px; padding: 24px 28px; margin-bottom: 24px;">
+      <table style="width: 100%; border-collapse: collapse;">
+        ${row('Name', user.displayName)}
+        ${row('Email', user.email)}
+        ${row('Method', provider)}
+        ${row('Signed up', signedUpLabel)}
+        ${row('User ID', `<span style="font-family: monospace; font-size: 12px; color: #888;">${user.userId}</span>`)}
+      </table>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 18px;">
+      <p style="color: #555; font-size: 12px; margin: 0;">
+        Automated notification from Omnis · sent because a new user completed signup.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+`
+}
 
 function getWelcomeEmailHtml(): string {
   return `
