@@ -8,6 +8,10 @@ import type {
 } from '@pleiad/engine/types/prediction'
 import { getDailyPrediction, getPersonalDailyPrediction, COLOR_HEX } from '@pleiad/engine/services/predictions'
 import {
+  getDailyAstroPhenomena,
+  type AstroPhenomena,
+} from '@pleiad/engine/services/astro-phenomena'
+import {
   getSettings,
   upsertSettings,
   listAllEnabledDigestRecipients,
@@ -115,13 +119,14 @@ export async function sendDailyDigestEmail(
   email: string,
   userName: string,
   prediction: DailyPrediction,
-  events: PredictionEvent[]
+  events: PredictionEvent[],
+  astro: AstroPhenomena
 ): Promise<{ success: boolean; id?: string }> {
   const result = await sendTransactionalEmail({
     to: email,
     subject: `Daily Forecast: ${prediction.toneName} ${prediction.sealName} — Kin ${prediction.kin}`,
-    preheader: `${prediction.toneName} ${prediction.sealName} — your forecast for today.`,
-    bodyHtml: dailyDigestBody(userName, prediction, events),
+    preheader: `${prediction.toneName} ${prediction.sealName} · ${astro.summary}`,
+    bodyHtml: dailyDigestBody(userName, prediction, events, astro),
     footerText: 'Daily Forecast from Pleiad',
     footerLink: MANAGE_LINK,
   })
@@ -180,7 +185,13 @@ export async function sendTestNotificationEmail(
  * route. The cross-tenant read lives behind a clearly-named repo function.
  */
 export async function getUsersForDailyDigest(): Promise<
-  Array<{ userId: string; email: string; name: string; birthDate: string | null }>
+  Array<{
+    userId: string
+    email: string
+    name: string
+    birthDate: string | null
+    channels: string[]
+  }>
 > {
   try {
     return await listAllEnabledDigestRecipients()
@@ -199,6 +210,8 @@ export async function processDailyDigestNotifications(): Promise<{
 }> {
   const users = await getUsersForDailyDigest()
   const today = new Date().toISOString().split('T')[0]
+  // Today's sky, computed once for the whole run (same for every recipient).
+  const astro = getDailyAstroPhenomena(today)
 
   let sent = 0
   let failed = 0
@@ -214,25 +227,24 @@ export async function processDailyDigestNotifications(): Promise<{
         prediction = getDailyPrediction(today)
       }
 
-      const result = await sendDailyDigestEmail(
-        user.email,
-        user.name,
-        prediction,
-        prediction.events
-      )
-
-      if (result.success) {
-        sent++
-      } else {
-        failed++
+      // Email only for users who chose the email channel; push (below) reaches
+      // anyone with a device token, so mobile-only users still get notified.
+      if (user.channels.includes('email')) {
+        const result = await sendDailyDigestEmail(
+          user.email,
+          user.name,
+          prediction,
+          prediction.events,
+          astro
+        )
+        if (result.success) sent++
+        else failed++
       }
 
       pushDrafts.push({
         userId: user.userId,
         title: `Kin ${prediction.kin} · ${prediction.sealName ?? 'Today'}`,
-        body:
-          prediction.events[0]?.title ??
-          'Your daily reading is ready across the systems.',
+        body: `${prediction.toneName} ${prediction.sealName} · ${astro.moon.phase}`,
       })
 
       // Rate limiting
@@ -278,7 +290,8 @@ export async function processDailyDigestNotifications(): Promise<{
 function dailyDigestBody(
   userName: string,
   prediction: DailyPrediction,
-  events: PredictionEvent[]
+  events: PredictionEvent[],
+  astro: AstroPhenomena
 ): string {
   const dateFormatted = new Date(prediction.date).toLocaleDateString('en-US', {
     weekday: 'long',
@@ -321,6 +334,10 @@ function dailyDigestBody(
       ${eventsHtml}
     </div>
     ` : ''}
+    <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:20px;margin-bottom:24px;text-align:center;">
+      <h3 style="color:#A78FDF;font-size:15px;margin:0 0 8px;">Sky today</h3>
+      <p style="color:rgba(255,255,255,0.7);font-size:14px;margin:0;">${astro.summary}</p>
+    </div>
     <div style="text-align:center;">
       <a href="https://pleiad.io/app/predictions" style="display:inline-block;background:#7D5BC9;color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:8px;font-weight:600;font-size:14px;">
         View Full Forecast

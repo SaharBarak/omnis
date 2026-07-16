@@ -47,11 +47,6 @@ export type SerializedNotificationSettings = NotificationSettingsData & {
   updated_at: string
 }
 
-/** jsonb array containment: does `channels` include the given channel? */
-function channelsInclude(channel: string) {
-  return sql`${notification_settings.channels} @> ${JSON.stringify([channel])}::jsonb`
-}
-
 // ---------------------------------------------------------------------------
 // Owner-scoped operations (USER context)
 // ---------------------------------------------------------------------------
@@ -140,6 +135,8 @@ export interface DigestRecipient {
   email: string
   name: string
   birthDate: string | null
+  /** The user's chosen channels — the caller sends email only if it includes 'email'. */
+  channels: string[]
 }
 
 /**
@@ -154,19 +151,28 @@ export interface DigestRecipient {
 export async function listAllEnabledDigestRecipients(): Promise<DigestRecipient[]> {
   const db = getDb()
 
+  // Every enabled daily-digest user, regardless of channel. The caller sends
+  // email only to those whose channels include 'email'; push is gated instead
+  // on having a registered device token — so a push-only mobile user (channels
+  // ['in-app']) still gets their daily notification.
   const settings = await db
-    .select({ user_id: notification_settings.user_id })
+    .select({
+      user_id: notification_settings.user_id,
+      channels: notification_settings.channels,
+    })
     .from(notification_settings)
     .where(
       and(
         eq(notification_settings.enabled, true),
-        eq(notification_settings.daily_digest, true),
-        channelsInclude('email')
+        eq(notification_settings.daily_digest, true)
       )
     )
 
   const userIds = settings.map((s) => s.user_id)
   if (userIds.length === 0) return []
+
+  const channelsById = new Map<string, string[]>()
+  for (const s of settings) channelsById.set(s.user_id, (s.channels as string[]) ?? [])
 
   // Email + display name come from the auth `users` table; birth date comes
   // from the app `profiles` table. Fetch both, keyed by user id.
@@ -208,6 +214,7 @@ export async function listAllEnabledDigestRecipients(): Promise<DigestRecipient[
       email,
       name: profile?.display_name || authUser?.name || 'Friend',
       birthDate: profile?.birth_date ?? null,
+      channels: channelsById.get(userId) ?? [],
     })
   }
 
@@ -230,7 +237,8 @@ export async function listAllEnabledSettingsForHour(hourPrefix: string) {
       and(
         eq(notification_settings.enabled, true),
         eq(notification_settings.daily_digest, true),
-        channelsInclude('email'),
+        // Any channel: the hour-gate decides whether to run the cron at all;
+        // per-recipient email vs push is resolved downstream.
         gte(notification_settings.daily_digest_time, `${hourPrefix}:00`),
         lt(notification_settings.daily_digest_time, `${next}:00`)
       )
