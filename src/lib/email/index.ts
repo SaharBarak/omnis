@@ -1,5 +1,5 @@
-export { EMAIL_FROM, EMAIL_FROM_MARKETING } from './from'
-export { buildUnsubscribeUrl, emailBaseUrl } from './unsubscribe'
+export { emailFrom, emailFromMarketing } from './from'
+export { buildUnsubscribeLink, buildConfirmUrl, emailBaseUrl, type UnsubscribeLink } from './links'
 export { renderEmail, esc, type EmailLayoutOptions } from './layout'
 export { sendMarketingEmail, sendTransactionalEmail, type SendResult } from './send'
 export { addAudienceContact, unsubscribeAudienceContact } from './audience'

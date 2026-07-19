@@ -1,12 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { rateLimiters, rateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limit'
-import { findByEmail, subscribe } from '@/lib/db/repositories/newsletter-repo'
-import { sendMarketingEmail, addAudienceContact } from '@/lib/email'
-import { buildUnsubscribeUrl } from '@/lib/email/unsubscribe'
+import { findByEmail, upsertPendingSubscriber } from '@/lib/db/repositories/newsletter-repo'
+import { sendTransactionalEmail } from '@/lib/email'
+import { buildConfirmUrl } from '@/lib/email/links'
+import { esc } from '@/lib/email/layout'
 import { verifyTurnstileToken } from '@/lib/security/turnstile'
 
 export const dynamic = 'force-dynamic'
+
+/**
+ * Newsletter signup — double opt-in.
+ *
+ * This endpoint is public and unauthenticated: anyone can POST anyone's
+ * address. So a signup grants no consent by itself. It records a *pending*
+ * subscriber and emails a signed confirmation link; only clicking that link
+ * (which requires access to the inbox) puts the address into the daily-kin
+ * blast or the Resend audience. Without this, one request would sign a
+ * non-consenting third party up to recurring mail from a verified domain —
+ * Turnstile proves a browser solved a challenge, not that the sender owns the
+ * address.
+ */
 
 // Zod schema for request validation
 const subscribeSchema = z.object({
@@ -16,6 +30,15 @@ const subscribeSchema = z.object({
     .email('Invalid email format')
     .transform((val) => val.toLowerCase().trim()),
 })
+
+/**
+ * The one response every success branch returns. Distinct messages per branch
+ * ("Already subscribed" / "Welcome back!" / "Subscribed successfully") were a
+ * membership oracle: they let anyone probe whether an address is on the list.
+ * It is also honest for each branch — a pending or resubscribing address does
+ * get mail to confirm, and an already-active one has nothing to do.
+ */
+const CONFIRM_MESSAGE = 'Check your inbox — confirm your email to finish subscribing.'
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,41 +71,39 @@ export async function POST(request: NextRequest) {
 
     const { email: normalizedEmail } = parseResult.data
 
-    // Determine prior state so we can preserve the original response messages
-    // (Welcome back! / Already subscribed / Subscribed successfully).
     const existing = await findByEmail(normalizedEmail)
-    const wasUnsubscribed = Boolean(existing?.unsubscribed_at)
+    const alreadyActive = Boolean(existing?.confirmed && !existing.unsubscribed_at)
 
-    if (existing && !wasUnsubscribed) {
-      // Already an active subscriber — no write, no welcome email.
-      const response = NextResponse.json({ success: true, message: 'Already subscribed' })
-      return addRateLimitHeaders(response, rateLimitResult)
-    }
+    // An already-active subscriber needs no second confirmation mail; every
+    // other state (new, pending, previously unsubscribed) gets one.
+    if (!alreadyActive) {
+      // Mint the link first: no secret → no way to prove address ownership →
+      // abort rather than degrade into confirming anyone.
+      const confirmUrl = await buildConfirmUrl(normalizedEmail)
+      if (!confirmUrl) {
+        console.error(
+          'newsletter: UNSUBSCRIBE_SECRET not set — cannot mint a confirmation link; refusing signup',
+        )
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+      }
 
-    // Upsert on the unique email index: inserts a new subscriber or reactivates
-    // a previously unsubscribed one. `created` is true only on first insert.
-    const { created } = await subscribe(normalizedEmail)
+      await upsertPendingSubscriber(normalizedEmail)
 
-    // Mirror into the Resend audience (best-effort; never blocks the signup).
-    await addAudienceContact(normalizedEmail)
-
-    // Send welcome email only for genuinely new subscribers (not re-subscribes).
-    // Marketing send: carries a signed one-click unsubscribe. Never fails the
-    // subscription — sendMarketingEmail returns {ok:false} rather than throwing.
-    if (created) {
-      await sendMarketingEmail({
+      // Transactional, not marketing: one requested message, no promotional
+      // content, and it must not carry List-Unsubscribe for a list the
+      // recipient has not joined yet.
+      await sendTransactionalEmail({
         to: normalizedEmail,
-        subject: 'Welcome to Pleiad — your cosmic journey begins',
-        preheader: 'Daily cosmic guidance from the Dreamspell calendar.',
-        title: 'Welcome to Pleiad',
-        bodyHtml: welcomeBody(),
-        footerText: 'You joined the Pleiad newsletter.',
-        unsubscribeUrl: await buildUnsubscribeUrl(normalizedEmail),
+        subject: 'Confirm your Pleiad subscription',
+        preheader: 'One click to start receiving the Daily Kin.',
+        title: 'Confirm your subscription',
+        bodyHtml: confirmBody(confirmUrl),
+        footerText:
+          'Someone entered this address on pleiad.io. If it wasn’t you, ignore this email — nothing will be sent.',
       })
     }
 
-    const message = wasUnsubscribed ? 'Welcome back!' : 'Subscribed successfully'
-    const response = NextResponse.json({ success: true, message })
+    const response = NextResponse.json({ success: true, message: CONFIRM_MESSAGE })
     return addRateLimitHeaders(response, rateLimitResult)
   } catch (error) {
     console.error('Newsletter subscription error:', error)
@@ -90,23 +111,20 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/** Inner content of the welcome email; the branded shell is renderEmail(). */
-function welcomeBody(): string {
+/** Inner content of the confirmation email; the branded shell is renderEmail(). */
+function confirmBody(confirmUrl: string): string {
   return `
-    <h2 style="color:#A78FDF;font-size:20px;margin:0 0 14px;">Your cosmic journey begins</h2>
+    <h2 style="color:#A78FDF;font-size:20px;margin:0 0 14px;">One more step</h2>
     <p style="color:rgba(255,255,255,0.7);line-height:1.6;margin:0 0 18px;">
-      Thanks for joining Pleiad. You'll now receive daily cosmic guidance featuring Today's Kin from the Dreamspell calendar.
+      Confirm this address to start receiving daily cosmic guidance featuring Today's Kin from the Dreamspell calendar.
     </p>
-    <ul style="color:rgba(255,255,255,0.7);line-height:1.8;margin:0 0 24px;padding-left:20px;">
-      <li>The day's galactic signature (Kin)</li>
-      <li>Solar Seal and Galactic Tone meanings</li>
-      <li>Your daily affirmation (mantra)</li>
-      <li>Oracle relationships for deeper insight</li>
-    </ul>
-    <div style="text-align:center;">
-      <a href="https://pleiad.io/today" style="display:inline-block;background:#7D5BC9;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:600;">
-        View Today's Kin
+    <div style="text-align:center;margin:0 0 20px;">
+      <a href="${esc(confirmUrl)}" style="display:inline-block;background:#7D5BC9;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:600;">
+        Confirm subscription
       </a>
     </div>
+    <p style="color:rgba(255,255,255,0.45);font-size:12px;line-height:1.6;margin:0;">
+      This link expires in 7 days. If you didn't sign up, ignore this email — you won't hear from us again.
+    </p>
   `
 }

@@ -84,6 +84,9 @@ describe('GET /api/cron/daily-kin', () => {
       RESEND_API_KEY: 'test-resend-key',
       CRON_SECRET: 'test-cron-secret',
       UNSUBSCRIBE_SECRET: 'test-unsubscribe-secret',
+      // Required for any marketing send — sendMarketingEmail refuses without
+      // the CAN-SPAM postal address.
+      EMAIL_POSTAL_ADDRESS: 'Pleiad, 1 Test St, Testville',
       NODE_ENV: 'test'
     }
 
@@ -245,8 +248,51 @@ describe('GET /api/cron/daily-kin', () => {
       const emailCall = mockResendSend.mock.calls[0][0]
       expect(emailCall.html).toContain(`email=${encodeURIComponent(testEmail)}`)
       expect(emailCall.html).not.toContain('email=RECIPIENT')
-      // Link must carry the HMAC signature (forgery protection).
-      expect(emailCall.html).toMatch(/&sig=[0-9a-f]{64}/)
+      // Link must carry the HMAC signature (forgery protection). The `&` is
+      // `&amp;` because the href is HTML-escaped — the browser decodes it back.
+      expect(emailCall.html).toMatch(/&amp;sig=[0-9a-f]{64}/)
+    })
+
+    it('advertises RFC 8058 one-click unsubscribe pointing at the signed API endpoint', async () => {
+      const request = createRequest('/api/cron/daily-kin', {
+        authorization: 'Bearer test-cron-secret'
+      })
+      await GET(request)
+
+      const emailCall = mockResendSend.mock.calls[0][0]
+      // The header carries the raw (unescaped) URL, unlike the HTML href.
+      expect(emailCall.headers['List-Unsubscribe']).toMatch(
+        /^<https:\/\/pleiad\.io\/api\/newsletter\/unsubscribe\?email=.+&sig=[0-9a-f]{64}>$/
+      )
+      expect(emailCall.headers['List-Unsubscribe-Post']).toBe('List-Unsubscribe=One-Click')
+    })
+
+    it('does not advertise one-click when the link degrades to the manual page', async () => {
+      // No secret → no signature → the URL is the /unsubscribe page, which
+      // cannot honour a one-click POST. Advertising it anyway makes the
+      // provider's button fail and pushes the user to "Report spam".
+      delete process.env.UNSUBSCRIBE_SECRET
+      const request = createRequest('/api/cron/daily-kin', {
+        authorization: 'Bearer test-cron-secret'
+      })
+      await GET(request)
+
+      const emailCall = mockResendSend.mock.calls[0][0]
+      expect(emailCall.headers['List-Unsubscribe']).toBe('<https://pleiad.io/unsubscribe>')
+      expect(emailCall.headers['List-Unsubscribe-Post']).toBeUndefined()
+    })
+
+    it('refuses to send marketing mail without the CAN-SPAM postal address', async () => {
+      delete process.env.EMAIL_POSTAL_ADDRESS
+      const request = createRequest('/api/cron/daily-kin', {
+        authorization: 'Bearer test-cron-secret'
+      })
+      const response = await GET(request)
+      const data = await parseResponse(response)
+
+      expect(mockResendSend).not.toHaveBeenCalled()
+      expect(data.sent).toBe(0)
+      expect(data.failed).toBe(1)
     })
 
     it('should fall back to the manual unsubscribe page when UNSUBSCRIBE_SECRET is unset', async () => {

@@ -1,4 +1,4 @@
-import { and, eq, gte, lt, sql } from 'drizzle-orm'
+import { and, eq, gte, isNotNull, lt, or, sql } from 'drizzle-orm'
 import { getDb } from '@/lib/db/client'
 import { email_send_log, newsletter_subscribers } from '@/lib/db/schema'
 import { serialize, serializeMany } from '@/lib/db/serialize'
@@ -59,65 +59,88 @@ export async function findByEmail(email: string): Promise<SubscriberRecord | nul
 }
 
 /**
- * Subscribe (or re-subscribe) an email. Upserts on the unique `email` index so
- * concurrent signups never raise a duplicate-key error and a previously
- * unsubscribed address is reactivated.
+ * Record an *unconfirmed* signup intent for an email (double opt-in step 1).
  *
- * Returns `{ subscriber, created }` where `created` is true when this call
- * inserted a brand-new subscriber (used by callers to decide whether to send a
- * welcome email).
+ * Deliberately grants no consent: this never sets `confirmed` and never clears
+ * `unsubscribed_at`. Subscribing is a public, unauthenticated action — anyone
+ * can POST anyone's address — so proof of address ownership arrives only via
+ * the signed confirmation link, and only confirmSubscriber() moves those two
+ * fields. That also means an unsolicited signup cannot resurrect an address
+ * that previously opted out.
+ *
+ * Upserts on the unique `email` index so concurrent signups never raise a
+ * duplicate-key error. Preferences seed on first insert only.
  */
-export async function subscribe(
-  email: string
-): Promise<{ subscriber: SubscriberRecord; created: boolean }> {
+export async function upsertPendingSubscriber(email: string): Promise<SubscriberRecord> {
   const db = getDb()
   const normalized = normalizeEmail(email)
   const now = new Date().toISOString()
 
-  const [existing] = await db
-    .select({ id: newsletter_subscribers.id })
-    .from(newsletter_subscribers)
-    .where(eq(newsletter_subscribers.email, normalized))
-    .limit(1)
-  const created = !existing
-
-  // Always (re)activate: clears unsubscribed_at and refreshes subscribed_at.
-  // Preferences only seed on first insert; the conflict path doesn't touch them.
   const [row] = await db
     .insert(newsletter_subscribers)
     .values({
       email: normalized,
-      unsubscribed_at: null,
       subscribed_at: now,
-      confirmed: true,
-      confirmed_at: now,
+      confirmed: false,
+      confirmed_at: null,
       preferences: { daily_kin: true },
     })
     .onConflictDoUpdate({
       target: newsletter_subscribers.email,
-      set: {
-        unsubscribed_at: null,
-        subscribed_at: now,
-        confirmed: true,
-        confirmed_at: now,
-        updated_at: now,
-      },
+      // Touch only the audit column: any existing consent state — confirmed,
+      // or a prior opt-out — must survive an unauthenticated re-signup.
+      set: { updated_at: now },
     })
     .returning()
 
-  return { subscriber: serialize<SubscriberRecord>(row), created }
+  return serialize<SubscriberRecord>(row)
 }
 
-/** Mark a subscriber confirmed (double opt-in path). Null if not found. */
-export async function confirm(email: string): Promise<SubscriberRecord | null> {
+/**
+ * Grant consent for an email (double opt-in step 2), called only after a valid
+ * signed confirmation link. This is the single place `confirmed` becomes true;
+ * it also clears any prior `unsubscribed_at`, which is what makes an
+ * unsubscribe → re-subscribe → re-confirm cycle work. Null if the address never
+ * signed up.
+ *
+ * `activated` distinguishes the transition into active from a no-op re-click.
+ * The UPDATE only matches rows that aren't already active, so the database — not
+ * a read-then-write — decides the winner: two concurrent clicks on the same
+ * link produce exactly one activation, and therefore one welcome mail and one
+ * ops ping.
+ */
+export async function confirmSubscriber(
+  email: string
+): Promise<{ subscriber: SubscriberRecord; activated: boolean } | null> {
   const db = getDb()
   const now = new Date().toISOString()
+  const normalized = normalizeEmail(email)
+
   const [row] = await db
     .update(newsletter_subscribers)
-    .set({ confirmed: true, confirmed_at: now, updated_at: now })
-    .where(eq(newsletter_subscribers.email, normalizeEmail(email)))
+    .set({
+      confirmed: true,
+      confirmed_at: now,
+      unsubscribed_at: null,
+      subscribed_at: now,
+      updated_at: now,
+    })
+    .where(
+      and(
+        eq(newsletter_subscribers.email, normalized),
+        or(
+          eq(newsletter_subscribers.confirmed, false),
+          isNotNull(newsletter_subscribers.unsubscribed_at)
+        )
+      )
+    )
     .returning()
-  return row ? serialize<SubscriberRecord>(row) : null
+
+  if (row) return { subscriber: serialize<SubscriberRecord>(row), activated: true }
+
+  // No row matched: either already active (idempotent re-click) or unknown.
+  const existing = await findByEmail(normalized)
+  return existing ? { subscriber: existing, activated: false } : null
 }
 
 /**

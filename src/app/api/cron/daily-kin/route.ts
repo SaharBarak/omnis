@@ -9,7 +9,7 @@ import {
 } from '@pleiad/engine/services/astro-phenomena'
 import { isAuthorizedCron } from '@/lib/api/cron-auth'
 import { sendMarketingEmail } from '@/lib/email'
-import { buildUnsubscribeUrl } from '@/lib/email/unsubscribe'
+import { buildUnsubscribeLink } from '@/lib/email/links'
 import {
   listSubscribersForCron,
   logEmailSend,
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
           preheader: `${kinData.tone.name} ${kinData.seal.name} · ${astro.summary}`,
           bodyHtml: dailyKinBody(kinData, astro),
           footerText: 'Daily Kin from the Pleiad newsletter.',
-          unsubscribeUrl: await buildUnsubscribeUrl(subscriber.email),
+          unsubscribe: await buildUnsubscribeLink(subscriber.email),
         })
 
         if (!result.ok) {

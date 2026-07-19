@@ -23,13 +23,19 @@ export interface EmailLayoutOptions {
   footerLink?: { url: string; label: string }
 }
 
-/** HTML-escape dynamic text before it goes into email markup. */
+/**
+ * HTML-escape dynamic text before it goes into email markup. `&` must be
+ * replaced first or it would double-escape the entities added after it.
+ * Single quotes are escaped too so the output is safe in single-quoted
+ * attributes as well as double-quoted ones.
+ */
 export function esc(value: string): string {
   return value
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
 export function renderEmail({
@@ -65,7 +71,7 @@ export function renderEmail({
       <p style="color:rgba(255,255,255,0.35);font-size:12px;margin:0 0 8px;">${esc(footerText)}</p>
       ${
         footerLink
-          ? `<p style="margin:0 0 8px;"><a href="${footerLink.url}" style="color:${COLORS.brandSoft};font-size:12px;">${esc(footerLink.label)}</a></p>`
+          ? `<p style="margin:0 0 8px;"><a href="${esc(footerLink.url)}" style="color:${COLORS.brandSoft};font-size:12px;">${esc(footerLink.label)}</a></p>`
           : ''
       }
       ${address ? `<p style="color:rgba(255,255,255,0.25);font-size:11px;margin:0;">${esc(address)}</p>` : ''}

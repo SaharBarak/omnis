@@ -1,17 +1,20 @@
 import { Resend } from 'resend'
 
-import { EMAIL_FROM, EMAIL_FROM_MARKETING } from './from'
+import { emailFrom, emailFromMarketing } from './from'
 import { renderEmail } from './layout'
+import type { UnsubscribeLink } from './links'
 
 /**
  * Central send layer. Every Pleiad email goes through here so the sender
  * identity, the branded shell, deliverability headers, and error handling live
  * in one place instead of being copy-pasted per route.
  *
- * - transactional (EMAIL_FROM): contact acks, notification digests, test mail.
+ * - transactional (EMAIL_FROM): contact acks, notification digests,
+ *   confirmation mail, ops briefing, test mail.
  * - marketing (EMAIL_FROM_MARKETING): newsletter welcome + daily-kin blast —
- *   these additionally carry RFC 8058 `List-Unsubscribe` + one-click POST
- *   headers, which Gmail/Yahoo bulk-sender rules require for inbox placement.
+ *   these additionally carry RFC 8058 `List-Unsubscribe` (+ one-click POST when
+ *   the link can honour it), which Gmail/Yahoo bulk-sender rules require for
+ *   inbox placement, and a CAN-SPAM postal address.
  */
 
 function getResend(): Resend | null {
@@ -34,14 +37,8 @@ interface BaseArgs {
 }
 
 interface MarketingArgs extends BaseArgs {
-  /** HMAC-signed unsubscribe URL (see buildUnsubscribeUrl). */
-  unsubscribeUrl: string
-  /**
-   * Advertise RFC 8058 one-click unsubscribe (`List-Unsubscribe-Post`). Only
-   * true when the URL's endpoint handles POST — our /api/newsletter/unsubscribe
-   * does. Default true.
-   */
-  oneClick?: boolean
+  /** Signed link + whether its endpoint implements the RFC 8058 POST contract. */
+  unsubscribe: UnsubscribeLink
 }
 
 interface TransactionalArgs extends BaseArgs {
@@ -49,7 +46,15 @@ interface TransactionalArgs extends BaseArgs {
   replyTo?: string
 }
 
-/** Bulk / marketing mail: marketing sender + List-Unsubscribe headers. */
+/**
+ * Bulk / marketing mail: marketing sender + List-Unsubscribe headers.
+ *
+ * Refuses to send without EMAIL_POSTAL_ADDRESS. CAN-SPAM §7704(a)(5) requires a
+ * physical postal address on commercial mail, and layout.ts renders it only
+ * when set — so an unset var would silently ship non-compliant bulk mail from a
+ * verified domain. Failing loudly is the safe direction: no mail beats illegal
+ * mail, and the daily-kin cron surfaces the failure in its per-recipient log.
+ */
 export async function sendMarketingEmail(args: MarketingArgs): Promise<SendResult> {
   const resend = getResend()
   if (!resend) {
@@ -57,12 +62,22 @@ export async function sendMarketingEmail(args: MarketingArgs): Promise<SendResul
     return { ok: false }
   }
 
-  const headers: Record<string, string> = { 'List-Unsubscribe': `<${args.unsubscribeUrl}>` }
-  if (args.oneClick !== false) headers['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click'
+  if (!process.env.EMAIL_POSTAL_ADDRESS) {
+    console.error(
+      'email: EMAIL_POSTAL_ADDRESS not set — refusing to send marketing mail without the CAN-SPAM postal address',
+    )
+    return { ok: false }
+  }
+
+  const headers: Record<string, string> = { 'List-Unsubscribe': `<${args.unsubscribe.url}>` }
+  // Only advertise one-click when the URL is the API endpoint that implements
+  // it; pointing a provider's POST at the manual page yields 405 → the button
+  // silently fails → the user reaches for "Report spam" instead.
+  if (args.unsubscribe.oneClick) headers['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click'
 
   try {
     const { data, error } = await resend.emails.send({
-      from: EMAIL_FROM_MARKETING,
+      from: emailFromMarketing(),
       to: args.to,
       subject: args.subject,
       html: renderEmail({
@@ -70,7 +85,7 @@ export async function sendMarketingEmail(args: MarketingArgs): Promise<SendResul
         title: args.title,
         bodyHtml: args.bodyHtml,
         footerText: args.footerText,
-        footerLink: { url: args.unsubscribeUrl, label: 'Unsubscribe' },
+        footerLink: { url: args.unsubscribe.url, label: 'Unsubscribe' },
       }),
       headers,
     })
@@ -95,7 +110,7 @@ export async function sendTransactionalEmail(args: TransactionalArgs): Promise<S
 
   try {
     const { data, error } = await resend.emails.send({
-      from: EMAIL_FROM,
+      from: emailFrom(),
       to: args.to,
       subject: args.subject,
       replyTo: args.replyTo,
