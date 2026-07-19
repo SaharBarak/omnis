@@ -6,7 +6,7 @@
 #   ./scripts/set-prod-secrets.sh
 #
 # Idempotent: re-run anytime values change. Generates the internal randoms
-# (AUTH0_SECRET, CRON_SECRET, UNSUBSCRIBE_SECRET) if they're blank in .prod.vars.
+# (CRON_SECRET, UNSUBSCRIBE_SECRET) if they're blank in .prod.vars.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -59,7 +59,6 @@ ensure_generated() {
     echo "       paste the existing value into $VARS_FILE if that matters."
   fi
 }
-ensure_generated AUTH0_SECRET
 ensure_generated CRON_SECRET
 ensure_generated UNSUBSCRIBE_SECRET
 
@@ -69,8 +68,11 @@ ensure_generated UNSUBSCRIBE_SECRET
 : "${NEXT_PUBLIC_POSTHOG_DEV:=false}"
 
 # --- Cloudflare Worker runtime secrets (server-only) ---
+# Web auth is Supabase; the worker reads no AUTH0_* (mobile uses separate
+# EXPO_PUBLIC_AUTH0_* build vars) and no PADDLE_* (billing is RevenueCat/IAP).
+# Both were deleted from the worker 2026-07-19 — do not re-add them here.
 CF_SECRETS=(
-  APP_BASE_URL AUTH0_DOMAIN AUTH0_CLIENT_ID AUTH0_CLIENT_SECRET AUTH0_SECRET
+  APP_BASE_URL
   DATABASE_URL DATABASE_URL_DIRECT CRON_SECRET UNSUBSCRIBE_SECRET
   RESEND_API_KEY RESEND_AUDIENCE_ID EMAIL_FROM EMAIL_FROM_MARKETING EMAIL_POSTAL_ADDRESS
   LLM_PROVIDER GROQ_API_KEY GEMINI_API_KEY TURNSTILE_SECRET_KEY
