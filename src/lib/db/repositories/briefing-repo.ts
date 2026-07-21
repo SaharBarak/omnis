@@ -1,7 +1,7 @@
-import { and, gte, eq, sql, inArray, isNull } from 'drizzle-orm'
+import { and, gte, eq, sql, inArray } from 'drizzle-orm'
 
 import { getDb } from '@/lib/db/client'
-import { users, subscriptions, people, computed_results } from '@/lib/db/schema'
+import { users, subscriptions } from '@/lib/db/schema'
 import type { UsersData, RevenueData } from '@/lib/services/briefing/types'
 
 /**
@@ -27,28 +27,40 @@ export async function systemUserStats(sinceIso: string, prevSinceIso: string, we
     .from(users)
 
   // Engagement: people on maps, and how many users actually built / read a map.
-  const [eng] = await db
-    .select({
-      peopleTotal: sql<number>`count(*)::int`,
-      activeUsers: sql<number>`count(distinct ${people.owner_id})::int`,
-    })
-    .from(people)
-    .where(isNull(people.deleted_at))
-
-  const [rd] = await db
-    .select({ usersWithReadings: sql<number>`count(distinct ${people.owner_id})::int` })
-    .from(computed_results)
-    .innerJoin(people, eq(computed_results.person_id, people.id))
-    .where(isNull(people.deleted_at))
+  // Fault-isolated on its own so a query issue here can never blank the core
+  // registration numbers above.
+  let peopleTotal = 0
+  let activeUsers = 0
+  let usersWithReadings = 0
+  try {
+    const rows = (await db.execute(sql`
+      select
+        (select count(*)::int from people where deleted_at is null) as people_total,
+        (select count(distinct owner_id)::int from people where deleted_at is null) as active_users,
+        (select count(distinct p.owner_id)::int
+           from computed_results c join people p on p.id = c.person_id
+          where p.deleted_at is null) as users_with_readings
+    `)) as unknown as Array<{
+      people_total: number
+      active_users: number
+      users_with_readings: number
+    }>
+    const r = rows[0]
+    peopleTotal = Number(r?.people_total ?? 0)
+    activeUsers = Number(r?.active_users ?? 0)
+    usersWithReadings = Number(r?.users_with_readings ?? 0)
+  } catch (err) {
+    console.error('[briefing] engagement stats failed:', err)
+  }
 
   return {
     total: row?.total ?? 0,
     new24h: row?.new24h ?? 0,
     prev24h: row?.prev24h ?? 0,
     new7d: row?.new7d ?? 0,
-    peopleTotal: eng?.peopleTotal ?? 0,
-    activeUsers: eng?.activeUsers ?? 0,
-    usersWithReadings: rd?.usersWithReadings ?? 0,
+    peopleTotal,
+    activeUsers,
+    usersWithReadings,
   }
 }
 
