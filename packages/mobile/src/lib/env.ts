@@ -6,12 +6,10 @@
 const DEFAULT_API_URL = 'https://pleiad.io'
 
 export const ENV = {
-  /** Auth0 tenant domain, e.g. pleiad.eu.auth0.com (no scheme). */
-  auth0Domain: process.env.EXPO_PUBLIC_AUTH0_DOMAIN ?? '',
-  /** Auth0 native application client id. */
-  auth0ClientId: process.env.EXPO_PUBLIC_AUTH0_CLIENT_ID ?? '',
-  /** Auth0 API audience — must match the API identifier the server verifies. */
-  auth0Audience: process.env.EXPO_PUBLIC_AUTH0_AUDIENCE ?? '',
+  /** Supabase project URL, e.g. https://<ref>.supabase.co. */
+  supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? '',
+  /** Supabase anon (publishable) key — safe to ship; it is a public key. */
+  supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
   /** Origin of the Pleiad API. */
   apiUrl: process.env.EXPO_PUBLIC_API_URL ?? DEFAULT_API_URL,
   /**
@@ -23,7 +21,7 @@ export const ENV = {
   revenueCatAndroidKey: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY ?? '',
 } as const
 
-/** True when the Auth0 vars required for sign-in are all present. */
+/** True when the Supabase vars required for sign-in are present. */
 export function isAuthConfigured(): boolean {
-  return ENV.auth0Domain.length > 0 && ENV.auth0ClientId.length > 0
+  return ENV.supabaseUrl.length > 0 && ENV.supabaseAnonKey.length > 0
 }

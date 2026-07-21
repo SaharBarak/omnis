@@ -1,5 +1,5 @@
 import { useEffect, useState, type PropsWithChildren } from 'react'
-import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native'
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Animated, {
   Easing,
@@ -9,19 +9,16 @@ import Animated, {
   withDelay,
   withTiming,
 } from 'react-native-reanimated'
-import * as WebBrowser from 'expo-web-browser'
 
 import { BrandMark } from '@/components/brand-mark'
-import { Button, Text } from '@/components/m3'
+import { Button, Text, TextField } from '@/components/m3'
 import { Notice } from '@/components/ui/notice'
-import { useAuth, DB_CONNECTION, type AuthConnection } from '@/lib/auth'
+import { useAuth } from '@/lib/auth'
 import { DURATION, EASING, SPACE } from '@/theme/m3'
-
-// Completes the pending auth session when the browser redirects back (web).
-WebBrowser.maybeCompleteAuthSession()
 
 const STAGGER_MS = 70
 const RISE_PT = 16
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
 /** Staggered fade-up entrance — transform+opacity only, 60–80ms cascade. */
 function FadeUp({
@@ -52,27 +49,57 @@ function FadeUp({
   return <Animated.View style={[style, animatedStyle]}>{children}</Animated.View>
 }
 
-/** S2 Welcome/Login — USER_FLOWS F1. Cancelled Auth0 → stay here, no toast. */
+/** S2 Welcome/Login — email one-time-code sign-in (Supabase). */
 export default function LoginScreen() {
-  const signIn = useAuth((state) => state.signIn)
-  const [pending, setPending] = useState<AuthConnection | null>(null)
+  const requestEmailCode = useAuth((state) => state.requestEmailCode)
+  const verifyEmailCode = useAuth((state) => state.verifyEmailCode)
+  const [step, setStep] = useState<'email' | 'code'>('email')
+  const [email, setEmail] = useState('')
+  const [code, setCode] = useState('')
+  const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleSignIn = async (connection: AuthConnection) => {
-    if (pending !== null) return
-    setPending(connection)
+  const sendCode = async () => {
+    if (pending) return
+    const trimmed = email.trim()
+    if (!EMAIL_RE.test(trimmed)) {
+      setError('Enter a valid email address.')
+      return
+    }
+    setPending(true)
     setError(null)
     try {
-      await signIn(connection)
-      // Success or dismissal — the root guard routes signed-in sessions on.
+      await requestEmailCode(trimmed)
+      setStep('code')
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Sign-in failed. Try again.')
+      setError(
+        caught instanceof Error ? caught.message : 'Could not send the code. Try again.'
+      )
     } finally {
-      setPending(null)
+      setPending(false)
     }
   }
 
-  const isIos = Platform.OS === 'ios'
+  const verify = async () => {
+    if (pending) return
+    const entered = code.trim()
+    if (entered.length < 6) {
+      setError('Enter the 6-digit code from your email.')
+      return
+    }
+    setPending(true)
+    setError(null)
+    try {
+      await verifyEmailCode(email.trim(), entered)
+      // Success — the root guard routes the signed-in session on.
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : 'That code did not work. Try again.'
+      )
+    } finally {
+      setPending(false)
+    }
+  }
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -98,45 +125,51 @@ export default function LoginScreen() {
       </View>
 
       <View style={styles.actions}>
-        {/*
-         * One filled button per screen: the platform's own sign-in. Everything
-         * else is a real alternative, so it takes the outlined emphasis.
-         */}
-        {isIos && (
-          <FadeUp index={4}>
+        {step === 'email' ? (
+          <View style={styles.form}>
+            <TextField
+              label="Email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="email"
+              inputMode="email"
+              editable={!pending}
+            />
+            <Button fullWidth onPress={() => void sendCode()} disabled={pending}>
+              {pending ? 'Sending code…' : 'Continue with email'}
+            </Button>
+          </View>
+        ) : (
+          <View style={styles.form}>
+            <TextField
+              label="Code from your email"
+              value={code}
+              onChangeText={setCode}
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!pending}
+              supportingText={`Paste the code or sign-in link sent to ${email.trim()}`}
+            />
+            <Button fullWidth onPress={() => void verify()} disabled={pending}>
+              {pending ? 'Verifying…' : 'Verify & continue'}
+            </Button>
             <Button
               fullWidth
-              onPress={() => void handleSignIn('apple')}
-              disabled={pending !== null}
+              variant="text"
+              onPress={() => {
+                setStep('email')
+                setCode('')
+                setError(null)
+              }}
+              disabled={pending}
             >
-              {pending === 'apple' ? 'Opening Apple sign-in…' : 'Continue with Apple'}
+              Use a different email
             </Button>
-          </FadeUp>
+          </View>
         )}
-        <FadeUp index={isIos ? 5 : 4}>
-          <Button
-            fullWidth
-            variant={isIos ? 'outlined' : 'filled'}
-            onPress={() => void handleSignIn('google-oauth2')}
-            disabled={pending !== null}
-          >
-            {pending === 'google-oauth2'
-              ? 'Opening Google sign-in…'
-              : 'Continue with Google'}
-          </Button>
-        </FadeUp>
-        <FadeUp index={isIos ? 6 : 5}>
-          <Button
-            fullWidth
-            variant="outlined"
-            onPress={() => void handleSignIn(DB_CONNECTION)}
-            disabled={pending !== null}
-          >
-            {pending === DB_CONNECTION
-              ? 'Opening sign-in…'
-              : 'Continue with email'}
-          </Button>
-        </FadeUp>
         {error !== null && <Notice variant="error">{error}</Notice>}
       </View>
     </SafeAreaView>
@@ -160,5 +193,8 @@ const styles = StyleSheet.create({
   actions: {
     gap: SPACE.md,
     paddingBottom: SPACE.xxl,
+  },
+  form: {
+    gap: SPACE.md,
   },
 })

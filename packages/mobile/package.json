@@ -11,6 +11,7 @@
     "@pleiad/engine": "*",
     "@react-native-community/datetimepicker": "9.1.0",
     "@shopify/react-native-skia": "2.6.2",
+    "@supabase/supabase-js": "^2.110.8",
     "@tanstack/react-query": "^5.90.0",
     "expo": "~57.0.4",
     "expo-auth-session": "~57.0.2",
@@ -42,6 +43,7 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",
     "react-native-svg": "~15.15.0",
+    "react-native-url-polyfill": "^4.0.0",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.10.0",
     "zustand": "^5.0.0"

@@ -2,11 +2,13 @@ import { create } from 'zustand'
 
 
 import {
+  exchangeCodeAsync,
   loginAsync,
   refreshTokensAsync,
-  type AuthConnection,
+  requestEmailCodeAsync,
+  verifyEmailCodeAsync,
   type AuthTokens,
-} from './auth0'
+} from './supabase-auth'
 import { readJwtSub } from './jwt'
 import { clearTokens, loadTokens, saveTokens } from './token-store'
 import { queryClient } from '@/lib/query-client'
@@ -21,19 +23,27 @@ export type AuthStatus = 'loading' | 'signedOut' | 'signedIn'
 interface AuthState {
   status: AuthStatus
   /**
-   * Auth0 sub of the signed-in user, read from the access token. This is the id
-   * the server scopes every row by, and the id we hand RevenueCat as the
-   * appUserID — which is what makes a purchase on this phone unlock the same
-   * account on the web.
+   * Supabase user id (the access token's `sub`). This is the id the server
+   * scopes every row by, and the id we hand RevenueCat as the appUserID —
+   * which is what makes a purchase on this phone unlock the same account on
+   * the web.
    */
   userId: string | null
   /** Load persisted tokens once at boot; resolves status from 'loading'. */
   hydrate: () => Promise<void>
   /**
-   * Interactive Auth0 login. A dismissed browser resolves quietly (F1);
-   * real failures reject with a message for inline display.
+   * Interactive Google (Supabase) login. A dismissed browser resolves quietly
+   * (F1); real failures reject with a message for inline display. Requires the
+   * Google provider to be enabled on the Supabase project.
    */
-  signIn: (connection?: AuthConnection) => Promise<void>
+  signIn: () => Promise<void>
+  /** Email one-time-code: step 1 — send the code to the address. */
+  requestEmailCode: (email: string) => Promise<void>
+  /**
+   * Email sign-in: step 2 — complete it from the email. Accepts either a
+   * 6-digit code (verifyOtp) or the magic-link code / URL (exchangeCode).
+   */
+  verifyEmailCode: (email: string, codeOrLink: string) => Promise<void>
   /** Wipe tokens + purge the query cache (F12) → 'signedOut'. */
   signOut: () => Promise<void>
   /**
@@ -85,9 +95,26 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     }
   },
 
-  signIn: async (connection) => {
-    const next = await loginAsync(connection)
+  signIn: async () => {
+    const next = await loginAsync()
     if (next === null) return // dismissed — stay where we are, no error
+    tokens = next
+    await saveTokens(next)
+    const userId = readJwtSub(next.accessToken)
+    set({ status: 'signedIn', userId })
+    await identifyPurchaserSafely(userId)
+  },
+
+  requestEmailCode: async (email) => {
+    await requestEmailCodeAsync(email)
+  },
+
+  verifyEmailCode: async (email, codeOrLink) => {
+    const trimmed = codeOrLink.trim()
+    // A bare 6-digit value is an OTP token; anything else is a magic-link code.
+    const next = /^\d{6}$/.test(trimmed)
+      ? await verifyEmailCodeAsync(email, trimmed)
+      : await exchangeCodeAsync(trimmed)
     tokens = next
     await saveTokens(next)
     const userId = readJwtSub(next.accessToken)
