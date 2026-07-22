@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { track } from '@/lib/analytics/posthog'
 import { useAuth } from '@/lib/hooks/use-auth'
+import { BrandMark } from '@/components/brand-mark'
 
 function LoginForm() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
@@ -84,18 +85,15 @@ function LoginForm() {
   return (
     <div className="w-full max-w-[400px]">
       <div className="rounded-[28px] bg-white px-8 py-10 shadow-2xl">
-        {/* Two Circles Studios mark */}
+        {/* Six-System Seal */}
         <div className="mb-8 flex justify-center">
-          <svg width="56" height="40" viewBox="0 0 56 40" aria-hidden="true">
-            <circle cx="22" cy="20" r="16" fill="#F5820D" />
-            <circle cx="34" cy="20" r="16" fill="#22B0E8" fillOpacity="0.92" />
-          </svg>
+          <BrandMark size={56} mono className="text-brand" />
         </div>
 
         <h1 className="text-center text-[28px] font-bold text-gray-900">Welcome</h1>
         <p className="mt-2 text-center text-[15px] leading-snug text-gray-500">
           {mode === 'signin'
-            ? 'Log in to Two Circles Studios to continue to Pleiad.'
+            ? 'Sign in to continue to Pleiad.'
             : 'Create your account to continue to Pleiad.'}
         </p>
 
@@ -175,7 +173,7 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading || !email || !password}
-            className="h-12 w-full rounded-full bg-[#F5820D] text-[15px] font-semibold text-white transition hover:bg-[#e0760a] disabled:opacity-60"
+            className="h-12 w-full rounded-full bg-brand text-[15px] font-semibold text-white transition hover:bg-brand/90 disabled:opacity-60"
           >
             {loading ? 'Please wait…' : mode === 'signup' ? 'Create account' : 'Continue'}
           </button>
