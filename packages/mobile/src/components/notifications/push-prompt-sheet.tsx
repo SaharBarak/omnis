@@ -30,7 +30,7 @@ export function PushPromptHost() {
         </Text>
         <Text variant="headlineSmall">The calendars move every morning.</Text>
         <Text variant="bodyLarge" color="onSurfaceVariant">
-          One quiet note a day — today&apos;s kin, the moon, and which of your
+          One quiet note a day: today&apos;s kin, the moon, and which of your
           people resonate with the sky. Nothing else, ever.
         </Text>
       </View>

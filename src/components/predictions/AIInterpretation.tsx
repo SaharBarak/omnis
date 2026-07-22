@@ -1,10 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import type { PredictionEvent, AIInterpretationResponse } from '@pleiad/engine/types/prediction'
+import { Eyebrow, Notice, Pill } from '@/components/app-kit'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 interface AIInterpretationProps {
@@ -61,93 +60,105 @@ export function AIInterpretation({
 
   if (error) {
     return (
-      <Card className={cn('border-destructive/50', className)}>
-        <CardContent className="py-6">
-          <div className="text-center">
-            <p className="text-destructive mb-4">{error}</p>
-            <Button variant="outline" onClick={() => generateInterpretation()}>
-              Try Again
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <Notice
+        variant="error"
+        title="Interpretation failed"
+        className={className}
+        action={
+          <button
+            type="button"
+            onClick={() => generateInterpretation()}
+            className="rounded-full border border-white/15 px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.2em] text-white/70 transition-colors hover:border-white/[0.25] active:scale-[0.98]"
+          >
+            Try again
+          </button>
+        }
+      >
+        {error}
+      </Notice>
     )
   }
 
   if (!interpretation && !isLoading) {
     return (
-      <Card className={className}>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            AI Interpretation
-            <Badge variant="secondary" className="text-xs">Beta</Badge>
-          </CardTitle>
-          <CardDescription>
-            Get a personalized AI interpretation of this cosmic event
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-2">
-            <Button onClick={() => generateInterpretation(false)} disabled={isLoading}>
-              Get Full Interpretation
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => generateInterpretation(true)}
-              disabled={isLoading}
-            >
-              Quick Insight
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground mt-3">
-            Powered by Gemini. Interpretations are for inspiration and self-reflection.
-          </p>
-        </CardContent>
-      </Card>
+      <div className={cn('surface-card p-6', className)}>
+        <div className="flex items-center gap-2">
+          <Eyebrow>AI interpretation</Eyebrow>
+          <Pill className="px-2.5 py-0.5 text-[9px]">Beta</Pill>
+        </div>
+        <p className="mt-2 text-sm text-white/70">
+          Get a personalized AI interpretation of this cosmic event
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => generateInterpretation(false)}
+            disabled={isLoading}
+            className="rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-soft active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+          >
+            Get full interpretation
+          </button>
+          <button
+            type="button"
+            onClick={() => generateInterpretation(true)}
+            disabled={isLoading}
+            className="rounded-xl border border-white/15 px-5 py-2.5 text-sm font-medium text-white/70 transition-colors hover:border-white/[0.25] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+          >
+            Quick insight
+          </button>
+        </div>
+        <p className="mt-3 text-xs text-white/35">
+          Powered by Gemini. Interpretations are for inspiration and self-reflection.
+        </p>
+      </div>
     )
   }
 
   if (isLoading) {
     return (
-      <Card className={className}>
-        <CardContent className="py-8">
-          <div className="flex flex-col items-center justify-center gap-4">
-            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-muted-foreground">Generating interpretation...</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className={cn('surface-card p-6', className)}>
+        <div className="skeleton-shimmer h-3 w-36 rounded" />
+        <div className="mt-4 flex flex-col gap-2">
+          <div className="skeleton-shimmer h-4 w-full rounded" />
+          <div className="skeleton-shimmer h-4 w-5/6 rounded" />
+          <div className="skeleton-shimmer h-4 w-2/3 rounded" />
+        </div>
+      </div>
     )
   }
 
   return (
-    <Card className={cn('border-primary/20', className)}>
-      <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2">
-          AI Interpretation
-          <Badge variant="secondary" className="text-xs">Beta</Badge>
-        </CardTitle>
-        {interpretation?.cachedAt && (
-          <CardDescription>
-            Generated {new Date(interpretation.cachedAt).toLocaleDateString()}
-          </CardDescription>
-        )}
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Main interpretation */}
-        <div className="prose prose-sm dark:prose-invert max-w-none">
-          <p className="whitespace-pre-wrap">{interpretation?.interpretation}</p>
+    <div className={cn('surface-card p-6', className)}>
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <Eyebrow>AI interpretation</Eyebrow>
+          <Pill className="px-2.5 py-0.5 text-[9px]">Beta</Pill>
         </div>
+        {interpretation?.cachedAt && (
+          <span className="font-mono text-xs text-white/35 [font-variant-numeric:tabular-nums]">
+            Generated {new Date(interpretation.cachedAt).toLocaleDateString()}
+          </span>
+        )}
+      </div>
+
+      <div className="mt-4 space-y-4">
+        {/* Main interpretation */}
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/90">
+          {interpretation?.interpretation}
+        </p>
 
         {/* Themes */}
         {interpretation?.themes && interpretation.themes.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium mb-2">Key Themes</h4>
-            <div className="flex flex-wrap gap-2">
+            <Eyebrow>Key themes</Eyebrow>
+            <div className="mt-2 flex flex-wrap gap-1.5">
               {interpretation.themes.map((theme, i) => (
-                <Badge key={i} variant="outline">
+                <span
+                  key={i}
+                  className="rounded-full border border-white/15 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.15em] text-white/50"
+                >
                   {theme}
-                </Badge>
+                </span>
               ))}
             </div>
           </div>
@@ -155,22 +166,24 @@ export function AIInterpretation({
 
         {/* Affirmation */}
         {interpretation?.affirmation && (
-          <div className="p-4 bg-primary/5 rounded-lg border border-primary/10">
-            <h4 className="text-sm font-medium mb-2">Affirmation</h4>
-            <p className="text-sm italic">&ldquo;{interpretation.affirmation}&rdquo;</p>
+          <div className="rounded-xl border border-white/[0.07] bg-surface-2/60 p-4">
+            <Eyebrow>Affirmation</Eyebrow>
+            <p className="mt-2 text-sm italic text-white/90">
+              &ldquo;{interpretation.affirmation}&rdquo;
+            </p>
           </div>
         )}
 
         {/* Guidance */}
         {interpretation?.guidance && (
           <div>
-            <h4 className="text-sm font-medium mb-2">Guidance</h4>
-            <p className="text-sm text-muted-foreground">{interpretation.guidance}</p>
+            <Eyebrow>Guidance</Eyebrow>
+            <p className="mt-2 text-sm text-white/70">{interpretation.guidance}</p>
           </div>
         )}
 
         {/* Actions */}
-        <div className="flex items-center justify-between pt-4 border-t">
+        <div className="flex items-center justify-between border-t border-white/[0.07] pt-4">
           <Button
             variant="ghost"
             size="sm"
@@ -179,12 +192,12 @@ export function AIInterpretation({
           >
             Regenerate
           </Button>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-white/35">
             AI interpretations are for inspiration only
           </p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 
@@ -241,10 +254,16 @@ export function AIInsightButton({ prediction, locale = 'en' }: AIInsightButtonPr
         disabled={isLoading}
         className="text-xs"
       >
-        {isLoading ? 'Loading...' : insight ? (isOpen ? 'Hide Insight' : 'Show Insight') : 'Get AI Insight'}
+        {isLoading ? 'Loading...' : insight ? (isOpen ? 'Hide insight' : 'Show insight') : 'Get AI insight'}
       </Button>
+      {isOpen && isLoading && (
+        <div className="rounded-lg border border-white/[0.07] p-2">
+          <div className="skeleton-shimmer h-3 w-4/5 rounded" />
+          <div className="skeleton-shimmer mt-1.5 h-3 w-3/5 rounded" />
+        </div>
+      )}
       {isOpen && insight && (
-        <p className="text-xs text-muted-foreground p-2 bg-muted/50 rounded">
+        <p className="rounded-lg border border-white/[0.07] bg-surface-2/60 p-2 text-xs text-white/70">
           {insight}
         </p>
       )}

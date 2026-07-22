@@ -41,40 +41,29 @@ export function RelationshipCallouts({ callouts }: { readonly callouts: readonly
         </span>
 
         <div className="mt-6 grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-end">
-          <h2 className={TYPE.zone}>The systems say something specific.</h2>
-          <p className="text-lg leading-relaxed text-white/60">
+          <h2 className={TYPE.section}>The systems say something specific.</h2>
+          <p className="text-lg leading-relaxed text-white/70">
             Not &ldquo;you two have good energy.&rdquo; Pleiad tells you the
             mechanism: who guides whom, which channel two people complete
             together, which planets are talking.
           </p>
         </div>
 
-        {/* Asymmetric: the three lead ties get room, the rest run as a ledger. */}
+        {/* Three lead ties, full stop — after three cards the point is made. */}
         <div className="mt-12 grid gap-5 md:grid-cols-3">
           {callouts.slice(0, 3).map((c, i) => (
             <CalloutCard key={`${c.from.id}-${c.to.id}-${c.tie.type}`} callout={c} index={i} />
           ))}
         </div>
 
-        {callouts.length > 3 && (
-          <div className="mt-5 divide-y divide-white/[0.07] border-t border-white/[0.07]">
-            {callouts.slice(3).map((c) => (
-              <CalloutRow key={`${c.from.id}-${c.to.id}-${c.tie.type}`} callout={c} />
-            ))}
-          </div>
-        )}
-
-        <div className="mt-10 flex flex-wrap items-center gap-4">
+        <div className="mt-10">
           <Link
-            href="/onboarding"
+            href="/calculate"
             className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium text-white transition active:translate-y-[1px]"
             style={{ backgroundColor: COLORS.brand }}
           >
             Find your people&apos;s connections
             <ArrowRight size={16} strokeWidth={1.5} />
-          </Link>
-          <Link href="/learn" className="text-sm text-white/50 underline-offset-4 transition hover:text-white/80 hover:underline">
-            See how each system computes this
           </Link>
         </div>
       </div>
@@ -116,27 +105,13 @@ function CalloutCard({ callout, index }: { readonly callout: Callout; readonly i
         <PersonDot name={to.name} accent={accent} />
       </div>
 
-      <p className="mt-5 font-display text-lg leading-snug text-white">{headline}</p>
+      <p className="mt-5 font-display text-lg font-medium leading-snug text-white">{headline}</p>
       <p className="mt-2 text-sm leading-relaxed text-white/55">{tie.meaning}</p>
 
       {tie.channel && (
         <p className="mt-4 font-mono text-xs text-white/35">channel {tie.channel}</p>
       )}
     </motion.article>
-  )
-}
-
-function CalloutRow({ callout }: { readonly callout: Callout }) {
-  const { tie, headline } = callout
-  const accent = SYSTEM_FLAVORS[tie.system].accentSoft
-  return (
-    <div className="grid gap-2 py-4 md:grid-cols-[140px_1fr_auto] md:items-center md:gap-6">
-      <span className={TYPE.eyebrow} style={{ color: accent }}>
-        {SYSTEM_FLAVORS[tie.system].name}
-      </span>
-      <p className="text-sm text-white/75">{headline}</p>
-      <span className="font-mono text-[11px] text-white/30">{HARMONY_LABEL[tie.harmony]}</span>
-    </div>
   )
 }
 

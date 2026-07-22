@@ -68,7 +68,7 @@ function PortalRow({ section }: { readonly section: DocSectionId }) {
           {doc.description}
         </p>
 
-        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1">
+        <div className="mt-4 hidden flex-wrap gap-x-4 gap-y-1 sm:flex">
           {doc.topics.slice(0, 4).map((topic) => (
             <span key={topic.id} className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/35">
               {topic.title}
@@ -81,9 +81,21 @@ function PortalRow({ section }: { readonly section: DocSectionId }) {
           )}
         </div>
 
-        <p className="mt-4 font-mono text-xs leading-relaxed text-white/35">
+        <p className="mt-4 hidden font-mono text-xs leading-relaxed text-white/35 sm:block">
           {flavor.lineage}
         </p>
+
+        {/* Phone widths hide the banner card, so the row needs its own
+            visible affordance — six inert text blocks was a dead end. */}
+        <span
+          className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium sm:hidden"
+          style={{ color: flavor.accentSoft }}
+        >
+          Open guide
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </span>
       </div>
 
       <div
@@ -155,14 +167,15 @@ export default function LearnPage() {
             The sources behind every reading.
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/70">
-            Five guides — Astrology, Dreamspell, the Tzolkin &amp; Long Count,
-            Human Design, Kabbalah — written with respect for the lineages.
+            Six guides: Astrology, Dreamspell, the Tzolkin &amp; Long Count,
+            Human Design, Kabbalah, and how they integrate, written with
+            respect for the lineages.
             When Pleiad tells you something about a person, this is where it
             learned it.
           </p>
 
           <div className="mt-10 max-w-2xl [&>div]:mx-0">
-            <KnowledgeSearch />
+            <KnowledgeSearch includeIntegration />
           </div>
         </section>
 
@@ -250,14 +263,14 @@ export default function LearnPage() {
             <h2 className={TYPE.section}>Now read a person, not a page.</h2>
             <p className="mt-4 max-w-xl text-white/50">
               The guides explain the systems. The product reads your people
-              through all six at once — and remembers every birthday forever.
+              through all six at once, and remembers every birthday forever.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/calculate"
                 className="inline-flex items-center justify-center rounded-xl bg-brand px-8 py-4 font-medium text-white transition-colors hover:bg-brand-soft active:scale-[0.98]"
               >
-                Calculate your signatures
+                Start with your birthday
               </Link>
               <Link
                 href="/login"

@@ -124,7 +124,7 @@ export async function sendDailyDigestEmail(
 ): Promise<{ success: boolean; id?: string }> {
   const result = await sendTransactionalEmail({
     to: email,
-    subject: `Daily Forecast: ${prediction.toneName} ${prediction.sealName} — Kin ${prediction.kin}`,
+    subject: `Daily Forecast: ${prediction.toneName} ${prediction.sealName} (Kin ${prediction.kin})`,
     preheader: `${prediction.toneName} ${prediction.sealName} · ${astro.summary}`,
     bodyHtml: dailyDigestBody(userName, prediction, events, astro),
     footerText: 'Daily Forecast from Pleiad',
@@ -392,7 +392,7 @@ function testBody(userName: string, prediction: DailyPrediction): string {
     <div style="text-align:center;">
       <p style="color:rgba(255,255,255,0.7);font-size:14px;margin:0 0 18px;">Hi ${esc(userName)}, your Pleiad notifications are working.</p>
       <p style="color:rgba(255,255,255,0.7);font-size:14px;margin:0;">
-        Today's Kin: <strong style="color:#fff;">Kin ${prediction.kin} — ${prediction.toneName} ${prediction.sealName}</strong>
+        Today's Kin: <strong style="color:#fff;">Kin ${prediction.kin}: ${prediction.toneName} ${prediction.sealName}</strong>
       </p>
     </div>
   `

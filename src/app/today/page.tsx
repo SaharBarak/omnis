@@ -1,15 +1,17 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { dateToKin, kinToSeal, kinToTone } from '@pleiad/engine/calculations/dreamspell'
 import { calculateOracle } from '@pleiad/engine/calculations/oracle'
 import { SEALS } from '@pleiad/engine/data/seals'
 import { TONES } from '@pleiad/engine/data/tones'
 import { generateMantra } from '@pleiad/engine/data/mantras'
-import { Header, Footer } from '@/components/landing'
-import { getSealGlyphPath, getToneGlyphPath, getSmallSealGlyphPath } from '@/lib/dreamspell-assets'
+import { NavV2, FooterV2, StarParallax, MuralBackdrop, AmbientVideo } from '@/components/landing-v2'
+import { TYPE } from '@/lib/design/landing-tokens'
+import { MURAL_GROUND } from '@/lib/design/system-flavors'
+import { getTodayAcrossSystems, getFooterLiveLine } from '@/lib/today-board'
+import { getSealGlyphPath, getSmallSealGlyphPath } from '@/lib/dreamspell-assets'
+import { getSealMeaning, getToneMeaning, composeKinCombination } from '@/lib/dreamspell-meanings'
 import { JsonLd, SITE_URL, buildBreadcrumbs } from '@/lib/seo/json-ld'
-import { PageBreadcrumbs } from '@/components/ui/page-breadcrumbs'
 
 export const metadata: Metadata = {
   title: "Today's Dreamspell Kin - Free Daily Galactic Reading",
@@ -44,24 +46,81 @@ const breadcrumbSchema = buildBreadcrumbs([
 // Revalidate every hour to update the kin
 export const revalidate = 3600
 
-function getSealColorClass(color: string): string {
-  const colors: Record<string, string> = {
-    red: 'bg-seal-red/15 text-seal-red border-seal-red/30',
-    white: 'bg-seal-white text-foreground border-border',
-    blue: 'bg-seal-blue/15 text-seal-blue border-seal-blue/30',
-    yellow: 'bg-seal-yellow/15 text-seal-yellow border-seal-yellow/30',
-  }
-  return colors[color] || ''
+/** Dreamspell seal-family colors — same discs as the homepage ego star. */
+const SEAL_COLOR_HEX: Record<string, string> = {
+  red: '#C0392B',
+  white: '#ECF0F1',
+  blue: '#2C3E90',
+  yellow: '#F1C40F',
+}
+
+function sealHex(color: string): string {
+  return SEAL_COLOR_HEX[color] ?? '#ECF0F1'
 }
 
 function getOracleSeal(sealNumber: number) {
   return SEALS.find(s => s.number === sealNumber)!
 }
 
+/** Glyph in a tinted circular chip — the homepage Person-glyph treatment. */
+function SealChip({
+  sealNumber,
+  color,
+  alt,
+  sizeClass = 'h-24 w-24',
+  glyphClass = 'h-14 w-14',
+  small = false,
+}: {
+  sealNumber: number
+  color: string
+  alt: string
+  sizeClass?: string
+  glyphClass?: string
+  small?: boolean
+}) {
+  const hex = sealHex(color)
+  return (
+    <span
+      className={`grid place-items-center rounded-full border-2 ${sizeClass}`}
+      style={{ backgroundColor: `${hex}22`, borderColor: `${hex}88` }}
+    >
+      <img
+        src={small ? getSmallSealGlyphPath(sealNumber) : getSealGlyphPath(sealNumber)}
+        alt={alt}
+        className={`${glyphClass} object-contain`}
+      />
+    </span>
+  )
+}
+
+/** Galactic tone as Mayan notation — bars of five, dots of one. */
+function ToneDots({ tone }: { tone: number }) {
+  const bars = Math.floor(tone / 5)
+  const dots = tone % 5
+  return (
+    <span className="flex items-center gap-1.5" aria-label={`Tone ${tone}`}>
+      {Array.from({ length: bars }).map((_, i) => (
+        <span key={`bar-${i}`} className="h-1.5 w-6 rounded-full bg-white/70" />
+      ))}
+      {Array.from({ length: dots }).map((_, i) => (
+        <span key={`dot-${i}`} className="h-1.5 w-1.5 rounded-full bg-white/70" />
+      ))}
+    </span>
+  )
+}
+
 export default function TodayPage() {
-  // Get today's date in YYYY-MM-DD format
+  const liveLine = getFooterLiveLine(getTodayAcrossSystems())
+
+  // One zone for everything: the kin and the headline date must come from
+  // the same calendar day, so derive the ISO string from server-local parts
+  // (toISOString() is UTC and diverges from toLocaleDateString when TZ≠UTC).
   const today = new Date()
-  const dateStr = today.toISOString().split('T')[0]
+  const dateStr = [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, '0'),
+    String(today.getDate()).padStart(2, '0'),
+  ].join('-')
 
   // Calculate today's kin
   const kin = dateToKin(dateStr)
@@ -71,12 +130,22 @@ export default function TodayPage() {
   const tone = TONES.find(t => t.number === toneNumber)!
   const mantra = generateMantra(seal, tone)
   const oracle = calculateOracle(kin)
+  const sealMeaning = getSealMeaning(sealNumber)
+  const toneMeaning = getToneMeaning(toneNumber)
+  const kinCombination = composeKinCombination(sealNumber, toneNumber)
 
   // Get oracle seals
   const guideSeal = getOracleSeal(oracle.guide)
   const analogSeal = getOracleSeal(oracle.analog)
   const antipodeSeal = getOracleSeal(oracle.antipode)
   const occultSeal = getOracleSeal(oracle.occult)
+
+  const oraclePositions = [
+    { label: 'Guide', seal: guideSeal },
+    { label: 'Analog', seal: analogSeal },
+    { label: 'Antipode', seal: antipodeSeal },
+    { label: 'Occult', seal: occultSeal },
+  ]
 
   // Format date for display
   const formattedDate = today.toLocaleDateString('en-US', {
@@ -87,174 +156,153 @@ export default function TodayPage() {
   })
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="min-h-[100dvh]" style={{ backgroundColor: MURAL_GROUND }}>
+      <NavV2 />
 
       <JsonLd data={speakableSchema} id="json-ld-speakable" />
       <JsonLd data={breadcrumbSchema} id="json-ld-breadcrumbs" />
 
-      <main className="pt-24 pb-16 px-6">
-        <div className="max-w-3xl mx-auto">
-          <PageBreadcrumbs items={[{ label: 'Home', href: '/' }, { label: "Today's Kin" }]} />
-          {/* Date Header */}
-          <div className="text-center mb-8">
-            <div className="earth-badge inline-flex mb-4">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-              <span>Today&apos;s Dreamspell Kin</span>
-            </div>
-            <h1 className="text-2xl font-heading text-foreground">{formattedDate}</h1>
-          </div>
+      <main className="relative overflow-hidden pb-24 pt-32 sm:pt-40">
+        <StarParallax />
 
-          {/* Main Kin Card */}
-          <div className="earth-card bg-card p-8 mb-8">
-            <div className="text-center">
-              {/* Seal + Tone Glyph */}
-              <div className="flex items-center justify-center gap-4 mb-4">
-                <img
-                  src={getSealGlyphPath(seal.number)}
+        {/* Today's sky, literally — the hero mural loop fading down into the page. */}
+        <MuralBackdrop placement="top" opacity={0.5}>
+          <AmbientVideo
+            webmSrc="/videos/redesign/hero-sky-loop.webm"
+            mp4Src="/videos/redesign/hero-sky-loop.mp4"
+            poster="/images/redesign/mural/hero-sky.webp"
+            className="h-full w-full object-cover"
+          />
+        </MuralBackdrop>
+
+        {/* Hero — the kin is the headline, the date is the context. */}
+        <section className="relative mx-auto max-w-content px-6 text-center">
+          <p className={`${TYPE.eyebrow} text-brand`}>Today&apos;s Dreamspell Kin</p>
+          <h1 className={`${TYPE.hero} daily-kin-summary mx-auto mt-4 max-w-3xl`}>
+            {tone.name} {seal.english}
+          </h1>
+          <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-white/70">
+            {formattedDate}
+          </p>
+        </section>
+
+        <div className="relative mx-auto mt-14 max-w-3xl px-6">
+          {/* Main kin card */}
+          <div className="rounded-2xl border border-white/10 bg-surface p-6 md:p-8">
+            <div className="flex flex-col items-center text-center">
+              {/* Glyph + tone lockup */}
+              <div className="flex flex-col items-center gap-3">
+                <SealChip
+                  sealNumber={seal.number}
+                  color={seal.color}
                   alt={seal.english}
-                  className="w-20 h-20 object-contain"
                 />
-                <img
-                  src={getToneGlyphPath(tone.number)}
-                  alt={`Tone ${tone.number}`}
-                  className="w-14 h-14 object-contain"
-                />
+                <ToneDots tone={tone.number} />
+                <p className={`${TYPE.eyebrow} text-white/50`}>
+                  Kin {kin} · Tone {tone.number}
+                </p>
               </div>
 
-              {/* Kin Number & Name */}
-              <div className="text-6xl font-heading text-primary mb-2">{kin}</div>
-              <h2 className="text-3xl font-heading text-foreground mb-1 daily-kin-summary">
+              {/* Names */}
+              <p className="mt-6 font-display text-2xl text-white">
                 {tone.name} {seal.english}
-              </h2>
-              <p className="text-muted-foreground mb-6">
+              </p>
+              <p className="mt-1 text-sm text-white/50">
                 {seal.hebrew} {tone.nameHebrew}
               </p>
 
-              {/* Badges */}
-              <div className="flex justify-center gap-3 mb-6">
-                <span className={`px-4 py-1.5 rounded-full text-sm font-medium border ${getSealColorClass(seal.color)}`}>
-                  {seal.color.charAt(0).toUpperCase() + seal.color.slice(1)} {seal.english}
+              {/* Family + tone labels */}
+              <div className="mt-5 flex flex-wrap justify-center gap-x-6 gap-y-2">
+                <span className={`${TYPE.eyebrow} inline-flex items-center gap-2 text-white/50`}>
+                  <span
+                    className="h-2 w-2 rounded-full"
+                    style={{ backgroundColor: sealHex(seal.color) }}
+                  />
+                  {seal.color} {seal.english}
                 </span>
-                <span className="px-4 py-1.5 rounded-full text-sm font-medium bg-primary/10 text-primary border border-primary/20">
-                  Tone {tone.number}: {tone.name}
+                <span className={`${TYPE.eyebrow} text-white/50`}>
+                  Tone {tone.number} · {tone.name}
                 </span>
               </div>
 
-              {/* Mantra */}
-              <div className="max-w-md mx-auto">
-                <p className="text-lg italic text-muted-foreground whitespace-pre-line daily-mantra">
-                  &ldquo;{mantra}&rdquo;
-                </p>
-              </div>
+              {/* Mantra — a quote, not a caption. */}
+              <blockquote className="daily-mantra mt-8 w-full max-w-md border-l-2 border-brand pl-6 text-left font-display text-xl leading-relaxed text-white/80 whitespace-pre-line">
+                {mantra}
+              </blockquote>
             </div>
           </div>
 
-          {/* Oracle Section */}
-          <div className="earth-card bg-card p-6 mb-8">
-            <h3 className="text-xl font-heading text-center mb-6">Today&apos;s Oracle</h3>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {/* Guide */}
-              <div className="text-center p-4 rounded-xl bg-muted/50">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Guide</div>
-                <img
-                  src={getSmallSealGlyphPath(guideSeal.number)}
-                  alt={guideSeal.english}
-                  className="w-10 h-10 mx-auto mb-2 object-contain"
-                />
-                <div className="font-medium text-sm">{guideSeal.english}</div>
-                <div className="text-xs text-muted-foreground">{guideSeal.hebrew}</div>
-              </div>
-
-              {/* Analog */}
-              <div className="text-center p-4 rounded-xl bg-muted/50">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Analog</div>
-                <img
-                  src={getSmallSealGlyphPath(analogSeal.number)}
-                  alt={analogSeal.english}
-                  className="w-10 h-10 mx-auto mb-2 object-contain"
-                />
-                <div className="font-medium text-sm">{analogSeal.english}</div>
-                <div className="text-xs text-muted-foreground">{analogSeal.hebrew}</div>
-              </div>
-
-              {/* Antipode */}
-              <div className="text-center p-4 rounded-xl bg-muted/50">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Antipode</div>
-                <img
-                  src={getSmallSealGlyphPath(antipodeSeal.number)}
-                  alt={antipodeSeal.english}
-                  className="w-10 h-10 mx-auto mb-2 object-contain"
-                />
-                <div className="font-medium text-sm">{antipodeSeal.english}</div>
-                <div className="text-xs text-muted-foreground">{antipodeSeal.hebrew}</div>
-              </div>
-
-              {/* Occult */}
-              <div className="text-center p-4 rounded-xl bg-muted/50">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Occult</div>
-                <img
-                  src={getSmallSealGlyphPath(occultSeal.number)}
-                  alt={occultSeal.english}
-                  className="w-10 h-10 mx-auto mb-2 object-contain"
-                />
-                <div className="font-medium text-sm">{occultSeal.english}</div>
-                <div className="text-xs text-muted-foreground">{occultSeal.hebrew}</div>
-              </div>
+          {/* Oracle */}
+          <section className="mt-16">
+            <h2 className={`${TYPE.section} text-center`}>Today&apos;s Oracle</h2>
+            <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+              {oraclePositions.map(({ label, seal: oracleSeal }) => (
+                <div
+                  key={label}
+                  className="flex flex-col items-center rounded-2xl border border-white/10 bg-surface p-5 text-center"
+                >
+                  <p className={`${TYPE.eyebrow} text-white/50`}>{label}</p>
+                  <div className="mt-3">
+                    <SealChip
+                      sealNumber={oracleSeal.number}
+                      color={oracleSeal.color}
+                      alt={oracleSeal.english}
+                      sizeClass="h-14 w-14"
+                      glyphClass="h-8 w-8"
+                      small
+                    />
+                  </div>
+                  <p className="mt-3 text-sm font-medium text-white/90">{oracleSeal.english}</p>
+                  <p className="mt-0.5 text-xs text-white/50">{oracleSeal.hebrew}</p>
+                </div>
+              ))}
             </div>
-          </div>
+          </section>
 
-          {/* Interpretation Section */}
-          <div className="earth-card bg-card p-6 mb-8">
-            <h3 className="text-xl font-heading mb-4">What Does This Mean?</h3>
-
-            <div className="space-y-4 text-muted-foreground">
+          {/* Interpretation */}
+          <section className="mt-16">
+            <h2 className={TYPE.section}>What does this mean?</h2>
+            <div className="mt-6 space-y-4 text-lg leading-relaxed text-white/70">
               <p>
-                <strong className="text-foreground">{tone.name} (Tone {tone.number})</strong> days
-                are about {tone.keywords?.join(', ').toLowerCase() || tone.name.toLowerCase()}. The {tone.name} tone
-                invites you to {tone.action?.toLowerCase() || 'align with'} the energy of the day.
+                <strong className="font-medium text-white">
+                  {toneMeaning.name} (Tone {toneMeaning.number})
+                </strong>
+                : {toneMeaning.paragraph}
               </p>
 
               <p>
-                <strong className="text-foreground">{seal.english}</strong> ({seal.mayan}) represents
-                the power of {seal.english.toLowerCase()}. This archetype works with the energy
-                of transformation and {seal.english.toLowerCase()} consciousness.
+                <strong className="font-medium text-white">{sealMeaning.name}</strong> ({seal.mayan}):{' '}
+                {sealMeaning.paragraph}
               </p>
 
-              <p>
-                Today&apos;s <strong className="text-foreground">{seal.color}</strong> color family
-                indicates this is a day focused on{' '}
-                {seal.color === 'red' && 'initiating and birthing new energy'}
-                {seal.color === 'white' && 'refining and purifying'}
-                {seal.color === 'blue' && 'transforming and transmitting'}
-                {seal.color === 'yellow' && 'ripening and maturing'}.
-              </p>
+              <p>{kinCombination}</p>
             </div>
-          </div>
+          </section>
 
-          {/* CTA Section */}
-          <div className="text-center">
-            <p className="text-muted-foreground mb-4">
-              Want to know <strong className="text-foreground">your</strong> personal kin?
+          {/* CTA */}
+          <section className="mt-16 text-center">
+            <p className="text-lg text-white/70">
+              Want to know <strong className="font-medium text-white">your</strong> personal kin?
             </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-3">
-              <Button
-                size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                asChild
+            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+              <Link
+                href="/calculate"
+                className="inline-flex items-center justify-center rounded-xl bg-brand px-6 py-3 font-medium text-white transition-colors hover:bg-brand-soft active:scale-[0.98]"
               >
-                <Link href="/calculate">Calculate Your Kin</Link>
-              </Button>
-              <Button variant="outline" size="lg" asChild>
-                <Link href="/login">Create Free Account</Link>
-              </Button>
+                Calculate Your Kin
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center rounded-xl border border-white/15 px-6 py-3 font-medium text-white/80 transition-colors hover:bg-white/5 active:scale-[0.98]"
+              >
+                Create Free Account
+              </Link>
             </div>
-          </div>
+          </section>
         </div>
       </main>
 
-      <Footer />
+      <FooterV2 liveLine={liveLine} />
     </div>
   )
 }

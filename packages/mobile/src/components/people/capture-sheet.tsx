@@ -230,7 +230,7 @@ export function CaptureSheet({
       return
     }
     if (draft.birthDate === null) {
-      setDateError('Set their birth date — the reading starts there.')
+      setDateError('Set their birth date. The reading starts there.')
       return
     }
 
@@ -371,7 +371,7 @@ export function CaptureSheet({
                 onChange={draft.setBirthTime}
               />
               <Text variant="bodySmall" color="onSurfaceVariant">
-                Optional — the hour draws the bodygraph.
+                Optional: the hour draws the bodygraph.
               </Text>
             </>
           )}
@@ -426,7 +426,7 @@ export function CaptureSheet({
           label="Hebrew name"
           value={draft.hebrewName}
           onChangeText={draft.setHebrewName}
-          supportingText="Optional — its letters carry a number."
+          supportingText="Optional: its letters carry a number."
           autoCorrect={false}
         />
 

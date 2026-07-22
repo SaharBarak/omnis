@@ -527,8 +527,8 @@ function buildAspectConnection(
     harmony: def.harmony,
     orb: roundOrb(orb),
     tight: orb <= TIGHT_ORB,
-    description: `${PLANET_NAME[p1]} ${ASPECT_NAME[def.name]} ${PLANET_NAME[p2]} — a ${harmonyEn} connection`,
-    descriptionHebrew: `${PLANET_HEBREW[p1]} ב${ASPECT_HEBREW[def.name]} ל${PLANET_HEBREW[p2]} — חיבור ${harmonyHe}`,
+    description: `${PLANET_NAME[p1]} ${ASPECT_NAME[def.name]} ${PLANET_NAME[p2]}, a ${harmonyEn} connection`,
+    descriptionHebrew: `${PLANET_HEBREW[p1]} ב${ASPECT_HEBREW[def.name]} ל${PLANET_HEBREW[p2]}, חיבור ${harmonyHe}`,
   }
 }
 
@@ -549,8 +549,8 @@ function buildTightAspectConnection(
     harmony: def.harmony,
     orb: roundOrb(orb),
     tight: true,
-    description: `${PLANET_NAME[p1]} ${ASPECT_NAME[def.name]} ${PLANET_NAME[p2]} within ${fmtOrb(orb)}° — an exact contact`,
-    descriptionHebrew: `${PLANET_HEBREW[p1]} ב${ASPECT_HEBREW[def.name]} ל${PLANET_HEBREW[p2]} במרווח ${fmtOrb(orb)}° — מגע מדויק`,
+    description: `${PLANET_NAME[p1]} ${ASPECT_NAME[def.name]} ${PLANET_NAME[p2]} within ${fmtOrb(orb)}°, an exact contact`,
+    descriptionHebrew: `${PLANET_HEBREW[p1]} ב${ASPECT_HEBREW[def.name]} ל${PLANET_HEBREW[p2]} במרווח ${fmtOrb(orb)}°, מגע מדויק`,
   }
 }
 
@@ -589,10 +589,10 @@ function buildDoubleWhammyConnection(
     tight: orb <= TIGHT_ORB,
     planets: [planetA, planetB],
     description:
-      `Double whammy — ${enA}/${enB} aspect each other both ways ` +
+      `Double whammy: ${enA}/${enB} aspect each other both ways ` +
       `(${ASPECT_NAME[forward.def.name]} and ${ASPECT_NAME[reverse.def.name]}, widest orb ${fmtOrb(orb)}°)`,
     descriptionHebrew:
-      `לולאה כפולה — ${heA} ו${heB} פוגשים זה את זה בשני הכיוונים ` +
+      `לולאה כפולה: ${heA} ו${heB} פוגשים זה את זה בשני הכיוונים ` +
       `(${ASPECT_HEBREW[forward.def.name]} ו${ASPECT_HEBREW[reverse.def.name]}, מרווח ${fmtOrb(orb)}°)`,
   }
 }
@@ -617,8 +617,8 @@ function buildNodeConnection(
     orb: roundOrb(orb),
     tight: orb <= TIGHT_ORB,
     planets: [body, node],
-    description: `${PLANET_NAME[body]} conjunct the ${PLANET_NAME[node]} within ${fmtOrb(orb)}° — a karmic pull`,
-    descriptionHebrew: `${PLANET_HEBREW[body]} בצמידות ל${PLANET_HEBREW[node]} במרווח ${fmtOrb(orb)}° — משיכה גורלית`,
+    description: `${PLANET_NAME[body]} conjunct the ${PLANET_NAME[node]} within ${fmtOrb(orb)}°, a karmic pull`,
+    descriptionHebrew: `${PLANET_HEBREW[body]} בצמידות ל${PLANET_HEBREW[node]} במרווח ${fmtOrb(orb)}°, משיכה גורלית`,
   }
 }
 
@@ -641,8 +641,8 @@ function buildNodeAxisConnection(
     tight: orb <= TIGHT_ORB,
     angle: 'ascendant',
     planets: ['northNode', 'southNode'],
-    description: `Node axis on the partner's Ascendant/Descendant axis within ${fmtOrb(orb)}° — structural integration`,
-    descriptionHebrew: `ציר הקשרים על ציר האופק של בן/בת הזוג במרווח ${fmtOrb(orb)}° — שילוב מבני`,
+    description: `Node axis on the partner's Ascendant/Descendant axis within ${fmtOrb(orb)}°, structural integration`,
+    descriptionHebrew: `ציר הקשרים על ציר האופק של בן/בת הזוג במרווח ${fmtOrb(orb)}°, שילוב מבני`,
   }
 }
 
@@ -668,8 +668,8 @@ function buildAngleConnection(
     tight,
     angle,
     planets: [body],
-    description: `${PLANET_NAME[body]} on the partner's ${ANGLE_NAME[angle]} within ${fmtOrb(orb)}°${tight ? ' — exact' : ''}`,
-    descriptionHebrew: `${PLANET_HEBREW[body]} על ${ANGLE_HEBREW[angle]} של בן/בת הזוג במרווח ${fmtOrb(orb)}°${tight ? ' — מדויק' : ''}`,
+    description: `${PLANET_NAME[body]} on the partner's ${ANGLE_NAME[angle]} within ${fmtOrb(orb)}°${tight ? ', exact' : ''}`,
+    descriptionHebrew: `${PLANET_HEBREW[body]} על ${ANGLE_HEBREW[angle]} של בן/בת הזוג במרווח ${fmtOrb(orb)}°${tight ? ', מדויק' : ''}`,
   }
 }
 
@@ -692,8 +692,8 @@ function buildVertexConnection(
     orb: roundOrb(orb),
     tight: true,
     planets: [body],
-    description: `${PLANET_NAME[body]} on the partner's Vertex within ${fmtOrb(orb)}° — a fated meeting point`,
-    descriptionHebrew: `${PLANET_HEBREW[body]} על הוורטקס של בן/בת הזוג במרווח ${fmtOrb(orb)}° — נקודת מפגש גורלית`,
+    description: `${PLANET_NAME[body]} on the partner's Vertex within ${fmtOrb(orb)}°, a fated meeting point`,
+    descriptionHebrew: `${PLANET_HEBREW[body]} על הוורטקס של בן/בת הזוג במרווח ${fmtOrb(orb)}°, נקודת מפגש גורלית`,
   }
 }
 
@@ -745,8 +745,8 @@ function buildStelliumOverlayConnection(
     direction,
     house,
     planets: [...bodies],
-    description: `Stellium overlay — ${names} all land in the partner's ${house}${ordinalSuffix(house)} house`,
-    descriptionHebrew: `צביר — ${namesHe} נופלים כולם בבית ה-${house} של בן/בת הזוג`,
+    description: `Stellium overlay: ${names} all land in the partner's ${house}${ordinalSuffix(house)} house`,
+    descriptionHebrew: `צביר: ${namesHe} נופלים כולם בבית ה-${house} של בן/בת הזוג`,
   }
 }
 
@@ -781,8 +781,8 @@ function buildElementConnection(
       type: 'element',
       tier: 'T0',
       harmony: 'harmonious',
-      description: `Shared ${ELEMENT_EN[e1]} element — instinctive understanding`,
-      descriptionHebrew: `יסוד ${ELEMENT_HE[e1]} משותף — הבנה אינסטינקטיבית`,
+      description: `Shared ${ELEMENT_EN[e1]} element, instinctive understanding`,
+      descriptionHebrew: `יסוד ${ELEMENT_HE[e1]} משותף, הבנה אינסטינקטיבית`,
     }
   }
 

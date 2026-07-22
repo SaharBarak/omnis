@@ -21,8 +21,6 @@ import type { EgoStarData } from '@/lib/data/homepage-demo'
 
 const easeOut = [0.4, 0, 0.2, 1] as const
 
-const SURFACE_TABS = ['Map', 'People', 'Circles', 'Boards'] as const
-
 interface HeroV2Props {
   /** Engine-computed hero map: one person and their five kin relations. */
   readonly star: EgoStarData
@@ -72,7 +70,7 @@ export function HeroV2({ star }: HeroV2Props) {
           </motion.h1>
 
           <motion.p
-            className="mt-6 max-w-xl text-lg leading-relaxed text-white/70 md:text-xl"
+            className="mt-6 max-w-xl text-lg leading-relaxed text-white/70"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.35, ease: easeOut }}
@@ -81,8 +79,10 @@ export function HeroV2({ star }: HeroV2Props) {
             Add a person once; Pleiad remembers forever.
           </motion.p>
 
+          {/* ONE primary action (CTA canon). The account path stays a quiet
+              text link — a second button here split the hero's ask in two. */}
           <motion.div
-            className="mt-9 flex flex-wrap items-center justify-center gap-4"
+            className="mt-9 flex flex-col items-center gap-4"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5, ease: easeOut }}
@@ -94,19 +94,17 @@ export function HeroV2({ star }: HeroV2Props) {
                 className="rounded-xl bg-brand px-8 text-base font-semibold text-white transition-transform hover:bg-brand-soft active:scale-[0.98]"
               >
                 <Link href="/calculate" onClick={() => track('landing_cta_clicked')}>
-                  Try a free reading
+                  Start with your birthday
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
             </Magnetic>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="rounded-xl border-white/15 bg-surface/80 px-8 text-base text-white backdrop-blur-sm transition-transform hover:bg-surface-2 hover:text-white active:scale-[0.98]"
+            <Link
+              href="/login"
+              className="text-sm text-white/50 underline-offset-4 transition-colors hover:text-white hover:underline"
             >
-              <Link href="/login">Open your map</Link>
-            </Button>
+              Create a free account
+            </Link>
           </motion.div>
         </div>
 
@@ -126,25 +124,14 @@ export function HeroV2({ star }: HeroV2Props) {
                   style={{ backgroundColor: COLORS.brand }}
                 />
                 <span className="truncate">
-                  pleiad <span className="text-white/25">/</span> your-map{' '}
-                  <span className="text-white/25">/</span> home-circle
+                  pleiad <span className="text-white/25">/</span> your-map
+                  <span className="hidden sm:inline">
+                    {' '}
+                    <span className="text-white/25">/</span> home-circle
+                  </span>
                 </span>
               </div>
-              <div className="hidden items-center gap-1 sm:flex">
-                {SURFACE_TABS.map((tab, i) => (
-                  <span
-                    key={tab}
-                    className={
-                      i === 0
-                        ? 'rounded-md bg-white/10 px-3 py-1 text-xs font-medium text-white'
-                        : 'px-3 py-1 text-xs text-white/50'
-                    }
-                  >
-                    {tab}
-                  </span>
-                ))}
-              </div>
-              <span className="font-mono text-xs text-white/50">
+              <span className="shrink-0 whitespace-nowrap font-mono text-xs text-white/50">
                 {star.spokes.length + 1} people · {star.spokes.length} named ties
               </span>
             </div>

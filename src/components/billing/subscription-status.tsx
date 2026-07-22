@@ -1,8 +1,9 @@
 'use client'
 
 import { format } from 'date-fns'
-import { AlertCircle, CheckCircle, Clock, CreditCard } from 'lucide-react'
+import { AlertCircle, CheckCircle, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Eyebrow, Notice } from '@/components/app-kit'
 import { PLANS, PlanTier } from '@/lib/services/billing'
 
 /**
@@ -38,22 +39,21 @@ export function SubscriptionStatus({
                      status === 'trialing' ? Clock :
                      status === 'past_due' ? AlertCircle : AlertCircle
 
-  const statusColor = status === 'active' ? 'text-green-500' :
-                      status === 'trialing' ? 'text-blue-500' :
-                      status === 'past_due' ? 'text-amber-500' : 'text-muted-foreground'
+  const statusColor = status === 'active' ? 'text-secondary' :
+                      status === 'trialing' ? 'text-primary' :
+                      status === 'past_due' ? 'text-amber' : 'text-white/50'
 
   return (
-    <div className="earth-card bg-card p-6 space-y-4">
+    <div className="surface-card space-y-4 p-6">
       <div className="flex items-start justify-between">
-        <div>
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Current Plan
-          </h3>
-          <div className="mt-2">
-            <span className="text-2xl font-bold">{planInfo.name}</span>
+        <div className="flex flex-col gap-2">
+          <Eyebrow>Current Plan</Eyebrow>
+          <div>
+            <span className="font-display text-2xl font-medium text-white/90">
+              {planInfo.name}
+            </span>
             {planInfo.price > 0 && (
-              <span className="text-muted-foreground ml-2">
+              <span className="ml-2 text-sm text-white/50">
                 {plan === 'lifetime'
                   ? `$${planInfo.price} · paid once`
                   : `$${planInfo.price}/month`}
@@ -62,63 +62,61 @@ export function SubscriptionStatus({
           </div>
         </div>
 
-        <div className={`flex items-center gap-1 ${statusColor}`}>
-          <StatusIcon className="h-4 w-4" />
+        <div className={`flex items-center gap-1.5 ${statusColor}`}>
+          <StatusIcon className="size-4" aria-hidden="true" />
           <span className="text-sm capitalize">{status}</span>
         </div>
       </div>
 
       {/* Cancellation Warning — resuming is done in the store, not here. */}
       {cancelAtPeriodEnd && periodEndDate && (
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
-          <p className="text-sm text-amber-600 dark:text-amber-400">
-            Auto-renew is off. Your plan ends on{' '}
-            {format(periodEndDate, 'MMMM d, yyyy')}, after which you&apos;ll move to
-            the Free plan. You can turn renewal back on in your subscription
-            settings.
-          </p>
-        </div>
+        <Notice variant="warning">
+          Auto-renew is off. Your plan ends on{' '}
+          {format(periodEndDate, 'MMMM d, yyyy')}, after which you&apos;ll move to
+          the Free plan. You can turn renewal back on in your subscription
+          settings.
+        </Notice>
       )}
 
       {/* Trial Info */}
       {status === 'trialing' && periodEndDate && (
-        <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
-          <p className="text-sm text-blue-600 dark:text-blue-400">
-            Your free trial ends on {format(periodEndDate, 'MMMM d, yyyy')}.
-          </p>
-        </div>
+        <Notice variant="info">
+          Your free trial ends on {format(periodEndDate, 'MMMM d, yyyy')}.
+        </Notice>
       )}
 
       {/* Past Due Warning */}
       {status === 'past_due' && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-          <p className="text-sm text-red-600 dark:text-red-400">
-            Your payment failed. Update your payment method in your subscription
-            settings to keep your premium features.
-          </p>
-        </div>
+        <Notice variant="error">
+          Your payment failed. Update your payment method in your subscription
+          settings to keep your premium features.
+        </Notice>
       )}
 
       {/* Lifetime Info — no renewal, no expiry, nothing to cancel */}
       {plan === 'lifetime' && (
-        <p className="text-sm text-muted-foreground">
-          Founding Lifetime — yours forever. No renewals, no billing dates.
+        <p className="text-sm text-white/50">
+          Founding Lifetime: yours forever. No renewals, no billing dates.
         </p>
       )}
 
       {/* Renewal Info */}
       {periodEndDate && status === 'active' && !cancelAtPeriodEnd && (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-white/50">
           Renews on {format(periodEndDate, 'MMMM d, yyyy')}
         </p>
       )}
 
       {hasSubscription && onManageSubscription && (
-        <div className="flex flex-wrap items-center gap-3 pt-2 border-t">
-          <Button variant="outline" onClick={onManageSubscription}>
+        <div className="flex flex-wrap items-center gap-3 border-t border-white/[0.07] pt-4">
+          <Button
+            variant="outline"
+            className="rounded-xl active:scale-[0.98]"
+            onClick={onManageSubscription}
+          >
             Manage Subscription
           </Button>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-white/50">
             Billing, renewal and cancellation are handled by the App Store or
             Google Play.
           </p>

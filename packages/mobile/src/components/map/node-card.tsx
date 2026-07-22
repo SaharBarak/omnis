@@ -154,7 +154,7 @@ export function NodeCard({
           </View>
         ) : (
           <Text variant="bodyMedium" color="onSurfaceVariant">
-            No bonds drawn yet — compare to begin one.
+            No bonds drawn yet. Compare to begin one.
           </Text>
         )}
 

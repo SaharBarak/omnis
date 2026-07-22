@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 
+import { asKin } from '@pleiad/engine/core/types'
 import { PersonCard } from './PersonCard'
 import { DreamspellSection } from './DreamspellSection'
 import { TzolkinSection } from './TzolkinSection'
 import { OracleMap } from './OracleMap'
 import { MantraDisplay } from './MantraDisplay'
 import { SealIcon } from './SealIcon'
-import { asKin } from '@pleiad/engine/core/types'
 
 vi.mock('next/image', () => ({
   default: function MockImage({

@@ -10,7 +10,6 @@
  * - Name comparisons
  */
 
-import { cn } from '@/lib/utils'
 import {
   calculateGematria,
   standardGematria,
@@ -33,6 +32,7 @@ import {
   GEMATRIA_METHOD_LABELS,
   DIGITAL_ROOT_LABELS,
 } from '@pleiad/engine/types/gematria'
+import { cn } from '@/lib/utils'
 
 // =============================================================================
 // PROPS INTERFACES

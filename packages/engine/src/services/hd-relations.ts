@@ -45,7 +45,7 @@ const THEMES: Record<ConnectionThemeId, { name: string; nameHebrew: string; desc
   '9-0': {
     name: 'Nowhere to Go',
     nameHebrew: 'אין לאן ללכת',
-    description: 'Every centre defined between you. Deeply bonded and self-contained — and little escape from each other.',
+    description: 'Every centre defined between you. Deeply bonded and self-contained, with little escape from each other.',
   },
   '8-1': {
     name: 'Have Some Fun',
@@ -65,7 +65,7 @@ const THEMES: Record<ConnectionThemeId, { name: string; nameHebrew: string; desc
   '5-4': {
     name: 'Not a Relationship Anymore',
     nameHebrew: 'כבר לא מערכת יחסים',
-    description: 'Four centres open. Very different worlds — you have to choose each other, consciously.',
+    description: 'Four centres open. Very different worlds: you have to choose each other, consciously.',
   },
   'below-5': {
     name: 'Barely Defined',

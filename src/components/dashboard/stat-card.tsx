@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Eyebrow, useCountUp } from '@/components/app-kit'
 
 interface StatCardProps {
   label: string
@@ -16,6 +17,11 @@ interface StatCardProps {
   className?: string
 }
 
+/**
+ * Library stat — split-flap numeral treatment: mono tabular
+ * brand-bright, counted up on first view. Icon sits in a quiet
+ * hairline chip (chrome, not a colored feature badge).
+ */
 export function StatCard({
   label,
   value,
@@ -24,27 +30,38 @@ export function StatCard({
   trend,
   className,
 }: StatCardProps) {
+  const numeric = typeof value === 'number' ? value : null
+  const [ref, counted] = useCountUp(numeric ?? 0)
+
   const content = (
-    <div className={cn(
-      'surface-card p-4 transition-all',
-      href && 'interactive-card',
-      className
-    )}>
+    <div
+      ref={ref as React.Ref<HTMLDivElement>}
+      className={cn(
+        'surface-card p-4 transition-all',
+        href && 'interactive-card',
+        className
+      )}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="stat-value">{value}</p>
-          <p className="stat-label mt-0.5">{label}</p>
+          <p className="font-mono text-3xl tracking-tight text-brand-bright [font-variant-numeric:tabular-nums]">
+            {numeric === null ? value : counted}
+          </p>
+          <Eyebrow className="mt-1.5 block truncate">{label}</Eyebrow>
           {trend && (
-            <p className={cn(
-              'text-xs mt-1.5 font-medium',
-              trend.value >= 0 ? 'text-secondary' : 'text-destructive'
-            )}>
-              {trend.value >= 0 ? '+' : ''}{trend.value} {trend.label}
+            <p
+              className={cn(
+                'mt-1.5 font-mono text-xs [font-variant-numeric:tabular-nums]',
+                trend.value >= 0 ? 'text-secondary' : 'text-destructive'
+              )}
+            >
+              {trend.value >= 0 ? '+' : ''}
+              {trend.value} {trend.label}
             </p>
           )}
         </div>
-        <div className="p-2.5 rounded-lg bg-primary/10 text-primary shrink-0">
-          <Icon className="w-5 h-5" />
+        <div className="shrink-0 rounded-full border border-white/[0.07] p-2.5 text-white/50">
+          <Icon className="size-5" strokeWidth={1.5} />
         </div>
       </div>
     </div>

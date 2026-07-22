@@ -230,7 +230,7 @@ export function ShareSheet({
     if (links.shares.length === 0) {
       return (
         <Text variant="bodyMedium" color="onSurfaceVariant">
-          No active links yet — mint the first.
+          No active links yet. Mint the first.
         </Text>
       )
     }

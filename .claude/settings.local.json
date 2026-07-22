@@ -43,7 +43,10 @@
       "Bash(# Check for additional image sets - moon images, missing glyphs, and any other referenced paths curl -s \"\"https://www.starroot.com/cgi/daycalc.pl\"\")",
       "Bash(npx tsc:*)",
       "Bash(timeout 180 npm run typecheck)",
-      "Bash(echo \"=== EXIT $? ===\")"
+      "Bash(echo \"=== EXIT $? ===\")",
+      "Bash(npm test *)",
+      "Bash(npx eslint *)",
+      "Bash(grep -rEn \"#[0-9a-fA-F]{3,8}\\\\b|rgba?\\\\\\(|bg-\\(red|blue|green|yellow|purple|indigo|violet|pink|orange|gray|slate|zinc|amber|emerald|teal|cyan|sky|rose\\)-[0-9]|text-\\(red|blue|green|yellow|purple|indigo|violet|pink|orange|amber\\)-[0-9]|border-\\(amber|red|blue|purple\\)-[0-9]\" src/app/app)"
     ]
   }
 }

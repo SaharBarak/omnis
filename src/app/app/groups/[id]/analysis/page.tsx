@@ -3,8 +3,8 @@
 import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Zap, Flame, Sparkles } from 'lucide-react'
-import { analyzeGroup, getScoreColor } from '@pleiad/engine/services/group-analysis'
+import { ArrowLeft } from 'lucide-react'
+import { analyzeGroup } from '@pleiad/engine/services/group-analysis'
 import type { FullGroupAnalysis, DistributionItem, GroupMemberAnalysis } from '@pleiad/engine/services/group-analysis'
 import { buildPenta } from '@pleiad/engine/services/composite-bodygraph'
 import {
@@ -14,44 +14,94 @@ import {
 import { CENTER_LABELS } from '@pleiad/engine/types/human-design'
 import type { GroupWithMembers } from '@/lib/types/relationship'
 import { useGroups } from '@/lib/hooks/use-groups'
+import { cn } from '@/lib/utils'
 import { PentaChart, type PentaMember } from '@/components/human-design/PentaChart'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Eyebrow,
+  FlavorTabs,
+  MeterBar,
+  Notice,
+  PageSection,
+  Pill,
+  SkeletonCard,
+  SkeletonRows,
+  StatNumber,
+  StatWord,
+  getFlavor,
+  type FlavorTab,
+} from '@/components/app-kit'
+import { SEAL_COLORS, toSealColor } from '@/components/app-kit/seal-colors'
+import { MATRIX_RAMP, scoreRampStep } from '@/lib/services/resonance-matrix'
 
-// Color display names
-const COLOR_LABELS: Record<string, { english: string; hex: string }> = {
-  red: { english: 'Red', hex: '#EF4444' },
-  white: { english: 'White', hex: '#F3F4F6' },
-  blue: { english: 'Blue', hex: '#3B82F6' },
-  yellow: { english: 'Yellow', hex: '#F59E0B' },
+// Per-section folklore accents (system-flavors.ts via the kit)
+const INTEGRATION = getFlavor('integration')
+const DREAMSPELL = getFlavor('dreamspell')
+const TZOLKIN = getFlavor('tzolkin')
+const HUMAN_DESIGN = getFlavor('humanDesign')
+
+const COLOR_NAMES: Record<'red' | 'white' | 'blue' | 'yellow', string> = {
+  red: 'Red',
+  white: 'White',
+  blue: 'Blue',
+  yellow: 'Yellow',
 }
 
-// Distribution bar component
-function DistributionBar({ item, maxCount }: { item: DistributionItem; maxCount: number }) {
-  const widthPercent = maxCount > 0 ? (item.count / maxCount) * 100 : 0
+const INSIGHT_VARIANT = {
+  strength: 'success',
+  challenge: 'warning',
+  pattern: 'info',
+} as const
 
+// Kit gap: no neutral flavor exists for the members tab, so it borrows the
+// integration accent (shared with the compatibility tab).
+const ANALYSIS_TABS: readonly FlavorTab[] = [
+  { key: 'compatibility', label: 'Compatibility', flavor: 'integration' },
+  { key: 'penta', label: 'Penta', flavor: 'humanDesign' },
+  { key: 'dreamspell', label: 'Dreamspell', flavor: 'dreamspell' },
+  { key: 'tzolkin', label: 'Tzolkin', flavor: 'tzolkin' },
+  { key: 'members', label: 'Members', flavor: 'neutral' },
+]
+
+/** Card header inside a surface-card: display title + muted description. */
+function CardHeading({ title, description }: { title: string; description: string }) {
   return (
-    <div className="flex items-center gap-3 py-1">
-      <div className="w-32 text-sm truncate" title={item.name}>
-        <span className="font-medium">{item.name}</span>
-      </div>
-      <div className="flex-1 bg-muted rounded-full h-4 overflow-hidden">
-        <div
-          className="bg-primary h-full transition-all duration-300"
-          style={{ width: `${widthPercent}%` }}
-        />
-      </div>
-      <div className="w-16 text-sm text-right font-mono tabular-nums">
-        <span className="font-medium">{item.count}</span>
-        <span className="text-muted-foreground text-xs"> ({item.percentage.toFixed(0)}%)</span>
-      </div>
+    <div>
+      <h3 className="font-display text-lg font-medium text-white/90">{title}</h3>
+      <p className="mt-0.5 text-sm text-white/50">{description}</p>
     </div>
   )
 }
 
-// Color balance pie chart (simplified bar view)
+// Distribution list — MeterBars with the section's folklore accent.
+function DistributionList({
+  items,
+  accent,
+}: {
+  items: DistributionItem[]
+  accent: string
+}) {
+  const present = items.filter(d => d.count > 0)
+  if (present.length === 0) {
+    return <p className="py-4 text-center text-sm text-white/35">No data</p>
+  }
+  const maxCount = Math.max(...items.map(d => d.count), 1)
+  return (
+    <div className="space-y-2">
+      {present.map(item => (
+        <MeterBar
+          key={item.value}
+          label={item.name}
+          value={item.count}
+          max={maxCount}
+          accent={accent}
+        />
+      ))}
+    </div>
+  )
+}
+
+// Color balance — the four directional seal colors through SEAL_COLORS tokens.
 function ColorBalanceChart({ colorBalance }: { colorBalance: FullGroupAnalysis['dreamspell']['colorBalance'] }) {
   const colors = ['red', 'white', 'blue', 'yellow'] as const
 
@@ -59,24 +109,22 @@ function ColorBalanceChart({ colorBalance }: { colorBalance: FullGroupAnalysis['
     <div className="space-y-3">
       {colors.map(color => {
         const data = colorBalance[color]
+        const spec = SEAL_COLORS[color]
         return (
           <div key={color} className="flex items-center gap-3">
-            <div
-              className="w-6 h-6 rounded-full border-2"
-              style={{ backgroundColor: COLOR_LABELS[color].hex, borderColor: color === 'white' ? '#D1D5DB' : COLOR_LABELS[color].hex }}
+            <span
+              aria-hidden
+              className="size-3 shrink-0 rounded-full border border-white/[0.12]"
+              style={{ backgroundColor: spec.css }}
             />
-            <div className="w-20 text-sm">
-              <span className="font-medium">{COLOR_LABELS[color].english}</span>
-            </div>
-            <div className="flex-1 bg-muted rounded-full h-4 overflow-hidden">
-              <div
-                className="h-full transition-all duration-300"
-                style={{ width: `${data.percentage}%`, backgroundColor: COLOR_LABELS[color].hex }}
-              />
-            </div>
-            <div className="w-12 text-sm text-right font-mono tabular-nums">
-              {data.count} ({data.percentage.toFixed(0)}%)
-            </div>
+            <MeterBar
+              className="min-w-0 flex-1"
+              label={COLOR_NAMES[color]}
+              value={Math.round(data.percentage)}
+              max={100}
+              accent={spec.css}
+              displayValue={`${data.percentage.toFixed(0)}%`}
+            />
           </div>
         )
       })}
@@ -84,15 +132,16 @@ function ColorBalanceChart({ colorBalance }: { colorBalance: FullGroupAnalysis['
   )
 }
 
-// Compatibility matrix component
+// Compatibility matrix — cells climb the brand-violet resonance ramp
+// (same ramp as /app/graph's resonance matrix).
 function CompatibilityMatrix({ analysis }: { analysis: FullGroupAnalysis }) {
   const { members, compatibility } = analysis
 
   if (members.length < 2) {
     return (
-      <div className="text-center text-muted-foreground py-8">
+      <p className="py-8 text-center text-sm text-white/50">
         At least two members are needed to compute compatibility.
-      </div>
+      </p>
     )
   }
 
@@ -112,13 +161,16 @@ function CompatibilityMatrix({ analysis }: { analysis: FullGroupAnalysis }) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full border-collapse">
+      <table className="min-w-full border-separate border-spacing-1">
         <thead>
           <tr>
-            <th className="p-2 border bg-muted text-left text-sm min-w-[100px]"></th>
+            <th className="min-w-[100px]" />
             {members.map(m => (
-              <th key={m.id} className="p-2 border bg-muted text-center text-xs min-w-[60px]">
-                <div className="truncate max-w-[60px]" title={m.name || m.hebrewName || ''}>
+              <th
+                key={m.id}
+                className="min-w-[44px] px-1 pb-1 text-center font-mono text-[10px] font-medium uppercase tracking-[0.15em] text-white/50"
+              >
+                <div className="mx-auto max-w-[60px] truncate" title={m.name || m.hebrewName || ''}>
                   {(m.name || m.hebrewName || '').slice(0, 5)}
                 </div>
               </th>
@@ -128,25 +180,31 @@ function CompatibilityMatrix({ analysis }: { analysis: FullGroupAnalysis }) {
         <tbody>
           {members.map(row => (
             <tr key={row.id}>
-              <td className="p-2 border bg-muted text-left text-sm font-medium">
-                <div className="truncate max-w-[100px]" title={row.name || row.hebrewName || ''}>
+              <td className="pr-3 text-left text-sm text-white/70">
+                <div className="max-w-[100px] truncate" title={row.name || row.hebrewName || ''}>
                   {row.name || row.hebrewName}
                 </div>
               </td>
               {members.map(col => {
                 const score = getScore(row.id, col.id)
+                if (score === null) {
+                  return (
+                    <td
+                      key={col.id}
+                      aria-hidden
+                      className="h-10 min-w-[44px] rounded-md border border-white/5 bg-white/[0.02]"
+                    />
+                  )
+                }
+                const step = scoreRampStep(score)
                 return (
                   <td
                     key={col.id}
-                    className="p-2 border text-center text-sm font-medium font-mono tabular-nums"
-                    style={{
-                      backgroundColor: score !== null ? getScoreColor(score) : 'hsl(var(--muted))',
-                      color: score === null
-                        ? 'hsl(var(--muted-foreground))'
-                        : score >= 40 ? 'white' : '#1F2937',
-                    }}
+                    className="h-10 min-w-[44px] rounded-md text-center font-mono text-sm font-medium tabular-nums"
+                    style={{ background: step.fill, color: step.text }}
+                    title={`${row.name || row.hebrewName} × ${col.name || col.hebrewName}: ${score}`}
                   >
-                    {score !== null ? score : '-'}
+                    {score}
                   </td>
                 )
               })}
@@ -155,78 +213,52 @@ function CompatibilityMatrix({ analysis }: { analysis: FullGroupAnalysis }) {
         </tbody>
       </table>
 
-      {/* Legend */}
-      <div className="mt-4 flex items-center gap-4 text-sm">
-        <span className="text-muted-foreground">Legend:</span>
-        <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: '#22C55E' }} />
-          <span>80+</span>
+      {/* Ramp legend */}
+      <div className="mt-4 flex items-center gap-2 text-xs text-white/50">
+        <span>Low</span>
+        <div className="flex gap-0.5">
+          {MATRIX_RAMP.map(step => (
+            <span
+              key={step.min}
+              className="h-2.5 w-6 rounded-sm"
+              style={{ background: step.fill }}
+            />
+          ))}
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: '#84CC16' }} />
-          <span>60-79</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: '#F59E0B' }} />
-          <span>40-59</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: '#F97316' }} />
-          <span>20-39</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: '#EF4444' }} />
-          <span>&lt;20</span>
-        </div>
+        <span>High resonance</span>
       </div>
     </div>
   )
 }
 
-// Member card component
-function MemberCard({ member }: { member: GroupMemberAnalysis }) {
-  const colorHex = COLOR_LABELS[member.dreamspell.color]?.hex || '#6B7280'
+// Member row — hairline-divided list row with a seal-tinted kin disc.
+function MemberRow({ member, last }: { member: GroupMemberAnalysis; last: boolean }) {
+  const seal = toSealColor(member.dreamspell.color)
+  const spec = seal ? SEAL_COLORS[seal] : null
 
   return (
-    <div className="flex items-center gap-3 p-3 border rounded-lg">
-      <div
-        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold font-mono tabular-nums"
-        style={{ backgroundColor: colorHex }}
+    <div
+      className={cn(
+        'flex items-center gap-3 py-3',
+        !last && 'border-b border-white/[0.07]'
+      )}
+    >
+      <span
+        className={cn(
+          'flex size-10 shrink-0 items-center justify-center rounded-full border border-white/[0.07] font-mono text-sm font-semibold tabular-nums',
+          !spec && 'bg-white/[0.06] text-white/70'
+        )}
+        style={spec ? { backgroundColor: spec.cssSoft, color: spec.css } : undefined}
       >
         {member.dreamspell.kin}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="font-medium truncate">{member.name || member.hebrewName}</div>
-        <div className="text-sm text-muted-foreground">
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm text-white/90">{member.name || member.hebrewName}</div>
+        <div className="text-xs text-white/50">
           {member.dreamspell.toneName} {member.dreamspell.sealName}
         </div>
       </div>
-      <Badge variant="outline" className="text-xs">
-        Kin {member.dreamspell.kin}
-      </Badge>
-    </div>
-  )
-}
-
-// Insight card component
-function InsightCard({ insight }: { insight: FullGroupAnalysis['insights'][0] }) {
-  const styles = {
-    strength: 'border-green-500/40 bg-green-500/10',
-    challenge: 'border-amber-500/40 bg-amber-500/10',
-    pattern: 'border-blue-500/40 bg-blue-500/10',
-  }
-  const icons = {
-    strength: <Zap className="h-4 w-4 text-green-500" />,
-    challenge: <Flame className="h-4 w-4 text-amber-500" />,
-    pattern: <Sparkles className="h-4 w-4 text-blue-500" />,
-  }
-
-  return (
-    <div className={`p-4 border-l-4 rounded-lg ${styles[insight.type]}`}>
-      <div className="flex items-start gap-3">
-        <span className="mt-0.5 shrink-0">{icons[insight.type]}</span>
-        <p className="text-sm text-foreground">{insight.english}</p>
-      </div>
+      <Eyebrow className="shrink-0">Kin {member.dreamspell.kin}</Eyebrow>
     </div>
   )
 }
@@ -261,25 +293,25 @@ function PentaSection({ group }: { group: GroupWithMembers }) {
 
   if (charted.length < 3) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Penta</CardTitle>
-          <CardDescription>The group bodygraph — read for 3-5 charted members</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <p className="text-muted-foreground text-sm">
+      <div className="surface-card p-5">
+        <CardHeading
+          title="Penta"
+          description="The group bodygraph, read for 3-5 charted members"
+        />
+        <div className="mt-4 space-y-2">
+          <p className="text-sm text-white/70">
             The Penta needs at least three members with an exact birth time and place
             ({charted.length} of {group.members.length} charted).
             {charted.length === 2 &&
               ' For two people, open their cell on the resonance matrix to see the pair composite.'}
           </p>
           {uncharted.length > 0 && (
-            <p className="text-muted-foreground text-sm">
+            <p className="text-sm text-white/50">
               Missing birth time or place: {uncharted.join(', ')}
             </p>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     )
   }
 
@@ -288,51 +320,52 @@ function PentaSection({ group }: { group: GroupWithMembers }) {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardTitle>Penta</CardTitle>
-          <CardDescription>
-            {charted.length} charted members
-            {charted.length > 5 && ' — the Penta is classically read for 3-5'}
-            {uncharted.length > 0 && ` · uncharted: ${uncharted.join(', ')}`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-center">
-            <PentaChart members={charted} className="w-full max-w-[400px]" />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="surface-card p-5">
+        <CardHeading
+          title="Penta"
+          description={[
+            `${charted.length} charted members`,
+            charted.length > 5 ? 'the Penta is classically read for 3-5' : null,
+            uncharted.length > 0 ? `uncharted: ${uncharted.join(', ')}` : null,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
+        />
+        <div className="mt-4 flex justify-center">
+          <PentaChart members={charted} className="w-full max-w-[400px]" />
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>What only the group defines</CardTitle>
-          <CardDescription>
-            Channels and centers no single member carries alone
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="surface-card p-5">
+        <CardHeading
+          title="What only the group defines"
+          description="Channels and centers no single member carries alone"
+        />
+        <div className="mt-4 space-y-4">
           {emergent.length === 0 && penta.emergentCenters.size === 0 ? (
-            <p className="text-muted-foreground text-sm">
-              No emergent definition — every defined channel in this group is carried by
+            <p className="text-sm text-white/50">
+              No emergent definition: every defined channel in this group is carried by
               at least one member on their own.
             </p>
           ) : (
             <>
               {emergent.map((pc) => (
                 <div key={pc.channel.id} className="space-y-1">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-foreground/90 font-medium">
+                  <div className="flex items-center justify-between gap-3 text-sm">
+                    <span className="min-w-0 font-medium text-white/90">
                       {pc.channel.name}
-                      <span className="text-muted-foreground font-normal ml-1.5">
+                      <span className="ml-1.5 font-normal text-white/50">
                         ({pc.channel.id})
                       </span>
                     </span>
-                    <Badge variant="outline" className="text-xs border-primary/40 text-primary">
+                    <Pill
+                      accent={HUMAN_DESIGN.accent}
+                      className="shrink-0 px-3 py-1 text-[10px]"
+                    >
                       Group-only
-                    </Badge>
+                    </Pill>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-white/50">
                     {pc.contributors
                       .map((ref) => `${charted[ref.index].name} brings gate ${ref.gates.join(', ')}`)
                       .join(' · ')}
@@ -340,17 +373,38 @@ function PentaSection({ group }: { group: GroupWithMembers }) {
                 </div>
               ))}
               {penta.emergentCenters.size > 0 && (
-                <p className="text-sm text-muted-foreground pt-2 border-t">
+                <p className="border-t border-white/[0.07] pt-3 text-sm text-white/50">
                   Centers defined only together:{' '}
-                  <span className="text-foreground/90">
+                  <span className="text-white/90">
                     {[...penta.emergentCenters].map((c) => CENTER_LABELS[c]).join(', ')}
                   </span>
                 </p>
               )}
             </>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Loading skeleton — layout-matched (header, stat grid, list card)
+function AnalysisSkeleton() {
+  return (
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <div className="skeleton-shimmer h-3 w-40 rounded" />
+        <div className="skeleton-shimmer h-8 w-56 rounded" />
+        <div className="skeleton-shimmer h-4 w-24 rounded" />
+      </div>
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        {Array.from({ length: 4 }, (_, i) => (
+          <SkeletonCard key={i} />
+        ))}
+      </div>
+      <div className="surface-card p-5">
+        <SkeletonRows count={4} />
+      </div>
     </div>
   )
 }
@@ -364,6 +418,7 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
   const [group, setGroup] = useState<GroupWithMembers | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [tab, setTab] = useState('compatibility')
 
   useEffect(() => {
     const loadAnalysis = async () => {
@@ -391,22 +446,19 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
   }, [id, getGroupWithMembers])
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">Loading analysis...</div>
-      </div>
-    )
+    return <AnalysisSkeleton />
   }
 
   if (error) {
     return (
       <div className="space-y-4">
-        <Button variant="ghost" onClick={() => router.back()}>
-          &larr; Back
+        <Button variant="ghost" className="rounded-xl" onClick={() => router.back()}>
+          <ArrowLeft className="mr-2 size-4" />
+          Back
         </Button>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center text-destructive">{error}</div>
-        </div>
+        <Notice variant="error" title="Could not load the analysis">
+          {error}
+        </Notice>
       </div>
     )
   }
@@ -418,238 +470,199 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
   // Get top items for quick view
   const topSeals = analysis.dreamspell.sealDistribution.slice(0, 5).filter(d => d.count > 0)
   const topTones = analysis.dreamspell.toneDistribution.slice(0, 5).filter(d => d.count > 0)
-  const maxSealCount = Math.max(...analysis.dreamspell.sealDistribution.map(d => d.count), 1)
-  const maxToneCount = Math.max(...analysis.dreamspell.toneDistribution.map(d => d.count), 1)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-            <Link href="/app/groups" className="hover:underline">Groups</Link>
-            <span>/</span>
-            <span>{analysis.groupName}</span>
+          <div className="mb-1.5 flex items-center gap-2">
+            <Link
+              href="/app/groups"
+              className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/50 transition-colors hover:text-white/70"
+            >
+              Groups
+            </Link>
+            <span aria-hidden className="text-white/35">/</span>
+            <Eyebrow className="text-white/70">{analysis.groupName}</Eyebrow>
           </div>
-          <h1 className="text-3xl font-display font-semibold tracking-tight">Group analysis</h1>
-          <p className="text-muted-foreground">
-            {analysis.memberCount} members
-          </p>
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-white/90 sm:text-3xl">
+            Group analysis
+          </h1>
+          <p className="mt-0.5 text-white/50">{analysis.memberCount} members</p>
         </div>
-        <Button variant="outline" onClick={() => router.back()}>
+        <Button variant="outline" className="rounded-xl" onClick={() => router.back()}>
           Back to groups
         </Button>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Members</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold font-mono tabular-nums">{analysis.memberCount}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Average compatibility</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold font-mono tabular-nums" style={{ color: getScoreColor(analysis.compatibility.averageScore) }}>
-              {analysis.compatibility.averageScore}%
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Most common seal</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">
-              {topSeals[0]?.name || '-'}
-            </div>
-            <div className="text-sm text-muted-foreground">
-              {topSeals[0] ? `${topSeals[0].count} people` : ''}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Most common tone</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">
-              {topTones[0]?.name || '-'}
-            </div>
-            <div className="text-sm text-muted-foreground">
-              {topTones[0] ? `${topTones[0].count} people` : ''}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Quick stats */}
+      <PageSection index={0} accent={INTEGRATION.accent} eyebrow="Overview">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="surface-card p-5">
+            <StatNumber value={analysis.memberCount} label="Members" />
+          </div>
+          <div className="surface-card p-5">
+            <StatNumber
+              value={`${analysis.compatibility.averageScore}%`}
+              label="Avg compatibility"
+            />
+          </div>
+          <div className="surface-card p-5">
+            <StatWord
+              value={topSeals[0]?.name || '—'}
+              label={
+                topSeals[0]
+                  ? `Most common seal · ${topSeals[0].count} people`
+                  : 'Most common seal'
+              }
+            />
+          </div>
+          <div className="surface-card p-5">
+            <StatWord
+              value={topTones[0]?.name || '—'}
+              label={
+                topTones[0]
+                  ? `Most common tone · ${topTones[0].count} people`
+                  : 'Most common tone'
+              }
+            />
+          </div>
+        </div>
+      </PageSection>
 
       {/* Insights */}
       {analysis.insights.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Insights</CardTitle>
-            <CardDescription>Key observations from the group data</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <PageSection index={1} accent={INTEGRATION.accent} eyebrow="Insights">
+          <div className="space-y-3">
             {analysis.insights.map((insight, idx) => (
-              <InsightCard key={idx} insight={insight} />
+              <Notice key={idx} variant={INSIGHT_VARIANT[insight.type]}>
+                {insight.english}
+              </Notice>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </PageSection>
       )}
 
-      {/* Tabs for detailed analysis */}
-      <Tabs defaultValue="compatibility" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="compatibility">Compatibility</TabsTrigger>
-          <TabsTrigger value="penta">Penta</TabsTrigger>
-          <TabsTrigger value="dreamspell">Dreamspell</TabsTrigger>
-          <TabsTrigger value="tzolkin">Tzolkin</TabsTrigger>
-          <TabsTrigger value="members">Members</TabsTrigger>
-        </TabsList>
+      {/* Detailed analysis */}
+      <PageSection index={2} accent={INTEGRATION.accent} eyebrow="Readings">
+        <FlavorTabs tabs={ANALYSIS_TABS} active={tab} onChange={setTab} />
 
-        <TabsContent value="compatibility" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Compatibility matrix</CardTitle>
-              <CardDescription>
-                Compatibility scores for every pair in the group (0-100)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+        {tab === 'compatibility' && (
+          <div className="surface-card p-5">
+            <CardHeading
+              title="Compatibility matrix"
+              description="Compatibility scores for every pair in the group (0-100)"
+            />
+            <div className="mt-4">
               <CompatibilityMatrix analysis={analysis} />
+            </div>
+            {analysis.compatibility.highestPair && (
+              <Notice
+                variant="success"
+                title="Highest-compatibility pair"
+                className="mt-6"
+              >
+                {analysis.compatibility.highestPair.person1} &harr;{' '}
+                {analysis.compatibility.highestPair.person2}:{' '}
+                {analysis.compatibility.highestPair.score}%
+              </Notice>
+            )}
+          </div>
+        )}
 
-              {analysis.compatibility.highestPair && (
-                <div className="mt-6 p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
-                  <div className="flex items-center gap-2 font-medium text-green-500">
-                    <Sparkles className="h-4 w-4" />
-                    Highest-compatibility pair
-                  </div>
-                  <div className="text-sm text-muted-foreground mt-1">
-                    {analysis.compatibility.highestPair.person1} &harr; {analysis.compatibility.highestPair.person2}: {analysis.compatibility.highestPair.score}%
-                  </div>
+        {tab === 'penta' && group && <PentaSection group={group} />}
+
+        {tab === 'dreamspell' && (
+          <div className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="surface-card p-5">
+                <CardHeading
+                  title="Seal distribution"
+                  description="The 20 solar seals of the Dreamspell"
+                />
+                <div className="mt-4">
+                  <DistributionList
+                    items={analysis.dreamspell.sealDistribution}
+                    accent={DREAMSPELL.accent}
+                  />
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="penta" className="mt-6">
-          {group && <PentaSection group={group} />}
-        </TabsContent>
-
-        <TabsContent value="dreamspell" className="mt-6 space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Seal distribution</CardTitle>
-                <CardDescription>The 20 solar seals of the Dreamspell</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {topSeals.length > 0 ? (
-                  <div className="space-y-1">
-                    {analysis.dreamspell.sealDistribution.filter(d => d.count > 0).map(item => (
-                      <DistributionBar key={item.value} item={item} maxCount={maxSealCount} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-muted-foreground text-center py-4">No data</div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Tone distribution</CardTitle>
-                <CardDescription>The 13 galactic tones</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {topTones.length > 0 ? (
-                  <div className="space-y-1">
-                    {analysis.dreamspell.toneDistribution.filter(d => d.count > 0).map(item => (
-                      <DistributionBar key={item.value} item={item} maxCount={maxToneCount} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-muted-foreground text-center py-4">No data</div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Color balance</CardTitle>
-              <CardDescription>Distribution of the four directional colors</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ColorBalanceChart colorBalance={analysis.dreamspell.colorBalance} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="tzolkin" className="mt-6 space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Day sign distribution</CardTitle>
-                <CardDescription>The 20 day signs of the traditional Tzolkin</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {analysis.tzolkin.signDistribution.filter(d => d.count > 0).length > 0 ? (
-                  <div className="space-y-1">
-                    {analysis.tzolkin.signDistribution.filter(d => d.count > 0).map(item => (
-                      <DistributionBar key={item.value} item={item} maxCount={Math.max(...analysis.tzolkin.signDistribution.map(d => d.count), 1)} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-muted-foreground text-center py-4">No data</div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Tone distribution (Tzolkin)</CardTitle>
-                <CardDescription>The 13 Tzolkin tones</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {analysis.tzolkin.toneDistribution.filter(d => d.count > 0).length > 0 ? (
-                  <div className="space-y-1">
-                    {analysis.tzolkin.toneDistribution.filter(d => d.count > 0).map(item => (
-                      <DistributionBar key={item.value} item={item} maxCount={Math.max(...analysis.tzolkin.toneDistribution.map(d => d.count), 1)} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-muted-foreground text-center py-4">No data</div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="members" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Group members</CardTitle>
-              <CardDescription>Every member with their Dreamspell profile</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                {analysis.members.map(member => (
-                  <MemberCard key={member.id} member={member} />
-                ))}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+
+              <div className="surface-card p-5">
+                <CardHeading
+                  title="Tone distribution"
+                  description="The 13 galactic tones"
+                />
+                <div className="mt-4">
+                  <DistributionList
+                    items={analysis.dreamspell.toneDistribution}
+                    accent={DREAMSPELL.accent}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="surface-card p-5">
+              <CardHeading
+                title="Color balance"
+                description="Distribution of the four directional colors"
+              />
+              <div className="mt-4">
+                <ColorBalanceChart colorBalance={analysis.dreamspell.colorBalance} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {tab === 'tzolkin' && (
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="surface-card p-5">
+              <CardHeading
+                title="Day sign distribution"
+                description="The 20 day signs of the traditional Tzolkin"
+              />
+              <div className="mt-4">
+                <DistributionList
+                  items={analysis.tzolkin.signDistribution}
+                  accent={TZOLKIN.accent}
+                />
+              </div>
+            </div>
+
+            <div className="surface-card p-5">
+              <CardHeading
+                title="Tone distribution (Tzolkin)"
+                description="The 13 Tzolkin tones"
+              />
+              <div className="mt-4">
+                <DistributionList
+                  items={analysis.tzolkin.toneDistribution}
+                  accent={TZOLKIN.accent}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {tab === 'members' && (
+          <div className="surface-card p-5">
+            <CardHeading
+              title="Group members"
+              description="Every member with their Dreamspell profile"
+            />
+            <div className="mt-2">
+              {analysis.members.map((member, i) => (
+                <MemberRow
+                  key={member.id}
+                  member={member}
+                  last={i === analysis.members.length - 1}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </PageSection>
     </div>
   )
 }

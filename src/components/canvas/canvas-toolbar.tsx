@@ -19,9 +19,9 @@ import {
   Save,
   Download,
 } from 'lucide-react'
+import { useCanvas } from './canvas-context'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { useCanvas } from './canvas-context'
 import type { ToolId } from '@/lib/types/board'
 
 interface CanvasToolbarProps {

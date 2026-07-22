@@ -141,7 +141,7 @@ const TYPE_DYNAMICS: Readonly<Record<string, TypeDynamicEntry>> = Object.freeze(
   },
   [typePairKey('generator', 'generator')]: {
     english:
-      'Two Generators build a steady, sustainable rhythm together — responding in harmony when both honor their sacral.',
+      'Two Generators build a steady, sustainable rhythm together, responding in harmony when both honor their sacral.',
     hebrew: 'שני ג\'נרטורים בונים יחד קצב יציב ובר. הארמוניה כששניהם מכבדים את הסקרל.',
     modifier: 5,
   },
@@ -153,14 +153,14 @@ const TYPE_DYNAMICS: Readonly<Record<string, TypeDynamicEntry>> = Object.freeze(
   },
   [typePairKey('manifestor', 'projector')]: {
     english:
-      'The Manifestor initiates and the Projector guides — powerful when the Manifestor informs and the Projector waits for invitation.',
-    hebrew: 'המניפסטור יוזם והפרוג\'קטור מנחה — עוצמתי כשהמניפסטור מיידע והפרוג\'קטור ממתין להזמנה.',
+      'The Manifestor initiates and the Projector guides: powerful when the Manifestor informs and the Projector waits for invitation.',
+    hebrew: 'המניפסטור יוזם והפרוג\'קטור מנחה: עוצמתי כשהמניפסטור מיידע והפרוג\'קטור ממתין להזמנה.',
     modifier: 4,
   },
   [typePairKey('reflector', 'reflector')]: {
     english:
-      'Two Reflectors — a rare, lunar pairing. Both sample the environment; they need spacious, healthy surroundings to thrive together.',
-    hebrew: 'שני רפלקטורים — זוגיות ירחית נדירה. שניהם דוגמים את הסביבה; זקוקים לסביבה בריאה כדי לפרוח יחד.',
+      'Two Reflectors, a rare, lunar pairing. Both sample the environment; they need spacious, healthy surroundings to thrive together.',
+    hebrew: 'שני רפלקטורים, זוגיות ירחית נדירה. שניהם דוגמים את הסביבה; זקוקים לסביבה בריאה כדי לפרוח יחד.',
     modifier: 2,
   },
 })

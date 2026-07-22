@@ -78,7 +78,7 @@ function KinToday({ birthDate, todayIso }: { birthDate: string; todayIso: string
     event?.title ?? `Kin ${prediction.kin} · ${prediction.toneName} ${prediction.sealName}`
   const body =
     event?.description ??
-    `Day ${prediction.wavespell.day} of the ${prediction.wavespell.name} wavespell — ${prediction.wavespell.role.toLowerCase()}.`
+    `Day ${prediction.wavespell.day} of the ${prediction.wavespell.name} wavespell, ${prediction.wavespell.role.toLowerCase()}.`
 
   return (
     // Elevated, because this is the one card on the screen that is about the

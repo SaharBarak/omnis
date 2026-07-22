@@ -66,7 +66,7 @@ export function InsightsPage({
       {missingAnything && (
         <PageSection index={lines.length} flavor={FLAVOR} eyebrow="Complete the chart">
           <Text variant="bodyMedium" color="onSurfaceVariant">
-            More data, more threads — each field opens another cross-reading.
+            More data, more threads: each field opens another cross-reading.
           </Text>
           <View style={styles.chipRow}>
             {missingBirthTime && (

@@ -604,8 +604,8 @@ function fusionSummary(score: number, available: number): { english: string; heb
   }
   if (score >= 80) return { english: 'Strong multi-system resonance across mind, energy, and name.', hebrew: 'תהודה רב-מערכתית חזקה בין תודעה, אנרגיה ושם.' }
   if (score >= 60) return { english: 'Good overall compatibility with several reinforcing systems.', hebrew: 'תאימות כללית טובה עם מספר מערכות מחזקות.' }
-  if (score >= 40) return { english: 'Mixed compatibility — some systems harmonize, others invite growth.', hebrew: 'תאימות מעורבת — חלק מהמערכות מתואמות, אחרות מזמינות צמיחה.' }
-  return { english: 'Contrasting signatures across systems — a relationship of complementary differences.', hebrew: 'חתימות מנוגדות בין המערכות — קשר של הבדלים משלימים.' }
+  if (score >= 40) return { english: 'Mixed compatibility: some systems harmonize, others invite growth.', hebrew: 'תאימות מעורבת: חלק מהמערכות מתואמות, אחרות מזמינות צמיחה.' }
+  return { english: 'Contrasting signatures across systems, a relationship of complementary differences.', hebrew: 'חתימות מנוגדות בין המערכות, קשר של הבדלים משלימים.' }
 }
 
 /**

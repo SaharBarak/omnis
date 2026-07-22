@@ -151,7 +151,7 @@ export function DreamspellPage({ reading }: { reading: DreamspellReading | null 
         <View>
           <DataRow
             label="Wavespell"
-            value={`${reading.wavespell.number} of 20 — ${reading.wavespellSeal.english}`}
+            value={`${reading.wavespell.number} of 20: ${reading.wavespellSeal.english}`}
             detail={`Kin ${reading.wavespell.startKin}–${reading.wavespell.endKin} · Day ${reading.tone.number}: ${reading.wavespellRole}`}
           />
           <DataRow
@@ -169,7 +169,7 @@ export function DreamspellPage({ reading }: { reading: DreamspellReading | null 
         </Text>
         <Text variant="bodyMedium" color="onSurfaceVariant">
           {galacticBirthday.daysUntil === 0
-            ? 'Today — the 260-day spiral completes.'
+            ? 'Today: the 260-day spiral completes.'
             : `In ${galacticBirthday.daysUntil} days. The kin recurs every 260 days.`}
         </Text>
       </PageSection>

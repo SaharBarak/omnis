@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Loader2, CheckCircle, XCircle } from 'lucide-react'
+import { X } from 'lucide-react'
 import { SubscriptionStatus } from '@/components/billing/subscription-status'
 import { UsageDisplay } from '@/components/billing/usage-display'
 import { GetTheApp } from '@/components/billing/get-the-app'
 import { PlanTier } from '@/lib/services/billing'
+import { PageHeader } from '@/components/dashboard'
+import { Eyebrow, Notice, SkeletonCard } from '@/components/app-kit'
 
 /**
  * Billing settings.
@@ -80,42 +82,41 @@ export default function BillingPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="space-y-6">
+        <div>
+          <div className="skeleton-shimmer mb-2 h-8 w-32 rounded" />
+          <div className="skeleton-shimmer h-4 w-80 rounded" />
+        </div>
+        <SkeletonCard className="h-40" />
+        <SkeletonCard className="h-48" />
+        <SkeletonCard className="h-40" />
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-heading text-foreground">Billing</h1>
-        <p className="text-muted-foreground">
-          Your plan and usage. Purchases are handled by the App Store and Google Play.
-        </p>
-      </div>
+      <PageHeader
+        title="Billing"
+        subtitle="Your plan and usage. Purchases are handled by the App Store and Google Play."
+      />
 
       {message && (
-        <div
-          className={`flex items-center gap-2 p-4 rounded-lg ${
-            message.type === 'success'
-              ? 'bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400'
-              : 'bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400'
-          }`}
+        <Notice
+          variant={message.type === 'success' ? 'success' : 'error'}
+          action={
+            <button
+              type="button"
+              onClick={() => setMessage(null)}
+              aria-label="Dismiss message"
+              className="rounded-lg p-1 text-white/50 transition-colors hover:text-white/90 active:scale-[0.98]"
+            >
+              <X className="size-4" aria-hidden="true" />
+            </button>
+          }
         >
-          {message.type === 'success' ? (
-            <CheckCircle className="h-5 w-5" />
-          ) : (
-            <XCircle className="h-5 w-5" />
-          )}
-          <p>{message.text}</p>
-          <button
-            onClick={() => setMessage(null)}
-            className="ml-auto text-current opacity-70 hover:opacity-100"
-          >
-            ×
-          </button>
-        </div>
+          {message.text}
+        </Notice>
       )}
 
       {subscription && (
@@ -132,18 +133,22 @@ export default function BillingPage() {
       )}
 
       {subscription && (
-        <div className="earth-card bg-card p-6">
-          <h2 className="text-xl font-heading text-foreground mb-4">Usage This Month</h2>
+        <div className="surface-card p-6">
+          <div className="mb-5">
+            <Eyebrow>Usage This Month</Eyebrow>
+          </div>
           <UsageDisplay usage={subscription.usage} />
         </div>
       )}
 
       {subscription?.plan !== 'lifetime' && (
-        <div className="earth-card bg-card p-6">
-          <h2 className="text-xl font-heading text-foreground mb-2">Upgrade</h2>
-          <p className="text-sm text-muted-foreground mb-4">
+        <div className="surface-card p-6">
+          <div className="mb-2">
+            <Eyebrow>Upgrade</Eyebrow>
+          </div>
+          <p className="mb-4 text-sm text-white/50">
             Plans are purchased inside the Pleiad app. Your subscription unlocks
-            here on the web automatically — same account, same map.
+            here on the web automatically: same account, same map.
           </p>
           <GetTheApp />
         </div>

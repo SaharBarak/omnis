@@ -2,23 +2,58 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import { usePeople } from '@/lib/hooks/use-people'
-import { useRelationships } from '@/lib/hooks/use-relationships'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { motion, useReducedMotion } from 'framer-motion'
+import { Minus, Plus, RotateCcw } from 'lucide-react'
 import { dateToKin, kinToSeal, kinToTone } from '@pleiad/engine/calculations/dreamspell'
 import { getSeal } from '@pleiad/engine/data/seals'
 import { getTone } from '@pleiad/engine/data/tones'
+import { ResonanceMatrix } from './resonance-matrix'
+import { usePeople } from '@/lib/hooks/use-people'
+import { useRelationships } from '@/lib/hooks/use-relationships'
+import { cn } from '@/lib/utils'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { PageHeader, EmptyState } from '@/components/dashboard'
+import { DataRow, Eyebrow, Pill, SPRING } from '@/components/app-kit'
+import { SEAL_COLORS, toSealColor } from '@/components/app-kit/seal-colors'
+import { COLORS } from '@/lib/design/landing-tokens'
+import {
+  RELATIONSHIP_ACCENTS,
+  relationshipEdgeColor,
+  TypeFilterPill,
+} from '@/components/relationships/type-accents'
 import type { Person } from '@/lib/types/database.types'
 import type { RelationshipType, RelationshipWithPeople } from '@/lib/types/relationship'
 import { RELATIONSHIP_TYPE_LABELS } from '@/lib/types/relationship'
-import { ResonanceMatrix } from './resonance-matrix'
 
 type GraphView = 'map' | 'matrix'
 
 // Dynamically import ForceGraph2D to avoid SSR issues
 const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), { ssr: false })
+
+// ---------------------------------------------------------------------------
+// Canvas colors — the 2D canvas can't read CSS custom properties, so these
+// named constants mirror theme tokens. Keep them in sync with
+// src/lib/design/landing-tokens.ts (COLORS) and the contract's four-step
+// text ramp; seal ring colors resolve through app-kit/seal-colors.
+// ---------------------------------------------------------------------------
+
+/** COLORS.brand (#7D5BC9) at 0.9 — the self node's halo ring. */
+const CANVAS_SELF_HALO = 'rgba(125, 91, 201, 0.9)'
+/** COLORS.brandSoft (#A78FDF) rgb triplet — the selected node's pulse ring. */
+const CANVAS_BRAND_SOFT_RGB = '167, 143, 223'
+/** COLORS.surface2 — node disc ground. */
+const CANVAS_DISC_FILL = COLORS.surface2
+/** Muted ring fallback — the theme's white/50 muted text step. */
+const CANVAS_MUTED = 'rgba(255, 255, 255, 0.5)'
+/** Initials — white/90 primary text step. */
+const CANVAS_INITIALS = 'rgba(255, 255, 255, 0.92)'
+/** Node labels — COLORS.brandBright (#EFEAFA) at 0.75. */
+const CANVAS_LABEL = 'rgba(239, 234, 250, 0.75)'
+
+/** Orphan nodes under an active filter dim to 35% (mobile map rule). */
+const DIMMED_ALPHA = 0.35
+/** Half of the selected node's gentle 2.5s pulse cycle (mobile map rule). */
+const PULSE_MS = 1250
 
 // Graph data types
 interface GraphNode {
@@ -43,17 +78,10 @@ interface GraphData {
   links: GraphLink[]
 }
 
-// Color mapping for nodes based on Dreamspell colors
-const NODE_COLORS: Record<string, string> = {
-  red: '#EF4444',
-  white: '#F3F4F6',
-  blue: '#3B82F6',
-  yellow: '#F59E0B',
-}
-
-// Get color based on relationship type
-function getRelationshipColor(type: RelationshipType): string {
-  return RELATIONSHIP_TYPE_LABELS[type]?.color || '#6B7280'
+/** Seal ring color for a node — SEAL_COLORS canvas values only. */
+function sealRingColor(sealColor: string): string {
+  const key = toSealColor(sealColor)
+  return key ? SEAL_COLORS[key].css : CANVAS_MUTED
 }
 
 // Transform data to graph format
@@ -61,18 +89,17 @@ function transformToGraphData(
   people: Person[],
   relationships: RelationshipWithPeople[],
   filterType: RelationshipType | null
-): GraphData {
+): { graphData: GraphData; connectedIds: Set<string> } {
   // Create nodes from people
   const nodes: GraphNode[] = people.map(person => {
     const kin = dateToKin(person.birth_date)
     const seal = getSeal(kinToSeal(kin))
-    const color = NODE_COLORS[seal.color] || '#6B7280'
 
     return {
       id: person.id,
       name: person.name,
       hebrewName: person.hebrew_name,
-      color,
+      color: sealRingColor(seal.color),
       val: 1, // base size
       isSelf: Boolean(person.is_self),
     }
@@ -88,22 +115,98 @@ function transformToGraphData(
     source: rel.person1_id,
     target: rel.person2_id,
     type: rel.type as RelationshipType,
-    color: getRelationshipColor(rel.type as RelationshipType),
+    color: relationshipEdgeColor(rel.type as RelationshipType),
     width: rel.strength, // use strength for line width
   }))
 
-  // Adjust node sizes based on connection count
+  // Adjust node sizes based on connection count; remember who has an edge
+  // so orphans can dim while a type filter is active.
+  const connectedIds = new Set<string>()
   const connectionCounts: Record<string, number> = {}
-  links.forEach(link => {
-    connectionCounts[link.source] = (connectionCounts[link.source] || 0) + 1
-    connectionCounts[link.target] = (connectionCounts[link.target] || 0) + 1
+  filteredRelationships.forEach(rel => {
+    connectionCounts[rel.person1_id] = (connectionCounts[rel.person1_id] || 0) + 1
+    connectionCounts[rel.person2_id] = (connectionCounts[rel.person2_id] || 0) + 1
+    connectedIds.add(rel.person1_id)
+    connectedIds.add(rel.person2_id)
   })
 
   nodes.forEach(node => {
     node.val = 1 + (connectionCounts[node.id] || 0) * 0.5
   })
 
-  return { nodes, links }
+  return { graphData: { nodes, links }, connectedIds }
+}
+
+/** Map/Matrix segmented control — FlavorTabs pattern in neutral chrome. */
+function ViewToggle({
+  view,
+  onChange,
+}: {
+  view: GraphView
+  onChange: (view: GraphView) => void
+}) {
+  const reduced = useReducedMotion()
+  return (
+    <div
+      role="tablist"
+      aria-label="Graph view"
+      className="flex w-fit items-center gap-1 rounded-full border border-white/[0.07] bg-surface p-1"
+    >
+      {(['map', 'matrix'] as const).map((v) => {
+        const active = view === v
+        return (
+          <button
+            key={v}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(v)}
+            className={cn(
+              'relative rounded-full px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.2em]',
+              'transition-colors',
+              active ? 'text-white/90' : 'text-white/50 hover:text-white/70'
+            )}
+          >
+            {active && (
+              <motion.span
+                layoutId="graph-view-pill"
+                transition={reduced ? { duration: 0 } : SPRING}
+                className="absolute inset-0 rounded-full border border-white/[0.12] bg-white/[0.08]"
+                aria-hidden
+              />
+            )}
+            <span className="relative">{v === 'map' ? 'Map' : 'Matrix'}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+/** Quiet-chrome icon button for the zoom cluster. */
+function ZoomControl({
+  label,
+  onClick,
+  children,
+}: {
+  label: string
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      className={cn(
+        'inline-flex size-8 items-center justify-center rounded-lg border border-white/[0.07] bg-surface',
+        'text-white/70 transition-colors hover:border-white/[0.12] hover:text-white/90 active:scale-[0.98]'
+      )}
+    >
+      {children}
+    </button>
+  )
 }
 
 // Selected person details component
@@ -130,52 +233,84 @@ function PersonDetails({
     <Sheet open={!!person} onOpenChange={() => onClose()}>
       <SheetContent side="right" className="w-80">
         <SheetHeader>
-          <SheetTitle className="font-heading">{person.name}</SheetTitle>
+          <SheetTitle className="font-display">{person.name}</SheetTitle>
         </SheetHeader>
-        <div className="space-y-4 mt-4">
+
+        <div className="mt-6">
+          <DataRow
+            label="Kin"
+            value={
+              <span>
+                <span className="font-mono [font-variant-numeric:tabular-nums]">{kin}</span>
+                {' · '}
+                {tone.name} {seal.english}
+              </span>
+            }
+          />
           {person.hebrew_name && (
-            <p className="text-muted-foreground">{person.hebrew_name}</p>
+            <DataRow label="Hebrew name" value={person.hebrew_name} />
           )}
-
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              Birth Date: {new Date(person.birth_date).toLocaleDateString('en-US')}
-            </p>
-            <p className="text-sm">
-              <span className="font-medium text-primary">Kin {kin}: </span>
-              <span className="text-foreground">{tone.name} {seal.english}</span>
-            </p>
-          </div>
-
-          {personRelationships.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="font-heading text-foreground">Relationships ({personRelationships.length})</h4>
-              <div className="space-y-1">
-                {personRelationships.map(rel => {
-                  const otherPerson = rel.person1_id === person.id ? rel.person2 : rel.person1
-                  const typeInfo = RELATIONSHIP_TYPE_LABELS[rel.type as RelationshipType]
-                  return (
-                    <div
-                      key={rel.id}
-                      className="flex items-center gap-2 text-sm p-2 rounded-lg bg-muted/50"
-                    >
-                      <Badge
-                        variant="secondary"
-                        className="text-xs"
-                        style={{ backgroundColor: typeInfo.color + '20', color: typeInfo.color }}
-                      >
-                        {typeInfo.label}
-                      </Badge>
-                      <span className="text-foreground">{otherPerson.name}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
+          <DataRow
+            label="Born"
+            value={new Date(person.birth_date).toLocaleDateString('en-US')}
+            last
+          />
         </div>
+
+        {personRelationships.length > 0 && (
+          <div className="mt-8 flex flex-col gap-1">
+            <Eyebrow>Relationships · {personRelationships.length}</Eyebrow>
+            <div>
+              {personRelationships.map((rel, i) => {
+                const otherPerson = rel.person1_id === person.id ? rel.person2 : rel.person1
+                const type = rel.type as RelationshipType
+                const typeInfo = RELATIONSHIP_TYPE_LABELS[type]
+                return (
+                  <div
+                    key={rel.id}
+                    className={cn(
+                      'flex items-center justify-between gap-3 py-2.5',
+                      i < personRelationships.length - 1 && 'border-b border-white/[0.07]'
+                    )}
+                  >
+                    <span className="min-w-0 truncate text-sm text-white/90">
+                      {otherPerson.name}
+                    </span>
+                    <Pill
+                      accent={RELATIONSHIP_ACCENTS[type] ?? undefined}
+                      className="shrink-0 px-2.5 py-0.5 text-[10px]"
+                    >
+                      {typeInfo.label}
+                    </Pill>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </SheetContent>
     </Sheet>
+  )
+}
+
+/** Layout-matched loading state — spinners are banned. */
+function GraphSkeleton() {
+  return (
+    <div className="space-y-4" aria-hidden>
+      <div className="space-y-2">
+        <div className="skeleton-shimmer h-8 w-56 rounded" />
+        <div className="skeleton-shimmer h-4 w-40 rounded" />
+      </div>
+      <div className="flex gap-2">
+        {Array.from({ length: 4 }, (_, i) => (
+          <div key={i} className="skeleton-shimmer h-8 w-24 rounded-full" />
+        ))}
+      </div>
+      <div
+        className="skeleton-shimmer min-h-[500px] rounded-xl"
+        style={{ height: 'calc(100vh - 16rem)' }}
+      />
+    </div>
   )
 }
 
@@ -183,6 +318,7 @@ function PersonDetails({
 export default function GraphPage() {
   const { people, loading: peopleLoading } = usePeople()
   const { relationships, loading: relLoading } = useRelationships()
+  const reducedMotion = useReducedMotion()
 
   const [view, setView] = useState<GraphView>('map')
   const [filterType, setFilterType] = useState<RelationshipType | null>(null)
@@ -220,9 +356,9 @@ export default function GraphPage() {
   })
 
   // Transform data for the graph
-  const graphData = useMemo(() => {
+  const { graphData, connectedIds } = useMemo(() => {
     if (people.length === 0) {
-      return { nodes: [], links: [] }
+      return { graphData: { nodes: [], links: [] }, connectedIds: new Set<string>() }
     }
     return transformToGraphData(people, relationships, filterType)
   }, [people, relationships, filterType])
@@ -257,16 +393,43 @@ export default function GraphPage() {
     }
   }, [])
 
+  const filtering = filterType !== null
+  const selectedId = selectedPerson?.id ?? null
+
   // Custom node canvas object: dark surface disc, seal-colored ring,
-  // initials inside, name underneath. Self gets a brand halo + "You".
+  // initials inside, name underneath. Self gets a brand halo + "You";
+  // orphans dim to 35% while a type filter is active; the selected node
+  // carries a gentle brand pulse (the canvas repaints every frame for the
+  // link particles, so time-based rings animate for free).
   const nodeCanvasObject = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
     const r = 5 + Math.min(node.val, 3) * 1.5
+    const dimmed = filtering && !connectedIds.has(node.id)
+
+    ctx.save()
+    if (dimmed) ctx.globalAlpha = DIMMED_ALPHA
+
+    // Selected pulse (static ring under reduced motion)
+    if (node.id === selectedId) {
+      let ringRadius = r + 3
+      let ringAlpha = 0.6
+      if (!reducedMotion) {
+        const t = (Date.now() % (PULSE_MS * 2)) / (PULSE_MS * 2)
+        const phase = t < 0.5 ? t * 2 : (1 - t) * 2 // 0→1→0 triangle
+        ringRadius = r + 2 + phase * 2.4
+        ringAlpha = 0.7 - phase * 0.45
+      }
+      ctx.beginPath()
+      ctx.arc(node.x, node.y, ringRadius, 0, 2 * Math.PI, false)
+      ctx.strokeStyle = `rgba(${CANVAS_BRAND_SOFT_RGB}, ${ringAlpha})`
+      ctx.lineWidth = 1.5
+      ctx.stroke()
+    }
 
     // Self halo
     if (node.isSelf) {
       ctx.beginPath()
       ctx.arc(node.x, node.y, r + 2.5, 0, 2 * Math.PI, false)
-      ctx.strokeStyle = 'rgba(125, 91, 201, 0.9)'
+      ctx.strokeStyle = CANVAS_SELF_HALO
       ctx.lineWidth = 1.2
       ctx.stroke()
     }
@@ -274,7 +437,7 @@ export default function GraphPage() {
     // Disc
     ctx.beginPath()
     ctx.arc(node.x, node.y, r, 0, 2 * Math.PI, false)
-    ctx.fillStyle = '#151827'
+    ctx.fillStyle = CANVAS_DISC_FILL
     ctx.fill()
     ctx.strokeStyle = node.color
     ctx.lineWidth = 1.4
@@ -290,7 +453,7 @@ export default function GraphPage() {
     ctx.font = `600 ${r * 0.85}px sans-serif`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.92)'
+    ctx.fillStyle = CANVAS_INITIALS
     ctx.fillText(initials, node.x, node.y + r * 0.05)
 
     // Name (screen-constant ~12px, hidden when zoomed far out)
@@ -298,87 +461,61 @@ export default function GraphPage() {
       const labelSize = 12 / globalScale
       ctx.font = `500 ${labelSize}px sans-serif`
       ctx.textBaseline = 'top'
-      ctx.fillStyle = 'rgba(239, 234, 250, 0.75)'
+      ctx.fillStyle = CANVAS_LABEL
       const label = node.isSelf ? `${node.name} · You` : node.name
       ctx.fillText(label, node.x, node.y + r + 3 / globalScale)
     }
-  }, [])
+
+    ctx.restore()
+  }, [filtering, connectedIds, selectedId, reducedMotion])
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center text-muted-foreground">Loading...</div>
-      </div>
-    )
+    return <GraphSkeleton />
   }
 
   const hasData = people.length > 0 && relationships.length > 0
 
   return (
     <div className="space-y-4 h-[calc(100vh-8rem)]">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-heading text-foreground">Relationship Map</h1>
-          <p className="text-muted-foreground">
-            {people.length} people, {relationships.length} relationships
-          </p>
-        </div>
+      <PageHeader
+        title="Relationship Map"
+        subtitle={`${people.length} people, ${relationships.length} relationships`}
+        actions={
+          view === 'map' ? (
+            <div className="flex items-center gap-2">
+              <ZoomControl label="Zoom out" onClick={handleZoomOut}>
+                <Minus className="size-4" aria-hidden />
+              </ZoomControl>
+              <ZoomControl label="Reset view" onClick={handleResetView}>
+                <RotateCcw className="size-4" aria-hidden />
+              </ZoomControl>
+              <ZoomControl label="Zoom in" onClick={handleZoomIn}>
+                <Plus className="size-4" aria-hidden />
+              </ZoomControl>
+            </div>
+          ) : undefined
+        }
+      />
 
-        {/* Zoom controls (map view only) */}
-        {view === 'map' && (
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleZoomOut}>
-              -
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleResetView}>
-              ⟳
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleZoomIn}>
-              +
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {/* View toggle + filter badges */}
+      {/* View toggle + filter pills */}
       <div className="flex flex-wrap items-center gap-2">
-        {(['map', 'matrix'] as const).map((v) => (
-          <Badge
-            key={v}
-            variant={view === v ? 'default' : 'outline'}
-            className="cursor-pointer"
-            onClick={() => setView(v)}
-          >
-            {v === 'map' ? 'Map' : 'Matrix'}
-          </Badge>
-        ))}
+        <ViewToggle view={view} onChange={setView} />
 
         {view === 'map' && (
           <>
-            <span className="mx-1 h-4 w-px bg-border" aria-hidden />
-            <Badge
-              variant={filterType === null ? 'default' : 'outline'}
-              className="cursor-pointer"
-              onClick={() => setFilterType(null)}
-            >
+            <span className="mx-1 h-4 w-px bg-white/[0.07]" aria-hidden />
+            <TypeFilterPill active={filterType === null} onClick={() => setFilterType(null)}>
               All
-            </Badge>
+            </TypeFilterPill>
             {(Object.entries(RELATIONSHIP_TYPE_LABELS) as [RelationshipType, typeof RELATIONSHIP_TYPE_LABELS[RelationshipType]][]).map(([type, info]) => (
-              <Badge
+              <TypeFilterPill
                 key={type}
-                variant={filterType === type ? 'default' : 'outline'}
-                className="cursor-pointer"
-                style={filterType === type ? {
-                  backgroundColor: info.color,
-                  borderColor: info.color,
-                } : {
-                  borderColor: info.color,
-                  color: info.color,
-                }}
+                active={filterType === type}
+                accent={RELATIONSHIP_ACCENTS[type]}
                 onClick={() => setFilterType(filterType === type ? null : type)}
               >
                 {info.label}
-              </Badge>
+              </TypeFilterPill>
             ))}
           </>
         )}
@@ -387,28 +524,29 @@ export default function GraphPage() {
       {/* Graph container */}
       <div
         ref={containerRef}
-        className="earth-card bg-card flex-1 min-h-[500px] overflow-hidden"
+        className="surface-card flex-1 min-h-[500px] overflow-hidden"
         style={{ height: 'calc(100vh - 16rem)' }}
       >
         {view === 'matrix' ? (
           <ResonanceMatrix />
         ) : !hasData ? (
-          <div className="flex flex-col items-center justify-center h-full p-12 text-center">
-            <p className="text-muted-foreground mb-4">
-              {people.length === 0
-                ? 'Add people to see the relationship map'
-                : 'Create relationships between people to see the map'}
-            </p>
-            {people.length === 0 ? (
-              <Button onClick={() => window.location.href = '/app/people'} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                + Add People
-              </Button>
-            ) : (
-              <Button onClick={() => window.location.href = '/app/relationships'} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                + Create Relationships
-              </Button>
-            )}
-          </div>
+          people.length === 0 ? (
+            <EmptyState
+              className="h-full"
+              icon="people"
+              title="No people yet"
+              description="Add people to see the relationship map."
+              action={{ label: 'Add people', href: '/app/people' }}
+            />
+          ) : (
+            <EmptyState
+              className="h-full"
+              icon="relationships"
+              title="No relationships yet"
+              description="Create relationships between people to see the map."
+              action={{ label: 'Create relationships', href: '/app/relationships' }}
+            />
+          )
         ) : (
           <ForceGraph2D
             ref={graphRef}

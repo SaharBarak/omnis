@@ -292,7 +292,7 @@ export function buildInsights(reading: PersonReading): InsightLine[] {
     if (sealElement === sunSign.element) {
       lines.push({
         eyebrow: 'Elemental alignment',
-        body: `The ${dreamspell.seal.color} seal and a ${sunSign.name} sun both carry ${sealElement} — two systems reading one element.`,
+        body: `The ${dreamspell.seal.color} seal and a ${sunSign.name} sun both carry ${sealElement}: two systems reading one element.`,
       })
     } else {
       lines.push({
@@ -311,7 +311,7 @@ export function buildInsights(reading: PersonReading): InsightLine[] {
     if (dominant === sealElement) {
       lines.push({
         eyebrow: 'Dominant element',
-        body: `The chart's strongest element, ${dominant}, matches the seal's color family — the whole sky leans the same way.`,
+        body: `The chart's strongest element, ${dominant}, matches the seal's color family: the whole sky leans the same way.`,
       })
     }
   }
@@ -322,8 +322,8 @@ export function buildInsights(reading: PersonReading): InsightLine[] {
     lines.push({
       eyebrow: 'Tone × type',
       body: resonant
-        ? `Tone ${dreamspell.tone.number} (${dreamspell.tone.name}) resonates with the ${typeDefinition.name} pattern — the same energy read twice.`
-        : `Tone ${dreamspell.tone.number} (${dreamspell.tone.name}) moves through a ${typeDefinition.name} — strategy: ${typeDefinition.strategy.toLowerCase()}.`,
+        ? `Tone ${dreamspell.tone.number} (${dreamspell.tone.name}) resonates with the ${typeDefinition.name} pattern: the same energy read twice.`
+        : `Tone ${dreamspell.tone.number} (${dreamspell.tone.name}) moves through a ${typeDefinition.name}, strategy: ${typeDefinition.strategy.toLowerCase()}.`,
     })
   }
 
@@ -333,7 +333,7 @@ export function buildInsights(reading: PersonReading): InsightLine[] {
     if (nameRoot === dreamspell.tone.number) {
       lines.push({
         eyebrow: 'Shared number',
-        body: `The name's digital root ${nameRoot} equals the galactic tone — ${sentenceCase(meaning)}.`,
+        body: `The name's digital root ${nameRoot} equals the galactic tone: ${sentenceCase(meaning)}.`,
       })
     } else if (nameRoot === digitalRoot(dreamspell.kin)) {
       lines.push({
@@ -346,7 +346,7 @@ export function buildInsights(reading: PersonReading): InsightLine[] {
   if (mayan !== null && mayan.longCount.baktun === 13 && lines.length < MAX_INSIGHTS) {
     lines.push({
       eyebrow: 'Long count era',
-      body: 'Born in the 13th Baktun — the Long Count places this life in an era of completion and transformation.',
+      body: 'Born in the 13th Baktun: the Long Count places this life in an era of completion and transformation.',
     })
   }
 

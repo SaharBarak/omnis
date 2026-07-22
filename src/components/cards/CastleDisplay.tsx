@@ -109,7 +109,7 @@ export function CastleDisplay({
                   <div className="mt-3 text-center text-sm">
                     <span className="text-muted-foreground">Kin </span>
                     <span className="font-semibold">{kin}</span>
-                    <span className="text-muted-foreground"> — Day </span>
+                    <span className="text-muted-foreground">, Day </span>
                     <span className="font-semibold">{kin - castle.startKin + 1}</span>
                     <span className="text-muted-foreground"> of 52</span>
                   </div>

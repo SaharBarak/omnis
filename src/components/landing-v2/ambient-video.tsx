@@ -103,7 +103,7 @@ export function AmbientVideo({
   }, [stillOnly, reducedMotion])
 
   if (reducedMotion || stillOnly) {
-    // eslint-disable-next-line @next/next/no-img-element
+     
     return <img src={poster} alt="" className={className} />
   }
 

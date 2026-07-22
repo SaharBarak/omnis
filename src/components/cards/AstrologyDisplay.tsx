@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { cn } from '@/lib/utils'
 import {
   calculateNatalChart,
   formatPlanetPosition,
@@ -20,6 +19,7 @@ import {
   MODALITY_LABELS,
 } from '@pleiad/engine/types/astrology'
 import { getAspectColor } from '@pleiad/engine/data/aspects'
+import { cn } from '@/lib/utils'
 import { NatalChartWheel } from '@/components/astrology/NatalChartWheel'
 
 // Props for the main display
@@ -300,7 +300,7 @@ export function AspectsDisplay({
 
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-muted-foreground">
-                  {planet1} — {planet2}
+                  {planet1} and {planet2}
                 </span>
                 <span className="font-mono text-xs">
                   ({asp.orb.toFixed(1)}°)

@@ -2,8 +2,8 @@
 
 import { memo, useState, useCallback } from 'react'
 import { Handle, Position, type NodeProps, type Node } from '@xyflow/react'
-import { STICKY_COLORS, type StickyColor } from '@/lib/types/board'
 import { useCanvas } from '../canvas-context'
+import { STICKY_COLORS, type StickyColor } from '@/lib/types/board'
 
 // Define the data shape that will be stored in the node's data property
 interface StickyNodeData extends Record<string, unknown> {

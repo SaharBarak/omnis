@@ -1,7 +1,25 @@
-# Session Handoff — Redesign (updated 2026-07-14, evening)
+# Session Handoff — Redesign (updated 2026-07-15)
 
 Continue point for the Pleiad knowledge-experience redesign. Read this +
 MAIN_PURPOSE.md first; everything else on demand.
+
+## 🟢 MOBILE SYSTEM GLYPHS SHIPPED + MAP/BOARDS DECISION (2026-07-15) — LATEST
+
+➡️ **Full write-up: `docs/redesign/HANDOFF_2026-07-15_MOBILE_GLYPHS_MAP.md`.**
+
+The website's glyph art (seals, tones, nawales, HD centres/types, zodiac, planets,
+Hebrew letters — 124 SVGs) now renders in the mobile app via `react-native-svg-transformer`
++ a generated registry (`npm run gen:glyphs`) + one `<Glyph>` component
+(`packages/mobile/src/components/glyph.tsx`). Wired into all 5 reading pages + people
+list / today card / map node-card / circle sheet. **Verified live on the emulator**;
+typecheck/lint/1117 tests green; Metro bundles 5830 modules clean. UNCOMMITTED.
+
+The user then asked to port the web "people map / group boards" to mobile and, after
+scoping, chose **"fix the map first"** (drag stars → save layout; boards-for-groups
+deferred). **Not started** — the handoff doc has the full research (web boards = a
+half-wired React-Flow editor; mobile map = a Skia force-constellation with no drag/persist;
+`boards` table has no `group_id`; mobile board API is read-only) and the recommended
+next step. Start there.
 
 ## CURRENT STATE (2026-07-14 evening) — READ FIRST
 
@@ -15,6 +33,88 @@ homepage 16→9 sections, hero graph + bodygraph rebuilt from agent reviews, all
 legacy light-theme pages ported to dark v2, `src/components/{landing,docs}` DELETED,
 contact form now really sends (needs `RESEND_API_KEY`/`CONTACT_EMAIL`), 2 of 3
 critique rounds completed with round-3 findings listed for pickup.
+
+## 🔴 MOBILE IS NOW MATERIAL 3 (2026-07-14, night) — SUPERSEDES THE MOBILE HALF OF EVERYTHING BELOW
+
+The user asked for a **full Material 3 makeover** of `packages/mobile` and
+explicitly accepted that it stops looking like the bespoke Pleiad system. It is
+done, it **runs on the emulator**, and it is **UNCOMMITTED** (48 files,
++3,968 / −4,926 — the app got *smaller*; eight sheets stopped hand-rolling the
+same modal).
+
+➡️ **Full write-up: `docs/redesign/HANDOFF_2026-07-14_MOBILE_M3.md`.**
+➡️ **Law for mobile: `specs/mobile/DESIGN_LANGUAGE.md` — REWRITTEN, read it whole.**
+
+**What this invalidates in the sections below:** the mobile design language is
+gone. `TYPE.micro` / `monoValue` / `COLORS.scrim` / `COLORS.amber` / `§10` /
+`Panel` / `Eyebrow` / `Pill` / the whole `ui/primitives` module — **all deleted.**
+Any instruction below to follow "DESIGN_LANGUAGE §10" is stale. The web app is
+untouched and still wears the old system: **mobile and web are now two design
+systems on purpose. Do not "unify" them without asking.**
+
+- Colour is **generated, not authored**: `packages/mobile/scripts/generate-m3-palette.mjs`
+  → `src/theme/m3-colors.ts` (49 M3 roles × dark+light) from the seed `#7D5BC9`
+  via `SchemeFidelity` — the one variant that keeps the brand (`primaryContainer`
+  lands on `#7D5BC9` exactly). **Never hand-edit the generated file**; change the
+  seed and re-run.
+- `src/theme/tokens.ts` is now **domain colour only** (system flavours, seal
+  colours, relationship types). The test: *what the app is showing* → tokens;
+  *what it looks like* → `theme/m3.ts`. A raw hex in a screen is a bug.
+- `src/components/m3/` is the component set and the only source of UI.
+- **Bodygraph is still duplicated verbatim between web and mobile** — mobile's is
+  now M3-coloured, web's is not. Keep the **geometry** in sync, not the colours.
+
+⚠️ **`npm i <pkg> -w packages/mobile` CORRUPTS THE DEP TREE.** It drops mobile's
+nested `react@19` onto the hoisted root `react@18`, and the app then dies at
+bundle time with `Unable to resolve module react/compiler-runtime` (the React
+Compiler is on). **`tsc` and `eslint` stay green while this is broken.** Fix:
+plain `npm install` at the root. This cost this session an hour.
+
+⚠️ **The Android SDK EXISTS.** It is a brew cask at
+`/opt/homebrew/share/android-commandlinetools` (not `~/Library/Android/sdk`),
+with an AVD named `pleiad`. Run instructions are in the write-up. I wrongly
+concluded "no SDK" from the standard path and reported the whole redesign as
+unverifiable — it wasn't.
+
+## APP REDESIGN — web + mobile (2026-07-14, parallel session)
+
+Written by the **app** session; the block above is the **site** session.
+Disjoint file sets — site owned `src/app/*` public pages +
+`src/components/{landing-v2,docs}`, app owned `src/app/app/*` +
+`packages/mobile`. Both **UNCOMMITTED**.
+
+⚠️ **The mobile half of this section is SUPERSEDED by the M3 section above.**
+The web half (`src/app/app`, `src/components/app-kit`) still stands.
+
+➡️ **Full write-up: `docs/redesign/HANDOFF_2026-07-14_APP_REDESIGN.md`.**
+➡️ **Law for `src/app/app`: `docs/redesign/APP_DESIGN_CONTRACT.md`.**
+➡️ ~~Law for mobile tokens: `specs/mobile/DESIGN_LANGUAGE.md` §10.~~ **DEAD — see above.**
+
+The authed app spoke stock-shadcn while the site spoke dark cosmic. The
+palette was never the problem (`dashboard.css` already remapped the
+tokens) — the **grammar** was. New **`src/components/app-kit`** (the
+mobile component grammar ported to web: PageSection / DataRow / MeterBar
+/ FlavorTabs / FlapBoard / Notice / LockedPage / seal-colors / motion)
+now backs every authed page. Shell gained the homepage's mono
+`pleiad / your-map / <section>` control-chrome breadcrumb.
+
+Mobile was already 5/5 (web ported *from* it), so its pass was additive:
+**the bodygraph finally exists on mobile** (react-native-svg; its
+geometry module is a verbatim copy of the web's — **keep the two in
+sync**), tokens gained `TYPE.micro`/`monoValue`/`COLORS.scrim`/
+`COLORS.amber`, a `Notice`/`ErrorState` primitive landed, and the
+onboarding mural backdrops (`TODO(asset bundle)`) shipped.
+
+Real bugs fixed: 🔴 **group edit silently wiped membership**
+(`initialMemberIds` never passed → `setGroupMembers([])`); 🔴 the cosmic
+ground layer must stay **`z-index: -1`** or it paints over all static
+text. Known-not-a-bug: the 4 test people all carry
+`birth_date 1990-01-01` — legacy rows predating the capture null-guard.
+
+⚠️ **Metro may still be running on :8081.** RN gotchas — *a red screen
+can be a stale Metro bundle lying about code that is actually fine*, the
+dev-client deep-link, the adb path — are in §4 of the write-up. Read it
+before chasing a red screen.
 
 ## PREVIOUS STATE (2026-07-14, morning)
 

@@ -25,11 +25,11 @@ const TABS: readonly Tab[] = [...FLAVOR_DESCENT, 'connections']
 
 /** One concrete sentence per system — what this map actually tells you. */
 const SYSTEM_BLURB: Record<SystemKey, string> = {
-  astrology: 'The sky at the minute of birth — planets, houses, and the angles between them.',
+  astrology: 'The sky at the minute of birth: planets, houses, and the angles between them.',
   dreamspell: 'The galactic signature: one of 260 kin, built from a seal and a tone.',
-  tzolkin: 'The 260-day count — the day-sign and trecena the birth falls inside.',
-  humanDesign: 'The bodygraph — which centers are defined, and which channels are open.',
-  gematria: 'The name by letter value — every letter carries a number.',
+  tzolkin: 'The 260-day count: the day-sign and trecena the birth falls inside.',
+  humanDesign: 'The bodygraph: which centers are defined, and which channels are open.',
+  gematria: 'The name by letter value: every letter carries a number.',
 }
 
 interface PeopleAtlasProps {
@@ -70,10 +70,10 @@ export function PeopleAtlas({ people, charts, pairs }: PeopleAtlasProps) {
         </span>
 
         <div className="mt-6 grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-end">
-          <h2 className={TYPE.zone}>One person. Five maps. Every connection.</h2>
-          <p className="text-lg leading-relaxed text-white/60">
-            Add the people who matter. Each one gets a full chart in all five
-            systems — and Pleiad names exactly how they connect to everyone else
+          <h2 className={TYPE.section}>One person. Every chart. Every connection.</h2>
+          <p className="text-lg leading-relaxed text-white/70">
+            Add the people who matter. Each one gets a full chart in every
+            system, and Pleiad names exactly how they connect to everyone else
             you&apos;ve added.
           </p>
         </div>
@@ -103,7 +103,7 @@ export function PeopleAtlas({ people, charts, pairs }: PeopleAtlasProps) {
               )
             })}
             <Link
-              href="/onboarding"
+              href="/calculate"
               className="ml-1 flex shrink-0 items-center gap-1.5 rounded-full border border-dashed border-white/15 px-3 py-2 text-sm text-white/45 transition hover:border-white/30 hover:text-white/70 active:scale-[0.98]"
             >
               <Plus size={14} strokeWidth={1.5} />
@@ -162,17 +162,14 @@ export function PeopleAtlas({ people, charts, pairs }: PeopleAtlasProps) {
           </div>
         </div>
 
-        <div className="mt-8 flex flex-wrap items-center gap-4">
+        <div className="mt-8">
           <Link
-            href="/onboarding"
+            href="/calculate"
             className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium text-white transition active:translate-y-[1px]"
             style={{ backgroundColor: COLORS.brand }}
           >
-            Build your own map
+            Start with your birthday
             <ArrowRight size={16} strokeWidth={1.5} />
-          </Link>
-          <Link href="/app/graph" className="text-sm text-white/50 underline-offset-4 transition hover:text-white/80 hover:underline">
-            Open the full map
           </Link>
         </div>
       </div>
@@ -195,8 +192,10 @@ function ChartPanel({
   const label = flavor.accentSoft
 
   return (
-    <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_260px] md:items-start">
-      <div className="flex min-h-[340px] items-center justify-center overflow-hidden rounded-xl border border-white/[0.07] bg-black/20 p-4">
+    // items-center: the bodygraph runs ~650px tall while the facts column is
+    // ~380px — top-aligned, the column read as cut off after its last row.
+    <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_260px] md:items-center">
+      <div className="flex min-h-[340px] items-center justify-center overflow-hidden rounded-xl border border-white/[0.07] bg-black/20 p-6 md:p-10">
         <SystemChart chart={chart} system={system} />
       </div>
 
@@ -204,7 +203,7 @@ function ChartPanel({
         <p className={TYPE.eyebrow} style={{ color: label }}>
           {flavor.name}
         </p>
-        <h3 className="mt-3 font-display text-2xl text-white">{person.name}</h3>
+        <h3 className={`${TYPE.card} mt-3`}>{person.name}</h3>
         <p className="mt-1 font-mono text-xs text-white/35">
           {person.birthDate} · {person.birthTime}
         </p>
@@ -246,7 +245,18 @@ function SystemChart({ chart, system }: { readonly chart: DemoCharts; readonly s
         />
       )
     case 'humanDesign':
-      return <BodygraphChart bodygraph={chart.bodygraph} width={300} height={360} />
+      // No fixed width/height — a 300×360 box letterboxed the 5:7 viewBox down
+      // to ~257px wide and made the gate numbers unreadable. Width-driven,
+      // height follows the viewBox ratio.
+      // The 440px cap MUST live on our own wrapper: BodygraphChart puts an
+      // inline maxWidth:'100%' on its root, which beats any max-w-* class
+      // handed to it — the graph grew to full column width (~1100px tall)
+      // and left the facts column as dead space.
+      return (
+        <div className="w-full max-w-[440px]">
+          <BodygraphChart bodygraph={chart.bodygraph} className="w-full" />
+        </div>
+      )
     case 'dreamspell':
       return <KinGlyph kin={chart.kin} seal={chart.seal} tone={chart.tone} accent={SYSTEM_FLAVORS.dreamspell.accent} />
     case 'tzolkin':
@@ -314,14 +324,14 @@ function ConnectionsPanel({
     <div>
       <p className="mb-6 text-sm text-white/50">
         How <span className="text-white">{person.name}</span> connects to everyone else in the
-        collection — named by the system that found it.
+        collection, named by the system that found it.
       </p>
 
       <div className="divide-y divide-white/[0.07] border-t border-white/[0.07]">
         {connections.map(({ other, overall, ties }) => (
           <div key={other.id} className="grid gap-4 py-5 md:grid-cols-[180px_1fr] md:gap-8">
             <div className="flex items-center gap-3">
-              <span className="font-display text-lg text-white">{other.name}</span>
+              <span className="font-display text-lg font-medium text-white">{other.name}</span>
               <span
                 className="rounded-full px-2 py-0.5 font-mono text-[11px]"
                 style={{ backgroundColor: `${COLORS.brand}1A`, color: COLORS.brandSoft }}
@@ -344,14 +354,6 @@ function ConnectionsPanel({
         ))}
       </div>
 
-      <Link
-        href="/onboarding"
-        className="mt-8 inline-flex items-center gap-1.5 text-sm transition hover:gap-2.5"
-        style={{ color: COLORS.brandSoft }}
-      >
-        Find your people&apos;s connections
-        <ArrowRight size={14} strokeWidth={1.5} />
-      </Link>
     </div>
   )
 }
@@ -369,7 +371,7 @@ export function TiePill({ tie }: { readonly tie: DemoTie }) {
       {tie.channel && <span className="font-mono text-white/40">{tie.channel}</span>}
       {tie.planets && (
         <span className="font-mono capitalize text-white/40">
-          {tie.planets[0]}–{tie.planets[1]}
+          {tie.planets[0]}/{tie.planets[1]}
         </span>
       )}
     </span>
@@ -402,7 +404,7 @@ function KinGlyph({ kin, seal, tone, accent }: { readonly kin: number; readonly 
         className="grid h-40 w-40 place-items-center rounded-full border"
         style={{ borderColor: `${accent}55`, backgroundColor: `${accent}0E` }}
       >
-        <span className="font-mono text-5xl" style={{ color: accent }}>
+        <span className="font-mono text-5xl font-medium" style={{ color: accent }}>
           {kin}
         </span>
         <span className="mt-1 text-[11px] uppercase tracking-[0.2em] text-white/40">kin</span>
@@ -445,7 +447,7 @@ function TzolkinGlyph({ chart, accent }: { readonly chart: DemoCharts; readonly 
         ))}
       </div>
       <div className="text-center">
-        <p className="font-display text-3xl text-white">{sign}</p>
+        <p className="font-display text-3xl font-medium text-white">{sign}</p>
         <p className="mt-1 font-mono text-xs text-white/40">
           {chart.tzolkin.daySign.yucatec} · tone {num}
         </p>
@@ -458,7 +460,7 @@ function GematriaGlyph({ chart, accent }: { readonly chart: DemoCharts; readonly
   const letters = chart.gematria.methods.standard.breakdown ?? []
   return (
     <div className="grid place-items-center gap-5">
-      <p className="font-display text-5xl text-white" dir="rtl">
+      <p className="font-display text-5xl font-medium text-white" dir="rtl">
         {chart.gematria.text}
       </p>
       <div className="flex flex-wrap justify-center gap-2" dir="rtl">

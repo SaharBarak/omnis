@@ -371,7 +371,7 @@ function AspectLines({
         const width = 0.5 + tightness * 2
         const isOpposition = asp.aspect.name === 'Opposition'
 
-        const tipText = `${asp.aspect.name} ${asp.aspect.symbol}: ${asp.planet1} — ${asp.planet2} (orb ${asp.orb.toFixed(1)}°${asp.applying ? ', applying' : ', separating'})`
+        const tipText = `${asp.aspect.name} ${asp.aspect.symbol}: ${asp.planet1} and ${asp.planet2} (orb ${asp.orb.toFixed(1)}°${asp.applying ? ', applying' : ', separating'})`
 
         return (
           <line

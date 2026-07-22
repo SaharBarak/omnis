@@ -12,6 +12,7 @@ import {
   ChevronDown,
   Settings,
 } from 'lucide-react'
+import { useCanvas } from './canvas-context'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -19,7 +20,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Label } from '@/components/ui/label'
-import { useCanvas } from './canvas-context'
 
 export function LayersPanel() {
   const {

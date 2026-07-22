@@ -90,7 +90,7 @@ export function KabbalahPage({
           {gematria.methods.standard.value}
         </Text>
         <Text variant="labelMedium" color="onSurfaceVariant">
-          Standard value — Mispar Hechrachi
+          Standard value (Mispar Hechrachi)
         </Text>
       </PageSection>
 

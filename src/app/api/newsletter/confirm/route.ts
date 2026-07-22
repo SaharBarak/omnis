@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
 
     await sendMarketingEmail({
       to: normalizedEmail,
-      subject: 'Welcome to Pleiad — your cosmic journey begins',
+      subject: 'Welcome to Pleiad: your cosmic journey begins',
       preheader: 'Daily cosmic guidance from the Dreamspell calendar.',
       title: 'Welcome to Pleiad',
       bodyHtml: welcomeBody(),

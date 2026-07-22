@@ -229,7 +229,7 @@ export function ProfileEditSheet({
           )}
           {timeUnknown && (
             <Text variant="bodySmall" color="onSurfaceVariant">
-              Honest state — the bodygraph waits until the hour is known.
+              Honest state: the bodygraph waits until the hour is known.
             </Text>
           )}
         </View>
@@ -238,7 +238,7 @@ export function ProfileEditSheet({
           label="Hebrew name"
           value={hebrewName}
           onChangeText={setHebrewName}
-          supportingText="Optional — unlocks Kabbalah"
+          supportingText="Optional, unlocks Kabbalah"
           maxLength={200}
         />
 

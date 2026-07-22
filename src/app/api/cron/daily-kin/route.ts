@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Send emails
-    const subject = `Today's Kin: ${kinData.seal.name} — Kin ${kinData.kin}`
+    const subject = `Today's Kin: ${kinData.seal.name} (Kin ${kinData.kin})`
     let sent = 0
     let failed = 0
     let skipped = 0

@@ -5,6 +5,24 @@ import './dashboard.css'
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { Toaster } from 'sonner'
+import {
+  Home,
+  Users,
+  Heart,
+  UsersRound,
+  Network,
+  LayoutGrid,
+  CreditCard,
+  Sparkles,
+  Search,
+  User,
+  Settings,
+  LogOut,
+  ChevronRight,
+  Moon,
+  MoreHorizontal,
+} from 'lucide-react'
 import { BrandMark } from '@/components/brand-mark'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { Button } from '@/components/ui/button'
@@ -41,23 +59,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { CommandPalette } from '@/components/dashboard/command-palette'
 import { ConfirmProvider } from '@/components/dashboard/confirm-dialog'
-import { Toaster } from 'sonner'
-import {
-  Home,
-  Users,
-  Heart,
-  UsersRound,
-  Network,
-  LayoutGrid,
-  CreditCard,
-  Sparkles,
-  Search,
-  User,
-  Settings,
-  LogOut,
-  ChevronRight,
-  Moon,
-} from 'lucide-react'
 
 // Navigation structure with groups
 const navGroups = [
@@ -112,7 +113,7 @@ function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/app" className="flex items-center gap-3">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-xl bg-brand text-white shadow-[0_0_24px_-6px_rgba(125,91,201,0.55)]">
                   <BrandMark size={22} mono className="size-5" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
@@ -192,9 +193,9 @@ function NavUser() {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg">
+              <Avatar className="h-8 w-8 rounded-full">
                 <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.display_name || 'User'} />
-                <AvatarFallback className="rounded-lg bg-primary/10 text-primary text-xs font-medium">
+                <AvatarFallback className="rounded-full bg-primary/10 text-brand-soft text-xs font-medium">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -212,9 +213,9 @@ function NavUser() {
             sideOffset={4}
           >
             <div className="flex items-center gap-2 p-2">
-              <Avatar className="h-8 w-8 rounded-lg">
+              <Avatar className="h-8 w-8 rounded-full">
                 <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.display_name || 'User'} />
-                <AvatarFallback className="rounded-lg bg-primary/10 text-primary text-xs font-medium">
+                <AvatarFallback className="rounded-full bg-primary/10 text-brand-soft text-xs font-medium">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -252,7 +253,7 @@ function MobileBottomNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-md border-t border-border pb-safe" role="navigation" aria-label="Mobile navigation">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-ground/90 backdrop-blur-md border-t border-white/[0.07] pb-safe" role="navigation" aria-label="Mobile navigation">
       <div className="flex items-center justify-around h-16 px-2">
         {mobileNavItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/app' && pathname.startsWith(item.href))
@@ -265,12 +266,12 @@ function MobileBottomNav() {
               aria-label={item.label}
               className={`flex flex-col items-center justify-center gap-1 min-w-[56px] min-h-[48px] px-3 py-2 rounded-xl transition-all active:scale-95 ${
                 isActive
-                  ? 'text-primary bg-primary/5'
+                  ? 'text-brand-soft bg-primary/[0.08]'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <Icon className="size-5" aria-hidden="true" />
-              <span className="text-xs font-medium">{item.label}</span>
+              <span className="font-mono text-[10px] uppercase tracking-[0.14em]">{item.label}</span>
             </Link>
           )
         })}
@@ -282,10 +283,8 @@ function MobileBottomNav() {
               className="flex flex-col items-center justify-center gap-1 min-w-[56px] min-h-[48px] px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground transition-all active:scale-95"
               aria-label="More options"
             >
-              <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
-              </svg>
-              <span className="text-xs font-medium">More</span>
+              <MoreHorizontal className="size-5" aria-hidden="true" />
+              <span className="font-mono text-[10px] uppercase tracking-[0.14em]">More</span>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48 mb-2 rounded-xl">
@@ -333,32 +332,54 @@ function MobileBottomNav() {
   )
 }
 
+/** Mono control-chrome breadcrumb — the hero product surface convention
+    (landing-v2/hero-v2.tsx): `pleiad / your-map / <section>`. */
+function HeaderBreadcrumb() {
+  const pathname = usePathname()
+  const section = pathname.split('/')[2] || 'home'
+  return (
+    <span className="hidden md:flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+      <span className="inline-block size-1.5 rounded-full bg-brand" aria-hidden />
+      pleiad / your-map / {section.replace(/-/g, ' ')}
+    </span>
+  )
+}
+
 function AppHeader() {
+  const [isMac, setIsMac] = useState(true)
+  useEffect(() => {
+    setIsMac(/mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent))
+  }, [])
+
   const openCommandPalette = () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))
   }
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-4" role="banner">
+    <header
+      className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-white/[0.07] bg-ground/80 px-4 backdrop-blur-md"
+      role="banner"
+    >
       <SidebarTrigger className="-ml-1" aria-label="Toggle sidebar" />
+      <HeaderBreadcrumb />
 
       {/* Search / Command Palette trigger - Desktop */}
       <button
         onClick={openCommandPalette}
-        className="hidden sm:flex items-center gap-3 h-9 px-4 rounded-lg bg-muted/50 border border-border text-muted-foreground text-sm hover:bg-muted/80 transition-colors ml-2 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        className="hidden sm:flex items-center gap-3 h-9 px-4 rounded-full bg-surface/80 border border-white/[0.07] text-muted-foreground text-sm hover:border-white/[0.12] transition-colors ml-auto focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
         aria-label="Search and navigate (Command+K)"
       >
         <Search className="size-4" aria-hidden="true" />
         <span>Search...</span>
-        <kbd className="hidden md:inline-flex h-5 items-center gap-1 rounded border border-border bg-background px-1.5 text-[10px] font-medium text-muted-foreground" aria-hidden="true">
-          <span className="text-xs">⌘</span>K
+        <kbd className="hidden md:inline-flex h-5 items-center gap-1 rounded border border-white/[0.07] bg-ground px-1.5 font-mono text-[10px] text-muted-foreground" aria-hidden="true">
+          {isMac ? '⌘' : 'Ctrl'} K
         </kbd>
       </button>
 
       {/* Search button - Mobile only */}
       <button
         onClick={openCommandPalette}
-        className="sm:hidden ml-auto flex items-center justify-center w-9 h-9 rounded-lg bg-muted/50 border border-border text-muted-foreground hover:bg-muted/80 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        className="sm:hidden ml-auto flex items-center justify-center w-9 h-9 rounded-full bg-surface/80 border border-white/[0.07] text-muted-foreground hover:border-white/[0.12] transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
         aria-label="Search"
       >
         <Search className="size-4" aria-hidden="true" />
@@ -397,7 +418,7 @@ function ErrorState() {
             <circle cx="32" cy="32" r="8" fill="hsl(var(--destructive))" opacity="0.5" />
           </svg>
         </div>
-        <h2 className="text-lg font-heading text-foreground">Something went wrong</h2>
+        <h2 className="font-display text-lg font-medium text-foreground">Something went wrong</h2>
         <p className="text-sm text-muted-foreground">
           The dashboard took too long to load. This might be a network issue.
         </p>

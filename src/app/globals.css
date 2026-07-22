@@ -135,6 +135,13 @@
     font-feature-settings: 'kern' 1, 'liga' 1;
   }
 
+  /* Belt for the marketing pages: a stray wide element (pre-hydration layout
+     race, an un-clipped rail) must never widen the document and paint the
+     light body background beside the dark page. */
+  html, body {
+    overflow-x: clip;
+  }
+
   /* Headings — Rubik, medium weight, tight tracking */
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading, 'Rubik'), system-ui, sans-serif;

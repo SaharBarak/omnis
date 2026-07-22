@@ -1,19 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Search, Link2, Users, Eye, MessageSquare, Pencil } from 'lucide-react'
-import { EgoStar } from './ego-star'
-import { SYSTEM_FLAVORS, FLAVOR_DESCENT, type SystemKey } from '@/lib/design/system-flavors'
-import { COLORS } from '@/lib/design/landing-tokens'
-import type {
-  EgoStarData,
-  DemoCircle,
-  ReadingTabData,
-  PairScoresData,
-  LibraryPerson,
-} from '@/lib/data/homepage-demo'
+import { Search, Users } from 'lucide-react'
+import { SYSTEM_FLAVORS, FLAVOR_DESCENT, INTEGRATION_FLAVOR } from '@/lib/design/system-flavors'
+import { TYPE } from '@/lib/design/landing-tokens'
+import type { DemoCircle, ReadingTabData } from '@/lib/data/homepage-demo'
 
 // ============================================
 // ZONE EMBEDS — the "real product UI" moments inside each zone.
@@ -34,21 +28,23 @@ export function ReadingCycler({ tabs }: { readonly tabs: readonly ReadingTabData
   useEffect(() => {
     const t = setInterval(() => setActive((a) => (a + 1) % tabs.length), 4000)
     return () => clearInterval(t)
-  }, [])
+  }, [tabs.length])
 
   const tab = tabs[active]
   const flavor = SYSTEM_FLAVORS[tab.key]
 
   return (
     <div className="mx-auto max-w-2xl rounded-2xl border border-white/10 bg-surface p-6 md:p-8">
-      {/* Tab strip with progress hairline */}
-      <div className="flex gap-1 border-b border-white/10 pb-3">
+      {/* Tab strip with progress hairline. Scrolls on phone widths — five
+          tracked mono labels are wider than a 390px viewport and were the
+          page's horizontal-overflow source. */}
+      <div className="flex gap-1 overflow-x-auto border-b border-white/10 pb-3">
         {tabs.map((t, i) => (
           <button
             key={t.key}
             type="button"
             onClick={() => setActive(i)}
-            className="relative flex-1 pb-2 text-[11px] uppercase tracking-wider transition-colors"
+            className={`${TYPE.eyebrow} relative shrink-0 px-2 pb-2 transition-colors md:flex-1 md:px-0`}
             style={{ color: i === active ? SYSTEM_FLAVORS[t.key].accent : '#ffffff55' }}
           >
             {SYSTEM_FLAVORS[t.key].name}
@@ -82,144 +78,21 @@ export function ReadingCycler({ tabs }: { readonly tabs: readonly ReadingTabData
             <Image src={tab.icon} alt={tab.title} width={52} height={52} className="h-[52px] w-[52px] object-contain opacity-90 invert" />
           </div>
           <div className="text-left">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-white/50">{tab.title}</p>
-            <p className="mt-1 font-display text-2xl text-white">{tab.value}</p>
+            <p className={`${TYPE.eyebrow} text-white/50`}>{tab.title}</p>
+            <p className="mt-1 font-display text-2xl font-medium text-white">{tab.value}</p>
             <p className="mt-1 text-sm text-white/50">{tab.detail}</p>
           </div>
         </motion.div>
       </AnimatePresence>
 
-      <p className="mt-6 border-t border-white/10 pt-4 text-right text-xs text-white/50">
-        Save to map →
-      </p>
-    </div>
-  )
-}
-
-// --------------------------------------------
-// §4 YOU + ONE — five-system score stack
-// --------------------------------------------
-
-export function PairScores({ data }: { readonly data: PairScoresData }) {
-  return (
-    <div className="mx-auto max-w-xl rounded-2xl border border-white/10 bg-surface p-6 md:p-8">
-      <div className="mb-6 flex items-center justify-center gap-4">
-        <PairAvatar name={data.a.name} color="#C0392B" />
-        <div className="h-px w-16 bg-gradient-to-r from-[#C0392B] to-[#2C3E90]" />
-        <PairAvatar name={data.b.name} color="#2C3E90" />
+      <div className="mt-6 border-t border-white/10 pt-4 text-right">
+        <Link
+          href="/calculate"
+          className="text-xs text-white/50 transition-colors hover:text-white/80"
+        >
+          Save it to your map →
+        </Link>
       </div>
-      <div className="space-y-3">
-        {data.rows.map(({ key, score, note }, i) => {
-          const flavor = SYSTEM_FLAVORS[key]
-          return (
-            <div key={key} className="flex items-center gap-3">
-              <span className="w-24 shrink-0 text-[11px] uppercase tracking-wider text-white/50">
-                {flavor.name}
-              </span>
-              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
-                <motion.div
-                  className="h-full rounded-full"
-                  style={{ backgroundColor: flavor.accent }}
-                  initial={{ width: 0 }}
-                  whileInView={{ width: `${score}%` }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.9, delay: i * 0.12, ease: easeOut }}
-                />
-              </div>
-              <span className="w-8 text-right font-mono text-sm text-white/90">{score}</span>
-              <span className="hidden w-44 text-xs text-white/50 md:block">{note}</span>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-function PairAvatar({ name, color }: { readonly name: string; readonly color: string }) {
-  return (
-    <div className="flex flex-col items-center gap-1.5">
-      <span
-        className="flex h-12 w-12 items-center justify-center rounded-full text-sm font-semibold text-white"
-        style={{ backgroundColor: `${color}66`, border: `2px solid ${color}` }}
-      >
-        {name[0]}
-      </span>
-      <span className="text-xs text-white/70">{name}</span>
-    </div>
-  )
-}
-
-// --------------------------------------------
-// §5 YOUR PEOPLE, KEPT — library demo with typed search
-// --------------------------------------------
-
-export function LibraryDemo({ people }: { readonly people: readonly LibraryPerson[] }) {
-  const query = 'Maya'
-  const [typed, setTyped] = useState('')
-
-  useEffect(() => {
-    let i = 0
-    const t = setInterval(() => {
-      i += 1
-      setTyped(query.slice(0, i))
-      if (i >= query.length) clearInterval(t)
-    }, 220)
-    return () => clearInterval(t)
-  }, [])
-
-  return (
-    <div className="mx-auto max-w-2xl rounded-2xl border border-white/10 bg-surface p-6 md:p-8">
-      <div className="flex items-center gap-3 rounded-lg border border-white/15 bg-surface-2 px-4 py-3">
-        <Search className="h-4 w-4 text-white/50" />
-        <span className="font-mono text-sm text-white/90">
-          {typed}
-          <span className="animate-gentle-pulse text-white/50">|</span>
-        </span>
-      </div>
-      <div className="mt-4 space-y-2">
-        {people.filter((p) => p.name.includes(typed) || typed.length < query.length).map(
-          (p, i) => (
-            <motion.div
-              key={p.name}
-              className="flex items-center justify-between rounded-lg border border-white/8 bg-white/[0.03] px-4 py-3"
-              initial={{ opacity: 0, x: -8 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: 0.3 + i * 0.1 }}
-            >
-              <div>
-                <p className="text-sm font-medium text-white/90">{p.name}</p>
-                <p className="font-mono text-xs text-white/50">{p.meta}</p>
-              </div>
-              <div className="flex gap-2 text-xs text-white/50">
-                <span>Open reading</span>
-                <span className="text-white/35">·</span>
-                <span>Add to map</span>
-              </div>
-            </motion.div>
-          ),
-        )}
-      </div>
-      <p className="mt-5 text-center text-xs text-white/35">
-        Saved once — birth time, place, name, all six readings.
-      </p>
-    </div>
-  )
-}
-
-// --------------------------------------------
-// §6 THE MAP — full-width graph with lens controls
-// --------------------------------------------
-
-export function MapCenterpiece({ star }: { readonly star: EgoStarData }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-surface p-4 md:p-8">
-      <EgoStar data={star} />
-      <p className="mt-4 text-center text-xs text-white/35">
-        Select layers above. Each strand is a system that found a real tie — and the
-        gaps are findings too.
-      </p>
     </div>
   )
 }
@@ -242,7 +115,7 @@ export function CirclesDemo({ circles }: { readonly circles: readonly DemoCircle
         >
           <div className="flex items-center justify-between">
             <span
-              className="text-xs uppercase tracking-[0.18em]"
+              className={TYPE.eyebrow}
               style={{ color: circle.accent }}
             >
               {circle.name}
@@ -271,67 +144,6 @@ export function CirclesDemo({ circles }: { readonly circles: readonly DemoCircle
 }
 
 // --------------------------------------------
-// §9 BEYOND YOU — share dialog + living link
-// --------------------------------------------
-
-export function ShareDemo({ star }: { readonly star: EgoStarData }) {
-  return (
-    <div className="mx-auto grid max-w-3xl items-center gap-6 md:grid-cols-2">
-      <div className="rounded-2xl border border-white/10 bg-surface p-6">
-        <p className="text-xs uppercase tracking-[0.18em] text-white/50">Share this map</p>
-        <p className="mt-2 font-display text-xl text-white">
-          Mom&rsquo;s side — {star.spokes.length + 1} people
-        </p>
-        <div className="mt-5 space-y-2.5">
-          {[
-            { icon: Eye, label: 'View only', on: true },
-            { icon: MessageSquare, label: 'Can comment', on: false },
-            { icon: Pencil, label: 'Can collaborate', on: false },
-          ].map(({ icon: Icon, label, on }) => (
-            <div key={label} className="flex items-center justify-between text-sm text-white/70">
-              <span className="flex items-center gap-2.5">
-                <Icon className="h-4 w-4 text-white/50" />
-                {label}
-              </span>
-              <span
-                className={`h-4 w-7 rounded-full ${on ? 'bg-brand' : 'bg-white/15'} relative`}
-              >
-                <span
-                  className={`absolute top-0.5 h-3 w-3 rounded-full bg-white transition-all ${on ? 'right-0.5' : 'left-0.5'}`}
-                />
-              </span>
-            </div>
-          ))}
-        </div>
-        <div className="mt-5 flex items-center gap-2 rounded-lg border border-white/15 bg-surface-2 px-3 py-2.5">
-          <Link2 className="h-4 w-4 shrink-0 text-brand" />
-          <span className="truncate font-mono text-xs text-white/70">
-            pleiad.io/share/m0ms-side-x7f2
-          </span>
-        </div>
-      </div>
-
-      {/* Recipient phone frame */}
-      <motion.div
-        className="mx-auto w-52 rounded-[2rem] border border-white/15 bg-surface p-3 shadow-2xl"
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-60px' }}
-        transition={{ duration: 0.6, delay: 0.2, ease: easeOut }}
-      >
-        <div className="rounded-[1.4rem] bg-surface-2 p-4">
-          <p className="text-[9px] uppercase tracking-widest text-white/50">Shared with you</p>
-          <p className="mt-1 font-display text-sm text-white">Mom&rsquo;s side</p>
-          <div className="mt-3">
-            <EgoStar data={star} compact />
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  )
-}
-
-// --------------------------------------------
 // §10 KNOWLEDGE — self-typing search + five portals
 // --------------------------------------------
 
@@ -349,7 +161,19 @@ type SearchState =
   | { readonly status: 'done'; readonly hits: readonly SearchHit[] }
   | { readonly status: 'error' }
 
-export function KnowledgeSearch() {
+export function KnowledgeSearch({
+  includeIntegration = false,
+}: {
+  /**
+   * The /learn hub advertises six guides, so it shows the Integration chip
+   * too; the homepage zone keeps the five mural systems.
+   */
+  readonly includeIntegration?: boolean
+}) {
+  const chips = [
+    ...FLAVOR_DESCENT.map((key) => SYSTEM_FLAVORS[key]),
+    ...(includeIntegration ? [INTEGRATION_FLAVOR] : []),
+  ]
   const [queryIndex, setQueryIndex] = useState(0)
   const [typed, setTyped] = useState('')
   const [value, setValue] = useState('')
@@ -422,12 +246,12 @@ export function KnowledgeSearch() {
       )}
       {search.status === 'error' && (
         <p className="mt-4 text-center text-sm text-white/50">
-          Search is unavailable right now — the five guides below are always open.
+          Search is unavailable right now. The guides below are always open.
         </p>
       )}
       {search.status === 'done' && search.hits.length === 0 && (
         <p className="mt-4 text-center text-sm text-white/50">
-          Nothing close enough yet — try a gate, kin, sign, tone, or number.
+          Nothing close enough yet. Try a gate, kin, sign, tone, or number.
         </p>
       )}
       {search.status === 'done' && search.hits.length > 0 && (
@@ -447,19 +271,16 @@ export function KnowledgeSearch() {
         </div>
       )}
       <div className="mt-6 flex flex-wrap justify-center gap-3">
-        {FLAVOR_DESCENT.map((key) => {
-          const flavor = SYSTEM_FLAVORS[key]
-          return (
-            <a
-              key={key}
-              href={flavor.learnHref}
-              className="rounded-full border px-4 py-2 text-sm transition-colors hover:bg-white/5"
-              style={{ borderColor: `${flavor.accent}44`, color: flavor.accent }}
-            >
-              {flavor.name}
-            </a>
-          )
-        })}
+        {chips.map((flavor) => (
+          <a
+            key={flavor.key}
+            href={flavor.learnHref}
+            className="rounded-full border px-4 py-2 text-sm transition-colors hover:bg-white/5"
+            style={{ borderColor: `${flavor.accent}44`, color: flavor.accent }}
+          >
+            {flavor.name}
+          </a>
+        ))}
       </div>
     </div>
   )

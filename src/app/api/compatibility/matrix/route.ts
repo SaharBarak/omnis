@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { calculateFiveSystemCompatibility } from '@pleiad/engine/services/compatibility'
 import { requireUserId } from '@/lib/auth-server'
 import { handleApiError } from '@/lib/api/respond'
 import { listPeopleWithTags } from '@/lib/db/repositories/people-repo'
@@ -8,7 +9,6 @@ import {
   getResultsBySystemForPeople,
   type BulkResultInput,
 } from '@/lib/db/repositories/computed-results-repo'
-import { calculateFiveSystemCompatibility } from '@pleiad/engine/services/compatibility'
 import {
   MATRIX_ENGINE_VERSION,
   MATRIX_PAIR_SYSTEM,

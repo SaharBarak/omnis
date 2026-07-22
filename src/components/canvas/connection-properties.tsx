@@ -2,10 +2,10 @@
 
 import { useState, useCallback, useMemo } from 'react'
 import { Trash2, Copy } from 'lucide-react'
+import { useCanvas } from './canvas-context'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { useCanvas } from './canvas-context'
 import type { ConnectionType, Marker } from '@/lib/types/board'
 
 const CONNECTION_TYPES: { value: ConnectionType; label: string }[] = [

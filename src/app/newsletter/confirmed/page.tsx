@@ -18,7 +18,7 @@ function ConfirmedContent() {
     ? "You're subscribed. Today's Kin lands in your inbox each morning."
     : errorParam === 'rate_limit'
       ? 'Too many attempts. Please try again in a little while.'
-      : 'That confirmation link is invalid or has expired. Links last 7 days — sign up again to get a fresh one.'
+      : 'That confirmation link is invalid or has expired. Links last 7 days. Sign up again to get a fresh one.'
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">

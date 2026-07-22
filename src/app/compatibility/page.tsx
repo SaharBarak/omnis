@@ -1,20 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Header, Footer } from '@/components/landing'
 import { dateToKin, kinToSeal, kinToTone } from '@pleiad/engine/calculations/dreamspell'
 import { calculateOracle } from '@pleiad/engine/calculations/oracle'
 import { SEALS } from '@pleiad/engine/data/seals'
 import { TONES } from '@pleiad/engine/data/tones'
 import {
   calculateFiveSystemCompatibility,
-  getScoreColor,
   type CompatSystem,
 } from '@pleiad/engine/services/compatibility'
+import { NavV2, FooterV2, StarParallax, MuralBackdrop } from '@/components/landing-v2'
+import { TYPE } from '@/lib/design/landing-tokens'
+import { MURAL_GROUND, scoreColor } from '@/lib/design/system-flavors'
+import { getTodayAcrossSystems, getFooterLiveLine } from '@/lib/today-board'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { DateField } from '@/components/ui/date-field'
+import { Button } from '@/components/ui/button'
 
 interface PersonData {
   name: string
@@ -58,21 +61,14 @@ interface Connection {
   strength: 'strong' | 'moderate' | 'subtle'
 }
 
-function calculateCompatibility(
-  p1: PersonData,
-  p2: PersonData
-): Omit<CompatibilityResult, 'systems' | 'availableCount'> {
+// Names the Dreamspell oracle ties between two people. Scoring and the
+// summary line come from the five-system fusion engine — this helper only
+// contributes the named connections.
+function findOracleConnections(p1: PersonData, p2: PersonData): Connection[] {
   const connections: Connection[] = []
-  let score = 50 // Base compatibility
 
   if (!p1.seal || !p2.seal || !p1.oracle || !p2.oracle || !p1.tone || !p2.tone) {
-    return {
-      person1: p1,
-      person2: p2,
-      connections: [],
-      overallScore: 0,
-      summary: 'Unable to calculate compatibility.',
-    }
+    return connections
   }
 
   // Same seal
@@ -82,144 +78,125 @@ function calculateCompatibility(
       description: `Both are ${p1.seal.english}! You share the same archetypal energy.`,
       strength: 'strong',
     })
-    score += 20
   }
 
   // Analog relationship
   if (p1.oracle.analog === p2.seal.number) {
     connections.push({
       type: 'Analog',
-      description: `${p2.name || 'Person 2'} is ${p1.name || 'Person 1'}'s Analog — natural allies and support partners.`,
+      description: `${p2.name || 'Person 2'} is ${p1.name || 'Person 1'}'s Analog, natural allies and support partners.`,
       strength: 'strong',
     })
-    score += 15
   }
   if (p2.oracle.analog === p1.seal.number) {
     connections.push({
       type: 'Analog',
-      description: `${p1.name || 'Person 1'} is ${p2.name || 'Person 2'}'s Analog — natural allies and support partners.`,
+      description: `${p1.name || 'Person 1'} is ${p2.name || 'Person 2'}'s Analog, natural allies and support partners.`,
       strength: 'strong',
     })
-    score += 15
   }
 
   // Antipode relationship
   if (p1.oracle.antipode === p2.seal.number) {
     connections.push({
       type: 'Antipode',
-      description: `${p2.name || 'Person 2'} is ${p1.name || 'Person 1'}'s Antipode — challenging but growth-inducing.`,
+      description: `${p2.name || 'Person 2'} is ${p1.name || 'Person 1'}'s Antipode, challenging but growth-inducing.`,
       strength: 'moderate',
     })
-    score += 5
   }
   if (p2.oracle.antipode === p1.seal.number) {
     connections.push({
       type: 'Antipode',
-      description: `${p1.name || 'Person 1'} is ${p2.name || 'Person 2'}'s Antipode — challenging but growth-inducing.`,
+      description: `${p1.name || 'Person 1'} is ${p2.name || 'Person 2'}'s Antipode, challenging but growth-inducing.`,
       strength: 'moderate',
     })
-    score += 5
   }
 
   // Occult relationship
   if (p1.oracle.occult === p2.seal.number) {
     connections.push({
       type: 'Occult',
-      description: `${p2.name || 'Person 2'} is ${p1.name || 'Person 1'}'s Occult — hidden power and unexpected gifts.`,
+      description: `${p2.name || 'Person 2'} is ${p1.name || 'Person 1'}'s Occult, hidden power and unexpected gifts.`,
       strength: 'strong',
     })
-    score += 12
   }
   if (p2.oracle.occult === p1.seal.number) {
     connections.push({
       type: 'Occult',
-      description: `${p1.name || 'Person 1'} is ${p2.name || 'Person 2'}'s Occult — hidden power and unexpected gifts.`,
+      description: `${p1.name || 'Person 1'} is ${p2.name || 'Person 2'}'s Occult, hidden power and unexpected gifts.`,
       strength: 'strong',
     })
-    score += 12
   }
 
   // Guide relationship
   if (p1.oracle.guide === p2.seal.number) {
     connections.push({
       type: 'Guide',
-      description: `${p2.name || 'Person 2'} is ${p1.name || 'Person 1'}'s Guide — a natural mentor and inspiration.`,
+      description: `${p2.name || 'Person 2'} is ${p1.name || 'Person 1'}'s Guide, a natural mentor and inspiration.`,
       strength: 'strong',
     })
-    score += 15
   }
   if (p2.oracle.guide === p1.seal.number) {
     connections.push({
       type: 'Guide',
-      description: `${p1.name || 'Person 1'} is ${p2.name || 'Person 2'}'s Guide — a natural mentor and inspiration.`,
+      description: `${p1.name || 'Person 1'} is ${p2.name || 'Person 2'}'s Guide, a natural mentor and inspiration.`,
       strength: 'strong',
     })
-    score += 15
   }
 
   // Same color family
   if (p1.seal.color === p2.seal.color) {
     connections.push({
       type: 'Color Family',
-      description: `Both are ${p1.seal.color} energy — similar rhythm and approach to life.`,
+      description: `Both are ${p1.seal.color} energy, similar rhythm and approach to life.`,
       strength: 'moderate',
     })
-    score += 8
   }
 
   // Same tone
   if (p1.tone.number === p2.tone.number) {
     connections.push({
       type: 'Same Tone',
-      description: `Both carry Tone ${p1.tone.number} (${p1.tone.name}) — similar creative pulse.`,
+      description: `Both carry Tone ${p1.tone.number} (${p1.tone.name}), similar creative pulse.`,
       strength: 'moderate',
     })
-    score += 10
   }
 
   // No connections found
   if (connections.length === 0) {
     connections.push({
       type: 'Independent',
-      description: 'No direct oracle connections — unique perspectives that complement through difference.',
+      description: 'No direct oracle connections, unique perspectives that complement through difference.',
       strength: 'subtle',
     })
   }
 
-  // Cap score
-  score = Math.min(100, score)
-
-  // Generate summary
-  let summary = ''
-  const name1 = p1.name || 'Person 1'
-  const name2 = p2.name || 'Person 2'
-  if (score >= 80) {
-    summary = `Strong cosmic alignment! ${name1} and ${name2} share powerful oracle connections that support growth and harmony.`
-  } else if (score >= 60) {
-    summary = `Good compatibility. ${name1} and ${name2} have meaningful connections that create balance and mutual benefit.`
-  } else if (score >= 40) {
-    summary = `Moderate connection. ${name1} and ${name2} bring different energies that can create interesting dynamics.`
-  } else {
-    summary = `Independent energies. ${name1} and ${name2} offer fresh perspectives to each other through their differences.`
-  }
-
-  return {
-    person1: p1,
-    person2: p2,
-    connections,
-    overallScore: score,
-    summary,
-  }
+  return connections
 }
+
+const inputClass =
+  'bg-white/[0.04] border-white/15 text-white placeholder:text-white/30'
 
 export default function CompatibilityPage() {
   const [person1, setPerson1] = useState<PersonData>({ name: '', birthDate: '' })
   const [person2, setPerson2] = useState<PersonData>({ name: '', birthDate: '' })
   const [result, setResult] = useState<CompatibilityResult | null>(null)
   const [isCalculating, setIsCalculating] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
+
+  // Computed after mount: timezone/ICU-dependent — SSR rendering it
+  // guarantees hydration text mismatches for most of the day.
+  const [liveLine, setLiveLine] = useState('')
+  useEffect(() => {
+    setLiveLine(getFooterLiveLine(getTodayAcrossSystems()))
+  }, [])
 
   const calculateResults = () => {
-    if (!person1.birthDate || !person2.birthDate) return
+    if (!person1.birthDate || !person2.birthDate) {
+      setFormError('Enter both birth dates first.')
+      return
+    }
+    setFormError(null)
 
     setIsCalculating(true)
 
@@ -238,7 +215,7 @@ export default function CompatibilityPage() {
       const p1Data = { ...person1, kin: kin1, seal: seal1, tone: tone1, oracle: oracle1 }
       const p2Data = { ...person2, kin: kin2, seal: seal2, tone: tone2, oracle: oracle2 }
 
-      const base = calculateCompatibility(p1Data, p2Data)
+      const connections = findOracleConnections(p1Data, p2Data)
 
       // Five-system fusion (date-only -> Dreamspell+Tzolkin+Astrology;
       // + Hebrew names -> Gematria). Overrides the score/summary with the blend.
@@ -258,7 +235,9 @@ export default function CompatibilityPage() {
       }))
 
       setResult({
-        ...base,
+        person1: p1Data,
+        person2: p2Data,
+        connections,
         overallScore: fusion.overallScore,
         summary: fusion.summary.english,
         systems,
@@ -268,190 +247,152 @@ export default function CompatibilityPage() {
     }, 800)
   }
 
-  const getSealColorClass = (color: string) => {
-    const colors: Record<string, string> = {
-      red: 'bg-seal-red/15 text-seal-red border-seal-red/30',
-      white: 'bg-seal-white text-foreground border-border',
-      blue: 'bg-seal-blue/15 text-seal-blue border-seal-blue/30',
-      yellow: 'bg-seal-yellow/15 text-seal-yellow border-seal-yellow/30',
-    }
-    return colors[color] || ''
-  }
-
-  const getStrengthColor = (strength: string) => {
-    switch (strength) {
-      case 'strong': return 'bg-secondary/15 text-secondary border-secondary/30'
-      case 'moderate': return 'bg-amber/15 text-amber border-amber/30'
-      default: return 'bg-accent/15 text-accent border-accent/30'
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="min-h-[100dvh]" style={{ backgroundColor: MURAL_GROUND }}>
+      <NavV2 />
 
-      <main className="pt-24 pb-16 px-6">
-        <div className="max-w-3xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <div className="earth-badge inline-flex mb-4">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-              <span>Oracle Relationships</span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-heading text-foreground mb-4">
-              <span className="text-earth-gradient">Compatibility</span> Check
+      <main className="relative overflow-hidden pb-24 pt-32 sm:pt-40">
+        <StarParallax />
+
+        {/* The thread of light running down between the two people — the
+            connection this page measures, drawn before it's calculated. */}
+        <MuralBackdrop
+          placement="center-vein"
+          src="/images/redesign/motifs/thread-of-light.webp"
+          blend
+          opacity={0.5}
+        />
+
+        <div className="relative mx-auto max-w-3xl px-6">
+          {/* Hero */}
+          <div className="mb-12 text-center">
+            <p className={`${TYPE.eyebrow} text-brand`}>Oracle Relationships</p>
+            <h1 className={`${TYPE.hero} mx-auto mt-4`}>
+              Compatibility Check
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Discover the connection between two people across five wisdom systems —
-              Dreamspell, Tzolkin, Astrology, Human Design, and Gematria. Add Hebrew
-              names for gematria resonance.
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/70">
+              Discover the connection between two people across five wisdom systems:
+              Dreamspell, Tzolkin, Astrology, Human Design, and Kabbalah.
+              Add Hebrew names for the Kabbalah layer.
             </p>
           </div>
 
           {/* Input Form */}
           <div className="grid md:grid-cols-2 gap-6 mb-8">
-            {/* Person 1 */}
-            <div className="earth-card bg-card p-6">
-              <h3 className="font-heading text-lg mb-4">Person 1</h3>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="name1">Name (optional)</Label>
-                  <Input
-                    id="name1"
-                    placeholder="Enter name"
-                    value={person1.name}
-                    onChange={(e) => setPerson1({ ...person1, name: e.target.value })}
-                    className="bg-background border-border"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="birth1">Birth Date *</Label>
-                  <Input
-                    id="birth1"
-                    type="date"
-                    value={person1.birthDate}
-                    onChange={(e) => setPerson1({ ...person1, birthDate: e.target.value })}
-                    required
-                    className="bg-background border-border"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="hebrew1">Hebrew Name (optional)</Label>
-                  <Input
-                    id="hebrew1"
-                    placeholder="לשם תאימות גימטריה"
-                    dir="rtl"
-                    value={person1.hebrewName || ''}
-                    onChange={(e) => setPerson1({ ...person1, hebrewName: e.target.value })}
-                    className="bg-background border-border"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Person 2 */}
-            <div className="earth-card bg-card p-6">
-              <h3 className="font-heading text-lg mb-4">Person 2</h3>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="name2">Name (optional)</Label>
-                  <Input
-                    id="name2"
-                    placeholder="Enter name"
-                    value={person2.name}
-                    onChange={(e) => setPerson2({ ...person2, name: e.target.value })}
-                    className="bg-background border-border"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="birth2">Birth Date *</Label>
-                  <Input
-                    id="birth2"
-                    type="date"
-                    value={person2.birthDate}
-                    onChange={(e) => setPerson2({ ...person2, birthDate: e.target.value })}
-                    required
-                    className="bg-background border-border"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="hebrew2">Hebrew Name (optional)</Label>
-                  <Input
-                    id="hebrew2"
-                    placeholder="לשם תאימות גימטריה"
-                    dir="rtl"
-                    value={person2.hebrewName || ''}
-                    onChange={(e) => setPerson2({ ...person2, hebrewName: e.target.value })}
-                    className="bg-background border-border"
-                  />
+            {([
+              { title: 'Person 1', person: person1, setPerson: setPerson1, suffix: '1' },
+              { title: 'Person 2', person: person2, setPerson: setPerson2, suffix: '2' },
+            ] as const).map(({ title, person, setPerson, suffix }) => (
+              <div key={suffix} className="rounded-2xl border border-white/10 bg-surface p-6 md:p-8">
+                <h3 className={`${TYPE.h3} mb-4`}>{title}</h3>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor={`name${suffix}`} className="text-white/70">Name (optional)</Label>
+                    <Input
+                      id={`name${suffix}`}
+                      placeholder="Enter name"
+                      value={person.name}
+                      onChange={(e) => setPerson({ ...person, name: e.target.value })}
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor={`birth${suffix}`} className="text-white/70">Birth Date *</Label>
+                    <DateField
+                      id={`birth${suffix}`}
+                      label={`${title} birth date`}
+                      value={person.birthDate}
+                      onChange={(birthDate) => setPerson({ ...person, birthDate })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor={`hebrew${suffix}`} className="text-white/70">Hebrew Name (optional)</Label>
+                    <Input
+                      id={`hebrew${suffix}`}
+                      placeholder="לשם תאימות גימטריה"
+                      dir="rtl"
+                      value={person.hebrewName || ''}
+                      onChange={(e) => setPerson({ ...person, hebrewName: e.target.value })}
+                      className={inputClass}
+                    />
+                    <p className="mt-1.5 text-xs text-white/40">
+                      Hebrew name (used for the Gematria layer)
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
 
           {/* Calculate Button */}
-          <div className="text-center mb-8">
+          <div className="mb-8">
             <Button
               size="lg"
               onClick={calculateResults}
-              disabled={!person1.birthDate || !person2.birthDate || isCalculating}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              disabled={isCalculating}
+              className="h-12 w-full rounded-xl bg-brand font-medium text-white hover:bg-brand-soft active:scale-[0.98]"
             >
               {isCalculating ? (
-                <>
-                  <span className="animate-spin mr-2">⏳</span>
+                <span className="flex items-center gap-2">
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
                   Calculating...
-                </>
+                </span>
               ) : (
-                'Check Compatibility'
+                'Check compatibility'
               )}
             </Button>
+            {formError && (
+              <p className="mt-3 text-center text-sm text-red-400/90">{formError}</p>
+            )}
           </div>
 
           {/* Results */}
           {result && (
             <div className="space-y-6 animate-fade-up">
               {/* Score */}
-              <div className="earth-card bg-card p-8 text-center">
+              <div className="rounded-2xl border border-white/10 bg-surface p-6 text-center md:p-8">
                 <div
-                  className="text-6xl font-heading mb-4"
-                  style={{ color: getScoreColor(result.overallScore) }}
+                  className="mb-4 font-display text-6xl font-semibold"
+                  style={{ color: scoreColor(result.overallScore) }}
                 >
                   {result.overallScore}%
                 </div>
-                <p className="text-lg text-muted-foreground">{result.summary}</p>
-                <p className="text-xs text-muted-foreground mt-3">
+                <p className="text-lg leading-relaxed text-white/70">{result.summary}</p>
+                <p className="mt-3 text-xs text-white/50">
                   Blended across {result.availableCount} of 5 wisdom systems
                 </p>
               </div>
 
               {/* System Breakdown */}
-              <div className="earth-card bg-card p-6">
-                <h3 className="text-xl font-heading mb-4">System Breakdown</h3>
+              <div className="rounded-2xl border border-white/10 bg-surface p-6 md:p-8">
+                <h3 className={`${TYPE.h3} mb-4`}>System Breakdown</h3>
                 <div className="space-y-3">
                   {result.systems.map((sys) => (
                     <div key={sys.key} className="flex items-center gap-3">
                       <div className="w-28 shrink-0 text-sm">
-                        <span className="text-foreground">{sys.label}</span>
-                        <span className="text-muted-foreground"> · {sys.labelHebrew}</span>
+                        <span className="text-white/90">{sys.label}</span>
+                        <span className="text-white/50"> · {sys.labelHebrew}</span>
                       </div>
                       {sys.available ? (
                         <>
-                          <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                          <div className="flex-1 h-2 rounded-full bg-white/[0.06] overflow-hidden">
                             <div
                               className="h-full rounded-full transition-all"
                               style={{
                                 width: `${sys.score}%`,
-                                backgroundColor: getScoreColor(sys.score),
+                                backgroundColor: scoreColor(sys.score),
                               }}
                             />
                           </div>
-                          <div className="w-10 shrink-0 text-right text-sm font-medium">
+                          <div className="w-10 shrink-0 text-right text-sm font-medium text-white/90">
                             {sys.score}%
                           </div>
                         </>
                       ) : (
-                        <div className="flex-1 text-xs text-muted-foreground italic">
+                        <div className="flex-1 text-xs italic text-white/40">
                           {sys.key === 'humanDesign'
                             ? 'Add birth time + place'
                             : sys.key === 'gematria'
@@ -467,18 +408,18 @@ export default function CompatibilityPage() {
               {/* Kin Cards */}
               <div className="grid md:grid-cols-2 gap-4">
                 {[result.person1, result.person2].map((person, i) => (
-                  <div key={i} className="earth-card bg-card p-6 text-center">
-                    <div className="text-sm text-muted-foreground mb-2">
+                  <div key={i} className="rounded-2xl border border-white/10 bg-surface p-6 text-center">
+                    <div className="mb-2 text-sm text-white/50">
                       {person.name || `Person ${i + 1}`}
                     </div>
-                    <div className={`w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center border ${getSealColorClass(person.seal?.color || '')}`}>
-                      <span className="text-lg font-medium">{person.seal?.number}</span>
+                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/[0.06]">
+                      <span className="text-lg font-medium text-white/80">{person.seal?.number}</span>
                     </div>
-                    <div className="text-3xl font-heading text-primary mb-1">{person.kin}</div>
-                    <div className="font-heading">
+                    <div className="mb-1 font-display text-3xl text-brand-soft">{person.kin}</div>
+                    <div className="font-display text-white">
                       {person.tone?.name} {person.seal?.english}
                     </div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-sm text-white/50">
                       {person.seal?.hebrew} {person.tone?.nameHebrew}
                     </div>
                   </div>
@@ -486,21 +427,21 @@ export default function CompatibilityPage() {
               </div>
 
               {/* Connections */}
-              <div className="earth-card bg-card p-6">
-                <h3 className="text-xl font-heading mb-4">Oracle Connections</h3>
+              <div className="rounded-2xl border border-white/10 bg-surface p-6 md:p-8">
+                <h3 className={`${TYPE.h3} mb-4`}>Oracle Connections</h3>
                 <div className="space-y-3">
                   {result.connections.map((connection, i) => (
                     <div
                       key={i}
-                      className={`p-4 rounded-xl border ${getStrengthColor(connection.strength)}`}
+                      className="rounded-xl border border-white/10 bg-white/[0.04] p-4"
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium">{connection.type}</span>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-muted capitalize">
+                        <span className="font-medium text-white/90">{connection.type}</span>
+                        <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-xs capitalize text-white/50">
                           {connection.strength}
                         </span>
                       </div>
-                      <p className="text-sm">{connection.description}</p>
+                      <p className="text-sm text-white/70">{connection.description}</p>
                     </div>
                   ))}
                 </div>
@@ -508,15 +449,24 @@ export default function CompatibilityPage() {
 
               {/* CTA */}
               <div className="text-center pt-4">
-                <p className="text-muted-foreground mb-4">
+                <p className="mb-4 text-white/70">
                   Want to track relationships and explore deeper connections?
                 </p>
                 <div className="flex flex-col sm:flex-row justify-center gap-3">
-                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground" asChild>
-                    <Link href="/login">Create Free Account</Link>
+                  <Button
+                    size="lg"
+                    className="rounded-xl bg-brand text-white hover:bg-brand-soft active:scale-[0.98]"
+                    asChild
+                  >
+                    <Link href="/login">Create a free account</Link>
                   </Button>
-                  <Button variant="outline" size="lg" asChild>
-                    <Link href="/learn/dreamspell">Learn About Oracle</Link>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="rounded-xl border-white/15 bg-transparent text-white/70 hover:bg-white/[0.06] hover:text-white"
+                    asChild
+                  >
+                    <Link href="/learn/dreamspell">Learn about the oracle</Link>
                   </Button>
                 </div>
               </div>
@@ -525,26 +475,24 @@ export default function CompatibilityPage() {
 
           {/* How It Works */}
           {!result && (
-            <div className="earth-card bg-card p-6">
-              <h3 className="text-xl font-heading mb-4">How Oracle Compatibility Works</h3>
-              <div className="space-y-4 text-muted-foreground">
+            <div className="rounded-2xl border border-white/10 bg-surface p-6 md:p-8">
+              <h3 className={`${TYPE.h3} mb-4`}>How Oracle Compatibility Works</h3>
+              <div className="space-y-4 text-white/50">
                 <p>
-                  In the Dreamspell system, each person has an <strong className="text-foreground">oracle</strong> —
+                  In the Dreamspell system, each person has an <strong className="font-medium text-white/90">oracle</strong>,
                   four seals that relate to their galactic signature in specific ways:
                 </p>
                 <div className="grid sm:grid-cols-2 gap-4 text-sm">
-                  <div className="p-3 rounded-xl bg-muted/50">
-                    <strong className="text-amber">Guide</strong>: Natural mentor, leads and inspires
-                  </div>
-                  <div className="p-3 rounded-xl bg-muted/50">
-                    <strong className="text-secondary">Analog</strong>: Support partner, complementary ally
-                  </div>
-                  <div className="p-3 rounded-xl bg-muted/50">
-                    <strong className="text-seal-red">Antipode</strong>: Challenge and gift, creates balance
-                  </div>
-                  <div className="p-3 rounded-xl bg-muted/50">
-                    <strong className="text-accent">Occult</strong>: Hidden power, unexpected gifts
-                  </div>
+                  {[
+                    { term: 'Guide', text: 'Natural mentor, leads and inspires' },
+                    { term: 'Analog', text: 'Support partner, complementary ally' },
+                    { term: 'Antipode', text: 'Challenge and gift, creates balance' },
+                    { term: 'Occult', text: 'Hidden power, unexpected gifts' },
+                  ].map(({ term, text }) => (
+                    <div key={term} className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
+                      <strong className="font-medium text-brand-soft">{term}</strong>: {text}
+                    </div>
+                  ))}
                 </div>
                 <p>
                   When someone&apos;s seal appears in your oracle (or vice versa), you have a cosmic connection
@@ -556,7 +504,7 @@ export default function CompatibilityPage() {
         </div>
       </main>
 
-      <Footer />
+      <FooterV2 liveLine={liveLine} />
     </div>
   )
 }

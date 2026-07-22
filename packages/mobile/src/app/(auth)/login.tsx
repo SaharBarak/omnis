@@ -109,7 +109,7 @@ export default function LoginScreen() {
         </FadeUp>
         <FadeUp index={1} style={styles.eyebrowBlock}>
           <Text variant="labelLarge" color="onSurfaceVariant">
-            Astrology · Dreamspell · Tzolkin · Human Design · Kabbalah
+            Astrology · Dreamspell · Tzolkin · Long Count · Human Design · Kabbalah
           </Text>
         </FadeUp>
         <FadeUp index={2}>
@@ -119,7 +119,7 @@ export default function LoginScreen() {
         </FadeUp>
         <FadeUp index={3}>
           <Text variant="bodyLarge" color="onSurfaceVariant">
-            Every birthday you care about, read through five wisdom systems.
+            Every birthday you care about, read through six wisdom systems.
           </Text>
         </FadeUp>
       </View>

@@ -7,7 +7,7 @@
   "observability": { "enabled": true },
   "triggers": {
     // Schedules MUST match the keys in src/index.ts CRON_ROUTES.
-    "crons": ["0 6 * * *", "0 4 * * *", "0 8 * * *"]
+    "crons": ["0 6 * * *", "0 4 * * *", "0 8 * * *", "0 7 * * *"]
   },
   "vars": {
     "SITE_URL": "https://pleiad.io"

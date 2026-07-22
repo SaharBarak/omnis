@@ -1,8 +1,7 @@
 // Group Analysis Service for Pleiad Phase 2.4
 // Analyzes groups for distributions and compatibility
 
-import type { GroupAnalysis, CompatibilityMatrix, CompatibilityMatrixEntry } from '../types/relationship'
-import type { GroupWithMembers } from '../types/relationship'
+import type { GroupAnalysis, CompatibilityMatrix, CompatibilityMatrixEntry, GroupWithMembers  } from '../types/relationship'
 import { dateToKin, kinToSeal, kinToTone } from '../calculations/dreamspell'
 import { dateToTzolkin } from '../calculations/tzolkin'
 import { getSeal } from '../data/seals'

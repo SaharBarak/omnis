@@ -40,7 +40,7 @@ export const SYSTEM_FLAVORS: Readonly<Record<SystemKey, SystemFlavor>> =
       muralSrc: '/images/redesign/mural/zone-astrology.webp',
       bannerSrc: '/images/redesign/docs/doc-astrology.webp',
       lineage:
-        'From the Uranographia atlases to the modern ephemeris — the sky, engraved.',
+        'From the Uranographia atlases to the modern ephemeris: the sky, engraved.',
       learnHref: '/learn/astrology',
       learnLabel: 'Learn astrology',
     },
@@ -52,7 +52,7 @@ export const SYSTEM_FLAVORS: Readonly<Record<SystemKey, SystemFlavor>> =
       muralSrc: '/images/redesign/mural/zone-dreamspell.webp',
       bannerSrc: '/images/redesign/docs/doc-dreamspell.webp',
       lineage:
-        'In the Dreamspell, no kin stands alone — every sign has its guide, its antipode, its occult ally.',
+        'In the Dreamspell, no kin stands alone: every sign has its guide, its antipode, its occult ally.',
       learnHref: '/learn/dreamspell',
       learnLabel: 'Learn the Dreamspell',
     },
@@ -88,7 +88,7 @@ export const SYSTEM_FLAVORS: Readonly<Record<SystemKey, SystemFlavor>> =
       muralSrc: '/images/redesign/mural/zone-gematria.webp',
       bannerSrc: '/images/redesign/docs/doc-gematria.webp',
       lineage:
-        'In Kabbalah the letters themselves create — to send a word is to send a world.',
+        'In Kabbalah the letters themselves create: to send a word is to send a world.',
       learnHref: '/learn/gematria',
       learnLabel: 'Learn Gematria',
     },
@@ -105,6 +105,20 @@ export const FLAVOR_DESCENT: readonly SystemKey[] = Object.freeze([
 
 /** Shared near-black every mural band fades into (DESIGN_LANGUAGE.md). */
 export const MURAL_GROUND = '#0B0D16'
+
+/**
+ * Compatibility-score ramp for marketing surfaces. The engine's
+ * `getScoreColor` returns raw Tailwind greens tuned for the app; these sit
+ * in the mural palette's desaturated register so score chips don't shout
+ * against the near-black ground.
+ */
+export function scoreColor(score: number): string {
+  if (score >= 80) return '#86C89B' // sage — strong resonance
+  if (score >= 60) return '#B5C77F' // olive — good
+  if (score >= 40) return '#D9B36A' // soft amber — mixed
+  if (score >= 20) return '#D98E5F' // soft orange — friction
+  return '#CF6F6F' // muted red — challenging
+}
 
 /** Doc section ids used by /learn routes and src/lib/docs/content.ts. */
 export type DocSectionId =
@@ -126,7 +140,7 @@ export const INTEGRATION_FLAVOR = Object.freeze({
   accentSoft: '#E7D08A',
   bannerSrc: '/images/redesign/docs/doc-integration.webp',
   lineage:
-    'Five traditions, one person — where the readings agree, pay attention.',
+    'Five traditions, one person: where the readings agree, pay attention.',
   learnHref: '/learn/integration',
   learnLabel: 'Read the systems together',
 })

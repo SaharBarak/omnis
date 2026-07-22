@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { NotificationSettings } from '@pleiad/engine/types/prediction'
 import { requireUserId } from '@/lib/auth-server'
 import { handleApiError } from '@/lib/api/respond'
 import {
   getNotificationSettings,
   upsertNotificationSettings,
 } from '@/lib/services/notifications'
-import type { NotificationSettings } from '@pleiad/engine/types/prediction'
 
 export const dynamic = 'force-dynamic'
 

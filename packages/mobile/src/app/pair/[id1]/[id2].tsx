@@ -264,7 +264,7 @@ function systemDetail(
             last={detail.connections.length === 0}
           />
           {detail.connections.length === 0 ? (
-            <DetailLine body="No direct oracle relation — two distinct currents." />
+            <DetailLine body="No direct oracle relation: two distinct currents." />
           ) : (
             detail.connections.map((connection) => (
               <DetailLine
@@ -288,7 +288,7 @@ function systemDetail(
             last={detail.connections.length === 0}
           />
           {detail.connections.length === 0 ? (
-            <DetailLine body="No shared sign, tone or trecena — complementary counts." />
+            <DetailLine body="No shared sign, tone or trecena: complementary counts." />
           ) : (
             detail.connections.map((connection) => (
               <DetailLine key={connection.type} body={connection.description} />
@@ -343,7 +343,7 @@ function systemDetail(
             <DetailLine eyebrow="Type dynamic" body={detail.typeDynamic.english} />
           )}
           {electromagnetic.length === 0 ? (
-            <DetailLine body="No electromagnetic channels — this bond runs on companionship, not spark." />
+            <DetailLine body="No electromagnetic channels: this bond runs on companionship, not spark." />
           ) : (
             electromagnetic.map((connection) => (
               <DetailLine
@@ -381,7 +381,7 @@ function systemDetail(
           </>
         )
       } catch {
-        return <DetailLine body="The names resist calculation — check the spelling." />
+        return <DetailLine body="The names resist calculation: check the spelling." />
       }
     }
     default:
@@ -551,7 +551,7 @@ export default function PairScreen() {
                 flavor={FLAVORS.integration}
                 systemName="full compatibility"
                 pill="Complete unlocks this bond"
-                body="Four more systems are already computed for this pair — synastry, Human Design, Tzolkin and name resonance wait under the veil."
+                body="Four more systems are already computed for this pair: synastry, Human Design, Tzolkin and name resonance wait under the veil."
                 onUnlock={() => setPaywallOpen(true)}
               >
                 <View style={styles.lockPreviewRows}>{lockedRows}</View>

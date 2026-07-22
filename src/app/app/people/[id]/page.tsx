@@ -1,11 +1,11 @@
 import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
+import { PersonDetailView } from './person-detail-view'
 import { isEntityId } from '@/lib/db/serialize'
 import { requireUserId } from '@/lib/auth-server'
 import { getPersonWithTags } from '@/lib/db/repositories/people-repo'
 import type { PersonWithTags } from '@/lib/hooks/use-people'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
-import { PersonDetailView } from './person-detail-view'
 
 /**
  * Person detail page. SERVER COMPONENT — owner-scoped.

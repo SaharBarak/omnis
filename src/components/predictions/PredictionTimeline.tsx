@@ -1,8 +1,9 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { IntensityBadge } from './IntensityBadge'
 import type { PersonalTimeline, TimelineMilestone } from '@pleiad/engine/types/prediction'
+import { IntensityBadge } from './IntensityBadge'
+import { Eyebrow } from '@/components/app-kit'
+import { SEAL_COLORS } from '@/components/app-kit/seal-colors'
 import { cn } from '@/lib/utils'
 
 interface PredictionTimelineProps {
@@ -31,32 +32,31 @@ export function PredictionTimeline({
     .slice(0, maxItems)
 
   return (
-    <Card className={className}>
-      <CardHeader>
-        <CardTitle>Timeline</CardTitle>
-        <CardDescription>
+    <div className={cn('surface-card p-6', className)}>
+      <div className="flex flex-col gap-1">
+        <Eyebrow>Timeline</Eyebrow>
+        <h3 className="font-display text-lg font-semibold tracking-tight text-white/90">
           Upcoming milestones for {timeline.personName}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="relative">
-          {/* Timeline line */}
-          <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-border" />
+        </h3>
+      </div>
 
-          <div className="space-y-6">
-            {allMilestones.map((milestone, index) => (
-              <TimelineItem key={`${milestone.type}-${milestone.date}`} milestone={milestone} />
-            ))}
+      <div className="relative mt-6">
+        {/* Timeline line */}
+        <div className="absolute bottom-0 left-4 top-0 w-px bg-white/[0.07]" />
 
-            {allMilestones.length === 0 && (
-              <p className="text-muted-foreground text-sm py-4">
-                No upcoming milestones found.
-              </p>
-            )}
-          </div>
+        <div className="space-y-6">
+          {allMilestones.map((milestone) => (
+            <TimelineItem key={`${milestone.type}-${milestone.date}`} milestone={milestone} />
+          ))}
+
+          {allMilestones.length === 0 && (
+            <p className="py-4 text-sm text-white/50">
+              No upcoming milestones found.
+            </p>
+          )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 
@@ -71,32 +71,32 @@ function TimelineItem({ milestone }: TimelineItemProps) {
     year: 'numeric',
   })
 
-  const typeIcon = getTypeIcon(milestone.type)
-  const typeColor = getTypeColor(milestone.type)
-
   return (
     <div className="relative flex gap-4 pl-10">
       {/* Timeline dot */}
       <div
         className={cn(
-          'absolute left-2 w-5 h-5 rounded-full flex items-center justify-center text-xs',
-          typeColor
+          'absolute left-2 flex size-5 items-center justify-center rounded-full',
+          'font-mono text-[9px] uppercase',
+          getTypeClasses(milestone.type)
         )}
       >
-        {typeIcon}
+        {getTypeGlyph(milestone.type)}
       </div>
 
       <div className="flex-1 pb-2">
         <div className="flex items-start justify-between gap-2">
           <div>
             <div className="flex items-center gap-2">
-              <h4 className="font-medium">{milestone.title}</h4>
+              <h4 className="text-sm font-medium text-white/90">{milestone.title}</h4>
               <IntensityBadge intensity={milestone.intensity} size="sm" />
             </div>
-            <p className="text-sm text-muted-foreground">{dateFormatted}</p>
+            <p className="mt-0.5 font-mono text-xs text-white/50 [font-variant-numeric:tabular-nums]">
+              {dateFormatted}
+            </p>
           </div>
           {milestone.daysUntil !== undefined && milestone.isFuture && (
-            <span className="text-xs text-muted-foreground whitespace-nowrap">
+            <span className="whitespace-nowrap font-mono text-xs text-white/35 [font-variant-numeric:tabular-nums]">
               {milestone.daysUntil === 0
                 ? 'Today'
                 : milestone.daysUntil === 1
@@ -105,20 +105,20 @@ function TimelineItem({ milestone }: TimelineItemProps) {
             </span>
           )}
         </div>
-        <p className="text-sm text-muted-foreground mt-1">{milestone.description}</p>
+        <p className="mt-1 text-sm text-white/70">{milestone.description}</p>
       </div>
     </div>
   )
 }
 
-function getTypeIcon(type: string): string {
+function getTypeGlyph(type: string): string {
   switch (type) {
     case 'return':
-      return '*'
+      return 'R'
     case 'yearly-kin':
-      return '@'
+      return 'Y'
     case 'calendar-round':
-      return '#'
+      return 'CR'
     case 'katun-birthday':
       return 'K'
     case 'tun-birthday':
@@ -128,24 +128,25 @@ function getTypeIcon(type: string): string {
     case 'castle':
       return 'C'
     default:
-      return '*'
+      return '·'
   }
 }
 
-function getTypeColor(type: string): string {
+/** Milestone families read through the seal tokens (kit seal-colors). */
+function getTypeClasses(type: string): string {
   switch (type) {
     case 'return':
     case 'calendar-round':
-      return 'bg-red-500 text-white'
+      return `${SEAL_COLORS.red.bg} text-white`
     case 'yearly-kin':
     case 'katun-birthday':
-      return 'bg-yellow-500 text-black'
+      return `${SEAL_COLORS.yellow.bg} text-ground`
     case 'tun-birthday':
-      return 'bg-blue-500 text-white'
+      return `${SEAL_COLORS.blue.bg} text-white`
     case 'wavespell':
     case 'castle':
-      return 'bg-primary text-primary-foreground'
+      return 'bg-brand text-white'
     default:
-      return 'bg-muted text-muted-foreground'
+      return 'bg-white/10 text-white/70'
   }
 }

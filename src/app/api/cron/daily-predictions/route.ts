@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { isAuthorizedCron } from '@/lib/api/cron-auth'
 import { getDailyPrediction, getPersonalDailyPrediction } from '@pleiad/engine/services/predictions'
+import { isAuthorizedCron } from '@/lib/api/cron-auth'
 import {
   systemListPeopleWithBirthDate,
   systemPredictionExists,

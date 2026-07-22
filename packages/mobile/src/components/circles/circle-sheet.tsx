@@ -259,7 +259,7 @@ export function CircleSheet({
           </View>
           {people.length === 0 ? (
             <Text variant="bodyMedium" color="onSurfaceVariant">
-              A circle needs people — add someone to your map first.
+              A circle needs people. Add someone to your map first.
             </Text>
           ) : (
             <FlatList

@@ -2,31 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import type { PersonWithTags } from '@/lib/hooks/use-people'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Skeleton } from '@/components/ui/skeleton'
-import {
-  ArrowLeft,
-  AlertTriangle,
-  Settings,
-  Orbit,
-  CalendarDays,
-  Landmark,
-  Star,
-  Dna,
-  Hash,
-  Sparkles,
-  type LucideIcon,
-} from 'lucide-react'
-import { DreamspellSection, TzolkinSection } from '@/components/cards'
-import { WavespellDisplay, CastleDisplay, PersonalYearDisplay, GalacticBirthdayDisplay } from '@/components/cards'
-import { LongCountDisplay, HaabDisplay, CalendarRoundDisplay, MayanTimelineDisplay } from '@/components/cards'
-import { AstrologyDisplay } from '@/components/cards'
-import { HumanDesignDisplay } from '@/components/cards'
-import { GematriaDisplay } from '@/components/cards'
-import { CrossSystemInsights } from '@/components/cards'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { ArrowLeft, Pencil, Settings } from 'lucide-react'
 import { dateToKin, kinToSeal, kinToTone } from '@pleiad/engine/calculations/dreamspell'
 import { getSeal } from '@pleiad/engine/data/seals'
 import { getTone } from '@pleiad/engine/data/tones'
@@ -35,23 +12,65 @@ import { getLongCountData } from '@pleiad/engine/calculations/long-count'
 import { calculateNatalChart, calculateSunSignChart } from '@pleiad/engine/calculations/astrology'
 import { calculateBodygraph } from '@pleiad/engine/calculations/human-design'
 import { standardGematria, digitalRoot as calcDigitalRoot } from '@pleiad/engine/calculations/gematria'
+import { DreamspellSection, TzolkinSection, WavespellDisplay, CastleDisplay, PersonalYearDisplay, GalacticBirthdayDisplay , LongCountDisplay, HaabDisplay, CalendarRoundDisplay, MayanTimelineDisplay , AstrologyDisplay , HumanDesignDisplay , GematriaDisplay , CrossSystemInsights  } from '@/components/cards'
+import { Button } from '@/components/ui/button'
+import {
+  PageSection,
+  DataRow,
+  AddDataChip,
+  FlavorTabs,
+  Notice,
+  Eyebrow,
+  Pill,
+  SkeletonRows,
+  SkeletonCard,
+  getFlavor,
+  EASE_OUT,
+  type AppFlavorKey,
+  type FlavorTab,
+} from '@/components/app-kit'
+import type { PersonWithTags } from '@/lib/hooks/use-people'
 import { useSystemPreferences, type SystemKey } from '@/lib/hooks/use-system-preferences'
 
 type TabKey = SystemKey | 'insights'
 
-const SYSTEMS: { key: TabKey; label: string; icon: LucideIcon; requiresTime?: boolean; requiresLocation?: boolean }[] = [
-  { key: 'dreamspell', label: 'Dreamspell', icon: Orbit },
-  { key: 'tzolkin', label: 'Tzolkin', icon: CalendarDays },
-  { key: 'longcount', label: 'Long Count', icon: Landmark },
-  { key: 'astrology', label: 'Astrology', icon: Star, requiresTime: true, requiresLocation: true },
-  { key: 'humandesign', label: 'Human Design', icon: Dna, requiresTime: true, requiresLocation: true },
-  { key: 'gematria', label: 'Gematria', icon: Hash },
-  { key: 'insights', label: 'Insights', icon: Sparkles },
+/**
+ * Mobile IA order (packages/mobile/src/app/person/[id].tsx): Dreamspell →
+ * Tzolkin → Astrology → Human Design → Kabbalah → Insights. The web's
+ * seventh system, Long Count, keeps its own tab folded in after its
+ * nearest sibling (Tzolkin) wearing the tzolkin flavor, so per-system
+ * preference toggles keep working unchanged.
+ */
+const SYSTEMS: { key: TabKey; label: string; flavor: AppFlavorKey }[] = [
+  { key: 'dreamspell', label: 'Dreamspell', flavor: 'dreamspell' },
+  { key: 'tzolkin', label: 'Tzolkin', flavor: 'tzolkin' },
+  { key: 'longcount', label: 'Long Count', flavor: 'tzolkin' },
+  { key: 'astrology', label: 'Astrology', flavor: 'astrology' },
+  { key: 'humandesign', label: 'Human Design', flavor: 'humanDesign' },
+  { key: 'gematria', label: 'Kabbalah', flavor: 'gematria' },
+  { key: 'insights', label: 'Insights', flavor: 'integration' },
 ]
+
+const FLAVOR = {
+  dreamspell: getFlavor('dreamspell'),
+  tzolkin: getFlavor('tzolkin'),
+  astrology: getFlavor('astrology'),
+  humanDesign: getFlavor('humanDesign'),
+  gematria: getFlavor('gematria'),
+  integration: getFlavor('integration'),
+} as const
+
+function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/).filter((part) => part.length > 0)
+  const first = parts[0]?.[0] ?? ''
+  const second = parts[1]?.[0] ?? ''
+  return `${first}${second}`.toUpperCase() || '·'
+}
 
 export function PersonDetailView({ person }: { person: PersonWithTags }) {
   const { isSystemEnabled, loading: prefsLoading } = useSystemPreferences()
   const [activeTab, setActiveTab] = useState<TabKey>('dreamspell')
+  const reduced = useReducedMotion()
 
   // Filter systems based on user preferences (insights shown when 2+ systems enabled)
   const enabledSystemsCount = SYSTEMS.filter(s => s.key !== 'insights' && isSystemEnabled(s.key as SystemKey)).length
@@ -172,350 +191,384 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
     }
   }
 
+  const editHref = `/app/people?edit=${person.id}`
+  const kinLine = `KIN ${kin} · ${tone.name} ${seal.english}`.toUpperCase()
+
+  const currentTab: TabKey = visibleSystems.some(s => s.key === activeTab)
+    ? activeTab
+    : (visibleSystems[0]?.key ?? 'dreamspell')
+
+  const tabs: FlavorTab[] = visibleSystems.map(s => ({
+    key: s.key,
+    label: s.label,
+    flavor: s.flavor,
+  }))
+
+  const birthRows: { label: string; value: string }[] = [
+    {
+      label: 'Born',
+      value: new Date(person.birth_date).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }),
+    },
+    ...(person.birth_time ? [{ label: 'Time', value: person.birth_time }] : []),
+    ...(birthPlace?.name ? [{ label: 'Place', value: birthPlace.name }] : []),
+  ]
+
+  const renderTab = (tab: TabKey) => {
+    switch (tab) {
+      case 'dreamspell':
+        return (
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+              <PageSection index={0} accent={FLAVOR.dreamspell.accent} eyebrow="Birthday Kin">
+                <p className="text-sm text-white/50">Galactic signature according to the Dreamspell</p>
+                <DreamspellSection date={person.birth_date} />
+              </PageSection>
+              <PageSection index={1} accent={FLAVOR.dreamspell.accent} eyebrow="Wavespell">
+                <p className="text-sm text-white/50">Position in the 13-day wave</p>
+                <WavespellDisplay kin={kin} showLabels />
+              </PageSection>
+            </div>
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+              <PageSection index={2} accent={FLAVOR.dreamspell.accent} eyebrow="Castle">
+                <p className="text-sm text-white/50">Position in the 52-day cycle</p>
+                <CastleDisplay kin={kin} />
+              </PageSection>
+              <PageSection index={3} accent={FLAVOR.dreamspell.accent} eyebrow="Personal Year">
+                <p className="text-sm text-white/50">Annual Kin</p>
+                <PersonalYearDisplay birthDate={person.birth_date} />
+              </PageSection>
+            </div>
+            <PageSection index={4} accent={FLAVOR.dreamspell.accent} eyebrow="Galactic Birthday">
+              <p className="text-sm text-white/50">Date of the next Galactic Birthday</p>
+              <GalacticBirthdayDisplay birthDate={person.birth_date} />
+            </PageSection>
+          </div>
+        )
+
+      case 'tzolkin':
+        return (
+          <PageSection index={0} accent={FLAVOR.tzolkin.accent} eyebrow="Traditional Tzolkin">
+            <p className="text-sm text-white/50">The traditional Mayan calendar (260 days)</p>
+            <TzolkinSection date={person.birth_date} />
+          </PageSection>
+        )
+
+      case 'longcount':
+        return (
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+              <PageSection index={0} accent={FLAVOR.tzolkin.accent} eyebrow="Long Count">
+                <p className="text-sm text-white/50">Birth date in the Mayan Long Count</p>
+                <LongCountDisplay dateStr={person.birth_date} showLabels showDaysSinceCreation />
+              </PageSection>
+              <PageSection index={1} accent={FLAVOR.tzolkin.accent} eyebrow="Haab (Solar Year)">
+                <p className="text-sm text-white/50">The 365-day solar calendar</p>
+                <HaabDisplay dateStr={person.birth_date} showMonthIndex />
+              </PageSection>
+            </div>
+            <PageSection index={2} accent={FLAVOR.tzolkin.accent} eyebrow="Calendar Round">
+              <p className="text-sm text-white/50">Combination of Tzolkin and Haab: 52-year cycle</p>
+              <CalendarRoundDisplay dateStr={person.birth_date} />
+            </PageSection>
+            <PageSection index={3} accent={FLAVOR.tzolkin.accent} eyebrow="Mayan Timeline">
+              <p className="text-sm text-white/50">Significant events in the Mayan calendar</p>
+              <MayanTimelineDisplay
+                birthDateStr={person.birth_date}
+                showTunBirthdays
+                showKatunBirthdays
+                showCalendarRoundReturn
+              />
+            </PageSection>
+          </div>
+        )
+
+      case 'astrology':
+        return (
+          <div className="space-y-6">
+            {!hasBirthTime && (
+              <Notice
+                variant="warning"
+                action={
+                  <AddDataChip accent={FLAVOR.astrology.accent} href={editHref}>
+                    Add birth time
+                  </AddDataChip>
+                }
+              >
+                Without a birth time this chart is an approximation.
+              </Notice>
+            )}
+            <PageSection index={0} accent={FLAVOR.astrology.accent} eyebrow="Birth Chart">
+              <p className="text-sm text-white/50">Western astrology: planet positions at birth</p>
+              <AstrologyDisplay
+                date={person.birth_date}
+                time={person.birth_time || undefined}
+                latitude={latitude}
+                longitude={longitude}
+                showPlanets
+                showAspects
+                showBalance
+              />
+            </PageSection>
+          </div>
+        )
+
+      case 'humandesign':
+        return (
+          <div className="space-y-6">
+            {!hasBirthTime && (
+              <Notice
+                variant="warning"
+                action={
+                  <AddDataChip accent={FLAVOR.humanDesign.accent} href={editHref}>
+                    Add birth time
+                  </AddDataChip>
+                }
+              >
+                Without a birth time this reading is an approximation.
+              </Notice>
+            )}
+            <PageSection index={0} accent={FLAVOR.humanDesign.accent} eyebrow="Human Design">
+              <p className="text-sm text-white/50">Type, strategy, and authority</p>
+              <HumanDesignDisplay
+                date={person.birth_date}
+                time={person.birth_time || undefined}
+                latitude={latitude}
+                longitude={longitude}
+                showActivations
+                showChannels
+                showCenters
+              />
+            </PageSection>
+          </div>
+        )
+
+      case 'gematria':
+        return (
+          <div className="space-y-6">
+            {!person.hebrew_name && (
+              <Notice
+                variant="warning"
+                action={
+                  <AddDataChip accent={FLAVOR.gematria.accent} href={editHref}>
+                    Add Hebrew name
+                  </AddDataChip>
+                }
+              >
+                Computed from the Latin spelling. Add a Hebrew name for a truer reading.
+              </Notice>
+            )}
+            <PageSection index={0} accent={FLAVOR.gematria.accent} eyebrow="Gematria">
+              <p className="text-sm text-white/50">Numerical values of the Hebrew name</p>
+              <GematriaDisplay
+                text={hebrewName}
+                showBreakdown
+                showAllMethods
+                showNotable
+              />
+            </PageSection>
+          </div>
+        )
+
+      case 'insights':
+        return (
+          <PageSection index={0} accent={FLAVOR.integration.accent} eyebrow="Cross-System Insights">
+            <p className="text-sm text-white/50">Connections and patterns across different systems</p>
+            <CrossSystemInsights
+              dreamspell={{
+                kin,
+                seal: sealNumber,
+                tone: toneNumber,
+                sealName: seal.english,
+                toneName: tone.name,
+                earthFamily: earthFamily.name,
+                colorFamily: colorFamily.color,
+              }}
+              astrology={astroSunSign ? {
+                sunSign: astroSunSign,
+                moonSign: astroMoonSign,
+                dominantElement: astroDominantElement,
+                dominantModality: astroDominantModality,
+              } : null}
+              humanDesign={hdType ? {
+                type: hdType,
+                strategy: hdStrategy,
+                authority: hdAuthority,
+                profile: hdProfile,
+                definedCenters: hdDefinedCenters,
+              } : null}
+              gematria={gematriaValue > 0 ? {
+                standardValue: gematriaValue,
+                digitalRoot: gematriaDigitalRoot,
+                letterCount: gematriaLetterCount,
+              } : null}
+              longCount={{
+                baktun: longCountData.longCount.baktun,
+                katun: longCountData.longCount.katun,
+                tun: longCountData.longCount.tun,
+                daysSinceCreation: longCountData.daysSinceCreation,
+              }}
+            />
+          </PageSection>
+        )
+
+      default:
+        return null
+    }
+  }
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/app/people">
-              <ArrowLeft className="w-5 h-5" />
+      {/* Header — avatar + display name + kin eyebrow, icon actions */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+          <Button variant="ghost" size="icon" asChild className="shrink-0 text-white/70 hover:text-white/90">
+            <Link href="/app/people" aria-label="Back to people">
+              <ArrowLeft className="size-5" />
             </Link>
           </Button>
-          <div>
-            <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">{person.name}</h1>
+          <span
+            className="flex size-14 shrink-0 items-center justify-center rounded-full border border-white/[0.07] bg-surface-2 font-mono text-sm uppercase tracking-[0.1em] text-white/70"
+            aria-hidden
+          >
+            {initialsOf(person.name)}
+          </span>
+          <div className="flex min-w-0 flex-col gap-1">
+            <h1 className="truncate font-display text-2xl font-semibold tracking-tight text-white/90 sm:text-3xl">
+              {person.name}
+            </h1>
+            <Eyebrow accent={FLAVOR.dreamspell.accentSoft}>{kinLine}</Eyebrow>
             {person.hebrew_name && person.hebrew_name !== person.name && (
-              <p className="text-lg text-muted-foreground">{person.hebrew_name}</p>
+              <p className="truncate text-sm text-white/50">{person.hebrew_name}</p>
             )}
           </div>
         </div>
-        <Badge variant="secondary" className="font-mono text-sm tabular-nums">
-          Kin {kin}
-        </Badge>
+        <Button variant="ghost" size="icon" asChild className="shrink-0 text-white/70 hover:text-white/90">
+          <Link href={editHref} aria-label={`Edit ${person.name}`}>
+            <Pencil className="size-5" />
+          </Link>
+        </Button>
       </div>
 
-      {/* Person Info Card */}
-      <div className="surface-card p-5">
-        <h2 className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground mb-4">Personal Details</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div>
-            <span className="text-sm text-muted-foreground block mb-1">Birth Date</span>
-            <span className="font-medium text-foreground">{new Date(person.birth_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-          </div>
-          {person.birth_time && (
-            <div>
-              <span className="text-sm text-muted-foreground block mb-1">Birth Time</span>
-              <span className="font-medium text-foreground">{person.birth_time}</span>
-            </div>
-          )}
-          {birthPlace?.name && (
-            <div>
-              <span className="text-sm text-muted-foreground block mb-1">Birth Place</span>
-              <span className="font-medium text-foreground">{birthPlace.name}</span>
-            </div>
-          )}
+      {/* Birth data — hairline rows, never a nested card box */}
+      <PageSection index={0} accent={FLAVOR.dreamspell.accent} eyebrow="Birth Data">
+        <div>
+          {birthRows.map((row, i) => (
+            <DataRow key={row.label} label={row.label} value={row.value} last={i === birthRows.length - 1} />
+          ))}
         </div>
         {person.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 pt-4 mt-4 border-t border-border">
+          <div className="flex flex-wrap gap-1.5">
             {person.tags.map(tag => (
-              <Badge
-                key={tag.id}
-                variant="secondary"
-                style={{ backgroundColor: tag.color + '20', color: tag.color }}
-              >
+              <Pill key={tag.id} accent={tag.color} className="px-2.5 py-0.5 text-[10px] tracking-[0.15em]">
                 {tag.name}
-              </Badge>
+              </Pill>
             ))}
           </div>
         )}
         {person.notes && (
-          <div className="pt-4 mt-4 border-t border-border text-sm text-muted-foreground">
-            {person.notes}
-          </div>
+          <p className="text-sm leading-relaxed text-white/70">{person.notes}</p>
         )}
-      </div>
+      </PageSection>
 
-      {/* Missing data warnings */}
+      {/* Honest partial state — missing birth data narrows some readings */}
       {(!hasBirthTime || !hasLocation) && (
-        <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800">
-          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-          <div className="text-sm text-amber-800 dark:text-amber-200">
-            {!hasBirthTime && !hasLocation && (
-              <p>Birth time and place not specified. Astrology and Human Design will be shown as approximations only.</p>
-            )}
-            {!hasBirthTime && hasLocation && (
-              <p>Birth time not specified. Astrology and Human Design will be shown as approximations only.</p>
-            )}
-            {hasBirthTime && !hasLocation && (
-              <p>Birth place not specified. Astrology and Human Design will use default location (Tel Aviv).</p>
-            )}
-          </div>
-        </div>
+        <Notice
+          variant="warning"
+          action={
+            <AddDataChip accent={FLAVOR.integration.accent} href={editHref}>
+              Add birth data
+            </AddDataChip>
+          }
+        >
+          {!hasBirthTime && !hasLocation && (
+            <p>Birth time and place not specified. Astrology and Human Design will be shown as approximations only.</p>
+          )}
+          {!hasBirthTime && hasLocation && (
+            <p>Birth time not specified. Astrology and Human Design will be shown as approximations only.</p>
+          )}
+          {hasBirthTime && !hasLocation && (
+            <p>Birth place not specified. Astrology and Human Design will use default location (Tel Aviv).</p>
+          )}
+        </Notice>
       )}
 
-      {/* Systems Tabs */}
+      {/* Systems */}
       {visibleSystems.length === 0 ? (
         <div className="surface-card p-12 text-center">
-          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-            <Settings className="w-6 h-6 text-muted-foreground" />
+          <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-muted">
+            <Settings className="size-6 text-muted-foreground" />
           </div>
-          <p className="font-medium text-foreground mb-1">No systems enabled</p>
-          <p className="text-sm text-muted-foreground mb-4">
+          <p className="mb-1 font-medium text-white/90">No systems enabled</p>
+          <p className="mb-4 text-sm text-white/50">
             Enable symbolic systems in settings to see this person&apos;s readings.
           </p>
-          <Button variant="outline" asChild>
+          <Button variant="outline" asChild className="rounded-xl">
             <Link href="/app/settings">
-              <Settings className="w-4 h-4 mr-2" />
+              <Settings className="mr-2 size-4" />
               System Settings
             </Link>
           </Button>
         </div>
       ) : (
-      <Tabs value={visibleSystems.some(s => s.key === activeTab) ? activeTab : visibleSystems[0]?.key || 'dreamspell'} onValueChange={(v) => setActiveTab(v as TabKey)} className="w-full">
-        <TabsList className="w-full flex flex-wrap h-auto gap-1 p-1">
-          {visibleSystems.map((system) => {
-            const SystemIcon = system.icon
-            return (
-              <TabsTrigger
-                key={system.key}
-                value={system.key}
-                className="flex-1 min-w-[100px] gap-1.5"
-              >
-                <SystemIcon className="w-4 h-4" aria-hidden="true" />
-                <span className="hidden sm:inline">{system.label}</span>
-              </TabsTrigger>
-            )
-          })}
-        </TabsList>
-
-        {/* Dreamspell Tab */}
-        <TabsContent value="dreamspell" className="space-y-6 mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="surface-card p-5">
-              <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Birthday Kin</h3>
-              <p className="text-sm text-muted-foreground mb-4">Galactic Signature according to the Dreamspell</p>
-              <DreamspellSection date={person.birth_date} />
-            </div>
-
-            <div className="surface-card p-5">
-              <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Wavespell</h3>
-              <p className="text-sm text-muted-foreground mb-4">Position in the 13-day wave</p>
-              <WavespellDisplay kin={kin} showLabels />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="surface-card p-5">
-              <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Castle</h3>
-              <p className="text-sm text-muted-foreground mb-4">Position in the 52-day cycle</p>
-              <CastleDisplay kin={kin} />
-            </div>
-
-            <div className="surface-card p-5">
-              <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Personal Year</h3>
-              <p className="text-sm text-muted-foreground mb-4">Annual Kin</p>
-              <PersonalYearDisplay birthDate={person.birth_date} />
-            </div>
-          </div>
-
-          <div className="surface-card p-5">
-            <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Galactic Birthday</h3>
-            <p className="text-sm text-muted-foreground mb-4">Date of the next Galactic Birthday</p>
-            <GalacticBirthdayDisplay birthDate={person.birth_date} />
-          </div>
-        </TabsContent>
-
-        {/* Tzolkin Tab */}
-        <TabsContent value="tzolkin" className="space-y-6 mt-6">
-          <div className="surface-card p-5">
-            <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Traditional Tzolkin</h3>
-            <p className="text-sm text-muted-foreground mb-4">The traditional Mayan calendar (260 days)</p>
-            <TzolkinSection date={person.birth_date} />
-          </div>
-        </TabsContent>
-
-        {/* Long Count Tab */}
-        <TabsContent value="longcount" className="space-y-6 mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="surface-card p-5">
-              <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Long Count</h3>
-              <p className="text-sm text-muted-foreground mb-4">Birth date in the Mayan Long Count</p>
-              <LongCountDisplay dateStr={person.birth_date} showLabels showDaysSinceCreation />
-            </div>
-
-            <div className="surface-card p-5">
-              <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Haab (Solar Year)</h3>
-              <p className="text-sm text-muted-foreground mb-4">The 365-day solar calendar</p>
-              <HaabDisplay dateStr={person.birth_date} showMonthIndex />
-            </div>
-          </div>
-
-          <div className="surface-card p-5">
-            <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Calendar Round</h3>
-            <p className="text-sm text-muted-foreground mb-4">Combination of Tzolkin and Haab - 52-year cycle</p>
-            <CalendarRoundDisplay dateStr={person.birth_date} />
-          </div>
-
-          <div className="surface-card p-5">
-            <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Mayan Timeline</h3>
-            <p className="text-sm text-muted-foreground mb-4">Significant events in the Mayan calendar</p>
-            <MayanTimelineDisplay
-              birthDateStr={person.birth_date}
-              showTunBirthdays
-              showKatunBirthdays
-              showCalendarRoundReturn
-            />
-          </div>
-        </TabsContent>
-
-        {/* Astrology Tab */}
-        <TabsContent value="astrology" className="space-y-6 mt-6">
-          <div className="surface-card p-5">
-            <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Birth Chart</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Western Astrology - Planet positions at birth
-              {!hasBirthTime && <span className="text-amber-600 ml-2">(without birth time - approximate)</span>}
-            </p>
-            <AstrologyDisplay
-              date={person.birth_date}
-              time={person.birth_time || undefined}
-              latitude={latitude}
-              longitude={longitude}
-              showPlanets
-              showAspects
-              showBalance
-            />
-          </div>
-        </TabsContent>
-
-        {/* Human Design Tab */}
-        <TabsContent value="humandesign" className="space-y-6 mt-6">
-          <div className="surface-card p-5">
-            <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Human Design</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Type, Strategy, and Authority
-              {!hasBirthTime && <span className="text-amber-600 ml-2">(without birth time - approximate)</span>}
-            </p>
-            <HumanDesignDisplay
-              date={person.birth_date}
-              time={person.birth_time || undefined}
-              latitude={latitude}
-              longitude={longitude}
-              showActivations
-              showChannels
-              showCenters
-            />
-          </div>
-        </TabsContent>
-
-        {/* Gematria Tab */}
-        <TabsContent value="gematria" className="space-y-6 mt-6">
-          <div className="surface-card p-5">
-            <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Gematria</h3>
-            <p className="text-sm text-muted-foreground mb-4">Numerical values of the Hebrew name</p>
-            <GematriaDisplay
-              text={hebrewName}
-              showBreakdown
-              showAllMethods
-              showNotable
-            />
-          </div>
-        </TabsContent>
-
-        {/* Cross-System Insights Tab */}
-        <TabsContent value="insights" className="space-y-6 mt-6">
-          <div className="surface-card p-5">
-            <h3 className="font-display font-semibold tracking-tight text-foreground mb-1">Cross-System Insights</h3>
-            <p className="text-sm text-muted-foreground mb-4">Connections and patterns across different systems</p>
-            <CrossSystemInsights
-                dreamspell={{
-                  kin,
-                  seal: sealNumber,
-                  tone: toneNumber,
-                  sealName: seal.english,
-                  toneName: tone.name,
-                  earthFamily: earthFamily.name,
-                  colorFamily: colorFamily.color,
-                }}
-                astrology={astroSunSign ? {
-                  sunSign: astroSunSign,
-                  moonSign: astroMoonSign,
-                  dominantElement: astroDominantElement,
-                  dominantModality: astroDominantModality,
-                } : null}
-                humanDesign={hdType ? {
-                  type: hdType,
-                  strategy: hdStrategy,
-                  authority: hdAuthority,
-                  profile: hdProfile,
-                  definedCenters: hdDefinedCenters,
-                } : null}
-                gematria={gematriaValue > 0 ? {
-                  standardValue: gematriaValue,
-                  digitalRoot: gematriaDigitalRoot,
-                  letterCount: gematriaLetterCount,
-                } : null}
-                longCount={{
-                  baktun: longCountData.longCount.baktun,
-                  katun: longCountData.longCount.katun,
-                  tun: longCountData.longCount.tun,
-                  daysSinceCreation: longCountData.daysSinceCreation,
-                }}
-              />
-          </div>
-        </TabsContent>
-      </Tabs>
+        <div className="space-y-6">
+          <FlavorTabs
+            tabs={tabs}
+            active={currentTab}
+            onChange={(key) => setActiveTab(key as TabKey)}
+          />
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={currentTab}
+              initial={reduced ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduced ? undefined : { opacity: 0, y: -12 }}
+              transition={{
+                duration: reduced ? 0 : 0.3,
+                ease: EASE_OUT as [number, number, number, number],
+              }}
+            >
+              {renderTab(currentTab)}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       )}
     </div>
   )
 }
 
-// Loading skeleton
+// Loading skeleton — layout-matched shapes, shimmer, never a spinner.
 export function PersonDetailSkeleton() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Skeleton className="h-10 w-10 rounded-lg" />
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-5 w-32" />
-          </div>
-        </div>
-        <Skeleton className="h-6 w-16 rounded-full" />
-      </div>
-
-      {/* Info card */}
-      <div className="rounded-xl border border-border bg-card p-5">
-        <Skeleton className="h-4 w-32 mb-4" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Skeleton className="h-3 w-20" />
-            <Skeleton className="h-5 w-40" />
-          </div>
-          <div className="space-y-2">
-            <Skeleton className="h-3 w-20" />
-            <Skeleton className="h-5 w-24" />
-          </div>
-          <div className="space-y-2">
-            <Skeleton className="h-3 w-20" />
-            <Skeleton className="h-5 w-32" />
-          </div>
+      <div className="flex items-center gap-4">
+        <div className="skeleton-shimmer size-10 rounded-xl" />
+        <div className="skeleton-shimmer size-14 rounded-full" />
+        <div className="flex flex-col gap-2">
+          <div className="skeleton-shimmer h-7 w-48 rounded" />
+          <div className="skeleton-shimmer h-3 w-40 rounded" />
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="space-y-4">
-        <div className="flex gap-2">
-          {[...Array(6)].map((_, i) => (
-            <Skeleton key={i} className="h-10 w-24 rounded-lg" />
-          ))}
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Skeleton className="h-64 rounded-xl" />
-          <Skeleton className="h-64 rounded-xl" />
-        </div>
+      {/* Birth data rows */}
+      <SkeletonRows count={3} />
+
+      {/* Tab pills */}
+      <div className="flex gap-2 overflow-hidden">
+        {Array.from({ length: 6 }, (_, i) => (
+          <div key={i} className="skeleton-shimmer h-8 w-24 shrink-0 rounded-full" />
+        ))}
+      </div>
+
+      {/* Reading body */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <SkeletonCard className="h-64" />
+        <SkeletonCard className="h-64" />
       </div>
     </div>
   )

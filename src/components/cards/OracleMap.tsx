@@ -1,11 +1,11 @@
 'use client'
 
-import { SealIcon } from './SealIcon'
 import type { Kin, SealNumber } from '@pleiad/engine/core/types'
 import { kinToSeal, kinToTone } from '@pleiad/engine/calculations/dreamspell'
 import { calculateOracle } from '@pleiad/engine/calculations/oracle'
 import { getSeal } from '@pleiad/engine/data/seals'
 import { getTone } from '@pleiad/engine/data/tones'
+import { SealIcon } from './SealIcon'
 import { cn } from '@/lib/utils'
 
 // Color map for seal color families

@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
+import { Plus, MoreVertical, Search } from 'lucide-react'
 import { usePeople } from '@/lib/hooks/use-people'
 import { useRelationships } from '@/lib/hooks/use-relationships'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Switch } from '@/components/ui/switch'
 import {
   Dialog,
   DialogContent,
@@ -21,9 +23,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { PageHeader, EmptyState } from '@/components/dashboard'
-import { Plus, MoreVertical, Search, Heart, AlertTriangle, Users } from 'lucide-react'
+import { PageHeader, EmptyState, useConfirm } from '@/components/dashboard'
+import { Notice, Pill, SkeletonRows, fadeUp, staggerParent } from '@/components/app-kit'
+import {
+  RELATIONSHIP_ACCENTS,
+  TypeFilterPill,
+} from '@/components/relationships/type-accents'
 import type { Person } from '@/lib/types/database.types'
 import type { RelationshipWithPeople, RelationshipType, CreateRelationshipInput } from '@/lib/types/relationship'
 import {
@@ -32,95 +45,104 @@ import {
   STRENGTH_LABELS,
 } from '@/lib/types/relationship'
 
-// Relationship Card Component
-function RelationshipCard({
+/** Radix SelectItem values can't be empty strings — sentinel for "none". */
+const NO_SUBTYPE = '__none__'
+
+// Relationship Row Component — hairline-divided list row (contract: lists
+// are rows, never nested card boxes).
+function RelationshipRow({
   relationship,
   onEdit,
   onDelete,
+  last,
 }: {
   relationship: RelationshipWithPeople
   onEdit: (relationship: RelationshipWithPeople) => void
   onDelete: (id: string) => void
+  last: boolean
 }) {
-  const typeInfo = RELATIONSHIP_TYPE_LABELS[relationship.type as RelationshipType]
+  const type = relationship.type as RelationshipType
+  const typeInfo = RELATIONSHIP_TYPE_LABELS[type]
   const strengthInfo = STRENGTH_LABELS[relationship.strength as 1 | 2 | 3 | 4 | 5]
+  const subtypeLabel = relationship.subtype
+    ? RELATIONSHIP_SUBTYPES[type]?.find(s => s.value === relationship.subtype)?.label ||
+      relationship.subtype
+    : null
 
   return (
-    <div className="surface-card p-5 hover:border-primary/20 transition-colors">
-      <div className="flex items-start justify-between mb-3">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium text-foreground">{relationship.person1.name}</span>
-            <Heart className="w-4 h-4 text-primary/60" />
-            <span className="font-medium text-foreground">{relationship.person2.name}</span>
-          </div>
-          <Badge
-            variant="secondary"
-            style={{ backgroundColor: typeInfo.color + '20', color: typeInfo.color }}
+    <motion.div
+      variants={fadeUp}
+      className={cn(
+        'flex items-center gap-4 py-4',
+        !last && 'border-b border-white/[0.07]'
+      )}
+    >
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+          <span className="text-sm font-medium text-white/90">
+            {relationship.person1.name}
+          </span>
+          <span className="font-mono text-xs text-white/35" aria-hidden>
+            ×
+          </span>
+          <span className="text-sm font-medium text-white/90">
+            {relationship.person2.name}
+          </span>
+          <Pill
+            accent={RELATIONSHIP_ACCENTS[type] ?? undefined}
+            className="px-2.5 py-0.5 text-[10px]"
           >
             {typeInfo.label}
-          </Badge>
+          </Pill>
+          {!relationship.bidirectional && (
+            <Pill className="px-2.5 py-0.5 text-[10px]">One-way</Pill>
+          )}
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <span className="sr-only">Menu</span>
-              <MoreVertical className="w-4 h-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEdit(relationship)}>
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-destructive"
-              onClick={() => onDelete(relationship.id)}
-            >
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {(subtypeLabel || relationship.notes) && (
+          <p className="mt-1 truncate text-xs text-white/50">
+            {[subtypeLabel, relationship.notes].filter(Boolean).join(' · ')}
+          </p>
+        )}
       </div>
 
-      <div className="space-y-2">
-        {relationship.subtype && (
-          <div className="text-sm text-muted-foreground">
-            {RELATIONSHIP_SUBTYPES[relationship.type as RelationshipType]?.find(
-              s => s.value === relationship.subtype
-            )?.label || relationship.subtype}
-          </div>
-        )}
-
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Strength:</span>
-          <div className="flex gap-0.5">
-            {[1, 2, 3, 4, 5].map((level) => (
-              <div
-                key={level}
-                className={`w-3 h-3 rounded-full transition-colors ${
-                  level <= relationship.strength
-                    ? 'bg-primary'
-                    : 'bg-muted'
-                }`}
-              />
-            ))}
-          </div>
-          <span className="text-xs text-muted-foreground">
-            ({strengthInfo.label})
-          </span>
-        </div>
-
-        {!relationship.bidirectional && (
-          <Badge variant="outline" className="text-xs">
-            One-way
-          </Badge>
-        )}
-
-        {relationship.notes && (
-          <p className="text-sm text-muted-foreground mt-2 pt-2 border-t border-border">{relationship.notes}</p>
-        )}
+      <div
+        className="flex shrink-0 items-center gap-1"
+        role="img"
+        aria-label={`Strength: ${strengthInfo.label}`}
+        title={strengthInfo.label}
+      >
+        {[1, 2, 3, 4, 5].map((level) => (
+          <span
+            key={level}
+            aria-hidden
+            className={cn(
+              'size-2.5 rounded-full',
+              level <= relationship.strength ? 'bg-brand' : 'bg-white/[0.12]'
+            )}
+          />
+        ))}
       </div>
-    </div>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+            <span className="sr-only">Menu</span>
+            <MoreVertical className="w-4 h-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => onEdit(relationship)}>
+            Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="text-destructive"
+            onClick={() => onDelete(relationship.id)}
+          >
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </motion.div>
   )
 }
 
@@ -167,6 +189,13 @@ function RelationshipForm({
     setLoading(true)
     setError(null)
 
+    // Radix Select has no native `required`; keep the old guarantee.
+    if (!formData.person1Id || !formData.person2Id) {
+      setError('Please select both people')
+      setLoading(false)
+      return
+    }
+
     if (formData.person1Id === formData.person2Id) {
       setError('Please select two different people')
       setLoading(false)
@@ -197,41 +226,43 @@ function RelationshipForm({
       {/* Person 1 */}
       <div className="space-y-2">
         <Label htmlFor="person1">Person 1 *</Label>
-        <select
-          id="person1"
-          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+        <Select
           value={formData.person1Id}
-          onChange={(e) => setFormData(prev => ({ ...prev, person1Id: e.target.value }))}
-          required
+          onValueChange={(value) => setFormData(prev => ({ ...prev, person1Id: value }))}
         >
-          <option value="">Select a person...</option>
-          {people.map(person => (
-            <option key={person.id} value={person.id}>
-              {person.name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger id="person1" className="rounded-lg border-white/[0.07]">
+            <SelectValue placeholder="Select a person..." />
+          </SelectTrigger>
+          <SelectContent>
+            {people.map(person => (
+              <SelectItem key={person.id} value={person.id}>
+                {person.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Person 2 */}
       <div className="space-y-2">
         <Label htmlFor="person2">Person 2 *</Label>
-        <select
-          id="person2"
-          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+        <Select
           value={formData.person2Id}
-          onChange={(e) => setFormData(prev => ({ ...prev, person2Id: e.target.value }))}
-          required
+          onValueChange={(value) => setFormData(prev => ({ ...prev, person2Id: value }))}
         >
-          <option value="">Select a person...</option>
-          {people
-            .filter(p => p.id !== formData.person1Id)
-            .map(person => (
-              <option key={person.id} value={person.id}>
-                {person.name}
-              </option>
-            ))}
-        </select>
+          <SelectTrigger id="person2" className="rounded-lg border-white/[0.07]">
+            <SelectValue placeholder="Select a person..." />
+          </SelectTrigger>
+          <SelectContent>
+            {people
+              .filter(p => p.id !== formData.person1Id)
+              .map(person => (
+                <SelectItem key={person.id} value={person.id}>
+                  {person.name}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Relationship Type */}
@@ -239,21 +270,14 @@ function RelationshipForm({
         <Label>Relationship Type *</Label>
         <div className="flex flex-wrap gap-2">
           {(Object.entries(RELATIONSHIP_TYPE_LABELS) as [RelationshipType, typeof RELATIONSHIP_TYPE_LABELS[RelationshipType]][]).map(([type, info]) => (
-            <Badge
+            <TypeFilterPill
               key={type}
-              variant={formData.type === type ? 'default' : 'outline'}
-              className="cursor-pointer"
-              style={formData.type === type ? {
-                backgroundColor: info.color,
-                borderColor: info.color,
-              } : {
-                borderColor: info.color,
-                color: info.color,
-              }}
+              active={formData.type === type}
+              accent={RELATIONSHIP_ACCENTS[type]}
               onClick={() => setFormData(prev => ({ ...prev, type, subtype: '' }))}
             >
               {info.label}
-            </Badge>
+            </TypeFilterPill>
           ))}
         </div>
       </div>
@@ -262,19 +286,24 @@ function RelationshipForm({
       {availableSubtypes.length > 0 && (
         <div className="space-y-2">
           <Label htmlFor="subtype">Subtype</Label>
-          <select
-            id="subtype"
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-            value={formData.subtype}
-            onChange={(e) => setFormData(prev => ({ ...prev, subtype: e.target.value }))}
+          <Select
+            value={formData.subtype || NO_SUBTYPE}
+            onValueChange={(value) =>
+              setFormData(prev => ({ ...prev, subtype: value === NO_SUBTYPE ? '' : value }))
+            }
           >
-            <option value="">Select subtype (optional)</option>
-            {availableSubtypes.map(subtype => (
-              <option key={subtype.value} value={subtype.value}>
-                {subtype.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger id="subtype" className="rounded-lg border-white/[0.07]">
+              <SelectValue placeholder="Select subtype (optional)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NO_SUBTYPE}>No subtype</SelectItem>
+              {availableSubtypes.map(subtype => (
+                <SelectItem key={subtype.value} value={subtype.value}>
+                  {subtype.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
 
@@ -287,29 +316,32 @@ function RelationshipForm({
               <button
                 key={level}
                 type="button"
-                className={`w-8 h-8 rounded-full border-2 transition-colors ${
+                aria-label={`Strength ${level}: ${STRENGTH_LABELS[level].label}`}
+                aria-pressed={formData.strength === level}
+                className={cn(
+                  'size-8 rounded-full border-2 transition-colors active:scale-[0.98]',
                   level <= formData.strength
-                    ? 'bg-primary border-primary'
-                    : 'bg-background border-muted hover:border-primary/50'
-                }`}
+                    ? 'border-brand bg-brand'
+                    : 'border-white/[0.12] bg-transparent hover:border-brand/50'
+                )}
                 onClick={() => setFormData(prev => ({ ...prev, strength: level }))}
               />
             ))}
           </div>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-sm text-white/50">
             {STRENGTH_LABELS[formData.strength as 1 | 2 | 3 | 4 | 5].label}
           </span>
         </div>
       </div>
 
       {/* Bidirectional */}
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
+      <div className="flex items-center gap-3">
+        <Switch
           id="bidirectional"
           checked={formData.bidirectional}
-          onChange={(e) => setFormData(prev => ({ ...prev, bidirectional: e.target.checked }))}
-          className="rounded border-border"
+          onCheckedChange={(checked) =>
+            setFormData(prev => ({ ...prev, bidirectional: checked }))
+          }
         />
         <Label htmlFor="bidirectional" className="font-normal">
           Bidirectional relationship (both sides see the relationship)
@@ -341,15 +373,17 @@ function RelationshipForm({
         />
       </div>
 
-      {error && (
-        <div className="text-sm text-destructive">{error}</div>
-      )}
+      {error && <Notice variant="error">{error}</Notice>}
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button type="button" variant="outline" onClick={onCancel} className="rounded-xl">
           Cancel
         </Button>
-        <Button type="submit" disabled={loading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+        <Button
+          type="submit"
+          disabled={loading}
+          className="rounded-xl bg-brand text-white hover:bg-brand-soft active:scale-[0.98]"
+        >
           {loading ? 'Saving...' : relationship ? 'Update' : 'Add'}
         </Button>
       </div>
@@ -368,6 +402,8 @@ export default function RelationshipsPage() {
     updateRelationship,
     deleteRelationship,
   } = useRelationships()
+  const confirm = useConfirm()
+  const reducedMotion = useReducedMotion()
 
   const [search, setSearch] = useState('')
   const [selectedType, setSelectedType] = useState<RelationshipType | null>(null)
@@ -423,13 +459,19 @@ export default function RelationshipsPage() {
   }
 
   const handleDeleteRelationship = async (id: string) => {
-    if (confirm('Are you sure you want to delete this relationship?')) {
-      setDeleteError(null)
-      try {
-        await deleteRelationship(id)
-      } catch (err) {
-        setDeleteError(err instanceof Error ? err.message : 'Error deleting')
-      }
+    const confirmed = await confirm({
+      title: 'Delete relationship',
+      description: 'Are you sure you want to delete this relationship? This cannot be undone.',
+      confirmText: 'Delete',
+      variant: 'destructive',
+    })
+    if (!confirmed) return
+
+    setDeleteError(null)
+    try {
+      await deleteRelationship(id)
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Error deleting')
     }
   }
 
@@ -439,15 +481,9 @@ export default function RelationshipsPage() {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
-          <AlertTriangle className="w-6 h-6 text-destructive" />
-        </div>
-        <div className="text-center">
-          <p className="font-medium text-foreground">Error loading relationships</p>
-          <p className="text-sm text-muted-foreground mt-1">{error}</p>
-        </div>
-      </div>
+      <Notice variant="error" title="Error loading relationships">
+        {error}
+      </Notice>
     )
   }
 
@@ -462,7 +498,7 @@ export default function RelationshipsPage() {
         actions={
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button disabled={!canAddRelationship}>
+              <Button disabled={!canAddRelationship} className="rounded-xl">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Relationship
               </Button>
@@ -485,19 +521,12 @@ export default function RelationshipsPage() {
       />
 
       {!canAddRelationship && (
-        <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800">
-          <Users className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-          <p className="text-sm text-amber-800 dark:text-amber-200">
-            Add at least 2 people before creating relationships
-          </p>
-        </div>
+        <Notice variant="warning">
+          Add at least 2 people before creating relationships
+        </Notice>
       )}
 
-      {deleteError && (
-        <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg">
-          {deleteError}
-        </div>
-      )}
+      {deleteError && <Notice variant="error">{deleteError}</Notice>}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -510,41 +539,33 @@ export default function RelationshipsPage() {
             className="pl-9"
           />
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Badge
-            variant={selectedType === null ? 'default' : 'outline'}
-            className="cursor-pointer hover:bg-primary/10 transition-colors"
+        <div className="flex flex-wrap items-center gap-2">
+          <TypeFilterPill
+            active={selectedType === null}
             onClick={() => setSelectedType(null)}
           >
             All
-          </Badge>
+          </TypeFilterPill>
           {(Object.entries(RELATIONSHIP_TYPE_LABELS) as [RelationshipType, typeof RELATIONSHIP_TYPE_LABELS[RelationshipType]][]).map(([type, info]) => (
-            <Badge
+            <TypeFilterPill
               key={type}
-              variant={selectedType === type ? 'default' : 'outline'}
-              className="cursor-pointer transition-colors"
-              style={selectedType === type ? {
-                backgroundColor: info.color,
-                borderColor: info.color,
-              } : {
-                borderColor: info.color,
-                color: info.color,
-              }}
+              active={selectedType === type}
+              accent={RELATIONSHIP_ACCENTS[type]}
               onClick={() => setSelectedType(selectedType === type ? null : type)}
             >
               {info.label}
-            </Badge>
+            </TypeFilterPill>
           ))}
         </div>
       </div>
 
-      {/* Relationships grid */}
+      {/* Relationships list — hairline rows, staggered entrance */}
       {filteredRelationships.length === 0 ? (
         search || selectedType ? (
           <div className="surface-card p-12 text-center">
             <Search className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
-            <p className="font-medium text-foreground">No results found</p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="font-medium text-white/90">No results found</p>
+            <p className="text-sm text-white/50 mt-1">
               Try adjusting your search or filters
             </p>
           </div>
@@ -563,16 +584,21 @@ export default function RelationshipsPage() {
           />
         )
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredRelationships.map(relationship => (
-            <RelationshipCard
+        <motion.div
+          variants={staggerParent}
+          initial={reducedMotion ? false : 'hidden'}
+          animate="visible"
+        >
+          {filteredRelationships.map((relationship, i) => (
+            <RelationshipRow
               key={relationship.id}
               relationship={relationship}
               onEdit={handleEditRelationship}
               onDelete={handleDeleteRelationship}
+              last={i === filteredRelationships.length - 1}
             />
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Edit dialog */}
@@ -604,53 +630,31 @@ export default function RelationshipsPage() {
   )
 }
 
-// Loading skeleton
+// Loading skeleton — layout-matched (header, filters, hairline rows)
 function RelationshipsSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" aria-hidden>
       {/* Header */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <Skeleton className="h-8 w-48 mb-2" />
-          <Skeleton className="h-4 w-32" />
+        <div className="space-y-2">
+          <div className="skeleton-shimmer h-8 w-48 rounded" />
+          <div className="skeleton-shimmer h-4 w-32 rounded" />
         </div>
-        <Skeleton className="h-10 w-40 mt-3 sm:mt-0" />
+        <div className="skeleton-shimmer mt-3 h-10 w-40 rounded-xl sm:mt-0" />
       </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
-        <Skeleton className="h-10 w-full sm:w-64" />
+        <div className="skeleton-shimmer h-10 w-full rounded-md sm:w-64" />
         <div className="flex gap-2">
-          {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-6 w-16 rounded-full" />
+          {Array.from({ length: 5 }, (_, i) => (
+            <div key={i} className="skeleton-shimmer h-7 w-20 rounded-full" />
           ))}
         </div>
       </div>
 
-      {/* Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {[...Array(6)].map((_, i) => (
-          <div key={i} className="rounded-xl border border-border bg-card p-5">
-            <div className="flex items-start justify-between mb-3">
-              <div className="space-y-2">
-                <Skeleton className="h-5 w-40" />
-                <Skeleton className="h-5 w-20 rounded-full" />
-              </div>
-              <Skeleton className="h-8 w-8 rounded-lg" />
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-3 w-16" />
-                <div className="flex gap-0.5">
-                  {[...Array(5)].map((_, j) => (
-                    <Skeleton key={j} className="h-3 w-3 rounded-full" />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Rows */}
+      <SkeletonRows count={6} />
     </div>
   )
 }

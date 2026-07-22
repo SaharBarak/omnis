@@ -79,7 +79,7 @@ function ProfileRetry({ onRetry, retrying }: { onRetry: () => void; retrying: bo
           The sky is out of reach.
         </Text>
         <Text variant="bodyMedium" color="onSurfaceVariant" style={styles.retryBody}>
-          We couldn&apos;t load your profile. Check your connection — your session is safe.
+          We couldn&apos;t load your profile. Check your connection. Your session is safe.
         </Text>
         <Button onPress={onRetry} disabled={retrying}>
           {retrying ? 'Trying…' : 'Try again'}

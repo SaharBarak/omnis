@@ -70,13 +70,13 @@ const CHANNEL_STYLES: Record<PairChannelState, ChannelStyle> = {
 
 function stateLabel(state: PairChannelState, aName: string, bName: string): string {
   switch (state) {
-    case 'electromagnetic': return 'Electromagnetic — defined together only'
-    case 'companionship': return 'Companionship — both hold this channel'
+    case 'electromagnetic': return 'Electromagnetic: defined together only'
+    case 'companionship': return 'Companionship: both hold this channel'
     case 'a-defined': return `Defined by ${aName}`
     case 'b-defined': return `Defined by ${bName}`
-    case 'dominance-a': return `Dominance — ${aName} holds the channel`
-    case 'dominance-b': return `Dominance — ${bName} holds the channel`
-    case 'compromise': return 'Compromise — same hanging gate'
+    case 'dominance-a': return `Dominance: ${aName} holds the channel`
+    case 'dominance-b': return `Dominance: ${bName} holds the channel`
+    case 'compromise': return 'Compromise: same hanging gate'
     case 'hanging-a': return `Hanging gate (${aName})`
     case 'hanging-b': return `Hanging gate (${bName})`
     case 'open': return 'Open'

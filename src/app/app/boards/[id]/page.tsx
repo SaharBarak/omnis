@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowRight, Save } from 'lucide-react'
+import { ArrowLeft, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CanvasProvider, CanvasEditor, ExportDialog, useCanvas } from '@/components/canvas'
 import { useBoards, useBoard } from '@/lib/hooks/use-boards'
@@ -50,19 +50,29 @@ export default function BoardEditorPage() {
   }, [boardId, getBoard])
 
   if (loading) {
+    // Layout-matched header skeleton — the canvas itself stays dark until data lands.
     return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex h-[100dvh] flex-col">
+        <header className="flex h-14 shrink-0 items-center gap-4 border-b border-white/[0.07] bg-surface/80 px-4 backdrop-blur">
+          <div className="skeleton-shimmer h-8 w-24 rounded-lg" />
+          <div className="h-6 w-px bg-white/[0.07]" />
+          <div className="skeleton-shimmer h-4 w-40 rounded" />
+        </header>
+        <div className="flex-1" />
       </div>
     )
   }
 
   if (error || !board) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center">
-        <p className="text-destructive mb-4">{error || 'Board not found'}</p>
-        <Button variant="outline" onClick={() => router.push('/app/boards')}>
-          <ArrowRight className="h-4 w-4 mr-2" />
+      <div className="flex h-[100dvh] flex-col items-center justify-center gap-4">
+        <p className="text-sm text-destructive">{error || 'Board not found'}</p>
+        <Button
+          variant="outline"
+          className="rounded-xl active:scale-[0.98]"
+          onClick={() => router.push('/app/boards')}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
           Back to Boards
         </Button>
       </div>
@@ -138,20 +148,22 @@ function BoardEditorContent({ boardId, boardName }: BoardEditorContentProps) {
   }, [isDirty])
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="flex h-[100dvh] flex-col">
       {/* Header */}
-      <header className="h-14 border-b bg-card flex items-center justify-between px-4 flex-shrink-0">
+      <header className="flex h-14 flex-shrink-0 items-center justify-between border-b border-white/[0.07] bg-surface/80 px-4 backdrop-blur">
         <div className="flex items-center gap-4">
           <Link href="/app/boards">
-            <Button variant="ghost" size="sm">
-              <ArrowRight className="h-4 w-4 mr-2" />
+            <Button variant="ghost" size="sm" className="active:scale-[0.98]">
+              <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
               Back
             </Button>
           </Link>
-          <div className="h-6 w-px bg-border" />
-          <h1 className="font-semibold">{boardName}</h1>
+          <div className="h-6 w-px bg-white/[0.07]" />
+          <h1 className="font-display font-medium text-white/90">{boardName}</h1>
           {isDirty && (
-            <span className="text-xs text-muted-foreground">(unsaved changes)</span>
+            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">
+              Unsaved
+            </span>
           )}
         </div>
 
@@ -159,10 +171,11 @@ function BoardEditorContent({ boardId, boardName }: BoardEditorContentProps) {
           <Button
             variant={isDirty ? 'default' : 'outline'}
             size="sm"
+            className="rounded-xl active:scale-[0.98]"
             onClick={handleSave}
             disabled={saving || !isDirty}
           >
-            <Save className="h-4 w-4 mr-2" />
+            <Save className="mr-2 h-4 w-4" aria-hidden="true" />
             {saving ? 'Saving...' : 'Save'}
           </Button>
         </div>

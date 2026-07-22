@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 
+import { asKin } from '@pleiad/engine/core/types'
 import { WavespellDisplay, WavespellMini, WavespellProgress } from './WavespellDisplay'
 import { CastleDisplay, CastleMini } from './CastleDisplay'
 import { DreamspellYearDisplay, GalacticBirthdayDisplay, PersonalYearDisplay } from './YearlyDisplay'
-import { asKin } from '@pleiad/engine/core/types'
 
 vi.mock('next/image', () => ({
   default: function MockImage({

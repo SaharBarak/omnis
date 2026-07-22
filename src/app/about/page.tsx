@@ -1,8 +1,13 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { Header, Footer } from '@/components/landing'
+import { NavV2, FooterV2, StarParallax, MuralBackdrop } from '@/components/landing-v2'
+import { TYPE } from '@/lib/design/landing-tokens'
+import { MURAL_GROUND } from '@/lib/design/system-flavors'
+import { getTodayAcrossSystems, getFooterLiveLine } from '@/lib/today-board'
 import { JsonLd, SITE_URL, organizationSchema, buildBreadcrumbs } from '@/lib/seo/json-ld'
-import { PageBreadcrumbs } from '@/components/ui/page-breadcrumbs'
+
+// Revalidate hourly so the footer live line stays current (same as landing).
+export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: 'About Pleiad - Unifying Ancient Wisdom Systems for Modern Seekers',
@@ -20,7 +25,7 @@ export const metadata: Metadata = {
 const aboutOrgSchema = {
   "@context": "https://schema.org",
   ...organizationSchema,
-  "description": "Pleiad unifies six ancient wisdom systems — Dreamspell, Tzolkin, Long Count, Human Design, Astrology, and Kabbalah — into one accessible platform for modern seekers.",
+  "description": "Pleiad unifies six ancient wisdom systems (Dreamspell, Tzolkin, Long Count, Human Design, Astrology, and Kabbalah) into one accessible platform for modern seekers.",
   "foundingDate": "2024",
   "knowsAbout": ["Dreamspell", "Human Design", "Astrology", "Kabbalah", "Gematria", "Tzolkin", "Mayan Calendar"],
 }
@@ -30,119 +35,147 @@ const breadcrumbSchema = buildBreadcrumbs([
   { name: 'About', url: `${SITE_URL}/about` },
 ])
 
+const SYSTEMS = [
+  {
+    name: 'Dreamspell',
+    body: 'A modern interpretation of the Mayan calendar, created by José Argüelles. As he taught: “Time is not money. Time is Art.” The 260-day Tzolkin cycle reveals your galactic signature, a combination of one of 20 Solar Seals and 13 Galactic Tones that describes your cosmic purpose.',
+  },
+  {
+    name: 'Human Design',
+    body: 'A synthesis of the I Ching, Kabbalah, Chakra system, Astrology, and Quantum Physics. Ra Uru Hu, who received the system, emphasized: “I am not the guru. I am a mechanic.” Your Bodygraph reveals your Type, Strategy, Authority, and the unique way you’re designed to operate in the world.',
+  },
+  {
+    name: 'Tzolkin',
+    body: 'The traditional 260-day Maya sacred count, still kept by daykeepers in the Guatemalan highlands. Your day sign and tone place a birth inside a living calendar that has run unbroken for over two thousand years.',
+  },
+  {
+    name: 'Long Count',
+    body: 'The Maya astronomical calendar that locates a date inside great cycles: baktun, katun, tun. Where the Tzolkin gives a birth its quality, the Long Count gives it an address in deep time.',
+  },
+  {
+    name: 'Astrology',
+    body: 'The ancient study of planetary positions and their influence on human life. Your natal chart maps the sky at the moment of your birth, revealing personality traits, life themes, and potential paths.',
+  },
+  {
+    name: 'Kabbalah',
+    body: 'The Hebrew tradition that reads letters as vehicles of creation. By calculating the gematria of your Hebrew name, where every letter carries a number, we uncover hidden meanings and connections in the language of numbers.',
+  },
+] as const
+
+const VALUES = [
+  {
+    name: 'Accuracy',
+    body: 'We use verified algorithms and authoritative sources for all calculations.',
+  },
+  {
+    name: 'Accessibility',
+    body: 'Complex systems should be understandable, not gatekept.',
+  },
+  {
+    name: 'Integration',
+    body: 'We seek the connections between systems, not divisions.',
+  },
+  {
+    name: 'Privacy',
+    body: 'Your birth data and insights remain yours. We never sell personal information.',
+  },
+] as const
+
 export default function AboutPage() {
+  const liveLine = getFooterLiveLine(getTodayAcrossSystems())
+
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="min-h-[100dvh]" style={{ backgroundColor: MURAL_GROUND }}>
+      <NavV2 />
       <JsonLd data={aboutOrgSchema} id="json-ld-organization" />
       <JsonLd data={breadcrumbSchema} id="json-ld-breadcrumbs" />
 
-      <main className="pt-24 pb-16 px-6">
-        <div className="max-w-3xl mx-auto">
-          <PageBreadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'About' }]} />
-          {/* Hero */}
-          <div className="text-center mb-12">
-            <div className="earth-badge inline-flex mb-4">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-              <span>Our Story</span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-heading text-foreground mb-4">About Pleiad</h1>
-            <p className="text-lg text-muted-foreground">
-              Unifying ancient wisdom systems for modern seekers
-            </p>
-          </div>
+      <main className="relative overflow-hidden pb-24 pt-32 sm:pt-40">
+        <StarParallax />
 
+        {/* The traveler's star trail — screen-blended so only its light lands. */}
+        <MuralBackdrop
+          placement="halo-right"
+          src="/images/redesign/motifs/traveler-glyph.webp"
+          blend
+          opacity={0.55}
+          imgClassName="object-contain"
+        />
+
+        {/* Hero */}
+        <section className="relative mx-auto max-w-content px-6 text-center">
+          <p className={`${TYPE.eyebrow} text-brand`}>About</p>
+          <h1 className={`${TYPE.hero} mx-auto mt-4 max-w-3xl`}>
+            The living map of your people.
+          </h1>
+          <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-white/70">
+            Save someone once and read them across six systems, together.
+          </p>
+        </section>
+
+        <div className="relative mx-auto mt-16 max-w-3xl px-6">
           {/* Mission */}
-          <section className="earth-card bg-card p-8 mb-6">
-            <h2 className="text-2xl font-heading text-primary mb-4">Our Mission</h2>
-            <p className="text-muted-foreground leading-relaxed mb-4">
-              Pleiad is built on the belief that multiple symbolic systems can illuminate different facets of who we are. Rather than seeing Dreamspell, Human Design, Astrology, and Gematria as competing frameworks, we recognize them as complementary lenses—each offering unique insights into the cosmic blueprint that makes you, you.
-            </p>
-            <p className="text-muted-foreground leading-relaxed">
-              Our mission is to make these profound systems accessible, accurate, and interconnected, helping you navigate life with greater self-awareness and cosmic alignment.
-            </p>
-          </section>
-
-          {/* Systems */}
-          <section className="earth-card bg-card p-8 mb-6">
-            <h2 className="text-2xl font-heading text-primary mb-6">The Systems We Work With</h2>
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-heading mb-2">Dreamspell</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  A modern interpretation of the Mayan calendar, created by José Argüelles. As he taught: &ldquo;Time is not money. Time is Art.&rdquo; The 260-day Tzolkin cycle reveals your galactic signature—a combination of one of 20 Solar Seals and 13 Galactic Tones that describes your cosmic purpose.
-                </p>
-              </div>
-              <div className="earth-divider" />
-              <div>
-                <h3 className="text-lg font-heading mb-2">Human Design</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  A synthesis of the I Ching, Kabbalah, Chakra system, Astrology, and Quantum Physics. Ra Uru Hu, who received the system, emphasized: &ldquo;I am not the guru. I am a mechanic.&rdquo; Your Bodygraph reveals your Type, Strategy, Authority, and the unique way you&apos;re designed to operate in the world.
-                </p>
-              </div>
-              <div className="earth-divider" />
-              <div>
-                <h3 className="text-lg font-heading mb-2">Astrology</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  The ancient study of planetary positions and their influence on human life. Your natal chart maps the sky at the moment of your birth, revealing personality traits, life themes, and potential paths.
-                </p>
-              </div>
-              <div className="earth-divider" />
-              <div>
-                <h3 className="text-lg font-heading mb-2">Gematria</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  The Hebrew system of numerology that assigns numerical values to letters and words. The Kabbalistic tradition teaches that Hebrew letters are vehicles of creation. By calculating the gematria of your Hebrew name, we uncover hidden meanings and connections in the language of numbers.
-                </p>
-              </div>
+          <section>
+            <h2 className={TYPE.section}>Our Mission</h2>
+            <div className="mt-6 space-y-4 text-lg leading-relaxed text-white/70">
+              <p>
+                Pleiad is the living map of your people. You save a person once
+                (a name, a birthday) and Pleiad reads them across six systems
+                at once: Dreamspell, Tzolkin, Long Count, Human Design,
+                Astrology, and Kabbalah. The systems aren&apos;t competing
+                frameworks to choose between; they&apos;re lenses trained on the
+                same people, and the map shows how those readings connect:
+                between systems, and between the people you carry.
+              </p>
+              <p>
+                Our mission is to make these systems accessible, accurate, and
+                interconnected, so the relationships that matter to you can be
+                read with the same care as the individuals in them.
+              </p>
             </div>
           </section>
 
-          {/* Values */}
-          <section className="earth-card bg-card p-8 mb-8">
-            <h2 className="text-2xl font-heading text-primary mb-6">Our Values</h2>
-            <ul className="space-y-4 text-muted-foreground">
-              <li className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="w-2 h-2 rounded-full bg-primary" />
-                </span>
-                <span><strong className="text-foreground">Accuracy</strong> — We use verified algorithms and authoritative sources for all calculations.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="w-2 h-2 rounded-full bg-primary" />
-                </span>
-                <span><strong className="text-foreground">Accessibility</strong> — Complex systems should be understandable, not gatekept.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="w-2 h-2 rounded-full bg-primary" />
-                </span>
-                <span><strong className="text-foreground">Integration</strong> — We seek the connections between systems, not divisions.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="w-2 h-2 rounded-full bg-primary" />
-                </span>
-                <span><strong className="text-foreground">Privacy</strong> — Your birth data and insights remain yours. We never sell personal information.</span>
-              </li>
-            </ul>
+          {/* Systems — divide-y rows, not stacked cards. */}
+          <section className="mt-20">
+            <h2 className={TYPE.section}>The Systems We Work With</h2>
+            <div className="mt-8 divide-y divide-white/10 border-y border-white/10">
+              {SYSTEMS.map(system => (
+                <div key={system.name} className="py-6">
+                  <h3 className={TYPE.h3}>{system.name}</h3>
+                  <p className="mt-2 leading-relaxed text-white/70">{system.body}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Values — plain rows, no logo-as-bullet markers. */}
+          <section className="mt-20">
+            <h2 className={TYPE.section}>Our Values</h2>
+            <div className="mt-8 divide-y divide-white/10 border-y border-white/10">
+              {VALUES.map(value => (
+                <div key={value.name} className="flex flex-col gap-1 py-5 sm:flex-row sm:items-baseline sm:gap-6">
+                  <h3 className={`${TYPE.h3} sm:w-36 sm:shrink-0`}>{value.name}</h3>
+                  <p className="leading-relaxed text-white/70">{value.body}</p>
+                </div>
+              ))}
+            </div>
           </section>
 
           {/* CTA */}
-          <section className="text-center">
-            <p className="text-muted-foreground mb-6">
-              Ready to explore your cosmic blueprint?
+          <section className="mt-20 text-center">
+            <p className="text-lg text-white/70">
+              Ready to start your map?
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
               <Link
                 href="/calculate"
-                className="inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                className="inline-flex items-center justify-center rounded-xl bg-brand px-6 py-3 font-medium text-white transition-colors hover:bg-brand-soft active:scale-[0.98]"
               >
                 Calculate Your Kin
               </Link>
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center rounded-lg border border-border px-6 py-3 font-medium hover:bg-muted/50 transition-colors"
+                className="inline-flex items-center justify-center rounded-xl border border-white/15 px-6 py-3 font-medium text-white/80 transition-colors hover:bg-white/5 active:scale-[0.98]"
               >
                 Get Started Free
               </Link>
@@ -150,7 +183,7 @@ export default function AboutPage() {
           </section>
         </div>
       </main>
-      <Footer />
+      <FooterV2 liveLine={liveLine} />
     </div>
   )
 }

@@ -1,3 +1,32 @@
+/**
+ * Homepage FAQ — acquisition questions only (do I need an account, what do
+ * I get, is the AI grounded, what does the map do). Plan, accuracy, and
+ * data questions live in `faqs` below, rendered on /pricing; the homepage
+ * links there instead of repeating them.
+ */
+export const homeFaqs = [
+  {
+    question: 'Do I need an account to get a reading?',
+    answer:
+      'No. Enter one birthday on the calculate page and the full reading comes back with nothing saved and no card asked. An account only matters once you want Pleiad to remember people and the ties between them.',
+  },
+  {
+    question: 'What do I actually get from six systems at once?',
+    answer:
+      'One screen holds your natal chart, galactic signature, day sign, Long Count date, bodygraph, and the number of your name - six traditions that never met each other, reading the same moment. Where they agree is usually where it gets interesting.',
+  },
+  {
+    question: 'Is the AI just making this up?',
+    answer:
+      'The charts are pure math - real ephemeris and Long Count calculations, the same ones practitioners use. When AI interprets a chart, every claim cites a searchable knowledge base, so you can check the source line yourself.',
+  },
+  {
+    question: 'What happens when I add a second person?',
+    answer:
+      "Pleiad computes how they connect to everyone already on your map - who guides whom, which channel two people complete, which planets are talking - and names each tie in the system that found it. That's the map: it grows with every person you add.",
+  },
+]
+
 export const faqs = [
   {
     question: "What can I do with the free plan?",

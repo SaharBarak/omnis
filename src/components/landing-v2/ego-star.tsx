@@ -1,6 +1,6 @@
 'use client'
 
-import { forwardRef, useMemo, useState } from 'react'
+import { forwardRef, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { SealIcon } from '@/components/cards/SealIcon'
@@ -103,11 +103,48 @@ interface EgoStarProps {
   readonly className?: string
 }
 
+/**
+ * Everything renders in ONE pixel coordinate system, measured off the canvas
+ * div. The previous design drew lines in a stretched 100×100 viewBox while
+ * nodes were HTML elements sized in px — the two layers could never agree on
+ * where a node's edge was, so arms stopped short, stabbed through avatars,
+ * and drifted with every container size.
+ */
+function useCanvasSize() {
+  const ref = useRef<HTMLDivElement>(null)
+  const [dims, setDims] = useState<{ w: number; h: number } | null>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const ro = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect
+      if (width > 0 && height > 0) setDims({ w: width, h: height })
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  return { ref, dims }
+}
+
+function useIsMd() {
+  const [isMd, setIsMd] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)')
+    const update = () => setIsMd(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+  return isMd
+}
+
 export function EgoStar({ data, compact = false, className }: EgoStarProps) {
   const { center, spokes } = data
   const [layers, setLayers] = useState<readonly SystemKey[]>(DEFAULT_LAYERS)
   const [hovered, setHovered] = useState<EgoSpoke | null>(null)
   const [card, setCard] = useState<'center' | string | null>(null)
+  const { ref: canvasRef, dims } = useCanvasSize()
+  const isMd = useIsMd()
   /**
    * Hide ties that fire on nearly everybody. A tie under 1 bit is true of >50%
    * of all pairs — it is not evidence about these two. Off by default so the
@@ -135,7 +172,34 @@ export function EgoStar({ data, compact = false, className }: EgoStarProps) {
     )
 
   const allOn = active.length === FLAVOR_DESCENT.length
-  const c = SLOT_POS.center
+
+  // ---- Pixel geometry: one source of truth for lines AND nodes. ----
+  // Glyph radii in px per breakpoint; the line trim uses the same numbers,
+  // so every arm meets its node's ring with a constant 5px gap.
+  const rCenter = compact ? 20 : isMd ? 38 : 24
+  const rSpoke = compact ? 15 : isMd ? 29 : 18
+  const ARM_GAP = 5
+
+  const px = (slot: { x: number; y: number }) =>
+    dims ? { x: (slot.x / 100) * dims.w, y: (slot.y / 100) * dims.h } : { x: 0, y: 0 }
+
+  const cPx = px(SLOT_POS.center)
+
+  /** Arm endpoints trimmed to the rings: center edge → node edge. */
+  const armFor = (slot: { x: number; y: number }) => {
+    const p = px(slot)
+    const dx = p.x - cPx.x
+    const dy = p.y - cPx.y
+    const d = Math.hypot(dx, dy) || 1
+    const ux = dx / d
+    const uy = dy / d
+    return {
+      x1: cPx.x + ux * (rCenter + ARM_GAP),
+      y1: cPx.y + uy * (rCenter + ARM_GAP),
+      x2: p.x - ux * (rSpoke + ARM_GAP),
+      y2: p.y - uy * (rSpoke + ARM_GAP),
+    }
+  }
 
   const shownCard =
     card === 'center'
@@ -184,7 +248,7 @@ export function EgoStar({ data, compact = false, className }: EgoStarProps) {
             backgroundColor: allOn ? `${COLORS.brand}14` : 'transparent',
           }}
         >
-          {allOn ? 'Reset to Dreamspell' : 'Consolidate all five'}
+          {allOn ? 'Reset to Dreamspell' : 'Consolidate all layers'}
         </button>
       </div>
       )}
@@ -192,30 +256,32 @@ export function EgoStar({ data, compact = false, className }: EgoStarProps) {
       <ContextMenu>
         <ContextMenuTrigger asChild>
       <div
-        className={`relative mx-auto w-full ${compact ? 'aspect-square max-w-[300px]' : 'aspect-[16/11] max-w-[820px]'}`}
+        ref={canvasRef}
+        className={`relative mx-auto w-full ${compact ? 'aspect-square max-w-[300px]' : 'aspect-square max-w-[820px] sm:aspect-[16/11]'}`}
       >
         {/* ------------------------------------------------------------------
             ONE LINE PER PERSON. Never a bundle.
 
-            Fanning a strand per system produced hatching, not connections: the
-            perpendicular offset was computed in a viewBox stretched by
-            preserveAspectRatio="none", so every strand sheared off its own arm.
-            And a pile of parallel lines says "five systems agree" no louder than
-            one line does — it just costs the reader five times the work.
-
-            So: one arm, and the three things that vary carry the meaning.
+            One arm, and the three things that vary carry the meaning.
               thickness → total bits (how much this pair actually tells you)
               colour    → the system that found the most surprising tie
               beads     → one dot per OTHER selected system that also found one
+
+            Lines, pills, and nodes all derive from the same measured pixel
+            geometry — arms start at the center ring's edge and stop at the
+            spoke ring's edge, at every container size. No stretched viewBox,
+            no pathLength animation (it owns stroke-dasharray and shredded
+            both the draw-in and the orbit's dashes into floating fragments).
            ------------------------------------------------------------------ */}
+        {dims && (
         <svg
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
+          viewBox={`0 0 ${dims.w} ${dims.h}`}
+          width={dims.w}
+          height={dims.h}
           className="absolute inset-0 h-full w-full"
           aria-hidden
         >
-          {spokes.map((spoke) => {
-            const p = SLOT_POS[spoke.slot]
+          {spokes.map((spoke, i) => {
             const on = hovered?.person.id === spoke.person.id
             const dim = hovered !== null && !on
 
@@ -224,36 +290,36 @@ export function EgoStar({ data, compact = false, className }: EgoStarProps) {
 
             const lead = leadSystem(spoke, found)
             const accent = SYSTEM_FLAVORS[lead].accentSoft
+            const arm = armFor(SLOT_POS[spoke.slot])
 
             // Weight of the arm = what the pair says, in bits. Not decoration.
             const bits = found.reduce((sum, k) => sum + (spoke.bySystem[k]?.bits ?? 0), 0)
-            const width = Math.max(0.9, Math.min(3.4, 0.7 + bits * 0.28))
+            const width = Math.max(1.25, Math.min(4, 1 + bits * 0.33))
 
             return (
               <motion.line
                 key={spoke.person.id}
-                x1={c.x}
-                y1={c.y}
-                x2={p.x}
-                y2={p.y}
+                x1={arm.x1}
+                y1={arm.y1}
+                x2={arm.x2}
+                y2={arm.y2}
                 stroke={accent}
                 strokeWidth={on ? width + 1 : width}
-                strokeOpacity={dim ? 0.18 : 0.9}
                 strokeLinecap="round"
                 // The orbit is not an arm of the cross — the line says so.
-                strokeDasharray={spoke.slot === 'orbit' ? '4 4' : undefined}
-                vectorEffect="non-scaling-stroke"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.7, ease: 'easeOut' }}
+                strokeDasharray={spoke.slot === 'orbit' ? '6 6' : undefined}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: dim ? 0.18 : 0.9 }}
+                transition={{ duration: 0.5, delay: 0.25 + i * 0.08, ease: 'easeOut' }}
               />
             )
           })}
         </svg>
+        )}
 
         {/* ---- What the engine named, and who else agrees. ---- */}
-        {!compact && spokes.map((spoke) => {
-          const p = SLOT_POS[spoke.slot]
+        {!compact && dims && spokes.map((spoke) => {
+          const p = px(SLOT_POS[spoke.slot])
           const { t, dx } = PILL[spoke.slot]
           const on = hovered?.person.id === spoke.person.id
           const found = systemsFor(spoke)
@@ -267,10 +333,10 @@ export function EgoStar({ data, compact = false, className }: EgoStarProps) {
           return (
             <span
               key={`label-${spoke.person.id}`}
-              className="pointer-events-none absolute flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider"
+              className="pointer-events-none absolute hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider md:flex"
               style={{
-                left: `${c.x + (p.x - c.x) * t + dx}%`,
-                top: `${c.y + (p.y - c.y) * t}%`,
+                left: cPx.x + (p.x - cPx.x) * t + (dx / 100) * dims.w,
+                top: cPx.y + (p.y - cPx.y) * t,
                 color: accent,
                 borderColor: `${accent}${on ? 'cc' : '55'}`,
                 backgroundColor: COLORS.surface2,
@@ -299,21 +365,25 @@ export function EgoStar({ data, compact = false, className }: EgoStarProps) {
         })}
 
         {/* The ego */}
+        {dims && (
         <Person
           name={center.person.name}
           seal={center.seal}
           sealName={center.sealName}
           kin={center.kin}
           color={center.color}
-          pos={c}
+          pos={cPx}
+          radius={rCenter}
           isCenter
           compact={compact}
+          isMd={isMd}
           dimmed={false}
           onClick={() => setCard(card === 'center' ? null : 'center')}
         />
+        )}
 
         {/* The four arms + the orbit. Each person carries their own menu. */}
-        {spokes.map((spoke, i) => (
+        {dims && spokes.map((spoke, i) => (
           <ContextMenu key={spoke.person.id}>
             <ContextMenuTrigger asChild>
               <Person
@@ -322,9 +392,11 @@ export function EgoStar({ data, compact = false, className }: EgoStarProps) {
                 sealName={spoke.sealName}
                 kin={spoke.kin}
                 color={spoke.color}
-                pos={SLOT_POS[spoke.slot]}
+                pos={px(SLOT_POS[spoke.slot])}
+                radius={rSpoke}
                 rarity={spoke.rarity}
                 compact={compact}
+                isMd={isMd}
                 captionAbove={CAPTION_ABOVE[spoke.slot] ?? false}
                 delay={0.3 + i * 0.08}
                 dimmed={hovered !== null && hovered.person.id !== spoke.person.id}
@@ -390,7 +462,7 @@ export function EgoStar({ data, compact = false, className }: EgoStarProps) {
               <ContextMenuItem
                 onSelect={() => {
                   void navigator.clipboard?.writeText(
-                    `${spoke.person.name} — Kin ${spoke.kin} (${spoke.sealName}), born ${spoke.person.birthDate}. ` +
+                    `${spoke.person.name}: Kin ${spoke.kin} (${spoke.sealName}), born ${spoke.person.birthDate}. ` +
                       `${center.person.name}'s ${spoke.tie.type.replace(/-/g, ' ')}.`,
                   )
                 }}
@@ -414,7 +486,7 @@ export function EgoStar({ data, compact = false, className }: EgoStarProps) {
             transition={{ type: 'spring', stiffness: 220, damping: 20 }}
           >
             <div className="flex items-center justify-between">
-              <p className="font-display text-base text-white">
+              <p className="font-display text-base font-medium text-white">
                 {'person' in shownCard ? shownCard.person.name : shownCard.name}
               </p>
               <button
@@ -426,7 +498,7 @@ export function EgoStar({ data, compact = false, className }: EgoStarProps) {
                 ×
               </button>
             </div>
-            <p className="mt-0.5 text-[10px] uppercase tracking-widest text-white/50">
+            <p className="mt-0.5 text-[10px] uppercase tracking-wider text-white/50">
               Five-system reading
             </p>
             <div className="mt-3 space-y-1.5">
@@ -486,15 +558,17 @@ export function EgoStar({ data, compact = false, className }: EgoStarProps) {
             <ContextMenuShortcut>&lt;1 bit</ContextMenuShortcut>
           </ContextMenuCheckboxItem>
           <p className="px-2 py-1.5 text-[11px] leading-snug text-muted-foreground">
-            A tie under 1 bit is true of more than half of all pairs — it says
+            A tie under 1 bit is true of more than half of all pairs. It says
             nothing about these two.
           </p>
         </ContextMenuContent>
       </ContextMenu>
 
-      {/* Every selected layer's verdict on the hovered pair, side by side. */}
+      {/* Every selected layer's verdict on the hovered pair, side by side.
+          Hidden on touch widths — there is no hover, and the strip's reserved
+          height collided with the bottom node's caption. */}
       {!compact && (
-      <div className="mt-6 min-h-[54px]">
+      <div className="mt-6 hidden min-h-[54px] md:block">
         {hovered ? (
           <div className="flex flex-wrap items-center justify-center gap-2">
             {systemsFor(hovered)
@@ -535,7 +609,7 @@ export function EgoStar({ data, compact = false, className }: EgoStarProps) {
 
       {!compact && (
         <p className="mt-2 text-center text-xs text-white/40">
-          The Dreamspell oracle, drawn with people — guide above, analog right, antipode left,
+          The Dreamspell oracle, drawn with people: guide above, analog right, antipode left,
           occult below. The cross sets position; the layers set the strands.
         </p>
       )}
@@ -551,7 +625,10 @@ interface PersonProps {
   readonly sealName: string
   readonly kin: number
   readonly color: string
+  /** Glyph center, in canvas PIXELS — the same geometry the arms use. */
   readonly pos: { x: number; y: number }
+  /** Glyph radius in px — must match the radius the arm trim used. */
+  readonly radius: number
   /**
    * How unusual this pairing is (information content of its ties), 0-100.
    * Absent on the ego — she has no tie to herself. This is NOT a "compatibility"
@@ -561,6 +638,7 @@ interface PersonProps {
   readonly isCenter?: boolean
   /** Preview sizing: smaller glyph, name only, no kin/rarity lines. */
   readonly compact?: boolean
+  readonly isMd?: boolean
   readonly captionAbove?: boolean
   readonly dimmed: boolean
   readonly delay?: number
@@ -570,6 +648,13 @@ interface PersonProps {
 
 /**
  * A person on the map: their own seal glyph, their name, their kin.
+ *
+ * ANCHORING: the outer div owns position AND the -50% centering translate;
+ * the inner motion.button owns only scale/opacity. When one element carried
+ * both, framer-motion's inline transform silently discarded the Tailwind
+ * translate classes and every node rendered pinned by its top-left corner —
+ * which is why no arm ever met a node. The caption is absolutely positioned
+ * off the glyph so its height never shifts the anchor either.
  *
  * forwardRef because Radix's ContextMenuTrigger `asChild` needs to attach a ref
  * to the real DOM node — without it the right-click menu silently never opens.
@@ -582,9 +667,11 @@ const Person = forwardRef<HTMLButtonElement, PersonProps>(function Person(
     kin,
     color,
     pos,
+    radius,
     rarity,
     isCenter = false,
     compact = false,
+    isMd = false,
     captionAbove = false,
     dimmed,
     delay = 0,
@@ -594,61 +681,72 @@ const Person = forwardRef<HTMLButtonElement, PersonProps>(function Person(
   },
   ref,
 ) {
+  const iconSize = compact ? 'xs' : isCenter ? (isMd ? 'lg' : 'sm') : isMd ? 'md' : 'xs'
+  // Largest square that stays inside the ring: side = r·√2, minus breathing room.
+  const iconPx = Math.round(radius * 1.3)
+
   return (
+    <div
+      className="absolute -translate-x-1/2 -translate-y-1/2"
+      style={{ left: pos.x, top: pos.y }}
+    >
     <motion.button
       ref={ref}
       {...rest}
       type="button"
-      className={`absolute flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 transition-opacity ${
-        captionAbove ? 'flex-col-reverse' : 'flex-col'
-      }`}
-      style={{ left: `${pos.x}%`, top: `${pos.y}%`, opacity: dimmed ? 0.35 : 1 }}
+      className="relative block"
+      style={{ width: radius * 2, height: radius * 2 }}
       initial={{ opacity: 0, scale: 0.7 }}
-      whileInView={{ opacity: dimmed ? 0.35 : 1, scale: 1 }}
-      viewport={{ once: true }}
+      animate={{ opacity: dimmed ? 0.35 : 1, scale: 1 }}
       transition={{ duration: 0.45, delay, ease: 'easeOut' }}
       onMouseEnter={() => onHover?.(true)}
       onMouseLeave={() => onHover?.(false)}
       onFocus={() => onHover?.(true)}
       onBlur={() => onHover?.(false)}
       onClick={onClick}
-      aria-label={`${name} — kin ${kin}, ${sealName}${rarity !== undefined ? `, rarity ${rarity} of 100` : ''}`}
+      aria-label={`${name}: kin ${kin}, ${sealName}${rarity !== undefined ? `, rarity ${rarity} of 100` : ''}`}
     >
       {/* The person's own Dreamspell seal glyph. Not an avatar — a datum. */}
       <span
-        className="grid place-items-center rounded-full border-2 transition-transform hover:scale-105"
+        className="grid h-full w-full place-items-center rounded-full border-2 transition-transform hover:scale-105"
         style={{
-          width: compact ? (isCenter ? 40 : 30) : isCenter ? 76 : 58,
-          height: compact ? (isCenter ? 40 : 30) : isCenter ? 76 : 58,
           backgroundColor: `${color}22`,
           borderColor: isCenter ? COLORS.brand : `${color}88`,
           boxShadow: isCenter ? `0 0 32px ${COLORS.brand}44` : undefined,
         }}
       >
-        <SealIcon sealNumber={seal} size={compact ? 'xs' : isCenter ? 'lg' : 'md'} />
+        <span className="grid place-items-center" style={{ width: iconPx, height: iconPx }}>
+          <SealIcon sealNumber={seal} size={iconSize} className="h-full w-full object-contain" />
+        </span>
       </span>
 
-      {/* Grouped so flipping the caption above/below never reorders these. */}
-      <span className="flex flex-col items-center gap-1">
+      {/* Caption hangs off the glyph — absolutely positioned so its height
+          never moves the node's anchor. */}
+      <span
+        className={`pointer-events-none absolute left-1/2 flex -translate-x-1/2 flex-col items-center gap-1 ${
+          captionAbove ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+        } ${isCenter ? 'rounded-md bg-ground/80 px-1.5 py-0.5' : ''}`}
+      >
         <span
           className={
             compact
               ? `leading-none ${isCenter ? 'text-[10px] text-white' : 'text-[9px] text-white/70'}`
-              : `leading-none ${isCenter ? 'text-[15px] text-white' : 'text-[13px] text-white/80'}`
+              : `leading-none ${isCenter ? 'text-xs text-white md:text-[15px]' : 'text-[11px] text-white/80 md:text-[13px]'}`
           }
         >
           {name}
         </span>
 
         {/* The preview is a card, not the instrument — a name is all it can carry
-            at this size without the labels colliding, which is what they did. */}
+            at this size without the labels colliding, which is what they did.
+            Same logic on phone widths: the kin and rarity lines only exist md+. */}
         {!compact && (
           <>
-            <span className="whitespace-nowrap font-mono text-[10px] leading-none text-white/40">
+            <span className="hidden whitespace-nowrap font-mono text-[10px] leading-none text-white/40 md:block">
               Kin {kin} · {sealName}
             </span>
             {rarity !== undefined && (
-              <span className="whitespace-nowrap font-mono text-[10px] leading-none text-white/30">
+              <span className="hidden whitespace-nowrap font-mono text-[10px] leading-none text-white/30 md:block">
                 rarity {rarity}
               </span>
             )}
@@ -656,5 +754,6 @@ const Person = forwardRef<HTMLButtonElement, PersonProps>(function Person(
         )}
       </span>
     </motion.button>
+    </div>
   )
 })

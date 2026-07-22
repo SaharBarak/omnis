@@ -1,7 +1,6 @@
 'use client'
 
 import { Sparkles } from 'lucide-react'
-import { SealIcon } from './SealIcon'
 import type { Kin } from '@pleiad/engine/core/types'
 import { dateToKin, kinToSeal, kinToTone } from '@pleiad/engine/calculations/dreamspell'
 import {
@@ -13,6 +12,7 @@ import {
 } from '@pleiad/engine/calculations/yearly'
 import { getSeal } from '@pleiad/engine/data/seals'
 import { getTone } from '@pleiad/engine/data/tones'
+import { SealIcon } from './SealIcon'
 import { cn } from '@/lib/utils'
 
 export interface DreamspellYearDisplayProps {
@@ -52,7 +52,7 @@ export function DreamspellYearDisplay({
 
       <div className="mt-4 text-center text-sm text-muted-foreground">
         <p>
-          {dreamspellYear.startDate} — {dreamspellYear.endDate}
+          {dreamspellYear.startDate} to {dreamspellYear.endDate}
         </p>
       </div>
     </div>

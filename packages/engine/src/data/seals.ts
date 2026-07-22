@@ -8,7 +8,7 @@ function getSealColor(sealNumber: number): ColorFamily {
 }
 
 export const SEALS: readonly Seal[] = Object.freeze([
-  { number: 1,  mayan: 'Imix',     english: 'Dragon',        hebrew: 'תנין',          color: getSealColor(1) },
+  { number: 1,  mayan: 'Imix',     english: 'Dragon',        hebrew: 'דרקון',         color: getSealColor(1) },
   { number: 2,  mayan: 'Ik',       english: 'Wind',          hebrew: 'רוח',           color: getSealColor(2) },
   { number: 3,  mayan: 'Akbal',    english: 'Night',         hebrew: 'לילה',          color: getSealColor(3) },
   { number: 4,  mayan: 'Kan',      english: 'Seed',          hebrew: 'זרע',           color: getSealColor(4) },

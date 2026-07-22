@@ -1,6 +1,5 @@
 'use client'
 
-import { cn } from '@/lib/utils'
 import {
   calculatePersonalMayanDates,
   formatLongCount,
@@ -10,6 +9,7 @@ import {
   type KatunBirthday,
   type CalendarRoundReturn,
 } from '@pleiad/engine/calculations/long-count'
+import { cn } from '@/lib/utils'
 
 export interface MayanTimelineDisplayProps {
   birthDateStr: string

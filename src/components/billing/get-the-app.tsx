@@ -17,7 +17,7 @@ export function GetTheApp({
   if (!hasStoreLinks) {
     return (
       <p className={`text-sm text-white/50 ${className}`}>
-        Plans are purchased in the Pleiad app — coming soon to the App Store and
+        Plans are purchased in the Pleiad app. Coming soon to the App Store and
         Google Play.
       </p>
     )
@@ -32,7 +32,7 @@ export function GetTheApp({
           rel="noreferrer"
           className="rounded-xl bg-brand px-5 py-2.5 text-sm font-medium text-white transition active:scale-[0.98]"
         >
-          {label} — App Store
+          {label} (App Store)
         </a>
       )}
       {PLAY_STORE_URL && (
@@ -42,7 +42,7 @@ export function GetTheApp({
           rel="noreferrer"
           className="rounded-xl border border-white/15 px-5 py-2.5 text-sm font-medium text-white/90 transition hover:bg-white/5 active:scale-[0.98]"
         >
-          {label} — Google Play
+          {label} (Google Play)
         </a>
       )}
     </div>

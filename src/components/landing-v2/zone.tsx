@@ -11,7 +11,7 @@ import { COLORS, TYPE } from '@/lib/design/landing-tokens'
 
 // ============================================
 // ZONE — the shared Railway-grammar section:
-// mural band → pill → serif H2 → prose → embed → triad → lineage row
+// mural band → pill → serif H2 → prose → embed → triad
 // ============================================
 
 const easeOut = [0.4, 0, 0.2, 1] as const
@@ -61,7 +61,9 @@ export function Zone({
   return (
     <section
       id={id}
-      className={`relative overflow-hidden ${compact ? 'py-20 md:py-28' : 'py-28 md:py-40'}`}
+      // py-24 md:py-32 is the page's section beat (atlas, callouts) — zones on
+      // py-40 read as a different page; only the Portal finale breathes wider.
+      className={`relative overflow-hidden ${compact ? 'py-20 md:py-28' : 'py-24 md:py-32'}`}
       style={{ backgroundColor: MURAL_GROUND }}
     >
       {/* Mural band — fades into shared ground at both edges */}
@@ -86,7 +88,7 @@ export function Zone({
       <div className="relative mx-auto max-w-content px-6">
         {/* Pill */}
         <motion.span
-          className="inline-block rounded-full border px-4 py-1.5 text-xs uppercase tracking-[0.18em]"
+          className={`${TYPE.eyebrow} inline-block rounded-full border px-4 py-1.5`}
           style={{ borderColor: `${accent}55`, color: accent, backgroundColor: `${accent}14` }}
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -98,7 +100,7 @@ export function Zone({
 
         {/* Serif headline */}
         <motion.h2
-          className={`${TYPE.zone} mt-6 max-w-3xl`}
+          className={`${TYPE.section} mt-6 max-w-3xl`}
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
@@ -131,7 +133,7 @@ export function Zone({
         {/* Embedded product UI */}
         {children && (
           <motion.div
-            className={`mt-14 ${leansRight ? 'md:-mr-8 md:ml-16 lg:-mr-14' : 'md:-ml-8 md:mr-16 lg:-ml-14'}`}
+            className={`mt-12 ${leansRight ? 'md:-mr-8 md:ml-16 lg:-mr-14' : 'md:-ml-8 md:mr-16 lg:-ml-14'}`}
             initial={{ opacity: 0, y: 28 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-60px' }}
@@ -143,7 +145,7 @@ export function Zone({
 
         {/* Triad — divide-y rows, not card columns (taste-audit A2) */}
         {triad && !compact && (
-          <div className="mt-14 max-w-2xl divide-y divide-white/10 border-t border-white/10">
+          <div className="mt-12 max-w-2xl divide-y divide-white/10 border-t border-white/10">
             {triad.map((item, i) => (
               <motion.div
                 key={item.title}
@@ -153,7 +155,7 @@ export function Zone({
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.5, delay: i * 0.08, ease: easeOut }}
               >
-                <h3 className="w-56 shrink-0 text-sm font-semibold uppercase tracking-wide text-white/90">
+                <h3 className={`${TYPE.h3} w-56 shrink-0`}>
                   {item.title}
                 </h3>
                 <p className="text-sm leading-relaxed text-white/50">{item.text}</p>
@@ -162,26 +164,6 @@ export function Zone({
           </div>
         )}
 
-        {/* Lineage row */}
-        {flavor && !compact && (
-          <motion.div
-            className="mt-12 flex flex-wrap items-baseline gap-x-3 gap-y-2 border-t border-white/10 pt-8"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true, margin: '-40px' }}
-            transition={{ duration: 0.6 }}
-          >
-            <p className="font-mono text-xs tracking-wide text-white/40">{flavor.lineage}</p>
-            <Link
-              href={flavor.learnHref}
-              className="inline-flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-80"
-              style={{ color: accent }}
-            >
-              {flavor.learnLabel}
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </motion.div>
-        )}
       </div>
     </section>
   )

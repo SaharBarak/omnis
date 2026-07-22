@@ -31,7 +31,7 @@ const howToSchema = {
       "@type": "HowToStep",
       "position": 2,
       "name": "View connections",
-      "text": "See how your Solar Seals, Galactic Tones, and color families relate — including oracle connections and wavespell alignment.",
+      "text": "See how your Solar Seals, Galactic Tones, and color families relate, including oracle connections and wavespell alignment.",
     },
     {
       "@type": "HowToStep",

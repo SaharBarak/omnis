@@ -5,7 +5,7 @@ import {
   softwareApplicationSchema,
   buildBreadcrumbs,
 } from '@/components/seo/json-ld';
-import { NavV2, FooterV2, FaqV2, StarParallax } from '@/components/landing-v2';
+import { NavV2, FooterV2, FaqV2, StarParallax, MuralBackdrop } from '@/components/landing-v2';
 import { FreeLead, PaidTiers, PlanLedger } from '@/components/pricing/pricing-sections';
 import { TYPE } from '@/lib/design/landing-tokens';
 import { MURAL_GROUND } from '@/lib/design/system-flavors';
@@ -51,6 +51,13 @@ export default function PricingPage() {
 
       <main className="relative overflow-hidden pb-24 pt-32 sm:pt-40">
         <StarParallax />
+
+        {/* The night sky rising from under the FAQ — the page ends in weather. */}
+        <MuralBackdrop
+          placement="bottom"
+          src="/images/redesign/mural/hero-sky.webp"
+          opacity={0.3}
+        />
 
         {/* Hero — the free reading leads, not the signup wall. */}
         <section className="relative mx-auto max-w-content px-6 text-center">

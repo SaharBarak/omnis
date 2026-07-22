@@ -146,7 +146,7 @@ function InsightLines({ analysis }: { analysis: FullGroupAnalysis }) {
   if (analysis.insights.length === 0) {
     return (
       <Text variant="bodyMedium" color="onSurfaceVariant">
-        The circle reads even — no single pattern dominates yet.
+        The circle reads even: no single pattern dominates yet.
       </Text>
     )
   }
@@ -289,7 +289,7 @@ export default function CircleScreen() {
       return (
         <View style={styles.stateBlock}>
           <ErrorState
-            message="This circle is out of reach. We couldn't load it — it's safe; check your connection."
+            message="This circle is out of reach. We couldn't load it, but it's safe; check your connection."
             retryLabel={isRefetching ? 'Trying…' : 'Try again'}
             onRetry={() => {
               if (!isRefetching) refetch()
@@ -303,7 +303,7 @@ export default function CircleScreen() {
       return (
         <EmptyState
           title="A circle needs two people."
-          body="Add members and the dynamic reads itself — seals, tones, balance."
+          body="Add members and the dynamic reads itself: seals, tones, balance."
           actionLabel="Add people"
           onAction={() => setEditOpen(true)}
         />

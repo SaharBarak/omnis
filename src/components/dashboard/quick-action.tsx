@@ -12,6 +12,11 @@ interface QuickActionProps {
   className?: string
 }
 
+/**
+ * Explore row — a hairline-divided navigation row (lists are rows,
+ * never card grids). Parent supplies the dividers via
+ * `divide-y divide-white/[0.07]`.
+ */
 export function QuickAction({
   title,
   description,
@@ -20,26 +25,21 @@ export function QuickAction({
   className,
 }: QuickActionProps) {
   return (
-    <Link href={href}>
-      <div className={cn(
-        'interactive-card p-4 h-full',
+    <Link
+      href={href}
+      className={cn(
+        'group flex items-center gap-4 py-4 transition-colors active:scale-[0.98]',
         className
-      )}>
-        <div className="flex items-start gap-3">
-          <div className="p-2 rounded-lg bg-muted text-muted-foreground shrink-0 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-            <Icon className="w-5 h-5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-foreground leading-tight">
-              {title}
-            </h3>
-            <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
-              {description}
-            </p>
-          </div>
-          <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
-        </div>
+      )}
+    >
+      <div className="shrink-0 rounded-full border border-white/[0.07] p-2.5 text-white/50 transition-colors group-hover:border-white/[0.12] group-hover:text-brand-soft">
+        <Icon className="size-5" strokeWidth={1.5} />
       </div>
+      <div className="min-w-0 flex-1">
+        <h3 className="font-medium leading-tight text-white/90">{title}</h3>
+        <p className="mt-0.5 truncate text-sm text-white/50">{description}</p>
+      </div>
+      <ChevronRight className="size-4 shrink-0 text-white/35 transition-transform group-hover:translate-x-0.5" />
     </Link>
   )
 }

@@ -22,7 +22,7 @@ export const WAVESPELLS: readonly WavespellData[] = Object.freeze([
     number: 1,
     sealNumber: 1,
     name: 'Red Dragon Wavespell',
-    nameHebrew: 'גל התנין האדום',
+    nameHebrew: 'גל הדרקון האדום',
     kinRange: [1, 13],
     theme: 'Birth & Nurturing',
     journey: 'From purpose through transcendence',

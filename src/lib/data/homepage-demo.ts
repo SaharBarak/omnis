@@ -141,7 +141,7 @@ const HARMONY_BY_HD: Record<string, DemoTie['harmony']> = {
 }
 
 const HD_MEANING: Record<string, string> = {
-  electromagnetic: 'Each holds one gate of the same channel — they complete each other.',
+  electromagnetic: 'Each holds one gate of the same channel: they complete each other.',
   companionship: 'Both carry the whole channel. Reinforcing, easy company.',
   dominance: 'One carries the full channel, the other a single gate.',
   compromise: 'Both hold the same single gate, and neither closes it.',
@@ -301,7 +301,7 @@ export function buildHomepageDemo(): {
             from: a.id,
             to: b.id,
             type: 'emergent-center',
-            meaning: `Together they define the ${centerName(center)} — a centre neither of them has alone.`,
+            meaning: `Together they define the ${centerName(center)}, a centre neither of them has alone.`,
             harmony: 'transformative',
             score: rel.definedCenterCount,
             channel: center,
@@ -316,7 +316,7 @@ export function buildHomepageDemo(): {
             from: other.id,
             to: who.id, // DIRECTED: the bridge runs one way
             type: 'split-bridge',
-            meaning: `${other.name} closes ${who.name}'s split — in their presence it reads as one piece.`,
+            meaning: `${other.name} closes ${who.name}'s split: in their presence it reads as one piece.`,
             harmony: 'transformative',
             score: rel.splitBridge.islandsAlone,
           }))
@@ -346,7 +346,7 @@ export function buildHomepageDemo(): {
             from: a.id,
             to: b.id,
             type: 'electromagnetic',
-            meaning: `${rel.counts.electromagnetic} channels completed only by the two of them. (So do 95% of pairs — it's the count and the channel that matter.)`,
+            meaning: `${rel.counts.electromagnetic} channels completed only by the two of them. (So do 95% of pairs; it's the count and the channel that matter.)`,
             harmony: 'transformative',
             score: rel.counts.electromagnetic,
             channel: em?.channelId,
@@ -714,7 +714,7 @@ export function buildReadingTabs(charts: Record<string, DemoCharts>): readonly R
       key: 'astrology',
       title: 'Natal chart',
       value: `Sun in ${sun.name} · Moon in ${c.natal.moonSign.name}`,
-      detail: `${asc ? `Rising ${asc.sign.name} — ` : ''}${c.natal.planets.length} placements, ${c.natal.aspects.length} aspects`,
+      detail: `${asc ? `Rising ${asc.sign.name}, ` : ''}${c.natal.planets.length} placements, ${c.natal.aspects.length} aspects`,
       icon: `/images/astrology/signs/${iconSlug(sun.number, sun.name)}.svg`,
     },
     {
@@ -735,118 +735,17 @@ export function buildReadingTabs(charts: Record<string, DemoCharts>): readonly R
       key: 'humanDesign',
       title: 'Bodygraph',
       value: `${hd.type} ${hd.profile.id}`,
-      detail: `${hd.authority} authority — ${hd.channels.length} channels defined`,
+      detail: `${hd.authority} authority, ${hd.channels.length} channels defined`,
       icon: '/images/human-design/bodygraph/bodygraph.svg',
     },
     {
       key: 'gematria',
       title: 'Name value',
-      value: `${c.gematria.text} — ${c.gematriaValue}`,
+      value: `${c.gematria.text} (${c.gematriaValue})`,
       detail: `${c.gematria.letterCount} letters, opening with ${firstLetter?.name ?? ''}`,
       icon: `/images/gematria/letters/${iconSlug(firstLetter?.number ?? 1, firstLetter?.id ?? 'aleph')}.svg`,
     },
   ]
-}
-
-export interface PairScoreRow {
-  readonly key: SystemKey
-  readonly score: number
-  /** The engine's own name for the strongest tie this system found. */
-  readonly note: string
-}
-
-export interface PairScoresData {
-  readonly a: DemoPerson
-  readonly b: DemoPerson
-  readonly rows: readonly PairScoreRow[]
-}
-
-/** The pair §4 puts under the microscope: the ego and her guide. */
-const FEATURED_PAIR: readonly [string, string] = [EGO_ID, 'ari']
-
-/** §4 — one pair, five real per-system scores, each annotated by its own top tie. */
-export function buildPairScores(
-  people: readonly DemoPerson[],
-  pairs: readonly DemoPair[],
-  order: readonly SystemKey[],
-): PairScoresData {
-  const [aId, bId] = FEATURED_PAIR
-  const pair = pairs.find(
-    (p) => (p.a === aId && p.b === bId) || (p.a === bId && p.b === aId),
-  )
-  if (!pair) throw new Error(`Pair scores: the engine produced no pair for ${aId}/${bId}.`)
-
-  const person = (id: string) => people.find((p) => p.id === id)!
-
-  const rows = order.map((key) => {
-    const top = [...pair.ties].filter((t) => t.system === key).sort(byInterest)[0]
-    return {
-      key,
-      score: Math.round(pair.systems[key as CompatSystemKey] ?? 0),
-      // Name the tie and let it speak; never invent a flavor line.
-      note: top ? `${top.type.replace(/-/g, ' ')}${top.channel ? ` ${top.channel}` : ''}` : 'no tie found',
-    }
-  })
-
-  return { a: person(aId), b: person(bId), rows }
-}
-
-export interface LibraryPerson {
-  readonly name: string
-  /** Kin, sun sign, and Human Design type — the line the app itself shows. */
-  readonly meta: string
-}
-
-/** §5 — the library rows, from the same people the hero draws. */
-export function buildLibraryPeople(
-  people: readonly DemoPerson[],
-  charts: Record<string, DemoCharts>,
-): readonly LibraryPerson[] {
-  return people.map((p) => {
-    const c = charts[p.id]
-    return {
-      name: p.name,
-      meta: `Kin ${c.kin} · ${c.natal.sunSign.name} · ${c.bodygraph.type} ${c.bodygraph.profile.id}`,
-    }
-  })
-}
-
-/**
- * Build the five acetate layers for the scroll set-piece — one edge list per
- * system, in FLAVOR_DESCENT order. Every edge is a real tie; if a system found
- * no tie between two people, there is no line. We keep the strongest few per
- * layer so the canvas stays readable.
- */
-export function buildLayerEdges(
-  people: readonly DemoPerson[],
-  pairs: readonly DemoPair[],
-  order: readonly SystemKey[],
-  maxPerLayer = 4,
-): readonly (readonly { x1: number; y1: number; x2: number; y2: number; type: string }[])[] {
-  const byId = (id: string) => people.find((p) => p.id === id)!
-
-  return order.map((system) => {
-    const edges = pairs
-      .flatMap((pair) => pair.ties.filter((t) => t.system === system))
-      // Strongest ties first, so the layer shows its most meaningful links.
-      .sort((a, b) => b.score - a.score)
-
-    // One line per person-pair — don't stack duplicates on the same segment.
-    const seen = new Set<string>()
-    const picked: { x1: number; y1: number; x2: number; y2: number; type: string }[] = []
-
-    for (const t of edges) {
-      const key = [t.from, t.to].sort().join('|')
-      if (seen.has(key)) continue
-      seen.add(key)
-      const a = byId(t.from)
-      const b = byId(t.to)
-      picked.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, type: t.type })
-      if (picked.length >= maxPerLayer) break
-    }
-
-    return picked
-  })
 }
 
 /** Build the featured callouts for the homepage §4, from real computed pairs. */
@@ -865,22 +764,31 @@ export function buildCallouts(
   const byId = (id: string) => people.find((p) => p.id === id)!
 
   const seenPairs = new Set<string>()
+  const seenSystems = new Set<string>()
   const out: DemoCallout[] = []
 
   const ranked = pairs
     .flatMap((p) => p.ties.map((t) => ({ tie: t, key: [p.a, p.b].sort().join('|') })))
     .sort((x, y) => bySurprisal(x.tie, y.tie))
 
-  for (const { tie: t, key } of ranked) {
-    if (out.length >= CALLOUT_COUNT) break
-    if (seenPairs.has(key)) continue
-    seenPairs.add(key)
-    out.push({
-      tie: t,
-      from: byId(t.from),
-      to: byId(t.to),
-      headline: headlineFor(t, byId(t.from), byId(t.to)),
-    })
+  // Two passes: first demand a DISTINCT system per card — the section's
+  // headline is "the systems say something specific", and three Dreamspell
+  // cards demonstrate exactly one system. Then fill any remaining slots by
+  // pure surprisal.
+  for (const requireNewSystem of [true, false]) {
+    for (const { tie: t, key } of ranked) {
+      if (out.length >= CALLOUT_COUNT) break
+      if (seenPairs.has(key)) continue
+      if (requireNewSystem && seenSystems.has(t.system)) continue
+      seenPairs.add(key)
+      seenSystems.add(t.system)
+      out.push({
+        tie: t,
+        from: byId(t.from),
+        to: byId(t.to),
+        headline: headlineFor(t, byId(t.from), byId(t.to)),
+      })
+    }
   }
 
   return out
@@ -924,11 +832,19 @@ export function buildCircles(
     const penta = buildPenta(members.map((m) => charts[m.id].bodygraph))
 
     const emergent = [...penta.emergentCenters]
-    const names = members.map((m) => m.name)
-    const insight =
-      emergent.length > 0
-        ? `Together they define the ${emergent.map(centerName).join(', ')} — ${emergent.length === 1 ? 'a centre' : 'centres'} none of them defines alone.`
-        : `No centre emerges here that ${names[0]} doesn't already carry — this group amplifies rather than adds.`
+
+    // Three tiers of finding, so three circles never share a sentence:
+    // emergent centres → emergent channels → the group's raw shape.
+    const emergentChannels = penta.channels.filter((c) => c.state === 'emergent')
+    let insight: string
+    if (emergent.length > 0) {
+      insight = `Together they define the ${emergent.map(centerName).join(', ')}, ${emergent.length === 1 ? 'a centre' : 'centres'} none of them defines alone.`
+    } else if (emergentChannels.length > 0) {
+      const first = emergentChannels[0].channel
+      insight = `${emergentChannels.length === 1 ? 'One channel appears' : `${emergentChannels.length} channels appear`} only when they're together: ${first.name} (${first.id}) runs through this room and through no one in it.`
+    } else {
+      insight = `${penta.definedCenters.size} of 9 centres are defined in this room, and ${penta.counts.hanging} hanging gates wait for whoever joins next: this circle amplifies what its people already are.`
+    }
 
     return { name, accent, members, emergentCenters: emergent, insight }
   })

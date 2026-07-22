@@ -1,6 +1,7 @@
 'use client'
 
-import { Progress } from '@/components/ui/progress'
+import { MeterBar } from '@/components/app-kit'
+import { COLORS } from '@/lib/design/landing-tokens'
 
 interface UsageItemProps {
   label: string
@@ -12,20 +13,15 @@ interface UsageItemProps {
 function UsageItem({ label, used, limit, percentage }: UsageItemProps) {
   const isUnlimited = limit === Infinity || limit > 10000
   const displayLimit = isUnlimited ? '∞' : limit.toString()
-  
+
   return (
-    <div className="space-y-2">
-      <div className="flex justify-between text-sm">
-        <span className="text-muted-foreground">{label}</span>
-        <span className="font-medium">
-          {used} / {displayLimit}
-        </span>
-      </div>
-      <Progress 
-        value={isUnlimited ? 0 : percentage} 
-        className="h-2"
-      />
-    </div>
+    <MeterBar
+      label={label}
+      value={isUnlimited ? 0 : percentage}
+      max={100}
+      accent={COLORS.brand}
+      displayValue={`${used}/${displayLimit}`}
+    />
   )
 }
 
@@ -47,7 +43,7 @@ export function UsageDisplay({ usage }: UsageDisplayProps) {
         percentage={usage.profiles.percentage}
       />
       <UsageItem
-        label="AI Interpretations (this month)"
+        label="AI This Month"
         used={usage.aiInterpretations.used}
         limit={usage.aiInterpretations.limit}
         percentage={usage.aiInterpretations.percentage}

@@ -181,7 +181,7 @@ export default function MapScreen() {
       return (
         <View style={styles.errorWrap}>
           <ErrorState
-            message="The map is out of reach. We couldn't load your constellation — nothing is lost; check your connection."
+            message="The map is out of reach. We couldn't load your constellation, but nothing is lost; check your connection."
             retryLabel={retrying ? 'Trying…' : 'Try again'}
             onRetry={() => {
               if (!retrying) retry()

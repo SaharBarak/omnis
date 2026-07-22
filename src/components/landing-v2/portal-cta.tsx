@@ -2,11 +2,11 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { AmbientVideo } from './ambient-video'
+import { Magnetic } from './magnetic'
 import { Button } from '@/components/ui/button'
 import { MURAL_GROUND } from '@/lib/design/system-flavors'
 import { TYPE } from '@/lib/design/landing-tokens'
-import { AmbientVideo } from './ambient-video'
-import { Magnetic } from './magnetic'
 
 // ============================================
 // PORTAL CTA — the boarding door (Railway's "All Aboard", ours in stone).
@@ -70,7 +70,7 @@ export function PortalCta() {
                 size="lg"
                 className="rounded-xl bg-brand px-10 text-base font-semibold text-white transition-transform hover:bg-brand-soft active:scale-[0.98]"
               >
-                <Link href="/login">Open the map</Link>
+                <Link href="/calculate">Start with your birthday</Link>
               </Button>
             </Magnetic>
           </motion.div>

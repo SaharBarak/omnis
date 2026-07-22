@@ -1,12 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import type { NotificationSettings as NotificationSettingsType, PredictionIntensity, PredictionSystem } from '@pleiad/engine/types/prediction'
+import { Eyebrow } from '@/components/app-kit'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import type { NotificationSettings as NotificationSettingsType, PredictionIntensity, PredictionSystem } from '@pleiad/engine/types/prediction'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { cn } from '@/lib/utils'
 
 interface NotificationSettingsProps {
   onSave?: (settings: NotificationSettingsType) => void
@@ -30,6 +37,15 @@ const INTENSITIES: { value: PredictionIntensity; label: string; description: str
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
+const ADVANCE_NOTICE_OPTIONS: { value: number; label: string }[] = [
+  { value: 0, label: 'Same day' },
+  { value: 1, label: '1 day before' },
+  { value: 3, label: '3 days before' },
+  { value: 7, label: '1 week before' },
+  { value: 14, label: '2 weeks before' },
+  { value: 30, label: '1 month before' },
+]
+
 export function NotificationSettings({ onSave, className }: NotificationSettingsProps) {
   const [settings, setSettings] = useState<NotificationSettingsType | null>(null)
   const [isSaving, setIsSaving] = useState(false)
@@ -38,20 +54,23 @@ export function NotificationSettings({ onSave, className }: NotificationSettings
 
   // Fetch current settings
   useEffect(() => {
-    fetchSettings()
-  }, [])
-
-  async function fetchSettings() {
-    try {
-      const response = await fetch('/api/notifications/settings')
-      const data = await response.json()
-      if (data.success) {
-        setSettings(data.data)
+    let cancelled = false
+    async function fetchSettings() {
+      try {
+        const response = await fetch('/api/notifications/settings')
+        const data = await response.json()
+        if (data.success && !cancelled) {
+          setSettings(data.data)
+        }
+      } catch (error) {
+        console.error('Error fetching settings:', error)
       }
-    } catch (error) {
-      console.error('Error fetching settings:', error)
     }
-  }
+    fetchSettings()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   async function handleSave() {
     if (!settings) return
@@ -117,30 +136,38 @@ export function NotificationSettings({ onSave, className }: NotificationSettings
 
   if (!settings) {
     return (
-      <Card className={className}>
-        <CardContent className="py-8 text-center text-muted-foreground">
-          Loading settings...
-        </CardContent>
-      </Card>
+      <div className={cn('surface-card p-6', className)}>
+        <div className="skeleton-shimmer h-3 w-32 rounded" />
+        <div className="skeleton-shimmer mt-3 h-5 w-56 rounded" />
+        <div className="mt-6 flex flex-col gap-4">
+          <div className="skeleton-shimmer h-10 w-full rounded" />
+          <div className="skeleton-shimmer h-10 w-full rounded" />
+          <div className="skeleton-shimmer h-10 w-2/3 rounded" />
+        </div>
+      </div>
     )
   }
 
   return (
-    <Card className={className}>
-      <CardHeader>
-        <CardTitle>Notification Settings</CardTitle>
-        <CardDescription>
+    <div className={cn('surface-card p-6', className)}>
+      <div className="flex flex-col gap-1">
+        <Eyebrow>Notifications</Eyebrow>
+        <h3 className="font-display text-lg font-semibold tracking-tight text-white/90">
+          Notification settings
+        </h3>
+        <p className="text-sm text-white/50">
           Configure how and when you receive prediction notifications
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+        </p>
+      </div>
+
+      <div className="mt-6 space-y-6">
         {/* Master Enable */}
         <div className="flex items-center justify-between">
           <div>
-            <Label htmlFor="enabled" className="font-medium">
+            <Label htmlFor="enabled" className="font-medium text-white/90">
               Enable Notifications
             </Label>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-white/50">
               Receive notifications for upcoming events
             </p>
           </div>
@@ -155,13 +182,14 @@ export function NotificationSettings({ onSave, className }: NotificationSettings
           <>
             {/* Channels */}
             <div className="space-y-3">
-              <Label className="font-medium">Notification Channels</Label>
+              <Label className="font-medium text-white/90">Notification Channels</Label>
               <div className="flex flex-wrap gap-2">
                 {(['in-app', 'email'] as const).map((channel) => (
                   <Button
                     key={channel}
                     variant={settings.channels.includes(channel) ? 'default' : 'outline'}
                     size="sm"
+                    className="rounded-full active:scale-[0.98]"
                     onClick={() => toggleChannel(channel)}
                   >
                     {channel === 'in-app' ? 'In-App' : 'Email'}
@@ -174,10 +202,10 @@ export function NotificationSettings({ onSave, className }: NotificationSettings
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="dailyDigest" className="font-medium">
+                  <Label htmlFor="dailyDigest" className="font-medium text-white/90">
                     Daily Digest
                   </Label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-white/50">
                     Get a summary each morning
                   </p>
                 </div>
@@ -188,19 +216,23 @@ export function NotificationSettings({ onSave, className }: NotificationSettings
                 />
               </div>
               {settings.dailyDigest && (
-                <div className="pl-4 space-y-2">
-                  <Label className="text-sm">Time (UTC)</Label>
-                  <select
+                <div className="space-y-2 pl-4">
+                  <Label className="text-sm text-white/70">Time (UTC)</Label>
+                  <Select
                     value={settings.dailyDigestTime}
-                    onChange={(e) => updateSetting('dailyDigestTime', e.target.value)}
-                    className="w-full px-3 py-2 rounded-md border bg-background"
+                    onValueChange={(value) => updateSetting('dailyDigestTime', value)}
                   >
-                    {Array.from({ length: 24 }, (_, i) => (
-                      <option key={i} value={`${String(i).padStart(2, '0')}:00`}>
-                        {String(i).padStart(2, '0')}:00
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full font-mono [font-variant-numeric:tabular-nums]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 24 }, (_, i) => (
+                        <SelectItem key={i} value={`${String(i).padStart(2, '0')}:00`}>
+                          {String(i).padStart(2, '0')}:00
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
             </div>
@@ -209,10 +241,10 @@ export function NotificationSettings({ onSave, className }: NotificationSettings
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="weeklyDigest" className="font-medium">
+                  <Label htmlFor="weeklyDigest" className="font-medium text-white/90">
                     Weekly Digest
                   </Label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-white/50">
                     Get a weekly overview
                   </p>
                 </div>
@@ -223,27 +255,31 @@ export function NotificationSettings({ onSave, className }: NotificationSettings
                 />
               </div>
               {settings.weeklyDigest && (
-                <div className="pl-4 space-y-2">
-                  <Label className="text-sm">Day</Label>
-                  <select
-                    value={settings.weeklyDigestDay}
-                    onChange={(e) => updateSetting('weeklyDigestDay', parseInt(e.target.value))}
-                    className="w-full px-3 py-2 rounded-md border bg-background"
+                <div className="space-y-2 pl-4">
+                  <Label className="text-sm text-white/70">Day</Label>
+                  <Select
+                    value={String(settings.weeklyDigestDay)}
+                    onValueChange={(value) => updateSetting('weeklyDigestDay', parseInt(value, 10))}
                   >
-                    {DAYS.map((day, i) => (
-                      <option key={i} value={i}>
-                        {day}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DAYS.map((day, i) => (
+                        <SelectItem key={i} value={String(i)}>
+                          {day}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
             </div>
 
             {/* Systems */}
             <div className="space-y-3">
-              <Label className="font-medium">Systems</Label>
-              <p className="text-sm text-muted-foreground">
+              <Label className="font-medium text-white/90">Systems</Label>
+              <p className="text-sm text-white/50">
                 Which systems to receive notifications for
               </p>
               <div className="flex flex-wrap gap-2">
@@ -252,6 +288,7 @@ export function NotificationSettings({ onSave, className }: NotificationSettings
                     key={value}
                     variant={settings.systems.includes(value) ? 'default' : 'outline'}
                     size="sm"
+                    className="rounded-full active:scale-[0.98]"
                     onClick={() => toggleSystem(value)}
                   >
                     {label}
@@ -262,8 +299,8 @@ export function NotificationSettings({ onSave, className }: NotificationSettings
 
             {/* Minimum Intensity */}
             <div className="space-y-3">
-              <Label className="font-medium">Minimum Intensity</Label>
-              <p className="text-sm text-muted-foreground">
+              <Label className="font-medium text-white/90">Minimum Intensity</Label>
+              <p className="text-sm text-white/50">
                 Only notify for events at or above this level
               </p>
               <div className="grid grid-cols-2 gap-2">
@@ -271,7 +308,7 @@ export function NotificationSettings({ onSave, className }: NotificationSettings
                   <Button
                     key={value}
                     variant={settings.minIntensity === value ? 'default' : 'outline'}
-                    className="h-auto py-3 flex-col items-start"
+                    className="h-auto flex-col items-start rounded-xl py-3 active:scale-[0.98]"
                     onClick={() => updateSetting('minIntensity', value)}
                   >
                     <span className="font-medium">{label}</span>
@@ -283,41 +320,44 @@ export function NotificationSettings({ onSave, className }: NotificationSettings
 
             {/* Advance Notice */}
             <div className="space-y-3">
-              <Label className="font-medium">Advance Notice</Label>
-              <p className="text-sm text-muted-foreground">
+              <Label className="font-medium text-white/90">Advance Notice</Label>
+              <p className="text-sm text-white/50">
                 Days before an event to send notification
               </p>
-              <select
-                value={settings.advanceNotice}
-                onChange={(e) => updateSetting('advanceNotice', parseInt(e.target.value))}
-                className="w-full px-3 py-2 rounded-md border bg-background"
+              <Select
+                value={String(settings.advanceNotice)}
+                onValueChange={(value) => updateSetting('advanceNotice', parseInt(value, 10))}
               >
-                <option value={0}>Same day</option>
-                <option value={1}>1 day before</option>
-                <option value={3}>3 days before</option>
-                <option value={7}>1 week before</option>
-                <option value={14}>2 weeks before</option>
-                <option value={30}>1 month before</option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ADVANCE_NOTICE_OPTIONS.map(({ value, label }) => (
+                    <SelectItem key={value} value={String(value)}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </>
         )}
 
         {/* Actions */}
-        <div className="flex items-center gap-3 pt-4 border-t">
-          <Button onClick={handleSave} disabled={isSaving}>
+        <div className="flex items-center gap-3 border-t border-white/[0.07] pt-4">
+          <Button onClick={handleSave} disabled={isSaving} className="rounded-xl active:scale-[0.98]">
             {isSaving ? 'Saving...' : 'Save Settings'}
           </Button>
           {settings.channels.includes('email') && (
-            <Button variant="outline" onClick={handleTest} disabled={isTesting}>
+            <Button variant="outline" onClick={handleTest} disabled={isTesting} className="rounded-xl active:scale-[0.98]">
               {isTesting ? 'Sending...' : 'Send Test'}
             </Button>
           )}
           {testResult && (
-            <span className="text-sm text-muted-foreground">{testResult}</span>
+            <span className="text-sm text-white/50">{testResult}</span>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

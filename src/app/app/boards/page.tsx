@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   Plus,
   MoreVertical,
@@ -9,9 +10,9 @@ import {
   Trash2,
   Copy,
   Share2,
-  LayoutTemplate,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Dialog,
   DialogContent,
@@ -28,10 +29,14 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Label } from '@/components/ui/label'
 import { BoardShareDialog } from '@/components/boards/board-share-dialog'
+import { EmptyState } from '@/components/dashboard'
+import { useConfirm } from '@/components/dashboard/confirm-dialog'
+import { Notice, fadeUp, staggerParent, VIEWPORT_ONCE } from '@/components/app-kit'
 import { useBoards } from '@/lib/hooks/use-boards'
 import { BOARD_TEMPLATES, type BoardTemplate } from '@/lib/types/board'
 import type { Board } from '@/lib/types/database.types'
 import { TEMPLATE_ICONS, FALLBACK_TEMPLATE_ICON } from '@/components/canvas/template-selector'
+import { cn } from '@/lib/utils'
 
 /** Lucide glyph for a board template (replaces the emoji icons). */
 function TemplateGlyph({ templateId, className }: { templateId: string | null | undefined; className?: string }) {
@@ -51,6 +56,8 @@ export default function BoardsPage() {
     getShares,
     deleteShare,
   } = useBoards()
+  const confirm = useConfirm()
+  const reduced = useReducedMotion()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [newBoardName, setNewBoardName] = useState('')
   const [selectedTemplate, setSelectedTemplate] = useState<BoardTemplate>('blank')
@@ -77,7 +84,13 @@ export default function BoardsPage() {
   }
 
   const handleDeleteBoard = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this board?')) return
+    const confirmed = await confirm({
+      title: 'Delete this board?',
+      description: 'The board and everything on it will be permanently removed.',
+      confirmText: 'Delete',
+      variant: 'destructive',
+    })
+    if (!confirmed) return
     try {
       await deleteBoard(id)
     } catch (err) {
@@ -95,9 +108,24 @@ export default function BoardsPage() {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-muted-foreground">Loading...</div>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="skeleton-shimmer mb-2 h-9 w-36 rounded" />
+            <div className="skeleton-shimmer h-5 w-48 rounded" />
+          </div>
+          <div className="skeleton-shimmer h-10 w-32 rounded-xl" />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="surface-card overflow-hidden">
+              <div className="skeleton-shimmer aspect-video" />
+              <div className="p-4">
+                <div className="skeleton-shimmer h-4 w-32 rounded" />
+                <div className="skeleton-shimmer mt-3 h-3 w-24 rounded" />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     )
@@ -105,11 +133,13 @@ export default function BoardsPage() {
 
   if (error) {
     return (
-      <div className="p-6">
-        <div className="text-center text-destructive">
-          <p>Error loading boards</p>
-          <p className="text-sm">{error}</p>
+      <div className="space-y-6">
+        <div>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-white/90">Boards</h1>
         </div>
+        <Notice variant="error" title="Error loading boards">
+          {error}
+        </Notice>
       </div>
     )
   }
@@ -119,33 +149,32 @@ export default function BoardsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">Boards</h1>
-          <p className="text-muted-foreground">
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-white/90">Boards</h1>
+          <p className="mt-0.5 text-white/50">
             Create and edit visual boards
           </p>
         </div>
 
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button className="rounded-xl bg-brand text-white hover:bg-brand-soft active:scale-[0.98]">
+              <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
               New Board
             </Button>
           </DialogTrigger>
-          <DialogContent className="earth-card sm:max-w-lg">
+          <DialogContent className="surface-card sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle className="font-heading">Create New Board</DialogTitle>
+              <DialogTitle className="font-display font-medium">Create New Board</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 mt-4">
+            <div className="mt-4 space-y-4">
               {/* Board name */}
               <div className="space-y-2">
-                <Label>Board Name</Label>
-                <input
-                  type="text"
+                <Label htmlFor="board-name">Board Name</Label>
+                <Input
+                  id="board-name"
                   value={newBoardName}
                   onChange={(e) => setNewBoardName(e.target.value)}
                   placeholder="New Board"
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                   autoFocus
                 />
               </div>
@@ -159,20 +188,19 @@ export default function BoardsPage() {
                       <button
                         key={key}
                         type="button"
-                        className={`
-                          p-3 border rounded-lg text-left transition-all
-                          ${selectedTemplate === key
+                        className={cn(
+                          'rounded-xl border p-3 text-left transition-colors active:scale-[0.98]',
+                          selectedTemplate === key
                             ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                            : 'border-border hover:border-primary/50'
-                          }
-                        `}
+                            : 'border-white/[0.07] hover:border-white/[0.12]'
+                        )}
                         onClick={() => setSelectedTemplate(key)}
                       >
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="mb-1 flex items-center gap-2">
                           <TemplateGlyph templateId={key} className="h-4 w-4 text-primary" />
-                          <span className="font-medium text-sm text-foreground">{template.name}</span>
+                          <span className="text-sm font-medium text-white/90">{template.name}</span>
                         </div>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-white/50">
                           {template.description}
                         </p>
                       </button>
@@ -185,6 +213,7 @@ export default function BoardsPage() {
               <div className="flex justify-end gap-2">
                 <Button
                   variant="outline"
+                  className="rounded-xl active:scale-[0.98]"
                   onClick={() => setIsCreateOpen(false)}
                 >
                   Cancel
@@ -192,7 +221,7 @@ export default function BoardsPage() {
                 <Button
                   onClick={handleCreateBoard}
                   disabled={!newBoardName.trim() || isCreating}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  className="rounded-xl bg-brand text-white hover:bg-brand-soft active:scale-[0.98]"
                 >
                   {isCreating ? 'Creating...' : 'Create Board'}
                 </Button>
@@ -204,29 +233,31 @@ export default function BoardsPage() {
 
       {/* Boards grid */}
       {boards.length === 0 ? (
-        <div className="earth-card bg-card p-16 text-center">
-          <LayoutTemplate className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-heading text-foreground mb-2">No boards yet</h3>
-          <p className="text-muted-foreground mb-4">
-            Create a new board to get started
-          </p>
-          <Button onClick={() => setIsCreateOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-            <Plus className="h-4 w-4 mr-2" />
-            Create First Board
-          </Button>
-        </div>
+        <EmptyState
+          icon="boards"
+          title="No boards yet"
+          description="Create a new board to get started"
+          action={{ label: 'Create First Board', onClick: () => setIsCreateOpen(true) }}
+        />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <motion.div
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          variants={staggerParent}
+          initial={reduced ? false : 'hidden'}
+          whileInView="visible"
+          viewport={VIEWPORT_ONCE}
+        >
           {boards.map((board) => (
-            <BoardCard
-              key={board.id}
-              board={board}
-              onDelete={() => handleDeleteBoard(board.id)}
-              onDuplicate={() => handleDuplicateBoard(board.id, board.name)}
-              onShare={() => setShareTarget({ id: board.id, name: board.name })}
-            />
+            <motion.div key={board.id} variants={fadeUp}>
+              <BoardCard
+                board={board}
+                onDelete={() => handleDeleteBoard(board.id)}
+                onDuplicate={() => handleDuplicateBoard(board.id, board.name)}
+                onShare={() => setShareTarget({ id: board.id, name: board.name })}
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Share dialog */}
@@ -254,15 +285,15 @@ function BoardCard({ board, onDelete, onDuplicate, onShare }: BoardCardProps) {
   const template = board.template ? BOARD_TEMPLATES[board.template as BoardTemplate] : null
 
   return (
-    <div className="group relative earth-card bg-card overflow-hidden hover:shadow-earth-lg transition-shadow">
+    <div className="surface-card group relative overflow-hidden transition-colors hover:border-white/[0.12]">
       {/* Thumbnail / Preview */}
       <Link href={`/app/boards/${board.id}`}>
-        <div className="aspect-video bg-muted/30 flex items-center justify-center">
+        <div className="flex aspect-video items-center justify-center bg-white/[0.03]">
           {board.thumbnail ? (
             <img
               src={board.thumbnail}
               alt={board.name}
-              className="w-full h-full object-cover"
+              className="h-full w-full object-cover"
             />
           ) : (
             <TemplateGlyph templateId={board.template} className="h-10 w-10 text-primary/40" />
@@ -273,10 +304,10 @@ function BoardCard({ board, onDelete, onDuplicate, onShare }: BoardCardProps) {
       {/* Info */}
       <div className="p-4">
         <div className="flex items-start justify-between">
-          <Link href={`/app/boards/${board.id}`} className="flex-1 min-w-0">
-            <h3 className="font-display font-medium tracking-tight text-foreground truncate">{board.name}</h3>
+          <Link href={`/app/boards/${board.id}`} className="min-w-0 flex-1">
+            <h3 className="truncate font-display font-medium tracking-tight text-white/90">{board.name}</h3>
             {board.description && (
-              <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+              <p className="mt-1 line-clamp-2 text-sm text-white/50">
                 {board.description}
               </p>
             )}
@@ -288,24 +319,24 @@ function BoardCard({ board, onDelete, onDuplicate, onShare }: BoardCardProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100"
               >
-                <MoreVertical className="h-4 w-4" />
+                <MoreVertical className="h-4 w-4" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
                 <Link href={`/app/boards/${board.id}`} className="flex items-center">
-                  <Pencil className="h-4 w-4 mr-2" />
+                  <Pencil className="mr-2 h-4 w-4" aria-hidden="true" />
                   Edit
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onDuplicate}>
-                <Copy className="h-4 w-4 mr-2" />
+                <Copy className="mr-2 h-4 w-4" aria-hidden="true" />
                 Duplicate
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onShare}>
-                <Share2 className="h-4 w-4 mr-2" />
+                <Share2 className="mr-2 h-4 w-4" aria-hidden="true" />
                 Share
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -313,7 +344,7 @@ function BoardCard({ board, onDelete, onDuplicate, onShare }: BoardCardProps) {
                 onClick={onDelete}
                 className="text-destructive focus:text-destructive"
               >
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -321,14 +352,14 @@ function BoardCard({ board, onDelete, onDuplicate, onShare }: BoardCardProps) {
         </div>
 
         {/* Meta */}
-        <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
+        <div className="mt-3 flex items-center gap-2 text-xs text-white/50">
           {template && (
             <span className="flex items-center gap-1">
               <TemplateGlyph templateId={board.template} className="h-3.5 w-3.5" />
               {template.name}
             </span>
           )}
-          <span className="text-muted-foreground/50">•</span>
+          <span className="text-white/35">·</span>
           <span>
             {new Date(board.updated_at).toLocaleDateString('en-US')}
           </span>

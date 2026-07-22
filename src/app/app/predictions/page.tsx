@@ -1,19 +1,7 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
-import { useAuth } from '@/lib/hooks/use-auth'
-import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { PageHeader } from '@/components/dashboard'
+import { useState, useMemo } from 'react'
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
-import {
-  AIInterpretation,
-  PredictionCard,
-  PredictionTimeline,
-  IntensityBadge,
-  CalendarExport,
-  NotificationSettings,
-} from '@/components/predictions'
 import {
   getDailyPrediction,
   getWeeklyPrediction,
@@ -22,24 +10,44 @@ import {
   getPersonalDailyPrediction,
 } from '@pleiad/engine/services/predictions'
 import type { PersonalTimeline, PredictionEvent } from '@pleiad/engine/types/prediction'
+import { useAuth } from '@/lib/hooks/use-auth'
+import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { PageHeader, EmptyState } from '@/components/dashboard'
+import { Eyebrow, MeterBar, PageSection, SkeletonCard, getFlavor } from '@/components/app-kit'
+import { SEAL_COLORS, type SealColor } from '@/components/app-kit/seal-colors'
+import { cn } from '@/lib/utils'
+import {
+  AIInterpretation,
+  PredictionCard,
+  IntensityBadge,
+  IntensityDot,
+  PredictionTimeline,
+  CalendarExport,
+  NotificationSettings,
+} from '@/components/predictions'
+import { sealTileClasses } from '@/components/predictions/seal-style'
 
-const colorClasses: Record<string, string> = {
-  red: 'bg-red-500 text-white',
-  white: 'bg-gray-100 text-gray-900 border border-gray-300',
-  blue: 'bg-blue-500 text-white',
-  yellow: 'bg-yellow-400 text-gray-900',
-}
+const SEAL_ORDER: readonly SealColor[] = ['red', 'white', 'blue', 'yellow'] as const
+
+/** Mono micro-caps tab trigger — the contract's eyebrow voice. */
+const TAB_TRIGGER =
+  'rounded-full px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.2em] text-white/50 transition-colors hover:text-white/70 data-[state=active]:bg-brand/15 data-[state=active]:text-brand-soft data-[state=active]:shadow-none'
+
+const TAB_LIST = 'h-auto rounded-full border border-white/[0.07] bg-transparent p-1'
 
 export default function PredictionsPage() {
-  const { profile } = useAuth()
+  const { profile, loading } = useAuth()
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [mainTab, setMainTab] = useState<'forecast' | 'timeline' | 'settings'>('forecast')
   const [forecastView, setForecastView] = useState<'daily' | 'weekly' | 'monthly'>('daily')
-  const [timeline, setTimeline] = useState<PersonalTimeline | null>(null)
+
+  const flavor = getFlavor('dreamspell')
 
   // Get user's birth date from profile
   const userBirthDate = profile?.birth_date || null
   const userName = profile?.display_name || 'You'
+  const userId = profile?.user_id
 
   // Calculate predictions
   const today = useMemo(() => {
@@ -65,13 +73,11 @@ export default function PredictionsPage() {
     return getMonthlyPrediction(selectedDate.getFullYear(), selectedDate.getMonth())
   }, [selectedDate])
 
-  // Load personal timeline
-  useEffect(() => {
-    if (userBirthDate && profile?.user_id) {
-      const tl = getPersonalTimeline(profile.user_id, userName, userBirthDate)
-      setTimeline(tl)
-    }
-  }, [userBirthDate, profile?.user_id, userName])
+  // Personal timeline — derived, no effect needed
+  const timeline: PersonalTimeline | null = useMemo(() => {
+    if (!userBirthDate || !userId) return null
+    return getPersonalTimeline(userId, userName, userBirthDate)
+  }, [userBirthDate, userId, userName])
 
   const navigateDate = (direction: 'prev' | 'next') => {
     const newDate = new Date(selectedDate)
@@ -110,319 +116,380 @@ export default function PredictionsPage() {
     return events
   }, [forecastView, dailyPrediction, weeklyPrediction, monthlyPrediction])
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Predictions"
+          subtitle="Daily, weekly, and monthly forecasts based on the Dreamspell calendar"
+        />
+        <SkeletonCard className="h-44" />
+        <SkeletonCard className="h-72" />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Predictions"
+        meta={formatDate(new Date())}
         subtitle={userBirthDate
           ? 'Personalized forecasts based on your birth date'
           : 'Daily, weekly, and monthly forecasts based on Dreamspell calendar'}
       />
 
-      {/* Today's Quick View */}
-      <div className="surface-card p-6 border-primary/20">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-heading text-foreground">Today - {formatDate(new Date())}</h2>
-          {today.events.length > 0 && (
-            <IntensityBadge intensity={today.intensity} />
-          )}
-        </div>
-        <div className="flex items-center gap-4">
-          <div className={`w-16 h-16 rounded-lg flex items-center justify-center text-2xl font-bold ${colorClasses[today.color]}`}>
-            {today.kin}
+      {/* Today's set piece */}
+      <PageSection index={0} accent={flavor.accent} eyebrow="Today">
+        <div className="feature-card p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Eyebrow accent={flavor.accent}>Kin {today.kin}</Eyebrow>
+            {today.events.length > 0 && (
+              <IntensityBadge intensity={today.intensity} />
+            )}
           </div>
-          <div className="flex-1">
-            <p className="text-lg font-heading text-foreground">{today.toneName} {today.sealName}</p>
-            <p className="text-sm text-muted-foreground">
-              Kin {today.kin} - Day {today.wavespell.day} of {today.wavespell.name} Wavespell
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Theme: {today.wavespell.role}
-            </p>
-          </div>
-        </div>
-        {today.events.length > 0 && (
-          <div className="mt-4 space-y-2">
-            {today.events.map((event, i) => (
-              <div key={i} className="p-3 rounded-lg bg-primary/5 border border-primary/10">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-foreground">{event.title}</span>
-                  <IntensityBadge intensity={event.intensity} size="sm" />
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Main Tabs */}
-      <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as typeof mainTab)}>
-        <TabsList className="bg-muted/50">
-          <TabsTrigger value="forecast">Forecast</TabsTrigger>
-          <TabsTrigger value="timeline" disabled={!userBirthDate}>
-            Timeline {!userBirthDate && '(Add birth date)'}
-          </TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-        </TabsList>
-
-        {/* Forecast Tab */}
-        <TabsContent value="forecast" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Tabs value={forecastView} onValueChange={(v) => setForecastView(v as typeof forecastView)}>
-              <TabsList className="bg-muted/50">
-                <TabsTrigger value="daily">Daily</TabsTrigger>
-                <TabsTrigger value="weekly">Weekly</TabsTrigger>
-                <TabsTrigger value="monthly">Monthly</TabsTrigger>
-              </TabsList>
-            </Tabs>
-
-            <div className="flex items-center gap-2">
-              {allEvents.length > 0 && (
-                <CalendarExport events={allEvents} title="Export" />
+          <div className="mt-4 flex items-center gap-4">
+            <div
+              className={cn(
+                'flex size-16 shrink-0 items-center justify-center rounded-xl',
+                'font-mono text-2xl [font-variant-numeric:tabular-nums]',
+                sealTileClasses(today.color)
               )}
-              <Button variant="outline" size="sm" onClick={() => navigateDate('prev')}>
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <Button variant="outline" size="sm" onClick={goToToday}>
-                <Calendar className="w-4 h-4 mr-1" />
-                Today
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => navigateDate('next')}>
-                <ChevronRight className="w-4 h-4" />
-              </Button>
+            >
+              {today.kin}
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="font-display text-xl font-semibold tracking-tight text-white/90 md:text-2xl">
+                {today.toneName} {today.sealName}
+              </h2>
+              <p className="mt-1 text-sm text-white/70">
+                Day {today.wavespell.day} of {today.wavespell.name} Wavespell
+              </p>
+              <p className="text-sm text-white/50">{today.wavespell.role}</p>
             </div>
           </div>
-
-          {/* Daily View */}
-          {forecastView === 'daily' && (
-            <>
-              <PredictionCard prediction={dailyPrediction} />
-              {dailyPrediction.events.map((event, i) => (
-                <AIInterpretation key={`${event.title}-${i}`} prediction={event} />
+          {today.events.length > 0 && (
+            <div className="mt-4 divide-y divide-white/[0.07] border-t border-white/[0.07]">
+              {today.events.map((event, i) => (
+                <div key={i} className="py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-white/90">{event.title}</span>
+                    <IntensityBadge intensity={event.intensity} size="sm" />
+                  </div>
+                  <p className="mt-1 text-sm text-white/70">{event.description}</p>
+                </div>
               ))}
-            </>
+            </div>
           )}
+        </div>
+      </PageSection>
 
-          {/* Weekly View */}
-          {forecastView === 'weekly' && (
-            <div className="surface-card p-6">
-              <div className="mb-4">
-                <h3 className="text-xl font-heading text-foreground">
-                  Week of {formatShortDate(new Date(weeklyPrediction.startDate))} - {formatShortDate(new Date(weeklyPrediction.endDate))}
-                </h3>
-                {weeklyPrediction.events.length > 0 && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {weeklyPrediction.wavespellTransitions > 0 && (
-                      <span>{weeklyPrediction.wavespellTransitions} wavespell transition{weeklyPrediction.wavespellTransitions > 1 ? 's' : ''}</span>
-                    )}
-                    {weeklyPrediction.castleTransitions > 0 && (
-                      <span className="ml-2">{weeklyPrediction.castleTransitions} castle transition{weeklyPrediction.castleTransitions > 1 ? 's' : ''}</span>
-                    )}
+      {/* Forecast / timeline / settings */}
+      <PageSection
+        index={1}
+        accent={flavor.accent}
+        eyebrow={
+          mainTab === 'forecast'
+            ? 'Forecast'
+            : mainTab === 'timeline'
+              ? 'Personal timeline'
+              : 'Settings'
+        }
+      >
+        <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as typeof mainTab)}>
+          <TabsList className={TAB_LIST}>
+            <TabsTrigger value="forecast" className={TAB_TRIGGER}>
+              Forecast
+            </TabsTrigger>
+            <TabsTrigger value="timeline" disabled={!userBirthDate} className={TAB_TRIGGER}>
+              Timeline {!userBirthDate && '(Add birth date)'}
+            </TabsTrigger>
+            <TabsTrigger value="settings" className={TAB_TRIGGER}>
+              Settings
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Forecast Tab */}
+          <TabsContent value="forecast" className="mt-4 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <Tabs value={forecastView} onValueChange={(v) => setForecastView(v as typeof forecastView)}>
+                <TabsList className={TAB_LIST}>
+                  <TabsTrigger value="daily" className={TAB_TRIGGER}>Daily</TabsTrigger>
+                  <TabsTrigger value="weekly" className={TAB_TRIGGER}>Weekly</TabsTrigger>
+                  <TabsTrigger value="monthly" className={TAB_TRIGGER}>Monthly</TabsTrigger>
+                </TabsList>
+              </Tabs>
+
+              <div className="flex items-center gap-2">
+                {allEvents.length > 0 && (
+                  <CalendarExport events={allEvents} title="Export" />
+                )}
+                <Button variant="outline" size="sm" className="active:scale-[0.98]" onClick={() => navigateDate('prev')}>
+                  <ChevronLeft className="size-4" />
+                </Button>
+                <Button variant="outline" size="sm" className="active:scale-[0.98]" onClick={goToToday}>
+                  <Calendar className="mr-1 size-4" />
+                  Today
+                </Button>
+                <Button variant="outline" size="sm" className="active:scale-[0.98]" onClick={() => navigateDate('next')}>
+                  <ChevronRight className="size-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Daily View */}
+            {forecastView === 'daily' && (
+              <>
+                <PredictionCard prediction={dailyPrediction} />
+                {dailyPrediction.events.map((event, i) => (
+                  <AIInterpretation key={`${event.title}-${i}`} prediction={event} />
+                ))}
+              </>
+            )}
+
+            {/* Weekly View */}
+            {forecastView === 'weekly' && (
+              <div className="surface-card p-6">
+                <div className="mb-4 flex flex-col gap-1">
+                  <Eyebrow>Week</Eyebrow>
+                  <h3 className="font-display text-lg font-semibold tracking-tight text-white/90">
+                    {formatShortDate(new Date(weeklyPrediction.startDate))} – {formatShortDate(new Date(weeklyPrediction.endDate))}
+                  </h3>
+                  {weeklyPrediction.events.length > 0 && (
+                    <p className="text-sm text-white/50">
+                      {weeklyPrediction.wavespellTransitions > 0 && (
+                        <span>{weeklyPrediction.wavespellTransitions} wavespell transition{weeklyPrediction.wavespellTransitions > 1 ? 's' : ''}</span>
+                      )}
+                      {weeklyPrediction.castleTransitions > 0 && (
+                        <span className="ml-2">{weeklyPrediction.castleTransitions} castle transition{weeklyPrediction.castleTransitions > 1 ? 's' : ''}</span>
+                      )}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-7 gap-2">
+                  {weeklyPrediction.days.map((prediction, index) => {
+                    const isToday = prediction.date === new Date().toISOString().split('T')[0]
+                    const isSelected = prediction.date === selectedDate.toISOString().split('T')[0]
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setSelectedDate(new Date(prediction.date))
+                          setForecastView('daily')
+                        }}
+                        className={cn(
+                          'rounded-xl border border-transparent p-2 text-center sm:p-3',
+                          'transition-colors hover:border-white/[0.12] active:scale-[0.98]',
+                          isToday && 'ring-1 ring-brand/60',
+                          isSelected && 'bg-brand/10'
+                        )}
+                      >
+                        <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/35">
+                          {new Date(prediction.date).toLocaleDateString('en-US', { weekday: 'short' })}
+                        </p>
+                        <p className="mb-2 font-mono text-sm text-white/90 [font-variant-numeric:tabular-nums]">
+                          {new Date(prediction.date).getDate()}
+                        </p>
+                        <div
+                          className={cn(
+                            'mx-auto flex size-10 items-center justify-center rounded-lg',
+                            'font-mono text-sm [font-variant-numeric:tabular-nums]',
+                            sealTileClasses(prediction.color)
+                          )}
+                        >
+                          {prediction.kin}
+                        </div>
+                        <p className="mt-1 truncate text-[10px] text-white/50">{prediction.sealName}</p>
+                        {prediction.events.length > 0 && (
+                          <div className="mt-1.5 flex justify-center">
+                            <IntensityDot intensity={prediction.intensity} size="sm" />
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* Wavespell Progress */}
+                <div className="mt-6 border-t border-white/[0.07] pt-4">
+                  <MeterBar
+                    label={weeklyPrediction.days[0].wavespell.name}
+                    value={weeklyPrediction.days[0].wavespell.day}
+                    max={13}
+                    accent={flavor.accent}
+                    displayValue={`${weeklyPrediction.days[0].wavespell.day}/13`}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Monthly View */}
+            {forecastView === 'monthly' && (
+              <div className="surface-card p-6">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-col gap-1">
+                    <Eyebrow>Month</Eyebrow>
+                    <h3 className="font-display text-lg font-semibold tracking-tight text-white/90">
+                      {selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    </h3>
+                  </div>
+                  {monthlyPrediction.highlights.length > 0 && (
+                    <IntensityBadge intensity={monthlyPrediction.intensity} />
+                  )}
+                </div>
+                {monthlyPrediction.highlights.length > 0 && (
+                  <p className="mb-4 text-sm text-white/50">
+                    {monthlyPrediction.highlights.length} significant event{monthlyPrediction.highlights.length > 1 ? 's' : ''} this month
                   </p>
                 )}
-              </div>
 
-              <div className="grid grid-cols-7 gap-2">
-                {weeklyPrediction.days.map((prediction, index) => {
-                  const isToday = prediction.date === new Date().toISOString().split('T')[0]
-                  const isSelected = prediction.date === selectedDate.toISOString().split('T')[0]
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        setSelectedDate(new Date(prediction.date))
-                        setForecastView('daily')
-                      }}
-                      className={`p-3 rounded-lg text-center transition-all hover:scale-105 ${
-                        isToday ? 'ring-2 ring-primary ring-offset-2' : ''
-                      } ${isSelected ? 'bg-primary/10' : ''}`}
-                    >
-                      <p className="text-xs text-muted-foreground mb-1">
-                        {new Date(prediction.date).toLocaleDateString('en-US', { weekday: 'short' })}
-                      </p>
-                      <p className="text-sm font-medium text-foreground mb-2">
-                        {new Date(prediction.date).getDate()}
-                      </p>
-                      <div className={`w-10 h-10 mx-auto rounded-lg flex items-center justify-center text-sm font-bold ${colorClasses[prediction.color]}`}>
-                        {prediction.kin}
-                      </div>
-                      <p className="text-xs mt-1 truncate text-muted-foreground">{prediction.sealName}</p>
-                      {prediction.events.length > 0 && (
-                        <div className="mt-1 flex justify-center">
-                          <IntensityBadge intensity={prediction.intensity} size="sm" showLabel={false} />
-                        </div>
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-
-              {/* Wavespell Progress */}
-              <div className="mt-6 p-4 bg-muted/30 rounded-lg">
-                <p className="text-sm font-medium text-foreground mb-2">Wavespell Progress</p>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">{weeklyPrediction.days[0].wavespell.name}</span>
-                  <div className="flex-1 h-2 bg-muted rounded-full">
+                {/* Day headers */}
+                <div className="mb-2 grid grid-cols-7 gap-1">
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                     <div
-                      className="h-full bg-primary rounded-full"
-                      style={{ width: `${(weeklyPrediction.days[0].wavespell.day / 13) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-xs text-muted-foreground">Day {weeklyPrediction.days[0].wavespell.day}/13</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Monthly View */}
-          {forecastView === 'monthly' && (
-            <div className="surface-card p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-heading text-foreground">
-                  {selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                </h3>
-                {monthlyPrediction.highlights.length > 0 && (
-                  <IntensityBadge intensity={monthlyPrediction.intensity} />
-                )}
-              </div>
-              {monthlyPrediction.highlights.length > 0 && (
-                <p className="text-sm text-muted-foreground mb-4">
-                  {monthlyPrediction.highlights.length} significant event{monthlyPrediction.highlights.length > 1 ? 's' : ''} this month
-                </p>
-              )}
-
-              {/* Day headers */}
-              <div className="grid grid-cols-7 gap-1 mb-2">
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                  <div key={day} className="text-center text-xs font-medium text-muted-foreground py-2">
-                    {day}
-                  </div>
-                ))}
-              </div>
-
-              {/* Calendar grid */}
-              <div className="grid grid-cols-7 gap-1">
-                {/* Empty cells for days before month starts */}
-                {Array.from({ length: new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1).getDay() }).map((_, i) => (
-                  <div key={`empty-${i}`} className="aspect-square" />
-                ))}
-
-                {monthlyPrediction.days.map((prediction, index) => {
-                  const isToday = prediction.date === new Date().toISOString().split('T')[0]
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        setSelectedDate(new Date(prediction.date))
-                        setForecastView('daily')
-                      }}
-                      className={`aspect-square p-1 rounded-lg transition-all hover:bg-muted/50 relative ${
-                        isToday ? 'ring-2 ring-primary' : ''
-                      }`}
+                      key={day}
+                      className="py-2 text-center font-mono text-[10px] uppercase tracking-[0.15em] text-white/35"
                     >
-                      <p className="text-xs text-muted-foreground">{new Date(prediction.date).getDate()}</p>
-                      <div className={`w-6 h-6 mx-auto rounded flex items-center justify-center text-xs font-bold mt-0.5 ${colorClasses[prediction.color]}`}>
-                        {prediction.kin}
-                      </div>
-                      {prediction.events.length > 0 && (
-                        <div className="absolute top-0.5 right-0.5">
-                          <IntensityBadge intensity={prediction.intensity} size="sm" showLabel={false} />
-                        </div>
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-
-              {/* Highlights */}
-              {monthlyPrediction.highlights.length > 0 && (
-                <div className="mt-6 space-y-2">
-                  <h4 className="text-sm font-heading text-foreground">Month Highlights</h4>
-                  {monthlyPrediction.highlights.map((event, i) => (
-                    <div key={i} className="p-3 rounded-lg border border-border bg-card">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-foreground">{event.title}</span>
-                          <IntensityBadge intensity={event.intensity} size="sm" />
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(event.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                        </span>
-                      </div>
+                      {day}
                     </div>
                   ))}
                 </div>
-              )}
 
-              {/* Legend */}
-              <div className="mt-4 flex items-center justify-center gap-4 text-xs">
-                <div className="flex items-center gap-1">
-                  <div className="w-4 h-4 rounded bg-red-500" />
-                  <span className="text-muted-foreground">Red</span>
+                {/* Calendar grid */}
+                <div className="grid grid-cols-7 gap-1">
+                  {/* Empty cells for days before month starts */}
+                  {Array.from({ length: new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1).getDay() }).map((_, i) => (
+                    <div key={`empty-${i}`} className="aspect-square" />
+                  ))}
+
+                  {monthlyPrediction.days.map((prediction, index) => {
+                    const isToday = prediction.date === new Date().toISOString().split('T')[0]
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setSelectedDate(new Date(prediction.date))
+                          setForecastView('daily')
+                        }}
+                        className={cn(
+                          'relative aspect-square rounded-lg border border-transparent p-1',
+                          'transition-colors hover:border-white/[0.12] active:scale-[0.98]',
+                          isToday && 'ring-1 ring-brand/60'
+                        )}
+                      >
+                        <p className="font-mono text-[10px] text-white/50 [font-variant-numeric:tabular-nums]">
+                          {new Date(prediction.date).getDate()}
+                        </p>
+                        <div
+                          className={cn(
+                            'mx-auto mt-0.5 flex size-6 items-center justify-center rounded',
+                            'font-mono text-[10px] [font-variant-numeric:tabular-nums]',
+                            sealTileClasses(prediction.color)
+                          )}
+                        >
+                          {prediction.kin}
+                        </div>
+                        {prediction.events.length > 0 && (
+                          <span className="absolute right-1 top-1">
+                            <IntensityDot intensity={prediction.intensity} size="sm" />
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-4 h-4 rounded bg-gray-100 border" />
-                  <span className="text-muted-foreground">White</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-4 h-4 rounded bg-blue-500" />
-                  <span className="text-muted-foreground">Blue</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-4 h-4 rounded bg-yellow-400" />
-                  <span className="text-muted-foreground">Yellow</span>
+
+                {/* Highlights */}
+                {monthlyPrediction.highlights.length > 0 && (
+                  <div className="mt-6">
+                    <Eyebrow>Month highlights</Eyebrow>
+                    <div className="mt-1 divide-y divide-white/[0.07]">
+                      {monthlyPrediction.highlights.map((event, i) => (
+                        <div key={i} className="flex items-center justify-between gap-3 py-3">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <span className="truncate text-sm font-medium text-white/90">{event.title}</span>
+                            <IntensityBadge intensity={event.intensity} size="sm" />
+                          </div>
+                          <span className="shrink-0 font-mono text-xs text-white/50 [font-variant-numeric:tabular-nums]">
+                            {new Date(event.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Legend — seal tokens only */}
+                <div className="mt-4 flex items-center justify-center gap-4">
+                  {SEAL_ORDER.map((seal) => (
+                    <div key={seal} className="flex items-center gap-1.5">
+                      <span
+                        aria-hidden
+                        className={cn(
+                          'size-3 rounded-[4px] border border-white/[0.12]',
+                          SEAL_COLORS[seal].bg
+                        )}
+                      />
+                      <Eyebrow className="text-[10px]">{seal}</Eyebrow>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
-          )}
-        </TabsContent>
+            )}
+          </TabsContent>
 
-        {/* Timeline Tab */}
-        <TabsContent value="timeline">
-          {timeline ? (
-            <div className="space-y-6">
-              {/* Current Personal Year */}
-              <div className="surface-card p-6">
-                <h3 className="text-xl font-heading text-foreground mb-2">Current Personal Year</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Age {timeline.currentPersonalYear.age} - {new Date(timeline.currentPersonalYear.startDate).toLocaleDateString()} to {new Date(timeline.currentPersonalYear.endDate).toLocaleDateString()}
-                </p>
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-lg flex items-center justify-center text-2xl font-bold bg-primary text-primary-foreground">
-                    {timeline.currentPersonalYear.kin}
+          {/* Timeline Tab */}
+          <TabsContent value="timeline" className="mt-4">
+            {timeline ? (
+              <div className="space-y-6">
+                {/* Current Personal Year */}
+                <div className="surface-card p-6">
+                  <div className="flex flex-col gap-1">
+                    <Eyebrow accent={flavor.accent}>Current personal year</Eyebrow>
+                    <p className="font-mono text-xs text-white/50 [font-variant-numeric:tabular-nums]">
+                      Age {timeline.currentPersonalYear.age} · {new Date(timeline.currentPersonalYear.startDate).toLocaleDateString()} – {new Date(timeline.currentPersonalYear.endDate).toLocaleDateString()}
+                    </p>
                   </div>
-                  <div>
-                    <p className="text-lg font-heading text-foreground">
-                      Kin {timeline.currentPersonalYear.kin}
-                    </p>
-                    <p className="text-muted-foreground">
-                      Your galactic signature for this personal year
-                    </p>
+                  <div className="mt-4 flex items-center gap-4">
+                    <div className="flex size-16 shrink-0 items-center justify-center rounded-xl bg-brand font-mono text-2xl text-white [font-variant-numeric:tabular-nums]">
+                      {timeline.currentPersonalYear.kin}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-display text-lg font-semibold tracking-tight text-white/90">
+                        Kin {timeline.currentPersonalYear.kin}
+                      </p>
+                      <p className="text-sm text-white/50">
+                        Your galactic signature for this personal year
+                      </p>
+                    </div>
                   </div>
                 </div>
+
+                {/* Timeline */}
+                <PredictionTimeline timeline={timeline} maxItems={15} />
               </div>
+            ) : (
+              <div className="surface-card">
+                <EmptyState
+                  icon="predictions"
+                  title="Your timeline needs a birth date"
+                  description="Add your birth date in your profile to see galactic returns, tun birthdays, and other personal milestones."
+                  action={{ label: 'Complete profile', href: '/app/profile' }}
+                />
+              </div>
+            )}
+          </TabsContent>
 
-              {/* Timeline */}
-              <PredictionTimeline timeline={timeline} maxItems={15} />
-            </div>
-          ) : (
-            <div className="surface-card p-8 text-center">
-              <p className="text-muted-foreground">
-                Add your birth date in your profile to see your personal timeline.
-              </p>
-            </div>
-          )}
-        </TabsContent>
-
-        {/* Settings Tab */}
-        <TabsContent value="settings">
-          <NotificationSettings />
-        </TabsContent>
-      </Tabs>
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="mt-4">
+            <NotificationSettings />
+          </TabsContent>
+        </Tabs>
+      </PageSection>
 
       {/* Disclaimer */}
-      <p className="text-xs text-muted-foreground text-center">
+      <p className="text-center text-xs text-white/35">
         Predictions are based on the Dreamspell calendar system. Use them for inspiration and self-awareness.
       </p>
     </div>

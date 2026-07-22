@@ -65,7 +65,11 @@ html.dash-theme body::before {
   content: '';
   position: fixed;
   inset: 0;
-  z-index: 0;
+  /* -1, not 0: at z-index 0 this positioned layer paints ABOVE all
+     static (non-stacking-context) content — plain text would vanish
+     behind the sky. Negative z keeps it above the body background but
+     below every in-flow element. */
+  z-index: -1;
   pointer-events: none;
   background-image:
     /* Scrim — sinks the mural into the ground long before content density */
@@ -109,6 +113,14 @@ html.dash-theme h2 {
    the cosmic ground layer. Let the ground show through in the dashboard. */
 html.dash-theme body main.bg-background {
   background: transparent;
+}
+
+/* Sidebar floats over the cosmic ground — translucent + blurred, like the
+   landing nav after scroll (nav-v2: bg-ground/90 backdrop-blur-md). */
+html.dash-theme [data-sidebar='sidebar'] {
+  background: hsl(var(--sidebar-background) / 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* ------------------------------------------------------------------ */

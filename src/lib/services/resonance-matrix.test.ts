@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { calculateFiveSystemCompatibility } from '@pleiad/engine/services/compatibility'
 import {
   MATRIX_ENGINE_VERSION,
   MATRIX_RAMP,
@@ -15,7 +16,6 @@ import {
   sortPair,
   type MatrixPairScore,
 } from './resonance-matrix'
-import { calculateFiveSystemCompatibility } from '@pleiad/engine/services/compatibility'
 
 const ID_A = '11111111-1111-4111-8111-111111111111'
 const ID_B = '22222222-2222-4222-8222-222222222222'

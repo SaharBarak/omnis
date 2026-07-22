@@ -1,6 +1,5 @@
 'use client'
 
-import { cn } from '@/lib/utils'
 import {
   calculateBodygraph,
   isCompleteBodygraph,
@@ -20,6 +19,7 @@ import {
   DEFINITION_LABELS,
 } from '@pleiad/engine/types/human-design'
 import { getGate } from '@pleiad/engine/data/human-design-gates'
+import { cn } from '@/lib/utils'
 import { BodygraphChart } from '@/components/human-design/BodygraphChart'
 
 // =============================================================================

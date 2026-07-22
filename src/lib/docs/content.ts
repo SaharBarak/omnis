@@ -20,10 +20,10 @@ export const dreamspellDocs = {
       It reinterprets the ancient Mayan Tzolkin calendar through a contemporary lens, offering a way
       to step out of linear, mechanical time and into cyclical, natural time.
 
-      Unlike the Gregorian calendar—which Argüelles called "the 12:60 frequency" (12 months, 60-minute hours)—
+      Unlike the Gregorian calendar, which Argüelles called "the 12:60 frequency" (12 months, 60-minute hours),
       Dreamspell operates on the 13:20 frequency: 13 tones × 20 seals = 260 unique days called Kin.
 
-      Your Galactic Signature is the Kin of your birthday—a cosmic imprint that reveals your purpose,
+      Your Galactic Signature is the Kin of your birthday, a cosmic imprint that reveals your purpose,
       challenges, and gifts within this larger pattern.
     `,
     quote: {
@@ -161,7 +161,7 @@ export const dreamspellDocs = {
       Think of a Wavespell as a journey: it begins with the Magnetic Tone (setting intention),
       moves through development and transformation, and culminates with the Cosmic Tone (transcendence).
 
-      The first day of any Wavespell is called the "Magnetic Gate"—the doorway into that cycle's theme.
+      The first day of any Wavespell is called the "Magnetic Gate": the doorway into that cycle's theme.
     `,
     structure: [
       { day: 1, tone: 'Magnetic', phase: 'Purpose', description: 'Set your intention for the 13 days' },
@@ -184,7 +184,7 @@ export const dreamspellDocs = {
     title: 'The Dreamspell Oracle',
     subtitle: 'Your Five-Part Cosmic Support System',
     content: `
-      Every Kin is surrounded by four other energies that form its Oracle—a support system
+      Every Kin is surrounded by four other energies that form its Oracle, a support system
       that reveals the full context of that day or person's energy. The Oracle shows that
       you never operate in isolation but are always part of a larger pattern.
     `,
@@ -192,7 +192,7 @@ export const dreamspellDocs = {
       {
         name: 'Destiny (Center)',
         color: '#F59E0B',
-        description: 'Your core Kin—the central theme of your energy. This is your Galactic Signature.',
+        description: 'Your core Kin, the central theme of your energy. This is your Galactic Signature.',
         calculation: 'Your birth date Kin'
       },
       {
@@ -204,13 +204,13 @@ export const dreamspellDocs = {
       {
         name: 'Analog (Support)',
         color: '#3B82F6',
-        description: 'Your support energy—a complementary partner that adds up to 19 with your Seal number.',
+        description: 'Your support energy, a complementary partner that adds up to 19 with your Seal number.',
         calculation: 'Seal number that + your Seal = 19'
       },
       {
         name: 'Antipode (Challenge)',
         color: '#EF4444',
-        description: 'Your challenge and gift—the energy that stretches you. Located 10 Seals away.',
+        description: 'Your challenge and gift, the energy that stretches you. Located 10 Seals away.',
         calculation: 'Your Seal + 10 (or -10 if over 20)'
       },
       {
@@ -278,7 +278,7 @@ export const dreamspellDocs = {
     subtitle: 'Days of Amplified Energy',
     content: `
       There are 52 Galactic Activation Portal (GAP) days in each Tzolkin cycle. These days
-      form a distinctive pattern called the "loom of the Maya"—a DNA-like double helix when
+      form a distinctive pattern called the "loom of the Maya": a DNA-like double helix when
       viewed on the Tzolkin grid.
 
       Portal days are considered times of amplified energy, when the veil between dimensions
@@ -286,7 +286,7 @@ export const dreamspellDocs = {
       vivid dreams, or significant events on GAP days.
 
       The pattern creates a 10-day "core" period in the middle of the Tzolkin (Kin 121-130)
-      where every day is a GAP day—considered the most intense period of the cycle.
+      where every day is a GAP day, considered the most intense period of the cycle.
     `
   },
 
@@ -307,7 +307,7 @@ export const dreamspellDocs = {
       },
       {
         title: 'Relationship Insight',
-        description: 'Calculate the Kins of people close to you. See where your Seals and Tones relate—are they your Guide, Analog, or Antipode?'
+        description: 'Calculate the Kins of people close to you. See where your Seals and Tones relate: are they your Guide, Analog, or Antipode?'
       },
       {
         title: 'Annual Cycles',
@@ -328,14 +328,14 @@ export const humanDesignDocs = {
     introduction: `
       Human Design is a system of self-knowledge that was transmitted to Ra Uru Hu (Robert Allan Krakower)
       in 1987 during an eight-day mystical experience on the island of Ibiza. What emerged was a synthesis
-      of four ancient wisdom systems—Western Astrology, the Chinese I Ching, the Hindu-Brahmin Chakra System,
-      and the Kabbalistic Tree of Life—unified through modern genetics and quantum physics.
+      of four ancient wisdom systems: Western Astrology, the Chinese I Ching, the Hindu-Brahmin Chakra System,
+      and the Kabbalistic Tree of Life, unified through modern genetics and quantum physics.
 
       Your Human Design chart (called a Bodygraph) is calculated from your exact birth date, time, and location.
       It reveals your energetic mechanics: how you're designed to make decisions, interact with others,
       and find your correct path in life.
 
-      Human Design is not about what you should do—it's about how you're designed to operate.
+      Human Design is not about what you should do: it's about how you're designed to operate.
       It's a practical system for decision-making and self-understanding.
     `,
     quote: {
@@ -348,7 +348,7 @@ export const humanDesignDocs = {
     title: 'The Five Energy Types',
     subtitle: 'Your Aura and Role in the World',
     introduction: `
-      Type is the most fundamental aspect of Human Design. It determines your aura type—how your energy
+      Type is the most fundamental aspect of Human Design. It determines your aura type: how your energy
       field operates and interacts with others. Your Type tells you the correct Strategy for engaging
       with life, and the Not-Self Theme that signals when you're off track.
     `,
@@ -365,7 +365,7 @@ export const humanDesignDocs = {
           connection between a motor center and the Throat, giving them the power to initiate and impact.
 
           Their challenge is that their closed aura creates resistance from others. The Strategy of Informing
-          reduces this resistance—not asking permission, but giving people a heads-up before acting.
+          reduces this resistance: not asking permission, but giving people a heads-up before acting.
 
           When operating correctly, Manifestors feel Peace. When forcing or being blocked, they feel Anger.
         `,
@@ -386,7 +386,7 @@ export const humanDesignDocs = {
         aura: 'Open and enveloping',
         description: `
           Generators are the life-force of the planet. They have a defined Sacral center, which gives them
-          sustainable energy for work and creation—but only for the right work.
+          sustainable energy for work and creation, but only for the right work.
 
           The Sacral speaks through gut sounds and sensations (uh-huh, uh-uh). Generators are designed to
           respond to life rather than initiate. When they wait for something to show up to respond to,
@@ -411,7 +411,7 @@ export const humanDesignDocs = {
         signature: 'Satisfaction and Peace',
         aura: 'Open and enveloping',
         description: `
-          Manifesting Generators are Generators with Manifestor characteristics—they have a defined Sacral
+          Manifesting Generators are Generators with Manifestor characteristics: they have a defined Sacral
           AND a motor connected to the Throat. They're the "multi-hyphenates" of the world, often juggling
           multiple interests and moving quickly.
 
@@ -423,7 +423,7 @@ export const humanDesignDocs = {
         `,
         keyPoints: [
           'Multi-passionate and fast-moving',
-          'Skip steps naturally—efficiency experts',
+          'Skip steps naturally: efficiency experts',
           'Must respond first, then can initiate',
           'Often appear to change direction frequently',
           'Need variety and multiple outlets'
@@ -441,7 +441,7 @@ export const humanDesignDocs = {
           for sustainable physical work but for guiding and managing the energy of others.
 
           Their focused aura penetrates deeply into others, giving them natural insight into how people
-          and systems work. But this penetration isn't always welcome—Projectors must wait for recognition
+          and systems work. But this penetration isn't always welcome: Projectors must wait for recognition
           and invitation to share their guidance.
 
           When pushing without invitation, Projectors meet resistance and feel Bitterness. When recognized
@@ -464,7 +464,7 @@ export const humanDesignDocs = {
         aura: 'Resistant and sampling',
         description: `
           Reflectors are the rarest Type, with all nine centers undefined. They have no consistent, fixed
-          energy of their own—instead, they sample and reflect the energies around them.
+          energy of their own. Instead, they sample and reflect the energies around them.
 
           This makes them the most sensitive barometers of community health. A Reflector in a healthy
           environment thrives; in an unhealthy one, they suffer. Their decisions are best made over a
@@ -478,7 +478,7 @@ export const humanDesignDocs = {
           'Highly sensitive to environment',
           'No consistent personal energy',
           'Major decisions need 28 days',
-          'Can be wise or become lost—environment is everything'
+          'Can be wise or become lost: environment is everything'
         ]
       }
     ]
@@ -489,7 +489,7 @@ export const humanDesignDocs = {
     subtitle: 'Your Personal Decision-Making Guidance System',
     introduction: `
       Authority is perhaps the most practical aspect of Human Design. It tells you HOW to make correct
-      decisions for yourself—not with your mind, but through your body's wisdom.
+      decisions for yourself: not with your mind, but through your body's wisdom.
 
       The mind is brilliant at processing information and seeing possibilities, but it is NOT designed
       to be your decision-maker. Authority moves decision-making to a consistent, reliable place in your
@@ -501,7 +501,7 @@ export const humanDesignDocs = {
         percentage: '~50% of people',
         center: 'Solar Plexus',
         description: `
-          If you have a defined Solar Plexus, this is your authority—regardless of what else is defined.
+          If you have a defined Solar Plexus, this is your authority, regardless of what else is defined.
           Emotional authority means there is no truth in the now. You must ride your emotional wave over
           time before gaining clarity.
 
@@ -518,10 +518,10 @@ export const humanDesignDocs = {
         center: 'Sacral',
         description: `
           Sacral Authority belongs to Generators and Manifesting Generators with an undefined Solar Plexus.
-          The Sacral responds in the moment through sounds and body sensations—a gut "yes" (uh-huh) or
+          The Sacral responds in the moment through sounds and body sensations: a gut "yes" (uh-huh) or
           "no" (uh-uh).
 
-          The key is responding to something external—a question, an opportunity, a stimulus. The Sacral
+          The key is responding to something external: a question, an opportunity, a stimulus. The Sacral
           doesn't initiate; it responds. The response is visceral, often happening before conscious thought.
 
           Practice with yes/no questions to develop trust in your Sacral response.
@@ -533,11 +533,11 @@ export const humanDesignDocs = {
         percentage: '~11% of people',
         center: 'Spleen',
         description: `
-          Splenic Authority is spontaneous knowing in the moment—survival instinct refined into intuition.
+          Splenic Authority is spontaneous knowing in the moment, survival instinct refined into intuition.
           It only speaks once, quietly, and won't repeat itself.
 
           This is body intelligence about what's healthy, safe, or correct for you right now. It's not
-          emotional and not reasoned—it's instantaneous knowing that needs immediate trust.
+          emotional and not reasoned: it's instantaneous knowing that needs immediate trust.
 
           The challenge is that the mind often overrides this quiet knowing. Splenic Authority requires
           learning to trust subtle body signals in real-time.
@@ -549,11 +549,11 @@ export const humanDesignDocs = {
         percentage: '~1% of people',
         center: 'Heart/Ego',
         description: `
-          Ego Authority is rare—found in Projectors and Manifestors with a defined Heart center but
+          Ego Authority is rare, found in Projectors and Manifestors with a defined Heart center but
           undefined Solar Plexus, Sacral, and Spleen.
 
           This authority asks: "Do I have the will for this? Do I truly want this?" Listen to what you
-          spontaneously say—"I want," "I don't want." Your willpower knows.
+          spontaneously say: "I want," "I don't want." Your willpower knows.
 
           This isn't about being selfish; it's about recognizing that you can only sustain what you
           genuinely have the heart for.
@@ -568,7 +568,7 @@ export const humanDesignDocs = {
           Self-Projected Authority belongs to Projectors with the G Center connected to the Throat but
           no inner authority from Emotional, Sacral, Splenic, or Ego centers.
 
-          Your truth comes through speaking and hearing yourself. You need to talk things through—not to
+          Your truth comes through speaking and hearing yourself. You need to talk things through, not to
           get advice, but to hear your own voice expressing what's true for your identity and direction.
 
           Find trusted sounding boards who can listen without agenda while you discover your truth.
@@ -583,7 +583,7 @@ export const humanDesignDocs = {
           Mental Projectors have no inner authority below the Throat. Decisions come through talking
           with the right people in the right environment.
 
-          This isn't about others deciding for you—it's about finding the right sounding boards who
+          This isn't about others deciding for you: it's about finding the right sounding boards who
           can reflect your truth back to you. The environment matters: certain places and people help
           you find clarity.
 
@@ -596,12 +596,12 @@ export const humanDesignDocs = {
         percentage: '~1% of people',
         center: 'None defined',
         description: `
-          Reflectors have no consistent authority—their clarity comes through the 28-day lunar cycle.
+          Reflectors have no consistent authority: their clarity comes through the 28-day lunar cycle.
           As the Moon transits their chart, it activates different energies, giving them a full spectrum
           of perspectives.
 
           Major decisions should wait a full lunar cycle to sample all the energies. This isn't delay
-          tactics—it's allowing your natural process to complete.
+          tactics: it's allowing your natural process to complete.
 
           Smaller decisions can use accumulated lunar wisdom, but anything life-changing deserves the
           full cycle.
@@ -622,7 +622,7 @@ export const humanDesignDocs = {
       influence others and are relatively stable.
 
       An UNDEFINED Center (white) means you take in and amplify energy from others. These are places
-      of wisdom potential—if you don't get lost in the conditioning. You can feel this energy intensely
+      of wisdom potential, if you don't get lost in the conditioning. You can feel this energy intensely
       but it isn't consistently yours.
     `,
     centerDetails: [
@@ -714,7 +714,7 @@ export const humanDesignDocs = {
     title: 'The 12 Profiles',
     subtitle: 'Your Costume in Life',
     introduction: `
-      Profile describes the role you play in the movie of your life—your costume, your way of engaging.
+      Profile describes the role you play in the movie of your life: your costume, your way of engaging.
       It's derived from the Lines (1-6) of your Conscious Sun (Personality) and Unconscious Sun (Design).
 
       The first number is your conscious, more accessible role. The second number is your unconscious,
@@ -756,7 +756,7 @@ export const humanDesignDocs = {
     `,
     structure: `
       Each Gate has 6 Lines (corresponding to the 6 lines of an I Ching hexagram), and each Line
-      has Color, Tone, and Base subdivisions. This creates enormous specificity—no two charts are alike.
+      has Color, Tone, and Base subdivisions. This creates enormous specificity: no two charts are alike.
 
       The 64 Gates pair into 36 Channels:
       - Format channels create foundation
@@ -770,7 +770,7 @@ export const humanDesignDocs = {
     title: 'The Incarnation Cross',
     subtitle: 'Your Life Purpose Theme',
     introduction: `
-      Your Incarnation Cross represents your life purpose or theme—not what you DO, but the energetic
+      Your Incarnation Cross represents your life purpose or theme: not what you DO, but the energetic
       backdrop of your life. It's calculated from the Gates of your Personality and Design Sun and Earth.
 
       There are 192 base Incarnation Crosses, each with a name and theme. These are further divided
@@ -792,7 +792,7 @@ export const humanDesignDocs = {
     subtitle: 'Living Your Design',
     content: `
       Human Design is an experiment, not a belief system. Ra Uru Hu always emphasized that you should
-      never believe anything—test it for yourself.
+      never believe anything: test it for yourself.
 
       The basic experiment is simple: follow your Strategy and Authority for decision-making for at least
       7 years (a full cellular cycle). Notice what changes when you operate correctly versus from conditioning.
@@ -825,12 +825,12 @@ export const astrologyDocs = {
     introduction: `
       Astrology is humanity's oldest system for understanding the relationship between celestial
       patterns and earthly events. Dating back at least 4,000 years to ancient Mesopotamia, it has
-      been refined by every major civilization—Babylonian, Egyptian, Greek, Persian, Arabic, Indian,
+      been refined by every major civilization: Babylonian, Egyptian, Greek, Persian, Arabic, Indian,
       and Chinese.
 
-      Western astrology, which Pleiad primarily uses, is based on the tropical zodiac—the relationship
+      Western astrology, which Pleiad primarily uses, is based on the tropical zodiac: the relationship
       between the Sun's position and Earth's seasons. Your natal chart is a snapshot of the sky at
-      your exact moment of birth, seen from your birthplace—a cosmic fingerprint unique to you.
+      your exact moment of birth, seen from your birthplace, a cosmic fingerprint unique to you.
 
       Modern astrology is psychological and archetypal, focusing on self-understanding and growth
       rather than fate prediction. The planets describe parts of your psyche; the signs describe
@@ -851,7 +851,7 @@ export const astrologyDocs = {
         represents: 'Core identity, ego, life purpose',
         question: 'Who am I at my core? What am I here to develop?',
         description: `
-          Your Sun sign represents your fundamental essence—the central organizing principle of your
+          Your Sun sign represents your fundamental essence: the central organizing principle of your
           personality. It's what you're growing into and developing throughout life. The Sun is your
           vitality, your will, your conscious self-expression.
         `
@@ -861,7 +861,7 @@ export const astrologyDocs = {
         represents: 'Emotional nature, instincts, inner self',
         question: 'What do I need to feel safe? How do I process emotions?',
         description: `
-          Your Moon sign reveals your emotional operating system—how you feel, what you need for
+          Your Moon sign reveals your emotional operating system: how you feel, what you need for
           security, your instinctive reactions. The Moon represents your private self, your relationship
           with nurturing, and your automatic emotional patterns.
         `
@@ -916,17 +916,17 @@ export const astrologyDocs = {
       {
         name: 'Cardinal',
         signs: ['Aries', 'Cancer', 'Libra', 'Capricorn'],
-        quality: 'Initiating energy—starts new cycles, leadership, action-oriented'
+        quality: 'Initiating energy: starts new cycles, leadership, action-oriented'
       },
       {
         name: 'Fixed',
         signs: ['Taurus', 'Leo', 'Scorpio', 'Aquarius'],
-        quality: 'Stabilizing energy—maintains, persists, concentrated and determined'
+        quality: 'Stabilizing energy: maintains, persists, concentrated and determined'
       },
       {
         name: 'Mutable',
         signs: ['Gemini', 'Virgo', 'Sagittarius', 'Pisces'],
-        quality: 'Adapting energy—transitions, flexibility, disseminates and changes'
+        quality: 'Adapting energy: transitions, flexibility, disseminates and changes'
       }
     ],
     signDetails: [
@@ -995,7 +995,7 @@ export const astrologyDocs = {
       The houses divide your chart into 12 life areas. Planets in a house influence that life domain.
       The sign on the house cusp (starting point) colors how you approach that area.
 
-      Houses are calculated from your birth time—without accurate birth time, house placements
+      Houses are calculated from your birth time. Without accurate birth time, house placements
       cannot be determined. This is why birth time is so important in astrology.
     `,
     houseDetails: [
@@ -1021,21 +1021,21 @@ export const astrologyDocs = {
       Aspects are specific angular relationships between planets that create dynamic interactions.
       Some aspects are harmonious (energy flows easily), others are challenging (energy creates friction).
 
-      Challenging aspects aren't "bad"—they often drive growth and achievement. Harmonious aspects
-      aren't always "good"—they can indicate areas of complacency.
+      Challenging aspects aren't "bad": they often drive growth and achievement. Harmonious aspects
+      aren't always "good": they can indicate areas of complacency.
     `,
     majorAspects: [
-      { name: 'Conjunction', symbol: '☌', angle: '0°', orb: '8-10°', nature: 'Blending', description: 'Planets merge their energies—intensification for better or worse' },
-      { name: 'Opposition', symbol: '☍', angle: '180°', orb: '8-10°', nature: 'Challenging', description: 'Planets face each other—awareness through polarity and projection' },
-      { name: 'Square', symbol: '□', angle: '90°', orb: '6-8°', nature: 'Challenging', description: 'Planets in tension—friction that motivates action and growth' },
-      { name: 'Trine', symbol: '△', angle: '120°', orb: '6-8°', nature: 'Harmonious', description: 'Planets in same element—easy flow, natural talent, possible complacency' },
-      { name: 'Sextile', symbol: '⚹', angle: '60°', orb: '4-6°', nature: 'Harmonious', description: 'Planets in compatible elements—opportunity requiring activation' }
+      { name: 'Conjunction', symbol: '☌', angle: '0°', orb: '8-10°', nature: 'Blending', description: 'Planets merge their energies: intensification for better or worse' },
+      { name: 'Opposition', symbol: '☍', angle: '180°', orb: '8-10°', nature: 'Challenging', description: 'Planets face each other: awareness through polarity and projection' },
+      { name: 'Square', symbol: '□', angle: '90°', orb: '6-8°', nature: 'Challenging', description: 'Planets in tension: friction that motivates action and growth' },
+      { name: 'Trine', symbol: '△', angle: '120°', orb: '6-8°', nature: 'Harmonious', description: 'Planets in same element: easy flow, natural talent, possible complacency' },
+      { name: 'Sextile', symbol: '⚹', angle: '60°', orb: '4-6°', nature: 'Harmonious', description: 'Planets in compatible elements: opportunity requiring activation' }
     ],
     minorAspects: [
-      { name: 'Semi-sextile', angle: '30°', nature: 'Minor tension', description: 'Adjacent signs—slight friction, adjustment needed' },
-      { name: 'Quincunx', angle: '150°', nature: 'Adjustment', description: 'No common ground—requires creative adaptation' },
-      { name: 'Semi-square', angle: '45°', nature: 'Minor challenge', description: 'Internal friction—irritation that builds character' },
-      { name: 'Sesquiquadrate', angle: '135°', nature: 'Minor challenge', description: 'External friction—frustration with circumstances' }
+      { name: 'Semi-sextile', angle: '30°', nature: 'Minor tension', description: 'Adjacent signs: slight friction, adjustment needed' },
+      { name: 'Quincunx', angle: '150°', nature: 'Adjustment', description: 'No common ground: requires creative adaptation' },
+      { name: 'Semi-square', angle: '45°', nature: 'Minor challenge', description: 'Internal friction: irritation that builds character' },
+      { name: 'Sesquiquadrate', angle: '135°', nature: 'Minor challenge', description: 'External friction: frustration with circumstances' }
     ]
   },
 
@@ -1046,7 +1046,7 @@ export const astrologyDocs = {
       { step: 1, title: 'Overall Balance', description: 'Count elements and modalities. Where is emphasis? What\'s missing?' },
       { step: 2, title: 'The Big Three', description: 'Analyze Sun, Moon, and Rising for core personality structure.' },
       { step: 3, title: 'Personal Planets', description: 'Mercury, Venus, Mars in signs and houses for daily expression.' },
-      { step: 4, title: 'Major Aspects', description: 'Look at tight aspects first—they\'re most influential.' },
+      { step: 4, title: 'Major Aspects', description: 'Look at tight aspects first: they\'re most influential.' },
       { step: 5, title: 'House Rulers', description: 'Which planet rules which house? Where does it sit?' },
       { step: 6, title: 'Patterns', description: 'Grand trines, T-squares, stelliums, and other configurations.' },
       { step: 7, title: 'Synthesis', description: 'Weave themes together into a coherent narrative.' }
@@ -1064,11 +1064,11 @@ export const gematriaDocs = {
     subtitle: 'Revealing Hidden Connections Through Number',
     introduction: `
       Gematria is an alphanumeric cipher system that assigns numerical values to Hebrew letters,
-      words, and phrases. It's one of the primary interpretive tools in Kabbalah—Jewish mysticism—
+      words, and phrases. It's one of the primary interpretive tools in Kabbalah (Jewish mysticism),
       used to uncover hidden meanings and connections in sacred texts.
 
       The premise is profound: when two words or phrases have the same numerical value, they share
-      a deep relationship—a hidden equivalence that reveals spiritual truth. Through gematria,
+      a deep relationship, a hidden equivalence that reveals spiritual truth. Through gematria,
       the Hebrew Bible becomes a multidimensional text, with layers of meaning encoded in numbers.
 
       Beyond religious study, gematria offers a lens for understanding your Hebrew name as a
@@ -1082,7 +1082,7 @@ export const gematriaDocs = {
     introduction: `
       According to Kabbalah, the 22 Hebrew letters are not mere symbols but vehicles of divine
       creation. The Sefer Yetzirah (Book of Formation) teaches that God created the universe
-      through combinations of these letters—they are the building blocks of reality.
+      through combinations of these letters: they are the building blocks of reality.
 
       Each letter carries three dimensions:
       - A numerical value (gematria)
@@ -1201,7 +1201,7 @@ export const gematriaDocs = {
     title: 'Working with Your Name',
     subtitle: 'Personal Gematria Practice',
     content: `
-      Your Hebrew name is your spiritual identifier—a numerical signature that connects you to
+      Your Hebrew name is your spiritual identifier, a numerical signature that connects you to
       cosmic patterns. Analyzing your name through gematria can reveal:
 
       - Your essential numerical vibration
@@ -1237,11 +1237,11 @@ export const gematriaDocs = {
       - Derash: The interpretive meaning
       - Sod: The secret/mystical meaning (where gematria lives)
 
-      In Kabbalistic thought, Hebrew letters are more than symbols—they are spiritual forces
+      In Kabbalistic thought, Hebrew letters are more than symbols: they are spiritual forces
       through which creation occurred. The Sefer Yetzirah describes how God formed the universe
       through 22 letters and 10 sefirot (divine attributes), making 32 paths of wisdom.
 
-      Gematria becomes a tool for understanding these mystical connections—revealing how
+      Gematria becomes a tool for understanding these mystical connections, revealing how
       seemingly unrelated concepts are actually unified at a deeper level.
     `,
     sefirot: [
@@ -1274,11 +1274,11 @@ export const tzolkinDocs = {
       Maya daykeepers (Aj Q\'ijab\') in Guatemala and surrounding regions.
 
       The Tzolkin consists of 20 day names (nawales) combined with 13 numbers, creating 260 unique
-      day-sign combinations. This count has never been broken—Maya daykeepers have maintained it
+      day-sign combinations. This count has never been broken: Maya daykeepers have maintained it
       across centuries of colonization and cultural suppression.
 
       Important: The traditional Tzolkin and Dreamspell use different correlation systems, meaning
-      the same calendar date will show different signs in each system. Neither is "wrong"—they are
+      the same calendar date will show different signs in each system. Neither is "wrong": they are
       parallel traditions with different purposes and origins.
     `
   },
@@ -1361,8 +1361,8 @@ export const tzolkinDocs = {
       - Divination: Using the day count along with red beans and crystals to answer questions
         and provide guidance.
 
-      - Ceremony Timing: Certain days are powerful for specific ceremonies—fire ceremonies,
-        ancestral veneration, healing rituals.
+      - Ceremony Timing: Certain days are powerful for specific ceremonies (fire ceremonies,
+        ancestral veneration, healing rituals).
 
       - Marriage Compatibility: Comparing the signs of partners to understand their relationship.
 
@@ -1383,7 +1383,7 @@ export const integrationDocs = {
   title: 'Integrating the Systems',
   subtitle: 'Finding Unity in Diversity',
   introduction: `
-    Each symbolic system—Dreamspell, Human Design, Astrology, Gematria, and Traditional Tzolkin—
+    Each symbolic system (Dreamspell, Human Design, Astrology, Kabbalah, and Traditional Tzolkin)
     offers a unique lens on identity and purpose. They are not competing truths but complementary
     perspectives, like different instruments in an orchestra.
 
@@ -1400,7 +1400,7 @@ export const integrationDocs = {
           { system: 'Astrology', concept: 'Sun sign' },
           { system: 'Dreamspell', concept: 'Yellow Sun seal' },
           { system: 'Human Design', concept: 'Personality Sun gate' },
-          { system: 'Gematria', concept: 'The letter Kaf (כ), ruled by Sun' }
+          { system: 'Kabbalah', concept: 'The letter Kaf (כ), ruled by Sun' }
         ]
       },
       {
@@ -1409,7 +1409,7 @@ export const integrationDocs = {
           { system: 'Astrology', concept: 'Moon sign' },
           { system: 'Dreamspell', concept: 'Red Moon seal' },
           { system: 'Human Design', concept: 'Solar Plexus center' },
-          { system: 'Gematria', concept: 'Mem (מ) = water, emotions' }
+          { system: 'Kabbalah', concept: 'Mem (מ) = water, emotions' }
         ]
       },
       {
@@ -1418,7 +1418,7 @@ export const integrationDocs = {
           { system: 'Astrology', concept: 'Mercury and 3rd House' },
           { system: 'Dreamspell', concept: 'White Wind seal' },
           { system: 'Human Design', concept: 'Throat center' },
-          { system: 'Gematria', concept: 'Pe (פ) = mouth, speech' }
+          { system: 'Kabbalah', concept: 'Pe (פ) = mouth, speech' }
         ]
       },
       {
@@ -1427,7 +1427,7 @@ export const integrationDocs = {
           { system: 'Astrology', concept: 'Pluto and 8th House' },
           { system: 'Dreamspell', concept: 'Blue Storm, White World-Bridger' },
           { system: 'Human Design', concept: 'Channel of Transformation' },
-          { system: 'Gematria', concept: 'Nun (נ) = death and rebirth' }
+          { system: 'Kabbalah', concept: 'Nun (נ) = death and rebirth' }
         ]
       }
     ]
@@ -1437,12 +1437,12 @@ export const integrationDocs = {
     title: 'Using Multiple Systems',
     guidelines: [
       'Start with one system and learn it well before adding others',
-      'Notice where systems agree—these are strongly emphasized themes',
-      'Notice where they diverge—this reveals complexity in your nature',
+      'Notice where systems agree: these are strongly emphasized themes',
+      'Notice where they diverge: this reveals complexity in your nature',
       'Use Astrology for psychological depth and timing',
       'Use Human Design for strategy and decision-making',
       'Use Dreamspell for daily synchronization and purpose',
-      'Use Gematria for understanding your Hebrew name\'s essence',
+      'Use Kabbalah for understanding your Hebrew name\'s essence',
       'Let the systems inform each other without forcing agreement'
     ]
   }
@@ -1504,7 +1504,7 @@ export const docStructure = {
     },
     {
       id: 'gematria',
-      title: 'Kabbalah & Hebrew',
+      title: 'Kabbalah',
       description: 'Tree of Life, Gematria, and Hebrew letter mysticism',
       icon: 'aleph',
       topics: [

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Plus } from 'lucide-react'
 import type { CompatSystem } from '@pleiad/engine/services/compatibility'
 import type { Bodygraph } from '@pleiad/engine/types/human-design'
 import {
@@ -8,9 +9,16 @@ import {
   isCompleteBodygraph,
 } from '@pleiad/engine/calculations/human-design'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { CompositeBodygraphChart } from '@/components/human-design/CompositeBodygraphChart'
+import {
+  DataRow,
+  Eyebrow,
+  MeterBar,
+  PageSection,
+  getFlavor,
+  useCountUp,
+} from '@/components/app-kit'
 import { usePeople, type Person } from '@/lib/hooks/use-people'
 import {
   MATRIX_RAMP,
@@ -88,6 +96,19 @@ function personBodygraph(person: Person | undefined): Bodygraph | null {
   return isCompleteBodygraph(result) ? result : null
 }
 
+/** Big counted numeral for the pair's overall resonance. */
+function OverallResonance({ value }: { value: number }) {
+  const [ref, counted] = useCountUp(value)
+  return (
+    <div ref={ref as React.Ref<HTMLDivElement>} className="flex items-baseline gap-3">
+      <span className="font-mono text-4xl tracking-tight text-brand-bright [font-variant-numeric:tabular-nums]">
+        {counted}
+      </span>
+      <Eyebrow>/ 100 overall resonance</Eyebrow>
+    </div>
+  )
+}
+
 /**
  * The "why" behind the score — MAPS_ROADMAP #2 pair mode. Overlays the two
  * bodygraphs with channels colored by connection type; falls back to a short
@@ -106,20 +127,23 @@ function CompositeSection({
   const bgB = useMemo(() => personBodygraph(personsById.get(b.id)), [personsById, b.id])
 
   return (
-    <div className="space-y-2 pt-2 border-t border-white/10">
-      <h3 className="text-sm font-medium text-foreground/90">Composite bodygraph</h3>
+    <PageSection
+      index={1}
+      accent={getFlavor('humanDesign').accent}
+      eyebrow="Composite bodygraph"
+    >
       {bgA && bgB ? (
         <CompositeBodygraphChart
           personA={{ name: a.name, bodygraph: bgA }}
           personB={{ name: b.name, bodygraph: bgB }}
         />
       ) : (
-        <p className="text-xs text-muted-foreground leading-relaxed">
+        <p className="text-xs leading-relaxed text-white/50">
           Needs an exact birth time and place for both people. Missing for{' '}
           {[!bgA && a.name, !bgB && b.name].filter(Boolean).join(' and ')}.
         </p>
       )}
-    </div>
+    </PageSection>
   )
 }
 
@@ -137,56 +161,54 @@ function PairBreakdown({
 
   return (
     <Sheet open={!!selected} onOpenChange={() => onClose()}>
-      <SheetContent side="right" className="w-full sm:w-96 sm:max-w-96 overflow-y-auto">
+      <SheetContent side="right" className="w-full overflow-y-auto sm:w-96 sm:max-w-96">
         <SheetHeader>
-          <SheetTitle className="font-heading">
+          <SheetTitle className="font-display">
             {a.name} × {b.name}
           </SheetTitle>
         </SheetHeader>
-        <div className="space-y-5 mt-4">
-          <div className="flex items-baseline gap-2">
-            <span className="stat-value text-4xl">{pair.overallScore}</span>
-            <span className="text-sm text-muted-foreground">/ 100 overall resonance</span>
-          </div>
+        <div className="mt-6 flex flex-col gap-8">
+          <OverallResonance value={pair.overallScore} />
 
-          <div className="space-y-3">
-            {SYSTEM_ORDER.map((key) => {
-              const sys = pair.systems[key]
-              if (!sys) return null
-              return (
-                <div key={key} className="space-y-1">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-foreground/90">{SYSTEM_LABELS[key]}</span>
-                    {sys.available ? (
-                      <span className="text-foreground/70 tabular-nums">
-                        {Math.round(sys.score)}
-                        <span className="text-foreground/35 ml-1.5 text-xs">
-                          w {Math.round(sys.weight * 100)}%
-                        </span>
-                      </span>
-                    ) : (
-                      <span className="text-foreground/35 text-xs">no data</span>
-                    )}
+          <PageSection index={0} accent={getFlavor('integration').accent} eyebrow="By system">
+            <div className="flex flex-col gap-3">
+              {SYSTEM_ORDER.map((key) => {
+                const sys = pair.systems[key]
+                if (!sys) return null
+                if (!sys.available) {
+                  return (
+                    <DataRow
+                      key={key}
+                      label={SYSTEM_LABELS[key]}
+                      value={<span className="text-xs text-white/35">no data</span>}
+                      last
+                      className="py-1"
+                    />
+                  )
+                }
+                return (
+                  <div key={key} className="flex items-center gap-3">
+                    <MeterBar
+                      className="min-w-0 flex-1"
+                      label={SYSTEM_LABELS[key]}
+                      value={Math.round(sys.score)}
+                      accent={getFlavor(key).accent}
+                    />
+                    <span
+                      className="w-10 shrink-0 text-right font-mono text-[11px] text-white/35 [font-variant-numeric:tabular-nums]"
+                      title={`Weight ${Math.round(sys.weight * 100)}%`}
+                    >
+                      {Math.round(sys.weight * 100)}%
+                    </span>
                   </div>
-                  <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
-                    {sys.available && (
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${Math.max(2, Math.min(100, sys.score))}%`,
-                          background: scoreRampStep(sys.score).fill,
-                        }}
-                      />
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+                )
+              })}
+            </div>
 
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {pair.summary.english}
-          </p>
+            <p className="text-sm leading-relaxed text-white/70">
+              {pair.summary.english}
+            </p>
+          </PageSection>
 
           <CompositeSection a={a} b={b} personsById={personsById} />
         </div>
@@ -202,14 +224,14 @@ function MatrixSkeleton() {
       <div className="flex gap-2">
         <div className="w-24" />
         {Array.from({ length: n }).map((_, i) => (
-          <Skeleton key={i} className="h-9 w-9 rounded-md" />
+          <div key={i} className="skeleton-shimmer h-9 w-9 rounded-md" />
         ))}
       </div>
       {Array.from({ length: n }).map((_, r) => (
         <div key={r} className="flex gap-2 items-center">
-          <Skeleton className="h-4 w-24 rounded" />
+          <div className="skeleton-shimmer h-4 w-24 rounded" />
           {Array.from({ length: n }).map((_, c) => (
-            <Skeleton key={c} className="h-9 w-9 rounded-md" />
+            <div key={c} className="skeleton-shimmer h-9 w-9 rounded-md" />
           ))}
         </div>
       ))}
@@ -272,8 +294,8 @@ export function ResonanceMatrix() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-12 text-center gap-4">
-        <p className="text-muted-foreground">{error}</p>
-        <Button variant="outline" size="sm" onClick={load}>
+        <p className="text-sm text-white/50">{error}</p>
+        <Button variant="outline" size="sm" onClick={load} className="rounded-xl">
           Try again
         </Button>
       </div>
@@ -284,14 +306,15 @@ export function ResonanceMatrix() {
   if (people.length < 2) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-12 text-center gap-4">
-        <p className="text-muted-foreground">
+        <p className="text-sm text-white/50">
           Add at least two people to see the resonance matrix
         </p>
         <Button
           onClick={() => (window.location.href = '/app/people')}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+          className="rounded-xl bg-brand text-white hover:bg-brand-soft active:scale-[0.98]"
         >
-          + Add People
+          <Plus className="mr-2 size-4" aria-hidden />
+          Add people
         </Button>
       </div>
     )
@@ -312,7 +335,7 @@ export function ResonanceMatrix() {
         {people.map((p) => (
           <div
             key={`col-${p.id}`}
-            className="h-10 flex items-end justify-center pb-1 text-[11px] font-medium text-foreground/70"
+            className="h-10 flex items-end justify-center pb-1 font-mono text-[11px] text-white/70"
             title={p.is_self ? `${p.name} · You` : p.name}
           >
             {initials(p.name)}
@@ -332,7 +355,7 @@ export function ResonanceMatrix() {
       </div>
 
       {/* Ramp legend */}
-      <div className="flex items-center gap-2 mt-5 text-xs text-muted-foreground">
+      <div className="flex items-center gap-2 mt-5 text-xs text-white/50">
         <span>Low</span>
         <div className="flex gap-0.5">
           {MATRIX_RAMP.map((step) => (
@@ -369,7 +392,7 @@ function RowCells({
   return (
     <>
       <div
-        className="h-10 flex items-center pr-3 text-sm text-foreground/90 truncate max-w-40"
+        className="h-10 flex items-center pr-3 text-sm text-white/90 truncate max-w-40"
         title={row.name}
       >
         {row.name}
@@ -380,7 +403,7 @@ function RowCells({
           return (
             <div
               key={`${row.id}-${col.id}`}
-              className="h-10 w-10 rounded-md bg-white/[0.02] border border-white/5"
+              className="h-10 w-10 rounded-md bg-white/[0.02] border border-white/[0.07]"
               aria-hidden
             />
           )
@@ -402,7 +425,7 @@ function RowCells({
             title={`${row.name} × ${col.name} — ${pair.overallScore}`}
           >
             <span
-              className="text-[11px] font-semibold tabular-nums opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity"
+              className="font-mono text-[11px] font-semibold [font-variant-numeric:tabular-nums] opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity"
               style={{ color: step.text }}
             >
               {pair.overallScore}

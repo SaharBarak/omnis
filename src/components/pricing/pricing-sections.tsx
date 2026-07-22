@@ -4,11 +4,10 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
   FREE_PLAN,
-  EXPLORER_PLAN,
-  LIFETIME_PLAN,
-  PAID_PLANS,
+  PRICING_PLANS,
   LEDGER_COLUMNS,
   LEDGER_ROWS,
+  type PaidPlan,
 } from './plan-data'
 import { Button } from '@/components/ui/button'
 import { TYPE } from '@/lib/design/landing-tokens'
@@ -24,8 +23,10 @@ import { APP_STORE_URL, PLAY_STORE_URL } from '@/lib/store-links'
 
 const easeOut = [0.4, 0, 0.2, 1] as const
 
+// initial: false — the tiers and ledger are the money content; SSR must
+// never ship them at opacity 0. Motion here is enhancement only.
 const fadeUp = {
-  initial: { opacity: 0, y: 20 },
+  initial: false,
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, margin: '-60px' },
   transition: { duration: 0.55, ease: easeOut },
@@ -50,14 +51,16 @@ function GetInAppButton({
       : 'bg-white/10 text-white hover:bg-white/20'
   }`
 
+  // Store not live yet — never show a dead button. Route intent into the
+  // account funnel; the purchase completes in the app once it ships.
   if (!href) {
     return (
       <div>
-        <Button type="button" disabled className={className}>
-          {label}
+        <Button asChild className={className}>
+          <Link href="/login">{label}</Link>
         </Button>
         <p className="mt-2 text-center text-xs text-white/50">
-          Coming soon to the App Store and Google Play
+          Start free on the web: purchases arrive with the app
         </p>
       </div>
     )
@@ -82,12 +85,12 @@ export function FreeLead() {
       <div className="rounded-2xl border border-white/10 bg-surface p-8 sm:p-10">
         <div className="grid items-center gap-8 md:grid-cols-[1fr_auto]">
           <div>
-            <p className={`${TYPE.eyebrow} text-brand`}>Start here — free</p>
+            <p className={`${TYPE.eyebrow} text-brand`}>Start here: free</p>
             <h2 className={`${TYPE.card} mt-3`}>
               Your reading costs nothing.
             </h2>
-            <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-white/70">
-              Enter a birthday and read it — no card, no wall. The free plan
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/70">
+              Enter a birthday and read it: no card, no wall. The free plan
               holds up to 3 people with Dreamspell readings and the daily kin,
               for as long as you like.
             </p>
@@ -105,7 +108,7 @@ export function FreeLead() {
             size="lg"
             className="rounded-xl bg-brand text-white hover:bg-brand-soft active:scale-[0.98]"
           >
-            <Link href="/calculate">Get your free reading</Link>
+            <Link href="/calculate">Start with your birthday</Link>
           </Button>
         </div>
       </div>
@@ -114,159 +117,85 @@ export function FreeLead() {
 }
 
 // --------------------------------------------
-// Explorer — slim entry row: the whole map, small scale, no AI.
-// Deliberately quieter than the Complete/Practitioner cards below it.
+// Paid tiers — one card anatomy for all four plans (Explorer, Complete,
+// Practitioner, Founding Lifetime). Same header / price / feature-list /
+// CTA structure everywhere; the recommended plan (Complete) is the only
+// card allowed emphasis — brand border, tinted surface, brand CTA.
 // --------------------------------------------
 
-function ExplorerRow() {
+function PlanCard({
+  plan,
+  index,
+}: {
+  readonly plan: PaidPlan
+  readonly index: number
+}) {
   return (
     <motion.div
       {...fadeUp}
-      className="rounded-2xl border border-white/10 bg-surface p-6 sm:p-7"
+      transition={{ duration: 0.55, delay: index * 0.08, ease: easeOut }}
+      className={`flex flex-col rounded-2xl border p-7 ${
+        plan.featured
+          ? 'border-brand/40 bg-brand/5'
+          : 'border-white/10 bg-surface'
+      }`}
     >
-      <div className="grid items-center gap-6 md:grid-cols-[auto_1fr_auto]">
-        <div className="flex items-baseline gap-4">
-          <p className="text-xs uppercase tracking-[0.2em] text-white/50">
-            {EXPLORER_PLAN.name}
-          </p>
-          <p className="font-display text-3xl font-semibold text-white">
-            {EXPLORER_PLAN.price}
-            <span className="text-sm font-normal text-white/50">/mo</span>
-          </p>
-        </div>
-        <div>
-          <p className="text-sm text-white/70">{EXPLORER_PLAN.tagline}</p>
-          <ul className="mt-2 flex flex-wrap gap-x-6 gap-y-1.5 text-sm text-white/50">
-            {EXPLORER_PLAN.points.map((point) => (
-              <li key={point} className="flex items-center gap-2">
-                <span className="text-brand">·</span>
-                {point}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="w-full md:w-52">
-          <GetInAppButton
-            label={EXPLORER_PLAN.cta}
-            featured={false}
-          />
-        </div>
+      <div className="flex min-h-6 flex-wrap items-center justify-between gap-2">
+        <p
+          className={`${TYPE.eyebrow} ${
+            plan.featured ? 'text-brand-soft' : 'text-white/50'
+          }`}
+        >
+          {plan.name}
+        </p>
+        {plan.badge && (
+          <span
+            className={`rounded-full px-3 py-1 text-[11px] font-medium ${
+              plan.featured
+                ? 'bg-brand/15 text-brand-soft'
+                : 'bg-white/10 text-white/50'
+            }`}
+          >
+            {plan.badge}
+          </span>
+        )}
+      </div>
+      <p className="mt-4 font-display text-4xl font-semibold text-white">
+        {plan.price}
+        <span className="text-base font-normal text-white/50">
+          {plan.priceNote.startsWith('/') ? plan.priceNote : ` ${plan.priceNote}`}
+        </span>
+      </p>
+      <p className="mt-1 text-sm text-white/50">{plan.tagline}</p>
+      <ul className="mt-6 flex-1 space-y-2.5 text-sm text-white/70">
+        {plan.points.map((point) => (
+          <li key={point} className="flex gap-2">
+            <span className="text-brand">·</span>
+            {point}
+          </li>
+        ))}
+      </ul>
+      <div className="mt-8">
+        <GetInAppButton label={plan.cta} featured={plan.featured} />
       </div>
     </motion.div>
   )
 }
-
-// --------------------------------------------
-// Founding Lifetime — slim launch band under the paid tiers grid.
-// One-time purchase, Complete entitlements forever. Quieter than the
-// cards above it, but carried by the brand violet.
-// --------------------------------------------
-
-function LifetimeBand() {
-  return (
-    <motion.div
-      {...fadeUp}
-      className="rounded-2xl border border-brand/30 bg-brand/[0.07] p-6 sm:p-7"
-    >
-      <div className="grid items-center gap-6 md:grid-cols-[auto_1fr_auto]">
-        <div className="flex items-baseline gap-4">
-          <p className="text-xs uppercase tracking-[0.2em] text-brand-soft">
-            {LIFETIME_PLAN.name}
-          </p>
-          <p className="font-display text-3xl font-semibold text-white">
-            {LIFETIME_PLAN.price}
-            <span className="text-sm font-normal text-white/50">
-              {' '}
-              {LIFETIME_PLAN.priceNote}
-            </span>
-          </p>
-        </div>
-        <div>
-          <p className="text-sm text-white/70">{LIFETIME_PLAN.tagline}</p>
-          <ul className="mt-2 flex flex-wrap gap-x-6 gap-y-1.5 text-sm text-white/50">
-            {LIFETIME_PLAN.points.map((point) => (
-              <li key={point} className="flex items-center gap-2">
-                <span className="text-brand">·</span>
-                {point}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="w-full md:w-52">
-          <GetInAppButton
-            label={LIFETIME_PLAN.cta}
-            featured
-          />
-        </div>
-      </div>
-    </motion.div>
-  )
-}
-
-// --------------------------------------------
-// Paid tiers — Explorer entry row, then the featured Complete column
-// with Practitioner beside it
-// --------------------------------------------
 
 export function PaidTiers() {
   return (
-    <section className="mx-auto mt-20 max-w-4xl px-6 sm:mt-24">
+    <section className="mx-auto mt-20 max-w-5xl px-6 sm:mt-24">
       <motion.h2 {...fadeUp} className={`${TYPE.section} text-center`}>
         Upgrade when the map becomes something you return to.
       </motion.h2>
-      <div className="mt-12">
-        <ExplorerRow />
-      </div>
-      <div className="mt-6 grid gap-6 md:grid-cols-5">
-        {PAID_PLANS.map((plan, i) => (
-          <motion.div
-            key={plan.id}
-            {...fadeUp}
-            transition={{ duration: 0.55, delay: i * 0.1, ease: easeOut }}
-            className={`flex flex-col rounded-2xl border p-8 ${
-              plan.featured
-                ? 'border-brand/40 bg-brand/5 md:col-span-3'
-                : 'border-white/10 bg-surface md:col-span-2'
-            }`}
-          >
-            <div className="flex items-baseline justify-between gap-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-white/50">
-                {plan.name}
-              </p>
-              {plan.featured && (
-                <span className="rounded-full bg-brand/15 px-3 py-1 text-[11px] font-medium text-brand-soft">
-                  Most people land here
-                </span>
-              )}
-            </div>
-            <p className="mt-4 font-display text-4xl font-semibold text-white">
-              {plan.price}
-              <span className="text-base font-normal text-white/50">/mo</span>
-            </p>
-            <p className="mt-1 text-sm text-white/50">{plan.tagline}</p>
-            <ul className="mt-6 flex-1 space-y-2.5 text-sm text-white/70">
-              {plan.points.map((point) => (
-                <li key={point} className="flex gap-2">
-                  <span className="text-brand">·</span>
-                  {point}
-                </li>
-              ))}
-            </ul>
-            <div className="mt-8">
-              <GetInAppButton
-                label={plan.cta}
-                featured={plan.featured}
-              />
-            </div>
-          </motion.div>
+      <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {PRICING_PLANS.map((plan, i) => (
+          <PlanCard key={plan.id} plan={plan} index={i} />
         ))}
-      </div>
-      <div className="mt-6">
-        <LifetimeBand />
       </div>
       <p className="mt-6 text-center text-sm text-white/35">
         Plans are purchased in the Pleiad app and billed by the App Store or
-        Google Play — Founding Lifetime is a single one-time payment. Cancel any
+        Google Play. Founding Lifetime is a single one-time payment. Cancel any
         time from your device&apos;s subscription settings; your plan runs to the
         end of the period, and your people stay saved.
       </p>
@@ -275,7 +204,9 @@ export function PaidTiers() {
 }
 
 // --------------------------------------------
-// Ledger — every entitlement, one row each
+// Ledger — every entitlement, one row each. On small screens the table
+// scrolls horizontally behind a fade edge + swipe hint (same overflow
+// treatment as the learn doc tables).
 // --------------------------------------------
 
 export function PlanLedger() {
@@ -284,40 +215,51 @@ export function PlanLedger() {
       <motion.h2 {...fadeUp} className={`${TYPE.section} text-center`}>
         What each plan holds.
       </motion.h2>
-      <motion.div {...fadeUp} className="mt-12 overflow-x-auto">
-        <table className="w-full min-w-[680px] border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-white/10">
-              <th className="py-4 pr-4 text-left font-normal text-white/35" scope="col">
-                <span className="sr-only">Feature</span>
-              </th>
-              {LEDGER_COLUMNS.map((column) => (
-                <th
-                  key={column}
-                  scope="col"
-                  className={`px-4 py-4 text-left text-xs uppercase tracking-[0.2em] ${
-                    column === 'Complete' ? 'text-brand-soft' : 'text-white/50'
-                  }`}
-                >
-                  {column}
+      <motion.div {...fadeUp} className="relative mt-12">
+        <div className="overflow-x-auto pb-2">
+          <table className="w-full min-w-[760px] border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-white/10">
+                <th className="py-4 pr-4 text-left font-normal text-white/35" scope="col">
+                  <span className="sr-only">Feature</span>
                 </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/10">
-            {LEDGER_ROWS.map((row) => (
-              <tr key={row.label}>
-                <th scope="row" className="py-3.5 pr-4 text-left font-normal text-white/70">
-                  {row.label}
-                </th>
-                <LedgerCell value={row.free} />
-                <LedgerCell value={row.explorer} />
-                <LedgerCell value={row.complete} featured />
-                <LedgerCell value={row.practitioner} />
+                {LEDGER_COLUMNS.map((column) => (
+                  <th
+                    key={column}
+                    scope="col"
+                    className={`${TYPE.eyebrow} px-4 py-4 text-left ${
+                      column === 'Complete' ? 'text-brand-soft' : 'text-white/50'
+                    }`}
+                  >
+                    {column}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-white/10">
+              {LEDGER_ROWS.map((row) => (
+                <tr key={row.label}>
+                  <th scope="row" className="py-3.5 pr-4 text-left font-normal text-white/70">
+                    {row.label}
+                  </th>
+                  <LedgerCell value={row.free} />
+                  <LedgerCell value={row.explorer} />
+                  <LedgerCell value={row.complete} featured />
+                  <LedgerCell value={row.practitioner} />
+                  <LedgerCell value={row.lifetime} />
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {/* Fade edge — signals more columns off-screen; mobile only. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 right-0 w-14 bg-gradient-to-r from-transparent to-ground md:hidden"
+        />
+        <p className="mt-3 text-center text-xs text-white/35 md:hidden">
+          Swipe to compare all plans
+        </p>
       </motion.div>
     </section>
   )

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+import { calculateFiveSystemCompatibility } from '@pleiad/engine/services/compatibility'
 import { GET } from './route'
 import { requireUserId } from '@/lib/auth-server'
 import { listPeopleWithTags } from '@/lib/db/repositories/people-repo'
@@ -7,7 +8,6 @@ import {
   bulkUpsertResults,
   getResultsBySystemForPeople,
 } from '@/lib/db/repositories/computed-results-repo'
-import { calculateFiveSystemCompatibility } from '@pleiad/engine/services/compatibility'
 import {
   MATRIX_PAIR_SYSTEM,
   buildPairCacheData,

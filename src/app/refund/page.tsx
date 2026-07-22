@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const metadata: Metadata = {
   title: 'Refund Policy | Pleiad',
@@ -35,7 +35,7 @@ export default function RefundPage() {
             <h2 className="text-lg font-semibold mt-6 mb-3">2. Refunds Are Handled by the Store</h2>
             <p>
               Because the store is the merchant of record, refund requests are made to, and
-              decided by, Apple or Google under their own policies — we cannot issue a refund
+              decided by, Apple or Google under their own policies; we cannot issue a refund
               to your payment method ourselves.
             </p>
             <ul>
@@ -55,7 +55,7 @@ export default function RefundPage() {
               </li>
             </ul>
             <p>
-              If a store declines a request you believe is fair, email us — we will support
+              If a store declines a request you believe is fair, email us; we will support
               your case with the store where we can, though the final decision is theirs.
             </p>
 
@@ -77,7 +77,7 @@ export default function RefundPage() {
             <h2 className="text-lg font-semibold mt-6 mb-3">5. Your Data After a Refund</h2>
             <p>
               A refund removes your paid entitlement and returns your account to the Free
-              plan. Your people, notes and maps are not deleted — they stay saved, subject to
+              plan. Your people, notes and maps are not deleted; they stay saved, subject to
               the Free plan&rsquo;s limits.
             </p>
 

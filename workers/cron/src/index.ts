@@ -17,6 +17,7 @@ const CRON_ROUTES: Record<string, string> = {
   '0 6 * * *': '/api/cron/daily-kin',
   '0 4 * * *': '/api/cron/daily-predictions',
   '0 8 * * *': '/api/cron/send-notifications',
+  '0 7 * * *': '/api/cron/daily-briefing',
 }
 
 const handler: ExportedHandler<Env> = {

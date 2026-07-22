@@ -1,9 +1,27 @@
 import { Metadata } from 'next'
-import Link from 'next/link'
-import { Header, Footer } from '@/components/landing'
-import { DocLayout, DocHero, DocSection, DocNav, DocStats, DocInfoBox, DocPullQuote, QuickAnswer } from '@/components/docs'
-import { astrologyDocs, docStructure } from '@/lib/docs/content'
-import { JsonLd, SITE_URL, organizationSchema, buildBreadcrumbs } from '@/lib/seo/json-ld'
+
+import {
+  CARD,
+  DocCta,
+  DocH3,
+  DocHero,
+  DocInfoBox,
+  DocProse,
+  DocSection,
+  DocShell,
+  DocStats,
+  QuickAnswer,
+} from '@/app/learn/_components/doc-shell'
+import { COLORS } from '@/lib/design/landing-tokens'
+import { SYSTEM_FLAVORS } from '@/lib/design/system-flavors'
+import { astrologyDocs } from '@/lib/docs/content'
+import { JsonLd, SITE_URL, buildBreadcrumbs } from '@/lib/seo/json-ld'
+
+export const revalidate = 3600
+
+const FLAVOR = SYSTEM_FLAVORS.astrology
+const ACCENT = FLAVOR.accent
+const ACCENT_SOFT = FLAVOR.accentSoft
 
 export const metadata: Metadata = {
   title: 'Western Astrology Guide: Zodiac Signs, Planets, Houses & Aspects',
@@ -36,7 +54,7 @@ const courseSchema = {
   "@context": "https://schema.org",
   "@type": "Course",
   "name": "Western Astrology: Zodiac Signs, Planets, Houses & Aspects",
-  "description": "Learn Western Astrology — the Big Three, 12 Signs, Planets, Houses, and how to read a natal chart.",
+  "description": "Learn Western Astrology: the Big Three, 12 Signs, Planets, Houses, and how to read a natal chart.",
   "provider": { "@id": `${SITE_URL}/#organization` },
   "isAccessibleForFree": true,
   "url": `${SITE_URL}/learn/astrology`,
@@ -55,7 +73,7 @@ const astrologyFaqs = [
   },
   {
     question: "What are Sun, Moon, and Rising signs?",
-    answer: "Your Sun sign represents your core identity and ego — who you are at your center. Your Moon sign reveals your emotional inner world and instincts. Your Rising sign (Ascendant) is the mask you wear and how others perceive you at first meeting. Together, these three form 'the Big Three' — the foundation of your astrological profile.",
+    answer: "Your Sun sign represents your core identity and ego, who you are at your center. Your Moon sign reveals your emotional inner world and instincts. Your Rising sign (Ascendant) is the mask you wear and how others perceive you at first meeting. Together, these three form 'the Big Three', the foundation of your astrological profile.",
   },
   {
     question: "How many zodiac signs are there?",
@@ -76,357 +94,361 @@ const faqSchema = {
   })),
 }
 
-// Element color utilities
-const elementColors: Record<string, { bg: string; border: string; text: string }> = {
-  Fire: { bg: 'bg-red-500/10', border: 'border-red-500/20', text: 'text-red-600 dark:text-red-400' },
-  Earth: { bg: 'bg-green-500/10', border: 'border-green-500/20', text: 'text-green-600 dark:text-green-400' },
-  Air: { bg: 'bg-cyan-500/10', border: 'border-cyan-500/20', text: 'text-cyan-600 dark:text-cyan-400' },
-  Water: { bg: 'bg-blue-500/10', border: 'border-blue-500/20', text: 'text-blue-600 dark:text-blue-400' },
+/** DocSection headings, in page order — feeds the DocShell table of contents. */
+const TOC = [
+  { id: 'astro-big-three', label: astrologyDocs.bigThree.title },
+  { id: 'astro-signs', label: astrologyDocs.signs.title },
+  { id: 'astro-planets', label: astrologyDocs.planets.title },
+  { id: 'astro-houses', label: astrologyDocs.houses.title },
+  { id: 'astro-aspects', label: astrologyDocs.aspects.title },
+  { id: 'astro-interpretation', label: astrologyDocs.interpretation.title },
+  { id: 'astro-faq', label: 'Frequently Asked Questions' },
+] as const
+
+// Aspect-nature tones from the design system's own tokens: the page's flavor
+// accent for harmonious, the chrome brand violet for challenging, and neutral
+// white steps for blending — no off-palette greens/reds.
+const ASPECT_NATURE_TONES: Record<
+  string,
+  { border: string; chipBg: string; chipText: string }
+> = {
+  Harmonious: { border: ACCENT, chipBg: `${ACCENT}14`, chipText: ACCENT_SOFT },
+  Challenging: {
+    border: COLORS.brand,
+    chipBg: `${COLORS.brand}14`,
+    chipText: COLORS.brandSoft,
+  },
+}
+const ASPECT_NATURE_NEUTRAL = {
+  border: 'rgba(255,255,255,0.25)',
+  chipBg: 'rgba(255,255,255,0.06)',
+  chipText: 'rgba(255,255,255,0.6)',
+}
+
+// Element color utilities — dark-ground tints.
+const elementColors: Record<string, { bg: string; border: string; text: string; dot: string }> = {
+  Fire: { bg: 'bg-red-500/10', border: 'border-red-500/20', text: 'text-red-400', dot: 'bg-red-500' },
+  Earth: { bg: 'bg-green-500/10', border: 'border-green-500/20', text: 'text-green-400', dot: 'bg-green-500' },
+  Air: { bg: 'bg-cyan-500/10', border: 'border-cyan-500/20', text: 'text-cyan-400', dot: 'bg-cyan-500' },
+  Water: { bg: 'bg-blue-500/10', border: 'border-blue-500/20', text: 'text-blue-400', dot: 'bg-blue-500' },
 }
 
 export default function AstrologyDocsPage() {
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <DocShell section="astrology" toc={TOC}>
+      <JsonLd data={articleSchema} id="json-ld-article" />
+      <JsonLd data={courseSchema} id="json-ld-course" />
+      <JsonLd data={breadcrumbSchema} id="json-ld-breadcrumbs" />
+      <JsonLd data={faqSchema} id="json-ld-faq" />
 
-      <DocLayout
-        sections={docStructure.sections}
-        currentSection="astrology"
-      >
-        <JsonLd data={articleSchema} id="json-ld-article" />
-        <JsonLd data={courseSchema} id="json-ld-course" />
-        <JsonLd data={breadcrumbSchema} id="json-ld-breadcrumbs" />
-        <JsonLd data={faqSchema} id="json-ld-faq" />
+      {/* Header */}
+      <DocHero
+        section="astrology"
+        title={astrologyDocs.overview.title}
+        subtitle={astrologyDocs.overview.subtitle}
+      />
 
-        {/* Header */}
-        <DocHero
-          section="astrology"
-          title={astrologyDocs.overview.title}
-          subtitle={astrologyDocs.overview.subtitle}
-        />
+      <QuickAnswer
+        question="What is Western Astrology?"
+        answer="Western Astrology is the study of how planetary positions at the time of your birth influence your personality and life path. Your natal chart maps the Sun, Moon, and 8 planets across 12 zodiac signs and 12 houses, revealing your core identity (Sun sign), emotional nature (Moon sign), and outward persona (Rising sign). No birth time? You can still analyze your planetary signs and aspects."
+        accent={ACCENT}
+        accentSoft={ACCENT_SOFT}
+      />
 
-        <QuickAnswer
-          question="What is Western Astrology?"
-          answer="Western Astrology is the study of how planetary positions at the time of your birth influence your personality and life path. Your natal chart maps the Sun, Moon, and 8 planets across 12 zodiac signs and 12 houses, revealing your core identity (Sun sign), emotional nature (Moon sign), and outward persona (Rising sign). No birth time? You can still analyze your planetary signs and aspects."
-        />
+      {/* Introduction */}
+      <section className="mb-12">
+        <DocProse content={astrologyDocs.overview.introduction} />
+      </section>
 
-        {/* Introduction with drop cap */}
-        <section className="mb-12">
-          <p className="doc-dropcap text-muted-foreground leading-relaxed text-lg">
-            {astrologyDocs.overview.introduction.trim()}
-          </p>
-        </section>
+      {/* Quick Stats */}
+      <DocStats
+        stats={[
+          { value: '12', label: 'Zodiac Signs' },
+          { value: '10', label: 'Planets' },
+          { value: '12', label: 'Houses' },
+          { value: '5', label: 'Major Aspects' },
+        ]}
+        accentSoft={ACCENT_SOFT}
+      />
 
-        {/* Quick Stats */}
-        <DocStats
-          stats={[
-            { value: '12', label: 'Zodiac Signs' },
-            { value: '10', label: 'Planets' },
-            { value: '12', label: 'Houses' },
-            { value: '5', label: 'Major Aspects' },
-          ]}
-        />
+      {/* The Big Three */}
+      <DocSection id="astro-big-three" title={astrologyDocs.bigThree.title}>
+        <DocProse className="mb-8" content={astrologyDocs.bigThree.introduction} />
 
-        {/* The Big Three */}
-        <DocSection id="astro-big-three" title={astrologyDocs.bigThree.title}>
-          <p className="text-muted-foreground leading-relaxed mb-8">
-            {astrologyDocs.bigThree.introduction}
-          </p>
+        <div className="space-y-4">
+          {astrologyDocs.bigThree.placements.map((placement) => (
+            <div
+              key={placement.name}
+              className={`${CARD} p-6`}
+              style={{ borderLeftWidth: '4px', borderLeftColor: ACCENT }}
+            >
+              <h4 className="mb-2 font-display text-xl text-white">{placement.name}</h4>
+              <div className="mb-2 text-sm font-medium" style={{ color: ACCENT_SOFT }}>
+                {placement.represents}
+              </div>
+              <div className="mb-4 text-sm italic text-white/50">&quot;{placement.question}&quot;</div>
+              <DocProse
+                variant="inherit"
+                className="leading-relaxed text-white/70"
+                content={placement.description}
+              />
+            </div>
+          ))}
+        </div>
+      </DocSection>
 
-          <div className="space-y-4">
-            {astrologyDocs.bigThree.placements.map((placement) => (
+      {/* 12 Zodiac Signs */}
+      <DocSection id="astro-signs" title={astrologyDocs.signs.title}>
+        <DocProse className="mb-8" content={astrologyDocs.signs.introduction} />
+
+        {/* Elements */}
+        <DocH3>The Four Elements</DocH3>
+        <div className="mb-10 grid gap-4 sm:grid-cols-2">
+          {astrologyDocs.signs.elements.map((element) => {
+            const colors = elementColors[element.name] || elementColors.Fire
+            return (
               <div
-                key={placement.name}
-                className="doc-card p-6"
-                style={{ borderLeftWidth: '4px', borderLeftColor: '#f59e0b' }}
+                key={element.name}
+                className={`rounded-2xl border p-5 ${colors.border} ${colors.bg}`}
               >
-                <h4 className="font-heading text-xl text-foreground mb-2">{placement.name}</h4>
-                <div className="text-sm text-amber-600 dark:text-amber-400 font-medium mb-2">{placement.represents}</div>
-                <div className="text-sm text-muted-foreground italic mb-4">&quot;{placement.question}&quot;</div>
-                <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                  {placement.description.trim()}
+                <div className="mb-3 flex items-center gap-3">
+                  <div className={`h-4 w-4 rounded-full ${colors.dot}`} />
+                  <span className={`font-display text-lg ${colors.text}`}>{element.name}</span>
+                </div>
+                <div className="mb-3 text-sm text-white/50">
+                  {element.signs.join(' • ')}
+                </div>
+                <p className="mb-2 text-sm text-white/70">
+                  <span className="font-medium text-white">Qualities:</span> {element.qualities}
+                </p>
+                <p className="text-sm text-white/70">
+                  <span className="font-medium text-white">Shadow:</span> {element.shadow}
                 </p>
               </div>
-            ))}
-          </div>
-        </DocSection>
+            )
+          })}
+        </div>
 
-        {/* 12 Zodiac Signs */}
-        <DocSection id="astro-signs" title={astrologyDocs.signs.title}>
-          <p className="text-muted-foreground leading-relaxed mb-8">
-            {astrologyDocs.signs.introduction}
-          </p>
-
-          {/* Elements */}
-          <h3 className="doc-h3">The Four Elements</h3>
-          <div className="grid sm:grid-cols-2 gap-4 mb-10">
-            {astrologyDocs.signs.elements.map((element) => {
-              const colors = elementColors[element.name] || elementColors.Fire
-              return (
-                <div
-                  key={element.name}
-                  className={`p-5 rounded-xl border ${colors.border} ${colors.bg}`}
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className={`w-4 h-4 rounded-full ${
-                      element.name === 'Fire' ? 'bg-red-500' :
-                      element.name === 'Earth' ? 'bg-green-500' :
-                      element.name === 'Air' ? 'bg-cyan-500' :
-                      'bg-blue-500'
-                    }`} />
-                    <span className={`font-heading text-lg ${colors.text}`}>{element.name}</span>
-                  </div>
-                  <div className="text-sm text-muted-foreground mb-3">
-                    {element.signs.join(' • ')}
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    <span className="font-medium text-foreground">Qualities:</span> {element.qualities}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-medium text-foreground">Shadow:</span> {element.shadow}
-                  </p>
-                </div>
-              )
-            })}
-          </div>
-
-          {/* Modalities */}
-          <h3 className="doc-h3">The Three Modalities</h3>
-          <div className="grid sm:grid-cols-3 gap-4 mb-10">
-            {astrologyDocs.signs.modalities.map((modality) => (
-              <div key={modality.name} className="doc-card p-5">
-                <h4 className="font-heading text-lg text-foreground mb-2">{modality.name}</h4>
-                <div className="text-xs text-amber-600 dark:text-amber-400 mb-3">
-                  {modality.signs.join(' • ')}
-                </div>
-                <p className="text-sm text-muted-foreground">{modality.quality}</p>
+        {/* Modalities */}
+        <DocH3>The Three Modalities</DocH3>
+        <div className="mb-10 grid gap-4 sm:grid-cols-3">
+          {astrologyDocs.signs.modalities.map((modality) => (
+            <div key={modality.name} className={`${CARD} p-5`}>
+              <h4 className="mb-2 font-display text-lg text-white">{modality.name}</h4>
+              <div className="mb-3 text-xs" style={{ color: ACCENT_SOFT }}>
+                {modality.signs.join(' • ')}
               </div>
-            ))}
-          </div>
+              <p className="text-sm text-white/70">{modality.quality}</p>
+            </div>
+          ))}
+        </div>
 
-          {/* All 12 Signs */}
-          <h3 className="doc-h3">The 12 Signs</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {astrologyDocs.signs.signDetails.map((sign) => {
-              const element = astrologyDocs.signs.elements.find(e => e.signs.includes(sign.sign))
-              const colors = elementColors[element?.name || 'Fire']
-              return (
-                <div
-                  key={sign.sign}
-                  className={`p-4 rounded-xl border transition-all hover:shadow-earth ${colors.border} ${colors.bg}`}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">{sign.symbol}</span>
-                    <span className={`font-medium ${colors.text}`}>{sign.sign}</span>
-                  </div>
-                  <div className="text-xs text-muted-foreground mb-2">{sign.dates}</div>
-                  <div className="text-xs text-muted-foreground/80">Ruler: {sign.ruler}</div>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {sign.keywords.slice(0, 2).map((kw) => (
-                      <span key={kw} className="text-xs px-1.5 py-0.5 rounded bg-background/60 text-muted-foreground">{kw}</span>
-                    ))}
-                  </div>
+        {/* All 12 Signs */}
+        <DocH3>The 12 Signs</DocH3>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {astrologyDocs.signs.signDetails.map((sign) => {
+            const element = astrologyDocs.signs.elements.find(e => e.signs.includes(sign.sign))
+            const colors = elementColors[element?.name || 'Fire']
+            return (
+              <div
+                key={sign.sign}
+                className={`rounded-2xl border p-4 transition-colors ${colors.border} ${colors.bg}`}
+              >
+                <div className="mb-2 flex items-center gap-2">
+                  {/* U+FE0E forces text presentation so glyphs never render as emoji. */}
+                  <span className="text-2xl">{sign.symbol}{'\uFE0E'}</span>
+                  <span className={`font-medium ${colors.text}`}>{sign.sign}</span>
                 </div>
-              )
-            })}
-          </div>
-        </DocSection>
-
-        {/* Planets */}
-        <DocSection id="astro-planets" title={astrologyDocs.planets.title}>
-          <p className="text-muted-foreground leading-relaxed mb-8">
-            {astrologyDocs.planets.introduction}
-          </p>
-
-          {/* Planet Categories */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-            {astrologyDocs.planets.categories.map((cat) => (
-              <div key={cat.name} className="p-4 rounded-xl bg-muted/30 border border-border">
-                <div className="font-heading text-foreground mb-1">{cat.name}</div>
-                <div className="text-xs text-muted-foreground mb-2">{cat.description}</div>
-                <div className="text-xs text-amber-600 dark:text-amber-400 font-medium">{cat.planets.join(' • ')}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* All Planets */}
-          <div className="space-y-3">
-            {astrologyDocs.planets.planetDetails.map((planet) => (
-              <div key={planet.name} className="doc-card p-5 flex items-start gap-5">
-                <div className="w-14 h-14 rounded-xl bg-amber-500/10 flex items-center justify-center text-3xl flex-shrink-0">
-                  {planet.symbol}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 flex-wrap mb-2">
-                    <span className="font-heading text-lg text-foreground">{planet.name}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Cycle: {planet.cycle}</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-3 leading-relaxed">{planet.function}</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {planet.keywords.map((kw) => (
-                      <span key={kw} className="text-xs px-2.5 py-1 rounded-lg bg-muted text-muted-foreground">{kw}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </DocSection>
-
-        {/* Houses */}
-        <DocSection id="astro-houses" title={astrologyDocs.houses.title}>
-          <p className="text-muted-foreground leading-relaxed mb-8">
-            {astrologyDocs.houses.introduction}
-          </p>
-
-          <div className="grid sm:grid-cols-2 gap-4">
-            {astrologyDocs.houses.houseDetails.map((house) => (
-              <div key={house.number} className="doc-card p-5">
-                <div className="flex items-center gap-4 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center text-lg font-heading text-amber-600 dark:text-amber-400 flex-shrink-0">
-                    {house.number}
-                  </div>
-                  <div>
-                    <span className="font-heading text-foreground">{house.name}</span>
-                    <span className="text-sm text-muted-foreground ml-2">({house.sign})</span>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground mb-3 leading-relaxed">{house.themes}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {house.keywords.map((kw) => (
-                    <span key={kw} className="text-xs px-2 py-0.5 rounded-lg bg-muted text-muted-foreground">{kw}</span>
+                <div className="mb-2 text-xs text-white/50">{sign.dates}</div>
+                <div className="text-xs text-white/40">Ruler: {sign.ruler}</div>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {sign.keywords.slice(0, 2).map((kw) => (
+                    <span key={kw} className="rounded bg-white/5 px-1.5 py-0.5 text-xs text-white/50">{kw}</span>
                   ))}
                 </div>
               </div>
-            ))}
-          </div>
-        </DocSection>
+            )
+          })}
+        </div>
+      </DocSection>
 
-        {/* Aspects */}
-        <DocSection id="astro-aspects" title={astrologyDocs.aspects.title}>
-          <p className="text-muted-foreground leading-relaxed mb-8">
-            {astrologyDocs.aspects.introduction}
-          </p>
+      {/* Planets */}
+      <DocSection id="astro-planets" title={astrologyDocs.planets.title}>
+        <DocProse className="mb-8" content={astrologyDocs.planets.introduction} />
 
-          <h3 className="doc-h3">Major Aspects</h3>
-          <div className="space-y-4 mb-10">
-            {astrologyDocs.aspects.majorAspects.map((aspect) => (
-              <div
-                key={aspect.name}
-                className="doc-card p-5"
-                style={{
-                  borderLeftWidth: '4px',
-                  borderLeftColor: aspect.nature === 'Harmonious' ? '#22c55e' :
-                                   aspect.nature === 'Challenging' ? '#ef4444' : '#eab308'
-                }}
-              >
-                <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{aspect.symbol}</span>
-                    <span className="font-heading text-lg text-foreground">{aspect.name}</span>
-                    <span className="text-sm text-muted-foreground">({aspect.angle})</span>
-                  </div>
-                  <span className={`text-xs px-3 py-1 rounded-full ${
-                    aspect.nature === 'Harmonious' ? 'bg-green-500/10 text-green-600 dark:text-green-400' :
-                    aspect.nature === 'Challenging' ? 'bg-red-500/10 text-red-600 dark:text-red-400' :
-                    'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'
-                  }`}>
-                    {aspect.nature}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground mb-2 leading-relaxed">{aspect.description}</p>
-                <div className="text-xs text-muted-foreground/70">Orb: {aspect.orb}</div>
+        {/* Planet Categories */}
+        <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {astrologyDocs.planets.categories.map((cat) => (
+            <div key={cat.name} className="rounded-2xl border border-white/10 bg-surface-2 p-4">
+              <div className="mb-1 font-display text-white">{cat.name}</div>
+              <div className="mb-2 text-xs text-white/50">{cat.description}</div>
+              <div className="text-xs font-medium" style={{ color: ACCENT_SOFT }}>
+                {cat.planets.join(' • ')}
               </div>
-            ))}
-          </div>
-
-          <h3 className="doc-h3">Minor Aspects</h3>
-          <div className="grid sm:grid-cols-2 gap-3">
-            {astrologyDocs.aspects.minorAspects.map((aspect) => (
-              <div key={aspect.name} className="p-4 rounded-xl bg-muted/30 border border-border">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-foreground">{aspect.name}</span>
-                  <span className="text-xs text-muted-foreground">{aspect.angle}</span>
-                </div>
-                <p className="text-sm text-muted-foreground">{aspect.description}</p>
-              </div>
-            ))}
-          </div>
-        </DocSection>
-
-        {/* Chart Interpretation */}
-        <DocSection id="astro-interpretation" title={astrologyDocs.interpretation.title}>
-          <div className="doc-card p-6">
-            <h4 className="font-heading text-lg text-foreground mb-6">Steps to Read Your Chart</h4>
-            <div className="space-y-4">
-              {astrologyDocs.interpretation.steps.map((item) => (
-                <div key={item.step} className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center text-sm font-heading text-amber-600 dark:text-amber-400 flex-shrink-0">
-                    {item.step}
-                  </div>
-                  <div className="pt-1">
-                    <div className="font-medium text-foreground mb-1">{item.title}</div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
-                  </div>
-                </div>
-              ))}
             </div>
-          </div>
-        </DocSection>
+          ))}
+        </div>
 
-        {/* Birth Time Info Box */}
-        <section className="mb-12">
-          <DocInfoBox variant="accent" title="Birth Time Matters">
-            <p className="leading-relaxed">
-              Your Rising sign and house placements require accurate birth time. Without it, you can still
-              analyze planetary signs and aspects, but the chart will be incomplete. For the most accurate
-              reading, get your birth time from your birth certificate.
-            </p>
-          </DocInfoBox>
-        </section>
+        {/* All Planets */}
+        <div className="space-y-3">
+          {astrologyDocs.planets.planetDetails.map((planet) => (
+            <div key={planet.name} className={`${CARD} flex items-start gap-5 p-5`}>
+              <div
+                className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl text-3xl"
+                style={{ backgroundColor: `${ACCENT}1A` }}
+              >
+                {/* U+FE0E forces text presentation so glyphs never render as emoji. */}
+                {planet.symbol}{'\uFE0E'}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="mb-2 flex flex-wrap items-center gap-3">
+                  <span className="font-display text-lg text-white">{planet.name}</span>
+                  <span className="rounded-full bg-white/5 px-2 py-0.5 text-xs text-white/50">Cycle: {planet.cycle}</span>
+                </div>
+                <p className="mb-3 text-sm leading-relaxed text-white/70">{planet.function}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {planet.keywords.map((kw) => (
+                    <span key={kw} className="rounded-lg bg-white/5 px-2.5 py-1 text-xs text-white/50">{kw}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </DocSection>
 
-        {/* FAQ */}
-        <DocSection id="astro-faq" title="Frequently Asked Questions">
+      {/* Houses */}
+      <DocSection id="astro-houses" title={astrologyDocs.houses.title}>
+        <DocProse className="mb-8" content={astrologyDocs.houses.introduction} />
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          {astrologyDocs.houses.houseDetails.map((house) => (
+            <div key={house.number} className={`${CARD} p-5`}>
+              <div className="mb-3 flex items-center gap-4">
+                <div
+                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full font-display text-lg"
+                  style={{ backgroundColor: `${ACCENT}1A`, color: ACCENT_SOFT }}
+                >
+                  {house.number}
+                </div>
+                <div>
+                  <span className="font-display text-white">{house.name}</span>
+                  <span className="ml-2 text-sm text-white/50">({house.sign})</span>
+                </div>
+              </div>
+              <p className="mb-3 text-sm leading-relaxed text-white/70">{house.themes}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {house.keywords.map((kw) => (
+                  <span key={kw} className="rounded-lg bg-white/5 px-2 py-0.5 text-xs text-white/50">{kw}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </DocSection>
+
+      {/* Aspects */}
+      <DocSection id="astro-aspects" title={astrologyDocs.aspects.title}>
+        <DocProse className="mb-8" content={astrologyDocs.aspects.introduction} />
+
+        <DocH3>Major Aspects</DocH3>
+        <div className="mb-10 space-y-4">
+          {astrologyDocs.aspects.majorAspects.map((aspect) => {
+            const tone = ASPECT_NATURE_TONES[aspect.nature] ?? ASPECT_NATURE_NEUTRAL
+            return (
+            <div
+              key={aspect.name}
+              className={`${CARD} p-5`}
+              style={{ borderLeftWidth: '4px', borderLeftColor: tone.border }}
+            >
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-3">
+                  {/* U+FE0E forces text presentation so glyphs never render as emoji. */}
+                  <span className="text-2xl">{aspect.symbol}{'\uFE0E'}</span>
+                  <span className="font-display text-lg text-white">{aspect.name}</span>
+                  <span className="text-sm text-white/50">({aspect.angle})</span>
+                </div>
+                <span
+                  className="rounded-full px-3 py-1 text-xs"
+                  style={{ backgroundColor: tone.chipBg, color: tone.chipText }}
+                >
+                  {aspect.nature}
+                </span>
+              </div>
+              <p className="mb-2 text-sm leading-relaxed text-white/70">{aspect.description}</p>
+              <div className="font-mono text-xs text-white/40">Orb: {aspect.orb}</div>
+            </div>
+            )
+          })}
+        </div>
+
+        <DocH3>Minor Aspects</DocH3>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {astrologyDocs.aspects.minorAspects.map((aspect) => (
+            <div key={aspect.name} className="rounded-2xl border border-white/10 bg-surface-2 p-4">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="font-medium text-white">{aspect.name}</span>
+                <span className="font-mono text-xs text-white/40">{aspect.angle}</span>
+              </div>
+              <p className="text-sm text-white/70">{aspect.description}</p>
+            </div>
+          ))}
+        </div>
+      </DocSection>
+
+      {/* Chart Interpretation */}
+      <DocSection id="astro-interpretation" title={astrologyDocs.interpretation.title}>
+        <div className={`${CARD} p-6`}>
+          <h4 className="mb-6 font-display text-lg text-white">Steps to Read Your Chart</h4>
           <div className="space-y-4">
-            {astrologyFaqs.map((faq, i) => (
-              <div key={i} className="doc-card p-5">
-                <h4 className="font-heading text-lg text-foreground mb-2">{faq.question}</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">{faq.answer}</p>
+            {astrologyDocs.interpretation.steps.map((item) => (
+              <div key={item.step} className="flex items-start gap-4">
+                <div
+                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full font-display text-sm"
+                  style={{ backgroundColor: `${ACCENT}1A`, color: ACCENT_SOFT }}
+                >
+                  {item.step}
+                </div>
+                <div className="pt-1">
+                  <div className="mb-1 font-medium text-white">{item.title}</div>
+                  <p className="text-sm leading-relaxed text-white/70">{item.description}</p>
+                </div>
               </div>
             ))}
           </div>
-        </DocSection>
+        </div>
+      </DocSection>
 
-        {/* CTA */}
-        <section className="doc-card p-8 sm:p-10 text-center mt-16">
-          <h3 className="text-2xl font-heading text-foreground mb-4">Explore Your Chart</h3>
-          <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-            Create your profile to see your natal chart with all planetary placements.
+      {/* Birth Time Info Box */}
+      <section className="mb-12">
+        <DocInfoBox title="Birth Time Matters" accent={ACCENT} accentSoft={ACCENT_SOFT}>
+          <p className="leading-relaxed">
+            Your Rising sign and house placements require accurate birth time. Without it, you can still
+            analyze planetary signs and aspects, but the chart will be incomplete. For the most accurate
+            reading, get your birth time from your birth certificate.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-3">
-            <Link
-              href="/login"
-              className="inline-flex items-center justify-center px-8 py-4 rounded-xl bg-amber-600 text-white font-medium hover:bg-amber-600/90 transition-colors"
-            >
-              View Your Chart
-            </Link>
-            <Link
-              href="/learn/gematria"
-              className="inline-flex items-center justify-center px-8 py-4 rounded-xl border border-border hover:bg-muted/50 transition-colors"
-            >
-              Explore Gematria
-            </Link>
-          </div>
-        </section>
+        </DocInfoBox>
+      </section>
 
-        {/* Navigation */}
-        <DocNav
-          prev={{ href: '/learn/human-design', title: 'Human Design' }}
-          next={{ href: '/learn/gematria', title: 'Gematria' }}
-        />
-      </DocLayout>
+      {/* FAQ */}
+      <DocSection id="astro-faq" title="Frequently Asked Questions">
+        <div className="space-y-4">
+          {astrologyFaqs.map((faq, i) => (
+            <div key={i} className={`${CARD} p-5`}>
+              <h4 className="mb-2 font-display text-lg text-white">{faq.question}</h4>
+              <p className="text-sm leading-relaxed text-white/70">{faq.answer}</p>
+            </div>
+          ))}
+        </div>
+      </DocSection>
 
-      <Footer />
-    </div>
+      {/* CTA */}
+      <DocCta
+        title="Explore Your Chart"
+        body="Enter your birth data to see your natal chart with all planetary placements."
+        primary={{ href: '/calculate', label: 'Start with your birthday' }}
+        secondary={{ href: '/learn/gematria', label: 'Explore Kabbalah' }}
+      />
+    </DocShell>
   )
 }

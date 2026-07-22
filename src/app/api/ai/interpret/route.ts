@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { AIInterpretationRequest, PredictionEvent } from '@pleiad/engine/types/prediction'
 import { getCurrentUserId } from '@/lib/auth-server'
 import {
   generateInterpretation,
@@ -7,7 +8,6 @@ import {
 import { isLLMConfigured } from '@/lib/services/llm'
 import { rateLimiters, rateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limit'
 import { requireLimit, trackUsage, LimitExceededError } from '@/lib/services/usage'
-import type { AIInterpretationRequest, PredictionEvent } from '@pleiad/engine/types/prediction'
 
 export const dynamic = 'force-dynamic'
 

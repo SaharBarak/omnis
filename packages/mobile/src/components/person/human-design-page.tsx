@@ -166,7 +166,7 @@ export function HumanDesignPage({
       <PageSection index={3} flavor={FLAVOR} eyebrow="Channels">
         {channels.length === 0 ? (
           <Text variant="bodyMedium" color="onSurfaceVariant">
-            No complete channels — the definition rests in single gates.
+            No complete channels. The definition rests in single gates.
           </Text>
         ) : (
           <View>

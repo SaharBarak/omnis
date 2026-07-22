@@ -46,17 +46,17 @@ const TRIGGER_COPY: Record<PaywallTrigger, TriggerCopy> = {
   'people-cap': {
     eyebrow: 'Your map is full',
     headline: (limit, planName) => `Your map holds ${limit} people on ${planName}.`,
-    body: 'Every person you keep gets the full five-system reading. Larger maps open with a plan — nothing you typed is lost.',
+    body: 'Every person you keep gets the full six-system reading. Larger maps open with a plan. Nothing you typed is lost.',
   },
   'system-lock': {
-    eyebrow: 'Four more systems',
-    headline: () => 'One person, five readings.',
-    body: 'Tzolkin, Astrology, Human Design and Kabbalah are already computed for everyone on your map. A plan lifts the veil.',
+    eyebrow: 'Five more systems',
+    headline: () => 'One person, six readings.',
+    body: 'Tzolkin, Long Count, Astrology, Human Design and Kabbalah are already computed for everyone on your map. A plan lifts the veil.',
   },
   'bond-lock': {
     eyebrow: 'The bond runs deeper',
     headline: () => 'Compatibility reads five systems deep.',
-    body: 'Synastry, Human Design, Tzolkin and name resonance are waiting for this pair. Complete opens the full stack — and lets you keep the bond on your map.',
+    body: 'Synastry, Human Design, Tzolkin and name resonance are waiting for this pair. Complete opens the full stack, and lets you keep the bond on your map.',
   },
   'group-insights': {
     eyebrow: 'The circle is read',
@@ -229,7 +229,7 @@ function TierRow({
     <Card
       variant="outlined"
       onPress={onSelect}
-      accessibilityLabel={`${tier.name} — ${tier.price}`}
+      accessibilityLabel={`${tier.name}, ${tier.price}`}
       style={[
         styles.tierRow,
         selected && {
@@ -353,7 +353,7 @@ export function PaywallSheet({
         return
       }
       onClose()
-      showToast(`Restored — you're on ${fresh.planName}.`)
+      showToast(`Restored: you're on ${fresh.planName}.`)
     } catch {
       showToast("Couldn't restore purchases. Try again.")
     } finally {

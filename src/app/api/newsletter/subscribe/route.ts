@@ -38,7 +38,7 @@ const subscribeSchema = z.object({
  * It is also honest for each branch — a pending or resubscribing address does
  * get mail to confirm, and an already-active one has nothing to do.
  */
-const CONFIRM_MESSAGE = 'Check your inbox — confirm your email to finish subscribing.'
+const CONFIRM_MESSAGE = 'Check your inbox: confirm your email to finish subscribing.'
 
 export async function POST(request: NextRequest) {
   try {
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
         title: 'Confirm your subscription',
         bodyHtml: confirmBody(confirmUrl),
         footerText:
-          'Someone entered this address on pleiad.io. If it wasn’t you, ignore this email — nothing will be sent.',
+          'Someone entered this address on pleiad.io. If it wasn’t you, ignore this email. Nothing will be sent.',
       })
     }
 
@@ -124,7 +124,7 @@ function confirmBody(confirmUrl: string): string {
       </a>
     </div>
     <p style="color:rgba(255,255,255,0.45);font-size:12px;line-height:1.6;margin:0;">
-      This link expires in 7 days. If you didn't sign up, ignore this email — you won't hear from us again.
+      This link expires in 7 days. If you didn't sign up, ignore this email. You won't hear from us again.
     </p>
   `
 }

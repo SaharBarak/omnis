@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion, useReducedMotion } from 'framer-motion'
+import { Plus, MoreVertical, Search, Users, Share2, BarChart3, Check } from 'lucide-react'
 import { usePeople } from '@/lib/hooks/use-people'
 import { useGroups } from '@/lib/hooks/use-groups'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
 import {
   Dialog,
   DialogContent,
@@ -25,9 +26,53 @@ import {
 import { Label } from '@/components/ui/label'
 import { ShareDialog } from '@/components/share-dialog'
 import { PageHeader, EmptyState } from '@/components/dashboard'
-import { Plus, MoreVertical, Search, Users, AlertTriangle, Share2, BarChart3 } from 'lucide-react'
+import { useConfirm } from '@/components/dashboard/confirm-dialog'
+import {
+  Eyebrow,
+  Notice,
+  SkeletonCard,
+  fadeUp,
+  staggerParent,
+  VIEWPORT_ONCE,
+} from '@/components/app-kit'
 import type { Group, Person } from '@/lib/types/database.types'
 import type { GroupWithMembers, CreateGroupInput } from '@/lib/types/relationship'
+
+// Member toggle row — shadcn has no Checkbox primitive in this repo, so the
+// picker rows are button toggles speaking the kit grammar (no native inputs).
+function MemberToggle({
+  person,
+  checked,
+  onToggle,
+}: {
+  person: Pick<Person, 'id' | 'name' | 'hebrew_name'>
+  checked: boolean
+  onToggle: () => void
+}) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={checked}
+      onClick={onToggle}
+      className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors duration-fast hover:bg-white/[0.04] active:scale-[0.98]"
+    >
+      <span
+        aria-hidden
+        className={cn(
+          'flex size-4 shrink-0 items-center justify-center rounded border transition-colors duration-fast',
+          checked ? 'border-primary bg-primary' : 'border-white/25'
+        )}
+      >
+        {checked && <Check className="size-3 text-primary-foreground" strokeWidth={3} />}
+      </span>
+      <span className="text-sm text-white/90">{person.name}</span>
+      {person.hebrew_name && (
+        <span className="text-sm text-white/50">({person.hebrew_name})</span>
+      )}
+    </button>
+  )
+}
 
 // Group Card Component
 function GroupCard({
@@ -48,32 +93,34 @@ function GroupCard({
   onShare: (group: Group) => void
 }) {
   return (
-    <div className="surface-card p-5 hover:border-primary/20 transition-colors">
-      <div className="flex items-start justify-between mb-3">
-        <div className="cursor-pointer flex-1" onClick={() => onViewMembers(group)}>
-          <h3 className="font-semibold text-foreground">{group.name}</h3>
+    <div className="surface-card p-5">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1 cursor-pointer" onClick={() => onViewMembers(group)}>
+          <h3 className="truncate font-display text-lg font-medium text-white/90">
+            {group.name}
+          </h3>
           {group.description && (
-            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{group.description}</p>
+            <p className="mt-1 line-clamp-2 text-sm text-white/50">{group.description}</p>
           )}
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
               <span className="sr-only">Menu</span>
-              <MoreVertical className="w-4 h-4" />
+              <MoreVertical className="size-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onViewMembers(group)}>
-              <Users className="w-4 h-4 mr-2" />
+              <Users className="mr-2 size-4" />
               View Members
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onAnalyze(group)}>
-              <BarChart3 className="w-4 h-4 mr-2" />
+              <BarChart3 className="mr-2 size-4" />
               Group Analysis
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onShare(group)}>
-              <Share2 className="w-4 h-4 mr-2" />
+              <Share2 className="mr-2 size-4" />
               Share
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onEdit(group)}>
@@ -89,10 +136,10 @@ function GroupCard({
         </DropdownMenu>
       </div>
       <div className="cursor-pointer" onClick={() => onViewMembers(group)}>
-        <Badge variant="secondary" className="bg-secondary/10 text-secondary-foreground">
-          <Users className="w-3 h-3 mr-1" />
+        <Eyebrow className="inline-flex items-center gap-1.5">
+          <Users className="size-3.5" aria-hidden />
           {memberCount} member{memberCount !== 1 ? 's' : ''}
-        </Badge>
+        </Eyebrow>
       </div>
     </div>
   )
@@ -158,7 +205,6 @@ function GroupForm({
           onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
           required
           placeholder="e.g., Nuclear Family, Friends"
-          className="bg-background border-border"
         />
       </div>
 
@@ -169,55 +215,43 @@ function GroupForm({
           value={formData.description}
           onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
           placeholder="Short description of the group (optional)"
-          className="bg-background border-border"
         />
       </div>
 
       <div className="space-y-2">
         <Label>Group Members</Label>
-        <div className="max-h-48 overflow-y-auto border border-border rounded-lg p-2">
+        <div className="max-h-48 overflow-y-auto rounded-xl border border-white/[0.07] p-1.5">
           {people.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">
+            <p className="py-4 text-center text-sm text-white/50">
               You haven&apos;t added any people yet
             </p>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {people.map(person => (
-                <label
+                <MemberToggle
                   key={person.id}
-                  className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={formData.memberIds.includes(person.id)}
-                    onChange={() => toggleMember(person.id)}
-                    className="rounded border-border"
-                  />
-                  <span>{person.name}</span>
-                  {person.hebrew_name && (
-                    <span className="text-muted-foreground text-sm">
-                      ({person.hebrew_name})
-                    </span>
-                  )}
-                </label>
+                  person={person}
+                  checked={formData.memberIds.includes(person.id)}
+                  onToggle={() => toggleMember(person.id)}
+                />
               ))}
             </div>
           )}
         </div>
-        <p className="text-xs text-muted-foreground">
-          {formData.memberIds.length} people selected
-        </p>
+        <Eyebrow>{formData.memberIds.length} people selected</Eyebrow>
       </div>
 
-      {error && (
-        <div className="text-sm text-destructive">{error}</div>
-      )}
+      {error && <Notice variant="error">{error}</Notice>}
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button type="button" variant="outline" className="rounded-xl" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" disabled={loading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+        <Button
+          type="submit"
+          disabled={loading}
+          className="rounded-xl bg-brand text-white hover:bg-brand-soft active:scale-[0.98]"
+        >
           {loading ? 'Saving...' : group ? 'Update' : 'Create Group'}
         </Button>
       </div>
@@ -264,9 +298,11 @@ function GroupMembersView({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-heading text-foreground">Group Members ({members.length})</h3>
+        <h3 className="font-display font-medium text-white/90">
+          Group Members ({members.length})
+        </h3>
         {!isEditing && (
-          <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+          <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setIsEditing(true)}>
             Edit Members
           </Button>
         )}
@@ -274,26 +310,23 @@ function GroupMembersView({
 
       {isEditing ? (
         <>
-          <div className="max-h-64 overflow-y-auto border border-border rounded-lg p-2">
-            {people.map(person => (
-              <label
-                key={person.id}
-                className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
+          <div className="max-h-64 overflow-y-auto rounded-xl border border-white/[0.07] p-1.5">
+            <div className="space-y-0.5">
+              {people.map(person => (
+                <MemberToggle
+                  key={person.id}
+                  person={person}
                   checked={selectedIds.includes(person.id)}
-                  onChange={() => toggleMember(person.id)}
-                  className="rounded border-border"
+                  onToggle={() => toggleMember(person.id)}
                 />
-                <span>{person.name}</span>
-              </label>
-            ))}
+              ))}
+            </div>
           </div>
           <div className="flex justify-end gap-2">
             <Button
               variant="outline"
               size="sm"
+              className="rounded-xl"
               onClick={() => {
                 setIsEditing(false)
                 setSelectedIds(members.map(m => m.id))
@@ -301,31 +334,37 @@ function GroupMembersView({
             >
               Cancel
             </Button>
-            <Button size="sm" onClick={handleSave} disabled={loading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={loading}
+              className="rounded-xl bg-brand text-white hover:bg-brand-soft active:scale-[0.98]"
+            >
               {loading ? 'Saving...' : 'Save'}
             </Button>
           </div>
         </>
       ) : (
-        <div className="space-y-1">
+        <div>
           {members.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">
+            <p className="py-4 text-center text-sm text-white/50">
               No members in this group
             </p>
           ) : (
-            members.map(member => (
+            members.map((member, i) => (
               <div
                 key={member.id}
-                className="flex items-center gap-2 p-2 rounded-lg bg-muted/50"
+                className={cn(
+                  'flex items-center gap-3 py-2.5',
+                  i < members.length - 1 && 'border-b border-white/[0.07]'
+                )}
               >
-                <span className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-sm text-primary font-medium">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-sm font-medium text-primary">
                   {member.name[0]}
                 </span>
-                <span>{member.name}</span>
+                <span className="text-sm text-white/90">{member.name}</span>
                 {member.hebrew_name && (
-                  <span className="text-muted-foreground text-sm">
-                    ({member.hebrew_name})
-                  </span>
+                  <span className="text-sm text-white/50">({member.hebrew_name})</span>
                 )}
               </div>
             ))
@@ -334,7 +373,7 @@ function GroupMembersView({
       )}
 
       <div className="flex justify-end">
-        <Button variant="outline" onClick={onClose}>
+        <Button variant="outline" className="rounded-xl" onClick={onClose}>
           Close
         </Button>
       </div>
@@ -345,6 +384,8 @@ function GroupMembersView({
 // Main Page Component
 export default function GroupsPage() {
   const router = useRouter()
+  const confirm = useConfirm()
+  const reduced = useReducedMotion()
   const { people, loading: peopleLoading } = usePeople()
   const {
     groups,
@@ -359,6 +400,7 @@ export default function GroupsPage() {
 
   const [search, setSearch] = useState('')
   const [editingGroup, setEditingGroup] = useState<Group | null>(null)
+  const [editingMemberIds, setEditingMemberIds] = useState<string[]>([])
   const [viewingGroup, setViewingGroup] = useState<{ group: Group; members: GroupWithMembers['members'] } | null>(null)
   const [sharingGroup, setSharingGroup] = useState<Group | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -416,7 +458,10 @@ export default function GroupsPage() {
   }
 
   const handleEditGroup = async (group: Group) => {
+    // Seed the form with current members — without this, saving an edit
+    // called setGroupMembers([]) and silently wiped the group.
     const groupData = await getGroupWithMembers(group.id)
+    setEditingMemberIds(groupData?.members?.map((m) => m.id) ?? [])
     setEditingGroup(group)
     setIsEditDialogOpen(true)
   }
@@ -450,13 +495,18 @@ export default function GroupsPage() {
   }
 
   const handleDeleteGroup = async (id: string) => {
-    if (confirm('Are you sure you want to delete this group?')) {
-      setDeleteError(null)
-      try {
-        await deleteGroup(id)
-      } catch (err) {
-        setDeleteError(err instanceof Error ? err.message : 'Error deleting')
-      }
+    const confirmed = await confirm({
+      title: 'Delete group',
+      description: 'Are you sure you want to delete this group?',
+      confirmText: 'Delete',
+      variant: 'destructive',
+    })
+    if (!confirmed) return
+    setDeleteError(null)
+    try {
+      await deleteGroup(id)
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Error deleting')
     }
   }
 
@@ -466,14 +516,11 @@ export default function GroupsPage() {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
-          <AlertTriangle className="w-6 h-6 text-destructive" />
-        </div>
-        <div className="text-center">
-          <p className="font-medium text-foreground">Error loading groups</p>
-          <p className="text-sm text-muted-foreground mt-1">{error}</p>
-        </div>
+      <div className="space-y-6">
+        <PageHeader title="Groups" />
+        <Notice variant="error" title="Error loading groups">
+          {error}
+        </Notice>
       </div>
     )
   }
@@ -486,8 +533,8 @@ export default function GroupsPage() {
         actions={
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
+              <Button className="rounded-xl bg-brand text-white hover:bg-brand-soft active:scale-[0.98]">
+                <Plus className="mr-2 size-4" />
                 Create Group
               </Button>
             </DialogTrigger>
@@ -508,16 +555,11 @@ export default function GroupsPage() {
         }
       />
 
-      {deleteError && (
-        <div className="flex items-start gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
-          <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-          <p className="text-sm text-destructive">{deleteError}</p>
-        </div>
-      )}
+      {deleteError && <Notice variant="error">{deleteError}</Notice>}
 
       {/* Search */}
       <div className="relative max-w-xs">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/35" />
         <Input
           placeholder="Search groups..."
           value={search}
@@ -530,9 +572,9 @@ export default function GroupsPage() {
       {filteredGroups.length === 0 ? (
         search ? (
           <div className="surface-card p-12 text-center">
-            <Search className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
-            <p className="font-medium text-foreground">No results found</p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <Search className="mx-auto mb-4 size-10 text-white/35" />
+            <p className="font-display font-medium text-white/90">No results found</p>
+            <p className="mt-1 text-sm text-white/50">
               Try adjusting your search term
             </p>
           </div>
@@ -548,20 +590,27 @@ export default function GroupsPage() {
           />
         )
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <motion.div
+          variants={staggerParent}
+          initial={reduced ? false : 'hidden'}
+          whileInView="visible"
+          viewport={VIEWPORT_ONCE}
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
           {filteredGroups.map(group => (
-            <GroupCard
-              key={group.id}
-              group={group}
-              memberCount={memberCounts[group.id] || 0}
-              onEdit={handleEditGroup}
-              onDelete={handleDeleteGroup}
-              onViewMembers={handleViewMembers}
-              onAnalyze={handleAnalyze}
-              onShare={handleShare}
-            />
+            <motion.div key={group.id} variants={fadeUp}>
+              <GroupCard
+                group={group}
+                memberCount={memberCounts[group.id] || 0}
+                onEdit={handleEditGroup}
+                onDelete={handleDeleteGroup}
+                onViewMembers={handleViewMembers}
+                onAnalyze={handleAnalyze}
+                onShare={handleShare}
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Edit dialog */}
@@ -580,6 +629,7 @@ export default function GroupsPage() {
             <GroupForm
               group={editingGroup}
               people={people}
+              initialMemberIds={editingMemberIds}
               onSave={handleUpdateGroup}
               onCancel={() => {
                 setIsEditDialogOpen(false)
@@ -640,35 +690,26 @@ export default function GroupsPage() {
   )
 }
 
-// Loading skeleton
+// Loading skeleton — layout-matched (header, search, card grid)
 function GroupsSkeleton() {
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <Skeleton className="h-8 w-32 mb-2" />
-          <Skeleton className="h-4 w-24" />
+        <div className="space-y-2">
+          <div className="skeleton-shimmer h-8 w-32 rounded" />
+          <div className="skeleton-shimmer h-4 w-24 rounded" />
         </div>
-        <Skeleton className="h-10 w-36 mt-3 sm:mt-0" />
+        <div className="skeleton-shimmer mt-3 h-10 w-36 rounded-xl sm:mt-0" />
       </div>
 
       {/* Search */}
-      <Skeleton className="h-10 w-64" />
+      <div className="skeleton-shimmer h-10 w-64 rounded-xl" />
 
       {/* Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {[...Array(6)].map((_, i) => (
-          <div key={i} className="rounded-xl border border-border bg-card p-5">
-            <div className="flex items-start justify-between mb-3">
-              <div className="space-y-2 flex-1">
-                <Skeleton className="h-5 w-32" />
-                <Skeleton className="h-4 w-48" />
-              </div>
-              <Skeleton className="h-8 w-8 rounded-lg" />
-            </div>
-            <Skeleton className="h-5 w-24 rounded-full" />
-          </div>
+        {Array.from({ length: 6 }, (_, i) => (
+          <SkeletonCard key={i} />
         ))}
       </div>
     </div>

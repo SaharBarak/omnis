@@ -80,7 +80,7 @@ const STEP_META: ReadonlyArray<{ eyebrow: string; title: string; helper: string 
   {
     eyebrow: 'Step 3 · Human Design',
     title: 'What time of day?',
-    helper: 'The birth hour draws your bodygraph. Honest answer only — skipping is fine.',
+    helper: 'The birth hour draws your bodygraph. Honest answer only; skipping is fine.',
   },
   {
     eyebrow: 'Step 4 · Astrology',
@@ -301,7 +301,7 @@ export default function OnboardingScreen() {
       }
       case 1: {
         if (dateValue === null) {
-          setDateError('Pick your birth date — the whole reading starts there.')
+          setDateError('Pick your birth date: the whole reading starts there.')
           return
         }
         setDateError(null)

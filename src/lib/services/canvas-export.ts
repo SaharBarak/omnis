@@ -1,9 +1,9 @@
 // Canvas Export Service for Pleiad Phase 4
 // Provides functionality to export canvas to PNG, JPEG, SVG, PDF
 
-import type { ExportFormat, ExportOptions } from '@/lib/types/board'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
+import type { ExportFormat, ExportOptions } from '@/lib/types/board'
 
 // ============================================================================
 // TYPES

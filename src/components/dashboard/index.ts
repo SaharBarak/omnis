@@ -25,18 +25,3 @@ export {
   DashboardSkeleton,
   ListSkeleton,
 } from './skeleton'
-
-// Animation Utilities (keeping for backwards compatibility)
-export {
-  AnimatedCard,
-  GlassCard,
-  StatCard as AnimatedStatCard,
-  AnimatedText,
-  StaggerContainer,
-  StaggerItem,
-} from './animated-card'
-export { AnimatedOracle } from './animated-oracle'
-export { CosmicBackground } from './cosmic-background'
-export { ThreeBackground } from './three-background'
-export { OracleCanvas } from './oracle-canvas'
-export { OracleWheel, OracleWheelMini } from './oracle-wheel'

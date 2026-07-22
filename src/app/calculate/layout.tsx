@@ -25,7 +25,7 @@ const howToSchema = {
       "@type": "HowToStep",
       "position": 1,
       "name": "Enter your birth date",
-      "text": "Select your date of birth using the calendar input. No birth time is required — only the date.",
+      "text": "Select your date of birth using the calendar input. No birth time is required, only the date.",
     },
     {
       "@type": "HowToStep",

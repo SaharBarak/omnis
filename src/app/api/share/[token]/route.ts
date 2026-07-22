@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { analyzeGroup } from '@pleiad/engine/services/group-analysis'
 import { handleApiError } from '@/lib/api/respond'
 import {
   getSharedViewByToken,
@@ -8,7 +9,6 @@ import {
   verifySharePassword,
 } from '@/lib/db/repositories/shares-repo'
 import { getGroupWithMembers } from '@/lib/db/repositories/groups-repo'
-import { analyzeGroup } from '@pleiad/engine/services/group-analysis'
 import {
   hashSharePassword,
   toPublicGroupAnalysis,

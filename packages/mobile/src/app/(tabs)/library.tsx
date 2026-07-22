@@ -105,7 +105,7 @@ function SearchResults({
   if (search.isError) {
     return (
       <ErrorState
-        message="Search needs a connection — the codex below still reads offline."
+        message="Search needs a connection, but the codex below still reads offline."
         onRetry={() => void search.refetch()}
       />
     )

@@ -1,10 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { Progress } from '@/components/ui/progress'
-import { Button } from '@/components/ui/button'
 import { Check, ArrowRight } from 'lucide-react'
+import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
+import { Eyebrow } from '@/components/app-kit'
 
 interface ProfileProgressProps {
   displayName?: string | null
@@ -20,6 +20,11 @@ interface ProfileProgressProps {
   className?: string
 }
 
+/**
+ * Profile completion card — kit grammar: font-display header, mono
+ * tabular completion numeral, tokened kin disc (no gradients), four-step
+ * white text ramp.
+ */
 export function ProfileProgress({
   displayName,
   birthDate,
@@ -48,21 +53,22 @@ export function ProfileProgress({
   if (completion === 100 && userKin) {
     return (
       <div className={cn('surface-card p-5', className)}>
-        <h3 className="font-display font-semibold tracking-tight text-foreground mb-4">Your Signature</h3>
+        <h3 className="mb-4 font-display font-semibold tracking-tight text-white/90">Your Signature</h3>
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center border border-primary/10">
-            <span className="font-mono text-xl font-semibold tabular-nums text-primary">{userKin.kin}</span>
+          <div className="flex h-14 w-14 items-center justify-center rounded-full border border-primary/25 bg-primary/[0.08]">
+            <span className="font-mono text-xl text-brand-bright [font-variant-numeric:tabular-nums]">{userKin.kin}</span>
           </div>
           <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Galactic Signature</p>
-            <p className="font-semibold text-foreground">{userKin.signature}</p>
+            <Eyebrow className="block">Galactic Signature</Eyebrow>
+            <p className="font-medium text-white/90">{userKin.signature}</p>
           </div>
         </div>
-        <Button variant="ghost" size="sm" asChild className="mt-4 p-0 h-auto text-primary">
-          <Link href="/app/profile" className="flex items-center gap-1">
-            View profile <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </Button>
+        <Link
+          href="/app/profile"
+          className="mt-4 inline-flex items-center gap-1 text-sm text-brand-soft transition-colors hover:text-brand-bright"
+        >
+          View profile <ArrowRight className="size-3.5" />
+        </Link>
       </div>
     )
   }
@@ -70,31 +76,31 @@ export function ProfileProgress({
   // Show progress for incomplete profile
   return (
     <div className={cn('surface-card p-5', className)}>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-display font-semibold tracking-tight text-foreground">Complete Your Profile</h3>
-        <span className="font-mono text-sm tabular-nums text-muted-foreground">{completion}%</span>
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="font-display font-semibold tracking-tight text-white/90">Complete Your Profile</h3>
+        <span className="font-mono text-sm text-brand-bright [font-variant-numeric:tabular-nums]">{completion}%</span>
       </div>
 
-      <Progress value={completion} className="h-1.5 mb-4" />
+      <Progress value={completion} className="mb-4 h-1.5" />
 
-      <div className="space-y-1.5">
-        {tasks.map((task, i) => (
-          <Link key={i} href={task.href}>
+      <div className="divide-y divide-white/[0.07]">
+        {tasks.map((task) => (
+          <Link key={task.label} href={task.href} className="block">
             <div className={cn(
-              'flex items-center gap-2.5 p-2 rounded-lg transition-colors',
-              task.done ? 'opacity-50' : 'hover:bg-muted'
+              'flex items-center gap-2.5 py-2.5 transition-opacity',
+              task.done && 'opacity-50'
             )}>
               <div className={cn(
-                'w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0',
+                'flex h-5 w-5 shrink-0 items-center justify-center rounded-full',
                 task.done
                   ? 'bg-primary text-primary-foreground'
-                  : 'border-2 border-muted-foreground/30'
+                  : 'border border-white/[0.12]'
               )}>
-                {task.done && <Check className="w-3 h-3" />}
+                {task.done && <Check className="size-3" />}
               </div>
               <span className={cn(
                 'text-sm',
-                task.done && 'line-through text-muted-foreground'
+                task.done ? 'text-white/50 line-through' : 'text-white/70'
               )}>
                 {task.label}
               </span>

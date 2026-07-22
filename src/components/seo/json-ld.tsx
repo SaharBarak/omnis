@@ -62,7 +62,7 @@ export const webSiteSchema: JsonLdData = {
   name: SITE_NAME,
   url: SITE_URL,
   description:
-    'The living map of the people in your life — read through six wisdom systems, remembered forever.',
+    'The living map of the people in your life: read through six wisdom systems, remembered forever.',
   publisher: { '@id': ORGANIZATION_ID },
   potentialAction: {
     '@type': 'SearchAction',
@@ -121,7 +121,7 @@ export const softwareApplicationSchema: JsonLdData = {
   featureList: [
     'Living relationship map across six wisdom systems',
     'Six-system personal reading from one birthday',
-    'Persistent people library — enter a birthday once',
+    'Persistent people library: enter a birthday once',
     'Group dynamics, layered or fused',
     'Shareable living map links',
     'Human Design Bodygraph',

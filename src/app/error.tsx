@@ -27,7 +27,7 @@ export default function Error({
         We hit an unexpected error
       </h1>
       <p className="mt-2 max-w-sm text-white/50">
-        It&apos;s been logged. Try again — if it keeps happening, head back home.
+        It&apos;s been logged. Try again, and if it keeps happening, head back home.
       </p>
       {error.digest && (
         <p className="mt-2 font-mono text-xs text-white/30">ref: {error.digest}</p>

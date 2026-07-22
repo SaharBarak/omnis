@@ -1,6 +1,5 @@
 'use client'
 
-import { SealIcon } from './SealIcon'
 import { asTone, type Kin, type ToneNumber } from '@pleiad/engine/core/types'
 import { kinToSeal, kinToTone } from '@pleiad/engine/calculations/dreamspell'
 import {
@@ -11,6 +10,7 @@ import {
 } from '@pleiad/engine/calculations/wavespell'
 import { getSeal } from '@pleiad/engine/data/seals'
 import { getTone } from '@pleiad/engine/data/tones'
+import { SealIcon } from './SealIcon'
 import { cn } from '@/lib/utils'
 
 export interface WavespellDisplayProps {

@@ -280,6 +280,16 @@ export const rateLimiters = {
   }),
 
   /**
+   * Contact form - prevent spam
+   * 3 messages per hour per IP
+   */
+  contact: createRateLimiter({
+    max: 3,
+    windowMs: 60 * 60 * 1000,
+    keyPrefix: 'rl:contact',
+  }),
+
+  /**
    * Public API endpoints
    * 60 requests per minute per IP
    */

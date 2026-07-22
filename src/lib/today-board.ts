@@ -25,5 +25,5 @@ export function getTodayAcrossSystems(now: Date = new Date()): TodayAcrossSystem
 }
 
 export function getFooterLiveLine(today: TodayAcrossSystems): string {
-  return `TODAY: ${today.kin.toUpperCase()} · ${today.hebrewDate.toUpperCase()} — THE CALENDARS ARE COUNTING`
+  return `TODAY: ${today.kin.toUpperCase()} · ${today.hebrewDate.toUpperCase()}: THE CALENDARS ARE COUNTING`
 }

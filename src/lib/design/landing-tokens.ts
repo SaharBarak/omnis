@@ -30,12 +30,12 @@ export const COLORS = Object.freeze({
 export const TYPE = Object.freeze({
   /** H1 — hero only. */
   hero: 'font-display font-semibold text-4xl leading-none tracking-tighter text-white md:text-6xl',
-  /** Zone H2 — left-aligned capability zones. */
-  zone: 'font-display font-semibold text-4xl leading-[1.08] tracking-tight text-white md:text-5xl',
-  /** Centered section H2 — social proof, board, pricing, FAQ, portal. */
-  section: 'font-display font-semibold text-3xl leading-tight tracking-tight text-white md:text-4xl',
-  /** Card / logo display — nav wordmark, card titles. */
+  /** Section H2 — every h2 on the page, zones and centered sections alike. */
+  section: 'font-display font-semibold text-3xl tracking-tight text-white md:text-4xl',
+  /** Card / logo display — nav wordmark, card titles. Weight is explicit: never rely on the global h* base rule. */
   card: 'font-display font-medium text-2xl text-white',
-  /** Mono eyebrow — uppercase micro-label. */
+  /** Triad / list h3 — small-caps label row. font-sans is required to override the global h* Rubik rule. */
+  h3: 'font-sans text-sm font-semibold uppercase tracking-wide text-white/90',
+  /** Mono eyebrow — uppercase micro-label. Every pill, chip, plan name, and column title. */
   eyebrow: 'font-mono text-[11px] uppercase tracking-[0.2em]',
 })

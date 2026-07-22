@@ -293,7 +293,7 @@ export default function PeopleScreen() {
       return (
         <View style={styles.errorWrap}>
           <ErrorState
-            message="Your people are out of reach. We couldn't load the library — they're safe; check your connection."
+            message="Your people are out of reach. We couldn't load the library, but they're safe; check your connection."
             retryLabel={isRefetching ? 'Trying…' : 'Try again'}
             onRetry={() => {
               if (!isRefetching) refetch()
@@ -307,7 +307,7 @@ export default function PeopleScreen() {
       return (
         <EmptyState
           title="Your map starts with one birthday."
-          body="Add the first person you carry with you — the reading is instant."
+          body="Add the first person you carry with you: the reading is instant."
           actionLabel="Add a person"
           onAction={openCapture}
         />

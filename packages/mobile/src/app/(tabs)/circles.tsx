@@ -246,7 +246,7 @@ export default function CirclesScreen() {
       return (
         <View style={styles.errorWrap}>
           <ErrorState
-            message="Your circles are out of reach. We couldn't load them — they're safe; check your connection."
+            message="Your circles are out of reach. We couldn't load them, but they're safe; check your connection."
             retryLabel={isRefetching ? 'Trying…' : 'Try again'}
             onRetry={() => {
               if (!isRefetching) refetch()

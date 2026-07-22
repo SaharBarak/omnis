@@ -1,23 +1,38 @@
 'use client'
 
 import { useState } from 'react'
-import { useAuth } from '@/lib/hooks/use-auth'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Skeleton } from '@/components/ui/skeleton'
-import { PageHeader } from '@/components/dashboard'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Pencil, Save, X } from 'lucide-react'
 import { dateToKin, kinToSeal, kinToTone } from '@pleiad/engine/calculations/dreamspell'
 import { getSeal } from '@pleiad/engine/data/seals'
 import { getTone } from '@pleiad/engine/data/tones'
 import { dateToTzolkin } from '@pleiad/engine/calculations/tzolkin'
+import { useAuth } from '@/lib/hooks/use-auth'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { PageHeader } from '@/components/dashboard'
+import {
+  DataRow,
+  EASE_OUT,
+  Eyebrow,
+  Notice,
+  PageSection,
+  SkeletonCard,
+  StatNumber,
+  StatWord,
+  VIEWPORT_ONCE,
+  getFlavor,
+} from '@/components/app-kit'
+import { SEAL_COLORS, toSealColor } from '@/components/app-kit/seal-colors'
+import { cn } from '@/lib/utils'
 
 export default function ProfilePage() {
   const { user, profile, updateProfile, loading: authLoading } = useAuth()
   const [editing, setEditing] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const reduced = useReducedMotion()
 
   const [formData, setFormData] = useState({
     display_name: profile?.display_name || '',
@@ -37,6 +52,10 @@ export default function ProfilePage() {
     tzolkinDay = dateToTzolkin(profile.birth_date!)
   }
 
+  const dreamspell = getFlavor('dreamspell')
+  const tzolkin = getFlavor('tzolkin')
+  const sealColor = dreamspellSeal ? toSealColor(dreamspellSeal.color) : null
+
   const handleSave = async () => {
     setLoading(true)
     setError(null)
@@ -55,24 +74,37 @@ export default function ProfilePage() {
     }
   }
 
+  const notSet = <span className="text-white/35">Not set</span>
+
   if (authLoading) {
     return <ProfileSkeleton />
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="max-w-2xl space-y-8">
       <PageHeader
         title="My Profile"
         subtitle="View and edit your personal details"
       />
 
       {/* Profile Info Card */}
-      <div className="surface-card p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Personal Details</h2>
+      <motion.div
+        className="surface-card p-6"
+        initial={reduced ? false : { opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={VIEWPORT_ONCE}
+        transition={{ duration: 0.5, ease: EASE_OUT as [number, number, number, number] }}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <Eyebrow>Personal Details</Eyebrow>
           {!editing && (
-            <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
-              <Pencil className="w-4 h-4 mr-2" />
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl active:scale-[0.98]"
+              onClick={() => setEditing(true)}
+            >
+              <Pencil className="mr-2 h-4 w-4" aria-hidden="true" />
               Edit
             </Button>
           )}
@@ -87,7 +119,6 @@ export default function ProfilePage() {
                 value={formData.display_name}
                 onChange={(e) => setFormData(prev => ({ ...prev, display_name: e.target.value }))}
                 required
-                className="bg-background border-border"
               />
             </div>
 
@@ -99,7 +130,6 @@ export default function ProfilePage() {
                 value={formData.birth_date}
                 onChange={(e) => setFormData(prev => ({ ...prev, birth_date: e.target.value }))}
                 max={new Date().toISOString().split('T')[0]}
-                className="bg-background border-border"
               />
             </div>
 
@@ -110,146 +140,142 @@ export default function ProfilePage() {
                 value={formData.hebrew_name}
                 onChange={(e) => setFormData(prev => ({ ...prev, hebrew_name: e.target.value }))}
                 placeholder="Optional"
-                className="bg-background border-border"
               />
             </div>
 
-            {error && (
-              <div className="p-3 rounded-lg bg-destructive/10 text-sm text-destructive">{error}</div>
-            )}
+            {error && <Notice variant="error">{error}</Notice>}
 
             <div className="flex gap-2 pt-2">
-              <Button onClick={handleSave} disabled={loading}>
-                <Save className="w-4 h-4 mr-2" />
+              <Button
+                onClick={handleSave}
+                disabled={loading}
+                className="rounded-xl bg-brand text-white hover:bg-brand-soft active:scale-[0.98]"
+              >
+                <Save className="mr-2 h-4 w-4" aria-hidden="true" />
                 {loading ? 'Saving...' : 'Save Changes'}
               </Button>
-              <Button variant="outline" onClick={() => {
-                setEditing(false)
-                setFormData({
-                  display_name: profile?.display_name || '',
-                  birth_date: profile?.birth_date || '',
-                  hebrew_name: profile?.hebrew_name || '',
-                })
-              }}>
-                <X className="w-4 h-4 mr-2" />
+              <Button
+                variant="outline"
+                className="rounded-xl active:scale-[0.98]"
+                onClick={() => {
+                  setEditing(false)
+                  setFormData({
+                    display_name: profile?.display_name || '',
+                    birth_date: profile?.birth_date || '',
+                    hebrew_name: profile?.hebrew_name || '',
+                  })
+                }}
+              >
+                <X className="mr-2 h-4 w-4" aria-hidden="true" />
                 Cancel
               </Button>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <div className="text-sm text-muted-foreground mb-1">Display Name</div>
-              <div className="font-medium text-foreground">{profile?.display_name}</div>
-            </div>
-
-            <div>
-              <div className="text-sm text-muted-foreground mb-1">Email</div>
-              <div className="font-medium text-foreground">{user?.email}</div>
-            </div>
-
-            <div>
-              <div className="text-sm text-muted-foreground mb-1">Birth Date</div>
-              <div className="font-medium text-foreground">
-                {profile?.birth_date
-                  ? new Date(profile.birth_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
-                  : <span className="text-muted-foreground italic">Not set</span>}
-              </div>
-            </div>
-
-            <div>
-              <div className="text-sm text-muted-foreground mb-1">Hebrew Name</div>
-              <div className="font-medium text-foreground">
-                {profile?.hebrew_name || <span className="text-muted-foreground italic">Not set</span>}
-              </div>
-            </div>
+          <div>
+            <DataRow label="Display Name" value={profile?.display_name || notSet} />
+            <DataRow label="Email" value={user?.email || notSet} />
+            <DataRow
+              label="Birth Date"
+              value={
+                profile?.birth_date
+                  ? new Date(profile.birth_date).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })
+                  : notSet
+              }
+            />
+            <DataRow label="Hebrew Name" value={profile?.hebrew_name || notSet} last />
           </div>
         )}
-      </div>
+      </motion.div>
 
-      {/* Symbolic Data Cards */}
+      {/* Symbolic readings */}
       {hasBirthDate && dreamspellKin && dreamspellSeal && dreamspellTone && tzolkinDay && (
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div className="surface-card p-6">
-            <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-1">Dreamspell</h2>
-            <p className="text-xs text-muted-foreground mb-4">Galactic Signature</p>
+        <div className="grid gap-8 sm:grid-cols-2">
+          <PageSection
+            index={1}
+            accent={dreamspell.accent}
+            eyebrow="Dreamspell · Galactic Signature"
+          >
+            <StatNumber
+              value={`Kin ${dreamspellKin}`}
+              label={`${dreamspellTone.name} ${dreamspellSeal.english}`}
+            />
 
-            <div className="space-y-4">
-              <div>
-                <div className="text-3xl font-bold text-primary">Kin {dreamspellKin}</div>
-                <div className="text-lg text-foreground">
-                  {dreamspellTone.name} {dreamspellSeal.english}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4 pt-4 border-t border-border">
+            <div className="flex items-center gap-4">
+              <div className="flex size-16 shrink-0 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.03] p-2">
                 <img
                   src={`/dreamspell/gifs/glyph${dreamspellSeal.number}.gif`}
                   alt={dreamspellSeal.english}
-                  className="h-14 w-14 object-contain"
+                  className="h-full w-full object-contain"
                 />
-                <div>
-                  <div className="font-medium text-foreground">{dreamspellSeal.mayan}</div>
-                  <div className="text-sm text-muted-foreground">{dreamspellSeal.english}</div>
-                  <div className="text-xs capitalize mt-1" style={{ color: dreamspellSeal.color === 'white' ? '#666' : dreamspellSeal.color }}>
+              </div>
+              <div className="min-w-0">
+                <div className="font-display text-lg font-medium text-white/90">
+                  {dreamspellSeal.mayan}
+                </div>
+                <div className="text-sm text-white/70">{dreamspellSeal.english}</div>
+                <div className="mt-1">
+                  <Eyebrow accent={sealColor ? SEAL_COLORS[sealColor].css : undefined}>
                     {dreamspellSeal.color}
-                  </div>
+                  </Eyebrow>
                 </div>
               </div>
             </div>
-          </div>
+          </PageSection>
 
-          <div className="surface-card p-6">
-            <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-1">Tzolkin</h2>
-            <p className="text-xs text-muted-foreground mb-4">Traditional Mayan Calendar</p>
-
-            <div className="space-y-4">
-              <div>
-                <div className="text-3xl font-bold text-primary">
-                  {tzolkinDay.tone} {tzolkinDay.daySign.yucatec}
-                </div>
-                <div className="text-lg text-muted-foreground">
-                  {tzolkinDay.daySign.english}
-                </div>
-              </div>
-            </div>
-          </div>
+          <PageSection index={2} accent={tzolkin.accent} eyebrow="Tzolkin · Sacred Count">
+            <StatWord
+              value={`${tzolkinDay.tone} ${tzolkinDay.daySign.yucatec}`}
+              label={tzolkinDay.daySign.english}
+            />
+          </PageSection>
         </div>
       )}
     </div>
   )
 }
 
-// Loading skeleton
+// Loading skeleton — layout-matched shimmer (no spinners, no stock Skeleton)
 function ProfileSkeleton() {
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="max-w-2xl space-y-8">
       {/* Header */}
       <div>
-        <Skeleton className="h-8 w-40 mb-2" />
-        <Skeleton className="h-4 w-56" />
+        <div className="skeleton-shimmer mb-2 h-8 w-40 rounded" />
+        <div className="skeleton-shimmer h-4 w-56 rounded" />
       </div>
 
       {/* Profile card */}
-      <div className="rounded-xl border border-border bg-card p-6">
-        <div className="flex items-center justify-between mb-6">
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-9 w-20" />
+      <div className="surface-card p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="skeleton-shimmer h-3 w-32 rounded" />
+          <div className="skeleton-shimmer h-9 w-20 rounded-xl" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
           {[...Array(4)].map((_, i) => (
-            <div key={i}>
-              <Skeleton className="h-3 w-24 mb-2" />
-              <Skeleton className="h-5 w-40" />
+            <div
+              key={i}
+              className={cn(
+                'flex items-center justify-between py-3',
+                i < 3 && 'border-b border-white/[0.07]'
+              )}
+            >
+              <div className="skeleton-shimmer h-3 w-24 rounded" />
+              <div className="skeleton-shimmer h-4 w-40 rounded" />
             </div>
           ))}
         </div>
       </div>
 
-      {/* Symbolic cards */}
-      <div className="grid gap-6 sm:grid-cols-2">
-        <Skeleton className="h-48 rounded-xl" />
-        <Skeleton className="h-48 rounded-xl" />
+      {/* Symbolic sections */}
+      <div className="grid gap-8 sm:grid-cols-2">
+        <SkeletonCard className="h-48" />
+        <SkeletonCard className="h-48" />
       </div>
     </div>
   )
