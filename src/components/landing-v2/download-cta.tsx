@@ -30,12 +30,11 @@ export function DownloadCta() {
         viewport={{ once: true, margin: '-80px' }}
         transition={{ duration: 0.7, ease: [0.4, 0, 0.2, 1] }}
       >
-        <p className={`${TYPE.eyebrow} mb-4 text-brand-soft`}>The app</p>
-        <h2 className={`${TYPE.section} mb-4`}>Carry the sky in your pocket.</h2>
+        <p className={`${TYPE.eyebrow} mb-4 text-brand-soft`}>Pleiad on mobile</p>
+        <h2 className={`${TYPE.section} mb-4`}>Your saved people and daily reading, on your phone.</h2>
         <p className="mx-auto mb-8 max-w-xl text-white/60">
-          Pleiad for iOS and Android is coming soon. Get today&apos;s Kin and the
-          sky&apos;s phenomena by email now, and be first through the door when the
-          app lands.
+          Pleiad for iOS and Android is coming soon. Get today&apos;s Kin and sky
+          phenomena by email now, and we&apos;ll tell you when the mobile app is ready.
         </p>
 
         <div className="mb-10 flex justify-center">

@@ -19,6 +19,7 @@ import { calculateBodygraph } from '@pleiad/engine/calculations/human-design'
 import { dateToKin, kinToSeal, kinToTone } from '@pleiad/engine/calculations/dreamspell'
 import { dateToTzolkin } from '@pleiad/engine/calculations/tzolkin'
 import { calculateGematria } from '@pleiad/engine/calculations/gematria'
+import { dateToLongCount, formatLongCount } from '@pleiad/engine/calculations/long-count'
 import { SEALS } from '@pleiad/engine/data/seals'
 import { TONES } from '@pleiad/engine/data/tones'
 import { getLetterByChar } from '@pleiad/engine/data/hebrew-letters'
@@ -33,7 +34,7 @@ import type { NatalChart } from '@pleiad/engine/types/astrology'
 import type { Bodygraph } from '@pleiad/engine/types/human-design'
 import type { TzolkinDay } from '@pleiad/engine/types/tzolkin'
 import type { GematriaResult } from '@pleiad/engine/types/gematria'
-import type { SystemKey } from '@/lib/design/system-flavors'
+import { FLAVOR_DESCENT, type SystemKey } from '@/lib/design/system-flavors'
 
 export interface DemoPerson {
   readonly id: string
@@ -128,6 +129,7 @@ export interface DemoCharts {
   readonly seal: number
   readonly tone: number
   readonly tzolkin: TzolkinDay
+  readonly longCount: string
   readonly gematria: GematriaResult
   /** Standard-method letter value of the Hebrew name. */
   readonly gematriaValue: number
@@ -238,6 +240,7 @@ export function buildHomepageDemo(): {
       seal: kinToSeal(kin),
       tone: kinToTone(kin),
       tzolkin: dateToTzolkin(p.birthDate),
+      longCount: formatLongCount(dateToLongCount(p.birthDate)),
       gematria,
       gematriaValue: gematria.methods.standard.value,
     }
@@ -579,6 +582,46 @@ function readingFor(c: DemoCharts): readonly [string, string, string, string, st
   ]
 }
 
+export interface RelationshipFieldNode {
+  readonly id: string
+  readonly name: string
+  readonly kin: number
+  readonly seal: number
+  readonly color: string
+  readonly profiles: Readonly<Record<SystemKey, string>>
+  readonly longCount: string
+}
+
+export interface RelationshipFieldLayer {
+  readonly score: number | null
+  readonly tie: DemoTie | null
+}
+
+export interface RelationshipFieldEdge {
+  readonly a: string
+  readonly b: string
+  readonly overall: number
+  readonly rarity: number
+  readonly layers: Readonly<Record<SystemKey, RelationshipFieldLayer>>
+}
+
+export interface RelationshipFieldData {
+  readonly initialCenterId: string
+  readonly nodes: readonly RelationshipFieldNode[]
+  readonly edges: readonly RelationshipFieldEdge[]
+}
+
+function profilesFor(c: DemoCharts): Readonly<Record<SystemKey, string>> {
+  const reading = readingFor(c)
+  return Object.freeze({
+    astrology: reading[0],
+    dreamspell: reading[1],
+    tzolkin: reading[2],
+    humanDesign: reading[3],
+    gematria: reading[4],
+  })
+}
+
 const sealColor = (c: DemoCharts): string =>
   SEAL_COLOR[SEALS[c.seal - 1]?.color ?? 'white'] ?? '#ECF0F1'
 
@@ -673,6 +716,49 @@ export function buildEgoStar(
     },
     spokes,
   }
+}
+
+export function buildRelationshipField(
+  people: readonly DemoPerson[],
+  charts: Record<string, DemoCharts>,
+  pairs: readonly DemoPair[],
+): RelationshipFieldData {
+  const nodes = people.map((person) => {
+    const chart = charts[person.id]
+    return Object.freeze({
+      id: person.id,
+      name: person.name,
+      kin: chart.kin,
+      seal: chart.seal,
+      color: sealColor(chart),
+      profiles: profilesFor(chart),
+      longCount: chart.longCount,
+    })
+  })
+
+  const edges = pairs.map((pair) => {
+    const layers = {} as Record<SystemKey, RelationshipFieldLayer>
+    for (const key of FLAVOR_DESCENT) {
+      const tieForLayer = pair.ties.filter((tie) => tie.system === key).sort(byInterest)[0] ?? null
+      layers[key] = Object.freeze({
+        score: key === 'gematria' ? null : pair.systems[key],
+        tie: tieForLayer,
+      })
+    }
+    return Object.freeze({
+      a: pair.a,
+      b: pair.b,
+      overall: pair.overall,
+      rarity: pair.rarity,
+      layers: Object.freeze(layers),
+    })
+  })
+
+  return Object.freeze({
+    initialCenterId: EGO_ID,
+    nodes: Object.freeze(nodes),
+    edges: Object.freeze(edges),
+  })
 }
 
 // ---------------------------------------------------------------------------

@@ -46,10 +46,10 @@ export const metadata: Metadata = {
   // is inherited by every page that doesn't override it, which would point
   // all sub-pages at the homepage. Each public page declares its own.
   title: {
-    default: "Pleiad - The Living Map of Your People | 6 Wisdom Systems",
+    default: "Pleiad — See Your People Through Six Symbolic Systems",
     template: "%s | Pleiad"
   },
-  description: "Map everyone in your life across six wisdom systems: Astrology, Dreamspell, Tzolkin, Human Design, and Hebrew Gematria. All integrated. Free readings, compatibility, and a persistent relationship map.",
+  description: "Save the people in your life, read each person through Dreamspell, Tzolkin, Long Count, Astrology, Human Design, and Hebrew Gematria, and compare patterns between them.",
   keywords: [
     "dreamspell",
     "dreamspell calculator",
@@ -87,14 +87,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: "Pleiad",
-    title: "Pleiad - The Living Map of Your People",
-    description: "Everyone in your life, read through six wisdom systems at once (Astrology, Dreamspell, Tzolkin, Human Design, Gematria) and remembered forever.",
+    title: "Pleiad — See Your People Through Six Symbolic Systems",
+    description: "Save symbolic profiles, compare two people, and explore group patterns. Start with a free Dreamspell reading.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Pleiad - The Living Map of Your People",
+        alt: "Pleiad — Six symbolic profiles and one people map",
       },
     ],
   },

@@ -23,6 +23,77 @@ import { faqs } from '@/lib/data/faqs'
 
 const easeOut = [0.4, 0, 0.2, 1] as const
 
+const HOW_IT_WORKS = [
+  {
+    number: '01',
+    title: 'Try one birth date for free',
+    body: 'Get a complete Dreamspell reading, plus date-based previews from Tzolkin, Long Count, and Astrology. No account or card is required.',
+  },
+  {
+    number: '02',
+    title: 'Save the person',
+    body: 'Create a free account to keep up to three people with Dreamspell readings and the daily Kin. Plans with all-system access let you add birth time, place, and a Hebrew name.',
+  },
+  {
+    number: '03',
+    title: 'Choose two people to compare',
+    body: 'Relationship plans show per-system compatibility scores and a summary for the saved people you select. Available layers depend on the details you have entered.',
+  },
+  {
+    number: '04',
+    title: 'Read a group',
+    body: 'Group-analysis plans combine pair compatibility, Dreamspell and Tzolkin distributions, and Human Design composite patterns when enough complete charts are present.',
+  },
+] as const
+
+export function HowItWorksV2() {
+  return (
+    <section
+      id="how-it-works"
+      className="py-24 md:py-32"
+      style={{ backgroundColor: MURAL_GROUND }}
+    >
+      <div className="mx-auto grid max-w-content gap-12 px-6 md:grid-cols-[0.9fr_1.1fr] md:gap-20">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.6 }}
+        >
+          <p className={`${TYPE.eyebrow} text-brand-soft`}>How Pleiad works</p>
+          <h2 className={`${TYPE.section} mt-5`}>
+            One person gives you a profile. Two let you compare. A group shows shared patterns.
+          </h2>
+          <p className="mt-6 text-lg leading-relaxed text-white/70">
+            A natal chart on one site. A bodygraph on another. A birth time buried in an old
+            message. Using separate calculators often means entering the same details again.
+            Pleiad keeps the people you read in one private library, ready to reopen and compare.
+          </p>
+        </motion.div>
+
+        <ol className="divide-y divide-white/10 border-y border-white/10">
+          {HOW_IT_WORKS.map((item, index) => (
+            <motion.li
+              key={item.number}
+              className="grid gap-3 py-6 sm:grid-cols-[3rem_1fr]"
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.5, delay: index * 0.06, ease: easeOut }}
+            >
+              <span className="font-mono text-xs text-brand-soft">{item.number}</span>
+              <div>
+                <h3 className={TYPE.h3}>{item.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-white/60">{item.body}</p>
+              </div>
+            </motion.li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  )
+}
+
 // --------------------------------------------
 // Pricing — map capacity first, AI second
 // --------------------------------------------
@@ -37,7 +108,7 @@ const PLANS = [
     tagline: FREE_PLAN.tagline,
     features: FREE_PLAN.points,
     // CTA canon: acquisition goes to /calculate under one label sitewide.
-    cta: 'Start with your birthday',
+    cta: 'Try a free Dreamspell reading',
     href: '/calculate',
     highlight: false,
   },
@@ -65,10 +136,11 @@ export function PricingV2() {
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.6 }}
         >
-          Free while your map is small.
+          Start free. Upgrade for every system and relationship tools.
         </motion.h2>
         <p className="mt-4 text-center text-lg text-white/50">
-          Upgrade when the map becomes something you return to.
+          Try one Dreamspell reading without an account. Save up to 3 people free;
+          paid plans add all six profile systems, comparisons, and larger libraries.
         </p>
         <div className="mx-auto mt-14 grid max-w-4xl gap-6 md:grid-cols-3">
           {PLANS.map((plan, i) => (
@@ -146,7 +218,7 @@ export function FaqV2({ items = faqs, more }: FaqV2Props) {
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.6 }}
         >
-          Before you start mapping.
+          Clear answers before you start.
         </motion.h2>
         <div className="mt-12 divide-y divide-white/10 border-y border-white/10">
           {items.map((faq, i) => (
@@ -243,7 +315,7 @@ export function FooterV2({ liveLine }: { readonly liveLine: string }) {
               Pleiad
             </p>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/50">
-              The living map of your people, read through six wisdom systems.
+              Save people, calculate six symbolic profiles, and compare patterns between them.
             </p>
           </div>
           {FOOTER_COLUMNS.map((col) => (

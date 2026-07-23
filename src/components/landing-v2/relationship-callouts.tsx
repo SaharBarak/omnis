@@ -37,15 +37,15 @@ export function RelationshipCallouts({ callouts }: { readonly callouts: readonly
           className={`${TYPE.eyebrow} inline-block rounded-full border px-4 py-1.5`}
           style={{ borderColor: `${COLORS.brand}55`, color: COLORS.brand, backgroundColor: `${COLORS.brand}14` }}
         >
-          Named, not vibed
+          Pair comparisons
         </span>
 
         <div className="mt-6 grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-end">
-          <h2 className={TYPE.section}>The systems say something specific.</h2>
+          <h2 className={TYPE.section}>See how two profiles compare.</h2>
           <p className="text-lg leading-relaxed text-white/70">
-            Not &ldquo;you two have good energy.&rdquo; Pleiad tells you the
-            mechanism: who guides whom, which channel two people complete
-            together, which planets are talking.
+            Move beyond one blended score. See per-system compatibility and a
+            plain-language summary, with Dreamspell connections and Human
+            Design composite patterns when the required data is available.
           </p>
         </div>
 
@@ -58,11 +58,11 @@ export function RelationshipCallouts({ callouts }: { readonly callouts: readonly
 
         <div className="mt-10">
           <Link
-            href="/calculate"
+            href="/login"
             className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium text-white transition active:translate-y-[1px]"
             style={{ backgroundColor: COLORS.brand }}
           >
-            Find your people&apos;s connections
+            Save two people to compare
             <ArrowRight size={16} strokeWidth={1.5} />
           </Link>
         </div>

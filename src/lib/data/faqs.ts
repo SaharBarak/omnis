@@ -8,22 +8,32 @@ export const homeFaqs = [
   {
     question: 'Do I need an account to get a reading?',
     answer:
-      'No. Enter one birthday on the calculate page and the full reading comes back with nothing saved and no card asked. An account only matters once you want Pleiad to remember people and the ties between them.',
+      'No. Enter a birth date for a complete Dreamspell reading, plus date-based previews from Tzolkin, Long Count, and Astrology. No account or card is required. Create an account only when you want to save people.',
   },
   {
-    question: 'What do I actually get from six systems at once?',
+    question: 'What information do I need for all six systems?',
     answer:
-      'One screen holds your natal chart, galactic signature, day sign, Long Count date, bodygraph, and the number of your name - six traditions that never met each other, reading the same moment. Where they agree is usually where it gets interesting.',
+      'A birth date starts Dreamspell, Tzolkin, and Long Count. A full Astrology chart and Human Design bodygraph need an exact birth time and place. Hebrew Gematria needs a Hebrew name. You can begin with what you know and add the rest later.',
   },
   {
-    question: 'Is the AI just making this up?',
+    question: 'What is the people map?',
     answer:
-      'The charts are pure math - real ephemeris and Long Count calculations, the same ones practitioners use. When AI interprets a chart, every claim cites a searchable knowledge base, so you can check the source line yourself.',
+      'It is your saved library of people plus the comparisons you choose to make between them. Pleiad compares people across the compatibility layers supported by their data. You can also record real-life relationships and organize people into groups.',
   },
   {
-    question: 'What happens when I add a second person?',
+    question: 'Is AI calculating the charts?',
     answer:
-      "Pleiad computes how they connect to everyone already on your map - who guides whom, which channel two people complete, which planets are talking - and names each tie in the system that found it. That's the map: it grows with every person you add.",
+      'No. Charts and compatibility results come from calculation engines. AI is an optional interpretation layer on paid plans; it does not change the underlying calculation.',
+  },
+  {
+    question: 'Is my people library private?',
+    answer:
+      'Saved profiles are scoped to your account. You choose when to create a share link and what to share.',
+  },
+  {
+    question: 'Can practitioners use Pleiad?',
+    answer:
+      'Yes. The Practitioner plan includes unlimited people and boards, advanced relationship tools, group analysis, PDF exports, and API access.',
   },
 ]
 
@@ -34,11 +44,11 @@ export const faqs = [
   },
   {
     question: "I don't know my exact birth time. Can I still use Pleiad?",
-    answer: "Yes. Your birth date alone gives you Dreamspell, Tzolkin, Long Count, and Kabbalah - four of the six systems. Human Design authority and astrology Moon/Rising require exact time. You can add it later if you find it (birth certificates often have it).",
+    answer: "Yes. A birth date is enough for Dreamspell, Tzolkin, and Long Count, plus an Astrology sun-sign preview. A full natal chart and Human Design bodygraph need an exact birth time and place. Hebrew Gematria needs a Hebrew name. You can add those details later.",
   },
   {
     question: "How accurate are the calculations?",
-    answer: "Dreamspell follows Arguelles' system with correct leap-day handling. Human Design uses the standard mandala. Tzolkin uses the GMT correlation (584283). We've cross-referenced against established sources. If you find an error, contact us - we take accuracy seriously.",
+    answer: "Charts and compatibility results come from deterministic calculation engines, not AI. Dreamspell uses the Arguelles calendar rules with leap-day handling, while Tzolkin and Long Count use the GMT correlation (584283). The knowledge guides explain the methods behind the readings.",
   },
   {
     question: "What's the difference between Dreamspell and Tzolkin?",
@@ -50,6 +60,6 @@ export const faqs = [
   },
   {
     question: "How is my data stored?",
-    answer: "We use Supabase with Row Level Security. Your data is encrypted. You can export everything or delete your account at any time. We don't track, advertise, or sell data.",
+    answer: "Saved profiles are scoped to your account. Pleiad only creates a share link when you choose to share something. See the privacy policy for full details about data handling.",
   },
 ]
