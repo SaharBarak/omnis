@@ -175,6 +175,6 @@ export async function notifyAppInstallation(
       footerText: 'Automated installation notification from Pleiad.',
     })
   } catch {
-    return
+    console.error('ops: app installation notification failed')
   }
 }
