@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { Platform } from 'react-native'
 
 
 import {
@@ -73,6 +74,19 @@ async function identifyPurchaserSafely(userId: string | null): Promise<void> {
   }
 }
 
+async function registerInstallationSafely(): Promise<void> {
+  if (Platform.OS !== 'android' && Platform.OS !== 'ios') return
+  try {
+    const { api } = await import('@/lib/api')
+    await api.installations.register({
+      channel: 'native',
+      platform: Platform.OS,
+    })
+  } catch {
+    // Installation telemetry must never block app startup or sign-in.
+  }
+}
+
 export const useAuthStore = create<AuthState>()((set, get) => ({
   status: 'loading',
   userId: null,
@@ -85,6 +99,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         const userId = readJwtSub(stored.accessToken)
         set({ status: 'signedIn', userId })
         await identifyPurchaserSafely(userId)
+        await registerInstallationSafely()
       } else {
         set({ status: 'signedOut', userId: null })
       }
@@ -100,9 +115,11 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     if (next === null) return // dismissed — stay where we are, no error
     tokens = next
     await saveTokens(next)
+    queryClient.clear()
     const userId = readJwtSub(next.accessToken)
     set({ status: 'signedIn', userId })
     await identifyPurchaserSafely(userId)
+    await registerInstallationSafely()
   },
 
   requestEmailCode: async (email) => {
@@ -117,9 +134,11 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       : await exchangeCodeAsync(trimmed)
     tokens = next
     await saveTokens(next)
+    queryClient.clear()
     const userId = readJwtSub(next.accessToken)
     set({ status: 'signedIn', userId })
     await identifyPurchaserSafely(userId)
+    await registerInstallationSafely()
   },
 
   signOut: async () => {

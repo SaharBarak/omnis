@@ -170,6 +170,31 @@ describe('createPleiadClient', () => {
       )
       expect(calls[1].init.method).toBe('DELETE')
     })
+
+    it('registers a native app installation with auth', async () => {
+      const { fetchFn, calls } = stubFetch(
+        jsonResponse(201, { ok: true, firstSeen: true })
+      )
+      const client = createPleiadClient({
+        baseUrl: 'https://pleiad.io',
+        getAccessToken: () => Promise.resolve('token-123'),
+        fetchFn,
+      })
+
+      const result = await client.installations.register({
+        channel: 'native',
+        platform: 'android',
+      })
+
+      expect(result).toEqual({ ok: true, firstSeen: true })
+      expect(calls[0].url).toBe('https://pleiad.io/api/installations')
+      expect(calls[0].init.method).toBe('POST')
+      expect(headersOf(calls[0]).Authorization).toBe('Bearer token-123')
+      expect(JSON.parse(calls[0].init.body as string)).toEqual({
+        channel: 'native',
+        platform: 'android',
+      })
+    })
   })
 
   describe('401 unauthorized', () => {

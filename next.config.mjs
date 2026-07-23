@@ -2,6 +2,8 @@ import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  outputFileTracingRoot: process.cwd(),
+  turbopack: { root: process.cwd() },
   // Enable React strict mode for better development experience
   reactStrictMode: true,
 
@@ -116,4 +118,6 @@ const nextConfig = {
 export default nextConfig;
 
 // Enables Cloudflare bindings (getCloudflareContext) during `next dev`.
-initOpenNextCloudflareForDev();
+if (process.env.PLEIAD_SKIP_CLOUDFLARE_DEV !== '1') {
+  initOpenNextCloudflareForDev();
+}

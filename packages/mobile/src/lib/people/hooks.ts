@@ -10,6 +10,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { api } from '@/lib/api'
+import { useAuthStore } from '@/lib/auth/store'
 import { maybePromptForPush } from '@/lib/notifications/opt-in'
 import { writeBehindComputedResults } from '@/lib/people/compute'
 import { showToast } from '@/lib/toast'
@@ -40,9 +41,18 @@ export interface UsePeopleResult {
 }
 
 export function usePeople(): UsePeopleResult {
+  const userId = useAuthStore((state) => state.userId)
   const query = useQuery<PeopleList>({
     queryKey: PEOPLE_QUERY_KEY,
-    queryFn: () => api.people.list(),
+    enabled: userId !== null,
+    queryFn: async () => {
+      const result = await api.people.list()
+      if (userId === null) return { ...result, people: [] }
+      return {
+        ...result,
+        people: result.people.filter((person) => person.owner_id === userId),
+      }
+    },
   })
 
   const people = (query.data?.people ?? [])

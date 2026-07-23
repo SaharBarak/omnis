@@ -3,53 +3,11 @@ import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { updateSchema } from './schemas'
 import { getDb } from '@/lib/db/client'
-import { profiles, users } from '@/lib/db/schema'
+import { profiles } from '@/lib/db/schema'
 import { serialize } from '@/lib/db/serialize'
-import { notifyNewSignup } from '@/lib/alerts'
-import { getSession, UnauthorizedError, type SessionUser } from '@/lib/auth-server'
+import { getSession, UnauthorizedError } from '@/lib/auth-server'
 import { upsertSelfPerson } from '@/lib/db/repositories/people-repo'
-
-/**
- * Identity bootstrap — upserts the Auth0 user into the local `users` mirror
- * and ensures an app profile exists. Replaces the Better Auth
- * databaseHooks.user.create.after hook; called by both GET and PATCH so a
- * profile is guaranteed before the first write, with no ordering dependency.
- */
-async function ensureUserAndProfile(user: SessionUser) {
-  const db = getDb()
-  const now = new Date().toISOString()
-
-  await db
-    .insert(users)
-    .values({ id: user.id, email: user.email, name: user.name, image: user.image })
-    .onConflictDoUpdate({
-      target: users.id,
-      set: { email: user.email, name: user.name, image: user.image, updated_at: now },
-    })
-
-  const display_name = user.name || (user.email ? user.email.split('@')[0] : '') || 'User'
-  // `.returning()` on a conflict-do-nothing insert yields a row only when this
-  // call actually created the profile — which is the moment a user first exists
-  // to us. This route runs on every GET /api/profile, so it is the only honest
-  // new-user signal available, and letting the database arbitrate means
-  // concurrent first requests still ping exactly once.
-  const inserted = await db
-    .insert(profiles)
-    .values({ user_id: user.id, display_name, avatar_url: user.image })
-    .onConflictDoNothing()
-    .returning({ id: profiles.id })
-
-  if (inserted.length > 0 && user.email) {
-    void notifyNewSignup({ kind: 'app_user', email: user.email, name: user.name })
-  }
-
-  const [profile] = await db
-    .select()
-    .from(profiles)
-    .where(eq(profiles.user_id, user.id))
-    .limit(1)
-  return profile
-}
+import { ensureUserAndProfile } from '@/lib/services/identity'
 
 export async function GET() {
   try {

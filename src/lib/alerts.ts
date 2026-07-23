@@ -1,6 +1,10 @@
 import { esc } from '@/lib/email/layout'
 import { alertRecipient, opsRecipient } from '@/lib/email/ops'
 import { sendTransactionalEmail } from '@/lib/email/send'
+import type {
+  InstallationChannel,
+  InstallationPlatform,
+} from '@/lib/db/repositories/installations-repo'
 
 /**
  * Operational notifications — emails a human when something happens the logs
@@ -132,5 +136,45 @@ export async function notifyNewSignup(signup: NewSignup): Promise<void> {
   } catch {
     // Best-effort, exactly like sendCriticalAlert: a signup must never fail
     // because we could not tell anyone about it.
+  }
+}
+
+export interface AppInstallation {
+  channel: InstallationChannel
+  platform: InstallationPlatform
+  email: string
+  name?: string | null
+}
+
+export async function notifyAppInstallation(
+  installation: AppInstallation
+): Promise<void> {
+  try {
+    const channel = installation.channel === 'pwa' ? 'home-screen web app' : 'native app'
+    const label = `First ${installation.platform} ${channel} launch`
+    const site = process.env.NEXT_PUBLIC_SITE_URL || 'pleiad.io'
+    const when = new Date().toISOString()
+
+    await sendTransactionalEmail({
+      to: opsRecipient(),
+      subject: `📲 ${label} — ${installation.email}`,
+      preheader: installation.name
+        ? `${installation.name} · ${installation.email}`
+        : installation.email,
+      title: label,
+      bodyHtml: `
+        <p style="color:rgba(255,255,255,0.7);line-height:1.6;margin:0 0 18px;">
+          <strong style="color:#ffffff;">${esc(installation.email)}</strong>${
+            installation.name ? ` &middot; ${esc(installation.name)}` : ''
+          }
+        </p>
+        <p style="color:rgba(255,255,255,0.45);font-size:12px;margin:0;">
+          ${esc(when)} &middot; ${esc(site)}
+        </p>
+      `,
+      footerText: 'Automated installation notification from Pleiad.',
+    })
+  } catch {
+    return
   }
 }

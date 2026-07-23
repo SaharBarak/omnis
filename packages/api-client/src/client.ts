@@ -217,6 +217,19 @@ export function createPleiadClient(options: PleiadClientOptions) {
       },
     },
 
+    installations: {
+      /** Record the first launch of a native app or installed web app. */
+      async register(input: {
+        channel: 'native' | 'pwa'
+        platform: 'android' | 'ios' | 'web'
+      }): Promise<{ ok: true; firstSeen: boolean }> {
+        return request<{ ok: true; firstSeen: boolean }>('/api/installations', {
+          method: 'POST',
+          body: input,
+        })
+      },
+    },
+
     computedResults: {
       /** GET /api/computed-results?personId=... */
       async listForPerson(personId: string): Promise<ComputedResult[]> {

@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
       unsubscribe: await buildUnsubscribeLink(normalizedEmail),
     })
 
-    void notifyNewSignup({ kind: 'newsletter', email: normalizedEmail })
+    await notifyNewSignup({ kind: 'newsletter', email: normalizedEmail })
   }
 
   return NextResponse.redirect(new URL('/newsletter/confirmed?success=true', request.url))
