@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     absolute: 'Pleiad - The Living Map of Your People | 6 Wisdom Systems',
   },
   description:
-    'Enter one birthday and read it through Astrology, Dreamspell, Tzolkin, Long Count, Human Design, and Hebrew Gematria at once. Save your people, map every relationship, and read group dynamics across all six systems.',
+    'Enter one birthday and read it through Astrology, Dreamspell, Human Design, and Hebrew Gematria at once. Save your people and map every relationship.',
   alternates: {
     canonical: '/',
   },
