@@ -15,13 +15,13 @@ import { getTodayAcrossSystems, getFooterLiveLine } from '@/lib/today-board';
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: 'Pleiad Pricing - Free Chart Calculator & Premium Plans',
-  description: 'Free Dreamspell calculator, daily kin readings, and 3 profiles. Upgrade to Complete ($9/mo) for 25 people across all 6 systems, or Practitioner ($29/mo) for unlimited profiles and client tools.',
+  title: 'Pricing - Free Dreamspell Calculator and Plans',
+  description: 'Free Dreamspell calculator, daily kin readings, and 3 profiles. Upgrade to Complete for all six systems, or Practitioner for unlimited profiles and client tools.',
   alternates: {
     canonical: '/pricing',
   },
   openGraph: {
-    title: 'Pleiad Pricing - Free Chart Calculator & Premium Plans',
+    title: 'Pricing - Free Dreamspell Calculator and Plans',
     description: 'Free plan with Dreamspell calculator. Complete ($9/mo) and Practitioner ($29/mo) plans available.',
     url: '/pricing',
   },

@@ -13,18 +13,19 @@ import {
 } from '@/lib/design/system-flavors'
 import { docStructure } from '@/lib/docs/content'
 import { getFooterLiveLine, getTodayAcrossSystems } from '@/lib/today-board'
+import { JsonLd, SITE_URL, buildBreadcrumbs } from '@/components/seo/json-ld'
 
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: 'Learn Ancient Wisdom Systems: Dreamspell, Human Design, Astrology & More',
-  description: 'Free comprehensive guides to Dreamspell, Human Design, Western Astrology, Kabbalah & Gematria, and the traditional Mayan Tzolkin. Written with respect for the lineages.',
+  title: 'Learn Dreamspell, Human Design, Astrology, Kabbalah',
+  description: 'Free guides to Dreamspell, Human Design, Western Astrology, Kabbalah and Gematria, and the traditional Mayan Tzolkin. Written with respect for the lineages.',
   keywords: 'dreamspell guide, human design guide, astrology tutorial, gematria learn, tzolkin calendar, kabbalah, symbolic systems, wisdom systems',
   alternates: {
     canonical: '/learn',
   },
   openGraph: {
-    title: 'Learn Ancient Wisdom Systems: Dreamspell, Human Design, Astrology & More',
+    title: 'Learn Dreamspell, Human Design, Astrology, Kabbalah',
     description: 'Free comprehensive guides to six ancient wisdom systems. Learn about your cosmic blueprint.',
     url: '/learn',
   },
@@ -38,6 +39,38 @@ const PORTAL_ORDER: readonly DocSectionId[] = [
   }),
   'integration',
 ]
+
+// The knowledge base as a CollectionPage: one ListItem per guide, in the same
+// order the page presents them.
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Learn Dreamspell, Human Design, Astrology, Kabbalah',
+  url: `${SITE_URL}/learn`,
+  description:
+    'Free guides to Dreamspell, Human Design, Western Astrology, Kabbalah and Gematria, and the traditional Mayan Tzolkin.',
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListElement: PORTAL_ORDER.flatMap((sectionId, i) => {
+      const doc = docStructure.sections.find((s) => s.id === sectionId)
+      if (!doc) return []
+      return [
+        {
+          '@type': 'ListItem',
+          position: i + 1,
+          name: doc.title,
+          description: doc.description,
+          url: `${SITE_URL}/learn/${sectionId}`,
+        },
+      ]
+    }),
+  },
+}
+
+const breadcrumbSchema = buildBreadcrumbs([
+  { name: 'Home', url: SITE_URL },
+  { name: 'Learn', url: `${SITE_URL}/learn` },
+])
 
 function PortalRow({ section }: { readonly section: DocSectionId }) {
   const flavor = DOC_FLAVORS[section]
@@ -155,6 +188,8 @@ export default function LearnPage() {
 
   return (
     <div className="min-h-[100dvh]" style={{ backgroundColor: MURAL_GROUND }}>
+      <JsonLd data={collectionSchema} id="json-ld-collection" />
+      <JsonLd data={breadcrumbSchema} id="json-ld-breadcrumbs" />
       <NavV2 />
 
       <main className="relative overflow-hidden pb-24 pt-32 sm:pt-40">

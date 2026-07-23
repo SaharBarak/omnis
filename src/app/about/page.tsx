@@ -10,13 +10,13 @@ import { JsonLd, SITE_URL, organizationSchema, buildBreadcrumbs } from '@/lib/se
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: 'About Pleiad - Unifying Ancient Wisdom Systems for Modern Seekers',
-  description: 'Learn about Pleiad and our mission to make Dreamspell, Tzolkin, Long Count, Human Design, Astrology, and Kabbalah accessible, accurate, and interconnected. Privacy-first, open approach.',
+  title: 'About Pleiad - Six Wisdom Systems, One Map',
+  description: 'Pleiad makes Dreamspell, Tzolkin, Long Count, Human Design, Astrology, and Kabbalah accessible, accurate, and interconnected. Privacy-first and open.',
   alternates: {
     canonical: '/about',
   },
   openGraph: {
-    title: 'About Pleiad - Unifying Ancient Wisdom Systems for Modern Seekers',
+    title: 'About Pleiad - Six Wisdom Systems, One Map',
     description: 'Our mission: making six ancient wisdom systems accessible, accurate, and interconnected.',
     url: '/about',
   },

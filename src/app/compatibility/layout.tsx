@@ -2,14 +2,14 @@ import { Metadata } from 'next'
 import { JsonLd, SITE_URL, buildBreadcrumbs } from '@/lib/seo/json-ld'
 
 export const metadata: Metadata = {
-  title: 'Free Dreamspell Compatibility - Check Your Cosmic Connection',
+  title: 'Free Dreamspell Compatibility Calculator',
   description: 'Free Dreamspell compatibility calculator. Discover your cosmic connection with another person based on galactic signatures, oracles, and color families.',
   keywords: 'dreamspell compatibility, relationship astrology, kin compatibility, cosmic connection, mayan astrology, galactic relationship',
   alternates: {
     canonical: '/compatibility',
   },
   openGraph: {
-    title: 'Free Dreamspell Compatibility - Check Your Cosmic Connection',
+    title: 'Free Dreamspell Compatibility Calculator',
     description: 'Discover your cosmic connection based on Dreamspell galactic signatures. Free compatibility tool.',
     url: '/compatibility',
   },

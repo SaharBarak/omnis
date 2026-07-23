@@ -2,14 +2,14 @@ import { Metadata } from 'next'
 import { JsonLd, SITE_URL, buildBreadcrumbs } from '@/lib/seo/json-ld'
 
 export const metadata: Metadata = {
-  title: 'Free Dreamspell Calculator - Find Your Galactic Signature & Kin',
-  description: 'Free Dreamspell Kin calculator. Enter your birth date to discover your galactic signature, solar seal, galactic tone, oracle, and personal mantra. Includes all 260 Kin.',
+  title: 'Free Dreamspell Calculator - Galactic Signature',
+  description: 'Free Dreamspell Kin calculator. Enter your birth date to find your galactic signature, solar seal, galactic tone, oracle, and personal mantra. All 260 Kin.',
   keywords: 'dreamspell calculator, kin calculator, galactic signature, mayan calendar, birth chart, what is my kin, galactic signature calculator',
   alternates: {
     canonical: '/calculate',
   },
   openGraph: {
-    title: 'Free Dreamspell Calculator - Find Your Galactic Signature & Kin',
+    title: 'Free Dreamspell Calculator - Galactic Signature',
     description: 'Discover your Dreamspell Kin, solar seal, and cosmic purpose. Free calculator for all 260 galactic signatures.',
     url: '/calculate',
   },

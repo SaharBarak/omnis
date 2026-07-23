@@ -14,14 +14,14 @@ import { getSealMeaning, getToneMeaning, composeKinCombination } from '@/lib/dre
 import { JsonLd, SITE_URL, buildBreadcrumbs } from '@/lib/seo/json-ld'
 
 export const metadata: Metadata = {
-  title: "Today's Dreamspell Kin - Free Daily Galactic Reading",
+  title: 'Today in Dreamspell - Free Daily Kin Reading',
   description: "Discover today's Dreamspell Kin, solar seal, galactic tone, oracle, and daily mantra. Free daily Dreamspell reading updated every day.",
   keywords: "dreamspell, kin of the day, today's kin, daily dreamspell, galactic signature, daily galactic reading",
   alternates: {
     canonical: '/today',
   },
   openGraph: {
-    title: "Today's Dreamspell Kin - Free Daily Galactic Reading",
+    title: 'Today in Dreamspell - Free Daily Kin Reading',
     description: "Today's Dreamspell Kin, oracle, and cosmic guidance. Free daily reading.",
     url: '/today',
   },
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 const speakableSchema = {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "name": "Today's Dreamspell Kin - Free Daily Galactic Reading",
+  "name": "Today in Dreamspell - Free Daily Kin Reading",
   "url": `${SITE_URL}/today`,
   "speakable": {
     "@type": "SpeakableSpecification",
