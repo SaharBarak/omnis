@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Barlow, Rubik, IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { PostHogAnalytics } from "@/lib/analytics/posthog-provider";
+import { PwaInstallationReporter } from "@/components/installations/pwa-installation-reporter";
 import "./globals.css";
 
 const barlow = Barlow({
@@ -130,6 +131,7 @@ export default function RootLayout({
       >
         <script defer src="https://clever-swan-577.convex.site/beacon.js" data-slug="omnis" />
         {children}
+        <PwaInstallationReporter />
         <PostHogAnalytics />
         <GoogleAnalytics gaId="G-KY20RW9LY7" />
         {process.env.NEXT_PUBLIC_CF_BEACON_TOKEN && (
