@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     default: "Pleiad - The Living Map of Your People | 6 Wisdom Systems",
     template: "%s | Pleiad"
   },
-  description: "Map everyone in your life across six wisdom systems: Astrology, Dreamspell, Tzolkin, Human Design, and Hebrew Gematria. All integrated. Free readings, compatibility, and a persistent relationship map.",
+  description: "Save the people in your life, read each one through Dreamspell, Tzolkin, Human Design, Astrology, and Hebrew Gematria, and compare the patterns between them.",
   keywords: [
     "dreamspell",
     "dreamspell calculator",
