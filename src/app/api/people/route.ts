@@ -31,11 +31,25 @@ const createSchema = z.object({
   tagIds: z.array(z.string()).optional(),
 })
 
+function belongsToUser(value: unknown, userId: string): boolean {
+  if (typeof value !== 'object' || value === null) return false
+  return (value as Record<string, unknown>).owner_id === userId
+}
+
+function isVisibleTag(value: unknown, userId: string): boolean {
+  if (typeof value !== 'object' || value === null) return false
+  const tag = value as Record<string, unknown>
+  return tag.is_system === true || tag.owner_id === userId
+}
+
 export async function GET() {
   try {
     const userId = await requireUserId()
     const data = await listPeopleWithTags(userId)
-    return NextResponse.json(data)
+    return NextResponse.json({
+      people: data.people.filter((person) => belongsToUser(person, userId)),
+      tags: data.tags.filter((tag) => isVisibleTag(tag, userId)),
+    })
   } catch (error) {
     return handleApiError(error, 'GET /api/people')
   }
