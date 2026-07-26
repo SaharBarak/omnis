@@ -1,4 +1,4 @@
-import type { Kin, SealNumber, ToneNumber } from '../types/core'
+import type { Kin, SealNumber, ToneNumber } from '../types/branded'
 import type { Seal } from './seal'
 import type { Tone } from './tone'
 

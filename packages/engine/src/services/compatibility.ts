@@ -1,7 +1,7 @@
 // Compatibility Calculations for Pleiad Phase 2.4
 // Calculates Dreamspell and Tzolkin compatibility between people
 
-import type { Kin, SealNumber, ToneNumber } from '../types/core'
+import type { Kin, SealNumber, ToneNumber } from '../types/branded'
 import type { DreamspellCompatibility, DreamspellConnection, HarmonyType } from '../types/relationship'
 import { dateToKin, kinToSeal, kinToTone } from '../calculations/dreamspell'
 import { dateToTzolkin } from '../calculations/tzolkin'

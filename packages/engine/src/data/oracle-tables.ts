@@ -1,4 +1,4 @@
-import type { SealNumber } from '../types/core'
+import type { SealNumber } from '../types/branded'
 
 /**
  * Analog (the supportive position): the two seals sum to 19.

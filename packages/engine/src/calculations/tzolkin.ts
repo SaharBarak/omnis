@@ -1,4 +1,4 @@
-import { asSeal, asTone, type SealNumber, type ToneNumber } from '../types/core'
+import { asSeal, asTone, type SealNumber, type ToneNumber } from '../types/branded'
 import { gregorianToJDN, parseDate } from './julian'
 import type { TzolkinDay } from '../types/tzolkin'
 import { getTzolkinSign } from '../data/tzolkin-signs'

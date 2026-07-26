@@ -1,6 +1,6 @@
 import type { Seal } from '../types/seal'
 import type { Tone } from '../types/tone'
-import type { SealNumber } from '../types/core'
+import type { SealNumber } from '../types/branded'
 import { getGuide } from './oracle-tables'
 
 // Seal data for Dreamspell affirmations (from José Argüelles' Dreamspell)

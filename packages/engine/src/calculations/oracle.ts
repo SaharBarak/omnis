@@ -1,4 +1,4 @@
-import type { Kin, SealNumber, ToneNumber } from '../types/core'
+import type { Kin, SealNumber, ToneNumber } from '../types/branded'
 import type { Oracle } from '../types/dreamspell'
 import { getAnalog, getAntipode, getOccult, getGuide, getOccultTone } from '../data/oracle-tables'
 import { kinToSeal, kinToTone } from './dreamspell'

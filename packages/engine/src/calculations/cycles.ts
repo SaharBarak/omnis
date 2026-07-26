@@ -1,4 +1,4 @@
-import { asKin, type Kin, type SealNumber } from '../types/core'
+import { asKin, type Kin, type SealNumber } from '../types/branded'
 import type { ColorFamily } from '../types/common'
 import { dateToKin, kinToSeal } from './dreamspell'
 import { kinToWavespellNumber, getWavespell, type Wavespell } from './wavespell'

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { calculateOracle } from './oracle'
-import { asKin } from '../types/core'
+import { asKin } from '../types/branded'
 import { getAnalog, getAntipode, getOccult, getGuide, getOccultTone } from '../data/oracle-tables'
 
 describe('Oracle Calculations', () => {

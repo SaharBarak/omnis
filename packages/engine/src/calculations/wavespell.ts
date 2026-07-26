@@ -1,4 +1,4 @@
-import { asKin, asSeal, type Kin, type SealNumber, type ToneNumber } from '../types/core'
+import { asKin, asSeal, type Kin, type SealNumber, type ToneNumber } from '../types/branded'
 import { kinToSeal, kinToTone } from './dreamspell'
 
 // A wavespell is a 13-day cycle starting with Tone 1 (Magnetic) and ending with Tone 13 (Cosmic)
