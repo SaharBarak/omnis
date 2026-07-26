@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { dateToKin, kinToSeal, kinToTone } from './dreamspell'
-import { asKin } from '../core/types'
+import { asKin } from '../types/core'
 
 describe('Dreamspell Calculations', () => {
   describe('dateToKin', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { asKin, asSeal } from '../core/types'
+import { asKin, asSeal } from '../types/core'
 import {
   getCastle,
   kinToCastleNumber,

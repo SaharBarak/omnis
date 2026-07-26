@@ -11,7 +11,7 @@
  */
 
 // Core branded types
-export * from './core/types'
+export * from './types/core'
 
 // Calculation engines (dreamspell, tzolkin, long count, astrology,
 // human design, gematria, moon, cycles, wavespell, yearly, julian, oracle)

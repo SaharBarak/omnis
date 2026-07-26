@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { getAnalog, getAntipode, getOccult } from './oracle-tables'
-import type { SealNumber } from '../core/types'
+import type { SealNumber } from '../types/core'
 
 const seals = Array.from({ length: 20 }, (_, i) => (i + 1) as SealNumber)
 const color = (s: number) => ['red', 'white', 'blue', 'yellow'][(s - 1) % 4]

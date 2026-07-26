@@ -1,4 +1,4 @@
-import { asKin, type Kin, type SealNumber, type ToneNumber } from '../core/types'
+import { asKin, type Kin, type SealNumber, type ToneNumber } from '../types/core'
 import type { ColorFamily } from '../types/common'
 import {
   dateToKin,
