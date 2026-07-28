@@ -51,6 +51,12 @@
   "observability": {
     "enabled": true
   },
+  // DB is pinned to ap-southeast-2 (Sydney) — let Cloudflare run the Worker
+  // near it so multi-query routes pay one user↔worker round trip instead of
+  // one per query. Static assets still serve from the edge ahead of the Worker.
+  "placement": {
+    "mode": "smart"
+  },
   "vars": {
     "NEXT_PUBLIC_SITE_URL": "https://pleiad.io"
   }
