@@ -495,7 +495,12 @@ export function HumanDesignDisplay({
       <div className="bg-card border rounded-lg p-4">
         <h4 className="text-sm font-medium mb-3 text-center">Bodygraph</h4>
         <div className="flex justify-center">
-          <BodygraphChart bodygraph={result} className="w-full max-w-[400px]" />
+          {/* Width capped by the viewport-height budget × the 400/640 viewBox
+              ratio, so the full bodygraph always fits within one 100svh screen */}
+          <BodygraphChart
+            bodygraph={result}
+            className="w-full max-w-[min(400px,calc((100svh-8rem)*0.625))]"
+          />
         </div>
       </div>
 
