@@ -2,10 +2,12 @@ import type { Metadata } from 'next'
 import {
   NavV2,
   HeroV2,
+  HowItWorksV2,
   StarParallax,
   Zone,
   PeopleAtlas,
   RelationshipCallouts,
+  CouplesMap,
   ReadingCycler,
   CirclesDemo,
   PricingV2,
@@ -18,7 +20,7 @@ import { SYSTEM_FLAVORS, MURAL_GROUND } from '@/lib/design/system-flavors'
 import {
   buildHomepageDemo,
   buildCallouts,
-  buildEgoStar,
+  buildRelationshipField,
   buildReadingTabs,
   buildCircles,
 } from '@/lib/data/homepage-demo'
@@ -37,17 +39,17 @@ export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: {
-    absolute: 'Pleiad - The Living Map of Your People | 6 Wisdom Systems',
+    absolute: 'Pleiad — Six Symbolic Profiles, One People Map',
   },
   description:
-    'Enter one birthday and read it through Astrology, Dreamspell, Human Design, and Hebrew Gematria at once. Save your people and map every relationship.',
+    'Save the people in your life, read each person through six symbolic systems, compare pairs, and explore group patterns. Start with a free Dreamspell reading.',
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'Pleiad - The Living Map of Your People',
+    title: 'Pleiad — See Your People Through Six Symbolic Systems',
     description:
-      'Everyone in your life, read through six wisdom systems at once, and remembered forever. Free six-system reading from one birthday.',
+      'Calculate and save symbolic profiles, compare two people, and explore group patterns. Start with a free Dreamspell reading.',
     url: '/',
   },
 }
@@ -69,7 +71,7 @@ export default function LandingPage() {
   // hand. See src/lib/data/homepage-demo.ts and docs/redesign/HOMEPAGE_REDESIGN.md.
   const demo = buildHomepageDemo()
   const callouts = buildCallouts(demo.people, demo.pairs)
-  const star = buildEgoStar(demo.people, demo.charts, demo.pairs)
+  const field = buildRelationshipField(demo.people, demo.charts, demo.pairs)
   const readingTabs = buildReadingTabs(demo.charts)
   const circles = buildCircles(demo.people, demo.charts)
 
@@ -85,25 +87,27 @@ export default function LandingPage() {
 
       <main>
         {/* §1 Hero — the promise, with the live map */}
-        <HeroV2 star={star} />
+        <HeroV2 field={field} />
+
+        <HowItWorksV2 />
 
         {/* §2 YOUR READING — one birthday, six systems, the primary conversion */}
         <Zone
           lean="right"
           id="you"
           flavor={SYSTEM_FLAVORS.astrology}
-          pill="Start with one birthday"
-          heading="One birthday. Six complete readings."
-          body="Your natal chart, galactic signature, day sign, Long Count date, bodygraph, and the number of your name, computed together, on one screen. Six systems that never met each other, reading the same moment: you."
-          cta={{ label: 'Start with your birthday', href: '/calculate' }}
+          pill="Your six-system profile"
+          heading="Six readings for each person. One place to read them together."
+          body="A birth date starts Dreamspell, Tzolkin, and Long Count. Add an exact birth time and place for a full natal chart and Human Design bodygraph. Add a Hebrew name for Hebrew Gematria. Begin with what you know and complete the profile later."
+          cta={{ label: 'Try a free Dreamspell reading', href: '/calculate' }}
           triad={[
             {
-              title: 'Precise engines',
-              text: 'Real ephemeris and Long Count math, the same calculations practitioners use.',
+              title: 'Start with what you have',
+              text: 'A birth date is enough for the free reading; time, place, and a Hebrew name add the deeper layers.',
             },
             {
-              title: 'Grounded AI',
-              text: 'Every interpretation cites a searchable knowledge base, never freestyle mysticism.',
+              title: 'Calculated, not generated',
+              text: 'Charts and compatibility results come from deterministic calculation engines. AI interpretation is optional.',
             },
           ]}
         >
@@ -117,15 +121,29 @@ export default function LandingPage() {
         {/* §4 NAMED RELATIONSHIPS — each card is a tie the engine actually found */}
         <RelationshipCallouts callouts={callouts} />
 
+        {/* §4b THE COUPLE MAP — two people, four oracle seats each, one bond
+            read across dreamspell, astrology, Human Design, and the moon */}
+        <Zone
+          lean="left"
+          id="couples"
+          flavor={SYSTEM_FLAVORS.dreamspell}
+          pill="The couple map"
+          heading="Two charts. Four oracle seats each. See who sits where."
+          body="Every Dreamspell chart carries a guide, an analog, an antipode, and an occult seat. Put two people side by side and Pleiad lights up the seats they actually occupy in each other's oracle — then reads the same bond through synastry, Human Design types, and the moons they were born under."
+          cta={{ label: 'Map your own pair', href: '/app' }}
+        >
+          <CouplesMap />
+        </Zone>
+
         {/* §5 YOUR CIRCLES — group dynamics */}
         <Zone
           lean="right"
           id="circles"
           flavor={SYSTEM_FLAVORS.humanDesign}
           pill="Group dynamics"
-          heading="Your family is not your team."
-          body="Select any circle and read it whole. Each group runs on its own physics: who carries the energy, where it jams, who bridges the room, why this circle could only ever feel like this, and each layer names it differently."
-          cta={{ label: 'Start with your birthday', href: '/calculate' }}
+          heading="Read the group, not just the people."
+          body="Group analysis combines pair compatibility, Dreamspell and Tzolkin distributions, and Human Design composite patterns when enough complete charts are present. Compare a family, team, or friend circle without flattening everyone into one score."
+          cta={{ label: 'See group plans', href: '/pricing' }}
         >
           <CirclesDemo circles={circles} />
         </Zone>

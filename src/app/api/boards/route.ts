@@ -44,7 +44,8 @@ export async function POST(request: Request) {
     // Fetched alongside the plan — the list is only consulted for capped
     // tiers, but a possibly-unused cheap count beats a serial round trip.
     const [plan, existing] = await Promise.all([getUserPlan(userId), listBoards(userId)])
-    const boardLimit = getPlanLimits(plan).boards
+    const limits = getPlanLimits(plan)
+    const boardLimit = limits.boards
     if (boardLimit !== Infinity) {
       if (existing.length >= boardLimit) {
         return NextResponse.json(
@@ -58,6 +59,23 @@ export async function POST(request: Request) {
           { status: 403 }
         )
       }
+    }
+
+    // People on the board are capped by the same per-tier profiles limit that
+    // governs the map — a board is the map re-arranged, not a way around it.
+    const peopleOnBoard = new Set(
+      (input.canvas?.nodes as Array<{ type?: string; personId?: string }> | undefined)
+        ?.filter((n) => n.type === 'person' && typeof n.personId === 'string')
+        .map((n) => n.personId as string) ?? []
+    ).size
+    if (limits.profiles !== Infinity && peopleOnBoard > limits.profiles) {
+      return NextResponse.json(
+        {
+          error: `This board holds ${peopleOnBoard} people, but ${PLANS[plan].name} covers ${limits.profiles}. Upgrade to map more people together.`,
+          code: 'limit_exceeded',
+        },
+        { status: 403 }
+      )
     }
 
     const board = await createBoard(userId, input)

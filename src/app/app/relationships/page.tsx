@@ -131,6 +131,11 @@ function RelationshipRow({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem asChild>
+            <a href={`/app/pair/${relationship.person1_id}/${relationship.person2_id}`}>
+              Open couple map
+            </a>
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onEdit(relationship)}>
             Edit
           </DropdownMenuItem>
