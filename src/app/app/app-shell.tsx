@@ -14,6 +14,7 @@ import {
   Network,
   LayoutGrid,
   CreditCard,
+  CalendarDays,
   Sparkles,
   Search,
   User,
@@ -66,6 +67,7 @@ const navGroups = [
     label: 'Overview',
     items: [
       { href: '/app', label: 'Home', icon: Home },
+      { href: '/app/calendar', label: 'Calendar', icon: CalendarDays },
     ],
   },
   {
