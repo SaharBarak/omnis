@@ -224,8 +224,14 @@ export default function DashboardPage() {
       { label: 'Kin', value: board.kin.toUpperCase() },
       { label: 'Moon', value: board.moon.toUpperCase() },
       { label: 'Sun', value: board.sun.toUpperCase() },
+      { label: 'Sidereal', value: board.sidereal.toUpperCase() },
       { label: 'Gate', value: board.gate.toUpperCase() },
       { label: 'Hebrew', value: board.hebrewDate ? board.hebrewDate.toUpperCase() : '—' },
+      { label: 'Hijri', value: board.hijri ? board.hijri.toUpperCase() : '—' },
+      { label: 'Persian', value: board.persian ? board.persian.toUpperCase() : '—' },
+      { label: 'Chinese', value: board.chineseYear ? board.chineseYear.toUpperCase() : '—' },
+      { label: 'Panchang', value: board.panchang.toUpperCase() },
+      { label: 'Long Count', value: board.longCount },
     ]
   }, [now])
 

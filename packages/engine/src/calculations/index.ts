@@ -152,3 +152,14 @@ export {
   type Lunation,
   type MoonPhaseName,
 } from './moon'
+export {
+  hijriDate,
+  persianDate,
+  chineseYear,
+  lahiriAyanamsa,
+  siderealSun,
+  panchang,
+  type ChineseYear,
+  type SiderealSun,
+  type Panchang,
+} from './calendars'

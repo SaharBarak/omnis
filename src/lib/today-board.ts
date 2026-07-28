@@ -17,11 +17,23 @@ export interface TodayAcrossSystems {
   readonly sun: string
   readonly gate: string
   readonly hebrewDate: string
+  readonly sidereal: string
+  readonly hijri: string
+  readonly persian: string
+  readonly chineseYear: string
+  readonly panchang: string
+  readonly longCount: string
 }
 
 export function getTodayAcrossSystems(now: Date = new Date()): TodayAcrossSystems {
   const board: EngineToday = engineToday(now)
-  return { ...board, hebrewDate: board.hebrewDate ?? '' }
+  return {
+    ...board,
+    hebrewDate: board.hebrewDate ?? '',
+    hijri: board.hijri ?? '',
+    persian: board.persian ?? '',
+    chineseYear: board.chineseYear ?? '',
+  }
 }
 
 export function getFooterLiveLine(today: TodayAcrossSystems): string {

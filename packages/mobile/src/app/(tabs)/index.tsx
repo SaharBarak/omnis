@@ -209,8 +209,14 @@ export default function TodayScreen() {
       { label: 'Kin', value: board.kin },
       { label: 'Moon', value: board.moon },
       { label: 'Sun', value: board.sun },
+      { label: 'Sidereal', value: board.sidereal },
       { label: 'Gate', value: board.gate },
       { label: 'Hebrew', value: board.hebrewDate ?? '—' },
+      { label: 'Hijri', value: board.hijri ?? '—' },
+      { label: 'Persian', value: board.persian ?? '—' },
+      { label: 'Chinese', value: board.chineseYear ?? '—' },
+      { label: 'Panchang', value: board.panchang },
+      { label: 'Long Count', value: board.longCount },
     ],
     [board]
   )

@@ -1,5 +1,13 @@
 import { dateToKin, kinToSeal, kinToTone } from '../calculations/dreamspell'
 import { getCurrentPlanetaryPositions } from '../calculations/astrology'
+import {
+  chineseYear,
+  hijriDate,
+  panchang,
+  persianDate,
+  siderealSun,
+} from '../calculations/calendars'
+import { dateToLongCount, formatLongCount } from '../calculations/long-count'
 import { longitudeToGate } from '../data/human-design-gates'
 import { SEALS } from '../data/seals'
 import { TONES } from '../data/tones'
@@ -19,6 +27,18 @@ export interface TodayAcrossSystems {
   readonly gate: string
   /** e.g. "17 Tammuz 5786", or null when the runtime lacks the calendar. */
   readonly hebrewDate: string | null
+  /** e.g. "Sun 7° Cancer" — sidereal (Lahiri) counterpart of `sun`. */
+  readonly sidereal: string
+  /** e.g. "10 Safar 1448 AH", or null when the runtime lacks the calendar. */
+  readonly hijri: string | null
+  /** e.g. "2 Mordad 1405 AP", or null when the runtime lacks the calendar. */
+  readonly persian: string | null
+  /** e.g. "Fire Horse", or null when the runtime lacks the calendar. */
+  readonly chineseYear: string | null
+  /** e.g. "Shukla Dashami" — today's tithi. */
+  readonly panchang: string
+  /** e.g. "13.0.13.11.6". */
+  readonly longCount: string
 }
 
 const SYNODIC_MONTH = 29.530588853
@@ -82,6 +102,7 @@ export function getTodayAcrossSystems(now: Date = new Date()): TodayAcrossSystem
   const seal = SEALS.find((s) => s.number === kinToSeal(kin))
   const tone = TONES.find((t) => t.number === kinToTone(kin))
   const sun = sunNow(dateStr)
+  const sidereal = siderealSun(dateStr)
 
   return {
     kin: `Kin ${kin} · ${tone?.name ?? ''} ${seal?.english ?? ''}`.trim(),
@@ -89,5 +110,11 @@ export function getTodayAcrossSystems(now: Date = new Date()): TodayAcrossSystem
     sun: `Sun ${sun.degree}° ${sun.sign}`,
     gate: `Gate ${sun.gate}.${sun.line}`,
     hebrewDate: hebrewDate(now),
+    sidereal: `Sun ${sidereal.degree}° ${sidereal.sign}`,
+    hijri: hijriDate(now),
+    persian: persianDate(now),
+    chineseYear: chineseYear(now)?.name ?? null,
+    panchang: panchang(dateStr).tithi,
+    longCount: formatLongCount(dateToLongCount(dateStr)),
   }
 }

@@ -33,13 +33,19 @@ describe('sunNow', () => {
 })
 
 describe('getTodayAcrossSystems', () => {
-  it('assembles all five board values', () => {
+  it('assembles the full calendar-atlas board', () => {
     const board = getTodayAcrossSystems(new Date(Date.UTC(2026, 6, 10, 12)))
     expect(board.kin).toMatch(/^Kin \d+ · .+/)
     expect(board.moon).toMatch(/Moon|Crescent|Quarter|Gibbous/)
     expect(board.sun).toMatch(/^Sun \d+° (Cancer|Gemini)$/)
     expect(board.gate).toMatch(/^Gate \d+\.\d$/)
-    // Node has full Intl — Hebrew date resolves here (may be null on Hermes).
+    // Node has full Intl — calendar dates resolve here (may be null on Hermes).
     expect(board.hebrewDate).toMatch(/5786/)
+    expect(board.sidereal).toMatch(/^Sun \d+° (Gemini|Cancer)$/)
+    expect(board.hijri).toMatch(/1447|1448/)
+    expect(board.persian).toMatch(/1405/)
+    expect(board.chineseYear).toBe('Fire Horse')
+    expect(board.panchang).toMatch(/^(Shukla|Krishna) .+/)
+    expect(board.longCount).toMatch(/^\d+\.\d+\.\d+\.\d+\.\d+$/)
   })
 })
