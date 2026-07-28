@@ -436,7 +436,7 @@ export default function DashboardPage() {
                 className="flex items-center justify-between gap-6 py-3.5 transition-colors hover:text-white active:scale-[0.98]"
               >
                 <span className="truncate text-sm text-white/90">{person.name}</span>
-                <span className="shrink-0 font-mono text-sm tracking-tight text-brand-bright [font-variant-numeric:tabular-nums]">
+                <span className="shrink-0 text-sm tracking-tight text-brand-bright [font-variant-numeric:tabular-nums]">
                   {daysUntil === 0 ? 'TODAY' : `IN ${daysUntil}D`}
                 </span>
               </Link>
@@ -560,7 +560,7 @@ function SetupChecklist({ steps, dismissed, onDismiss, userKin }: SetupChecklist
         <h3 className="mb-4 font-display font-semibold tracking-tight text-white/90">Your Signature</h3>
         <div className="flex items-center gap-4">
           <div className="flex h-14 w-14 items-center justify-center rounded-full border border-primary/25 bg-primary/[0.08]">
-            <span className="font-mono text-xl text-brand-bright [font-variant-numeric:tabular-nums]">{userKin.kin}</span>
+            <span className="font-display text-xl text-brand-bright [font-variant-numeric:tabular-nums]">{userKin.kin}</span>
           </div>
           <div>
             <Eyebrow className="block">Galactic Signature</Eyebrow>
@@ -607,7 +607,7 @@ function SetupChecklist({ steps, dismissed, onDismiss, userKin }: SetupChecklist
     <div className="surface-card h-full p-5">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="font-display font-semibold tracking-tight text-white/90">Get Set Up</h3>
-        <span className="font-mono text-sm text-brand-bright [font-variant-numeric:tabular-nums]">{completion}%</span>
+        <span className="text-sm text-brand-bright [font-variant-numeric:tabular-nums]">{completion}%</span>
       </div>
 
       <Progress value={completion} className="mb-4 h-1.5" />

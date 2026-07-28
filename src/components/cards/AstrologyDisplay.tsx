@@ -225,7 +225,7 @@ export function PlanetPositions({
             </div>
 
             <div className="flex items-center gap-2 text-sm">
-              <span className="font-mono">{pos.position.formatted}</span>
+              <span className="">{pos.position.formatted}</span>
               {showHouses && pos.house && (
                 <span className="text-muted-foreground">
                   House {pos.house}
@@ -302,7 +302,7 @@ export function AspectsDisplay({
                 <span className="text-muted-foreground">
                   {planet1} and {planet2}
                 </span>
-                <span className="font-mono text-xs">
+                <span className="text-xs">
                   ({asp.orb.toFixed(1)}°)
                 </span>
               </div>

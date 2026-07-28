@@ -199,7 +199,7 @@ export function MeterBar({
       </div>
       <span
         className={cn(
-          'shrink-0 text-right font-mono text-sm text-brand-bright [font-variant-numeric:tabular-nums]',
+          'shrink-0 text-right text-sm text-brand-bright [font-variant-numeric:tabular-nums]',
           valueClassName
         )}
       >

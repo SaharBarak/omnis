@@ -162,7 +162,7 @@ function ViewToggle({
             aria-selected={active}
             onClick={() => onChange(v)}
             className={cn(
-              'relative rounded-full px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.2em]',
+              'relative rounded-full px-4 py-1.5 font-sans font-medium text-[11px] uppercase tracking-[0.2em]',
               'transition-colors',
               active ? 'text-white/90' : 'text-white/50 hover:text-white/70'
             )}
@@ -241,7 +241,7 @@ function PersonDetails({
             label="Kin"
             value={
               <span>
-                <span className="font-mono [font-variant-numeric:tabular-nums]">{kin}</span>
+                <span className="[font-variant-numeric:tabular-nums]">{kin}</span>
                 {' · '}
                 {tone.name} {seal.english}
               </span>

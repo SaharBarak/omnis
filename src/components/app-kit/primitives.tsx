@@ -38,7 +38,7 @@ export function getFlavor(key: AppFlavorKey): AppFlavor {
   return SYSTEM_FLAVORS[key]
 }
 
-/** Mono micro-caps label — every pill, chip, stat label, column title. */
+/** Micro-caps label — every pill, chip, stat label, column title. */
 export function Eyebrow({
   children,
   className,
@@ -52,7 +52,7 @@ export function Eyebrow({
   return (
     <span
       className={cn(
-        'font-mono text-[11px] uppercase tracking-[0.2em]',
+        'font-sans text-[11px] font-medium uppercase tracking-[0.2em]',
         !accent && 'text-muted-foreground',
         className
       )}
@@ -82,7 +82,7 @@ export function Pill({
       className={cn(
         'inline-flex items-center gap-2 rounded-full border',
         size === 'md' ? 'px-4 py-1.5 text-[11px]' : 'px-2.5 py-0.5 text-[10px]',
-        'font-mono uppercase tracking-[0.2em]',
+        'font-sans font-medium uppercase tracking-[0.2em]',
         !accent && 'border-white/15 text-white/70',
         className
       )}
@@ -124,7 +124,7 @@ export function Hairline({
   )
 }
 
-/** Big tabular-mono numeral + mono label (mobile StatNumber port). */
+/** Big display numeral + micro-caps label (mobile StatNumber port). */
 export function StatNumber({
   value,
   label,
@@ -136,7 +136,7 @@ export function StatNumber({
 }) {
   return (
     <div className={cn('flex flex-col gap-1', className)}>
-      <span className="font-mono text-3xl tracking-tight text-brand-bright [font-variant-numeric:tabular-nums]">
+      <span className="font-display text-3xl tracking-tight text-brand-bright [font-variant-numeric:tabular-nums]">
         {value}
       </span>
       <Eyebrow>{label}</Eyebrow>

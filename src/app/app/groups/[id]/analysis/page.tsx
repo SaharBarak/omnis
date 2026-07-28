@@ -168,7 +168,7 @@ function CompatibilityMatrix({ analysis }: { analysis: FullGroupAnalysis }) {
             {members.map(m => (
               <th
                 key={m.id}
-                className="min-w-[44px] px-1 pb-1 text-center font-mono text-[10px] font-medium uppercase tracking-[0.15em] text-white/50"
+                className="min-w-[44px] px-1 pb-1 text-center font-sans text-[10px] font-medium uppercase tracking-[0.15em] text-white/50"
               >
                 <div className="mx-auto max-w-[60px] truncate" title={m.name || m.hebrewName || ''}>
                   {(m.name || m.hebrewName || '').slice(0, 5)}
@@ -200,7 +200,7 @@ function CompatibilityMatrix({ analysis }: { analysis: FullGroupAnalysis }) {
                 return (
                   <td
                     key={col.id}
-                    className="h-10 min-w-[44px] rounded-md text-center font-mono text-sm font-medium tabular-nums"
+                    className="h-10 min-w-[44px] rounded-md text-center text-sm font-medium tabular-nums"
                     style={{ background: step.fill, color: step.text }}
                     title={`${row.name || row.hebrewName} × ${col.name || col.hebrewName}: ${score}`}
                   >
@@ -245,7 +245,7 @@ function MemberRow({ member, last }: { member: GroupMemberAnalysis; last: boolea
     >
       <span
         className={cn(
-          'flex size-10 shrink-0 items-center justify-center rounded-full border border-white/[0.07] font-mono text-sm font-semibold tabular-nums',
+          'flex size-10 shrink-0 items-center justify-center rounded-full border border-white/[0.07] text-sm font-semibold tabular-nums',
           !spec && 'bg-white/[0.06] text-white/70'
         )}
         style={spec ? { backgroundColor: spec.cssSoft, color: spec.css } : undefined}
@@ -479,7 +479,7 @@ export default function GroupAnalysisPage({ params }: { params: Promise<{ id: st
           <div className="mb-1.5 flex items-center gap-2">
             <Link
               href="/app/groups"
-              className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/50 transition-colors hover:text-white/70"
+              className="font-sans font-medium text-[11px] uppercase tracking-[0.2em] text-white/50 transition-colors hover:text-white/70"
             >
               Groups
             </Link>

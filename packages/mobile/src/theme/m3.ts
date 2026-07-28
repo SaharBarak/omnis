@@ -16,11 +16,12 @@
  *   fill; it wears a translucent scrim of its own content colour on top. See
  *   `stateLayer()` and the StateLayer component.
  *
- * Typography follows M3's brand/plain split: Space Grotesk carries display and
- * headline (the brand typeface slot), Barlow carries title, body, and label
- * (the plain slot), and IBM Plex Mono carries the `data` roles — a documented
- * extension for tabular figures, since kin numbers and gate numbers must not
- * shift width between frames.
+ * Typography follows M3's brand/plain split: Space Grotesk carries display,
+ * headline, and the large `data` numerals (the brand typeface slot); Barlow
+ * carries title, body, label, and the smaller `data` roles (the plain slot).
+ * The `data*` roles keep tabular figures so kin numbers and gate numbers do
+ * not shift width between frames. IBM Plex Mono survives only inside the
+ * bodygraph SVG, where fixed-width gate numerals keep the diagram aligned.
  */
 
 import { useColorScheme } from 'react-native'
@@ -42,7 +43,7 @@ export const FONTS = {
   plain: 'Barlow_400Regular',
   plainMedium: 'Barlow_500Medium',
   plainSemi: 'Barlow_600SemiBold',
-  /** Data typeface — tabular figures. Never used for prose. */
+  /** Mono — bodygraph SVG gate numerals only. Never used for prose or UI. */
   data: 'IBMPlexMono_400Regular',
   dataMedium: 'IBMPlexMono_500Medium',
 } as const
@@ -83,21 +84,21 @@ export const TYPE = {
 
   /** Extension roles — tabular numerals. Kin, gates, scores, dates. */
   dataLarge: {
-    fontFamily: FONTS.dataMedium,
+    fontFamily: FONTS.brandMedium,
     fontSize: 32,
     lineHeight: 40,
     letterSpacing: -0.5,
     fontVariant: ['tabular-nums'],
   },
   dataMedium: {
-    fontFamily: FONTS.dataMedium,
+    fontFamily: FONTS.plainMedium,
     fontSize: 16,
     lineHeight: 24,
     letterSpacing: 0,
     fontVariant: ['tabular-nums'],
   },
   dataSmall: {
-    fontFamily: FONTS.data,
+    fontFamily: FONTS.plain,
     fontSize: 12,
     lineHeight: 16,
     letterSpacing: 0.5,

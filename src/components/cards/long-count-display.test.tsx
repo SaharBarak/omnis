@@ -120,10 +120,9 @@ describe('LongCountDisplay Components', () => {
       expect(container.firstChild).toHaveClass('custom-mini')
     })
 
-    it('displays monospace text', () => {
-      const { container } = render(<LongCountMini dateStr={EPOCH_DATE} />)
-      const textEl = container.querySelector('.font-mono')
-      expect(textEl).toBeInTheDocument()
+    it('displays the formatted long count', () => {
+      render(<LongCountMini dateStr={EPOCH_DATE} />)
+      expect(screen.getByText(/\d+\.\d+\.\d+\.\d+\.\d+/)).toBeInTheDocument()
     })
   })
 

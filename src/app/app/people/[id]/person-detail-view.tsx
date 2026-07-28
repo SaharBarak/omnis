@@ -432,7 +432,7 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
             </Link>
           </Button>
           <span
-            className="flex size-14 shrink-0 items-center justify-center rounded-full border border-white/[0.07] bg-surface-2 font-mono text-sm uppercase tracking-[0.1em] text-white/70"
+            className="flex size-14 shrink-0 items-center justify-center rounded-full border border-white/[0.07] bg-surface-2 font-sans font-medium text-sm uppercase tracking-[0.1em] text-white/70"
             aria-hidden
           >
             {initialsOf(person.name)}

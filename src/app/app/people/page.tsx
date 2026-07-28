@@ -97,7 +97,7 @@ function PersonRow({
         <span
           className={cn(
             'flex size-11 shrink-0 items-center justify-center rounded-full border border-white/[0.07] bg-surface-2',
-            'font-mono text-[11px] uppercase tracking-[0.1em] text-white/70',
+            'font-sans font-medium text-[11px] uppercase tracking-[0.1em] text-white/70',
             person.is_self && 'ring-1 ring-brand-soft/70'
           )}
           aria-hidden
@@ -108,12 +108,12 @@ function PersonRow({
           <span className="flex items-baseline gap-2">
             <span className="truncate text-sm font-medium text-white/90">{person.name}</span>
             {person.is_self && (
-              <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.2em] text-brand-soft">
+              <span className="shrink-0 font-sans font-medium text-[10px] uppercase tracking-[0.2em] text-brand-soft">
                 You
               </span>
             )}
           </span>
-          <span className="truncate font-mono text-[11px] uppercase tracking-[0.2em] text-white/50">
+          <span className="truncate font-sans font-medium text-[11px] uppercase tracking-[0.2em] text-white/50">
             {line}
           </span>
         </span>

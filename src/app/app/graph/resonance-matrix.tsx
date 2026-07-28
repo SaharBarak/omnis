@@ -101,7 +101,7 @@ function OverallResonance({ value }: { value: number }) {
   const [ref, counted] = useCountUp(value)
   return (
     <div ref={ref as React.Ref<HTMLDivElement>} className="flex items-baseline gap-3">
-      <span className="font-mono text-4xl tracking-tight text-brand-bright [font-variant-numeric:tabular-nums]">
+      <span className="font-display text-4xl tracking-tight text-brand-bright [font-variant-numeric:tabular-nums]">
         {counted}
       </span>
       <Eyebrow>/ 100 overall resonance</Eyebrow>
@@ -195,7 +195,7 @@ function PairBreakdown({
                       accent={getFlavor(key).accent}
                     />
                     <span
-                      className="w-10 shrink-0 text-right font-mono text-[11px] text-white/35 [font-variant-numeric:tabular-nums]"
+                      className="w-10 shrink-0 text-right text-[11px] text-white/35 [font-variant-numeric:tabular-nums]"
                       title={`Weight ${Math.round(sys.weight * 100)}%`}
                     >
                       {Math.round(sys.weight * 100)}%
@@ -335,7 +335,7 @@ export function ResonanceMatrix() {
         {people.map((p) => (
           <div
             key={`col-${p.id}`}
-            className="h-10 flex items-end justify-center pb-1 font-mono text-[11px] text-white/70"
+            className="h-10 flex items-end justify-center pb-1 text-[11px] text-white/70"
             title={p.is_self ? `${p.name} · You` : p.name}
           >
             {initials(p.name)}
@@ -425,7 +425,7 @@ function RowCells({
             title={`${row.name} × ${col.name} — ${pair.overallScore}`}
           >
             <span
-              className="font-mono text-[11px] font-semibold [font-variant-numeric:tabular-nums] opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity"
+              className="text-[11px] font-semibold [font-variant-numeric:tabular-nums] opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity"
               style={{ color: step.text }}
             >
               {pair.overallScore}

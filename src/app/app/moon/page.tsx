@@ -25,7 +25,7 @@ const PHASE_HINTS: Record<string, string> = {
 /** Tabular-mono numeral for DataRow values. */
 function Mono({ children }: { children: React.ReactNode }) {
   return (
-    <span className="font-mono [font-variant-numeric:tabular-nums]">{children}</span>
+    <span className="[font-variant-numeric:tabular-nums]">{children}</span>
   )
 }
 
@@ -153,11 +153,11 @@ export default function MoonMapPage() {
                             {person.name}
                           </span>
                           {person.is_self && (
-                            <span className="shrink-0 font-mono text-[9px] uppercase tracking-[0.15em] text-brand-soft">
+                            <span className="shrink-0 font-sans font-medium text-[9px] uppercase tracking-[0.15em] text-brand-soft">
                               You
                             </span>
                           )}
-                          <span className="shrink-0 font-mono text-xs text-white/50 [font-variant-numeric:tabular-nums]">
+                          <span className="shrink-0 text-xs text-white/50 [font-variant-numeric:tabular-nums]">
                             {Math.round(moon.illumination * 100)}%
                           </span>
                         </Link>

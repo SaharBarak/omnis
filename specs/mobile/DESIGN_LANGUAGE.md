@@ -81,14 +81,15 @@ typeface split, and this is it:
 
 | Slot | Face | Roles |
 |---|---|---|
-| Brand | **Space Grotesk** | `display*`, `headline*` |
-| Plain | **Barlow** | `title*`, `body*`, `label*` |
-| Data | **IBM Plex Mono** | `data*` |
+| Brand | **Space Grotesk** | `display*`, `headline*`, `dataLarge` |
+| Plain | **Barlow** | `title*`, `body*`, `label*`, `dataMedium`, `dataSmall` |
 
 The fifteen M3 roles keep the spec's sizes, line heights, and tracking. The
 three `data*` roles are a documented **extension**, not an M3 role: every
-numeral in the app — kin, gates, gematria values, dates, scores — is tabular, so
-a figure cannot change width between frames.
+numeral in the app — kin, gates, gematria values, dates, scores — requests
+tabular figures, so a figure cannot change width between frames. IBM Plex
+Mono is no longer a UI face (issue #57): it survives only inside the
+bodygraph SVG, where fixed-width gate numerals keep the diagram aligned.
 
 Address type by role, never by size. `<Text variant="titleMedium">`, never a
 `fontSize`.

@@ -56,7 +56,7 @@ export function ProfileProgress({
         <h3 className="mb-4 font-display font-semibold tracking-tight text-white/90">Your Signature</h3>
         <div className="flex items-center gap-4">
           <div className="flex h-14 w-14 items-center justify-center rounded-full border border-primary/25 bg-primary/[0.08]">
-            <span className="font-mono text-xl text-brand-bright [font-variant-numeric:tabular-nums]">{userKin.kin}</span>
+            <span className="font-display text-xl text-brand-bright [font-variant-numeric:tabular-nums]">{userKin.kin}</span>
           </div>
           <div>
             <Eyebrow className="block">Galactic Signature</Eyebrow>
@@ -78,7 +78,7 @@ export function ProfileProgress({
     <div className={cn('surface-card p-5', className)}>
       <div className="mb-3 flex items-center justify-between">
         <h3 className="font-display font-semibold tracking-tight text-white/90">Complete Your Profile</h3>
-        <span className="font-mono text-sm text-brand-bright [font-variant-numeric:tabular-nums]">{completion}%</span>
+        <span className="text-sm text-brand-bright [font-variant-numeric:tabular-nums]">{completion}%</span>
       </div>
 
       <Progress value={completion} className="mb-4 h-1.5" />

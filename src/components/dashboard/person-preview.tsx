@@ -38,7 +38,7 @@ export function PersonPreview({
         <div className="flex items-center gap-3">
           {/* Kin disc */}
           <div className="flex size-11 shrink-0 items-center justify-center rounded-full border border-primary/25 bg-primary/[0.08]">
-            <span className="font-mono text-base text-brand-bright [font-variant-numeric:tabular-nums]">
+            <span className="text-base text-brand-bright [font-variant-numeric:tabular-nums]">
               {kin}
             </span>
           </div>

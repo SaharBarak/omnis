@@ -52,7 +52,7 @@ export function FlavorTabs({
               onClick={() => onChange(tab.key)}
               className={cn(
                 'relative shrink-0 rounded-full px-4 py-1.5',
-                'font-mono text-[11px] uppercase tracking-[0.2em]',
+                'font-sans font-medium text-[11px] uppercase tracking-[0.2em]',
                 'transition-colors duration-normal',
                 isActive ? 'text-white/90' : 'text-white/50 hover:text-white/70'
               )}

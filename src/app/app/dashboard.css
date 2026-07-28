@@ -163,16 +163,17 @@ html.dash-theme [data-sidebar='sidebar'] {
   border-color: hsl(var(--primary) / 0.35);
 }
 
-/* Stat numerals — split-flap board treatment: mono, tabular, bright. */
+/* Stat numerals — display face, tabular, bright. */
 .dash-theme .stat-value {
-  font-family: var(--font-mono, 'IBM Plex Mono'), monospace;
+  font-family: var(--font-display, 'Space Grotesk'), sans-serif;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
   color: hsl(259 62% 95%);
 }
 
 .dash-theme .stat-label {
-  font-family: var(--font-mono, 'IBM Plex Mono'), monospace;
+  font-family: var(--font-sans, 'Barlow'), sans-serif;
+  font-weight: 500;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.18em;

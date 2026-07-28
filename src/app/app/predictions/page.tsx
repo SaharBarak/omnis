@@ -32,7 +32,7 @@ const SEAL_ORDER: readonly SealColor[] = ['red', 'white', 'blue', 'yellow'] as c
 
 /** Mono micro-caps tab trigger — the contract's eyebrow voice. */
 const TAB_TRIGGER =
-  'rounded-full px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.2em] text-white/50 transition-colors hover:text-white/70 data-[state=active]:bg-brand/15 data-[state=active]:text-brand-soft data-[state=active]:shadow-none'
+  'rounded-full px-4 py-1.5 font-sans font-medium text-[11px] uppercase tracking-[0.2em] text-white/50 transition-colors hover:text-white/70 data-[state=active]:bg-brand/15 data-[state=active]:text-brand-soft data-[state=active]:shadow-none'
 
 const TAB_LIST = 'h-auto rounded-full border border-white/[0.07] bg-transparent p-1'
 
@@ -152,7 +152,7 @@ export default function PredictionsPage() {
             <div
               className={cn(
                 'flex size-16 shrink-0 items-center justify-center rounded-xl',
-                'font-mono text-2xl [font-variant-numeric:tabular-nums]',
+                'font-display text-2xl [font-variant-numeric:tabular-nums]',
                 sealTileClasses(today.color)
               )}
             >
@@ -285,16 +285,16 @@ export default function PredictionsPage() {
                           isSelected && 'bg-brand/10'
                         )}
                       >
-                        <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/35">
+                        <p className="font-sans font-medium text-[10px] uppercase tracking-[0.15em] text-white/35">
                           {new Date(prediction.date).toLocaleDateString('en-US', { weekday: 'short' })}
                         </p>
-                        <p className="mb-2 font-mono text-sm text-white/90 [font-variant-numeric:tabular-nums]">
+                        <p className="mb-2 text-sm text-white/90 [font-variant-numeric:tabular-nums]">
                           {new Date(prediction.date).getDate()}
                         </p>
                         <div
                           className={cn(
                             'mx-auto flex size-10 items-center justify-center rounded-lg',
-                            'font-mono text-sm [font-variant-numeric:tabular-nums]',
+                            'text-sm [font-variant-numeric:tabular-nums]',
                             sealTileClasses(prediction.color)
                           )}
                         >
@@ -349,7 +349,7 @@ export default function PredictionsPage() {
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                     <div
                       key={day}
-                      className="py-2 text-center font-mono text-[10px] uppercase tracking-[0.15em] text-white/35"
+                      className="py-2 text-center font-sans font-medium text-[10px] uppercase tracking-[0.15em] text-white/35"
                     >
                       {day}
                     </div>
@@ -378,13 +378,13 @@ export default function PredictionsPage() {
                           isToday && 'ring-1 ring-brand/60'
                         )}
                       >
-                        <p className="font-mono text-[10px] text-white/50 [font-variant-numeric:tabular-nums]">
+                        <p className="text-[10px] text-white/50 [font-variant-numeric:tabular-nums]">
                           {new Date(prediction.date).getDate()}
                         </p>
                         <div
                           className={cn(
                             'mx-auto mt-0.5 flex size-6 items-center justify-center rounded',
-                            'font-mono text-[10px] [font-variant-numeric:tabular-nums]',
+                            'text-[10px] [font-variant-numeric:tabular-nums]',
                             sealTileClasses(prediction.color)
                           )}
                         >
@@ -411,7 +411,7 @@ export default function PredictionsPage() {
                             <span className="truncate text-sm font-medium text-white/90">{event.title}</span>
                             <IntensityBadge intensity={event.intensity} size="sm" />
                           </div>
-                          <span className="shrink-0 font-mono text-xs text-white/50 [font-variant-numeric:tabular-nums]">
+                          <span className="shrink-0 text-xs text-white/50 [font-variant-numeric:tabular-nums]">
                             {new Date(event.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                           </span>
                         </div>
@@ -447,12 +447,12 @@ export default function PredictionsPage() {
                 <div className="surface-card p-6">
                   <div className="flex flex-col gap-1">
                     <Eyebrow accent={flavor.accent}>Current personal year</Eyebrow>
-                    <p className="font-mono text-xs text-white/50 [font-variant-numeric:tabular-nums]">
+                    <p className="text-xs text-white/50 [font-variant-numeric:tabular-nums]">
                       Age {timeline.currentPersonalYear.age} · {new Date(timeline.currentPersonalYear.startDate).toLocaleDateString()} – {new Date(timeline.currentPersonalYear.endDate).toLocaleDateString()}
                     </p>
                   </div>
                   <div className="mt-4 flex items-center gap-4">
-                    <div className="flex size-16 shrink-0 items-center justify-center rounded-xl bg-brand font-mono text-2xl text-white [font-variant-numeric:tabular-nums]">
+                    <div className="flex size-16 shrink-0 items-center justify-center rounded-xl bg-brand font-display text-2xl text-white [font-variant-numeric:tabular-nums]">
                       {timeline.currentPersonalYear.kin}
                     </div>
                     <div className="min-w-0">

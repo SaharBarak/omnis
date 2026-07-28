@@ -118,7 +118,7 @@ function AppSidebar() {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-display font-semibold tracking-tight">Pleiad</span>
-                  <span className="truncate font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Symbolic Life OS</span>
+                  <span className="truncate font-sans font-medium text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Symbolic Life OS</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -129,7 +129,7 @@ function AppSidebar() {
       <SidebarContent>
         {navGroups.map((group) => (
           <SidebarGroup key={group.label}>
-            <SidebarGroupLabel className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-sidebar-foreground/50">
+            <SidebarGroupLabel className="font-sans text-[10px] font-medium uppercase tracking-[0.18em] text-sidebar-foreground/50">
               {group.label}
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -271,7 +271,7 @@ function MobileBottomNav() {
               }`}
             >
               <Icon className="size-5" aria-hidden="true" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.14em]">{item.label}</span>
+              <span className="font-sans font-medium text-[10px] uppercase tracking-[0.14em]">{item.label}</span>
             </Link>
           )
         })}
@@ -284,7 +284,7 @@ function MobileBottomNav() {
               aria-label="More options"
             >
               <MoreHorizontal className="size-5" aria-hidden="true" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.14em]">More</span>
+              <span className="font-sans font-medium text-[10px] uppercase tracking-[0.14em]">More</span>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48 mb-2 rounded-xl">
@@ -338,7 +338,7 @@ function HeaderBreadcrumb() {
   const pathname = usePathname()
   const section = pathname.split('/')[2] || 'home'
   return (
-    <span className="hidden md:flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+    <span className="hidden md:flex items-center gap-2 font-sans font-medium text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
       <span className="inline-block size-1.5 rounded-full bg-brand" aria-hidden />
       pleiad / your-map / {section.replace(/-/g, ' ')}
     </span>

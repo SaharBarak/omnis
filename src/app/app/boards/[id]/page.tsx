@@ -161,7 +161,7 @@ function BoardEditorContent({ boardId, boardName }: BoardEditorContentProps) {
           <div className="h-6 w-px bg-white/[0.07]" />
           <h1 className="font-display font-medium text-white/90">{boardName}</h1>
           {isDirty && (
-            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">
+            <span className="font-sans font-medium text-[11px] uppercase tracking-[0.2em] text-white/35">
               Unsaved
             </span>
           )}

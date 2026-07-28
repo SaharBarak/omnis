@@ -331,7 +331,7 @@ export function BodygraphChart({
     </svg>
 
     {/* Legend — HTML so its type scales with the site, not the viewBox. */}
-    <div className="mt-3 flex items-center justify-center gap-6 font-mono text-[11px] text-white/55">
+    <div className="mt-3 flex items-center justify-center gap-6 text-[11px] text-white/55">
       {(
         [
           [PERSONALITY_COLOR, 'Personality'],

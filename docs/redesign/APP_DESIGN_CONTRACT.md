@@ -25,9 +25,14 @@ This document is the authority for any work under `src/app/app` and
   (`SEAL_COLORS`, `toSealColor`) → `--seal-*` tokens. Raw palette
   (`bg-red-500`, `#EF4444`) is banned.
 - Type: display = **Space Grotesk** (`font-display`, weight carries
-  hierarchy, NO italics), body = Barlow (`font-sans`), numerals/labels =
-  IBM Plex Mono (`font-mono`, tabular-nums for numbers). Import `TYPE`
-  from `src/lib/design/landing-tokens.ts` for hero/section headings.
+  hierarchy, NO italics), body/labels = Barlow (`font-sans`). Big feature
+  numerals (`text-xl`+) take `font-display`; smaller numerals inherit
+  Barlow — both keep `[font-variant-numeric:tabular-nums]`. Micro-caps
+  labels are `font-sans font-medium uppercase` with wide tracking.
+  **IBM Plex Mono (`font-mono`) is banned in UI chrome** (issue #57);
+  it survives only in `<kbd>` shortcut hints, the split-flap board, and
+  SVG-internal gate numerals (bodygraph). Import `TYPE` from
+  `src/lib/design/landing-tokens.ts` for hero/section headings.
 
 ## 2. The kit (`src/components/app-kit`) — use it, don't reinvent
 
@@ -79,8 +84,8 @@ import {
 - Primary CTA: `rounded-xl bg-brand text-white hover:bg-brand-soft
   active:scale-[0.98]`. Small pills stay `rounded-full`.
 - Pill badges: kit `Pill` with flavor accent (border `55`, bg `14` alpha).
-- Section headers: `Eyebrow` mono micro-caps above a `font-display`
-  title. No `text-earth-gradient`/gradient text in the app.
+- Section headers: `Eyebrow` micro-caps (Barlow medium) above a
+  `font-display` title. No `text-earth-gradient`/gradient text in the app.
 - No 3-equal-card feature rows. No emoji. Icons: lucide-react,
   consistent stroke. Text glyphs as buttons (`-`, `+`, `×`, `⟳`) banned —
   use lucide icons.

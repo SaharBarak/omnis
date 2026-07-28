@@ -117,7 +117,7 @@ export function TodayKin({ className, userKin, now }: TodayKinProps) {
 
           <div className="flex-1">
             <h2 className="font-display text-3xl font-semibold leading-tight tracking-tight text-white/90 sm:text-4xl">
-              Kin <span className={cn('font-mono [font-variant-numeric:tabular-nums]', spec.text)}>{data.kin}</span>
+              Kin <span className={cn('[font-variant-numeric:tabular-nums]', spec.text)}>{data.kin}</span>
             </h2>
             <p className={cn('text-lg font-medium', spec.text)}>
               {data.tone.name} {data.seal.english}

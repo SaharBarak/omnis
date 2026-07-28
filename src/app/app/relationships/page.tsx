@@ -82,7 +82,7 @@ function RelationshipRow({
           <span className="text-sm font-medium text-white/90">
             {relationship.person1.name}
           </span>
-          <span className="font-mono text-xs text-white/35" aria-hidden>
+          <span className="text-xs text-white/35" aria-hidden>
             ×
           </span>
           <span className="text-sm font-medium text-white/90">

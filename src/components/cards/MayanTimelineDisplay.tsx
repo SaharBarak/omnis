@@ -53,7 +53,7 @@ export function MayanTimelineDisplay({
           <div className="text-sm text-muted-foreground mb-1">
             Birth
           </div>
-          <div className="text-lg font-mono font-bold">
+          <div className="text-lg font-bold">
             {formatLongCount(dates.birth.longCount)}
           </div>
           <div className="text-sm mt-2">
@@ -160,7 +160,7 @@ function KatunBirthdayCard({ katun }: KatunBirthdayCardProps) {
         </div>
       </div>
       <div className="mt-1 flex items-center gap-2">
-        <span className="text-xs font-mono">
+        <span className="text-xs">
           {formatLongCount(katun.longCount)}
         </span>
         <span className="text-xs text-muted-foreground">•</span>
@@ -186,7 +186,7 @@ function CalendarRoundReturnCard({ crReturn }: CalendarRoundReturnCardProps) {
         <div className="text-lg font-semibold mt-1">
           {formatDateEnglish(crReturn.gregorianDate)}
         </div>
-        <div className="text-xs font-mono text-muted-foreground mt-1">
+        <div className="text-xs text-muted-foreground mt-1">
           {formatLongCount(crReturn.longCount)}
         </div>
         <div className="text-xs text-muted-foreground mt-2">
@@ -238,7 +238,7 @@ export function HistoricalDatesDisplay({ className = '' }: HistoricalDatesDispla
             <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
               <div>
                 <span className="text-muted-foreground">Long Count: </span>
-                <span className="font-mono">{date.longCount}</span>
+                <span className="">{date.longCount}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">Tzolkin: </span>
@@ -273,7 +273,7 @@ export function MayanTimelineMini({ birthDateStr, className = '' }: MayanTimelin
         {/* Birth Long Count */}
         <div className="flex items-center gap-1">
           <span className="text-muted-foreground">Birth:</span>
-          <span className="font-mono text-xs">
+          <span className="text-xs">
             {formatLongCount(dates.birth.longCount)}
           </span>
         </div>

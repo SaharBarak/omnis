@@ -52,7 +52,7 @@ export function LongCountDisplay({
       {/* Main Long Count Display */}
       <div className="bg-muted/30 rounded-lg p-4">
         {/* Formatted Long Count */}
-        <div className="text-center text-2xl font-mono font-bold mb-4 tracking-wider">
+        <div className="text-center text-2xl font-display font-bold mb-4 tracking-wider">
           {formatLongCount(data.longCount)}
         </div>
 
@@ -117,7 +117,7 @@ export function LongCountMini({ dateStr, className = '' }: LongCountMiniProps) {
 
   return (
     <div className={cn('inline-flex items-center gap-2', className)}>
-      <span className="font-mono text-sm font-medium">
+      <span className="text-sm font-medium">
         {formatLongCount(lc)}
       </span>
     </div>

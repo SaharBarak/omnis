@@ -44,14 +44,14 @@ export function StatCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="font-mono text-3xl tracking-tight text-brand-bright [font-variant-numeric:tabular-nums]">
+          <p className="font-display text-3xl tracking-tight text-brand-bright [font-variant-numeric:tabular-nums]">
             {numeric === null ? value : counted}
           </p>
           <Eyebrow className="mt-1.5 block truncate">{label}</Eyebrow>
           {trend && (
             <p
               className={cn(
-                'mt-1.5 font-mono text-xs [font-variant-numeric:tabular-nums]',
+                'mt-1.5 text-xs [font-variant-numeric:tabular-nums]',
                 trend.value >= 0 ? 'text-secondary' : 'text-destructive'
               )}
             >
