@@ -29,7 +29,10 @@ function createClient(connectionString?: string): ReturnType<typeof drizzle<type
     throw new Error('Missing DATABASE_URL environment variable')
   }
   const sql = postgres(url, {
-    max: 1,
+    // With Hyperdrive terminating the handshake nearby, extra connections are
+    // cheap — a small pool lets Promise.all'd queries inside one request run
+    // concurrently instead of serializing 300ms Sydney round trips.
+    max: 4,
     prepare: false,
     idle_timeout: 20,
     connect_timeout: 10,

@@ -50,30 +50,22 @@ export interface RelationshipUpdateInput {
 export async function listRelationshipsWithPeople(userId: string) {
   const db = getDb()
 
-  const rels = await db
-    .select()
-    .from(relationships)
-    .where(eq(relationships.owner_id, userId))
-    .orderBy(desc(relationships.created_at))
+  // Both queries are owner-scoped, so fetching the user's people wholesale in
+  // parallel (instead of by the relationship's person ids afterwards) keeps the
+  // same ownership semantics while halving the round trips to the database.
+  const [rels, persons] = await Promise.all([
+    db
+      .select()
+      .from(relationships)
+      .where(eq(relationships.owner_id, userId))
+      .orderBy(desc(relationships.created_at)),
+    db
+      .select()
+      .from(people)
+      .where(and(eq(people.owner_id, userId), isNull(people.deleted_at))),
+  ])
 
   if (rels.length === 0) return []
-
-  const personIds = new Set<string>()
-  for (const r of rels) {
-    personIds.add(r.person1_id)
-    personIds.add(r.person2_id)
-  }
-
-  const persons = await db
-    .select()
-    .from(people)
-    .where(
-      and(
-        inArray(people.id, Array.from(personIds)),
-        eq(people.owner_id, userId),
-        isNull(people.deleted_at)
-      )
-    )
 
   const peopleById = new Map(persons.map((p) => [p.id, p]))
 

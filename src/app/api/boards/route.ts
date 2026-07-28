@@ -41,10 +41,11 @@ export async function POST(request: Request) {
 
     // Plan entitlement: cap boards per tier (free = 0 → boards are a paid
     // feature). Counted from actual owned rows since boards are persistent.
-    const plan = await getUserPlan(userId)
+    // Fetched alongside the plan — the list is only consulted for capped
+    // tiers, but a possibly-unused cheap count beats a serial round trip.
+    const [plan, existing] = await Promise.all([getUserPlan(userId), listBoards(userId)])
     const boardLimit = getPlanLimits(plan).boards
     if (boardLimit !== Infinity) {
-      const existing = await listBoards(userId)
       if (existing.length >= boardLimit) {
         return NextResponse.json(
           {

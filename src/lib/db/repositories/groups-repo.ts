@@ -187,11 +187,14 @@ export async function addMemberToGroup(
   personId: string
 ): Promise<'ok' | 'not_found' | 'duplicate'> {
   const db = getDb()
-  const gid = await assertOwnedGroup(userId, groupId)
+  // Both ownership guards are independent of each other — run concurrently.
+  // The cross-tenant IDOR guard on the person is unchanged: nothing is
+  // written unless both checks pass.
+  const [gid, [pid]] = await Promise.all([
+    assertOwnedGroup(userId, groupId),
+    filterOwnedPersonIds(userId, [personId]),
+  ])
   if (!gid) return 'not_found'
-
-  // Reject a person the caller does not own (cross-tenant IDOR guard).
-  const [pid] = await filterOwnedPersonIds(userId, [personId])
   if (!pid) return 'not_found'
   try {
     await db.insert(group_members).values({ group_id: gid, person_id: pid })
@@ -237,10 +240,14 @@ export async function setGroupMembers(
   personIds: string[]
 ): Promise<boolean> {
   const db = getDb()
-  const gid = await assertOwnedGroup(userId, groupId)
+  // Ownership guards are independent — run concurrently; writes only happen
+  // after the group check passes and only with caller-owned person ids.
+  const [gid, ownedIds] = await Promise.all([
+    assertOwnedGroup(userId, groupId),
+    filterOwnedPersonIds(userId, personIds),
+  ])
   if (!gid) return false
 
-  const ownedIds = await filterOwnedPersonIds(userId, personIds)
   await db.delete(group_members).where(eq(group_members.group_id, gid))
   if (ownedIds.length) {
     await db
