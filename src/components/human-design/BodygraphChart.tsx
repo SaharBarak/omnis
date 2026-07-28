@@ -141,8 +141,10 @@ export function BodygraphChart({
     setTooltip({ x: svgP.x, y: svgP.y - 20, content })
   }
 
+  // Width is the caller's contract (className) — an inline max-width here
+  // would override any max-w-* utility passed in.
   return (
-    <div className={className} style={{ maxWidth: '100%' }}>
+    <div className={className}>
     <svg
       viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
       width={width}
