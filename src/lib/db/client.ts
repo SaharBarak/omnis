@@ -23,8 +23,8 @@ import * as schema from './schema'
 
 type Client = ReturnType<typeof createClient>
 
-function createClient(): ReturnType<typeof drizzle<typeof schema>> {
-  const url = process.env.DATABASE_URL
+function createClient(connectionString?: string): ReturnType<typeof drizzle<typeof schema>> {
+  const url = connectionString ?? process.env.DATABASE_URL
   if (!url) {
     throw new Error('Missing DATABASE_URL environment variable')
   }
@@ -35,6 +35,15 @@ function createClient(): ReturnType<typeof drizzle<typeof schema>> {
     connect_timeout: 10,
   })
   return drizzle(sql, { schema })
+}
+
+// Hyperdrive terminates the expensive TCP+TLS+auth handshake to Supabase in
+// Cloudflare's network and hands the Worker a warm pooled connection, so the
+// per-request client below becomes cheap to open. Outside a Worker (dev,
+// migrations, scripts) the binding is absent and DATABASE_URL is used as-is.
+function getHyperdriveUrl(ctx: object): string | undefined {
+  const env = (ctx as { env?: { HYPERDRIVE?: { connectionString?: string } } }).env
+  return env?.HYPERDRIVE?.connectionString
 }
 
 const globalCache = globalThis as unknown as { __drizzleDb?: Client }
@@ -61,7 +70,7 @@ export function getDb(): Client {
   if (ctx) {
     let db = perRequestCache.get(ctx)
     if (!db) {
-      db = createClient()
+      db = createClient(getHyperdriveUrl(ctx))
       perRequestCache.set(ctx, db)
     }
     return db

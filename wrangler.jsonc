@@ -27,6 +27,15 @@
       "id": "a57499088e054890b17bec5d8a0b73ce"
     }
   ],
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      // Pools connections to Supabase (Sydney) at Cloudflare's edge; query
+      // caching is disabled on the config — tenant isolation relies on query
+      // params because the app bypasses RLS as table owner.
+      "id": "061219db530c4256ab021a009048f802"
+    }
+  ],
   "r2_buckets": [
     {
       "binding": "NEXT_INC_CACHE_R2_BUCKET",
