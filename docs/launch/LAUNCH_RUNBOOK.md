@@ -25,7 +25,9 @@ so these are deliberately manual.
 
 ### 1. ASC: create the 4 IAP products — YOU (Aside/dashboard, ~15 min)
 
-Values from `src/lib/services/billing.ts`:
+First: fix the subscription group localization — automation once set it to
+**Arabic**; it must be English (U.S.). Prices as App Store tiers
+$4.99 / $8.99 / $28.99 / $78.99. Values from `src/lib/services/billing.ts`:
 
 | Product ID | Type | Duration | Price | Display name | Description |
 |---|---|---|---|---|---|
@@ -49,10 +51,14 @@ Import the 4 products (auto-syncs via the `.p8`), attach to entitlements the
 code expects (`billing.ts:177`): `explorer`, `complete`, `practitioner`,
 `lifetime`. Build one Offering with all four.
 
-### 4. Env + redeploy — ME (once products exist)
+### 4. Secrets + redeploy — ME (once products exist)
 
-Add to `.prod.vars`: `STORE_PRODUCT_EXPLORER/COMPLETE/PRACTITIONER/LIFETIME`
-= the four product IDs, then `npm run deploy` so they reach the Worker.
+Already STAGED in gitignored `.prod.vars` (2026-07-22): the four
+`STORE_PRODUCT_*` ids, `REVENUECAT_SECRET_KEY` (sk_ v2-format — if the v1
+`/v1/subscribers` call 401s on first purchase, switch `revenuecat.ts` to the
+v2 `/customers` endpoint), `REVENUECAT_WEBHOOK_SECRET`. At ship time:
+`scripts/set-prod-secrets.sh` + `npm run deploy`. RC webhook URL:
+`https://pleiad.io/api/billing/webhook`.
 
 ### 5. Screenshots — ME (emulator) then YOU (approve)
 
@@ -66,6 +72,7 @@ Apple rule from the 07-21 handoff: **the first subscription group must be
 submitted with a new app version** — attach the IAPs to the version
 submission, don't submit them separately. Build #9 is already in TestFlight;
 create the version in ASC, attach IAPs + screenshots + metadata, submit.
+Also still owed before submission: **EU trader status** in ASC.
 
 ### 7. Play Console — YOU (record) then ME (everything scriptable after)
 
