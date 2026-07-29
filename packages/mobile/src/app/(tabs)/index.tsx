@@ -1,4 +1,9 @@
 import type { PersonWithTags } from '@pleiad/api-client'
+import {
+  dailyHexagram,
+  dailyRune,
+  dailyTarotCard,
+} from '@pleiad/engine/calculations/oracles'
 import { getPersonalDailyPrediction } from '@pleiad/engine/services/predictions'
 import { getTodayAcrossSystems } from '@pleiad/engine/services/today'
 import type { DailyPrediction, PredictionEvent } from '@pleiad/engine/types/prediction'
@@ -221,6 +226,15 @@ export default function TodayScreen() {
     [board]
   )
 
+  const oracles = useMemo(() => {
+    const seed = profile.data?.id ?? ''
+    return {
+      tarot: dailyTarotCard(todayIso, seed),
+      hexagram: dailyHexagram(todayIso, seed),
+      rune: dailyRune(todayIso, seed),
+    }
+  }, [todayIso, profile.data?.id])
+
   const birthdays = useMemo<UpcomingBirthday[]>(
     () =>
       people
@@ -296,6 +310,38 @@ export default function TodayScreen() {
           <TodayBoard rows={rows} />
         </Card>
 
+        <Card variant="outlined">
+          <Text variant="titleMedium" color="onSurface" style={styles.boardTitle}>
+            Today&rsquo;s oracles
+          </Text>
+          <View style={styles.oracleRows}>
+            <Text variant="bodyMedium" color="onSurfaceVariant">
+              <Text variant="labelMedium" color="primary">
+                {oracles.tarot.card.name}
+                {oracles.tarot.reversed ? ' (reversed)' : ''}
+              </Text>
+              {'  —  '}
+              {oracles.tarot.reversed
+                ? oracles.tarot.card.reversed
+                : oracles.tarot.card.upright}
+            </Text>
+            <Text variant="bodyMedium" color="onSurfaceVariant">
+              <Text variant="labelMedium" color="primary">
+                {oracles.hexagram.number} · {oracles.hexagram.english}
+              </Text>
+              {'  —  '}
+              {oracles.hexagram.judgment}
+            </Text>
+            <Text variant="bodyMedium" color="onSurfaceVariant">
+              <Text variant="labelMedium" color="primary">
+                {oracles.rune.glyph} {oracles.rune.name}
+              </Text>
+              {'  —  '}
+              {oracles.rune.meaning}
+            </Text>
+          </View>
+        </Card>
+
         {birthDate !== null && <KinToday birthDate={birthDate} todayIso={todayIso} />}
 
         {birthdays.length > 0 && (
@@ -359,6 +405,9 @@ const styles = StyleSheet.create({
   },
   boardTitle: {
     marginBottom: SPACE.sm,
+  },
+  oracleRows: {
+    gap: SPACE.md,
   },
   kinHeader: {
     flexDirection: 'row',
