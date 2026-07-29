@@ -33,6 +33,8 @@ export interface BoardRow {
   value: string
   /** Bundled doc this row taps through to (#69); rows without one are inert. */
   system?: LibrarySystemKey
+  /** Explicit route target — wins over `system` (e.g. the calendar screen). */
+  href?: string
 }
 
 function FlapCell({ row, index, last }: { row: BoardRow; index: number; last: boolean }) {
@@ -58,7 +60,8 @@ function FlapCell({ row, index, last }: { row: BoardRow; index: number; last: bo
     transform: [{ perspective: 600 }, { rotateX: `${(1 - progress.value) * -85}deg` }],
   }))
 
-  const { system } = row
+  const { system, href } = row
+  const tappable = href !== undefined || system !== undefined
   const cell = (
     <View style={styles.row}>
       <Text variant="labelMedium" color="onSurfaceVariant">
@@ -75,7 +78,7 @@ function FlapCell({ row, index, last }: { row: BoardRow; index: number; last: bo
             {row.value}
           </Text>
         </Animated.View>
-        {system !== undefined && (
+        {tappable && (
           <CaretRightIcon size={14} color={theme.colors.onSurfaceVariant} />
         )}
       </View>
@@ -84,12 +87,16 @@ function FlapCell({ row, index, last }: { row: BoardRow; index: number; last: bo
 
   return (
     <View>
-      {system !== undefined ? (
+      {tappable ? (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`${row.label}: ${row.value}. Open the ${row.label} page.`}
           onPress={() => {
-            router.push({ pathname: '/learn/[system]', params: { system } })
+            if (href !== undefined) {
+              router.push(href as Parameters<typeof router.push>[0])
+            } else if (system !== undefined) {
+              router.push({ pathname: '/learn/[system]', params: { system } })
+            }
           }}
         >
           {cell}

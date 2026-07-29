@@ -206,7 +206,7 @@ export default function TodayScreen() {
 
   const rows = useMemo(
     () => [
-      { label: 'Kin', value: board.kin, system: 'dreamspell' as const },
+      { label: 'Kin', value: board.kin, href: '/calendar' },
       { label: 'Moon', value: board.moon },
       { label: 'Sun', value: board.sun, system: 'astrology' as const },
       { label: 'Sidereal', value: board.sidereal, system: 'panchang' as const },
