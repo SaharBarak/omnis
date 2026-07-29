@@ -7,7 +7,8 @@
   "observability": { "enabled": true },
   "triggers": {
     // Schedules MUST match the keys in src/index.ts CRON_ROUTES.
-    "crons": ["0 6 * * *", "0 4 * * *", "0 8 * * *", "0 7 * * *"]
+    // send-notifications runs hourly (#65): per-user digest hour × timezone.
+    "crons": ["0 6 * * *", "0 4 * * *", "0 * * * *", "0 7 * * *"]
   },
   "vars": {
     "SITE_URL": "https://pleiad.io"

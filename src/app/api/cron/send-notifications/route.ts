@@ -1,20 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isAuthorizedCron } from '@/lib/api/cron-auth'
 import { processDailyDigestNotifications } from '@/lib/services/notifications'
-import {
-  listAllEnabledSettingsForHour,
-  logEmailSend,
-} from '@/lib/db/repositories/notifications-repo'
+import { logEmailSend } from '@/lib/db/repositories/notifications-repo'
 
 export const dynamic = 'force-dynamic'
 
-// This endpoint is called by Vercel Cron every hour
-// Configure in vercel.json: {"crons": [{"path": "/api/cron/send-notifications", "schedule": "0 * * * *"}]}
+// Fired hourly by the cron worker (workers/cron, '0 * * * *').
 //
 // SYSTEM-context: authorized by CRON_SECRET and intentionally reads across ALL
 // users' notification_settings. There is NO requireUserId() here — the cross-
-// tenant read is legitimate and lives behind clearly-named system repo
-// functions (listAllEnabledSettingsForHour / processDailyDigestNotifications).
+// tenant read is legitimate and lives behind the clearly-named system service
+// (processDailyDigestNotifications), which matches each recipient's chosen
+// digest hour in their own timezone.
 
 export async function GET(request: NextRequest) {
   // Verify cron secret — fail closed regardless of environment.
@@ -26,48 +23,25 @@ export async function GET(request: NextRequest) {
     const now = new Date()
     const currentHour = now.getUTCHours()
 
-    // Only process daily digests during morning hours (6-9 UTC)
-    // This gives flexibility for different timezones
-    if (currentHour >= 6 && currentHour <= 9) {
-      // Get users who want digest at this hour
-      const hourPrefix = String(currentHour).padStart(2, '0')
-      const settings = await listAllEnabledSettingsForHour(hourPrefix)
+    // Runs hourly (#65). Per-recipient hour matching happens inside the
+    // processor, against each user's OWN timezone and chosen digest time —
+    // the old 6-9 UTC window silently skipped every other choice, and its
+    // hour "gate" then sent to all users at once regardless of theirs.
+    const result = await processDailyDigestNotifications(now)
 
-      if (settings.length === 0) {
-        return NextResponse.json({
-          success: true,
-          message: 'No notifications to send this hour',
-          hour: currentHour,
-          sent: 0,
-          failed: 0,
-        })
-      }
-
-      // Process daily digest notifications
-      const result = await processDailyDigestNotifications()
-
-      // Log the notification batch
+    if (result.sent > 0 || result.failed > 0) {
       await logEmailSend({
         email_type: 'daily_digest_batch',
-        subject: `Daily digest batch at ${now.toISOString()} (hour ${currentHour}, sent ${result.sent}, failed ${result.failed})`,
+        subject: `Daily digest batch at ${now.toISOString()} (UTC hour ${currentHour}, sent ${result.sent}, failed ${result.failed})`,
         status: result.sent > 0 ? 'sent' : 'skipped',
-      })
-
-      return NextResponse.json({
-        success: true,
-        hour: currentHour,
-        sent: result.sent,
-        failed: result.failed,
       })
     }
 
-    // For other hours, just return success
     return NextResponse.json({
       success: true,
-      message: 'Outside daily digest window',
       hour: currentHour,
-      sent: 0,
-      failed: 0,
+      sent: result.sent,
+      failed: result.failed,
     })
   } catch (error) {
     console.error('Send notifications cron error:', error)

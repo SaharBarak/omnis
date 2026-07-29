@@ -137,6 +137,10 @@ export interface DigestRecipient {
   birthDate: string | null
   /** The user's chosen channels — the caller sends email only if it includes 'email'. */
   channels: string[]
+  /** 'HH:mm' the user picked, read in their own timezone (#65). */
+  digestTime: string
+  /** IANA timezone from the profile; 'UTC' when unset. */
+  timezone: string
 }
 
 /**
@@ -159,6 +163,7 @@ export async function listAllEnabledDigestRecipients(): Promise<DigestRecipient[
     .select({
       user_id: notification_settings.user_id,
       channels: notification_settings.channels,
+      daily_digest_time: notification_settings.daily_digest_time,
     })
     .from(notification_settings)
     .where(
@@ -172,7 +177,11 @@ export async function listAllEnabledDigestRecipients(): Promise<DigestRecipient[
   if (userIds.length === 0) return []
 
   const channelsById = new Map<string, string[]>()
-  for (const s of settings) channelsById.set(s.user_id, (s.channels as string[]) ?? [])
+  const digestTimeById = new Map<string, string>()
+  for (const s of settings) {
+    channelsById.set(s.user_id, (s.channels as string[]) ?? [])
+    digestTimeById.set(s.user_id, s.daily_digest_time ?? '08:00')
+  }
 
   // Email + display name come from the auth `users` table; birth date comes
   // from the app `profiles` table. Fetch both, keyed by user id.
@@ -186,6 +195,7 @@ export async function listAllEnabledDigestRecipients(): Promise<DigestRecipient[
         user_id: profiles.user_id,
         display_name: profiles.display_name,
         birth_date: profiles.birth_date,
+        timezone: profiles.timezone,
       })
       .from(profiles)
       .where(inArray(profiles.user_id, userIds)),
@@ -195,11 +205,15 @@ export async function listAllEnabledDigestRecipients(): Promise<DigestRecipient[
   for (const u of userRows) {
     emailById.set(u.id, { email: u.email, name: u.name ?? undefined })
   }
-  const profileById = new Map<string, { display_name?: string; birth_date?: string | null }>()
+  const profileById = new Map<
+    string,
+    { display_name?: string; birth_date?: string | null; timezone?: string | null }
+  >()
   for (const p of profileRows) {
     profileById.set(p.user_id, {
       display_name: p.display_name,
       birth_date: p.birth_date ?? null,
+      timezone: p.timezone ?? null,
     })
   }
 
@@ -215,6 +229,8 @@ export async function listAllEnabledDigestRecipients(): Promise<DigestRecipient[
       name: profile?.display_name || authUser?.name || 'Friend',
       birthDate: profile?.birth_date ?? null,
       channels: channelsById.get(userId) ?? [],
+      digestTime: digestTimeById.get(userId) ?? '08:00',
+      timezone: profile?.timezone || 'UTC',
     })
   }
 

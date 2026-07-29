@@ -191,6 +191,8 @@ export async function getUsersForDailyDigest(): Promise<
     name: string
     birthDate: string | null
     channels: string[]
+    digestTime: string
+    timezone: string
   }>
 > {
   try {
@@ -201,14 +203,36 @@ export async function getUsersForDailyDigest(): Promise<
   }
 }
 
+/** The hour (0-23) it currently is in `timezone`; UTC when the zone is bad. */
+function localHour(now: Date, timezone: string): number {
+  try {
+    const hour = new Intl.DateTimeFormat('en-GB', {
+      timeZone: timezone,
+      hour: 'numeric',
+      hourCycle: 'h23',
+    }).format(now)
+    const parsed = Number(hour)
+    return Number.isFinite(parsed) ? parsed : now.getUTCHours()
+  } catch {
+    return now.getUTCHours()
+  }
+}
+
 /**
- * Process and send daily digest notifications
+ * Process and send daily digest notifications.
+ *
+ * Runs hourly (#65): each run serves only the recipients whose chosen
+ * digest hour, read in THEIR OWN timezone, is the current hour — so an
+ * "08:00" in Tel Aviv fires at 08:00 Tel Aviv time, not 08:00 UTC.
  */
-export async function processDailyDigestNotifications(): Promise<{
+export async function processDailyDigestNotifications(now: Date = new Date()): Promise<{
   sent: number
   failed: number
 }> {
-  const users = await getUsersForDailyDigest()
+  const allUsers = await getUsersForDailyDigest()
+  const users = allUsers.filter(
+    (u) => localHour(now, u.timezone) === Number(u.digestTime.slice(0, 2))
+  )
   const today = new Date().toISOString().split('T')[0]
   // Today's sky, computed once for the whole run (same for every recipient).
   const astro = getDailyAstroPhenomena(today)

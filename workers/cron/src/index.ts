@@ -16,7 +16,9 @@ interface Env {
 const CRON_ROUTES: Record<string, string> = {
   '0 6 * * *': '/api/cron/daily-kin',
   '0 4 * * *': '/api/cron/daily-predictions',
-  '0 8 * * *': '/api/cron/send-notifications',
+  // Hourly: the route matches each recipient's chosen digest hour in their
+  // own timezone (#65) — a single daily firing served only one hour's worth.
+  '0 * * * *': '/api/cron/send-notifications',
   '0 7 * * *': '/api/cron/daily-briefing',
 }
 
