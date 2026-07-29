@@ -303,21 +303,59 @@ export async function systemPredictionExists(
 export async function systemInsertPrediction(
   input: UpsertPredictionInput
 ): Promise<void> {
+  await systemInsertPredictions([input])
+}
+
+/**
+ * SYSTEM CONTEXT. Bulk form — the daily cron previously inserted one row per
+ * round trip, nested inside a per-person existence check (N×M trips to a
+ * far-away database). Owner isolation is unchanged: owner_id comes from each
+ * originating person row upstream.
+ */
+export async function systemInsertPredictions(
+  inputs: UpsertPredictionInput[]
+): Promise<void> {
+  if (inputs.length === 0) return
   const db = getDb()
 
-  await db.insert(predictions).values({
-    person_id: toEntityId(input.person_id),
-    owner_id: input.owner_id,
-    system: input.system,
-    type: input.type,
-    start_date: input.start_date,
-    end_date: input.end_date,
-    intensity: input.intensity,
-    themes: input.themes,
-    data: input.data,
-    computed_at: input.computed_at.toISOString(),
-    expires_at: input.expires_at.toISOString(),
-  })
+  await db.insert(predictions).values(
+    inputs.map((input) => ({
+      person_id: toEntityId(input.person_id),
+      owner_id: input.owner_id,
+      system: input.system,
+      type: input.type,
+      start_date: input.start_date,
+      end_date: input.end_date,
+      intensity: input.intensity,
+      themes: input.themes,
+      data: input.data,
+      computed_at: input.computed_at.toISOString(),
+      expires_at: input.expires_at.toISOString(),
+    }))
+  )
+}
+
+/**
+ * SYSTEM CONTEXT. Existing prediction identity keys ("personId|type|startDate")
+ * for the given people, one query — the set the cron dedups against, replacing
+ * the per-event systemPredictionExists round trip.
+ */
+export async function systemListPredictionKeysForPeople(
+  personIds: string[]
+): Promise<Set<string>> {
+  if (personIds.length === 0) return new Set()
+  const db = getDb()
+
+  const rows = await db
+    .select({
+      person_id: predictions.person_id,
+      type: predictions.type,
+      start_date: predictions.start_date,
+    })
+    .from(predictions)
+    .where(inArray(predictions.person_id, personIds.map(toEntityId)))
+
+  return new Set(rows.map((r) => `${r.person_id}|${r.type}|${r.start_date}`))
 }
 
 /**

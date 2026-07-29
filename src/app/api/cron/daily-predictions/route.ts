@@ -3,9 +3,10 @@ import { getDailyPrediction, getPersonalDailyPrediction } from '@pleiad/engine/s
 import { isAuthorizedCron } from '@/lib/api/cron-auth'
 import {
   systemListPeopleWithBirthDate,
-  systemPredictionExists,
-  systemInsertPrediction,
+  systemListPredictionKeysForPeople,
+  systemInsertPredictions,
   systemDeleteExpiredPredictions,
+  type UpsertPredictionInput,
 } from '@/lib/db/repositories/predictions-repo'
 
 export const dynamic = 'force-dynamic'
@@ -45,55 +46,60 @@ export async function GET(request: NextRequest) {
     let predictionsGenerated = 0
     let errors = 0
 
-    // Generate personalized predictions for each person
+    // Predictions are pure engine computations — run them all first, then talk
+    // to the database twice: one query for the existing (person, type, start)
+    // keys, one bulk insert of whatever is new. The previous shape did an
+    // existence check + insert PER EVENT PER PERSON, which is N×M round trips
+    // to a far-away database and would outgrow the cron window with the user
+    // base.
+    const candidates: UpsertPredictionInput[] = []
     for (const person of people) {
       if (!person.birth_date) continue
-
       try {
-        // Get personalized prediction
         const personalPrediction = getPersonalDailyPrediction(
           today,
           person.birth_date,
           person.id
         )
-
-        // If there are events, store them in the predictions table
         for (const event of personalPrediction.events) {
-          // Check if prediction already exists
-          const exists = await systemPredictionExists(
-            person.id,
-            event.type,
-            event.startDate
-          )
-
-          if (exists) {
-            continue // Skip if already exists
-          }
-
-          // Insert prediction (owner_id taken from the person row)
-          try {
-            await systemInsertPrediction({
-              person_id: person.id,
-              owner_id: person.owner_id,
-              system: event.system,
-              type: event.type,
-              start_date: event.startDate,
-              end_date: event.endDate,
-              intensity: event.intensity,
-              themes: event.themes,
-              data: event.data as Record<string, unknown>,
-              computed_at: new Date(),
-              expires_at: new Date(Date.now() + 30 * 86400000), // 30 days
-            })
-            predictionsGenerated++
-          } catch (insertError) {
-            console.error(`Error inserting prediction for person ${person.id}:`, insertError)
-            errors++
-          }
+          candidates.push({
+            person_id: person.id,
+            owner_id: person.owner_id,
+            system: event.system,
+            type: event.type,
+            start_date: event.startDate,
+            end_date: event.endDate,
+            intensity: event.intensity,
+            themes: event.themes,
+            data: event.data as Record<string, unknown>,
+            computed_at: new Date(),
+            expires_at: new Date(Date.now() + 30 * 86400000), // 30 days
+          })
         }
       } catch (err) {
         console.error(`Error processing person ${person.id}:`, err)
         errors++
+      }
+    }
+
+    const existingKeys = await systemListPredictionKeysForPeople(
+      Array.from(new Set(candidates.map((c) => c.person_id)))
+    )
+    const fresh = candidates.filter(
+      (c) => !existingKeys.has(`${c.person_id}|${c.type}|${c.start_date}`)
+    )
+
+    // Chunked bulk inserts: bounded statement size, and one failing chunk
+    // doesn't void the rest.
+    const CHUNK = 100
+    for (let i = 0; i < fresh.length; i += CHUNK) {
+      const chunk = fresh.slice(i, i + CHUNK)
+      try {
+        await systemInsertPredictions(chunk)
+        predictionsGenerated += chunk.length
+      } catch (insertError) {
+        console.error('Error inserting prediction chunk:', insertError)
+        errors += chunk.length
       }
     }
 

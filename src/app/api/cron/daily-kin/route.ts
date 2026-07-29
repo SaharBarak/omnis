@@ -11,9 +11,9 @@ import { isAuthorizedCron } from '@/lib/api/cron-auth'
 import { sendMarketingEmail } from '@/lib/email'
 import { buildUnsubscribeLink } from '@/lib/email/links'
 import {
+  listSubscriberIdsSentToday,
   listSubscribersForCron,
   logEmailSend,
-  wasEmailSentToday,
 } from '@/lib/db/repositories/newsletter-repo'
 
 export const dynamic = 'force-dynamic'
@@ -95,10 +95,16 @@ export async function GET(request: NextRequest) {
     let failed = 0
     let skipped = 0
 
+    // Dedup set fetched once — the per-subscriber form cost a DB round trip
+    // per recipient, which scales linearly with the list. Per-send log writes
+    // below stay individual on purpose: they are the crash-safe audit trail
+    // this dedup reads from on rerun.
+    const alreadySent = await listSubscriberIdsSentToday('daily_kin')
+
     for (const subscriber of subscribers) {
       try {
         // Dedup: skip anyone already sent today's daily_kin (idempotent reruns).
-        if (await wasEmailSentToday(subscriber.id, 'daily_kin')) {
+        if (alreadySent.has(subscriber.id)) {
           skipped++
           continue
         }

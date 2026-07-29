@@ -250,3 +250,34 @@ export async function wasEmailSentToday(
     .limit(1)
   return Boolean(row)
 }
+
+/**
+ * Set-valued form of the dedup guard: every subscriber id that already has a
+ * `sent` email of `email_type` within the current UTC day, in one query. The
+ * daily crons previously asked per subscriber — one 300ms round trip each —
+ * which scales linearly with list size; this is the same predicate wholesale.
+ */
+export async function listSubscriberIdsSentToday(
+  emailType: string,
+  now: Date = new Date()
+): Promise<Set<string>> {
+  const db = getDb()
+  const startOfDay = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+  )
+  const startOfNextDay = new Date(startOfDay)
+  startOfNextDay.setUTCDate(startOfNextDay.getUTCDate() + 1)
+
+  const rows = await db
+    .select({ subscriber_id: email_send_log.subscriber_id })
+    .from(email_send_log)
+    .where(
+      and(
+        eq(email_send_log.email_type, emailType),
+        eq(email_send_log.status, 'sent'),
+        gte(email_send_log.sent_at, startOfDay.toISOString()),
+        lt(email_send_log.sent_at, startOfNextDay.toISOString())
+      )
+    )
+  return new Set(rows.map((r) => r.subscriber_id).filter((id): id is string => id !== null))
+}

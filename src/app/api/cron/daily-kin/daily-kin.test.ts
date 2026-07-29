@@ -4,14 +4,17 @@ import { NextRequest } from 'next/server'
 import { GET } from './route'
 
 // Mock the newsletter repository (datastore is now MongoDB via the repo).
+// Post-refactor the route fetches the already-sent subscriber-id set ONCE via
+// listSubscriberIdsSentToday and checks membership; per-send logEmailSend
+// calls are unchanged.
 const mockListSubscribers = vi.fn()
 const mockLogEmailSend = vi.fn()
-const mockWasEmailSentToday = vi.fn()
+const mockListSentToday = vi.fn()
 
 vi.mock('@/lib/db/repositories/newsletter-repo', () => ({
   listSubscribersForCron: () => mockListSubscribers(),
   logEmailSend: (input: unknown) => mockLogEmailSend(input),
-  wasEmailSentToday: (id: string, type: string) => mockWasEmailSentToday(id, type),
+  listSubscriberIdsSentToday: (emailType: string) => mockListSentToday(emailType),
 }))
 
 // Mock Resend
@@ -94,7 +97,7 @@ describe('GET /api/cron/daily-kin', () => {
     mockListSubscribers.mockResolvedValue([
       { id: 'sub-1', email: 'test@example.com' }
     ])
-    mockWasEmailSentToday.mockResolvedValue(false)
+    mockListSentToday.mockResolvedValue(new Set())
     mockLogEmailSend.mockResolvedValue(undefined)
 
     mockResendSend.mockResolvedValue({ data: { id: 'msg-1' }, error: null })
@@ -198,6 +201,31 @@ describe('GET /api/cron/daily-kin', () => {
       expect(data.sent).toBe(3)
       expect(data.total).toBe(3)
       expect(mockResendSend).toHaveBeenCalledTimes(3)
+      // The dedup set is fetched exactly once, not per subscriber.
+      expect(mockListSentToday).toHaveBeenCalledTimes(1)
+      expect(mockListSentToday).toHaveBeenCalledWith('daily_kin')
+    })
+
+    it('should skip subscribers already sent today (idempotent rerun)', async () => {
+      mockListSubscribers.mockResolvedValue([
+        { id: 'sub-1', email: 'test1@example.com' },
+        { id: 'sub-2', email: 'test2@example.com' }
+      ])
+      // sub-1 already received today's daily_kin.
+      mockListSentToday.mockResolvedValue(new Set(['sub-1']))
+
+      const request = createRequest('/api/cron/daily-kin', {
+        authorization: 'Bearer test-cron-secret'
+      })
+      const response = await GET(request)
+      const data = await parseResponse(response)
+
+      expect(response.status).toBe(200)
+      expect(data.sent).toBe(1)
+      expect(data.skipped).toBe(1)
+      expect(data.failed).toBe(0)
+      expect(mockResendSend).toHaveBeenCalledTimes(1)
+      expect(mockResendSend.mock.calls[0][0].to).toBe('test2@example.com')
     })
 
     it('should handle no subscribers', async () => {

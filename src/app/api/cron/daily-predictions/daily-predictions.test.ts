@@ -4,17 +4,20 @@ import { NextRequest } from 'next/server'
 import { GET } from './route'
 import {
   systemListPeopleWithBirthDate,
-  systemPredictionExists,
-  systemInsertPrediction,
+  systemListPredictionKeysForPeople,
+  systemInsertPredictions,
   systemDeleteExpiredPredictions,
+  type UpsertPredictionInput,
 } from '@/lib/db/repositories/predictions-repo'
 
 // Mock predictions repo (the cron is SYSTEM context: authorized by CRON_SECRET
-// and operates across owners via the system* repo functions).
+// and operates across owners via the system* repo functions). Post-refactor the
+// route reads the existing (person|type|start) key set ONCE, then bulk-inserts
+// the fresh candidates in chunks of 100.
 vi.mock('@/lib/db/repositories/predictions-repo', () => ({
   systemListPeopleWithBirthDate: vi.fn(),
-  systemPredictionExists: vi.fn(),
-  systemInsertPrediction: vi.fn(),
+  systemListPredictionKeysForPeople: vi.fn(),
+  systemInsertPredictions: vi.fn(),
   systemDeleteExpiredPredictions: vi.fn(),
 }))
 
@@ -44,8 +47,8 @@ vi.mock('@pleiad/engine/services/predictions', () => ({
 }))
 
 const mockListPeople = vi.mocked(systemListPeopleWithBirthDate)
-const mockExists = vi.mocked(systemPredictionExists)
-const mockInsert = vi.mocked(systemInsertPrediction)
+const mockListKeys = vi.mocked(systemListPredictionKeysForPeople)
+const mockInsertMany = vi.mocked(systemInsertPredictions)
 const mockDeleteExpired = vi.mocked(systemDeleteExpiredPredictions)
 
 function createRequest(url: string, headers: Record<string, string> = {}): NextRequest {
@@ -71,12 +74,12 @@ describe('GET /api/cron/daily-predictions', () => {
       NODE_ENV: 'test',
     }
 
-    // Sensible defaults: one person, no existing predictions.
+    // Sensible defaults: one person, no existing prediction keys.
     mockListPeople.mockResolvedValue([
       { id: 'person-1', owner_id: 'user-1', birth_date: '1990-05-20', name: 'Test' },
     ])
-    mockExists.mockResolvedValue(false)
-    mockInsert.mockResolvedValue(undefined)
+    mockListKeys.mockResolvedValue(new Set())
+    mockInsertMany.mockResolvedValue(undefined)
     mockDeleteExpired.mockResolvedValue(0)
   })
 
@@ -180,19 +183,62 @@ describe('GET /api/cron/daily-predictions', () => {
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
       expect(data.peopleProcessed).toBe(0)
-      expect(mockInsert).not.toHaveBeenCalled()
+      expect(mockInsertMany).not.toHaveBeenCalled()
     })
 
     it('should skip existing predictions', async () => {
-      mockExists.mockResolvedValue(true)
+      mockListPeople.mockResolvedValue([
+        { id: 'person-1', owner_id: 'user-1', birth_date: '1990-05-20', name: 'Test1' },
+        { id: 'person-2', owner_id: 'user-2', birth_date: '1985-03-15', name: 'Test2' },
+      ])
+      // person-1 already has today's (person|type|start) key cached — the mocked
+      // engine emits one 'wavespell' event starting 2024-06-15 per person.
+      mockListKeys.mockResolvedValue(new Set(['person-1|wavespell|2024-06-15']))
 
       const request = createRequest('/api/cron/daily-predictions', {
         authorization: 'Bearer test-cron-secret',
       })
       const response = await GET(request)
+      const data = await parseResponse(response)
 
       expect(response.status).toBe(200)
-      expect(mockInsert).not.toHaveBeenCalled()
+      expect(mockInsertMany).toHaveBeenCalledTimes(1)
+      const inserted = mockInsertMany.mock.calls[0][0] as UpsertPredictionInput[]
+      expect(inserted).toHaveLength(1)
+      expect(inserted[0]).toEqual(
+        expect.objectContaining({ person_id: 'person-2', type: 'wavespell', start_date: '2024-06-15' })
+      )
+      expect(inserted.map((row) => row.person_id)).not.toContain('person-1')
+      expect(data.predictionsGenerated).toBe(1)
+    })
+
+    it('should not insert at all when every candidate already exists', async () => {
+      mockListKeys.mockResolvedValue(new Set(['person-1|wavespell|2024-06-15']))
+
+      const request = createRequest('/api/cron/daily-predictions', {
+        authorization: 'Bearer test-cron-secret',
+      })
+      const response = await GET(request)
+      const data = await parseResponse(response)
+
+      expect(response.status).toBe(200)
+      expect(mockInsertMany).not.toHaveBeenCalled()
+      expect(data.predictionsGenerated).toBe(0)
+    })
+
+    it('should query existing keys once for the candidate people', async () => {
+      mockListPeople.mockResolvedValue([
+        { id: 'person-1', owner_id: 'user-1', birth_date: '1990-05-20', name: 'Test1' },
+        { id: 'person-2', owner_id: 'user-2', birth_date: '1985-03-15', name: 'Test2' },
+      ])
+
+      const request = createRequest('/api/cron/daily-predictions', {
+        authorization: 'Bearer test-cron-secret',
+      })
+      await GET(request)
+
+      expect(mockListKeys).toHaveBeenCalledTimes(1)
+      expect(mockListKeys).toHaveBeenCalledWith(['person-1', 'person-2'])
     })
 
     it('should persist the owner_id from the person row', async () => {
@@ -201,8 +247,10 @@ describe('GET /api/cron/daily-predictions', () => {
       })
       await GET(request)
 
-      expect(mockInsert).toHaveBeenCalledWith(
-        expect.objectContaining({ person_id: 'person-1', owner_id: 'user-1' })
+      expect(mockInsertMany).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({ person_id: 'person-1', owner_id: 'user-1' }),
+        ])
       )
     })
 
@@ -231,7 +279,17 @@ describe('GET /api/cron/daily-predictions', () => {
     })
 
     it('should continue processing after individual insert errors', async () => {
-      mockInsert.mockRejectedValue(new Error('Insert error'))
+      // 150 people × 1 event = 150 candidates → two chunks (100 + 50). The
+      // first chunk fails; the route must keep going and land the second.
+      mockListPeople.mockResolvedValue(
+        Array.from({ length: 150 }, (_, i) => ({
+          id: `person-${i}`,
+          owner_id: `user-${i}`,
+          birth_date: '1990-05-20',
+          name: `Test${i}`,
+        }))
+      )
+      mockInsertMany.mockRejectedValueOnce(new Error('Insert error'))
 
       const request = createRequest('/api/cron/daily-predictions', {
         authorization: 'Bearer test-cron-secret',
@@ -240,7 +298,10 @@ describe('GET /api/cron/daily-predictions', () => {
       const data = await parseResponse(response)
 
       expect(response.status).toBe(200)
-      expect(data.errors).toBeGreaterThan(0)
+      expect(mockInsertMany).toHaveBeenCalledTimes(2)
+      // Failed chunk of 100 counted as errors; surviving chunk of 50 generated.
+      expect(data.errors).toBe(100)
+      expect(data.predictionsGenerated).toBe(50)
     })
 
     it('should handle cleanup errors gracefully', async () => {
