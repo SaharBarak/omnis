@@ -13,7 +13,7 @@ import {
   SpaceGrotesk_700Bold,
   useFonts,
 } from '@expo-google-fonts/space-grotesk'
-import { QueryClientProvider } from '@tanstack/react-query'
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import {
   DarkTheme,
   DefaultTheme,
@@ -34,7 +34,7 @@ import { CosmicGround } from '@/components/cosmic-ground'
 import { Button, Card, SnackbarHost, Text } from '@/components/m3'
 import { useProfile } from '@/lib/api'
 import { useAuthStore, type AuthStatus } from '@/lib/auth'
-import { queryClient } from '@/lib/query-client'
+import { PERSIST_MAX_AGE_MS, queryClient, queryPersister } from '@/lib/query-client'
 import { SPACE, useTheme, type M3Theme } from '@/theme/m3'
 
 void SplashScreen.preventAutoHideAsync()
@@ -202,9 +202,12 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={styles.flex}>
-      <QueryClientProvider client={queryClient}>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{ persister: queryPersister, maxAge: PERSIST_MAX_AGE_MS }}
+      >
         <App status={status} />
-      </QueryClientProvider>
+      </PersistQueryClientProvider>
     </GestureHandlerRootView>
   )
 }

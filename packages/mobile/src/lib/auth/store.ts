@@ -11,7 +11,7 @@ import {
 } from './supabase-auth'
 import { readJwtSub } from './jwt'
 import { clearTokens, loadTokens, saveTokens } from './token-store'
-import { queryClient } from '@/lib/query-client'
+import { queryClient, queryPersister } from '@/lib/query-client'
 
 /**
  * Auth session state. Tokens live in module scope (never in React state —
@@ -144,6 +144,11 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     refreshPromise = null
     await clearTokens().catch(() => undefined)
     queryClient.clear()
+    // clear() reaches AsyncStorage only through the persister's throttled
+    // subscription — if the app dies inside that window the previous user's
+    // cache would survive for the next sign-in. Drop the persisted copy
+    // directly so no other account can restore this user's data.
+    await queryPersister.removeClient()
     set({ status: 'signedOut', userId: null })
   },
 
