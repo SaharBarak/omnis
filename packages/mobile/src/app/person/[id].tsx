@@ -27,6 +27,7 @@ import { FlavorTabs, type FlavorTab } from '@/components/person/flavor-tabs'
 import { HumanDesignPage } from '@/components/person/human-design-page'
 import { InsightsPage } from '@/components/person/insights-page'
 import { KabbalahPage } from '@/components/person/kabbalah-page'
+import { NumerologyPage } from '@/components/person/numerology-page'
 import { LockedPage } from '@/components/person/scaffold'
 import { TzolkinPage } from '@/components/person/tzolkin-page'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -57,6 +58,11 @@ const TABS: FlavorTab[] = [
   { key: 'astrology', label: 'Astrology', flavor: FLAVORS.astrology },
   { key: 'humanDesign', label: 'Human Design', flavor: FLAVORS.humanDesign },
   { key: 'gematria', label: 'Kabbalah', flavor: FLAVORS.gematria },
+  {
+    key: 'numerology',
+    label: 'Numerology',
+    flavor: { name: 'Numerology', accent: '#10B981', accentSoft: '#6EE7B7' },
+  },
   { key: 'insights', label: 'Insights', flavor: FLAVORS.integration },
 ]
 
@@ -65,6 +71,7 @@ const SYSTEM_NAMES: Record<string, string> = {
   astrology: 'Astrology',
   humanDesign: 'Human Design',
   gematria: 'Kabbalah',
+  numerology: 'Numerology',
   insights: 'Insights',
 }
 
@@ -230,6 +237,8 @@ export default function PersonScreen() {
             onAddHebrewName={openEdit}
           />
         )
+      case 'numerology':
+        return <NumerologyPage person={person} />
       case 'insights':
         return (
           <InsightsPage
