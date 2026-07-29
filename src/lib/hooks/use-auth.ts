@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { User } from '@supabase/supabase-js'
 import { identifyUser, resetIdentity } from '@/lib/analytics/posthog'
+import { QUERY_CACHE_STORAGE_KEY } from '@/lib/query-provider'
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import type { profiles } from '@/lib/db/schema'
 
@@ -70,8 +72,7 @@ export function useAuth() {
     }
   }, [supabaseUser])
 
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [profileLoading, setProfileLoading] = useState(false)
+  const queryClient = useQueryClient()
 
   // Product analytics: tie the anonymous device to the signed-in user.
   // No-op when PostHog is off; identifyUser dedupes repeat calls itself.
@@ -79,29 +80,23 @@ export function useAuth() {
     if (user) identifyUser(user.id, user.email || undefined)
   }, [user])
 
-  // Load the app profile from the server (browser cannot query the DB directly).
-  useEffect(() => {
-    let cancelled = false
-    if (!user) {
-      setProfile(null)
-      return
-    }
-    setProfileLoading(true)
-    fetch('/api/profile', { credentials: 'include' })
-      .then((res) => (res.ok ? res.json() : { profile: null }))
-      .then((data) => {
-        if (!cancelled) setProfile(data.profile ?? null)
-      })
-      .catch(() => {
-        if (!cancelled) setProfile(null)
-      })
-      .finally(() => {
-        if (!cancelled) setProfileLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [user])
+  // Load the app profile from the server (browser cannot query the DB
+  // directly). Cached + persisted per user id, so a returning session renders
+  // the shell from the last-known profile while a background refetch runs.
+  // Failures resolve to null rather than throwing, matching the previous
+  // hand-rolled behavior.
+  const profileQuery = useQuery({
+    queryKey: ['profile', user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const res = await fetch('/api/profile', { credentials: 'include' })
+      if (!res.ok) return null
+      const data = await res.json().catch(() => ({ profile: null }))
+      return (data.profile ?? null) as Profile | null
+    },
+  })
+  const profile = user ? (profileQuery.data ?? null) : null
+  const profileLoading = !!user && profileQuery.isPending
 
   const signInWithGoogle = useCallback(
     async (redirectTo?: string) => {
@@ -154,6 +149,14 @@ export function useAuth() {
 
   const signOut = useCallback(async () => {
     resetIdentity()
+    // Drop the persisted query cache synchronously — the redirect below kills
+    // the page before the persister's throttled write could flush a cleared
+    // cache, and the next account must not restore this user's data.
+    try {
+      window.localStorage.removeItem(QUERY_CACHE_STORAGE_KEY)
+    } catch {
+      // Storage can be unavailable (private mode); never block sign-out.
+    }
     await supabase.auth.signOut()
     window.location.href = '/'
   }, [supabase])
@@ -171,10 +174,10 @@ export function useAuth() {
         throw new Error(data.error || 'Failed to update profile')
       }
       const data = await res.json()
-      setProfile(data.profile)
+      queryClient.setQueryData(['profile', user?.id], data.profile ?? null)
       return data.profile as Profile
     },
-    []
+    [queryClient, user?.id]
   )
 
   return {

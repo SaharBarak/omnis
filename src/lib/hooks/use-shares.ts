@@ -1,5 +1,6 @@
 'use client'
 
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, useCallback } from 'react'
 import { track } from '@/lib/analytics/posthog'
 import type { CreateShareInput } from '@/lib/types/relationship'
@@ -66,29 +67,40 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
+export const SHARES_QUERY_KEY = ['shares'] as const
+
 export function useShares() {
-  const [shares, setShares] = useState<ShareLink[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
-  const fetchShares = useCallback(async () => {
-    setLoading(true)
-    setError(null)
+  // Mutators never throw — they report failure via the `error` slot and a
+  // null/false return, exactly like the hand-rolled version. Query errors
+  // live on the query itself, so mutator failures need this local slot;
+  // the two merge in the returned `error` (most recent operation wins).
+  const [mutationError, setMutationError] = useState<string | null>(null)
 
-    try {
+  // Cached (and persisted — see query-provider) server state. `loading` is
+  // true only when there's nothing to show yet: a restored cache renders
+  // immediately while a background refetch runs.
+  const query = useQuery({
+    queryKey: SHARES_QUERY_KEY,
+    queryFn: async () => {
       const { shares: rows } = await fetchJson<{ shares: SharedViewRow[] }>(
         '/api/shares'
       )
-      setShares(rows.map(toShareLink))
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch shares')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+      return rows.map(toShareLink)
+    },
+  })
+
+  // Awaits the refetch before resolving, mirroring the previous hand-rolled
+  // behavior that callers rely on (fresh data on resolve). Fetch failures
+  // surface through `error`, not the returned promise.
+  const fetchShares = useCallback(async () => {
+    setMutationError(null)
+    await queryClient.refetchQueries({ queryKey: SHARES_QUERY_KEY })
+  }, [queryClient])
 
   const createShare = useCallback(async (input: CreateShareInput): Promise<ShareLink | null> => {
-    setError(null)
+    setMutationError(null)
 
     try {
       // Token generation and password hashing happen SERVER-SIDE in
@@ -107,16 +119,21 @@ export function useShares() {
 
       const shareLink = toShareLink(share)
       track('share_created', { share_type: shareLink.shareType })
-      setShares(prev => [shareLink, ...prev])
+      // The server response is authoritative — write it into the cache
+      // directly (no refetch), as the hand-rolled version prepended locally.
+      queryClient.setQueryData<ShareLink[]>(SHARES_QUERY_KEY, prev => [
+        shareLink,
+        ...(prev ?? []),
+      ])
       return shareLink
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create share')
+      setMutationError(err instanceof Error ? err.message : 'Failed to create share')
       return null
     }
-  }, [])
+  }, [queryClient])
 
   const deactivateShare = useCallback(async (id: string): Promise<boolean> => {
-    setError(null)
+    setMutationError(null)
 
     try {
       await fetchJson(`/api/shares/${id}`, {
@@ -125,26 +142,30 @@ export function useShares() {
         body: JSON.stringify({ active: false }),
       })
 
-      setShares(prev => prev.map(s => s.id === id ? { ...s, active: false } : s))
+      queryClient.setQueryData<ShareLink[]>(SHARES_QUERY_KEY, prev =>
+        (prev ?? []).map(s => s.id === id ? { ...s, active: false } : s)
+      )
       return true
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to deactivate share')
+      setMutationError(err instanceof Error ? err.message : 'Failed to deactivate share')
       return false
     }
-  }, [])
+  }, [queryClient])
 
   const deleteShare = useCallback(async (id: string): Promise<boolean> => {
-    setError(null)
+    setMutationError(null)
 
     try {
       await fetchJson(`/api/shares/${id}`, { method: 'DELETE' })
-      setShares(prev => prev.filter(s => s.id !== id))
+      queryClient.setQueryData<ShareLink[]>(SHARES_QUERY_KEY, prev =>
+        (prev ?? []).filter(s => s.id !== id)
+      )
       return true
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete share')
+      setMutationError(err instanceof Error ? err.message : 'Failed to delete share')
       return false
     }
-  }, [])
+  }, [queryClient])
 
   // NOTE: the anonymous share viewer lives at /share/[token] and talks to
   // GET/POST /api/share/[token] directly — expiry, max-view, and password
@@ -153,9 +174,9 @@ export function useShares() {
   // browser) was removed with the move to server-side share crypto.
 
   return {
-    shares,
-    loading,
-    error,
+    shares: query.data ?? [],
+    loading: query.isPending,
+    error: mutationError ?? (query.error ? query.error.message : null),
     fetchShares,
     createShare,
     deactivateShare,

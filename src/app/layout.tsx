@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Barlow, Rubik, IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { PostHogAnalytics } from "@/lib/analytics/posthog-provider";
+import { QueryProvider } from "@/lib/query-provider";
 import "./globals.css";
 
 const barlow = Barlow({
@@ -46,7 +47,7 @@ export const metadata: Metadata = {
   // is inherited by every page that doesn't override it, which would point
   // all sub-pages at the homepage. Each public page declares its own.
   title: {
-    default: "Pleiad - The Living Map of Your People | 6 Wisdom Systems",
+    default: "Pleiad — See Your People Through Six Symbolic Systems",
     template: "%s | Pleiad"
   },
   description: "Save the people in your life, read each one through Dreamspell, Tzolkin, Human Design, Astrology, and Hebrew Gematria, and compare the patterns between them.",
@@ -87,14 +88,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: "Pleiad",
-    title: "Pleiad - The Living Map of Your People",
-    description: "Everyone in your life, read through six wisdom systems at once (Astrology, Dreamspell, Tzolkin, Human Design, Gematria) and remembered forever.",
+    title: "Pleiad — See Your People Through Six Symbolic Systems",
+    description: "Save symbolic profiles, compare two people, and explore group patterns. Start with a free Dreamspell reading.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Pleiad - The Living Map of Your People",
+        alt: "Pleiad — Six symbolic profiles and one people map",
       },
     ],
   },
@@ -129,7 +130,7 @@ export default function RootLayout({
         className={`${barlow.variable} ${rubik.variable} ${ibmPlexMono.variable} ${spaceGrotesk.variable} font-sans antialiased`}
       >
         <script defer src="https://clever-swan-577.convex.site/beacon.js" data-slug="omnis" />
-        {children}
+        <QueryProvider>{children}</QueryProvider>
         <PostHogAnalytics />
         <GoogleAnalytics gaId="G-KY20RW9LY7" />
         {process.env.NEXT_PUBLIC_CF_BEACON_TOKEN && (

@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback } from 'react'
 import type {
   RelationshipType,
   RelationshipWithPeople,
@@ -51,35 +52,25 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
+export const RELATIONSHIPS_QUERY_KEY = ['relationships'] as const
+
 export function useRelationships(): UseRelationshipsReturn {
-  const [state, setState] = useState<UseRelationshipsState>({
-    relationships: [],
-    loading: true,
-    error: null,
+  const queryClient = useQueryClient()
+
+  // Cached (and persisted — see query-provider) server state. `loading` is
+  // true only when there's nothing to show yet: a restored cache renders
+  // immediately while a background refetch runs.
+  const query = useQuery({
+    queryKey: RELATIONSHIPS_QUERY_KEY,
+    queryFn: () =>
+      fetchJson<{ relationships: RelationshipWithPeople[] }>('/api/relationships'),
   })
 
-  // Fetch all relationships with person details
+  // Mutators await the refetch before resolving, mirroring the previous
+  // hand-rolled behavior that callers rely on (dialogs close on fresh data).
   const fetchRelationships = useCallback(async () => {
-    setState(prev => ({ ...prev, loading: true, error: null }))
-
-    try {
-      const { relationships } = await fetchJson<{
-        relationships: RelationshipWithPeople[]
-      }>('/api/relationships')
-
-      setState({
-        relationships,
-        loading: false,
-        error: null,
-      })
-    } catch (err) {
-      setState(prev => ({
-        ...prev,
-        loading: false,
-        error: err instanceof Error ? err.message : 'Error fetching relationships',
-      }))
-    }
-  }, [])
+    await queryClient.refetchQueries({ queryKey: RELATIONSHIPS_QUERY_KEY })
+  }, [queryClient])
 
   // Add a new relationship
   const addRelationship = useCallback(async (input: CreateRelationshipInput): Promise<Relationship> => {
@@ -137,21 +128,25 @@ export function useRelationships(): UseRelationshipsReturn {
     await fetchRelationships()
   }, [fetchRelationships])
 
-  // Get relationships for a specific person (both directions)
+  // Get relationships for a specific person (both directions). Cached under a
+  // per-person key; staleTime 0 keeps the original always-fetch-on-call
+  // behavior despite the provider's 60s default.
   const getRelationshipsForPerson = useCallback(async (personId: string): Promise<RelationshipFromPerson[]> => {
-    const { relationships } = await fetchJson<{
-      relationships: RelationshipFromPerson[]
-    }>(`/api/relationships/person/${personId}`)
+    const { relationships } = await queryClient.fetchQuery({
+      queryKey: [...RELATIONSHIPS_QUERY_KEY, personId] as const,
+      queryFn: () =>
+        fetchJson<{ relationships: RelationshipFromPerson[] }>(
+          `/api/relationships/person/${personId}`
+        ),
+      staleTime: 0,
+    })
     return relationships
-  }, [])
-
-  // Initial fetch
-  useEffect(() => {
-    fetchRelationships()
-  }, [fetchRelationships])
+  }, [queryClient])
 
   return {
-    ...state,
+    relationships: query.data?.relationships ?? [],
+    loading: query.isPending,
+    error: query.error ? query.error.message : null,
     fetchRelationships,
     addRelationship,
     updateRelationship,

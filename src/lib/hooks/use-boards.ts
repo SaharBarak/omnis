@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback, useState } from 'react'
 import type {
   CanvasState,
   Layer,
@@ -104,28 +105,26 @@ function jsonInit(method: string, body: unknown): RequestInit {
   }
 }
 
+export const BOARDS_QUERY_KEY = ['boards'] as const
+
 export function useBoards(): UseBoardsReturn {
-  const [state, setState] = useState<UseBoardsState>({
-    boards: [],
-    loading: true,
-    error: null,
+  const queryClient = useQueryClient()
+
+  // Cached (and persisted — see query-provider) server state. `loading` is
+  // true only when there's nothing to show yet: a restored cache renders
+  // immediately while a background refetch runs.
+  const query = useQuery({
+    queryKey: BOARDS_QUERY_KEY,
+    queryFn: () => fetchJson<{ boards: Board[] }>('/api/boards'),
   })
 
-  // Fetch all boards for current user
+  // Mutators await the refetch before resolving, mirroring the previous
+  // hand-rolled behavior that callers rely on (fresh data on resolve).
+  // Fetch failures surface through `error`, not the returned promise,
+  // matching the old fetchBoards which never threw.
   const fetchBoards = useCallback(async () => {
-    setState(prev => ({ ...prev, loading: true, error: null }))
-
-    try {
-      const { boards } = await fetchJson<{ boards: Board[] }>('/api/boards')
-      setState({ boards, loading: false, error: null })
-    } catch (err) {
-      setState(prev => ({
-        ...prev,
-        loading: false,
-        error: err instanceof Error ? err.message : 'Error fetching boards',
-      }))
-    }
-  }, [])
+    await queryClient.refetchQueries({ queryKey: BOARDS_QUERY_KEY })
+  }, [queryClient])
 
   // Get a single board by ID
   const getBoard = useCallback(async (id: string): Promise<Board | null> => {
@@ -303,13 +302,10 @@ export function useBoards(): UseBoardsReturn {
     }
   }, [])
 
-  // Initial fetch
-  useEffect(() => {
-    fetchBoards()
-  }, [fetchBoards])
-
   return {
-    ...state,
+    boards: query.data?.boards ?? [],
+    loading: query.isPending,
+    error: query.error ? query.error.message : null,
     fetchBoards,
     getBoard,
     createBoard,
@@ -326,7 +322,10 @@ export function useBoards(): UseBoardsReturn {
   }
 }
 
-// Hook for a single board with auto-save
+// Hook for a single board with auto-save. Deliberately NOT a useQuery: its
+// state is a mutable editor draft (canvas/layers/dirty/saving) loaded
+// imperatively, and caching full canvases would bloat the persisted query
+// cache (see query-provider) for no read reuse.
 interface UseBoardState {
   board: Board | null
   canvas: CanvasState | null

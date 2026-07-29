@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback } from 'react'
 import { track } from '@/lib/analytics/posthog'
 import type { Group } from '@/lib/types/database.types'
 import type {
@@ -41,49 +42,48 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
+export const GROUPS_QUERY_KEY = ['groups'] as const
+
 export function useGroups(): UseGroupsReturn {
-  const [state, setState] = useState<UseGroupsState>({
-    groups: [],
-    loading: true,
-    error: null,
+  const queryClient = useQueryClient()
+
+  // Cached (and persisted — see query-provider) server state. `loading` is
+  // true only when there's nothing to show yet: a restored cache renders
+  // immediately while a background refetch runs.
+  const query = useQuery({
+    queryKey: GROUPS_QUERY_KEY,
+    queryFn: () => fetchJson<{ groups: Group[] }>('/api/groups'),
   })
 
-  // Fetch all groups
+  // Mutators await the refetch before resolving, mirroring the previous
+  // hand-rolled behavior that callers rely on (dialogs close on fresh data).
   const fetchGroups = useCallback(async () => {
-    setState(prev => ({ ...prev, loading: true, error: null }))
+    await queryClient.refetchQueries({ queryKey: GROUPS_QUERY_KEY })
+  }, [queryClient])
 
-    try {
-      const { groups } = await fetchJson<{ groups: Group[] }>('/api/groups')
-      setState({
-        groups: groups || [],
-        loading: false,
-        error: null,
-      })
-    } catch (err) {
-      setState(prev => ({
-        ...prev,
-        loading: false,
-        error: err instanceof Error ? err.message : 'Error fetching groups',
-      }))
-    }
-  }, [])
-
-  // Get a group with its members
+  // Get a group with its members. Cached under a per-group key; staleTime 0
+  // keeps the original always-fetch-on-call behavior despite the provider's
+  // 60s default. A 404 resolves to null (not an error), as before.
   const getGroupWithMembers = useCallback(
-    async (groupId: string): Promise<GroupWithMembers | null> => {
-      const res = await fetch(
-        `/api/groups/${encodeURIComponent(groupId)}`,
-        { credentials: 'include' }
-      )
-      if (res.status === 404) return null
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || `Request failed: ${res.status}`)
-      }
-      const { group } = (await res.json()) as { group: GroupWithMembers }
-      return group
-    },
-    []
+    async (groupId: string): Promise<GroupWithMembers | null> =>
+      queryClient.fetchQuery({
+        queryKey: [...GROUPS_QUERY_KEY, groupId] as const,
+        queryFn: async (): Promise<GroupWithMembers | null> => {
+          const res = await fetch(
+            `/api/groups/${encodeURIComponent(groupId)}`,
+            { credentials: 'include' }
+          )
+          if (res.status === 404) return null
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}))
+            throw new Error(data.error || `Request failed: ${res.status}`)
+          }
+          const { group } = (await res.json()) as { group: GroupWithMembers }
+          return group
+        },
+        staleTime: 0,
+      }),
+    [queryClient]
   )
 
   // Create a new group
@@ -169,13 +169,10 @@ export function useGroups(): UseGroupsReturn {
     []
   )
 
-  // Initial fetch
-  useEffect(() => {
-    fetchGroups()
-  }, [fetchGroups])
-
   return {
-    ...state,
+    groups: query.data?.groups ?? [],
+    loading: query.isPending,
+    error: query.error ? query.error.message : null,
     fetchGroups,
     getGroupWithMembers,
     createGroup,

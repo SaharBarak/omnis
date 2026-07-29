@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback } from 'react'
 import { useComputedResults } from './use-computed-results'
 import { track } from '@/lib/analytics/posthog'
 
@@ -51,13 +52,6 @@ export interface PersonWithTags extends Person {
   tags: Tag[]
 }
 
-interface UsePeopleState {
-  people: PersonWithTags[]
-  tags: Tag[]
-  loading: boolean
-  error: string | null
-}
-
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, { credentials: 'include', ...init })
   if (!res.ok) {
@@ -67,36 +61,27 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
+export const PEOPLE_QUERY_KEY = ['people'] as const
+
 export function usePeople() {
-  const [state, setState] = useState<UsePeopleState>({
-    people: [],
-    tags: [],
-    loading: true,
-    error: null,
+  const queryClient = useQueryClient()
+
+  // Cached (and persisted — see query-provider) server state. `loading` is
+  // true only when there's nothing to show yet: a restored cache renders
+  // immediately while a background refetch runs.
+  const query = useQuery({
+    queryKey: PEOPLE_QUERY_KEY,
+    queryFn: () =>
+      fetchJson<{ people: PersonWithTags[]; tags: Tag[] }>('/api/people'),
   })
 
   const { computeAndStore, invalidateResults } = useComputedResults()
 
+  // Mutators await the refetch before resolving, mirroring the previous
+  // hand-rolled behavior that callers rely on (dialogs close on fresh data).
   const fetchPeople = useCallback(async () => {
-    setState((prev) => ({ ...prev, loading: true, error: null }))
-    try {
-      const data = await fetchJson<{ people: PersonWithTags[]; tags: Tag[] }>(
-        '/api/people'
-      )
-      setState({
-        people: data.people,
-        tags: data.tags,
-        loading: false,
-        error: null,
-      })
-    } catch (err) {
-      setState((prev) => ({
-        ...prev,
-        loading: false,
-        error: err instanceof Error ? err.message : 'Error fetching people',
-      }))
-    }
-  }, [])
+    await queryClient.refetchQueries({ queryKey: PEOPLE_QUERY_KEY })
+  }, [queryClient])
 
   const addPerson = useCallback(
     async (person: Omit<PersonInsert, 'owner_id'>, tagIds: string[] = []) => {
@@ -170,12 +155,11 @@ export function usePeople() {
     [fetchPeople]
   )
 
-  useEffect(() => {
-    fetchPeople()
-  }, [fetchPeople])
-
   return {
-    ...state,
+    people: query.data?.people ?? [],
+    tags: query.data?.tags ?? [],
+    loading: query.isPending,
+    error: query.error ? query.error.message : null,
     fetchPeople,
     addPerson,
     updatePerson,
