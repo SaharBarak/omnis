@@ -242,3 +242,9 @@ export {
   dailyRune,
   type DailyTarot,
 } from './oracles'
+export {
+  geneKeysProfile,
+  type GeneKeysProfile,
+  type GeneKeysSphere,
+  type GeneKeysSequence,
+} from './gene-keys'
