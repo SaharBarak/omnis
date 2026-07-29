@@ -163,3 +163,11 @@ export {
   type SiderealSun,
   type Panchang,
 } from './calendars'
+export {
+  hebrewDateParts,
+  upcomingHebrewHolidays,
+  HEBREW_HOLIDAYS,
+  type HebrewDateParts,
+  type HebrewHoliday,
+  type UpcomingHoliday,
+} from './hebrew-calendar'

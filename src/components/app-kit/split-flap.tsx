@@ -8,9 +8,9 @@
  */
 
 import { motion, useReducedMotion } from 'framer-motion'
-import { cn } from '@/lib/utils'
 import { EASE_OUT } from './motion'
 import { Eyebrow } from './primitives'
+import { cn } from '@/lib/utils'
 
 /** Deterministic cascade delay (ms) — mobile board formula. */
 function flapDelay(index: number): number {
@@ -49,6 +49,8 @@ export function FlapValue({
 export interface FlapRow {
   readonly label: string
   readonly value: string
+  /** Tap-through target — the row becomes a link (PRD: every card tappable). */
+  readonly href?: string
 }
 
 /** Label/value rows separated by hairlines — the departures board. */
@@ -61,18 +63,28 @@ export function FlapBoard({
 }) {
   return (
     <div className={cn('flex flex-col', className)}>
-      {rows.map((row, i) => (
-        <div
-          key={row.label}
-          className={cn(
-            'flex items-baseline justify-between gap-6 py-3',
-            i < rows.length - 1 && 'border-b border-white/[0.07]'
-          )}
-        >
-          <Eyebrow>{row.label}</Eyebrow>
-          <FlapValue value={row.value} index={i} className="text-right text-sm md:text-base" />
-        </div>
-      ))}
+      {rows.map((row, i) => {
+        const rowClass = cn(
+          'flex items-baseline justify-between gap-6 py-3',
+          i < rows.length - 1 && 'border-b border-white/[0.07]',
+          row.href && 'transition-colors hover:bg-white/[0.03] active:scale-[0.99]'
+        )
+        const content = (
+          <>
+            <Eyebrow>{row.label}</Eyebrow>
+            <FlapValue value={row.value} index={i} className="text-right text-sm md:text-base" />
+          </>
+        )
+        return row.href ? (
+          <a key={row.label} href={row.href} className={rowClass}>
+            {content}
+          </a>
+        ) : (
+          <div key={row.label} className={rowClass}>
+            {content}
+          </div>
+        )
+      })}
     </div>
   )
 }

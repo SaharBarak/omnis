@@ -221,12 +221,16 @@ export default function DashboardPage() {
     if (!now) return []
     const board = getTodayAcrossSystems(now)
     return [
-      { label: 'Kin', value: board.kin.toUpperCase() },
-      { label: 'Moon', value: board.moon.toUpperCase() },
+      { label: 'Kin', value: board.kin.toUpperCase(), href: '/app/calendar' },
+      { label: 'Moon', value: board.moon.toUpperCase(), href: '/app/moon' },
       { label: 'Sun', value: board.sun.toUpperCase() },
       { label: 'Sidereal', value: board.sidereal.toUpperCase() },
       { label: 'Gate', value: board.gate.toUpperCase() },
-      { label: 'Hebrew', value: board.hebrewDate ? board.hebrewDate.toUpperCase() : '—' },
+      {
+        label: 'Hebrew',
+        value: board.hebrewDate ? board.hebrewDate.toUpperCase() : '—',
+        href: '/app/calendars/hebrew',
+      },
       { label: 'Hijri', value: board.hijri ? board.hijri.toUpperCase() : '—' },
       { label: 'Persian', value: board.persian ? board.persian.toUpperCase() : '—' },
       { label: 'Chinese', value: board.chineseYear ? board.chineseYear.toUpperCase() : '—' },
