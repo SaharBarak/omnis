@@ -183,7 +183,7 @@ export default function LearnDocScreen() {
               variant="outlined"
               fullWidth
               onPress={() => {
-                void Linking.openURL(`${ENV.apiUrl}/learn/${doc.key}`)
+                void Linking.openURL(`${ENV.apiUrl}${doc.webPath ?? `/learn/${doc.key}`}`)
               }}
               icon={(color) => <ArrowSquareOutIcon size={18} color={color} />}
             >

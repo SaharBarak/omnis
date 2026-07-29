@@ -2,14 +2,20 @@
  * Bundled library content — S14/F10. A trimmed mobile copy of the six
  * knowledge docs so the codex reads fully offline.
  *
- * CANONICAL SOURCE: src/lib/docs/content.ts (web). This file condenses that
- * text faithfully — no invented claims. When the web codex changes, update
- * this copy by hand. Lineage lines come from src/lib/design/system-flavors.ts.
+ * CANONICAL SOURCE: src/lib/docs/content.ts (web) for the six system docs;
+ * src/app/app/calendars/<key>/page.tsx (web) for the calendar docs. This file
+ * condenses that text faithfully — no invented claims. When the web codex
+ * changes, update this copy by hand. Lineage lines come from
+ * src/lib/design/system-flavors.ts.
  */
 
 import { FLAVORS, type SystemFlavor } from '@/theme/tokens'
 
-/** Route segment for /learn/[system] — matches the web /learn/* slugs. */
+/**
+ * Route segment for /learn/[system] — system docs match the web /learn/*
+ * slugs; calendar docs (#69) match the web /app/calendars/* pages via
+ * `webPath`.
+ */
 export type LibrarySystemKey =
   | 'astrology'
   | 'dreamspell'
@@ -17,6 +23,12 @@ export type LibrarySystemKey =
   | 'human-design'
   | 'gematria'
   | 'integration'
+  | 'hebrew'
+  | 'hijri'
+  | 'persian'
+  | 'chinese'
+  | 'panchang'
+  | 'long-count'
 
 export interface LibrarySection {
   title: string
@@ -33,6 +45,8 @@ export interface LibraryDoc {
   intro: string[]
   sections: LibrarySection[]
   flavor: SystemFlavor
+  /** Web path for the "full codex" handoff when not /learn/<key>. */
+  webPath?: string
 }
 
 export const LIBRARY_ORDER: readonly LibrarySystemKey[] = [
@@ -238,7 +252,197 @@ export const LIBRARY_DOCS: Readonly<Record<LibrarySystemKey, LibraryDoc>> = {
     ],
     flavor: FLAVORS.integration,
   },
+  hebrew: {
+    key: 'hebrew',
+    name: 'Hebrew Calendar',
+    title: 'A lunisolar count in its 58th century',
+    lineage: 'Months follow the moon, years follow the sun — festivals held to their seasons.',
+    intro: [
+      'The Hebrew calendar is lunisolar: months begin near the new moon, and a thirteenth month is added in leap years so the festivals stay tied to their seasons — Passover in spring, Sukkot in autumn.',
+      'Days run from sunset to sunset, and years are counted from the traditional date of creation. The civil year 2026 spans the Hebrew years 5786 and 5787.',
+    ],
+    sections: [
+      {
+        title: 'From observation to calculation',
+        body: 'In the biblical period, months were declared when witnesses saw the new crescent. As the diaspora spread, observation became untenable; in the fourth century CE — tradition credits Hillel II — the calendar was fixed by calculation, and those rules are still in use today.',
+      },
+      {
+        title: 'The Metonic cycle',
+        body: 'Leap years follow the 19-year Metonic cycle: years 3, 6, 8, 11, 14, 17, and 19 add a second Adar — seven leap years in nineteen. Nineteen solar years and 235 lunar months differ by only about two hours, which keeps Passover in spring indefinitely.',
+      },
+      {
+        title: 'The molad and the postponements',
+        body: 'The fixed calendar computes the molad — the mean lunar conjunction — for Tishri of each year, then applies four postponement rules that place Rosh Hashanah so the festivals fall on workable weekdays. The slack is absorbed by Heshvan and Kislev, each of which can take 29 or 30 days.',
+      },
+      {
+        title: 'In modern life',
+        body: 'The Hebrew calendar is an official calendar of the State of Israel, and worldwide it governs the Jewish ritual year — festivals, Torah readings, bar and bat mitzvah dates, yahrzeits — even in communities that live civil life on the Gregorian calendar.',
+      },
+    ],
+    flavor: { name: 'Hebrew Calendar', accent: '#D4AF37', accentSoft: '#EFD98B' },
+    webPath: '/app/calendars/hebrew',
+  },
+  hijri: {
+    key: 'hijri',
+    name: 'Hijri Calendar',
+    title: 'A purely lunar year that walks through the seasons',
+    lineage: 'Twelve lunar months, no solar correction — Ramadan visits every season in a lifetime.',
+    intro: [
+      'The Hijri (Islamic) calendar is purely lunar: twelve lunar months and no leap month, so its year runs about 354 days — eleven days short of the solar year. Every Hijri date drifts earlier through the seasons, circling the full cycle once every 33 years or so.',
+      'Days begin at sunset, and years are counted from the Hijra — the migration from Mecca to Medina in 622 CE — marked AH, Anno Hegirae.',
+    ],
+    sections: [
+      {
+        title: 'The abolition of the leap month',
+        body: 'Pre-Islamic Arabia used a lunisolar scheme with an intercalated month. The Quran abolished intercalation, fixing the year at twelve lunar months, and the calendar has run purely lunar since. The era was instituted under the caliph Umar around 638 CE.',
+      },
+      {
+        title: 'Crescent and calculation',
+        body: 'For most of history months began with the sighting of the new crescent, and religious practice still honors observation: Ramadan and the Eids are proclaimed by moon-sighting committees in many countries, so observed dates can differ by a day from any computed calendar.',
+      },
+      {
+        title: 'How the months run',
+        body: 'Months alternate between 30 and 29 days, tracking the mean lunar month of about 29.53 days. Eleven times in each 30-year cycle a leap day is added to the final month, keeping the calendar aligned with the moon to within a day over centuries.',
+      },
+      {
+        title: 'In modern life',
+        body: 'Pleiad uses the Umm al-Qura reckoning — the calculated calendar of Saudi Arabia. Globally the Hijri calendar governs the Islamic ritual year — Ramadan, the two Eids, the Hajj — for nearly two billion people.',
+      },
+    ],
+    flavor: { name: 'Hijri Calendar', accent: '#86C89B', accentSoft: '#B6DFC4' },
+    webPath: '/app/calendars/hijri',
+  },
+  persian: {
+    key: 'persian',
+    name: 'Persian Calendar',
+    title: 'The most accurate solar calendar in civil use',
+    lineage: 'The year begins at the moment of the spring equinox, observed at Tehran.',
+    intro: [
+      'The Persian (Solar Hijri) calendar is purely solar, and its new year is an astronomical event: the year begins at Nowruz, the March equinox as observed on the meridian of Tehran. Seasons and months are locked together permanently.',
+      'Years are counted from the Hijra like the Islamic calendar — but in solar years, so the two counts drift apart by about one year every 33.',
+    ],
+    sections: [
+      {
+        title: 'Khayyam’s reform',
+        body: 'Iran has kept solar calendars for over 2,500 years, with month names honoring Zoroastrian divinities. The great reform came in 1079 CE, when a commission including Omar Khayyam fixed the year to the true equinox — more accurate than the Gregorian reform that followed five centuries later.',
+      },
+      {
+        title: 'The equinox is the rule',
+        body: 'The year begins on the day whose noon-to-noon window at Tehran contains the March equinox. Leap years fall out of the astronomy itself — usually every four years, occasionally after five. The equinox-anchored year cannot drift from the sun.',
+      },
+      {
+        title: 'The shape of the year',
+        body: 'The first six months have 31 days, the next five have 30, and the last has 29 — or 30 in a leap year. Farvardin always opens spring; Azar always closes autumn.',
+      },
+      {
+        title: 'In modern life',
+        body: 'The Solar Hijri calendar is the official calendar of Iran. Nowruz itself is bigger than any border: some 300 million people from the Balkans to Central Asia keep the equinox new year.',
+      },
+    ],
+    flavor: { name: 'Persian Calendar', accent: '#D98E5F', accentSoft: '#EDC2A4' },
+    webPath: '/app/calendars/persian',
+  },
+  chinese: {
+    key: 'chinese',
+    name: 'Chinese Calendar',
+    title: 'Every year an element, an animal, a polarity',
+    lineage: 'Sixty year-names — ten heavenly stems crossed with twelve earthly branches.',
+    intro: [
+      'The Chinese calendar is lunisolar: months follow the moon, years follow the sun, and a leap month reconciles them. Its months are numbered, but its years carry names, cycling through sixty combinations of ten heavenly stems and twelve earthly branches.',
+      'The stems carry the five elements in yin and yang pairs; the branches carry the twelve animals. 2026 is bing-wu — the year of the Yang Fire Horse.',
+    ],
+    sections: [
+      {
+        title: 'The oldest count',
+        body: 'Oracle bones from the Shang dynasty, three thousand years ago, already record the sexagenary day count. Calendar-making was an act of state: each dynasty issued its own calendar as proof of the Mandate of Heaven.',
+      },
+      {
+        title: 'Leap months by solar terms',
+        body: 'A month begins at the astronomical new moon. Twelve lunar months fall eleven days short of the sun, so seven times in nineteen years a leap month is inserted — placed wherever a lunar month contains no major solar term, repeating the month before it.',
+      },
+      {
+        title: 'New year and the zodiac',
+        body: 'New year falls on the second or third new moon after the winter solstice — between 21 January and 20 February — and opens a fifteen-day festival ending with lanterns at the first full moon. Note that BaZi astrology uses the solar year, which begins at the Start of Spring term instead.',
+      },
+      {
+        title: 'In modern life',
+        body: 'China lives civil life on the Gregorian calendar, but the traditional calendar sets the great festivals — New Year, Qingming, Dragon Boat, Mid-Autumn. Across the diaspora the zodiac year remains personal identity.',
+      },
+    ],
+    flavor: { name: 'Chinese Calendar', accent: '#CF6F6F', accentSoft: '#E5A9A9' },
+    webPath: '/app/calendars/chinese',
+  },
+  panchang: {
+    key: 'panchang',
+    name: 'Panchang',
+    title: 'The Hindu almanac of five limbs',
+    lineage: 'A calendar that measures qualities of time, not just quantities.',
+    intro: [
+      'A panchang ("five limbs") is the daily almanac of Hindu timekeeping. Where other calendars answer "what day is it," the panchang answers "what kind of day is it" — through five simultaneous cycles: tithi, nakshatra, yoga, karana, and vara.',
+      'The tithi is the headline: thirty lunar days per month, fifteen waxing and fifteen waning. Nearly every Hindu festival is a tithi — Diwali is a new-moon tithi, Holi a full-moon one.',
+    ],
+    sections: [
+      {
+        title: 'The five limbs',
+        body: 'Tithi: the time the moon needs to gain 12° on the sun. Nakshatra: the moon’s mansion among 27 star-stations. Yoga: 27 divisions of the sun-moon longitude sum. Karana: half a tithi. Vara: the weekday, ruled by its planet.',
+      },
+      {
+        title: 'From the Vedas to the siddhantas',
+        body: 'The roots are in the Vedanga Jyotisha, from the middle of the first millennium BCE. The classical siddhantas — above all the Surya Siddhanta — put the almanac on mathematical footing, and regional traditions diverged into the many pancangas of India.',
+      },
+      {
+        title: 'Sidereal reckoning',
+        body: 'Nakshatras live in the sidereal sky: positions subtract the ayanamsa — the accumulated precession offset, about 24° today — from tropical longitudes. Pleiad uses the Lahiri ayanamsa, the Indian government standard, computed at noon UTC.',
+      },
+      {
+        title: 'In modern life',
+        body: 'Panchang apps and printed almanacs are consulted daily across India and the diaspora — for festival dates, fasting days like Ekadashi, and muhurta timings for weddings and new ventures.',
+      },
+    ],
+    flavor: { name: 'Panchang', accent: '#C9A227', accentSoft: '#E7D08A' },
+    webPath: '/app/calendars/panchang',
+  },
+  'long-count': {
+    key: 'long-count',
+    name: 'Long Count',
+    title: 'A day count from a mythological zero',
+    lineage: 'The calendar that carved history in stone, one day-number at a time.',
+    intro: [
+      'The Maya Long Count is not a cycle but a tally: an absolute count of days from a creation date in 3114 BCE, written as five nested place values — baktun, katun, tun, winal, kin.',
+      'Where the Tzolkin and Haab wheel around every 260 and 365 days, the Long Count never repeats on a human timescale — the Maya used it to fix historical events uniquely in time.',
+    ],
+    sections: [
+      {
+        title: 'The places',
+        body: 'The system is almost pure base-20: 20 kin make a winal, 18 winals a tun (360 days), 20 tuns a katun (about 19.7 years), 20 katuns a baktun (about 394 years). The 18 keeps the tun near the solar year.',
+      },
+      {
+        title: 'Written in stone',
+        body: 'Classic-period stelae open with the Initial Series — a Long Count date followed by the day’s Tzolkin and Haab positions — anchoring coronations, wars, and dedications to the exact day.',
+      },
+      {
+        title: '2012 and the thirteenth baktun',
+        body: 'The famous 13.0.0.0.0 of 21 December 2012 was the completion of the thirteenth baktun — a great odometer rollover, celebrated in antiquity as period endings always were, with monuments rather than apocalypses.',
+      },
+      {
+        title: 'The correlation',
+        body: 'Conversion is pure arithmetic on the Julian Day Number: creation corresponds to JDN 584283 — the GMT correlation, standard since Thompson. Every conversion in Pleiad is day-precise across the whole historical range.',
+      },
+    ],
+    flavor: { name: 'Long Count', accent: '#2E6E5E', accentSoft: '#7FB5A6' },
+    webPath: '/app/calendars/long-count',
+  },
 } as const
+
+/** The calendar-atlas docs, in the Today board's row order. */
+export const CALENDAR_ORDER: readonly LibrarySystemKey[] = [
+  'hebrew',
+  'hijri',
+  'persian',
+  'chinese',
+  'panchang',
+  'long-count',
+] as const
 
 /** Match a knowledge-search sourceUrl to a bundled doc, if it points at one. */
 export function docKeyFromSourceUrl(sourceUrl: string): LibrarySystemKey | null {

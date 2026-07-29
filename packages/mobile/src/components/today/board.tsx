@@ -1,5 +1,7 @@
+import { useRouter } from 'expo-router'
+import { CaretRightIcon } from 'phosphor-react-native'
 import { useEffect, useMemo } from 'react'
-import { StyleSheet, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -10,7 +12,8 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { Divider, Text } from '@/components/m3'
-import { DURATION, EASING, SPACE } from '@/theme/m3'
+import type { LibrarySystemKey } from '@/lib/library/content'
+import { DURATION, EASING, SPACE, useTheme } from '@/theme/m3'
 
 /**
  * The split-flap board — the one theatrical moment on Today, and the only
@@ -28,10 +31,14 @@ import { DURATION, EASING, SPACE } from '@/theme/m3'
 export interface BoardRow {
   label: string
   value: string
+  /** Bundled doc this row taps through to (#69); rows without one are inert. */
+  system?: LibrarySystemKey
 }
 
 function FlapCell({ row, index, last }: { row: BoardRow; index: number; last: boolean }) {
   const reduced = useReducedMotion()
+  const router = useRouter()
+  const theme = useTheme()
   const progress = useSharedValue(reduced ? 1 : 0)
   const delay = useMemo(() => index * 90 + (index % 3) * 8 + 15, [index])
 
@@ -51,12 +58,13 @@ function FlapCell({ row, index, last }: { row: BoardRow; index: number; last: bo
     transform: [{ perspective: 600 }, { rotateX: `${(1 - progress.value) * -85}deg` }],
   }))
 
-  return (
-    <View>
-      <View style={styles.row}>
-        <Text variant="labelMedium" color="onSurfaceVariant">
-          {row.label}
-        </Text>
+  const { system } = row
+  const cell = (
+    <View style={styles.row}>
+      <Text variant="labelMedium" color="onSurfaceVariant">
+        {row.label}
+      </Text>
+      <View style={styles.value}>
         <Animated.View style={flapStyle}>
           <Text
             variant="dataMedium"
@@ -67,7 +75,28 @@ function FlapCell({ row, index, last }: { row: BoardRow; index: number; last: bo
             {row.value}
           </Text>
         </Animated.View>
+        {system !== undefined && (
+          <CaretRightIcon size={14} color={theme.colors.onSurfaceVariant} />
+        )}
       </View>
+    </View>
+  )
+
+  return (
+    <View>
+      {system !== undefined ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${row.label}: ${row.value}. Open the ${row.label} page.`}
+          onPress={() => {
+            router.push({ pathname: '/learn/[system]', params: { system } })
+          }}
+        >
+          {cell}
+        </Pressable>
+      ) : (
+        cell
+      )}
       {!last && <Divider />}
     </View>
   )
@@ -95,5 +124,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: SPACE.lg,
     paddingVertical: SPACE.md,
+  },
+  value: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACE.sm,
+    flexShrink: 1,
   },
 })

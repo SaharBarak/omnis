@@ -206,17 +206,17 @@ export default function TodayScreen() {
 
   const rows = useMemo(
     () => [
-      { label: 'Kin', value: board.kin },
+      { label: 'Kin', value: board.kin, system: 'dreamspell' as const },
       { label: 'Moon', value: board.moon },
-      { label: 'Sun', value: board.sun },
-      { label: 'Sidereal', value: board.sidereal },
-      { label: 'Gate', value: board.gate },
-      { label: 'Hebrew', value: board.hebrewDate ?? '—' },
-      { label: 'Hijri', value: board.hijri ?? '—' },
-      { label: 'Persian', value: board.persian ?? '—' },
-      { label: 'Chinese', value: board.chineseYear ?? '—' },
-      { label: 'Panchang', value: board.panchang },
-      { label: 'Long Count', value: board.longCount },
+      { label: 'Sun', value: board.sun, system: 'astrology' as const },
+      { label: 'Sidereal', value: board.sidereal, system: 'panchang' as const },
+      { label: 'Gate', value: board.gate, system: 'human-design' as const },
+      { label: 'Hebrew', value: board.hebrewDate ?? '—', system: 'hebrew' as const },
+      { label: 'Hijri', value: board.hijri ?? '—', system: 'hijri' as const },
+      { label: 'Persian', value: board.persian ?? '—', system: 'persian' as const },
+      { label: 'Chinese', value: board.chineseYear ?? '—', system: 'chinese' as const },
+      { label: 'Panchang', value: board.panchang, system: 'panchang' as const },
+      { label: 'Long Count', value: board.longCount, system: 'long-count' as const },
     ],
     [board]
   )
