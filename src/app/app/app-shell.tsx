@@ -27,10 +27,12 @@ import {
   WandSparkles,
   Dna,
   Workflow,
+  Star,
   MoreHorizontal,
 } from 'lucide-react'
 import { BrandMark } from '@/components/brand-mark'
 import { useAuth } from '@/lib/hooks/use-auth'
+import { useFavorites } from '@/lib/hooks/use-favorites'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -115,6 +117,7 @@ const mobileNavItems = [
 
 function AppSidebar() {
   const pathname = usePathname()
+  const { favorites } = useFavorites()
   const { state } = useSidebar()
   const collapsed = state === 'collapsed'
 
@@ -139,6 +142,32 @@ function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
+        {favorites.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="font-sans text-[10px] font-medium uppercase tracking-[0.18em] text-sidebar-foreground/50">
+              Favorites
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {favorites.map((fav) => (
+                  <SidebarMenuItem key={fav.href}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === fav.href}
+                      tooltip={fav.title}
+                    >
+                      <Link href={fav.href}>
+                        <Star className="size-4" />
+                        <span>{fav.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
         {navGroups.map((group) => (
           <SidebarGroup key={group.label}>
             <SidebarGroupLabel className="font-sans text-[10px] font-medium uppercase tracking-[0.18em] text-sidebar-foreground/50">
