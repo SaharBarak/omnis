@@ -23,6 +23,7 @@ import {
   ChevronRight,
   Moon,
   Hash,
+  Columns4,
   MoreHorizontal,
 } from 'lucide-react'
 import { BrandMark } from '@/components/brand-mark'
@@ -93,6 +94,7 @@ const navGroups = [
       { href: '/app/predictions', label: 'Predictions', icon: Sparkles },
       { href: '/app/moon', label: 'Moon Map', icon: Moon },
       { href: '/app/numerology', label: 'Numerology', icon: Hash },
+      { href: '/app/bazi', label: 'BaZi', icon: Columns4 },
     ],
   },
 ]

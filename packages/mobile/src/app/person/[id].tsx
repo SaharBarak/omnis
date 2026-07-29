@@ -27,6 +27,7 @@ import { FlavorTabs, type FlavorTab } from '@/components/person/flavor-tabs'
 import { HumanDesignPage } from '@/components/person/human-design-page'
 import { InsightsPage } from '@/components/person/insights-page'
 import { KabbalahPage } from '@/components/person/kabbalah-page'
+import { BaziPage } from '@/components/person/bazi-page'
 import { NumerologyPage } from '@/components/person/numerology-page'
 import { LockedPage } from '@/components/person/scaffold'
 import { TzolkinPage } from '@/components/person/tzolkin-page'
@@ -63,6 +64,11 @@ const TABS: FlavorTab[] = [
     label: 'Numerology',
     flavor: { name: 'Numerology', accent: '#10B981', accentSoft: '#6EE7B7' },
   },
+  {
+    key: 'bazi',
+    label: 'BaZi',
+    flavor: { name: 'BaZi', accent: '#CF6F6F', accentSoft: '#E5A9A9' },
+  },
   { key: 'insights', label: 'Insights', flavor: FLAVORS.integration },
 ]
 
@@ -72,6 +78,7 @@ const SYSTEM_NAMES: Record<string, string> = {
   humanDesign: 'Human Design',
   gematria: 'Kabbalah',
   numerology: 'Numerology',
+  bazi: 'BaZi',
   insights: 'Insights',
 }
 
@@ -239,6 +246,8 @@ export default function PersonScreen() {
         )
       case 'numerology':
         return <NumerologyPage person={person} />
+      case 'bazi':
+        return <BaziPage person={person} onAddBirthTime={openEdit} />
       case 'insights':
         return (
           <InsightsPage
