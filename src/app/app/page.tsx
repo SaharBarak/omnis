@@ -223,19 +223,19 @@ export default function DashboardPage() {
     return [
       { label: 'Kin', value: board.kin.toUpperCase(), href: '/app/calendar' },
       { label: 'Moon', value: board.moon.toUpperCase(), href: '/app/moon' },
-      { label: 'Sun', value: board.sun.toUpperCase() },
-      { label: 'Sidereal', value: board.sidereal.toUpperCase() },
+      { label: 'Sun', value: board.sun.toUpperCase(), href: '/learn/astrology' },
+      { label: 'Sidereal', value: board.sidereal.toUpperCase(), href: '/app/calendars/panchang' },
       { label: 'Gate', value: board.gate.toUpperCase() },
       {
         label: 'Hebrew',
         value: board.hebrewDate ? board.hebrewDate.toUpperCase() : '—',
         href: '/app/calendars/hebrew',
       },
-      { label: 'Hijri', value: board.hijri ? board.hijri.toUpperCase() : '—' },
-      { label: 'Persian', value: board.persian ? board.persian.toUpperCase() : '—' },
-      { label: 'Chinese', value: board.chineseYear ? board.chineseYear.toUpperCase() : '—' },
-      { label: 'Panchang', value: board.panchang.toUpperCase() },
-      { label: 'Long Count', value: board.longCount },
+      { label: 'Hijri', value: board.hijri ? board.hijri.toUpperCase() : '—', href: '/app/calendars/hijri' },
+      { label: 'Persian', value: board.persian ? board.persian.toUpperCase() : '—', href: '/app/calendars/persian' },
+      { label: 'Chinese', value: board.chineseYear ? board.chineseYear.toUpperCase() : '—', href: '/app/calendars/chinese' },
+      { label: 'Panchang', value: board.panchang.toUpperCase(), href: '/app/calendars/panchang' },
+      { label: 'Long Count', value: board.longCount, href: '/app/calendars/long-count' },
     ]
   }, [now])
 
