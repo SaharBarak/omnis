@@ -11,9 +11,25 @@ import {
   Star,
   Dna,
   Hash,
+  Calculator,
+  Grid3x3,
+  Sprout,
+  Sparkles,
+  Moon,
+  Telescope,
+  ScrollText,
+  MoonStar,
+  Sun,
+  Flame,
+  Sunrise,
   type LucideIcon,
 } from 'lucide-react'
 import { useAuth } from '@/lib/hooks/use-auth'
+import {
+  DEFAULT_SYSTEM_PREFERENCES,
+  resolveSystemPreferences,
+  type SystemKey,
+} from '@/lib/system-preferences'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
@@ -34,14 +50,14 @@ import {
 } from '@/components/app-kit'
 import { cn } from '@/lib/utils'
 
-// System definitions
-type SystemKey = 'dreamspell' | 'tzolkin' | 'longcount' | 'astrology' | 'humandesign' | 'gematria'
-
+// System definitions — keys come from the shared preference module so the
+// chooser, the person tabs, the Today board, and the digest email agree.
 interface SystemInfo {
   key: SystemKey
   label: string
   icon: LucideIcon
   description: string
+  group: 'readings' | 'calendars'
   requiresTime?: boolean
   requiresLocation?: boolean
 }
@@ -52,24 +68,28 @@ const SYSTEMS: SystemInfo[] = [
     label: 'Dreamspell',
     icon: Orbit,
     description: 'Modern Mayan calendar system by Jose Arguelles',
+    group: 'readings',
   },
   {
     key: 'tzolkin',
     label: 'Tzolkin',
     icon: CalendarDays,
     description: 'Traditional Mayan 260-day sacred calendar',
+    group: 'readings',
   },
   {
     key: 'longcount',
     label: 'Long Count',
     icon: Landmark,
     description: 'Ancient Mayan long count calendar system',
+    group: 'readings',
   },
   {
     key: 'astrology',
     label: 'Astrology',
     icon: Star,
     description: 'Western natal chart astrology',
+    group: 'readings',
     requiresTime: true,
     requiresLocation: true,
   },
@@ -78,6 +98,7 @@ const SYSTEMS: SystemInfo[] = [
     label: 'Human Design',
     icon: Dna,
     description: 'Bodygraph analysis combining multiple systems',
+    group: 'readings',
     requiresTime: true,
     requiresLocation: true,
   },
@@ -86,18 +107,100 @@ const SYSTEMS: SystemInfo[] = [
     label: 'Gematria',
     icon: Hash,
     description: 'Hebrew numerology based on letter values',
+    group: 'readings',
+  },
+  {
+    key: 'numerology',
+    label: 'Numerology',
+    icon: Calculator,
+    description: 'Pythagorean numbers from name and birth date',
+    group: 'readings',
+  },
+  {
+    key: 'bazi',
+    label: 'BaZi',
+    icon: Grid3x3,
+    description: 'Chinese Four Pillars of Destiny',
+    group: 'readings',
+  },
+  {
+    key: 'genekeys',
+    label: 'Gene Keys',
+    icon: Sprout,
+    description: 'The Golden Path — shadow, gift, and siddhi',
+    group: 'readings',
+    requiresTime: true,
+  },
+  {
+    key: 'oracles',
+    label: 'Oracles',
+    icon: Sparkles,
+    description: 'Daily tarot, I Ching, and rune draws',
+    group: 'readings',
+  },
+  {
+    key: 'moon',
+    label: 'Moon phase',
+    icon: Moon,
+    description: 'The lunar phase on the Today board and daily brief',
+    group: 'calendars',
+  },
+  {
+    key: 'sidereal',
+    label: 'Sidereal',
+    icon: Telescope,
+    description: 'The sidereal zodiac position of the Sun',
+    group: 'calendars',
+  },
+  {
+    key: 'hebrew',
+    label: 'Hebrew calendar',
+    icon: ScrollText,
+    description: 'The lunisolar Hebrew date',
+    group: 'calendars',
+  },
+  {
+    key: 'hijri',
+    label: 'Hijri calendar',
+    icon: MoonStar,
+    description: 'The Islamic lunar date',
+    group: 'calendars',
+  },
+  {
+    key: 'persian',
+    label: 'Persian calendar',
+    icon: Sun,
+    description: 'The Solar Hijri date',
+    group: 'calendars',
+  },
+  {
+    key: 'chinese',
+    label: 'Chinese calendar',
+    icon: Flame,
+    description: 'The sexagenary year and lunisolar month',
+    group: 'calendars',
+  },
+  {
+    key: 'panchang',
+    label: 'Panchang',
+    icon: Sunrise,
+    description: 'The Vedic lunar day (tithi) and paksha',
+    group: 'calendars',
   },
 ]
 
-// Default system preferences - all enabled
-const DEFAULT_PREFERENCES: Record<SystemKey, boolean> = {
-  dreamspell: true,
-  tzolkin: true,
-  longcount: true,
-  astrology: true,
-  humandesign: true,
-  gematria: true,
-}
+const GROUPS: { id: SystemInfo['group']; title: string; blurb: string }[] = [
+  {
+    id: 'readings',
+    title: 'Reading systems',
+    blurb: 'Shape person pages and your readings',
+  },
+  {
+    id: 'calendars',
+    title: 'Calendars & sky',
+    blurb: 'Shape the Today board and your daily brief',
+  },
+]
 
 // Common timezones for selection
 const COMMON_TIMEZONES = [
@@ -114,10 +217,6 @@ const COMMON_TIMEZONES = [
   { value: 'Pacific/Auckland', label: 'Auckland (NZST/NZDT)' },
   { value: 'UTC', label: 'UTC' },
 ]
-
-export interface SystemPreferences {
-  enabledSystems: Record<SystemKey, boolean>
-}
 
 /** Requirement note for systems that need extra birth data. */
 function requirementNote(system: SystemInfo): string | null {
@@ -137,7 +236,7 @@ export default function SettingsPage() {
   const reduced = useReducedMotion()
 
   // Local state for toggles
-  const [enabledSystems, setEnabledSystems] = useState<Record<SystemKey, boolean>>(DEFAULT_PREFERENCES)
+  const [enabledSystems, setEnabledSystems] = useState<Record<SystemKey, boolean>>(DEFAULT_SYSTEM_PREFERENCES)
 
   // Display settings state
   const [locale, setLocale] = useState<'he' | 'en'>(profile?.locale ?? 'en')
@@ -146,10 +245,7 @@ export default function SettingsPage() {
   // Initialize from profile
   useEffect(() => {
     if (profile?.preferences) {
-      const prefs = profile.preferences as { systems?: Record<SystemKey, boolean> }
-      if (prefs.systems) {
-        setEnabledSystems({ ...DEFAULT_PREFERENCES, ...prefs.systems })
-      }
+      setEnabledSystems(resolveSystemPreferences(profile.preferences))
     }
     if (profile?.locale) {
       setLocale(profile.locale)
@@ -187,7 +283,7 @@ export default function SettingsPage() {
   }
 
   const handleResetDefaults = () => {
-    setEnabledSystems(DEFAULT_PREFERENCES)
+    setEnabledSystems(DEFAULT_SYSTEM_PREFERENCES)
     setSaved(false)
   }
 
@@ -212,7 +308,8 @@ export default function SettingsPage() {
         <div className="mb-6 flex flex-col gap-1">
           <Eyebrow>Symbolic Systems</Eyebrow>
           <p className="text-sm text-white/50">
-            Choose which systems will be displayed on profile pages
+            Choose your systems — they shape person pages, the Today board,
+            and your daily brief
           </p>
         </div>
 
@@ -222,37 +319,47 @@ export default function SettingsPage() {
           whileInView="visible"
           viewport={VIEWPORT_ONCE}
         >
-          {SYSTEMS.map((system) => {
-            const note = requirementNote(system)
-            return (
-              <motion.div
-                key={system.key}
-                variants={fadeUp}
-                className="flex items-center justify-between border-b border-white/[0.07] py-4 last:border-0"
-              >
-                <div className="flex items-start gap-3">
-                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <system.icon className="h-4 w-4" aria-hidden="true" />
-                  </span>
-                  <div>
-                    <Label
-                      htmlFor={system.key}
-                      className="cursor-pointer text-base font-medium text-white/90"
-                    >
-                      {system.label}
-                    </Label>
-                    <p className="mt-0.5 text-sm text-white/50">{system.description}</p>
-                    {note && <p className="mt-1 text-xs text-amber">{note}</p>}
-                  </div>
-                </div>
-                <Switch
-                  id={system.key}
-                  checked={enabledSystems[system.key]}
-                  onCheckedChange={(checked) => handleToggle(system.key, checked)}
-                />
-              </motion.div>
-            )
-          })}
+          {GROUPS.map((group, groupIndex) => (
+            <div key={group.id} className={cn(groupIndex > 0 && 'mt-8')}>
+              <div className="mb-1 flex items-baseline gap-3">
+                <h3 className="font-display font-semibold tracking-tight text-white/90">
+                  {group.title}
+                </h3>
+                <span className="text-xs text-white/40">{group.blurb}</span>
+              </div>
+              {SYSTEMS.filter((s) => s.group === group.id).map((system) => {
+                const note = requirementNote(system)
+                return (
+                  <motion.div
+                    key={system.key}
+                    variants={fadeUp}
+                    className="flex items-center justify-between border-b border-white/[0.07] py-4 last:border-0"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <system.icon className="h-4 w-4" aria-hidden="true" />
+                      </span>
+                      <div>
+                        <Label
+                          htmlFor={system.key}
+                          className="cursor-pointer text-base font-medium text-white/90"
+                        >
+                          {system.label}
+                        </Label>
+                        <p className="mt-0.5 text-sm text-white/50">{system.description}</p>
+                        {note && <p className="mt-1 text-xs text-amber">{note}</p>}
+                      </div>
+                    </div>
+                    <Switch
+                      id={system.key}
+                      checked={enabledSystems[system.key]}
+                      onCheckedChange={(checked) => handleToggle(system.key, checked)}
+                    />
+                  </motion.div>
+                )
+              })}
+            </div>
+          ))}
         </motion.div>
 
         <div className="mt-6 flex items-center gap-3 border-t border-white/[0.07] pt-4">

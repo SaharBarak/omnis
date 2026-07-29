@@ -22,16 +22,21 @@ describe('useSystemPreferences Hook', () => {
 
   describe('DEFAULT_SYSTEM_PREFERENCES', () => {
     it('should have all systems enabled by default', () => {
-      expect(DEFAULT_SYSTEM_PREFERENCES.dreamspell).toBe(true)
-      expect(DEFAULT_SYSTEM_PREFERENCES.tzolkin).toBe(true)
-      expect(DEFAULT_SYSTEM_PREFERENCES.longcount).toBe(true)
-      expect(DEFAULT_SYSTEM_PREFERENCES.astrology).toBe(true)
-      expect(DEFAULT_SYSTEM_PREFERENCES.humandesign).toBe(true)
-      expect(DEFAULT_SYSTEM_PREFERENCES.gematria).toBe(true)
+      for (const value of Object.values(DEFAULT_SYSTEM_PREFERENCES)) {
+        expect(value).toBe(true)
+      }
     })
 
-    it('should have exactly 6 systems', () => {
-      expect(Object.keys(DEFAULT_SYSTEM_PREFERENCES)).toHaveLength(6)
+    it('should cover the reading systems and the board calendars', () => {
+      const keys = Object.keys(DEFAULT_SYSTEM_PREFERENCES)
+      expect(keys).toHaveLength(17)
+      for (const key of [
+        'dreamspell', 'tzolkin', 'longcount', 'astrology', 'humandesign', 'gematria',
+        'numerology', 'bazi', 'genekeys', 'oracles',
+        'moon', 'sidereal', 'hebrew', 'hijri', 'persian', 'chinese', 'panchang',
+      ]) {
+        expect(keys).toContain(key)
+      }
     })
   })
 
@@ -83,17 +88,11 @@ describe('useSystemPreferences Hook', () => {
     })
 
     it('should handle all systems being disabled', () => {
+      const allOff = Object.fromEntries(
+        Object.keys(DEFAULT_SYSTEM_PREFERENCES).map((key) => [key, false])
+      )
       mockProfile.mockReturnValue({
-        preferences: {
-          systems: {
-            dreamspell: false,
-            tzolkin: false,
-            longcount: false,
-            astrology: false,
-            humandesign: false,
-            gematria: false,
-          },
-        },
+        preferences: { systems: allOff },
       })
 
       const { result } = renderHook(() => useSystemPreferences())

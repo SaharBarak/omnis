@@ -20,6 +20,7 @@ import {
   X,
 } from 'lucide-react'
 import { useAuth } from '@/lib/hooks/use-auth'
+import { useSystemPreferences } from '@/lib/hooks/use-system-preferences'
 import { usePeople } from '@/lib/hooks/use-people'
 import { useRelationships } from '@/lib/hooks/use-relationships'
 import { useGroups } from '@/lib/hooks/use-groups'
@@ -216,28 +217,34 @@ export default function DashboardPage() {
   }, [persistChecklist])
 
   // "Today, across the systems" — pure engine call, computed client-side
-  // from the mounted, stable `now` (@pleiad/engine/services/today).
+  // from the mounted, stable `now` (@pleiad/engine/services/today). Rows
+  // honour the user's preferred systems; if every row is toggled off the
+  // full board shows (an empty hero would read as broken, not minimal).
+  const { enabledSystems } = useSystemPreferences()
   const flapRows = useMemo<readonly FlapRow[]>(() => {
     if (!now) return []
     const board = getTodayAcrossSystems(now)
-    return [
-      { label: 'Kin', value: board.kin.toUpperCase(), href: '/app/calendar' },
-      { label: 'Moon', value: board.moon.toUpperCase(), href: '/app/moon' },
-      { label: 'Sun', value: board.sun.toUpperCase(), href: '/learn/astrology' },
-      { label: 'Sidereal', value: board.sidereal.toUpperCase(), href: '/app/calendars/panchang' },
-      { label: 'Gate', value: board.gate.toUpperCase() },
+    const rows: (FlapRow & { system: keyof typeof enabledSystems })[] = [
+      { label: 'Kin', value: board.kin.toUpperCase(), href: '/app/calendar', system: 'dreamspell' },
+      { label: 'Moon', value: board.moon.toUpperCase(), href: '/app/moon', system: 'moon' },
+      { label: 'Sun', value: board.sun.toUpperCase(), href: '/learn/astrology', system: 'astrology' },
+      { label: 'Sidereal', value: board.sidereal.toUpperCase(), href: '/app/calendars/panchang', system: 'sidereal' },
+      { label: 'Gate', value: board.gate.toUpperCase(), system: 'humandesign' },
       {
         label: 'Hebrew',
         value: board.hebrewDate ? board.hebrewDate.toUpperCase() : '—',
         href: '/app/calendars/hebrew',
+        system: 'hebrew',
       },
-      { label: 'Hijri', value: board.hijri ? board.hijri.toUpperCase() : '—', href: '/app/calendars/hijri' },
-      { label: 'Persian', value: board.persian ? board.persian.toUpperCase() : '—', href: '/app/calendars/persian' },
-      { label: 'Chinese', value: board.chineseYear ? board.chineseYear.toUpperCase() : '—', href: '/app/calendars/chinese' },
-      { label: 'Panchang', value: board.panchang.toUpperCase(), href: '/app/calendars/panchang' },
-      { label: 'Long Count', value: board.longCount, href: '/app/calendars/long-count' },
+      { label: 'Hijri', value: board.hijri ? board.hijri.toUpperCase() : '—', href: '/app/calendars/hijri', system: 'hijri' },
+      { label: 'Persian', value: board.persian ? board.persian.toUpperCase() : '—', href: '/app/calendars/persian', system: 'persian' },
+      { label: 'Chinese', value: board.chineseYear ? board.chineseYear.toUpperCase() : '—', href: '/app/calendars/chinese', system: 'chinese' },
+      { label: 'Panchang', value: board.panchang.toUpperCase(), href: '/app/calendars/panchang', system: 'panchang' },
+      { label: 'Long Count', value: board.longCount, href: '/app/calendars/long-count', system: 'longcount' },
     ]
-  }, [now])
+    const visible = rows.filter((row) => enabledSystems[row.system] ?? true)
+    return (visible.length > 0 ? visible : rows).map(({ system: _system, ...row }) => row)
+  }, [now, enabledSystems])
 
   // User's kin data
   const userKin = useMemo(() => {
