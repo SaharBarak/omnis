@@ -13,6 +13,7 @@ import { calculateNatalChart, calculateSunSignChart } from '@pleiad/engine/calcu
 import { calculateBodygraph } from '@pleiad/engine/calculations/human-design'
 import { standardGematria, digitalRoot as calcDigitalRoot } from '@pleiad/engine/calculations/gematria'
 import { DreamspellSection, TzolkinSection, WavespellDisplay, CastleDisplay, PersonalYearDisplay, GalacticBirthdayDisplay , LongCountDisplay, HaabDisplay, CalendarRoundDisplay, MayanTimelineDisplay , AstrologyDisplay , HumanDesignDisplay , GematriaDisplay , CrossSystemInsights  } from '@/components/cards'
+import { PersonalityEditor } from '@/components/people/personality-editor'
 import { Button } from '@/components/ui/button'
 import {
   PageSection,
@@ -32,7 +33,7 @@ import {
 import type { PersonWithTags } from '@/lib/hooks/use-people'
 import { useSystemPreferences, type SystemKey } from '@/lib/hooks/use-system-preferences'
 
-type TabKey = SystemKey | 'insights'
+type TabKey = SystemKey | 'insights' | 'personality'
 
 /**
  * Mobile IA order (packages/mobile/src/app/person/[id].tsx): Dreamspell →
@@ -48,6 +49,7 @@ const SYSTEMS: { key: TabKey; label: string; flavor: AppFlavorKey }[] = [
   { key: 'astrology', label: 'Astrology', flavor: 'astrology' },
   { key: 'humandesign', label: 'Human Design', flavor: 'humanDesign' },
   { key: 'gematria', label: 'Kabbalah', flavor: 'gematria' },
+  { key: 'personality', label: 'Personality', flavor: 'neutral' },
   { key: 'insights', label: 'Insights', flavor: 'integration' },
 ]
 
@@ -72,11 +74,15 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
   const [activeTab, setActiveTab] = useState<TabKey>('dreamspell')
   const reduced = useReducedMotion()
 
-  // Filter systems based on user preferences (insights shown when 2+ systems enabled)
-  const enabledSystemsCount = SYSTEMS.filter(s => s.key !== 'insights' && isSystemEnabled(s.key as SystemKey)).length
+  // Filter systems based on user preferences (insights shown when 2+ systems
+  // enabled; personality is user-entered, not preference-gated).
+  const enabledSystemsCount = SYSTEMS.filter(s => s.key !== 'insights' && s.key !== 'personality' && isSystemEnabled(s.key as SystemKey)).length
   const visibleSystems = SYSTEMS.filter(s => {
     if (s.key === 'insights') {
       return enabledSystemsCount >= 2
+    }
+    if (s.key === 'personality') {
+      return true
     }
     return isSystemEnabled(s.key as SystemKey)
   })
@@ -373,6 +379,9 @@ export function PersonDetailView({ person }: { person: PersonWithTags }) {
             </PageSection>
           </div>
         )
+
+      case 'personality':
+        return <PersonalityEditor person={person} />
 
       case 'insights':
         return (

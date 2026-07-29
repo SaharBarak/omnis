@@ -19,6 +19,17 @@ export interface Tag {
   created_at: string
 }
 
+/** User-entered personality frameworks (#75) — engine PersonalityProfile. */
+export interface PersonPersonality {
+  mbti?: string | null
+  enneagram?: string | null
+  disc?: string | null
+  attachment?: string | null
+  loveLanguages?: string[] | null
+  bigFive?: Partial<Record<'openness' | 'conscientiousness' | 'extraversion' | 'agreeableness' | 'neuroticism', number>> | null
+  viaStrengths?: string[] | null
+}
+
 export interface Person {
   id: string
   owner_id: string
@@ -30,6 +41,7 @@ export interface Person {
   avatar_url: string | null
   notes: string | null
   is_self: boolean
+  personality: PersonPersonality | null
   deleted_at: string | null
   created_at: string
   updated_at: string
@@ -45,6 +57,7 @@ export interface PersonInsert {
   notes?: string | null
   is_self?: boolean
   owner_id?: string
+  personality?: PersonPersonality | null
 }
 export type PersonUpdate = Partial<PersonInsert> & { deleted_at?: string | null }
 

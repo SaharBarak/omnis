@@ -21,6 +21,8 @@ export interface PersonInput {
   avatar_url?: string | null
   notes?: string | null
   is_self?: boolean
+  /** User-entered frameworks (#75) — engine PersonalityProfile shape. */
+  personality?: Record<string, unknown> | null
 }
 
 export type PersonUpdateInput = Partial<PersonInput> & {

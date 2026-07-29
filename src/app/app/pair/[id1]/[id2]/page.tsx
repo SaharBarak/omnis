@@ -10,7 +10,12 @@ import {
   getPersonKinData,
   type FiveSystemCompatibility,
 } from '@pleiad/engine/services/compatibility'
-import { calculateOracle, getMoonReading } from '@pleiad/engine/calculations'
+import {
+  calculateOracle,
+  comparePersonalities,
+  getMoonReading,
+  type PersonalityProfile,
+} from '@pleiad/engine/calculations'
 import { getSeal } from '@pleiad/engine/data/seals'
 import { getTone } from '@pleiad/engine/data/tones'
 import type { HarmonyType } from '@pleiad/engine/types/relationship'
@@ -241,6 +246,15 @@ export default function PairPage() {
     }
   }, [person1, person2])
 
+  // Personality frameworks are user-entered; compare what both carry.
+  const personalityLines = useMemo(() => {
+    if (!person1?.personality || !person2?.personality) return []
+    return comparePersonalities(
+      person1.personality as PersonalityProfile,
+      person2.personality as PersonalityProfile
+    )
+  }, [person1?.personality, person2?.personality])
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -458,6 +472,27 @@ export default function PairPage() {
           <Notice variant="success">
             Both Hebrew names carry the same gematria value — {fusion.nameMatch.value1}.
           </Notice>
+        </PageSection>
+      )}
+
+      {/* Personality frameworks (#75) — only what both people entered */}
+      {personalityLines.length > 0 && (
+        <PageSection index={5} accent="#C9CDD4" eyebrow="Personality">
+          <div className="space-y-3">
+            {personalityLines.map((line) => (
+              <div key={line.framework} className="surface-card p-5">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span className="font-sans text-[11px] font-medium uppercase tracking-[0.2em] text-white/50">
+                    {line.framework}
+                  </span>
+                  <span className="text-xs text-white/40">
+                    {person1.name}: {line.a} · {person2.name}: {line.b}
+                  </span>
+                </div>
+                <p className="mt-2 max-w-[65ch] text-sm text-white/70">{line.note}</p>
+              </div>
+            ))}
+          </div>
         </PageSection>
       )}
 

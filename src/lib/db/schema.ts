@@ -83,6 +83,10 @@ export const people = pgTable(
     birth_place: jsonb('birth_place').$type<{ lat?: number; lng?: number; name?: string; city?: string; country?: string; timezone?: string } | null>(),
     avatar_url: text('avatar_url'),
     notes: text('notes'),
+    // User-entered personality frameworks (#75): MBTI, enneagram, DISC,
+    // attachment, love languages, Big Five, VIA. Shape owned by
+    // @pleiad/engine calculations/personality.ts (PersonalityProfile).
+    personality: jsonb('personality').$type<Record<string, unknown> | null>(),
     is_self: boolean('is_self').notNull().default(false),
     deleted_at: ts('deleted_at'),
     created_at: createdAt(),
