@@ -6,6 +6,7 @@
  * matching; this module only decides what exists and where it leads.
  */
 
+import { ARTICLES, TOPIC_LABELS } from '@/lib/library/articles'
 import { TAROT_DECK } from '@pleiad/engine/data/tarot'
 import { HEXAGRAMS } from '@pleiad/engine/data/iching'
 import { ELDER_FUTHARK } from '@pleiad/engine/data/runes'
@@ -54,6 +55,7 @@ export const PAGE_ENTRIES: readonly SearchEntry[] = [
   { id: 'page-oracles', title: 'Oracles', href: '/app/oracles', group: 'Pages', keywords: 'tarot i ching runes daily draw' },
   { id: 'page-gene-keys', title: 'Gene Keys', href: '/app/gene-keys', group: 'Pages', keywords: 'golden path shadow gift siddhi hologenetic' },
   { id: 'page-tree', title: 'Tree of Life', href: '/app/tree-of-life', group: 'Pages', keywords: 'kabbalah sefirot paths pillars' },
+  { id: 'page-library', title: 'Learning Library', href: '/app/library', group: 'Pages', keywords: 'articles questions education learn' },
   { id: 'page-profile', title: 'Profile', href: '/app/profile', group: 'Pages', keywords: 'account settings personal birth' },
   { id: 'page-settings', title: 'Settings', href: '/app/settings', group: 'Pages', keywords: 'preferences systems' },
   { id: 'learn-dreamspell', title: 'Learn: Dreamspell', href: '/learn/dreamspell', group: 'Pages', keywords: 'kin seals tones wavespell oracle' },
@@ -66,6 +68,17 @@ export const PAGE_ENTRIES: readonly SearchEntry[] = [
 
 function referenceEntries(): SearchEntry[] {
   const entries: SearchEntry[] = []
+
+  for (const article of ARTICLES) {
+    entries.push({
+      id: `article-${article.slug}`,
+      title: article.question,
+      subtitle: article.title,
+      href: `/app/library/${article.slug}`,
+      group: 'Reference',
+      keywords: `library article ${TOPIC_LABELS[article.topic]}`,
+    })
+  }
 
   for (const card of TAROT_DECK) {
     entries.push({

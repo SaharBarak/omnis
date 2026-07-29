@@ -28,6 +28,7 @@ import {
   Dna,
   Workflow,
   Star,
+  BookOpen,
   MoreHorizontal,
 } from 'lucide-react'
 import { BrandMark } from '@/components/brand-mark'
@@ -103,6 +104,7 @@ const navGroups = [
       { href: '/app/oracles', label: 'Oracles', icon: WandSparkles },
       { href: '/app/gene-keys', label: 'Gene Keys', icon: Dna },
       { href: '/app/tree-of-life', label: 'Tree of Life', icon: Workflow },
+      { href: '/app/library', label: 'Library', icon: BookOpen },
     ],
   },
 ]
