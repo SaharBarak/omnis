@@ -56,6 +56,7 @@ export function CalendarDetail({
   hero,
   explorer,
   holidays,
+  holidaysEyebrow,
 }: {
   spec: CalendarSpec
   /** "Today in this calendar" set piece. */
@@ -64,6 +65,8 @@ export function CalendarDetail({
   explorer?: ReactNode
   /** Holidays / observances block (calendar-specific shape). */
   holidays?: ReactNode
+  /** Section eyebrow for the holidays block, e.g. "Observances". */
+  holidaysEyebrow?: string
 }) {
   let index = 0
   return (
@@ -99,7 +102,7 @@ export function CalendarDetail({
       )}
 
       {holidays && (
-        <PageSection index={index++} accent={spec.accent} eyebrow="Holidays">
+        <PageSection index={index++} accent={spec.accent} eyebrow={holidaysEyebrow ?? 'Holidays'}>
           {holidays}
         </PageSection>
       )}
