@@ -10,9 +10,11 @@ import {
   type StemBranch,
 } from '@pleiad/engine/calculations'
 import { usePeople } from '@/lib/hooks/use-people'
+import { usePlan } from '@/lib/hooks/use-plan'
 import { PageHeader, EmptyState } from '@/components/dashboard'
 import {
   DataRow,
+  LockedPage,
   Notice,
   PageSection,
   Pill,
@@ -90,7 +92,9 @@ function PillarCard({ label, pillar }: { label: string; pillar: StemBranch }) {
 }
 
 export default function BaziPage() {
-  const { people, loading } = usePeople()
+  const { people, loading: peopleLoading } = usePeople()
+  const { canUseSystem, loading: planLoading } = usePlan()
+  const loading = peopleLoading || planLoading
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [partnerId, setPartnerId] = useState<string | null>(null)
   const [gender, setGender] = useState<'male' | 'female'>('male')
@@ -157,6 +161,23 @@ export default function BaziPage() {
           description="Add a person with a birth date and their four pillars appear here."
           action={{ label: 'Add your first person', href: '/app/people' }}
         />
+      </div>
+    )
+  }
+
+  if (!canUseSystem('bazi')) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="BaZi — Four Pillars"
+          subtitle="The solar stems and branches of the moment you arrived"
+        />
+        <LockedPage accent={ACCENT} systemName="BaZi">
+          <SkeletonCard />
+          <div className="mt-3">
+            <SkeletonCard />
+          </div>
+        </LockedPage>
       </div>
     )
   }

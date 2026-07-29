@@ -82,6 +82,9 @@ describe('PLANS', () => {
       'humandesign',
       'astrology',
       'gematria',
+      'numerology',
+      'bazi',
+      'genekeys',
     ])
     expect(limits.profiles).toBe(15)
     expect(limits.aiInterpretations).toBe(5)

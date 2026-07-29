@@ -8,10 +8,12 @@ import {
   type NumerologyChart,
 } from '@pleiad/engine/calculations'
 import { usePeople } from '@/lib/hooks/use-people'
+import { usePlan } from '@/lib/hooks/use-plan'
 import { PageHeader, EmptyState } from '@/components/dashboard'
 import {
   DataRow,
   Eyebrow,
+  LockedPage,
   Notice,
   PageSection,
   Pill,
@@ -188,7 +190,9 @@ function ChartSections({
 }
 
 export default function NumerologyPage() {
-  const { people, loading } = usePeople()
+  const { people, loading: peopleLoading } = usePeople()
+  const { canUseSystem, loading: planLoading } = usePlan()
+  const loading = peopleLoading || planLoading
   const todayIso = useMemo(() => new Date().toISOString().split('T')[0], [])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [partnerId, setPartnerId] = useState<string | null>(null)
@@ -247,6 +251,23 @@ export default function NumerologyPage() {
           description="Add a person with a birth date and their full numerology chart appears here."
           action={{ label: 'Add your first person', href: '/app/people' }}
         />
+      </div>
+    )
+  }
+
+  if (!canUseSystem('numerology')) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Numerology"
+          subtitle="The Pythagorean numbers — every letter and date reduced to its charge"
+        />
+        <LockedPage accent={ACCENT} systemName="Numerology">
+          <SkeletonCard />
+          <div className="mt-3">
+            <SkeletonCard />
+          </div>
+        </LockedPage>
       </div>
     )
   }

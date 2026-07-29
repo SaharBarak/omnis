@@ -72,7 +72,7 @@ export const PLANS = {
       // the map IS the product, and a paid tier that only produced individual
       // readings would sell the commodity half of it.
       profiles: 15,
-      systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria'],
+      systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria', 'numerology', 'bazi', 'genekeys'],
       aiInterpretations: 5,
       boards: 2,
       exports: false,
@@ -92,7 +92,7 @@ export const PLANS = {
       // contact with an actual life. 25 keeps Practitioner's pull intact while
       // still clearing the old 10-person cap that fought the pitch.
       profiles: 25,
-      systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria'],
+      systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria', 'numerology', 'bazi', 'genekeys'],
       aiInterpretations: 50,
       boards: 5,
       exports: true,
@@ -109,7 +109,7 @@ export const PLANS = {
     storeProductId: process.env.STORE_PRODUCT_PRACTITIONER,
     limits: {
       profiles: Infinity,
-      systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria'],
+      systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria', 'numerology', 'bazi', 'genekeys'],
       aiInterpretations: Infinity,
       boards: Infinity,
       exports: true,
@@ -131,7 +131,7 @@ export const PLANS = {
     storeProductId: process.env.STORE_PRODUCT_LIFETIME,
     limits: {
       profiles: Infinity,
-      systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria'],
+      systems: ['dreamspell', 'tzolkin', 'longcount', 'humandesign', 'astrology', 'gematria', 'numerology', 'bazi', 'genekeys'],
       aiInterpretations: 50,
       boards: Infinity,
       exports: true,

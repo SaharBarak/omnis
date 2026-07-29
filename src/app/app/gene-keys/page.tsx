@@ -4,8 +4,9 @@ import { useMemo, useState } from 'react'
 import { geneKeysProfile, type GeneKeysSphere } from '@pleiad/engine/calculations'
 import { calculateBodygraph } from '@pleiad/engine/calculations/human-design'
 import { usePeople } from '@/lib/hooks/use-people'
+import { usePlan } from '@/lib/hooks/use-plan'
 import { PageHeader, EmptyState } from '@/components/dashboard'
-import { Notice, PageSection, SkeletonCard } from '@/components/app-kit'
+import { LockedPage, Notice, PageSection, SkeletonCard } from '@/components/app-kit'
 import { cn } from '@/lib/utils'
 
 /**
@@ -89,7 +90,9 @@ function SphereCard({ sphere }: { sphere: GeneKeysSphere }) {
 }
 
 export default function GeneKeysPage() {
-  const { people, loading } = usePeople()
+  const { people, loading: peopleLoading } = usePeople()
+  const { canUseSystem, loading: planLoading } = usePlan()
+  const loading = peopleLoading || planLoading
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const withDates = useMemo(
@@ -137,6 +140,23 @@ export default function GeneKeysPage() {
           description="Add a person with a birth date and time and their hologenetic profile appears here."
           action={{ label: 'Add your first person', href: '/app/people' }}
         />
+      </div>
+    )
+  }
+
+  if (!canUseSystem('genekeys')) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Gene Keys"
+          subtitle="The Golden Path — shadow, gift, and siddhi across three sequences"
+        />
+        <LockedPage accent={ACCENT} systemName="Gene Keys">
+          <SkeletonCard />
+          <div className="mt-3">
+            <SkeletonCard />
+          </div>
+        </LockedPage>
       </div>
     )
   }
