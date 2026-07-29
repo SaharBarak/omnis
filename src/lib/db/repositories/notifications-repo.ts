@@ -141,6 +141,8 @@ export interface DigestRecipient {
   digestTime: string
   /** IANA timezone from the profile; 'UTC' when unset. */
   timezone: string
+  /** Raw `profiles.preferences` jsonb — the digest resolves preferred systems from it. */
+  preferences: unknown
 }
 
 /**
@@ -196,6 +198,7 @@ export async function listAllEnabledDigestRecipients(): Promise<DigestRecipient[
         display_name: profiles.display_name,
         birth_date: profiles.birth_date,
         timezone: profiles.timezone,
+        preferences: profiles.preferences,
       })
       .from(profiles)
       .where(inArray(profiles.user_id, userIds)),
@@ -207,13 +210,19 @@ export async function listAllEnabledDigestRecipients(): Promise<DigestRecipient[
   }
   const profileById = new Map<
     string,
-    { display_name?: string; birth_date?: string | null; timezone?: string | null }
+    {
+      display_name?: string
+      birth_date?: string | null
+      timezone?: string | null
+      preferences?: unknown
+    }
   >()
   for (const p of profileRows) {
     profileById.set(p.user_id, {
       display_name: p.display_name,
       birth_date: p.birth_date ?? null,
       timezone: p.timezone ?? null,
+      preferences: p.preferences ?? null,
     })
   }
 
@@ -231,6 +240,7 @@ export async function listAllEnabledDigestRecipients(): Promise<DigestRecipient[
       channels: channelsById.get(userId) ?? [],
       digestTime: digestTimeById.get(userId) ?? '08:00',
       timezone: profile?.timezone || 'UTC',
+      preferences: profile?.preferences ?? null,
     })
   }
 

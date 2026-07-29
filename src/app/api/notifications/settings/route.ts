@@ -9,11 +9,14 @@ import {
 
 export const dynamic = 'force-dynamic'
 
-// Default notification settings
+// Default notification settings. The daily digest is opt-OUT: every account
+// gets the brief (email + in-app) until they turn it off — the settings page
+// and every digest footer link there. Mirrors the column defaults set in
+// migration 0005.
 const defaultSettings: Omit<NotificationSettings, 'userId'> = {
   enabled: true,
-  channels: ['in-app'],
-  dailyDigest: false,
+  channels: ['in-app', 'email'],
+  dailyDigest: true,
   dailyDigestTime: '08:00',
   weeklyDigest: false,
   weeklyDigestDay: 0,
@@ -72,8 +75,8 @@ export async function PUT(request: NextRequest) {
       enabled: typeof body.enabled === 'boolean' ? body.enabled : true,
       channels: Array.isArray(body.channels)
         ? body.channels.filter((c: string) => ['in-app', 'email', 'sms'].includes(c))
-        : ['in-app'],
-      dailyDigest: typeof body.dailyDigest === 'boolean' ? body.dailyDigest : false,
+        : ['in-app', 'email'],
+      dailyDigest: typeof body.dailyDigest === 'boolean' ? body.dailyDigest : true,
       dailyDigestTime: typeof body.dailyDigestTime === 'string'
         && /^\d{2}:\d{2}$/.test(body.dailyDigestTime)
         ? body.dailyDigestTime

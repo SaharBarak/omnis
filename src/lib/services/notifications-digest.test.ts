@@ -89,3 +89,43 @@ describe('processDailyDigestNotifications hour×timezone filter', () => {
     expect(mockSendEmail).not.toHaveBeenCalled()
   })
 })
+
+describe('daily digest body — today across the systems', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockSendEmail.mockResolvedValue({ ok: true, id: 'mail-1' })
+  })
+
+  async function bodyFor(preferences: unknown): Promise<string> {
+    const now = new Date('2026-07-29T08:00:00Z')
+    mockRecipients.mockResolvedValue([
+      recipient({ digestTime: '08:00', timezone: 'UTC', preferences }),
+    ])
+    await processDailyDigestNotifications(now)
+    expect(mockSendEmail).toHaveBeenCalledTimes(1)
+    return (mockSendEmail.mock.calls[0][0] as { bodyHtml: string }).bodyHtml
+  }
+
+  it('includes every system line by default (no stored preference)', async () => {
+    const body = await bodyFor(null)
+    expect(body).toContain('Today, across the systems')
+    for (const label of ['Moon', 'Sun', 'Sidereal', 'Gate', 'Hebrew', 'Hijri', 'Persian', 'Chinese', 'Panchang', 'Long Count']) {
+      expect(body).toContain(`>${label}</td>`)
+    }
+    expect(body).toContain('Sky today')
+  })
+
+  it('drops lines the recipient turned off, keeps the rest', async () => {
+    const body = await bodyFor({ systems: { hijri: false, panchang: false } })
+    expect(body).not.toContain('>Hijri</td>')
+    expect(body).not.toContain('>Panchang</td>')
+    expect(body).toContain('>Hebrew</td>')
+    expect(body).toContain('>Long Count</td>')
+  })
+
+  it('gates the sky section on the astrology preference', async () => {
+    const body = await bodyFor({ systems: { astrology: false } })
+    expect(body).not.toContain('Sky today')
+    expect(body).not.toContain('>Sun</td>')
+  })
+})

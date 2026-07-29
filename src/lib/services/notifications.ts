@@ -11,6 +11,11 @@ import {
   getDailyAstroPhenomena,
   type AstroPhenomena,
 } from '@pleiad/engine/services/astro-phenomena'
+import { getTodayAcrossSystems, type TodayAcrossSystems } from '@/lib/today-board'
+import {
+  resolveSystemPreferences,
+  type SystemKey,
+} from '@/lib/system-preferences'
 import {
   getSettings,
   upsertSettings,
@@ -113,20 +118,24 @@ export async function upsertNotificationSettings(
 // ============================================================================
 
 /**
- * Send daily digest email to a user
+ * Send daily digest email to a user. `board` is today across every system
+ * (computed once per cron run); `systems` is the recipient's preferred-systems
+ * map — board lines they've turned off stay out of their brief.
  */
 export async function sendDailyDigestEmail(
   email: string,
   userName: string,
   prediction: DailyPrediction,
   events: PredictionEvent[],
-  astro: AstroPhenomena
+  astro: AstroPhenomena,
+  board: TodayAcrossSystems,
+  systems: Record<SystemKey, boolean>
 ): Promise<{ success: boolean; id?: string }> {
   const result = await sendTransactionalEmail({
     to: email,
     subject: `Daily Forecast: ${prediction.toneName} ${prediction.sealName} (Kin ${prediction.kin})`,
     preheader: `${prediction.toneName} ${prediction.sealName} · ${astro.summary}`,
-    bodyHtml: dailyDigestBody(userName, prediction, events, astro),
+    bodyHtml: dailyDigestBody(userName, prediction, events, astro, board, systems),
     footerText: 'Daily Forecast from Pleiad',
     footerLink: MANAGE_LINK,
   })
@@ -193,6 +202,7 @@ export async function getUsersForDailyDigest(): Promise<
     channels: string[]
     digestTime: string
     timezone: string
+    preferences: unknown
   }>
 > {
   try {
@@ -233,9 +243,11 @@ export async function processDailyDigestNotifications(now: Date = new Date()): P
   const users = allUsers.filter(
     (u) => localHour(now, u.timezone) === Number(u.digestTime.slice(0, 2))
   )
-  const today = new Date().toISOString().split('T')[0]
-  // Today's sky, computed once for the whole run (same for every recipient).
+  const today = now.toISOString().split('T')[0]
+  // Today's sky + the cross-system board, computed once for the whole run
+  // (identical for every recipient; only the section filter is personal).
   const astro = getDailyAstroPhenomena(today)
+  const board = getTodayAcrossSystems(now)
 
   let sent = 0
   let failed = 0
@@ -259,7 +271,9 @@ export async function processDailyDigestNotifications(now: Date = new Date()): P
           user.name,
           prediction,
           prediction.events,
-          astro
+          astro,
+          board,
+          resolveSystemPreferences(user.preferences)
         )
         if (result.success) sent++
         else failed++
@@ -311,11 +325,53 @@ export async function processDailyDigestNotifications(now: Date = new Date()): P
 // Email Templates
 // ============================================================================
 
+/**
+ * "Today, across the systems" — the email mirror of the dashboard's
+ * split-flap board. Kin leads as the hero (always shown); every other
+ * line honours the recipient's preferred-systems map.
+ */
+function boardLinesHtml(
+  board: TodayAcrossSystems,
+  systems: Record<SystemKey, boolean>
+): string {
+  const lines: { system: SystemKey; label: string; value: string }[] = [
+    { system: 'moon', label: 'Moon', value: board.moon },
+    { system: 'astrology', label: 'Sun', value: board.sun },
+    { system: 'sidereal', label: 'Sidereal', value: board.sidereal },
+    { system: 'humandesign', label: 'Gate', value: board.gate },
+    { system: 'hebrew', label: 'Hebrew', value: board.hebrewDate },
+    { system: 'hijri', label: 'Hijri', value: board.hijri },
+    { system: 'persian', label: 'Persian', value: board.persian },
+    { system: 'chinese', label: 'Chinese', value: board.chineseYear },
+    { system: 'panchang', label: 'Panchang', value: board.panchang },
+    { system: 'longcount', label: 'Long Count', value: board.longCount },
+  ]
+  const visible = lines.filter((l) => (systems[l.system] ?? true) && l.value)
+  if (visible.length === 0) return ''
+  const rows = visible
+    .map(
+      (l) => `
+      <tr>
+        <td style="padding:7px 0;color:rgba(255,255,255,0.45);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;">${esc(l.label)}</td>
+        <td style="padding:7px 0;color:rgba(255,255,255,0.85);font-size:14px;text-align:right;">${esc(l.value)}</td>
+      </tr>`
+    )
+    .join('')
+  return `
+    <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:20px;margin-bottom:24px;">
+      <h3 style="color:#A78FDF;font-size:15px;margin:0 0 8px;">Today, across the systems</h3>
+      <table role="presentation" width="100%" style="border-collapse:collapse;">${rows}</table>
+    </div>
+  `
+}
+
 function dailyDigestBody(
   userName: string,
   prediction: DailyPrediction,
   events: PredictionEvent[],
-  astro: AstroPhenomena
+  astro: AstroPhenomena,
+  board: TodayAcrossSystems,
+  systems: Record<SystemKey, boolean>
 ): string {
   const dateFormatted = new Date(prediction.date).toLocaleDateString('en-US', {
     weekday: 'long',
@@ -352,16 +408,19 @@ function dailyDigestBody(
         </p>
       </div>
     </div>
+    ${boardLinesHtml(board, systems)}
     ${eventsHtml ? `
     <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:20px;margin-bottom:24px;">
       <h3 style="color:#A78FDF;font-size:15px;margin:0 0 12px;">Today's Events</h3>
       ${eventsHtml}
     </div>
     ` : ''}
+    ${(systems.astrology ?? true) ? `
     <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:20px;margin-bottom:24px;text-align:center;">
       <h3 style="color:#A78FDF;font-size:15px;margin:0 0 8px;">Sky today</h3>
       <p style="color:rgba(255,255,255,0.7);font-size:14px;margin:0;">${astro.summary}</p>
     </div>
+    ` : ''}
     <div style="text-align:center;">
       <a href="https://pleiad.io/app/predictions" style="display:inline-block;background:#7D5BC9;color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:8px;font-weight:600;font-size:14px;">
         View Full Forecast
