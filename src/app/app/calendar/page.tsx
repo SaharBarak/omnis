@@ -8,6 +8,9 @@ import {
   kinToTone,
   getWavespellPosition,
   getWavespellKins,
+  thirteenMoonDate,
+  thirteenMoonYear,
+  type ThirteenMoonMonth,
 } from '@pleiad/engine/calculations'
 import { getSeal } from '@pleiad/engine/data/seals'
 import { getTone } from '@pleiad/engine/data/tones'
@@ -20,7 +23,9 @@ import { cn } from '@/lib/utils'
 /**
  * Dreamspell calendar (#59) — the full month-at-a-glance kin calendar the
  * 13:20 Sync app popularized: every Gregorian day carries its kin, colored
- * by seal family, grouped into wavespells on tap.
+ * by seal family, grouped into wavespells on tap. The 13-Moon view lays the
+ * same days out as the 13 × 28 ring instead — thirteen moons of four
+ * radial weeks, with the Day Out of Time and Hunab Ku outside the count.
  */
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
@@ -111,16 +116,77 @@ function DayButton({
   )
 }
 
+function MoonRow({
+  moon,
+  todayIso,
+  selected,
+  onSelect,
+}: {
+  moon: ThirteenMoonMonth
+  todayIso: string
+  selected: string
+  onSelect: (iso: string) => void
+}) {
+  const first = moon.days[0].iso
+  const last = moon.days[27].iso
+  const range = `${new Date(`${first}T12:00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} – ${new Date(`${last}T12:00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
+  return (
+    <div>
+      <div className="mb-1.5 flex items-baseline justify-between gap-3">
+        <span className="font-sans text-[11px] font-medium uppercase tracking-[0.2em] text-white/70 [font-variant-numeric:tabular-nums]">
+          {moon.moon} · {moon.moonName} {moon.totem} Moon
+        </span>
+        <span className="text-[11px] text-white/35">{range}</span>
+      </div>
+      <div className="grid grid-cols-[repeat(28,minmax(0,1fr))] gap-1 max-md:grid-cols-[repeat(14,minmax(0,1fr))]">
+        {moon.days.map((cell) => {
+          const kin = dateToKin(cell.iso)
+          const seal = getSeal(kinToSeal(kin))
+          const color = SEAL_COLORS[toSealColor(seal.color) ?? 'red']
+          const isToday = cell.iso === todayIso
+          const isSelected = cell.iso === selected
+          return (
+            <button
+              key={cell.iso}
+              type="button"
+              onClick={() => onSelect(cell.iso)}
+              aria-pressed={isSelected}
+              aria-label={`${cell.iso}, Kin ${kin}, ${moon.moonName} Moon day ${cell.dayOfMoon}`}
+              title={`${cell.iso} · Kin ${kin}`}
+              className={cn(
+                'flex h-9 flex-col items-center justify-center rounded-md border text-[10px] transition-colors active:scale-[0.98] [font-variant-numeric:tabular-nums]',
+                isSelected
+                  ? 'border-brand/60 bg-brand/15 text-white/90'
+                  : isToday
+                    ? 'border-brand/40 text-white/80'
+                    : 'border-white/[0.07] text-white/50 hover:border-white/[0.12]'
+              )}
+            >
+              <span aria-hidden className={cn('mb-0.5 size-1 rounded-full', color.bg)} />
+              {cell.dayOfMoon}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export default function DreamspellCalendarPage() {
   const flavor = getFlavor('dreamspell')
   const todayIso = useMemo(() => localIso(new Date()), [])
+  const [view, setView] = useState<'month' | 'year'>('month')
   const [anchor, setAnchor] = useState(() => {
     const now = new Date()
     return new Date(now.getFullYear(), now.getMonth(), 1)
   })
+  const [yearStart, setYearStart] = useState(
+    () => thirteenMoonDate(localIso(new Date())).yearStart
+  )
   const [selected, setSelected] = useState(todayIso)
 
   const cells = useMemo(() => monthGrid(anchor), [anchor])
+  const moons = useMemo(() => thirteenMoonYear(yearStart), [yearStart])
 
   const moveMonth = useCallback((delta: number) => {
     setAnchor((a) => new Date(a.getFullYear(), a.getMonth() + delta, 1))
@@ -129,6 +195,7 @@ export default function DreamspellCalendarPage() {
   const jumpToday = useCallback(() => {
     const now = new Date()
     setAnchor(new Date(now.getFullYear(), now.getMonth(), 1))
+    setYearStart(thirteenMoonDate(localIso(now)).yearStart)
     setSelected(todayIso)
   }, [todayIso])
 
@@ -139,7 +206,8 @@ export default function DreamspellCalendarPage() {
     const ws = getWavespellPosition(kin)
     const wsKins = getWavespellKins(ws.wavespell.number)
     const wsSeal = getSeal(ws.wavespell.sealNumber)
-    return { kin, seal, tone, ws, wsKins, wsSeal }
+    const moonDay = thirteenMoonDate(selected)
+    return { kin, seal, tone, ws, wsKins, wsSeal, moonDay }
   }, [selected])
 
   const monthLabel = anchor.toLocaleDateString('en-GB', {
@@ -154,13 +222,41 @@ export default function DreamspellCalendarPage() {
         subtitle="Every day carries a kin — the 260-day galactic count laid over the civil month"
       />
 
-      <PageSection index={0} accent={flavor.accent} eyebrow="Month">
+      <PageSection
+        index={0}
+        accent={flavor.accent}
+        eyebrow={view === 'month' ? 'Month' : '13 Moons'}
+      >
         <div className="surface-card p-4 md:p-6">
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-display text-xl font-semibold tracking-tight text-white/90">
-              {monthLabel}
+              {view === 'month'
+                ? monthLabel
+                : `${yearStart}–${yearStart + 1} ring`}
             </h2>
             <div className="flex items-center gap-2">
+              <div
+                role="group"
+                aria-label="Calendar view"
+                className="mr-1 flex overflow-hidden rounded-full border border-white/15"
+              >
+                {(['month', 'year'] as const).map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setView(v)}
+                    aria-pressed={view === v}
+                    className={cn(
+                      'px-3 py-1 font-sans text-[11px] font-medium uppercase tracking-[0.2em] transition-colors active:scale-[0.98]',
+                      view === v
+                        ? 'bg-brand/20 text-white/90'
+                        : 'text-white/50 hover:text-white/70'
+                    )}
+                  >
+                    {v === 'month' ? 'Month' : '13 Moons'}
+                  </button>
+                ))}
+              </div>
               <button
                 type="button"
                 onClick={jumpToday}
@@ -170,16 +266,20 @@ export default function DreamspellCalendarPage() {
               </button>
               <button
                 type="button"
-                onClick={() => moveMonth(-1)}
-                aria-label="Previous month"
+                onClick={() =>
+                  view === 'month' ? moveMonth(-1) : setYearStart((y) => y - 1)
+                }
+                aria-label={view === 'month' ? 'Previous month' : 'Previous year'}
                 className="flex size-8 items-center justify-center rounded-full border border-white/[0.07] text-white/70 transition-colors hover:border-white/[0.12] active:scale-[0.98]"
               >
                 <ChevronLeft className="size-4" />
               </button>
               <button
                 type="button"
-                onClick={() => moveMonth(1)}
-                aria-label="Next month"
+                onClick={() =>
+                  view === 'month' ? moveMonth(1) : setYearStart((y) => y + 1)
+                }
+                aria-label={view === 'month' ? 'Next month' : 'Next year'}
                 className="flex size-8 items-center justify-center rounded-full border border-white/[0.07] text-white/70 transition-colors hover:border-white/[0.12] active:scale-[0.98]"
               >
                 <ChevronRight className="size-4" />
@@ -187,27 +287,47 @@ export default function DreamspellCalendarPage() {
             </div>
           </div>
 
-          <div className="mb-2 grid grid-cols-7 gap-1 md:gap-2">
-            {WEEKDAYS.map((d) => (
-              <span
-                key={d}
-                className="px-2 font-sans text-[10px] font-medium uppercase tracking-[0.15em] text-white/35"
-              >
-                {d}
-              </span>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-1 md:gap-2">
-            {cells.map((cell) => (
-              <DayButton
-                key={cell.iso}
-                cell={cell}
-                isToday={cell.iso === todayIso}
-                isSelected={cell.iso === selected}
-                onSelect={setSelected}
-              />
-            ))}
-          </div>
+          {view === 'month' ? (
+            <>
+              <div className="mb-2 grid grid-cols-7 gap-1 md:gap-2">
+                {WEEKDAYS.map((d) => (
+                  <span
+                    key={d}
+                    className="px-2 font-sans text-[10px] font-medium uppercase tracking-[0.15em] text-white/35"
+                  >
+                    {d}
+                  </span>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-1 md:gap-2">
+                {cells.map((cell) => (
+                  <DayButton
+                    key={cell.iso}
+                    cell={cell}
+                    isToday={cell.iso === todayIso}
+                    isSelected={cell.iso === selected}
+                    onSelect={setSelected}
+                  />
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="space-y-5">
+              {moons.map((moon) => (
+                <MoonRow
+                  key={moon.moon}
+                  moon={moon}
+                  todayIso={todayIso}
+                  selected={selected}
+                  onSelect={setSelected}
+                />
+              ))}
+              <p className="text-xs text-white/35">
+                July 25 — the Day Out of Time — and Feb 29 (0.0 Hunab Ku) sit
+                outside the 13 × 28 count; the ring runs July 26 to July 24.
+              </p>
+            </div>
+          )}
         </div>
       </PageSection>
 
@@ -239,7 +359,8 @@ export default function DreamspellCalendarPage() {
                 label="Wavespell"
                 value={`${detail.wsSeal.english} · ${detail.ws.position} of 13`}
               />
-              <DataRow label="Role" value={detail.ws.dayName} last />
+              <DataRow label="Role" value={detail.ws.dayName} />
+              <DataRow label="13-Moon" value={detail.moonDay.formatted} last />
             </div>
           </div>
 
