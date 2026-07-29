@@ -1,21 +1,23 @@
 'use client'
 
-import { useEffect, useState, useCallback, type JSX } from 'react'
+import { useEffect, useMemo, useState, useCallback, type JSX } from 'react'
 import { useRouter } from 'next/navigation'
 import { Command } from 'cmdk'
+import {
+  PAGE_ENTRIES,
+  getReferenceEntries,
+  peopleEntries,
+  type SearchEntry,
+} from '@/lib/search/search-index'
+import { usePeople } from '@/lib/hooks/use-people'
 
-const navigationItems = [
-  { name: 'Home', href: '/app', keywords: 'dashboard overview', icon: 'home' },
-  { name: 'People', href: '/app/people', keywords: 'profiles persons contacts', icon: 'users' },
-  { name: 'Relationships', href: '/app/relationships', keywords: 'connections bonds', icon: 'heart' },
-  { name: 'Groups', href: '/app/groups', keywords: 'families teams circles', icon: 'users-group' },
-  { name: 'Relationship Map', href: '/app/graph', keywords: 'network graph visualization', icon: 'network' },
-  { name: 'Boards', href: '/app/boards', keywords: 'canvas visual notes', icon: 'layout' },
-  { name: 'Cards', href: '/app/cards', keywords: 'print export pdf', icon: 'card' },
-  { name: 'Predictions', href: '/app/predictions', keywords: 'forecast daily weekly', icon: 'sparkles' },
-  { name: 'Profile', href: '/app/profile', keywords: 'account settings personal', icon: 'user' },
-  { name: 'Settings', href: '/app/settings', keywords: 'preferences systems', icon: 'settings' },
-]
+/**
+ * Global search (#77) — ⌘K over three sources: the user's people, every
+ * app/learn page, and the engine's reference libraries (cards, hexagrams,
+ * runes, gene keys, sefirot, letters, seals, holidays). Reference entries
+ * only join once two characters are typed, so the empty palette stays a
+ * navigator rather than a 300-row dump.
+ */
 
 const actionItems = [
   { name: 'Add Person', action: 'add-person', keywords: 'create new profile', icon: 'plus' },
@@ -23,13 +25,21 @@ const actionItems = [
   { name: 'New Board', action: 'new-board', keywords: 'create canvas', icon: 'plus' },
 ]
 
+const GROUP_ICON: Record<SearchEntry['group'], string> = {
+  People: 'user',
+  Pages: 'layout',
+  Reference: 'sparkles',
+}
+
 interface CommandPaletteProps {
   onAction?: (action: string) => void
 }
 
 export function CommandPalette({ onAction }: CommandPaletteProps) {
   const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
   const router = useRouter()
+  const { people } = usePeople()
 
   // Toggle with Cmd+K
   useEffect(() => {
@@ -44,10 +54,41 @@ export function CommandPalette({ onAction }: CommandPaletteProps) {
     return () => document.removeEventListener('keydown', down)
   }, [])
 
+  useEffect(() => {
+    if (!open) setQuery('')
+  }, [open])
+
   const runCommand = useCallback((command: () => void) => {
     setOpen(false)
     command()
   }, [])
+
+  const personItems = useMemo(() => peopleEntries(people), [people])
+  // The reference corpus is ~300 rows of static engine data; it joins the
+  // list only once the query can meaningfully narrow it.
+  const referenceItems = useMemo(
+    () => (query.trim().length >= 2 ? getReferenceEntries() : []),
+    [query]
+  )
+
+  const renderEntry = (entry: SearchEntry) => (
+    <Command.Item
+      key={entry.id}
+      value={`${entry.title} ${entry.subtitle ?? ''} ${entry.keywords ?? ''}`}
+      onSelect={() => runCommand(() => router.push(entry.href))}
+      className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-foreground hover:bg-muted/50 data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary transition-colors"
+    >
+      <CommandIcon name={GROUP_ICON[entry.group]} />
+      <span className="min-w-0">
+        <span className="block truncate">{entry.title}</span>
+        {entry.subtitle && (
+          <span className="block truncate text-xs text-muted-foreground">
+            {entry.subtitle}
+          </span>
+        )}
+      </span>
+    </Command.Item>
+  )
 
   return (
     <Command.Dialog
@@ -66,7 +107,9 @@ export function CommandPalette({ onAction }: CommandPaletteProps) {
       <div className="fixed left-1/2 top-[20%] -translate-x-1/2 w-full max-w-lg animate-slide-up">
         <div className="mx-4 overflow-hidden rounded-2xl bg-card border border-border shadow-earth-lg">
           <Command.Input
-            placeholder="Search commands..."
+            value={query}
+            onValueChange={setQuery}
+            placeholder="Search people, pages, cards, hexagrams, holidays…"
             className="w-full px-5 py-4 text-lg bg-transparent border-b border-border outline-none placeholder:text-muted-foreground"
           />
 
@@ -75,22 +118,30 @@ export function CommandPalette({ onAction }: CommandPaletteProps) {
               No results found.
             </Command.Empty>
 
-            <Command.Group heading="Navigation" className="py-2">
+            {personItems.length > 0 && (
+              <Command.Group heading="People" className="py-2">
+                <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  People
+                </div>
+                {personItems.map(renderEntry)}
+              </Command.Group>
+            )}
+
+            <Command.Group heading="Pages" className="py-2">
               <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Navigation
+                Pages
               </div>
-              {navigationItems.map((item) => (
-                <Command.Item
-                  key={item.href}
-                  value={`${item.name} ${item.keywords}`}
-                  onSelect={() => runCommand(() => router.push(item.href))}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-foreground hover:bg-muted/50 data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary transition-colors"
-                >
-                  <CommandIcon name={item.icon} />
-                  <span>{item.name}</span>
-                </Command.Item>
-              ))}
+              {PAGE_ENTRIES.map(renderEntry)}
             </Command.Group>
+
+            {referenceItems.length > 0 && (
+              <Command.Group heading="Reference" className="py-2">
+                <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Reference
+                </div>
+                {referenceItems.map(renderEntry)}
+              </Command.Group>
+            )}
 
             <Command.Group heading="Actions" className="py-2">
               <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
