@@ -268,27 +268,6 @@ export default function LibraryScreen() {
           </View>
         )}
 
-        <View style={styles.section}>
-          <Text variant="labelLarge" color="onSurfaceVariant">
-            The six traditions
-          </Text>
-
-          <View style={styles.portals}>
-            {LIBRARY_ORDER.map((key, index) => (
-              <Animated.View
-                key={key}
-                entering={
-                  reduced
-                    ? undefined
-                    : FadeInUp.duration(DURATION.medium4).delay(index * STAGGER_MS)
-                }
-              >
-                <TraditionPortal doc={LIBRARY_DOCS[key]} onOpen={() => openDoc(key)} />
-              </Animated.View>
-            ))}
-          </View>
-        </View>
-
         {/* Starred first when there is anything starred — a bookmark exists
             to be found again, so it outranks the shelves you browse. */}
         {favorites.length > 0 && (
@@ -314,6 +293,27 @@ export default function LibraryScreen() {
             </View>
           </View>
         )}
+
+        <View style={styles.section}>
+          <Text variant="labelLarge" color="onSurfaceVariant">
+            The six traditions
+          </Text>
+
+          <View style={styles.portals}>
+            {LIBRARY_ORDER.map((key, index) => (
+              <Animated.View
+                key={key}
+                entering={
+                  reduced
+                    ? undefined
+                    : FadeInUp.duration(DURATION.medium4).delay(index * STAGGER_MS)
+                }
+              >
+                <TraditionPortal doc={LIBRARY_DOCS[key]} onOpen={() => openDoc(key)} />
+              </Animated.View>
+            ))}
+          </View>
+        </View>
 
         {/* The Q&A library: one question per article, shortest first — the
             shelf people browse when they don't know what to ask yet. */}
