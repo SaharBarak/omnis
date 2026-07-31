@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { ScrollView, StyleSheet, View } from 'react-native'
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated'
 
+import { ARTICLES, TOPIC_LABELS } from '@pleiad/engine/data/articles'
 import {
   Card,
   Divider,
@@ -271,6 +272,32 @@ export default function LibraryScreen() {
               >
                 <TraditionPortal doc={LIBRARY_DOCS[key]} onOpen={() => openDoc(key)} />
               </Animated.View>
+            ))}
+          </View>
+        </View>
+
+        {/* The Q&A library: one question per article, shortest first — the
+            shelf people browse when they don't know what to ask yet. */}
+        <View style={styles.section}>
+          <Text variant="labelLarge" color="onSurfaceVariant">
+            Questions, answered
+          </Text>
+          <View>
+            {ARTICLES.map((article, index) => (
+              <View key={article.slug}>
+                <ListItem
+                  overline={`${TOPIC_LABELS[article.topic]} · ${article.minutes} min`}
+                  headline={article.title}
+                  supportingText={article.question}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/learn/article/[slug]',
+                      params: { slug: article.slug },
+                    })
+                  }
+                />
+                {index < ARTICLES.length - 1 && <Divider />}
+              </View>
             ))}
           </View>
         </View>
