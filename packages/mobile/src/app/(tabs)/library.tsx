@@ -275,6 +275,28 @@ export default function LibraryScreen() {
           </View>
         </View>
 
+        {/* Two reference surfaces that aren't docs: they're things you use.
+            The oracles card on Today reaches the first, and nothing reached
+            the second at all. */}
+        <View style={styles.section}>
+          <Text variant="labelLarge" color="onSurfaceVariant">
+            Explore
+          </Text>
+          <View>
+            <ListItem
+              headline="Oracles"
+              supportingText="Today's card, hexagram and rune — and the full libraries"
+              onPress={() => router.push('/oracles')}
+            />
+            <Divider />
+            <ListItem
+              headline="Tree of Life"
+              supportingText="Ten sefirot, twenty-two lettered paths"
+              onPress={() => router.push('/tree-of-life')}
+            />
+          </View>
+        </View>
+
         {/* The calendar atlas. These docs were reachable only by tapping a
             Today board row; they are a shelf of the library too. */}
         <View style={styles.section}>
