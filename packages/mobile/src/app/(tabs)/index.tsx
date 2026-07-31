@@ -12,7 +12,7 @@ import {
 import { getTodayAcrossSystems } from '@pleiad/engine/services/today'
 import type { DailyPrediction, PredictionEvent } from '@pleiad/engine/types/prediction'
 import { useRouter } from 'expo-router'
-import { GearSixIcon, PlusIcon } from 'phosphor-react-native'
+import { GearSixIcon, MagnifyingGlassIcon, PlusIcon } from 'phosphor-react-native'
 import { useMemo, useState } from 'react'
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native'
 import Animated from 'react-native-reanimated'
@@ -292,11 +292,18 @@ export default function TodayScreen() {
         variant="large"
         progress={progress}
         actions={
-          <IconButton
-            icon={(color) => <GearSixIcon size={24} color={color} />}
-            onPress={() => router.push('/settings')}
-            accessibilityLabel="Settings"
-          />
+          <>
+            <IconButton
+              icon={(color) => <MagnifyingGlassIcon size={24} color={color} />}
+              onPress={() => router.push('/search')}
+              accessibilityLabel="Search"
+            />
+            <IconButton
+              icon={(color) => <GearSixIcon size={24} color={color} />}
+              onPress={() => router.push('/settings')}
+              accessibilityLabel="Settings"
+            />
+          </>
         }
       />
 
