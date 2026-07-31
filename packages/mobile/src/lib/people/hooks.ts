@@ -106,6 +106,7 @@ export function useCreatePerson(callbacks?: MutationCallbacks) {
         avatar_url: draft.avatar_url ?? null,
         notes: draft.notes ?? null,
         is_self: false,
+        personality: null,
         deleted_at: null,
         created_at: now,
         updated_at: now,

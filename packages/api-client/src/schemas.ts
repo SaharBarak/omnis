@@ -69,6 +69,56 @@ export const personCreateSchema = z.object({
   tagIds: z.array(z.string()).optional(),
 })
 
+/** MBTI's sixteen types — the server rejects anything else (#75). */
+export const mbtiSchema = z.enum([
+  'INTJ', 'INTP', 'ENTJ', 'ENTP', 'INFJ', 'INFP', 'ENFJ', 'ENFP',
+  'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ', 'ISTP', 'ISFP', 'ESTP', 'ESFP',
+])
+
+export const discSchema = z.enum(['D', 'I', 'S', 'C'])
+
+export const attachmentSchema = z.enum([
+  'secure',
+  'anxious',
+  'avoidant',
+  'fearful-avoidant',
+])
+
+export const loveLanguageSchema = z.enum([
+  'words of affirmation',
+  'quality time',
+  'receiving gifts',
+  'acts of service',
+  'physical touch',
+])
+
+/**
+ * User-entered personality frameworks (#75) — the client-side mirror of
+ * `src/app/api/people/[id]/schemas.ts`. Kept enum-strict here too so an
+ * invalid selection fails before the round trip instead of coming back
+ * as a 400.
+ */
+export const personalitySchema = z
+  .object({
+    mbti: mbtiSchema.nullable().optional(),
+    enneagram: z.string().regex(/^[1-9](w[1-9])?$/).nullable().optional(),
+    disc: discSchema.nullable().optional(),
+    attachment: attachmentSchema.nullable().optional(),
+    loveLanguages: z.array(loveLanguageSchema).max(5).nullable().optional(),
+    bigFive: z
+      .object({
+        openness: z.number().min(0).max(100).optional(),
+        conscientiousness: z.number().min(0).max(100).optional(),
+        extraversion: z.number().min(0).max(100).optional(),
+        agreeableness: z.number().min(0).max(100).optional(),
+        neuroticism: z.number().min(0).max(100).optional(),
+      })
+      .nullable()
+      .optional(),
+    viaStrengths: z.array(z.string().max(40)).max(24).nullable().optional(),
+  })
+  .nullable()
+
 /** Body of PATCH /api/people/[id]. `action: 'restore'` clears soft delete. */
 export const personPatchSchema = z.object({
   updates: z
@@ -82,6 +132,7 @@ export const personPatchSchema = z.object({
       notes: z.string().nullable().optional(),
       is_self: z.boolean().optional(),
       deleted_at: z.string().nullable().optional(),
+      personality: personalitySchema.optional(),
     })
     .default({}),
   tagIds: z.array(z.string()).optional(),
