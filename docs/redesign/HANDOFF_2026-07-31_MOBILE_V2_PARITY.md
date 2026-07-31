@@ -24,8 +24,10 @@ and left mobile parity as deferred backlog item #5. That backlog is now empty.
 ## 2. VERIFICATION (P9)
 
 - `npx tsc --noEmit` clean in repo root and `packages/mobile`; eslint clean on
-  every touched file; **996 vitest green** (+9 new: system-preferences 6,
-  search-reference 3).
+  every touched file. Tests: **1023 green** across
+  `packages/engine packages/api-client src/lib` (996 for the narrower
+  `packages/engine src/lib` scope the last handoff used), +9 new —
+  system-preferences 6, search-reference 3.
 - `npx expo export --platform android` bundles after every phase.
 - **Emulator walk done** — the thing owed since 2026-07-29. Screenshots in
   `~/Desktop/pleiad-v2-testing/mobile-v2/`. Verified live on AVD `pleiad`:
@@ -79,4 +81,13 @@ and left mobile parity as deferred backlog item #5. That backlog is now empty.
    toggles nothing on mobile.
 4. `mobileRouteFor()` needs a new entry whenever a screen lands; there is no
    test tying it to the route table.
-5. Emulator + Metro were left running.
+5. Emulator and Metro are **stopped**. To resume a walk:
+   ```bash
+   $ANDROID_HOME/emulator/emulator -avd pleiad &
+   cd packages/mobile && npx expo start --port 8081 &
+   adb reverse tcp:8081 tcp:8081
+   adb shell am start -a android.intent.action.VIEW \
+     -d "exp+pleiad://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
+   ```
+   The debug APK built this session is already installed, so no rebuild is
+   needed unless native deps change.
