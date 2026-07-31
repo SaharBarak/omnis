@@ -18,6 +18,7 @@ import { useMemo, useState, type PropsWithChildren, type ReactNode } from 'react
 import { StyleSheet, View } from 'react-native'
 
 import { BondSheet } from '@/components/pair/bond-sheet'
+import { PairExtras } from '@/components/pair/extras'
 import { PaywallSheet } from '@/components/billing/paywall-sheet'
 import { Button, IconButton, Text, TopAppBar, Touchable } from '@/components/m3'
 import {
@@ -560,8 +561,15 @@ export default function PairScreen() {
           </>
         )}
 
-        <PageSection
+        <PairExtras
+          person1={person1}
+          person2={person2}
           index={SYSTEM_ORDER.length + 1}
+          unlocked={unlocked}
+        />
+
+        <PageSection
+          index={SYSTEM_ORDER.length + 4}
           flavor={FLAVORS.integration}
         >
           {/* The one filled button on the page — this is the page's whole point. */}
