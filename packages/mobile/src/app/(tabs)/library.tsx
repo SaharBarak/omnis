@@ -22,6 +22,7 @@ import {
 import { ErrorState } from '@/components/ui/error-state'
 import { api } from '@/lib/api'
 import {
+  CALENDAR_ORDER,
   LIBRARY_DOCS,
   LIBRARY_ORDER,
   docKeyFromSourceUrl,
@@ -266,6 +267,31 @@ export default function LibraryScreen() {
                   reduced
                     ? undefined
                     : FadeInUp.duration(DURATION.medium4).delay(index * STAGGER_MS)
+                }
+              >
+                <TraditionPortal doc={LIBRARY_DOCS[key]} onOpen={() => openDoc(key)} />
+              </Animated.View>
+            ))}
+          </View>
+        </View>
+
+        {/* The calendar atlas. These docs were reachable only by tapping a
+            Today board row; they are a shelf of the library too. */}
+        <View style={styles.section}>
+          <Text variant="labelLarge" color="onSurfaceVariant">
+            The calendar atlas
+          </Text>
+
+          <View style={styles.portals}>
+            {CALENDAR_ORDER.map((key, index) => (
+              <Animated.View
+                key={key}
+                entering={
+                  reduced
+                    ? undefined
+                    : FadeInUp.duration(DURATION.medium4).delay(
+                        (LIBRARY_ORDER.length + index) * STAGGER_MS
+                      )
                 }
               >
                 <TraditionPortal doc={LIBRARY_DOCS[key]} onOpen={() => openDoc(key)} />

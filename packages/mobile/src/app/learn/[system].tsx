@@ -19,6 +19,7 @@ import {
   TopAppBar,
   useScrollProgress,
 } from '@/components/m3'
+import { CalendarLive, isCalendarLiveKey } from '@/components/calendars/live'
 import { EmptyState } from '@/components/ui/empty-state'
 import { ENV } from '@/lib/env'
 import { LIBRARY_DOCS, type LibrarySystemKey } from '@/lib/library/content'
@@ -141,6 +142,12 @@ export default function LearnDocScreen() {
         </View>
 
         <View style={styles.body}>
+          {/* A calendar doc opens with the calendar itself — today's date,
+              the converter, what's coming — and only then explains itself. */}
+          {isCalendarLiveKey(doc.key) && (
+            <CalendarLive calendarKey={doc.key} flavor={doc.flavor} />
+          )}
+
           {doc.intro.map((paragraph, index) => (
             <Animated.View
               key={index}
