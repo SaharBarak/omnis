@@ -26,6 +26,7 @@ export {
   type CircularProgressProps,
   type LinearProgressProps,
 } from './progress'
+export { Slider } from './slider'
 export { SurfaceColorProvider, useSurfaceColor } from './surface-context'
 export { SegmentedButton, type Segment, type SegmentedButtonProps } from './segmented-button'
 export { SnackbarHost } from './snackbar'

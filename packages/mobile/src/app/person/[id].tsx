@@ -32,6 +32,8 @@ import { HumanDesignPage } from '@/components/person/human-design-page'
 import { InsightsPage } from '@/components/person/insights-page'
 import { KabbalahPage } from '@/components/person/kabbalah-page'
 import { BaziPage } from '@/components/person/bazi-page'
+import { GeneKeysPage } from '@/components/person/gene-keys-page'
+import { PersonalityPage } from '@/components/person/personality-page'
 import { NumerologyPage } from '@/components/person/numerology-page'
 import { LockedPage } from '@/components/person/scaffold'
 import { TzolkinPage } from '@/components/person/tzolkin-page'
@@ -95,6 +97,19 @@ const ALL_TABS: PersonTab[] = [
     label: 'BaZi',
     flavor: { name: 'BaZi', accent: '#CF6F6F', accentSoft: '#E5A9A9' },
   },
+  {
+    key: 'geneKeys',
+    system: 'genekeys',
+    label: 'Gene Keys',
+    flavor: { name: 'Gene Keys', accent: '#B9E8DD', accentSoft: '#D6F2EC' },
+  },
+  // Self-reported, so it belongs to no tradition and answers to no system
+  // preference — it is always offered, like Insights.
+  {
+    key: 'personality',
+    label: 'Personality',
+    flavor: { name: 'Personality', accent: '#C9CDD4', accentSoft: '#E2E5E9' },
+  },
   { key: 'insights', label: 'Insights', flavor: FLAVORS.integration },
 ]
 
@@ -106,7 +121,11 @@ const ALL_TABS: PersonTab[] = [
 function visibleTabs(enabled: Record<SystemKey, boolean>): PersonTab[] {
   const systems = ALL_TABS.filter((tab) => tab.system !== undefined && enabled[tab.system])
   if (systems.length === 0) return [ALL_TABS[0] as PersonTab]
-  return systems.length >= 2 ? [...systems, ALL_TABS[ALL_TABS.length - 1] as PersonTab] : systems
+  const unswitchable = ALL_TABS.filter((tab) => tab.system === undefined)
+  // Insights crosses systems, so it needs two of them to have anything to say.
+  return systems.length >= 2
+    ? [...systems, ...unswitchable]
+    : [...systems, ...unswitchable.filter((tab) => tab.key !== 'insights')]
 }
 
 const SYSTEM_NAMES: Record<string, string> = {
@@ -116,6 +135,7 @@ const SYSTEM_NAMES: Record<string, string> = {
   gematria: 'Kabbalah',
   numerology: 'Numerology',
   bazi: 'BaZi',
+  geneKeys: 'Gene Keys',
   insights: 'Insights',
 }
 
@@ -198,7 +218,10 @@ export default function PersonScreen() {
   // locked page must never flash unlocked while the plan resolves.
   const plan = subscription.data?.plan
   const paidPlan = plan !== undefined && plan !== 'free'
-  const isUnlocked = (key: string): boolean => key === 'dreamspell' || paidPlan
+  // Personality is the reader's own data, not a reading we compute — locking
+  // someone out of what they typed would be absurd.
+  const isUnlocked = (key: string): boolean =>
+    key === 'dreamspell' || key === 'personality' || paidPlan
 
   const markViewed = (...indexes: number[]) => {
     setViewed((previous) => {
@@ -295,6 +318,12 @@ export default function PersonScreen() {
         return <NumerologyPage person={person} />
       case 'bazi':
         return <BaziPage person={person} onAddBirthTime={openEdit} />
+      case 'geneKeys':
+        return (
+          <GeneKeysPage humanDesign={reading.humanDesign} onAddBirthTime={openEdit} />
+        )
+      case 'personality':
+        return <PersonalityPage person={person} />
       case 'insights':
         return (
           <InsightsPage

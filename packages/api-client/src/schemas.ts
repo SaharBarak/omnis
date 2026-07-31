@@ -252,6 +252,12 @@ export const profileUpdateSchema = z.object({
 
 export type PersonCreateInput = z.infer<typeof personCreateSchema>
 export type PersonPatchInput = z.infer<typeof personPatchSchema>
+/**
+ * The write shape of a personality profile — enum-strict, unlike the loose
+ * `PersonPersonality` a fetched row carries. Editors hold this type so an
+ * invalid selection can't be constructed in the first place.
+ */
+export type PersonalityInput = z.infer<typeof personalitySchema>
 export type RelationshipCreateInput = z.infer<typeof relationshipCreateSchema>
 export type RelationshipPatchInput = z.infer<typeof relationshipPatchSchema>
 export type GroupCreateInput = z.infer<typeof groupCreateSchema>
