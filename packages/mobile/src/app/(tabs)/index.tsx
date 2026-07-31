@@ -327,7 +327,11 @@ export default function TodayScreen() {
         </Card>
 
         {enabledSystems.oracles && (
-        <Card variant="outlined">
+        <Card
+          variant="outlined"
+          onPress={() => router.push('/oracles')}
+          accessibilityLabel="Today's oracles — open the full libraries"
+        >
           <Text variant="titleMedium" color="onSurface" style={styles.boardTitle}>
             Today&rsquo;s oracles
           </Text>
