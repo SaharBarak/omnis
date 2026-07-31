@@ -155,7 +155,7 @@ export default function LoginScreen() {
         </FadeUp>
         <FadeUp index={3}>
           <Text variant="bodyLarge" color="onSurfaceVariant">
-            Every birthday you care about, read through six wisdom systems.
+            Every birthday you care about, read through nine wisdom systems.
           </Text>
         </FadeUp>
       </View>

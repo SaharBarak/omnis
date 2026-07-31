@@ -46,12 +46,12 @@ const TRIGGER_COPY: Record<PaywallTrigger, TriggerCopy> = {
   'people-cap': {
     eyebrow: 'Your map is full',
     headline: (limit, planName) => `Your map holds ${limit} people on ${planName}.`,
-    body: 'Every person you keep gets the full six-system reading. Larger maps open with a plan. Nothing you typed is lost.',
+    body: 'Every person you keep gets the full nine-system reading. Larger maps open with a plan. Nothing you typed is lost.',
   },
   'system-lock': {
-    eyebrow: 'Five more systems',
-    headline: () => 'One person, six readings.',
-    body: 'Tzolkin, Long Count, Astrology, Human Design and Kabbalah are already computed for everyone on your map. A plan lifts the veil.',
+    eyebrow: 'Eight more systems',
+    headline: () => 'One person, nine readings.',
+    body: 'Tzolkin, Long Count, Astrology, Human Design, Kabbalah, Numerology, BaZi and the Gene Keys are already computed for everyone on your map. A plan lifts the veil.',
   },
   'bond-lock': {
     eyebrow: 'The bond runs deeper',
@@ -109,7 +109,7 @@ const TIERS: readonly Tier[] = [
     price: '$5/mo',
     ledger: {
       profiles: '15',
-      systems: 'All six',
+      systems: 'All nine',
       ai: '5/mo',
       timeline: 'Yes',
       bonds: 'Basic',
@@ -123,7 +123,7 @@ const TIERS: readonly Tier[] = [
     recommended: true,
     ledger: {
       profiles: '25',
-      systems: 'All six',
+      systems: 'All nine',
       ai: '50/mo',
       timeline: 'Yes',
       bonds: 'Basic',
@@ -136,7 +136,7 @@ const TIERS: readonly Tier[] = [
     price: '$29/mo',
     ledger: {
       profiles: 'Unlimited',
-      systems: 'All six',
+      systems: 'All nine',
       ai: 'Unlimited',
       timeline: 'Yes',
       bonds: 'Advanced',
@@ -150,7 +150,7 @@ const TIERS: readonly Tier[] = [
     note: 'Unlimited, forever',
     ledger: {
       profiles: 'Unlimited',
-      systems: 'All six',
+      systems: 'All nine',
       ai: '50/mo',
       timeline: 'Yes',
       bonds: 'Advanced',

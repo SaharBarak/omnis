@@ -7,7 +7,9 @@ import { DURATION, SHAPE, SPACE } from '@/theme/m3'
 import type { SystemFlavor } from '@/theme/tokens'
 
 /**
- * The six systems, as an M3 single-select segmented button driving the pager.
+ * The reader's systems, as an M3 single-select segmented button driving the
+ * pager. The set is whatever their preferences leave standing, so the count
+ * is not fixed.
  *
  * Flavour vs. the M3 selected state — the one design call on this screen:
  *
@@ -52,7 +54,7 @@ export function FlavorTabs({
 
   return (
     <View style={styles.root}>
-      {/* Six systems is one over M3's five-segment cap, which is exactly what
+      {/* The set runs past M3's five-segment cap, which is exactly what
           `scrollable` is for — the labels stay readable rather than shrinking. */}
       <SegmentedButton
         segments={segments}

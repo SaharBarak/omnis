@@ -15,11 +15,11 @@ import type { SystemFlavor } from '@/theme/tokens'
 export { SEAL_COLOR_HEX } from '@/theme/tokens'
 
 /**
- * The grammar every reading page is written in — one scaffold, six systems.
+ * The grammar every reading page is written in — one scaffold, every system.
  *
  * A system's flavour reaches exactly two things: the eyebrow above a section,
  * and the meter fills. Layout, spacing, type, and every surface underneath come
- * from the M3 theme and are identical across all six, so switching systems
+ * from the M3 theme and are identical across all of them, so switching systems
  * changes the reading, not the furniture.
  */
 

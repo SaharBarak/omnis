@@ -15,7 +15,8 @@ import { SHAPE, SPACE, TOUCH_TARGET, useTheme } from '@/theme/m3'
  *
  * M3 caps a segmented button at five segments. Past that the control is meant
  * to scroll rather than shrink its labels into unreadability, which is what
- * `scrollable` does — the person screen carries six systems.
+ * `scrollable` does — the person screen carries up to nine systems plus
+ * Personality and Insights.
  */
 export interface Segment {
   key: string
