@@ -20,6 +20,7 @@ import {
   useScrollProgress,
 } from '@/components/m3'
 import { CalendarLive, isCalendarLiveKey } from '@/components/calendars/live'
+import { FavoriteStar } from '@/components/favorite-star'
 import { EmptyState } from '@/components/ui/empty-state'
 import { ENV } from '@/lib/env'
 import { LIBRARY_DOCS, type LibrarySystemKey } from '@/lib/library/content'
@@ -92,7 +93,17 @@ export default function LearnDocScreen() {
 
   return (
     <View style={styles.screen}>
-      <TopAppBar title={doc.name} navigationIcon={backButton} progress={progress} />
+      <TopAppBar
+        title={doc.name}
+        navigationIcon={backButton}
+        progress={progress}
+        actions={
+          <FavoriteStar
+            href={doc.webPath ?? `/learn/${doc.key}`}
+            title={doc.name}
+          />
+        }
+      />
 
       <Animated.ScrollView
         onScroll={onScroll}

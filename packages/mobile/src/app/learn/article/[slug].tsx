@@ -17,7 +17,8 @@ import {
 } from '@/components/m3'
 import { EmptyState } from '@/components/ui/empty-state'
 import { ENV } from '@/lib/env'
-import { ARTICLE_ROUTES } from '@/lib/library/article-routes'
+import { FavoriteStar } from '@/components/favorite-star'
+import { mobileRouteFor } from '@/lib/routes'
 import { DURATION, SPACE } from '@/theme/m3'
 
 /**
@@ -69,8 +70,8 @@ export default function ArticleScreen() {
   }
 
   const openRelated = (href: string) => {
-    const mapped = ARTICLE_ROUTES[href]
-    if (mapped !== undefined) {
+    const mapped = mobileRouteFor(href)
+    if (mapped !== null) {
       router.push(mapped)
       return
     }
@@ -79,7 +80,17 @@ export default function ArticleScreen() {
 
   return (
     <View style={styles.screen}>
-      <TopAppBar title={article.title} navigationIcon={backButton} progress={progress} />
+      <TopAppBar
+        title={article.title}
+        navigationIcon={backButton}
+        progress={progress}
+        actions={
+          <FavoriteStar
+            href={`/app/library/${article.slug}`}
+            title={article.title}
+          />
+        }
+      />
 
       <Animated.ScrollView
         onScroll={onScroll}
@@ -142,7 +153,7 @@ export default function ArticleScreen() {
                 fullWidth
                 onPress={() => openRelated(link.href)}
                 icon={
-                  ARTICLE_ROUTES[link.href] === undefined
+                  mobileRouteFor(link.href) === null
                     ? (color) => <ArrowSquareOutIcon size={18} color={color} />
                     : undefined
                 }

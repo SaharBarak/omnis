@@ -14,6 +14,7 @@ import { StyleSheet, View, useWindowDimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg'
 
+import { FavoriteStar } from '@/components/favorite-star'
 import { Card, Chip, IconButton, Text, TopAppBar } from '@/components/m3'
 import { DataRow, PageSection, ReadingPage } from '@/components/person/scaffold'
 import { SPACE, alpha, useTheme } from '@/theme/m3'
@@ -232,6 +233,7 @@ export default function TreeOfLifeScreen() {
             accessibilityLabel="Back"
           />
         }
+        actions={<FavoriteStar href="/app/tree-of-life" title="Tree of Life" />}
       />
 
       <ReadingPage>

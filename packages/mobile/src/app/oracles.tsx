@@ -12,6 +12,7 @@ import { useMemo, useState } from 'react'
 import { SectionList, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { FavoriteStar } from '@/components/favorite-star'
 import {
   Card,
   Divider,
@@ -272,6 +273,7 @@ export default function OraclesScreen() {
             accessibilityLabel="Back"
           />
         }
+        actions={<FavoriteStar href="/app/oracles" title="Oracles" />}
       />
 
       <SectionList

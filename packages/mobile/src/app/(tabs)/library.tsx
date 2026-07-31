@@ -21,6 +21,9 @@ import {
   useScrollProgress,
 } from '@/components/m3'
 import { ErrorState } from '@/components/ui/error-state'
+import { ENV } from '@/lib/env'
+import { useFavorites } from '@/lib/favorites/hooks'
+import { mobileRouteFor } from '@/lib/routes'
 import { api } from '@/lib/api'
 import {
   CALENDAR_ORDER,
@@ -202,12 +205,22 @@ export default function LibraryScreen() {
   const reduced = useReducedMotion()
   const { progress, onScroll } = useScrollProgress(LARGE_TITLE_COLLAPSE_DISTANCE)
 
+  const { favorites } = useFavorites()
   const [query, setQuery] = useState('')
   const debouncedQuery = useDebounced(query.trim(), SEARCH_DEBOUNCE_MS)
   const searching = debouncedQuery.length >= MIN_QUERY_LENGTH
 
   const openDoc = (key: LibraryDoc['key']) => {
     router.push({ pathname: '/learn/[system]', params: { system: key } })
+  }
+
+  const openFavorite = (href: string) => {
+    const route = mobileRouteFor(href)
+    if (route !== null) {
+      router.push(route)
+      return
+    }
+    void Linking.openURL(`${ENV.apiUrl}${href}`)
   }
 
   const openResult = (result: KnowledgeSearchResult) => {
@@ -275,6 +288,32 @@ export default function LibraryScreen() {
             ))}
           </View>
         </View>
+
+        {/* Starred first when there is anything starred — a bookmark exists
+            to be found again, so it outranks the shelves you browse. */}
+        {favorites.length > 0 && (
+          <View style={styles.section}>
+            <Text variant="labelLarge" color="onSurfaceVariant">
+              Starred
+            </Text>
+            <View>
+              {favorites.map((entry, index) => (
+                <View key={entry.href}>
+                  <ListItem
+                    headline={entry.title}
+                    supportingText={
+                      mobileRouteFor(entry.href) === null
+                        ? 'Opens on the web'
+                        : undefined
+                    }
+                    onPress={() => openFavorite(entry.href)}
+                  />
+                  {index < favorites.length - 1 && <Divider />}
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
 
         {/* The Q&A library: one question per article, shortest first — the
             shelf people browse when they don't know what to ask yet. */}
