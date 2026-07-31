@@ -15,6 +15,10 @@ import Animated, { ZoomIn, useReducedMotion } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import type { PersonWithTags } from '@pleiad/api-client'
+import {
+  resolveSystemPreferences,
+  type SystemKey,
+} from '@pleiad/engine/services/system-preferences'
 
 import { PaywallSheet, type PaywallTrigger } from '@/components/billing/paywall-sheet'
 import { IconButton, Text, TopAppBar } from '@/components/m3'
@@ -32,7 +36,7 @@ import { NumerologyPage } from '@/components/person/numerology-page'
 import { LockedPage } from '@/components/person/scaffold'
 import { TzolkinPage } from '@/components/person/tzolkin-page'
 import { EmptyState } from '@/components/ui/empty-state'
-import { useSubscription } from '@/lib/api'
+import { useProfile, useSubscription } from '@/lib/api'
 import { usePersonDraft } from '@/lib/people/draft-store'
 import { usePeople } from '@/lib/people/hooks'
 import { buildInsights, computeReading } from '@/lib/people/reading'
@@ -53,24 +57,57 @@ import { initialsOf } from '@/lib/text'
 
 const AVATAR_SIZE = 56
 
-const TABS: FlavorTab[] = [
-  { key: 'dreamspell', label: 'Dreamspell', flavor: FLAVORS.dreamspell },
-  { key: 'tzolkin', label: 'Tzolkin', flavor: FLAVORS.tzolkin },
-  { key: 'astrology', label: 'Astrology', flavor: FLAVORS.astrology },
-  { key: 'humanDesign', label: 'Human Design', flavor: FLAVORS.humanDesign },
-  { key: 'gematria', label: 'Kabbalah', flavor: FLAVORS.gematria },
+/**
+ * The pager's tabs, before the reader's preferences are applied. `system` is
+ * the shared preference key (lower-case, web + digest + mobile agree);
+ * tabs without one — Insights — are not a system anybody can switch off,
+ * they're a view over whatever systems are on.
+ */
+interface PersonTab extends FlavorTab {
+  system?: SystemKey
+}
+
+const ALL_TABS: PersonTab[] = [
+  {
+    key: 'dreamspell',
+    system: 'dreamspell',
+    label: 'Dreamspell',
+    flavor: FLAVORS.dreamspell,
+  },
+  { key: 'tzolkin', system: 'tzolkin', label: 'Tzolkin', flavor: FLAVORS.tzolkin },
+  { key: 'astrology', system: 'astrology', label: 'Astrology', flavor: FLAVORS.astrology },
+  {
+    key: 'humanDesign',
+    system: 'humandesign',
+    label: 'Human Design',
+    flavor: FLAVORS.humanDesign,
+  },
+  { key: 'gematria', system: 'gematria', label: 'Kabbalah', flavor: FLAVORS.gematria },
   {
     key: 'numerology',
+    system: 'numerology',
     label: 'Numerology',
     flavor: { name: 'Numerology', accent: '#10B981', accentSoft: '#6EE7B7' },
   },
   {
     key: 'bazi',
+    system: 'bazi',
     label: 'BaZi',
     flavor: { name: 'BaZi', accent: '#CF6F6F', accentSoft: '#E5A9A9' },
   },
   { key: 'insights', label: 'Insights', flavor: FLAVORS.integration },
 ]
+
+/**
+ * Apply the reader's preferred systems. Insights needs two systems to have
+ * anything to cross, and turning everything off leaves Dreamspell standing —
+ * a person screen with no pages is a bug, not a preference.
+ */
+function visibleTabs(enabled: Record<SystemKey, boolean>): PersonTab[] {
+  const systems = ALL_TABS.filter((tab) => tab.system !== undefined && enabled[tab.system])
+  if (systems.length === 0) return [ALL_TABS[0] as PersonTab]
+  return systems.length >= 2 ? [...systems, ALL_TABS[ALL_TABS.length - 1] as PersonTab] : systems
+}
 
 const SYSTEM_NAMES: Record<string, string> = {
   tzolkin: 'Tzolkin',
@@ -123,9 +160,19 @@ export default function PersonScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const { people, isPending } = usePeople()
   const subscription = useSubscription()
+  const profile = useProfile()
+
+  const tabs = useMemo(
+    () => visibleTabs(resolveSystemPreferences(profile.data?.preferences)),
+    [profile.data?.preferences]
+  )
 
   const pagerRef = useRef<PagerView>(null)
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [selectedIndex, setSelectedIndex] = useState(0)
+  // Turning a system off in Settings can pull the open page out from under
+  // the pager. Clamping here — rather than correcting state in an effect —
+  // means there is never a frame pointing at a tab that no longer exists.
+  const activeIndex = Math.min(selectedIndex, tabs.length - 1)
   // Lazy page mount = the stagger fade-up runs on each page's FIRST view,
   // once per person (this screen remounts per person id).
   const [viewed, setViewed] = useState<ReadonlySet<number>>(() => new Set([0]))
@@ -156,7 +203,7 @@ export default function PersonScreen() {
   const markViewed = (...indexes: number[]) => {
     setViewed((previous) => {
       const fresh = indexes.filter(
-        (index) => index >= 0 && index < TABS.length && !previous.has(index)
+        (index) => index >= 0 && index < tabs.length && !previous.has(index)
       )
       if (fresh.length === 0) return previous
       const next = new Set(previous)
@@ -167,14 +214,14 @@ export default function PersonScreen() {
 
   const selectTab = (index: number) => {
     markViewed(index)
-    setActiveIndex(index)
+    setSelectedIndex(index)
     pagerRef.current?.setPage(index)
   }
 
   const onPageSelected = (event: PagerViewOnPageSelectedEvent) => {
     const index = event.nativeEvent.position
     markViewed(index)
-    setActiveIndex(index)
+    setSelectedIndex(index)
   }
 
   // Mount neighbors the moment a drag starts so the incoming page's stagger
@@ -327,7 +374,7 @@ export default function PersonScreen() {
         </View>
       </View>
 
-      <FlavorTabs tabs={TABS} activeIndex={activeIndex} onSelect={selectTab} />
+      <FlavorTabs tabs={tabs} activeIndex={activeIndex} onSelect={selectTab} />
 
       <PagerView
         ref={pagerRef}
@@ -336,7 +383,7 @@ export default function PersonScreen() {
         onPageSelected={onPageSelected}
         onPageScrollStateChanged={onPageScrollStateChanged}
       >
-        {TABS.map((tab, index) => (
+        {tabs.map((tab, index) => (
           <View key={tab.key} style={styles.pageHost} collapsable={false}>
             {viewed.has(index) &&
               (isUnlocked(tab.key) ? (

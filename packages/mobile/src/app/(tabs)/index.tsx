@@ -5,6 +5,10 @@ import {
   dailyTarotCard,
 } from '@pleiad/engine/calculations/oracles'
 import { getPersonalDailyPrediction } from '@pleiad/engine/services/predictions'
+import {
+  resolveSystemPreferences,
+  type SystemKey,
+} from '@pleiad/engine/services/system-preferences'
 import { getTodayAcrossSystems } from '@pleiad/engine/services/today'
 import type { DailyPrediction, PredictionEvent } from '@pleiad/engine/types/prediction'
 import { useRouter } from 'expo-router'
@@ -29,7 +33,7 @@ import {
   useScrollProgress,
 } from '@/components/m3'
 import { CaptureSheet } from '@/components/people/capture-sheet'
-import { TodayBoard } from '@/components/today/board'
+import { TodayBoard, type BoardRow } from '@/components/today/board'
 import { useProfile } from '@/lib/api'
 import { usePeople } from '@/lib/people/hooks'
 import { nextGalacticBirthday } from '@/lib/people/reading'
@@ -209,21 +213,33 @@ export default function TodayScreen() {
   const [captureOpen, setCaptureOpen] = useState(false)
   const [paywallOpen, setPaywallOpen] = useState(false)
 
+  const enabledSystems = useMemo(
+    () => resolveSystemPreferences(profile.data?.preferences),
+    [profile.data?.preferences]
+  )
+
+  // Same rows, same preference keys, same order as the web board — the two
+  // surfaces read one map so a system switched off is off everywhere.
   const rows = useMemo(
-    () => [
-      { label: 'Kin', value: board.kin, href: '/calendar' },
-      { label: 'Moon', value: board.moon },
-      { label: 'Sun', value: board.sun, system: 'astrology' as const },
-      { label: 'Sidereal', value: board.sidereal, system: 'panchang' as const },
-      { label: 'Gate', value: board.gate, system: 'human-design' as const },
-      { label: 'Hebrew', value: board.hebrewDate ?? '—', system: 'hebrew' as const },
-      { label: 'Hijri', value: board.hijri ?? '—', system: 'hijri' as const },
-      { label: 'Persian', value: board.persian ?? '—', system: 'persian' as const },
-      { label: 'Chinese', value: board.chineseYear ?? '—', system: 'chinese' as const },
-      { label: 'Panchang', value: board.panchang, system: 'panchang' as const },
-      { label: 'Long Count', value: board.longCount, system: 'long-count' as const },
-    ],
-    [board]
+    () =>
+      (
+        [
+          { label: 'Kin', value: board.kin, href: '/calendar', pref: 'dreamspell' },
+          { label: 'Moon', value: board.moon, pref: 'moon' },
+          { label: 'Sun', value: board.sun, system: 'astrology', pref: 'astrology' },
+          { label: 'Sidereal', value: board.sidereal, system: 'panchang', pref: 'sidereal' },
+          { label: 'Gate', value: board.gate, system: 'human-design', pref: 'humandesign' },
+          { label: 'Hebrew', value: board.hebrewDate ?? '—', system: 'hebrew', pref: 'hebrew' },
+          { label: 'Hijri', value: board.hijri ?? '—', system: 'hijri', pref: 'hijri' },
+          { label: 'Persian', value: board.persian ?? '—', system: 'persian', pref: 'persian' },
+          { label: 'Chinese', value: board.chineseYear ?? '—', system: 'chinese', pref: 'chinese' },
+          { label: 'Panchang', value: board.panchang, system: 'panchang', pref: 'panchang' },
+          { label: 'Long Count', value: board.longCount, system: 'long-count', pref: 'longcount' },
+        ] satisfies ReadonlyArray<BoardRow & { pref: SystemKey }>
+      )
+        .filter((row) => enabledSystems[row.pref])
+        .map(({ pref: _pref, ...row }) => row),
+    [board, enabledSystems]
   )
 
   const oracles = useMemo(() => {
@@ -310,6 +326,7 @@ export default function TodayScreen() {
           <TodayBoard rows={rows} />
         </Card>
 
+        {enabledSystems.oracles && (
         <Card variant="outlined">
           <Text variant="titleMedium" color="onSurface" style={styles.boardTitle}>
             Today&rsquo;s oracles
@@ -341,8 +358,11 @@ export default function TodayScreen() {
             </Text>
           </View>
         </Card>
+        )}
 
-        {birthDate !== null && <KinToday birthDate={birthDate} todayIso={todayIso} />}
+        {birthDate !== null && enabledSystems.dreamspell && (
+          <KinToday birthDate={birthDate} todayIso={todayIso} />
+        )}
 
         {birthdays.length > 0 && (
           <View style={styles.section}>

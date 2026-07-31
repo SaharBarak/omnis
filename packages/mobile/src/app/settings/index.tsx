@@ -1,4 +1,11 @@
-import type { Profile, SystemKey } from '@pleiad/api-client'
+import type { Profile } from '@pleiad/api-client'
+import {
+  SYSTEM_CATALOG,
+  resolveSystemPreferences,
+  type SystemGroup,
+  type SystemInfo,
+  type SystemKey,
+} from '@pleiad/engine/services/system-preferences'
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker'
@@ -51,42 +58,27 @@ import { SHAPE, SPACE, useTheme } from '@/theme/m3'
  * cache (auth store).
  */
 
-/** Stored shape of profile.preferences.systems — mirrors the web
- * use-system-preferences.ts exactly: a Record of system → enabled. */
+/** Stored shape of profile.preferences.systems — the shared record the web
+ * chooser, the person tabs, the Today board and the digest all resolve. */
 type SystemPrefs = Record<SystemKey, boolean>
 
-const DEFAULT_SYSTEM_PREFS: SystemPrefs = {
-  dreamspell: true,
-  tzolkin: true,
-  longcount: true,
-  astrology: true,
-  humandesign: true,
-  gematria: true,
-}
-
-const SYSTEM_TOGGLES: ReadonlyArray<{ key: SystemKey; label: string }> = [
-  { key: 'dreamspell', label: 'Dreamspell' },
-  { key: 'tzolkin', label: 'Tzolkin' },
-  { key: 'longcount', label: 'Long Count' },
-  { key: 'astrology', label: 'Astrology' },
-  { key: 'humandesign', label: 'Human Design' },
-  { key: 'gematria', label: 'Kabbalah' },
+/** The chooser's two groups, in the web's order and with its copy. */
+const SYSTEM_GROUPS: ReadonlyArray<{
+  id: SystemGroup
+  title: string
+  blurb: string
+}> = [
+  {
+    id: 'readings',
+    title: 'Reading systems',
+    blurb: 'Shape person pages and your readings',
+  },
+  {
+    id: 'calendars',
+    title: 'Calendars & sky',
+    blurb: 'Shape the Today board and your daily brief',
+  },
 ] as const
-
-/** Read the stored record, tolerating the legacy/absent shapes. */
-function readSystemPrefs(profile: Profile | undefined): SystemPrefs {
-  const raw = (profile?.preferences as Record<string, unknown> | undefined)?.systems
-  if (raw === undefined || raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
-    return DEFAULT_SYSTEM_PREFS
-  }
-  const stored = raw as Partial<Record<SystemKey, unknown>>
-  const merged = { ...DEFAULT_SYSTEM_PREFS }
-  for (const { key } of SYSTEM_TOGGLES) {
-    const value = stored[key]
-    if (typeof value === 'boolean') merged[key] = value
-  }
-  return merged
-}
 
 function parseDigestTime(time: string): Date {
   const [hours = 8, minutes = 0] = time.split(':').map(Number)
@@ -135,14 +127,25 @@ function ValueRow({
   )
 }
 
+/** The one line of copy a system row owes the reader, if any. */
+function requirementNote(system: SystemInfo): string | null {
+  if (system.requiresTime === true && system.requiresLocation === true)
+    return 'Needs birth time and place'
+  if (system.requiresTime === true) return 'Needs a birth time'
+  if (system.requiresLocation === true) return 'Needs a birth place'
+  return null
+}
+
 function ToggleRow({
   label,
+  supportingText,
   value,
   onChange,
   disabled = false,
   last = false,
 }: {
   label: string
+  supportingText?: string
   value: boolean
   onChange: (next: boolean) => void
   disabled?: boolean
@@ -158,6 +161,7 @@ function ToggleRow({
        */}
       <ListItem
         headline={label}
+        supportingText={supportingText}
         onPress={disabled ? undefined : () => onChange(!value)}
         accessibilityLabel={label}
         trailing={
@@ -280,7 +284,7 @@ export default function SettingsScreen() {
   }, [refreshPushStatus])
 
   // SYSTEMS — optimistic write of the full preferences object.
-  const systemPrefs = readSystemPrefs(profile.data)
+  const systemPrefs = resolveSystemPreferences(profile.data?.preferences)
   const updateSystems = useMutation<
     Profile,
     unknown,
@@ -442,6 +446,7 @@ export default function SettingsScreen() {
           <View>
             <ToggleRow
               label="Daily digest"
+              supportingText="Your board each morning, in the systems you keep on"
               value={settings.dailyDigest}
               disabled={updateNotifications.isPending}
               onChange={(next) => updateNotifications.mutate({ dailyDigest: next })}
@@ -562,19 +567,32 @@ export default function SettingsScreen() {
           {renderProfileSection()}
         </View>
 
-        <View style={styles.section}>
-          <SectionHeader title="Systems" />
-          {SYSTEM_TOGGLES.map(({ key, label }, index) => (
-            <ToggleRow
-              key={key}
-              label={label}
-              value={systemPrefs[key]}
-              disabled={profile.data === undefined || updateSystems.isPending}
-              onChange={(next) => toggleSystem(key, next)}
-              last={index === SYSTEM_TOGGLES.length - 1}
-            />
-          ))}
-        </View>
+        {SYSTEM_GROUPS.map((group) => {
+          const systems = SYSTEM_CATALOG.filter((system) => system.group === group.id)
+          return (
+            <View key={group.id} style={styles.section}>
+              <SectionHeader title={group.title} />
+              <Text
+                variant="bodySmall"
+                color="onSurfaceVariant"
+                style={styles.sectionBlurb}
+              >
+                {group.blurb}
+              </Text>
+              {systems.map((system, index) => (
+                <ToggleRow
+                  key={system.key}
+                  label={system.label}
+                  supportingText={requirementNote(system) ?? system.description}
+                  value={systemPrefs[system.key]}
+                  disabled={profile.data === undefined || updateSystems.isPending}
+                  onChange={(next) => toggleSystem(system.key, next)}
+                  last={index === systems.length - 1}
+                />
+              ))}
+            </View>
+          )
+        })}
 
         <View style={styles.section}>
           <SectionHeader title="Notifications" />
@@ -655,6 +673,10 @@ const styles = StyleSheet.create({
   sectionHeader: {
     paddingHorizontal: SPACE.margin,
     paddingBottom: SPACE.xs,
+  },
+  sectionBlurb: {
+    paddingHorizontal: SPACE.margin,
+    paddingBottom: SPACE.sm,
   },
   sectionAction: {
     paddingHorizontal: SPACE.margin,

@@ -27,7 +27,9 @@ import {
 import { useAuth } from '@/lib/hooks/use-auth'
 import {
   DEFAULT_SYSTEM_PREFERENCES,
+  SYSTEM_CATALOG,
   resolveSystemPreferences,
+  type SystemInfo as SharedSystemInfo,
   type SystemKey,
 } from '@/lib/system-preferences'
 import { Button } from '@/components/ui/button'
@@ -52,142 +54,33 @@ import { cn } from '@/lib/utils'
 
 // System definitions — keys come from the shared preference module so the
 // chooser, the person tabs, the Today board, and the digest email agree.
-interface SystemInfo {
-  key: SystemKey
-  label: string
-  icon: LucideIcon
-  description: string
-  group: 'readings' | 'calendars'
-  requiresTime?: boolean
-  requiresLocation?: boolean
+// Copy lives in the shared catalog; only the icon is web's to choose.
+type SystemInfo = SharedSystemInfo & { icon: LucideIcon }
+
+const SYSTEM_ICONS: Record<SystemKey, LucideIcon> = {
+  dreamspell: Orbit,
+  tzolkin: CalendarDays,
+  longcount: Landmark,
+  astrology: Star,
+  humandesign: Dna,
+  gematria: Hash,
+  numerology: Calculator,
+  bazi: Grid3x3,
+  genekeys: Sprout,
+  oracles: Sparkles,
+  moon: Moon,
+  sidereal: Telescope,
+  hebrew: ScrollText,
+  hijri: MoonStar,
+  persian: Sun,
+  chinese: Flame,
+  panchang: Sunrise,
 }
 
-const SYSTEMS: SystemInfo[] = [
-  {
-    key: 'dreamspell',
-    label: 'Dreamspell',
-    icon: Orbit,
-    description: 'Modern Mayan calendar system by Jose Arguelles',
-    group: 'readings',
-  },
-  {
-    key: 'tzolkin',
-    label: 'Tzolkin',
-    icon: CalendarDays,
-    description: 'Traditional Mayan 260-day sacred calendar',
-    group: 'readings',
-  },
-  {
-    key: 'longcount',
-    label: 'Long Count',
-    icon: Landmark,
-    description: 'Ancient Mayan long count calendar system',
-    group: 'readings',
-  },
-  {
-    key: 'astrology',
-    label: 'Astrology',
-    icon: Star,
-    description: 'Western natal chart astrology',
-    group: 'readings',
-    requiresTime: true,
-    requiresLocation: true,
-  },
-  {
-    key: 'humandesign',
-    label: 'Human Design',
-    icon: Dna,
-    description: 'Bodygraph analysis combining multiple systems',
-    group: 'readings',
-    requiresTime: true,
-    requiresLocation: true,
-  },
-  {
-    key: 'gematria',
-    label: 'Gematria',
-    icon: Hash,
-    description: 'Hebrew numerology based on letter values',
-    group: 'readings',
-  },
-  {
-    key: 'numerology',
-    label: 'Numerology',
-    icon: Calculator,
-    description: 'Pythagorean numbers from name and birth date',
-    group: 'readings',
-  },
-  {
-    key: 'bazi',
-    label: 'BaZi',
-    icon: Grid3x3,
-    description: 'Chinese Four Pillars of Destiny',
-    group: 'readings',
-  },
-  {
-    key: 'genekeys',
-    label: 'Gene Keys',
-    icon: Sprout,
-    description: 'The Golden Path — shadow, gift, and siddhi',
-    group: 'readings',
-    requiresTime: true,
-  },
-  {
-    key: 'oracles',
-    label: 'Oracles',
-    icon: Sparkles,
-    description: 'Daily tarot, I Ching, and rune draws',
-    group: 'readings',
-  },
-  {
-    key: 'moon',
-    label: 'Moon phase',
-    icon: Moon,
-    description: 'The lunar phase on the Today board and daily brief',
-    group: 'calendars',
-  },
-  {
-    key: 'sidereal',
-    label: 'Sidereal',
-    icon: Telescope,
-    description: 'The sidereal zodiac position of the Sun',
-    group: 'calendars',
-  },
-  {
-    key: 'hebrew',
-    label: 'Hebrew calendar',
-    icon: ScrollText,
-    description: 'The lunisolar Hebrew date',
-    group: 'calendars',
-  },
-  {
-    key: 'hijri',
-    label: 'Hijri calendar',
-    icon: MoonStar,
-    description: 'The Islamic lunar date',
-    group: 'calendars',
-  },
-  {
-    key: 'persian',
-    label: 'Persian calendar',
-    icon: Sun,
-    description: 'The Solar Hijri date',
-    group: 'calendars',
-  },
-  {
-    key: 'chinese',
-    label: 'Chinese calendar',
-    icon: Flame,
-    description: 'The sexagenary year and lunisolar month',
-    group: 'calendars',
-  },
-  {
-    key: 'panchang',
-    label: 'Panchang',
-    icon: Sunrise,
-    description: 'The Vedic lunar day (tithi) and paksha',
-    group: 'calendars',
-  },
-]
+const SYSTEMS: SystemInfo[] = SYSTEM_CATALOG.map((system) => ({
+  ...system,
+  icon: SYSTEM_ICONS[system.key],
+}))
 
 const GROUPS: { id: SystemInfo['group']; title: string; blurb: string }[] = [
   {

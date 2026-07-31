@@ -10,6 +10,7 @@ export {
   READING_SYSTEM_KEYS,
   CALENDAR_SYSTEM_KEYS,
   SYSTEM_KEYS,
+  SYSTEM_CATALOG,
   resolveSystemPreferences,
 } from '@pleiad/engine/services/system-preferences'
 
@@ -17,4 +18,6 @@ export type {
   SystemKey,
   ReadingSystemKey,
   CalendarSystemKey,
+  SystemGroup,
+  SystemInfo,
 } from '@pleiad/engine/services/system-preferences'

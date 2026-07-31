@@ -91,6 +91,134 @@ export const DEFAULT_SYSTEM_PREFERENCES: Record<SystemKey, boolean> = {
   panchang: true,
 }
 
+export type SystemGroup = 'readings' | 'calendars'
+
+export interface SystemInfo {
+  readonly key: SystemKey
+  readonly label: string
+  readonly description: string
+  readonly group: SystemGroup
+  /** Needs a birth time before it can say anything true. */
+  readonly requiresTime?: boolean
+  /** Needs a birth place before it can say anything true. */
+  readonly requiresLocation?: boolean
+}
+
+/**
+ * The chooser's copy, shared so web and mobile can't drift apart on what a
+ * system is called or what it needs. Icons stay platform-side (lucide on
+ * web, phosphor on mobile) — they're the one part that can't be shared.
+ */
+export const SYSTEM_CATALOG: readonly SystemInfo[] = [
+  {
+    key: 'dreamspell',
+    label: 'Dreamspell',
+    description: 'Modern Mayan calendar system by Jose Arguelles',
+    group: 'readings',
+  },
+  {
+    key: 'tzolkin',
+    label: 'Tzolkin',
+    description: 'Traditional Mayan 260-day sacred calendar',
+    group: 'readings',
+  },
+  {
+    key: 'longcount',
+    label: 'Long Count',
+    description: 'Ancient Mayan long count calendar system',
+    group: 'readings',
+  },
+  {
+    key: 'astrology',
+    label: 'Astrology',
+    description: 'Western natal chart astrology',
+    group: 'readings',
+    requiresTime: true,
+    requiresLocation: true,
+  },
+  {
+    key: 'humandesign',
+    label: 'Human Design',
+    description: 'Bodygraph analysis combining multiple systems',
+    group: 'readings',
+    requiresTime: true,
+    requiresLocation: true,
+  },
+  {
+    key: 'gematria',
+    label: 'Gematria',
+    description: 'Hebrew numerology based on letter values',
+    group: 'readings',
+  },
+  {
+    key: 'numerology',
+    label: 'Numerology',
+    description: 'Pythagorean numbers from name and birth date',
+    group: 'readings',
+  },
+  {
+    key: 'bazi',
+    label: 'BaZi',
+    description: 'Chinese Four Pillars of Destiny',
+    group: 'readings',
+  },
+  {
+    key: 'genekeys',
+    label: 'Gene Keys',
+    description: 'The Golden Path — shadow, gift, and siddhi',
+    group: 'readings',
+    requiresTime: true,
+  },
+  {
+    key: 'oracles',
+    label: 'Oracles',
+    description: 'Daily tarot, I Ching, and rune draws',
+    group: 'readings',
+  },
+  {
+    key: 'moon',
+    label: 'Moon phase',
+    description: 'The lunar phase on the Today board and daily brief',
+    group: 'calendars',
+  },
+  {
+    key: 'sidereal',
+    label: 'Sidereal',
+    description: 'The sidereal zodiac position of the Sun',
+    group: 'calendars',
+  },
+  {
+    key: 'hebrew',
+    label: 'Hebrew calendar',
+    description: 'The lunisolar Hebrew date',
+    group: 'calendars',
+  },
+  {
+    key: 'hijri',
+    label: 'Hijri calendar',
+    description: 'The Islamic lunar date',
+    group: 'calendars',
+  },
+  {
+    key: 'persian',
+    label: 'Persian calendar',
+    description: 'The Solar Hijri date',
+    group: 'calendars',
+  },
+  {
+    key: 'chinese',
+    label: 'Chinese calendar',
+    description: 'The sexagenary year and lunisolar month',
+    group: 'calendars',
+  },
+  {
+    key: 'panchang',
+    label: 'Panchang',
+    description: 'The Vedic lunar day (tithi) and paksha',
+    group: 'calendars',
+  },
+] as const
+
 /**
  * Merge stored preferences over the all-true defaults; anything unknown
  * stays visible. Accepts the raw `profile.preferences` jsonb value.
