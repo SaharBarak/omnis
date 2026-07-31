@@ -6,6 +6,7 @@ import {
   loginAsync,
   refreshTokensAsync,
   requestEmailCodeAsync,
+  signInWithPasswordAsync,
   verifyEmailCodeAsync,
   type AuthTokens,
 } from './supabase-auth'
@@ -44,6 +45,12 @@ interface AuthState {
    * 6-digit code (verifyOtp) or the magic-link code / URL (exchangeCode).
    */
   verifyEmailCode: (email: string, codeOrLink: string) => Promise<void>
+  /**
+   * Password sign-in for the App Store review demo account only. The login
+   * screen exposes it solely for `EXPO_PUBLIC_REVIEW_EMAIL`; unset, it is
+   * unreachable.
+   */
+  signInWithPassword: (email: string, password: string) => Promise<void>
   /** Wipe tokens + purge the query cache (F12) → 'signedOut'. */
   signOut: () => Promise<void>
   /**
@@ -115,6 +122,15 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     const next = /^\d{6}$/.test(trimmed)
       ? await verifyEmailCodeAsync(email, trimmed)
       : await exchangeCodeAsync(trimmed)
+    tokens = next
+    await saveTokens(next)
+    const userId = readJwtSub(next.accessToken)
+    set({ status: 'signedIn', userId })
+    await identifyPurchaserSafely(userId)
+  },
+
+  signInWithPassword: async (email, password) => {
+    const next = await signInWithPasswordAsync(email.trim(), password)
     tokens = next
     await saveTokens(next)
     const userId = readJwtSub(next.accessToken)

@@ -65,7 +65,9 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "gen:glyphs": "node ./scripts/generate-glyphs.mjs"
+    "gen:glyphs": "node ./scripts/generate-glyphs.mjs",
+    "env:push": "node ./scripts/push-eas-env.mjs",
+    "eas-build-pre-install": "node ./scripts/assert-env.mjs"
   },
   "private": true
 }

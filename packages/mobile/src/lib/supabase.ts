@@ -2,7 +2,7 @@ import 'react-native-url-polyfill/auto'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import * as SecureStore from 'expo-secure-store'
 
-import { ENV } from '@/lib/env'
+import { ENV, isAuthConfigured } from '@/lib/env'
 
 /**
  * The one Supabase client — used ONLY for the auth handshake (email sign-in via
@@ -26,10 +26,25 @@ const secureStorage = {
   removeItem: (k: string): Promise<void> => SecureStore.deleteItemAsync(safeKey(k)),
 }
 
-export const supabase: SupabaseClient = createClient(
-  ENV.supabaseUrl,
-  ENV.supabaseAnonKey,
-  {
+/**
+ * Built on first use, never at import time.
+ *
+ * `createClient` throws `supabaseKey is required.` on a blank key, and this
+ * module sits on the boot path (auth store → root layout). Constructing at
+ * module scope turned a missing build-time env var into a crash before first
+ * paint — which is exactly how TestFlight builds 9 and 10 shipped. Deferring
+ * the construction lets `isAuthConfigured()` gate the UI and show a readable
+ * message instead. `scripts/assert-env.mjs` is the real fix; this is the net.
+ */
+let client: SupabaseClient | null = null
+
+export function getSupabase(): SupabaseClient {
+  if (!isAuthConfigured()) {
+    throw new Error(
+      'Sign-in is unavailable: this build was compiled without EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY.'
+    )
+  }
+  client ??= createClient(ENV.supabaseUrl, ENV.supabaseAnonKey, {
     auth: {
       storage: secureStorage,
       persistSession: false,
@@ -37,5 +52,6 @@ export const supabase: SupabaseClient = createClient(
       detectSessionInUrl: false,
       flowType: 'pkce',
     },
-  }
-)
+  })
+  return client
+}

@@ -1,7 +1,7 @@
 import { makeRedirectUri } from 'expo-auth-session'
 import * as WebBrowser from 'expo-web-browser'
 
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 
 /**
  * Supabase Google OAuth for native — the authorization-code + PKCE flow run
@@ -53,7 +53,7 @@ function codeFromUrl(url: string): string | null {
 export async function loginAsync(): Promise<AuthTokens | null> {
   const redirectTo = redirectUri()
 
-  const { data, error } = await supabase.auth.signInWithOAuth({
+  const { data, error } = await getSupabase().auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo, skipBrowserRedirect: true },
   })
@@ -69,7 +69,7 @@ export async function loginAsync(): Promise<AuthTokens | null> {
   }
 
   const { data: exchanged, error: exchangeError } =
-    await supabase.auth.exchangeCodeForSession(code)
+    await getSupabase().auth.exchangeCodeForSession(code)
   if (exchangeError) throw new Error(exchangeError.message)
 
   const session = exchanged.session
@@ -86,11 +86,34 @@ export async function loginAsync(): Promise<AuthTokens | null> {
  * Sends a short code to the address; a new address is registered on first use.
  */
 export async function requestEmailCodeAsync(email: string): Promise<void> {
-  const { error } = await supabase.auth.signInWithOtp({
+  const { error } = await getSupabase().auth.signInWithOtp({
     email,
     options: { shouldCreateUser: true },
   })
   if (error) throw new Error(error.message)
+}
+
+/**
+ * Password sign-in, used only by the App Review demo account.
+ *
+ * Apple's reviewer needs working credentials, and cannot receive an emailed
+ * one-time code. Rather than pin a fixed OTP (which would mean a trigger on
+ * the `auth` schema and a permanent 6-digit credential), one account is given
+ * a long password. The login screen only offers this field when the typed
+ * address matches `EXPO_PUBLIC_REVIEW_EMAIL`; with that var unset — which is
+ * the default — the path is unreachable and the app is OTP-only.
+ */
+export async function signInWithPasswordAsync(
+  email: string,
+  password: string
+): Promise<AuthTokens> {
+  const { data, error } = await getSupabase().auth.signInWithPassword({
+    email,
+    password,
+  })
+  if (error) throw new Error(error.message)
+  if (data.session === null) throw new Error('Sign-in failed: no session')
+  return toTokens(data.session)
 }
 
 function toTokens(session: {
@@ -110,7 +133,7 @@ export async function verifyEmailCodeAsync(
   email: string,
   code: string
 ): Promise<AuthTokens> {
-  const { data, error } = await supabase.auth.verifyOtp({
+  const { data, error } = await getSupabase().auth.verifyOtp({
     email,
     token: code,
     type: 'email',
@@ -126,7 +149,7 @@ export async function verifyEmailCodeAsync(
  */
 export async function exchangeCodeAsync(codeOrUrl: string): Promise<AuthTokens> {
   const code = codeFromUrl(codeOrUrl) ?? codeOrUrl.trim()
-  const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+  const { data, error } = await getSupabase().auth.exchangeCodeForSession(code)
   if (error) throw new Error(error.message)
   if (data.session === null) throw new Error('Sign-in failed: no session')
   return toTokens(data.session)
@@ -136,7 +159,7 @@ export async function exchangeCodeAsync(codeOrUrl: string): Promise<AuthTokens> 
 export async function refreshTokensAsync(
   refreshToken: string
 ): Promise<AuthTokens> {
-  const { data, error } = await supabase.auth.refreshSession({
+  const { data, error } = await getSupabase().auth.refreshSession({
     refresh_token: refreshToken,
   })
   if (error) throw new Error(error.message)

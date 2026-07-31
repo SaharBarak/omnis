@@ -14,6 +14,7 @@ import { BrandMark } from '@/components/brand-mark'
 import { Button, Text, TextField } from '@/components/m3'
 import { Notice } from '@/components/ui/notice'
 import { useAuth } from '@/lib/auth'
+import { isReviewAccount } from '@/lib/env'
 import { DURATION, EASING, SPACE } from '@/theme/m3'
 
 const STAGGER_MS = 70
@@ -53,9 +54,11 @@ function FadeUp({
 export default function LoginScreen() {
   const requestEmailCode = useAuth((state) => state.requestEmailCode)
   const verifyEmailCode = useAuth((state) => state.verifyEmailCode)
-  const [step, setStep] = useState<'email' | 'code'>('email')
+  const signInWithPassword = useAuth((state) => state.signInWithPassword)
+  const [step, setStep] = useState<'email' | 'code' | 'password'>('email')
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
+  const [password, setPassword] = useState('')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -64,6 +67,13 @@ export default function LoginScreen() {
     const trimmed = email.trim()
     if (!EMAIL_RE.test(trimmed)) {
       setError('Enter a valid email address.')
+      return
+    }
+    // The App Store reviewer cannot receive an emailed code, so the one
+    // configured review address gets a password prompt instead of a send.
+    if (isReviewAccount(trimmed)) {
+      setError(null)
+      setStep('password')
       return
     }
     setPending(true)
@@ -99,6 +109,32 @@ export default function LoginScreen() {
     } finally {
       setPending(false)
     }
+  }
+
+  const submitPassword = async () => {
+    if (pending) return
+    if (password.length === 0) {
+      setError('Enter the password.')
+      return
+    }
+    setPending(true)
+    setError(null)
+    try {
+      await signInWithPassword(email.trim(), password)
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : 'Could not sign in. Try again.'
+      )
+    } finally {
+      setPending(false)
+    }
+  }
+
+  const restart = () => {
+    setStep('email')
+    setCode('')
+    setPassword('')
+    setError(null)
   }
 
   return (
@@ -142,6 +178,25 @@ export default function LoginScreen() {
               {pending ? 'Sending code…' : 'Continue with email'}
             </Button>
           </View>
+        ) : step === 'password' ? (
+          <View style={styles.form}>
+            <TextField
+              label="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="current-password"
+              editable={!pending}
+            />
+            <Button fullWidth onPress={() => void submitPassword()} disabled={pending}>
+              {pending ? 'Signing in…' : 'Sign in'}
+            </Button>
+            <Button fullWidth variant="text" onPress={restart} disabled={pending}>
+              Use a different email
+            </Button>
+          </View>
         ) : (
           <View style={styles.form}>
             <TextField
@@ -156,16 +211,7 @@ export default function LoginScreen() {
             <Button fullWidth onPress={() => void verify()} disabled={pending}>
               {pending ? 'Verifying…' : 'Verify & continue'}
             </Button>
-            <Button
-              fullWidth
-              variant="text"
-              onPress={() => {
-                setStep('email')
-                setCode('')
-                setError(null)
-              }}
-              disabled={pending}
-            >
+            <Button fullWidth variant="text" onPress={restart} disabled={pending}>
               Use a different email
             </Button>
           </View>
