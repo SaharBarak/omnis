@@ -124,7 +124,6 @@ export async function upsertNotificationSettings(
  */
 export async function sendDailyDigestEmail(
   email: string,
-  userName: string,
   prediction: DailyPrediction,
   events: PredictionEvent[],
   astro: AstroPhenomena,
@@ -135,7 +134,7 @@ export async function sendDailyDigestEmail(
     to: email,
     subject: `Daily Forecast: ${prediction.toneName} ${prediction.sealName} (Kin ${prediction.kin})`,
     preheader: `${prediction.toneName} ${prediction.sealName} · ${astro.summary}`,
-    bodyHtml: dailyDigestBody(userName, prediction, events, astro, board, systems),
+    bodyHtml: dailyDigestBody(prediction, events, astro, board, systems),
     footerText: 'Daily Forecast from Pleiad',
     footerLink: MANAGE_LINK,
   })
@@ -268,7 +267,6 @@ export async function processDailyDigestNotifications(now: Date = new Date()): P
       if (user.channels.includes('email')) {
         const result = await sendDailyDigestEmail(
           user.email,
-          user.name,
           prediction,
           prediction.events,
           astro,
@@ -365,8 +363,12 @@ function boardLinesHtml(
   `
 }
 
+/**
+ * The daily brief. Opens on the date and goes straight to the board — no
+ * greeting: this is a briefing, and a salutation is a line of nothing above
+ * the only content that matters.
+ */
 function dailyDigestBody(
-  userName: string,
   prediction: DailyPrediction,
   events: PredictionEvent[],
   astro: AstroPhenomena,
@@ -391,8 +393,7 @@ function dailyDigestBody(
 
   return `
     <div style="text-align:center;margin-bottom:20px;">
-      <p style="color:rgba(255,255,255,0.5);font-size:14px;margin:0 0 8px;">${dateFormatted}</p>
-      <p style="color:rgba(255,255,255,0.7);font-size:14px;margin:0;">Good morning, ${esc(userName)}</p>
+      <p style="color:rgba(255,255,255,0.5);font-size:14px;margin:0;">${dateFormatted}</p>
     </div>
     <div style="text-align:center;margin-bottom:24px;">
       <div style="background:${prediction.colorHex};color:${prediction.color === 'white' ? '#000' : '#fff'};display:inline-block;padding:8px 20px;border-radius:20px;font-weight:600;margin-bottom:16px;">
