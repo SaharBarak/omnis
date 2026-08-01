@@ -11,7 +11,10 @@
     "ios": {
       "icon": "./assets/images/icon.png",
       "bundleIdentifier": "app.pleiad.mobile",
-      "supportsTablet": false
+      "supportsTablet": false,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -55,6 +58,12 @@
       "eas": {
         "projectId": "efb32c9b-aaaf-4b4b-9ace-e8e9ab1c62c7"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/efb32c9b-aaaf-4b4b-9ace-e8e9ab1c62c7"
     }
   }
 }
