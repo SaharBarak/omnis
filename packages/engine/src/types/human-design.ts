@@ -254,6 +254,11 @@ export interface Bodygraph {
     readonly longitude: number
   }
 
+  /** Birth moment resolved to absolute UTC (ISO 8601) */
+  readonly birthInstantUtc?: string
+  /** The moment the Sun stood exactly 88° of arc earlier (ISO 8601) */
+  readonly designInstantUtc?: string
+
   // Core type information
   readonly type: HumanDesignType
   readonly typeDefinition: TypeDefinition

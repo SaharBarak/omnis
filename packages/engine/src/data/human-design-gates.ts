@@ -699,90 +699,80 @@ export const GATE_TO_CENTER: Readonly<Record<number, CenterId>> = Object.freeze(
 )
 
 /**
- * The Rave Mandala Gate Sequence
+ * The Rave Mandala gate sequence — the order of the 64 gates around the wheel.
  *
- * This defines the order of gates around the zodiac wheel (Rave Mandala).
- * Each gate occupies 5.625° (360° / 64 gates).
- * Index 0 = 0° Aries, proceeding counterclockwise.
+ * Index 0 is Gate 41, which begins at 2°00'00" Aquarius (302°), NOT at 0° Aries.
+ * Each subsequent entry is 5.625° further along the tropical zodiac.
+ * See `MANDALA_START_DEGREE` and `longitudeToGate`.
  *
- * The sequence is NOT numerical - it follows the I Ching King Wen sequence
- * mapped to the wheel starting from Gate 41 at 0° Aries.
+ * The order is not numerical — it follows the I Ching King Wen sequence.
  */
-export const MANDALA_GATE_SEQUENCE: readonly number[] = Object.freeze([
-  // Aries (0° - 30°): Gates 41, 19, 13, 49, 30, 55
-  41, 19, 13, 49, 30, 55,
-  // Taurus (30° - 60°): Gates 37, 63, 22, 36, 25, 17
-  37, 63, 22, 36, 25, 17,
-  // Gemini (60° - 90°): Gates 21, 51, 42, 3, 27, 24
-  21, 51, 42, 3, 27, 24,
-  // Cancer (90° - 120°): Gates 2, 23, 8, 20, 16, 35
-  2, 23, 8, 20, 16, 35,
-  // Leo (120° - 150°): Gates 45, 12, 15, 52, 39, 53
-  45, 12, 15, 52, 39, 53,
-  // Virgo (150° - 180°): Gates 62, 56, 31, 33, 7, 4
-  62, 56, 31, 33, 7, 4,
-  // Libra (180° - 210°): Gates 29, 59, 40, 64, 47, 6
-  29, 59, 40, 64, 47, 6,
-  // Scorpio (210° - 240°): Gates 46, 18, 48, 57, 32, 50
-  46, 18, 48, 57, 32, 50,
-  // Sagittarius (240° - 270°): Gates 28, 44, 1, 43, 14, 34
-  28, 44, 1, 43, 14, 34,
-  // Capricorn (270° - 300°): Gates 9, 5, 26, 11, 10, 58
-  9, 5, 26, 11, 10, 58,
-  // Aquarius (300° - 330°): Gates 38, 54, 61, 60, 41, 19
-  38, 54, 61, 60,
-  // Note: The sequence wraps around - last entries in Pisces
-  // Pisces (330° - 360°): Continuing the cycle
-  // The actual full sequence repeats from Gate 41
+export const MANDALA_SEQUENCE_FULL: readonly number[] = Object.freeze([
+  41, 19, 13, 49, 30, 55, 37, 63, // 302.000° - 347.000° (Aquarius → Pisces)
+  22, 36, 25, 17, 21, 51, 42, 3, //  347.000° -  32.000° (Pisces → Taurus)
+  27, 24, 2, 23, 8, 20, 16, 35, //   32.000° -  77.000° (Taurus → Gemini)
+  45, 12, 15, 52, 39, 53, 62, 56, //  77.000° - 122.000° (Gemini → Leo)
+  31, 33, 7, 4, 29, 59, 40, 64, //  122.000° - 167.000° (Leo → Virgo)
+  47, 6, 46, 18, 48, 57, 32, 50, // 167.000° - 212.000° (Virgo → Scorpio)
+  28, 44, 1, 43, 14, 34, 9, 5, //   212.000° - 257.000° (Scorpio → Sagittarius)
+  26, 11, 10, 58, 38, 54, 61, 60, // 257.000° - 302.000° (Sagittarius → Aquarius)
 ])
 
-// Full 64-gate mandala sequence (corrected and complete)
-export const MANDALA_SEQUENCE_FULL: readonly number[] = Object.freeze([
-  41, 19, 13, 49, 30, 55, 37, 63, // 0° - 45°
-  22, 36, 25, 17, 21, 51, 42, 3, // 45° - 90°
-  27, 24, 2, 23, 8, 20, 16, 35, // 90° - 135°
-  45, 12, 15, 52, 39, 53, 62, 56, // 135° - 180°
-  31, 33, 7, 4, 29, 59, 40, 64, // 180° - 225°
-  47, 6, 46, 18, 48, 57, 32, 50, // 225° - 270°
-  28, 44, 1, 43, 14, 34, 9, 5, // 270° - 315°
-  26, 11, 10, 58, 38, 54, 61, 60, // 315° - 360°
-])
+/**
+ * Tropical longitude at which the mandala begins: Gate 41, line 1.
+ *
+ * The Human Design wheel is NOT aligned to 0° Aries. Gate 41 opens at
+ * 2°00'00" Aquarius = 302.000°, and every gate boundary follows at
+ * multiples of 5.625° from there (so boundaries land on 3°52'30" within
+ * each sign, e.g. Gate 25 spans 28°15' Pisces → 3°52'30" Aries).
+ *
+ * This is also why the "Rave New Year" falls around January 22 — the day
+ * the transiting Sun re-enters Gate 41.
+ */
+export const MANDALA_START_DEGREE = 302
+
+/** Each gate occupies 5.625° (360/64) */
+export const GATE_SIZE_DEGREES = 360 / 64
+
+/** Each line occupies 0.9375° (5.625/6) */
+export const LINE_SIZE_DEGREES = GATE_SIZE_DEGREES / 6
+
+/** Normalize any angle into [0, 360) */
+function normalizeDegrees(degrees: number): number {
+  return ((degrees % 360) + 360) % 360
+}
 
 /**
  * Convert zodiac longitude to gate and line
  *
- * @param longitude - Zodiac longitude in degrees (0-360)
+ * @param longitude - Tropical zodiac longitude in degrees (0-360)
  * @returns Gate number (1-64) and line (1-6)
  */
 export function longitudeToGate(longitude: number): { gate: number; line: number } {
-  // Normalize longitude to 0-360
-  const normalizedLongitude = ((longitude % 360) + 360) % 360
+  // Position measured from the start of the mandala (Gate 41.1), not from 0° Aries
+  const wheelPosition = normalizeDegrees(longitude - MANDALA_START_DEGREE)
 
-  // Each gate occupies 5.625° (360/64)
-  const gateSize = 360 / 64
-  const lineSize = gateSize / 6
-
-  // Find the index in the mandala sequence
-  const gateIndex = Math.floor(normalizedLongitude / gateSize)
+  const gateIndex = Math.floor(wheelPosition / GATE_SIZE_DEGREES)
   const gate = MANDALA_SEQUENCE_FULL[gateIndex]
 
-  // Calculate the line (1-6) within the gate
-  const positionInGate = normalizedLongitude % gateSize
-  const line = Math.floor(positionInGate / lineSize) + 1
+  const positionInGate = wheelPosition % GATE_SIZE_DEGREES
+  const line = Math.floor(positionInGate / LINE_SIZE_DEGREES) + 1
 
   return { gate, line: Math.min(line, 6) as 1 | 2 | 3 | 4 | 5 | 6 }
 }
 
 /**
- * Get the zodiac degree range for a specific gate
+ * Get the tropical zodiac degree range for a specific gate.
+ *
+ * `end` may be numerically smaller than `start` for the gate that wraps
+ * across 0° Aries (Gate 25).
  */
 export function getGateDegreeRange(gateNumber: number): { start: number; end: number } | null {
   const index = MANDALA_SEQUENCE_FULL.indexOf(gateNumber)
   if (index === -1) return null
 
-  const gateSize = 360 / 64
   return {
-    start: index * gateSize,
-    end: (index + 1) * gateSize,
+    start: normalizeDegrees(MANDALA_START_DEGREE + index * GATE_SIZE_DEGREES),
+    end: normalizeDegrees(MANDALA_START_DEGREE + (index + 1) * GATE_SIZE_DEGREES),
   }
 }

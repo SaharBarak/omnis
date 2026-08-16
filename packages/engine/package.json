@@ -9,6 +9,7 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
+    "astronomy-engine": "^2.1.19",
     "circular-natal-horoscope-js": "^1.1.0"
   },
   "devDependencies": {

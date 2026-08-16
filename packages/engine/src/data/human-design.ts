@@ -468,6 +468,32 @@ export const QUARTER_GATES: Readonly<Record<string, readonly number[]>> = Object
 })
 
 /**
+ * The geometry of an Incarnation Cross.
+ *
+ * Determined by the FULL profile, not by the conscious Sun line alone:
+ * Right Angle (personal):      1/3 1/4 2/4 2/5 3/5 3/6 4/6
+ * Juxtaposition (fixed):       4/1 — the only one
+ * Left Angle (transpersonal):  5/1 5/2 6/2 6/3
+ */
+export type CrossAngle = 'right-angle' | 'juxtaposition' | 'left-angle'
+
+const RIGHT_ANGLE_PROFILES: ReadonlySet<string> = new Set([
+  '1/3',
+  '1/4',
+  '2/4',
+  '2/5',
+  '3/5',
+  '3/6',
+  '4/6',
+])
+
+export function getCrossAngle(conscious: number, unconscious: number): CrossAngle {
+  const profileId = `${conscious}/${unconscious}`
+  if (profileId === '4/1') return 'juxtaposition'
+  return RIGHT_ANGLE_PROFILES.has(profileId) ? 'right-angle' : 'left-angle'
+}
+
+/**
  * Get quarter from gate number
  */
 export function getQuarterFromGate(gate: number): string | undefined {

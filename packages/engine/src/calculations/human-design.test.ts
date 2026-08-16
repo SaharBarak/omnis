@@ -46,6 +46,7 @@ import {
   LINE_THEMES,
   getLineTheme,
   MOTOR_CENTERS,
+  getCrossAngle,
 } from '../data/human-design'
 import type { HumanDesignInput, Bodygraph, CenterId } from '../types/human-design'
 
@@ -191,9 +192,16 @@ describe('Human Design Gates Data', () => {
       }
     })
 
-    it('should start with Gate 41 at 0°', () => {
-      const { gate } = longitudeToGate(0)
-      expect(gate).toBe(41)
+    it('should open the mandala with Gate 41.1 at 2°00\' Aquarius (302°)', () => {
+      expect(longitudeToGate(302)).toEqual({ gate: 41, line: 1 })
+      // one hair earlier is the last line of the last gate on the wheel
+      expect(longitudeToGate(301.99)).toEqual({ gate: 60, line: 6 })
+    })
+
+    it('should place 0° Aries inside Gate 25, not at the start of the wheel', () => {
+      // Gate 25 runs 28°15' Pisces → 3°52'30" Aries, so 0° Aries is 1.75°
+      // into it — line 2. The wheel does NOT begin at the vernal point.
+      expect(longitudeToGate(0)).toEqual({ gate: 25, line: 2 })
     })
 
     it('should handle full circle (360°)', () => {
@@ -219,7 +227,7 @@ describe('Human Design Gates Data', () => {
       expect(uniqueGates.size).toBe(64)
     })
 
-    it('should start with Gate 41 (0° Aries)', () => {
+    it('should start with Gate 41 (2°00\' Aquarius)', () => {
       expect(MANDALA_SEQUENCE_FULL[0]).toBe(41)
     })
   })
@@ -228,8 +236,8 @@ describe('Human Design Gates Data', () => {
     it('should return correct range for Gate 41', () => {
       const range = getGateDegreeRange(41)
       expect(range).not.toBeNull()
-      expect(range!.start).toBe(0)
-      expect(range!.end).toBeCloseTo(5.625, 3)
+      expect(range!.start).toBeCloseTo(302, 6)
+      expect(range!.end).toBeCloseTo(307.625, 6)
     })
 
     it('should return null for invalid gate', () => {
@@ -884,4 +892,223 @@ describe('Type Determination Logic', () => {
       expect(definition.signatureTheme.length).toBeGreaterThan(0)
     }
   })
+})
+
+// =============================================================================
+// EXTERNAL GROUND-TRUTH TESTS
+//
+// The fixtures below are NOT derived from this codebase. They come from:
+//   1. The published Rave Mandala degree table (barneyandflow.com/gate-zodiac-degrees),
+//      corroborated by dturkuler/humandesign_api, whose `IGING_offset = 58` encodes
+//      the same 302.000° wheel start, sourced to Ra Uru Hu's BlackBook.
+//   2. A Swiss Ephemeris (pyswisseph) implementation of the same rules, whose
+//      planetary longitudes were themselves verified against NASA JPL Horizons.
+// If these fail, the calculations have drifted from the actual Human Design system.
+// =============================================================================
+
+describe('Rave Mandala wheel (published degree table)', () => {
+  // [gate, tropical longitude at which the gate's line 1 begins]
+  const PUBLISHED_GATE_STARTS: ReadonlyArray<readonly [number, number]> = [
+  [41, 302], // 02°00'00" Aqu
+  [19, 307.625], // 07°37'30" Aqu
+  [13, 313.25], // 13°15'00" Aqu
+  [49, 318.875], // 18°52'30" Aqu
+  [30, 324.5], // 24°30'00" Aqu
+  [55, 330.125], // 00°07'30" Pis
+  [37, 335.75], // 05°45'00" Pis
+  [63, 341.375], // 11°22'30" Pis
+  [22, 347], // 17°00'00" Pis
+  [36, 352.625], // 22°37'30" Pis
+  [25, 358.25], // 28°15'00" Pis
+  [17, 3.875], // 03°52'30" Ari
+  [21, 9.5], // 09°30'00" Ari
+  [51, 15.125], // 15°07'30" Ari
+  [42, 20.75], // 20°45'00" Ari
+  [3, 26.375], // 26°22'30" Ari
+  [27, 32], // 02°00'00" Tau
+  [24, 37.625], // 07°37'30" Tau
+  [2, 43.25], // 13°15'00" Tau
+  [23, 48.875], // 18°52'30" Tau
+  [8, 54.5], // 24°30'00" Tau
+  [20, 60.125], // 00°07'30" Gem
+  [16, 65.75], // 05°45'00" Gem
+  [35, 71.375], // 11°22'30" Gem
+  [45, 77], // 17°00'00" Gem
+  [12, 82.625], // 22°37'30" Gem
+  [15, 88.25], // 28°15'00" Gem
+  [52, 93.875], // 03°52'30" Can
+  [39, 99.5], // 09°30'00" Can
+  [53, 105.125], // 15°07'30" Can
+  [62, 110.75], // 20°45'00" Can
+  [56, 116.375], // 26°22'30" Can
+  [31, 122], // 02°00'00" Leo
+  [33, 127.625], // 07°37'30" Leo
+  [7, 133.25], // 13°15'00" Leo
+  [4, 138.875], // 18°52'30" Leo
+  [29, 144.5], // 24°30'00" Leo
+  [59, 150.125], // 00°07'30" Vir
+  [40, 155.75], // 05°45'00" Vir
+  [64, 161.375], // 11°22'30" Vir
+  [47, 167], // 17°00'00" Vir
+  [6, 172.625], // 22°37'30" Vir
+  [46, 178.25], // 28°15'00" Vir
+  [18, 183.875], // 03°52'30" Lib
+  [48, 189.5], // 09°30'00" Lib
+  [57, 195.125], // 15°07'30" Lib
+  [32, 200.75], // 20°45'00" Lib
+  [50, 206.375], // 26°22'30" Lib
+  [28, 212], // 02°00'00" Sco
+  [44, 217.625], // 07°37'30" Sco
+  [1, 223.25], // 13°15'00" Sco
+  [43, 228.875], // 18°52'30" Sco
+  [14, 234.5], // 24°30'00" Sco
+  [34, 240.125], // 00°07'30" Sag
+  [9, 245.75], // 05°45'00" Sag
+  [5, 251.375], // 11°22'30" Sag
+  [26, 257], // 17°00'00" Sag
+  [11, 262.625], // 22°37'30" Sag
+  [10, 268.25], // 28°15'00" Sag
+  [58, 273.875], // 03°52'30" Cap
+  [38, 279.5], // 09°30'00" Cap
+  [54, 285.125], // 15°07'30" Cap
+  [61, 290.75], // 20°45'00" Cap
+  [60, 296.375], // 26°22'30" Cap
+  ]
+
+  it('covers all 64 gates exactly once', () => {
+    expect(new Set(PUBLISHED_GATE_STARTS.map(([gate]) => gate)).size).toBe(64)
+  })
+
+  it('opens every gate at its published degree', () => {
+    for (const [gate, start] of PUBLISHED_GATE_STARTS) {
+      expect(longitudeToGate(start + 0.0001)).toEqual({ gate, line: 1 })
+    }
+  })
+
+  it('closes every gate one hair before the next one opens', () => {
+    for (const [gate, start] of PUBLISHED_GATE_STARTS) {
+      const end = (start + 360 / 64) % 360
+      expect(longitudeToGate(end - 0.0001)).toEqual({ gate, line: 6 })
+    }
+  })
+
+  it('walks all six lines across a gate', () => {
+    // Gate 41 opens the wheel at 2° Aquarius; each line spans 0.9375°
+    for (let line = 1; line <= 6; line++) {
+      expect(longitudeToGate(302 + (line - 1) * 0.9375 + 0.0001)).toEqual({ gate: 41, line })
+    }
+  })
+})
+
+describe('Incarnation cross angle', () => {
+  it('assigns Right Angle to the seven personal profiles', () => {
+    for (const [c, u] of [[1, 3], [1, 4], [2, 4], [2, 5], [3, 5], [3, 6], [4, 6]]) {
+      expect(getCrossAngle(c, u)).toBe('right-angle')
+    }
+  })
+
+  it('assigns Juxtaposition to 4/1 and only 4/1', () => {
+    expect(getCrossAngle(4, 1)).toBe('juxtaposition')
+    expect(getCrossAngle(4, 6)).toBe('right-angle')
+  })
+
+  it('assigns Left Angle to the four transpersonal profiles', () => {
+    for (const [c, u] of [[5, 1], [5, 2], [6, 2], [6, 3]]) {
+      expect(getCrossAngle(c, u)).toBe('left-angle')
+    }
+  })
+})
+
+describe('Golden charts (cross-checked against Swiss Ephemeris)', () => {
+  const PLANETS = [
+    'sun', 'earth', 'moon', 'north-node', 'south-node', 'mercury', 'venus',
+    'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto',
+  ] as const
+
+  const GOLDEN = [
+  {
+    label: 'Tel Aviv, summer, DST',
+    input: { birthDate: '1990-07-15', birthTime: '08:30', latitude: 32.0853, longitude: 34.7818 },
+    birthInstantUtc: '1990-07-15T05:30:00.000Z',
+    designInstantUtc: '1990-04-14T17:09:12Z',
+    personality: ['62.2', '61.2', '51.5', '41.6', '31.6', '31.5', '12.2', '3.6', '62.2', '61.2', '58.4', '38.4', '1.2'],
+    design: ['42.4', '32.4', '5.4', '13.1', '7.1', '2.1', '37.4', '30.1', '52.1', '61.5', '38.1', '38.6', '1.5'],
+    type: 'projector', authority: 'emotional', profile: '2/4', definition: 'split',
+  },
+  {
+    label: 'New York, pre-1970, EST',
+    input: { birthDate: '1968-11-03', birthTime: '22:14', latitude: 40.7128, longitude: -74.006 },
+    birthInstantUtc: '1968-11-04T03:14:00.000Z',
+    designInstantUtc: '1968-08-06T04:41:21Z',
+    personality: ['44.5', '24.5', '3.4', '17.6', '18.6', '32.4', '5.6', '6.5', '6.6', '51.6', '46.5', '14.2', '6.2'],
+    design: ['7.1', '13.1', '38.4', '21.2', '48.2', '33.6', '29.3', '56.5', '40.4', '42.6', '6.5', '43.6', '47.5'],
+    type: 'manifesting-generator', authority: 'sacral', profile: '5/1', definition: 'single',
+  },
+  {
+    label: 'London, leap day',
+    input: { birthDate: '2004-02-29', birthTime: '16:05', latitude: 51.5074, longitude: -0.1278 },
+    birthInstantUtc: '2004-02-29T16:05:00.000Z',
+    designInstantUtc: '2003-12-04T23:51:45Z',
+    personality: ['37.5', '40.5', '12.5', '2.1', '1.1', '37.2', '42.4', '2.4', '64.4', '52.3', '55.4', '13.1', '26.6'],
+    design: ['5.2', '35.2', '3.5', '23.2', '43.2', '10.5', '38.1', '36.1', '47.1', '39.3', '30.6', '19.4', '26.3'],
+    type: 'manifestor', authority: 'emotional', profile: '5/2', definition: 'single',
+  },
+  {
+    label: 'Sydney, southern hemisphere',
+    input: { birthDate: '1977-12-25', birthTime: '03:47', latitude: -33.8688, longitude: 151.2093 },
+    birthInstantUtc: '1977-12-24T16:47:00.000Z',
+    designInstantUtc: '1977-09-28T00:26:05Z',
+    personality: ['10.5', '15.5', '12.2', '48.3', '21.3', '11.4', '11.4', '33.4', '15.3', '59.1', '1.2', '5.6', '57.2'],
+    design: ['18.1', '17.1', '21.4', '57.1', '51.1', '47.3', '40.1', '53.1', '52.2', '29.2', '44.3', '5.3', '48.5'],
+    type: 'generator', authority: 'sacral', profile: '5/1', definition: 'single',
+  },
+  ]
+
+  for (const chart of GOLDEN) {
+    describe(chart.label, () => {
+      const result = calculateBodygraph(chart.input) as Bodygraph
+
+      it('resolves the birth wall-clock time to the right UTC instant', () => {
+        expect(result.birthInstantUtc).toBe(chart.birthInstantUtc)
+      })
+
+      it('finds the design moment within a minute of the reference', () => {
+        const delta = Math.abs(
+          new Date(result.designInstantUtc!).getTime() -
+            new Date(chart.designInstantUtc).getTime()
+        )
+        expect(delta).toBeLessThan(60_000)
+      })
+
+      it('places the Sun exactly 88° of solar arc before birth', () => {
+        const personalitySun = result.activations.personality.find((a) => a.planet === 'sun')!
+        const designSun = result.activations.design.find((a) => a.planet === 'sun')!
+        const arc = (personalitySun.zodiacDegree - designSun.zodiacDegree + 360) % 360
+        expect(arc).toBeCloseTo(88, 2)
+      })
+
+      it('matches every personality activation', () => {
+        const actual = PLANETS.map((p) => {
+          const a = result.activations.personality.find((x) => x.planet === p)!
+          return `${a.gate}.${a.line}`
+        })
+        expect(actual).toEqual(chart.personality)
+      })
+
+      it('matches every design activation', () => {
+        const actual = PLANETS.map((p) => {
+          const a = result.activations.design.find((x) => x.planet === p)!
+          return `${a.gate}.${a.line}`
+        })
+        expect(actual).toEqual(chart.design)
+      })
+
+      it('derives the same type, authority, profile and definition', () => {
+        expect(result.type).toBe(chart.type)
+        expect(result.authority).toBe(chart.authority)
+        expect(result.profile.id).toBe(chart.profile)
+        expect(result.definition).toBe(chart.definition)
+      })
+    })
+  }
 })

@@ -53,3 +53,7 @@ next-env.d.ts
 # production secrets (never commit)
 .prod.vars
 packages/mobile/.env
+
+# Python bytecode from the Human Design verification oracle
+__pycache__/
+*.pyc

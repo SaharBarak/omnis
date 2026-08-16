@@ -30,7 +30,7 @@ export const SYSTEM_VERSIONS: Record<SystemKey, string> = {
   tzolkin: '1.0.0',
   longcount: '1.0.0',
   astrology: '1.0.0',
-  humandesign: '1.0.0',
+  humandesign: '2.0.0', // wheel re-anchored to 302deg, exact 88deg design arc, true node
   gematria: '1.0.0',
 }
 

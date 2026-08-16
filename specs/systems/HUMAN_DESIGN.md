@@ -306,7 +306,18 @@ interface BirthData {
 ### Planetary Positions
 Human Design uses two sets of planetary positions:
 1. **Personality (Conscious)**: Positions at birth time
-2. **Design (Unconscious)**: Positions ~88° of solar arc before birth (~88 days)
+2. **Design (Unconscious)**: Positions at the moment the Sun stood **exactly 88°
+   of solar arc** before its birth position
+
+> The Design moment must be **solved for**, never approximated as "88 days
+> earlier". The Sun's apparent speed swings between 0.953°/day and 1.019°/day,
+> so a fixed 88-day offset delivers anywhere from 84.4° to 89.0° of arc — up to
+> 3.9 lines of error, enough to move the Design Sun into a different gate.
+
+> The lunar nodes are the **true (osculating) nodes**, not the mean nodes. The
+> two differ by up to 1.6°. Verified against published HD transit data: the 2026
+> nodal shift into gates 30/29 (25 July 2026) matches the true node to the hour
+> and the mean node only 22 days later.
 
 ```typescript
 interface PlanetaryActivation {
@@ -330,31 +341,47 @@ interface ActivationSet {
 ```
 
 ### Gate Calculation
-Convert zodiac position to I Ching gate:
+Convert tropical zodiac position to I Ching gate.
+
+**The wheel does not start at 0° Aries.** Gate 41 line 1 opens at 2°00'00"
+Aquarius = **302.000°**, and every boundary follows at multiples of 5.625° from
+there — which is why gate boundaries land on 3°52'30" inside each sign, and why
+the Rave New Year (Sun re-entering Gate 41) falls around January 22. Dividing
+raw longitude by the gate size, with no offset, rotates the entire mandala by
+58 gate positions and makes every activation wrong.
+
 ```typescript
+const MANDALA_START_DEGREE = 302; // Gate 41.1 — 2°00'00" Aquarius
+
 function zodiacToGate(zodiacDegree: number): { gate: number; line: number } {
-  // The zodiac is mapped to the 64 gates
-  // Each gate occupies 5.625° (360/64)
-  // Each line occupies 0.9375° (5.625/6)
+  const gateSize = 360 / 64;   // 5.625°
+  const lineSize = gateSize / 6; // 0.9375°
 
-  const gateSize = 360 / 64;
-  const lineSize = gateSize / 6;
+  // Measure from the start of the mandala, not from the vernal point
+  const wheelPosition = (((zodiacDegree - MANDALA_START_DEGREE) % 360) + 360) % 360;
 
-  // Gates are not in numerical order around the wheel
-  // Use the Rave Mandala mapping
-  const gateAtDegree = MANDALA_GATE_SEQUENCE[Math.floor(zodiacDegree / gateSize)];
-  const line = Math.floor((zodiacDegree % gateSize) / lineSize) + 1;
+  const gate = MANDALA_SEQUENCE_FULL[Math.floor(wheelPosition / gateSize)];
+  const line = Math.floor((wheelPosition % gateSize) / lineSize) + 1;
 
-  return { gate: gateAtDegree, line };
+  return { gate, line };
 }
 
-// Simplified - actual mapping is complex
-const MANDALA_GATE_SEQUENCE: number[] = [
-  41, 19, 13, 49, // Aries
-  30, 55, 37, 63, // Taurus
+// Index 0 is Gate 41 at 302°, then every 5.625° onward. Not numerical order.
+const MANDALA_SEQUENCE_FULL: number[] = [
+  41, 19, 13, 49, 30, 55, 37, 63, // 302.000° →
+  22, 36, 25, 17, 21, 51, 42, 3,
   // ... 64 total gates around the wheel
 ];
 ```
+
+### Incarnation Cross Angle
+The cross geometry follows the **full profile**, not the conscious Sun line:
+
+| Angle | Profiles |
+|---|---|
+| Right Angle | 1/3, 1/4, 2/4, 2/5, 3/5, 3/6, 4/6 |
+| Juxtaposition | 4/1 (only) |
+| Left Angle | 5/1, 5/2, 6/2, 6/3 |
 
 ---
 

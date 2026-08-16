@@ -10,6 +10,13 @@
  */
 
 import { Origin, Horoscope } from 'circular-natal-horoscope-js'
+import {
+  EclipticGeoMoon,
+  GeoMoonState,
+  MakeTime,
+  RotateState,
+  Rotation_EQJ_ECT,
+} from 'astronomy-engine'
 import type {
   HumanDesignInput,
   HumanDesignResult,
@@ -37,6 +44,7 @@ import {
   getProfileByLines,
   MOTOR_CENTERS,
   getQuarterFromGate,
+  getCrossAngle,
 } from '../data/human-design'
 
 // =============================================================================
@@ -84,6 +92,33 @@ function libraryKeyToHDPlanet(key: string): HumanDesignPlanet | null {
 }
 
 /**
+ * Build the library Origin. The library resolves the IANA timezone from the
+ * given coordinates (including historical DST), so `hour`/`minute` are treated
+ * as local wall-clock time at that place.
+ */
+function buildOrigin(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  latitude: number,
+  longitude: number,
+  second = 0
+) {
+  return new Origin({
+    year,
+    month: month - 1, // 0-indexed months
+    date: day,
+    hour,
+    minute,
+    second,
+    latitude,
+    longitude,
+  })
+}
+
+/**
  * Calculate planetary positions for a given date/time/location
  */
 function calculatePlanetaryPositions(
@@ -93,17 +128,10 @@ function calculatePlanetaryPositions(
   hour: number,
   minute: number,
   latitude: number,
-  longitude: number
+  longitude: number,
+  second = 0
 ): Map<HumanDesignPlanet, number> {
-  const origin = new Origin({
-    year,
-    month: month - 1, // 0-indexed months
-    date: day,
-    hour,
-    minute,
-    latitude,
-    longitude,
-  })
+  const origin = buildOrigin(year, month, day, hour, minute, latitude, longitude, second)
 
   const horoscope = new Horoscope({
     origin,
@@ -151,19 +179,130 @@ function calculatePlanetaryPositions(
   return positions
 }
 
+// =============================================================================
+// DESIGN MOMENT (88° OF SOLAR ARC BEFORE BIRTH)
+// =============================================================================
+
+/** The Design imprint is taken exactly 88° of solar arc before birth. */
+const DESIGN_SOLAR_ARC_DEGREES = 88
+
+const MS_PER_SECOND = 1_000
+const MS_PER_DAY = 86_400_000
+
+/** Mean apparent solar motion, used only as a Newton step size. */
+const MEAN_SOLAR_MOTION_DEG_PER_DAY = 360 / 365.2422
+
+/** The library's Origin resolves (0, 0) to Etc/GMT, so components are UTC. */
+const UTC_LATITUDE = 0
+const UTC_LONGITUDE = 0
+
+function normalizeDegrees(degrees: number): number {
+  return ((degrees % 360) + 360) % 360
+}
+
+/** Shortest signed angular distance from `from` to `to`, in (-180, 180]. */
+function signedArc(from: number, to: number): number {
+  const delta = normalizeDegrees(to - from)
+  return delta > 180 ? delta - 360 : delta
+}
+
 /**
- * Calculate the design date (~88° solar arc before birth)
- *
- * In Human Design, the Design calculation is made for the moment
- * when the Sun was at a position 88° (88 solar arc degrees) before
- * its position at birth. This is approximately 88 days before birth.
+ * The library's Origin resolves to whole seconds, so every instant we evaluate
+ * is snapped there. At that resolution the Sun moves 0.00001° and the Moon
+ * 0.00015° — five thousand times finer than the 0.9375° width of a line.
  */
-function calculateDesignDate(birthDate: Date): Date {
-  // ~88 degrees of solar arc corresponds to approximately 88-89 days
-  // We use 88 days as the approximation
-  const designDate = new Date(birthDate)
-  designDate.setDate(designDate.getDate() - 88)
-  return designDate
+function roundToSecond(instant: Date): Date {
+  return new Date(Math.round(instant.getTime() / MS_PER_SECOND) * MS_PER_SECOND)
+}
+
+/**
+ * Tropical longitude of the TRUE (osculating) lunar North Node.
+ *
+ * Human Design uses the true node, not the mean node — the two differ by up
+ * to 1.6°, enough to place the Nodes in a different gate for roughly a third
+ * of charts. Confirmed against published HD transit data: the 2026 nodal
+ * shift into gates 30/29 is dated 25 July 2026, which the true node matches
+ * to the hour while the mean node misses by 22 days.
+ *
+ * `circular-natal-horoscope-js` only exposes the mean node, so the true node
+ * is derived from the Moon's instantaneous state vector: the orbital plane is
+ * spanned by position and velocity, and its ascending node on the true
+ * ecliptic of date is the node line. Agrees with Swiss Ephemeris
+ * `SE_TRUE_NODE` to within 9 arcseconds (0.3% of a line).
+ */
+function trueNorthNodeLongitude(instant: Date): number {
+  const time = MakeTime(instant)
+  const moon = RotateState(Rotation_EQJ_ECT(time), GeoMoonState(time))
+
+  // Orbital angular momentum h = r × v (only the x/y components are needed)
+  const hx = moon.y * moon.vz - moon.z * moon.vy
+  const hy = moon.z * moon.vx - moon.x * moon.vz
+
+  // Ascending node direction is ẑ × h = (-hy, hx, 0)
+  return normalizeDegrees(Math.atan2(hx, -hy) * (180 / Math.PI))
+}
+
+/** Planetary positions at an absolute UTC instant. */
+function positionsAtUtc(instant: Date): Map<HumanDesignPlanet, number> {
+  const utc = roundToSecond(instant)
+  const positions = calculatePlanetaryPositions(
+    utc.getUTCFullYear(),
+    utc.getUTCMonth() + 1,
+    utc.getUTCDate(),
+    utc.getUTCHours(),
+    utc.getUTCMinutes(),
+    UTC_LATITUDE,
+    UTC_LONGITUDE,
+    utc.getUTCSeconds()
+  )
+
+  // Both lunar quantities come from astronomy-engine. Measured against JPL
+  // Horizons, `circular-natal-horoscope-js` carries up to 33" of error on the
+  // Moon — the fastest body, so the largest risk of landing on the wrong side
+  // of a 0.9375° line boundary — where astronomy-engine stays under 2".
+  // Every other body is already within 5" and is left on the original source.
+  positions.set('moon', normalizeDegrees(EclipticGeoMoon(MakeTime(utc)).lon))
+
+  const northNode = trueNorthNodeLongitude(utc)
+  positions.set('north-node', northNode)
+  positions.set('south-node', normalizeDegrees(northNode + 180))
+
+  return positions
+}
+
+function sunLongitudeAtUtc(instant: Date): number {
+  return positionsAtUtc(instant).get('sun') ?? 0
+}
+
+/**
+ * Find the moment the Sun was exactly 88° of arc before its position at birth.
+ *
+ * This is NOT "88 days earlier": the Sun's apparent speed ranges from
+ * 0.953°/day near aphelion to 1.019°/day near perihelion, so a fixed 88-day
+ * offset lands anywhere from 84.4° to 89.0° of arc — an error of up to
+ * ~3.9 lines, which moves the Design Sun into a different gate.
+ *
+ * Newton iteration on solar longitude; the mean motion is a good enough
+ * derivative that this converges to well under a line in 3-4 steps.
+ */
+function findDesignInstant(birthInstant: Date, natalSunLongitude: number): Date {
+  const target = normalizeDegrees(natalSunLongitude - DESIGN_SOLAR_ARC_DEGREES)
+
+  // Seed with the naive 88-day offset; it is always within ~4° of the answer.
+  let instant = new Date(birthInstant.getTime() - 88 * MS_PER_DAY)
+
+  for (let iteration = 0; iteration < 8; iteration++) {
+    const remaining = signedArc(sunLongitudeAtUtc(instant), target)
+    // The library reports longitude to 4 decimals, so 0.0002° is twice its
+    // quantum and the tightest threshold that can actually be reached.
+    // In time that is ~17 seconds; the Moon moves 0.003° in that span.
+    if (Math.abs(remaining) < 0.0002) break
+    instant = new Date(
+      instant.getTime() + (remaining / MEAN_SOLAR_MOTION_DEG_PER_DAY) * MS_PER_DAY
+    )
+  }
+
+  return roundToSecond(instant)
 }
 
 /**
@@ -524,17 +663,13 @@ function calculateIncarnationCross(
     designEarth: designEarth?.gate ?? 2,
   }
 
-  // Determine cross type based on personality sun line
-  const line = personalitySun?.line ?? 1
-  let crossType: 'right-angle' | 'juxtaposition' | 'left-angle'
-
-  if (line === 1 || line === 2) {
-    crossType = 'right-angle'
-  } else if (line === 4) {
-    crossType = 'juxtaposition'
-  } else {
-    crossType = 'left-angle'
-  }
+  // The cross angle follows the full profile, not the conscious line alone:
+  // 4/6 is a Right Angle while 4/1 is the only Juxtaposition, and 3/5 and 3/6
+  // are Right Angles despite their conscious 3.
+  const crossType = getCrossAngle(
+    (personalitySun?.line ?? 1) as ProfileLine,
+    (designSun?.line ?? 3) as ProfileLine
+  )
 
   // Get quarter from personality sun gate
   const quarter = (getQuarterFromGate(gates.personalitySun) ?? 'initiation') as IncarnationCross['quarter']
@@ -584,8 +719,9 @@ export function calculateBodygraph(input: HumanDesignInput): HumanDesignResult {
   const [year, month, day] = input.birthDate.split('-').map(Number)
   const [hour, minute] = input.birthTime.split(':').map(Number)
 
-  // Calculate personality positions (at birth)
-  const personalityPositions = calculatePlanetaryPositions(
+  // Resolve the birth wall-clock time to an absolute instant. Everything
+  // downstream works in UTC, so no server-local timezone or DST can leak in.
+  const birthOrigin = buildOrigin(
     year,
     month,
     day,
@@ -594,21 +730,17 @@ export function calculateBodygraph(input: HumanDesignInput): HumanDesignResult {
     input.latitude,
     input.longitude
   )
+  const birthInstant = new Date(birthOrigin.utcTime.valueOf())
 
-  // Calculate design date (~88 days before birth)
-  const birthDateTime = new Date(year, month - 1, day, hour, minute)
-  const designDateTime = calculateDesignDate(birthDateTime)
+  // Calculate personality positions (at birth)
+  const personalityPositions = positionsAtUtc(birthInstant)
 
-  // Calculate design positions
-  const designPositions = calculatePlanetaryPositions(
-    designDateTime.getFullYear(),
-    designDateTime.getMonth() + 1,
-    designDateTime.getDate(),
-    designDateTime.getHours(),
-    designDateTime.getMinutes(),
-    input.latitude,
-    input.longitude
+  // Calculate design positions, exactly 88° of solar arc earlier
+  const designInstant = findDesignInstant(
+    birthInstant,
+    personalityPositions.get('sun') ?? 0
   )
+  const designPositions = positionsAtUtc(designInstant)
 
   // Convert to activations
   const personalityActivations = positionsToActivations(personalityPositions)
@@ -648,6 +780,8 @@ export function calculateBodygraph(input: HumanDesignInput): HumanDesignResult {
       latitude: input.latitude,
       longitude: input.longitude,
     },
+    birthInstantUtc: birthInstant.toISOString(),
+    designInstantUtc: designInstant.toISOString(),
     type,
     typeDefinition: getTypeDefinition(type),
     authority,

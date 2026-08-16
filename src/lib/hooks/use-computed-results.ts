@@ -56,7 +56,7 @@ const DREAMSPELL_VERSION = '1.1.0' // Upgraded to include wavespell and castle
 const TZOLKIN_VERSION = '1.0.0'
 const LONGCOUNT_VERSION = '1.0.0'
 const ASTROLOGY_VERSION = '1.0.0'
-const HUMANDESIGN_VERSION = '1.0.0'
+const HUMANDESIGN_VERSION = '2.0.0' // wheel re-anchored to 302deg, exact 88deg design arc, true node
 const GEMATRIA_VERSION = '1.0.0'
 
 // Types for stored computed data
