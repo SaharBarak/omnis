@@ -44,8 +44,8 @@ src-mvp/
 *.log
 npm-debug.log*
 
-# Core dumps
-core
+# Core dumps (root only; a bare "core" also matches src/**/core directories)
+/core
 core.*
 .vercel
 next-env.d.ts
