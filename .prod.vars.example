@@ -35,6 +35,9 @@ GEMINI_API_KEY=
 NEXT_PUBLIC_POSTHOG_KEY=
 NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 NEXT_PUBLIC_POSTHOG_DEV=false
+# GA4 measurement id for the dedicated Pleiad property (553444319).
+# Public identifier, not a secret — it ships in the page HTML.
+NEXT_PUBLIC_GA4_ID=G-TLTK4LHGW3
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=0x4AAAAAADzLdSrGCypomHZT
 TURNSTILE_SECRET_KEY=
 NEXT_PUBLIC_CF_BEACON_TOKEN=

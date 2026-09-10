@@ -131,7 +131,9 @@ export default function RootLayout({
         <script defer src="https://clever-swan-577.convex.site/beacon.js" data-slug="omnis" />
         {children}
         <PostHogAnalytics />
-        <GoogleAnalytics gaId="G-KY20RW9LY7" />
+        {process.env.NODE_ENV === "production" && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA4_ID ?? "G-TLTK4LHGW3"} />
+        )}
         {process.env.NEXT_PUBLIC_CF_BEACON_TOKEN && (
           <Script
             defer
