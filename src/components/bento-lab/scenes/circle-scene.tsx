@@ -2,12 +2,11 @@
 
 import { useId, useRef, type CSSProperties } from 'react'
 import type { AnimationParams } from 'animejs'
-import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 import type { SceneAction } from './action'
 import c from './circle.module.css'
 import f from './figure.module.css'
 import kit from '../kit.module.css'
+import { PrimaryAction } from '../site/action'
 import { CircleDrawing } from '@/components/bento-lab/atlas'
 import { TIE_LAYER, tieStroke } from '@/components/bento-lab/atlas/tie-geometry'
 import { drawStroke, landsAt, undrawnStroke, useIllustration } from '@/components/bento-lab/motion'
@@ -148,10 +147,7 @@ export function CircleScene({ circle, action }: { readonly circle: CircleAtlas; 
         </ol>
         {action && (
           <div className={f.action}>
-            <Link href={action.href} className={f.actionLink}>
-              <span>{action.label}</span>
-              <ArrowRight size={18} aria-hidden />
-            </Link>
+            <PrimaryAction href={action.href}>{action.label}</PrimaryAction>
           </div>
         )}
       </div>

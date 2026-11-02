@@ -70,52 +70,5 @@
 
 .action {
   display: grid;
-}
-
-.actionLink {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 64px;
-  padding: 0 22px;
-  border-radius: var(--radius-card);
-  background: var(--brand);
-  color: var(--on-accent);
-  font-size: var(--type-body);
-  font-weight: 600;
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--on-accent) 24%, transparent),
-    var(--elevation-2);
-  transition: background-color var(--dur-quick) var(--ease-standard);
-}
-
-/* Beats the lab's link reset (`.lab :where(a)`) without depending on load order. */
-.action > .actionLink {
-  color: var(--on-accent);
-}
-
-.actionLink:hover {
-  background: color-mix(in srgb, var(--brand) 88%, var(--lab-ink));
-}
-
-/* Press and the arrow's nudge are movement: only while motion is allowed (BENTO_POLISH.md "Scale on press"). */
-@media (prefers-reduced-motion: no-preference) {
-  [data-lab]:not([data-motion='paused']) .actionLink {
-    transition:
-      background-color var(--dur-quick) var(--ease-standard),
-      scale var(--dur-press) var(--ease-standard);
-  }
-
-  [data-lab]:not([data-motion='paused']) .actionLink:active {
-    scale: var(--press-scale);
-  }
-
-  [data-lab]:not([data-motion='paused']) .actionLink svg {
-    transition: transform var(--dur-quick) var(--ease-standard);
-  }
-
-  [data-lab]:not([data-motion='paused']) .actionLink:hover svg {
-    transform: translateX(3px);
-  }
+  align-content: center;
 }

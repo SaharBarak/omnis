@@ -33,7 +33,7 @@ should take a level and a radius role, never a shadow or a size.
 | Text wrapping | Card headings (`.h3`) balance; leads, `.body` and FAQ answers are `pretty`. |
 | Tabular numbers | Every table cell sets tabular figures, so a rolling tie weight never shifts its column. |
 | Minimum hit area | The bar's icon buttons reach `--hit-min` (40 px) with a pseudo-element; 44 px would overlap their 8 px gaps. |
-| Scale on press | Pills, icon buttons and the figure's one action press to `var(--press-scale)` over `--dur-press`, only while motion is allowed. |
+| Scale on press | Every pressable control (pills, icon buttons, `.btn`, the primary action) composes the kit's `press` rule: `var(--press-scale)` over `--dur-press`, only while motion is allowed (BENTO_MOTION.md "Policy"). |
 | Interruptible, specific transitions | Every CSS transition names its properties and reads `--dur-*` and `--ease-*`. A hover lift is a transition, never a keyframe. |
 | Motion restraint | A hover lift is one level at `--dur-quick`. Movement that comes with it (a nudge, a zoom) sits behind `prefers-reduced-motion: no-preference` and the lab pause; the static cue (edge colour, level) stays. |
 | States that survive forced colours | A selection is a border colour or an outline, never a box-shadow ring, so it still paints with forced colours on and a hover transition between levels stays whole. |

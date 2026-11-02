@@ -261,6 +261,54 @@ await check('08-hebrew-calendar', 'today-board-tap-through', async () => {
   await shot('08-hebrew-calendar', '04-tap-through-from-board')
 })
 
+// ------------------------------------------------- bento lockup and action
+// BRAND_MARK.md "Lockup": the body's foot sits on the word's baseline within
+// a pixel. BENTO_SITE.md "Primary action": every primary is an ink pill with
+// a spark disc, at least 44 px tall to the pointer.
+for (const width of [1440, 390]) {
+  await check('09-bento', `lockup-on-baseline-${width}`, async () => {
+    await page.setViewportSize({ width, height: 900 })
+    await page.goto(`${BASE}/lab/bento`, { waitUntil: 'networkidle', timeout: 90_000 })
+    await page.evaluate(() => document.fonts.ready)
+    const offsets = await page.evaluate(() =>
+      [...document.querySelectorAll('span[style*="--lockup-height"]')].map((lockup) => {
+        const probe = document.createElement('i')
+        probe.style.cssText = 'display:inline-block;width:0;height:0'
+        lockup.append(probe)
+        const baseline = probe.getBoundingClientRect().bottom
+        probe.remove()
+        const cap = document.createElement('i')
+        cap.style.cssText = 'position:absolute;width:0;height:1cap'
+        lockup.append(cap)
+        const capPx = cap.getBoundingClientRect().height
+        cap.remove()
+        const drop = Number.parseFloat(lockup.style.getPropertyValue('--lockup-drop'))
+        return lockup.querySelector('svg').getBoundingClientRect().bottom - drop * capPx - baseline
+      }),
+    )
+    if (offsets.length === 0) throw new Error('no lockup on the page')
+    const worst = Math.max(...offsets.map(Math.abs))
+    if (worst > 1) throw new Error(`foot is ${worst.toFixed(2)} px off the baseline`)
+  })
+
+  await check('09-bento', `primary-action-${width}`, async () => {
+    const actions = await page.evaluate(() =>
+      [...document.querySelectorAll('[class*="primary"]:is(a, button)')].map((el) => {
+        const disc = el.querySelector('[class*="signal"]')
+        const target = el.getBoundingClientRect()
+        const after = getComputedStyle(el, '::after')
+        const reach = after.content === 'none' ? target.height : Math.max(target.height, target.height - 2 * Number.parseFloat(after.top))
+        return { label: el.textContent.trim(), disc: Boolean(disc), reach }
+      }),
+    )
+    if (actions.length === 0) throw new Error('no primary action on the page')
+    const bad = actions.filter((a) => !a.disc || a.reach < 44)
+    if (bad.length) throw new Error(`primary actions off spec: ${JSON.stringify(bad)}`)
+    await shot('09-bento', `primary-${width}`)
+  })
+}
+await page.setViewportSize({ width: 1440, height: 900 })
+
 // -------------------------------------------------------------------- report
 await browser.close()
 const failed = results.filter((r) => !r.ok)

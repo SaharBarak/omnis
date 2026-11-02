@@ -258,7 +258,10 @@ cap heights of the word's font:
 module turns them into lengths with the `cap` unit. The browser reads the
 cap height from the font in use, so the lockup follows any size or face the
 surrounding text sets. A fallback face gives a slightly different lockup
-until the web font loads; nothing else changes. The proportions come from
+until the web font loads; nothing else changes. Where a browser lacks the
+`cap` unit, the display face's cap-to-em ratio (`DISPLAY_FACE` in
+`type-scale.ts`, read from the font's OS/2 table) stands in. The thin parts
+are fitted for a lockup set in the lead role unless a caller passes `fit`. The proportions come from
 the fitted table the mark is drawn with (`optical(fit)`), so a small lockup
 whose parts grew still sits on its baseline.
 
@@ -297,7 +300,8 @@ mark's wall, so neither half reads heavier (make-interfaces-feel-better,
   - every painted pixel of the mark lies inside each safe circle;
   - each URL has one owner.
 - In the lockup, the body's foot sits on the word's baseline and its brim
-  on the cap line, within a pixel, at 1440 and 390 px.
+  on the cap line, within a pixel, at 1440 and 390 px
+  (`scripts/e2e/run-e2e.mjs`, `09-bento`).
 - Every web call site renders with no layout shift and no horizontal
   overflow at 1440 and 390 px. The 16 px favicon reads as a lantern.
 

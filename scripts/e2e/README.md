@@ -7,9 +7,10 @@ account created through the public signup form.
   the /login UI and saves Playwright `state.json`. Password + state live
   OUTSIDE git: `~/Desktop/pleiad-v2-testing/e2e-harness/` (`.e2e-password`,
   `state.json`). Point `here`-relative files there or run from that dir.
-- `run-e2e.mjs` — 17 checks (landing, today board, typography audit,
+- `run-e2e.mjs` — 21 checks (landing, today board, typography audit,
   Dreamspell calendar, bodygraph viewport fit, couple map, boards tier
-  gate, Hebrew calendar). Screenshots → `~/Desktop/pleiad-v2-testing/`.
+  gate, Hebrew calendar, the bento lockup baseline and primary action at
+  1440 and 390). Screenshots → `~/Desktop/pleiad-v2-testing/`.
 
 Setup: `npm i playwright @supabase/supabase-js` + `npx playwright install
 chromium-headless-shell`, dev server on :3100 (`npx next dev -p 3100`;

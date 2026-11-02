@@ -39,6 +39,13 @@ export const TYPE_SCALE = Object.freeze({
   loosest: { tracking: 0.01 },
 })
 
+/**
+ * The display face's metrics, read from its OS/2 table (Space Grotesk:
+ * sCapHeight 700 of 1000 units per em). The brand lockup sets its mark in
+ * cap heights; where a browser lacks the `cap` unit, this ratio stands in.
+ */
+export const DISPLAY_FACE = Object.freeze({ capHeight: 0.7 })
+
 /** Each role's place on the scale. Steps at or below `lead` are running text. */
 export const TYPE_STEPS = Object.freeze({
   /** Numbers set as graphics: a feature tile's number, a system page's big number. The ceiling. */
@@ -71,6 +78,9 @@ export function stepSize(step: number, scale = TYPE_SCALE): TypeSize {
   const slope = (max - min) / (scale.wide.width - scale.narrow.width)
   return { kind: 'fluid', min: round(min, 2), max: round(max, 2), rem: round((min - slope * scale.narrow.width) / scale.base), vw: round(slope * 100) }
 }
+
+/** The largest px a size reaches, at the scale's wide end. */
+export const largestPx = (size: TypeSize): number => (size.kind === 'fixed' ? size.px : size.max)
 
 /** The px a size resolves to on a window `width` px wide. */
 export function sizeAt(size: TypeSize, width: number, scale = TYPE_SCALE): number {

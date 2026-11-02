@@ -89,11 +89,35 @@ const layersOf = (value: string): string[] => {
   return [...out, value.slice(start).trim()]
 }
 
-/** True for an outer shadow with a blur: a drop, which only the elevation scale casts. Zero-blur rings and inset shading are not drops. */
+/** Splits a value on its top-level whitespace, keeping each function call whole. */
+const tokensOf = (value: string): string[] => {
+  const out: string[] = []
+  let depth = 0
+  let token = ''
+  for (const ch of value) {
+    if (ch === '(') depth++
+    else if (ch === ')') depth--
+    if (/\s/.test(ch) && depth === 0) {
+      if (token) out.push(token)
+      token = ''
+    } else token += ch
+  }
+  return token ? [...out, token] : out
+}
+
+const COLOUR = /^(#|(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix)\(|currentcolor$|transparent$|[a-z]+$)/i
+
+/**
+ * True for an outer shadow with a blur: a drop, which only the elevation
+ * scale casts. Zero-blur rings and inset shading are not drops. The layer is
+ * read by position (x, y, blur, spread) after its colour is set aside; a
+ * blur written as `calc()` or `var()` cannot be read, so it counts as a drop.
+ */
 const isDrop = (layer: string): boolean => {
   if (/^var\(--elevation-[a-z0-9-]+\)$/.test(layer) || layer === 'none' || /\binset\b/.test(layer)) return false
-  const lengths = layer.replace(/[a-z-]+\([^()]*(?:\([^()]*\)[^()]*)*\)/g, ' ').match(/-?\d*\.?\d+(?:px)?(?=\s|$)/g) ?? []
-  return Number.parseFloat(lengths[2] ?? '0') > 0
+  const blur = tokensOf(layer).filter((token) => !COLOUR.test(token))[2]
+  if (blur === undefined) return false
+  return /^-?[\d.]/.test(blur) ? Number.parseFloat(blur) > 0 : true
 }
 
 describe('lab CSS takes its shadows from the scale', () => {
@@ -113,6 +137,13 @@ describe('lab CSS takes its shadows from the scale', () => {
           .filter(isDrop)
           .map((layer) => `${path} ${layer}`),
       ),
+    )
+    expect(strays).toEqual([])
+  })
+
+  it('casts no drop through a filter', () => {
+    const strays = sheets.flatMap(({ path, lines }) =>
+      lines.flatMap((line, index) => (/\bdrop-shadow\(/.test(line) ? [`${path}:${index + 1} ${line.trim()}`] : [])),
     )
     expect(strays).toEqual([])
   })

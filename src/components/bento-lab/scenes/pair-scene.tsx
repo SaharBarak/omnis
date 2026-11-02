@@ -1,15 +1,14 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react'
-import Link from 'next/link'
 import type { AnimationParams } from 'animejs'
 import { m, useInView, type Variants } from 'framer-motion'
-import { ArrowRight } from 'lucide-react'
 import { mayDrawEdge } from '@pleiad/engine/services/rarity'
 import type { SceneAction } from './action'
 import f from './figure.module.css'
 import p from './pair.module.css'
 import kit from '../kit.module.css'
+import { PrimaryAction } from '../site/action'
 import { PairDrawing, TieTable } from '@/components/bento-lab/atlas'
 import { TIE_LAYER, tieStroke } from '@/components/bento-lab/atlas/tie-geometry'
 import { drawStroke, landsAt, Rolling, undrawnStroke, useIllustration, useMotionAllowed, useScene } from '@/components/bento-lab/motion'
@@ -269,10 +268,7 @@ export function PairScene({ pair, action }: { readonly pair: PairAtlas; readonly
             />
             {action && (
               <li className={f.action}>
-                <Link href={action.href} className={f.actionLink}>
-                  <span>{action.label}</span>
-                  <ArrowRight size={18} aria-hidden />
-                </Link>
+                <PrimaryAction href={action.href}>{action.label}</PrimaryAction>
               </li>
             )}
           </ul>

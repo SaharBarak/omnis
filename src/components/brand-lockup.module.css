@@ -12,10 +12,10 @@
   translate: 0 calc(1cap * var(--lockup-drop));
 }
 
-/* Without the cap unit (Safari before 17.2), an em stands in at the display face's cap-to-em ratio, so the mark never falls back to an unsized SVG. */
+/* Without the cap unit (Safari before 17.2), the display face's cap-to-em ratio (--lockup-cap, from the type tokens) stands in, so the mark never falls back to an unsized SVG. */
 @supports not (height: 1cap) {
   .lockup {
-    --cap: 0.7em;
+    --cap: calc(var(--lockup-cap) * 1em);
     gap: calc(var(--cap) * var(--lockup-gap));
   }
 

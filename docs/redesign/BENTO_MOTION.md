@@ -85,7 +85,7 @@ client modules never load the solver.
 | `ground`, `surface1`, `surface2`, `chip`, `line`, `art` | `--lab-page`, `--lab-surface`, `--surface-2`, `--lab-chip`, `--lab-line`, `--lab-art` | Page, raised surface, inset surface, chips, hairline, drawing ground |
 | `ink`, `ink2`, `ink3` | `--lab-ink`, `--lab-text-2`, `--lab-text-3` | Text tiers: ink2 ≥ 7:1, ink3 ≥ 4.5:1 on every text surface |
 | `accent`, `accentSoft`, `onAccent` | `--brand`, `--lab-bright`, `--brand-soft`, `--on-accent` | The palette's mood color: links, focus, selection, and the text on it |
-| `spark`, `onSpark` | `--spark`, `--on-spark` | The contrasting signal: the disc on the primary action (BENTO_SITE.md "Primary action") and nothing else, and the icon on it |
+| `spark`, `onSpark` | `--spark`, `--on-spark` | The contrasting signal, on the primary action only (BENTO_SITE.md "Primary action"): its disc, the light that follows the pointer across it and its hover tint; `onSpark` is the icon on the disc |
 | `sky`, `kin`, `body`, `number` | `--layer-*`; `--sys-*` read them through `SYSTEM_LAYER` | The four map layers and the systems they read, one color each everywhere |
 | `danger`, `shadow` | `--danger`, `--lab-shadow` | Errors (always with their message), tinted shadow |
 
@@ -221,6 +221,14 @@ constants.
   renders plain text.
 - Motion never gates content or input. Server markup is complete and
   readable, and no content waits invisible for a script.
+- CSS reads the same switch. Every transition, press and hover movement
+  sits behind `@media (prefers-reduced-motion: no-preference)` and
+  `[data-lab]:not([data-motion='paused'])`, so the lab pause stops
+  transitions as well as animations. Press feedback is one rule: a
+  pressable control composes the kit's `press` class, which scales it to
+  `--press-scale` while held and lists nothing else; the control names
+  `scale` in its own transition. With motion off, the static cues remain:
+  colour on hover, the focus ring, the label.
 - Animated duplicates are hidden from assistive tech, and the final value
   stays readable (`Rolling` keeps an `srOnly` copy).
 - Illustrations run once per new data, not on a loop. The only loops are

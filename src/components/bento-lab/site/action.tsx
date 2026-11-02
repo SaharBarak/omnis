@@ -57,11 +57,18 @@ const ICON_PX = { regular: 16, small: 14 } as const
 
 const within = (value: number, reach: number): number => Math.max(-reach, Math.min(reach, value))
 
-/** Where the light sits and how far the pill leans, while a mouse is over it and motion is allowed. */
+const lean = (el: HTMLElement, axis: 'x' | 'y'): number => Number.parseFloat(el.style.getPropertyValue(`--lean-${axis}`)) || 0
+
+/**
+ * Where the light sits and how far the pill leans, while a mouse is over it
+ * and motion is allowed. The pointer is measured against the pill where it
+ * stands unleaned, so the lean never feeds back into itself.
+ */
 function follow({ currentTarget: el, clientX, clientY }: Pointer): void {
+  if (el.matches(':disabled, [aria-disabled="true"]')) return
   const box = el.getBoundingClientRect()
-  const x = clientX - box.left
-  const y = clientY - box.top
+  const x = clientX - (box.left - lean(el, 'x'))
+  const y = clientY - (box.top - lean(el, 'y'))
   el.dataset.follow = ''
   el.style.setProperty('--mx', `${x}px`)
   el.style.setProperty('--my', `${y}px`)
@@ -133,7 +140,7 @@ export const PrimaryAction = forwardRef<HTMLAnchorElement | HTMLButtonElement, A
   if (typeof rest.href === 'string') {
     const { href, external, ...anchor } = rest as Omit<LinkAction, keyof typeof look | keyof Look | 'onPointerCancel'>
     return external ? (
-      <a target="_blank" rel="noreferrer" {...anchor} href={href} ref={ref} {...look}>
+      <a target="_blank" {...anchor} rel={[anchor.rel, 'noopener noreferrer'].filter(Boolean).join(' ')} href={href} ref={ref} {...look}>
         {body}
       </a>
     ) : (

@@ -357,14 +357,17 @@ The light and the lean run only for a mouse, and only while motion is
 allowed (`useMotionAllowed`): the component marks the pill `data-follow`
 while both hold, and the light shows only then, so a touch's sticky hover
 or a paused page never lights it. Both clear when the pointer leaves or is
-cancelled, and when motion stops. The turn
-and the press are state, so they stay under reduced motion, without their
-transitions. Motion never carries meaning alone: the label says what the
-action does.
+cancelled, and when motion stops. The turn, the press and every
+transition follow BENTO_MOTION.md "Policy": they run only while motion is
+allowed, and hover turns the icon only where a pointer can hover. The pill
+also warms toward the spark on hover and focus, a colour change that stays
+with motion off, and the label says what the action does, so motion never
+carries meaning alone. A disabled pill neither lights nor leans.
 
-There is one primary action per view, plus the one in the nav. Every other
-action is a quiet `.btn`, so the spark stays rare enough to read as the way
-forward. Secondary buttons press with the same `--press-scale`.
+There is one primary action per section of a page, plus the one in the
+nav; a figure's closing action is its section's. Every other action is a
+quiet `.btn`, so the spark stays rare enough to read as the way forward.
+Secondary buttons press by the same rule.
 
 ## Copy rules
 

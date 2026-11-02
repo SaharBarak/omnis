@@ -438,6 +438,7 @@
 /* ---------- buttons ---------- */
 
 .btn {
+  composes: press from '../kit.module.css';
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -451,15 +452,10 @@
   font-size: var(--type-body);
   font-weight: 500;
   white-space: nowrap;
-  transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .btn:hover {
   border-color: var(--lab-bright);
-}
-
-.btn:active {
-  transform: scale(var(--press-scale));
 }
 
 .btn:disabled {
@@ -467,14 +463,25 @@
   cursor: not-allowed;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab]:not([data-motion='paused']) .btn {
+    transition:
+      scale var(--dur-press) var(--ease-standard),
+      background-color var(--dur-quick) var(--ease-standard),
+      border-color var(--dur-quick) var(--ease-standard),
+      color var(--dur-quick) var(--ease-standard);
+  }
+}
+
 /*
  * The primary action (BENTO_SITE.md "Primary action"): an ink pill with a
  * real label and one spark disc, inset so pill and disc are concentric. The
  * component sets data-follow and writes --mx/--my (where the light sits) and
  * --lean-x/--lean-y (the magnet) only while motion is allowed and a mouse is
- * over it, and clears them when either stops.
+ * over it, and clears them when either stops. The press is the kit's.
  */
 .primary {
+  composes: press from '../kit.module.css';
   --h: 46px;
   --inset: 4px;
   --disc: calc(var(--h) - 2 * var(--inset));
@@ -496,9 +503,6 @@
   font-weight: 500;
   white-space: nowrap;
   translate: var(--lean-x) var(--lean-y);
-  transition-property: translate, scale;
-  transition-duration: var(--dur-quick), var(--dur-press);
-  transition-timing-function: var(--ease-standard);
 }
 
 .primary::before {
@@ -509,22 +513,22 @@
   border-radius: inherit;
   background: radial-gradient(circle calc(var(--h) * 2) at var(--mx, 50%) var(--my, 50%), color-mix(in oklab, var(--spark) 30%, transparent), transparent);
   opacity: 0;
-  transition: opacity var(--dur-quick) var(--ease-standard);
 }
 
-.primary[data-follow]::before {
+/* The static cue: the pill warms toward the spark on hover and focus, with or without motion. */
+.primary:is(:hover, :focus-visible):not(:disabled, [aria-disabled='true']) {
+  background: color-mix(in oklab, var(--lab-ink) 90%, var(--spark));
+}
+
+.primary[data-follow]:not(:disabled, [aria-disabled='true'])::before {
   opacity: 1;
 }
 
-.primary:active {
-  scale: var(--press-scale);
-}
-
-.primary:disabled {
+.primary:disabled,
+.primary[aria-disabled='true'] {
   opacity: 0.55;
   cursor: not-allowed;
   translate: none;
-  scale: none;
 }
 
 .primaryLabel {
@@ -542,22 +546,45 @@
   color: var(--on-spark);
 }
 
-.signal svg {
-  transition: rotate var(--dur-turn) var(--ease-emphasized);
-}
-
-.primary:hover .signal svg,
-.primary:focus-visible .signal svg {
-  rotate: var(--turn);
-}
-
 .primary:dir(rtl) .signal[data-mirror] svg {
   scale: -1 1;
 }
 
-.primary:dir(rtl):hover .signal[data-mirror] svg,
-.primary:dir(rtl):focus-visible .signal[data-mirror] svg {
-  rotate: calc(-1 * var(--turn));
+/* The pill's movement (lean, press, glow, the icon's turn) runs only while motion is allowed (BENTO_MOTION.md "Policy"). */
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab]:not([data-motion='paused']) .primary {
+    transition:
+      translate var(--dur-quick) var(--ease-standard),
+      scale var(--dur-press) var(--ease-standard),
+      background-color var(--dur-quick) var(--ease-standard);
+  }
+
+  [data-lab]:not([data-motion='paused']) .primary::before {
+    transition: opacity var(--dur-quick) var(--ease-standard);
+  }
+
+  [data-lab]:not([data-motion='paused']) .signal svg {
+    transition: rotate var(--dur-turn) var(--ease-emphasized);
+  }
+
+  [data-lab]:not([data-motion='paused']) .primary:focus-visible .signal svg {
+    rotate: var(--turn);
+  }
+
+  [data-lab]:not([data-motion='paused']) .primary:dir(rtl):focus-visible .signal[data-mirror] svg {
+    rotate: calc(-1 * var(--turn));
+  }
+}
+
+/* Hover turns the icon only where a pointer can hover, so a tap never leaves it turned. */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  [data-lab]:not([data-motion='paused']) .primary:hover:not(:disabled, [aria-disabled='true']) .signal svg {
+    rotate: var(--turn);
+  }
+
+  [data-lab]:not([data-motion='paused']) .primary:dir(rtl):hover:not(:disabled, [aria-disabled='true']) .signal[data-mirror] svg {
+    rotate: calc(-1 * var(--turn));
+  }
 }
 
 .primarySmall {
@@ -566,11 +593,11 @@
   font-size: var(--type-small);
 }
 
-/* A small pill keeps a 44px target without growing (make-interfaces-feel-better "Minimum hit area"). */
+/* A small pill keeps the full target without growing (make-interfaces-feel-better "Minimum hit area"). */
 .primarySmall::after {
   content: '';
   position: absolute;
-  inset: calc((var(--h) - 44px) / 2) 0;
+  inset: calc((var(--h) - var(--hit-target)) / 2) 0;
 }
 
 .btnSmall {
