@@ -1,4 +1,4 @@
-import { THEMES, type Theme } from './bento-palette'
+import { THEMES, type Theme } from './palette-spec'
 
 /**
  * Elevation (docs/redesign/BENTO_POLISH.md "Elevation"). One scale of height

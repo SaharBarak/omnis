@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest'
-import { FLOORS, LAYERS, PALETTES, THEMES, layerHue, onLayer, paletteCss, paletteSelector, resolvePalette, type Role } from './bento-palette'
+import { paletteCss, paletteSelector, resolvePalette } from './bento-palette'
 import { CATEGORICAL_GATES as GATES, emitted } from './categorical'
-import { contrast, hueDistance, toHex, type Oklch } from './color'
+import { contrast, hexToOklch, hueDistance, toHex, type Oklch } from './color'
 import { apart, apartDichromat, seen } from './color-vision'
+import { FLOORS, LAYERS, PALETTES, TEXT_SURFACES, THEMES, layerHue, onLayer, type Role, type Swatch } from './palette-spec'
 
-const TEXT_BACKDROPS: readonly Role[] = ['ground', 'surface1', 'surface2', 'chip']
+const TEXT_BACKDROPS: readonly Role[] = TEXT_SURFACES
 const BAND = { dark: [0.48, 0.67], light: [0.43, 0.77] } as const
 
-/** CSS `color-mix(in oklab, a p%, b)`. */
-const mix = (a: Oklch, b: Oklch, p: number): Oklch => {
-  const lab = ({ l, c, h }: Oklch) => [l, c * Math.cos((h * Math.PI) / 180), c * Math.sin((h * Math.PI) / 180)] as const
-  const [x, y] = [lab(a), lab(b)]
-  const [l, u, v] = x.map((n, i) => n * p + y[i] * (1 - p))
-  return { l, c: Math.hypot(u, v), h: ((Math.atan2(v, u) * 180) / Math.PI + 360) % 360 }
+/** A translucent swatch painted over an opaque one, composited as browsers do, in encoded sRGB. */
+const over = (top: Swatch, under: Oklch): Oklch => {
+  const bytes = (c: Oklch) => [1, 3, 5].map((i) => Number.parseInt(toHex(c).slice(i, i + 2), 16))
+  const [t, u] = [bytes(top.oklch), bytes(under)]
+  return hexToOklch(`#${t.map((x, i) => Math.round(x * top.alpha + u[i] * (1 - top.alpha)).toString(16).padStart(2, '0')).join('')}`)
 }
 
 describe.each(PALETTES.flatMap((spec) => THEMES.map((theme) => [spec.id, theme, spec, resolvePalette(spec, theme)] as const)))(
@@ -35,9 +35,12 @@ describe.each(PALETTES.flatMap((spec) => THEMES.map((theme) => [spec.id, theme, 
         expect(pair).toContain(spec.anchors.window)
       })
 
-      it('labels the pill at 4.5:1, before and on hover, and shows the icon on the disc at 3:1', () => {
+      it('labels the pill at 4.5:1, at rest, on hover and under the pointer light, and shows the icon on the disc at 3:1', () => {
         expect(contrast(out('onAction'), out('action'))).toBeGreaterThanOrEqual(FLOORS.colour)
-        expect(contrast(out('onAction'), mix(out('action'), out('onAction'), 0.88))).toBeGreaterThanOrEqual(FLOORS.colour)
+        expect(contrast(out('onAction'), out('actionHover'))).toBeGreaterThanOrEqual(FLOORS.colour)
+        for (const pill of ['action', 'actionHover'] as const) {
+          expect(contrast(out('onAction'), over(palette.actionGlow, out(pill)))).toBeGreaterThanOrEqual(FLOORS.colour)
+        }
         expect(contrast(out('action'), out('onAction'))).toBeGreaterThanOrEqual(FLOORS.mark)
       })
 

@@ -513,13 +513,13 @@
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  background: radial-gradient(circle calc(var(--h) * 2) at var(--mx, 50%) var(--my, 50%), color-mix(in oklab, var(--action-glow) 45%, transparent), transparent);
+  background: radial-gradient(circle calc(var(--h) * 2) at var(--mx, 50%) var(--my, 50%), var(--action-glow), transparent);
   opacity: 0;
 }
 
 /* The static cue: the pill moves a step toward its disc on hover and focus, with or without motion. */
 .primary:is(:hover, :focus-visible):not(:disabled, [aria-disabled='true']) {
-  background: color-mix(in oklab, var(--action) 88%, var(--on-action));
+  background: var(--action-hover);
 }
 
 .primary[data-follow]:not(:disabled, [aria-disabled='true'])::before {
@@ -682,8 +682,16 @@
 
 .input:focus {
   outline: none;
-  border-color: var(--lab-bright);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--lab-bright) 22%, transparent);
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 22%, transparent);
+}
+
+/* Forced colours drop the ring's shadow and force the border, so focus takes a system outline. */
+@media (forced-colors: active) {
+  .input:focus {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
 }
 
 .input[aria-invalid='true'] {

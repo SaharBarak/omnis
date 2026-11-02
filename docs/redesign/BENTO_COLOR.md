@@ -4,8 +4,8 @@ Every colour on the bento site comes from the mark. The Lantern
 (BRAND_MARK.md) is a cyan frame around a lit gold window on a navy tile; the
 palette is those three colours and what a named harmony derives from them.
 Hues come from the mark by rule. Lightness comes from a solver held to
-published gates. What stays authored (one layer chroma, the theme's surface
-steps, the gates' values) is listed as data with its source.
+published gates. What stays authored is listed under "Authored data", each
+value with what holds it.
 
 ## Problem class
 
@@ -70,10 +70,11 @@ the convention for an error.
 |---|---|---|---|
 | Surfaces | `--lab-page`, `--lab-surface`, `--surface-2`, `--lab-chip`, `--lab-line`, `--lab-art` | tile hue, recipe steps | recipe |
 | Ink | `--lab-ink`, `--lab-text-2`, `--lab-text-3` | tile hue, low chroma | ink2 ≥ 7:1, ink3 ≥ 4.5:1 on every text surface |
-| `accent`, `accentSoft`, `onAccent` | `--brand`, `--lab-bright`, `--brand-soft`, `--on-accent` | the frame | dark: the frame; light: solved for 4.5:1 from 0.45 |
+| `onInk` | `--lab-on-ink` | the surface farthest from ink | derived |
+| `accent`, `accentSoft`, `onAccent` | `--brand`, `--lab-bright`, `--brand-soft`, `--on-accent` | the frame | dark: the frame; light: solved for 4.5:1 from 0.45; `onAccent` is `onInk` where it reads at 4.5:1, else ink |
 | `focus` | `--focus` | the accent | 3:1 against every surface, drawn with an offset |
 | `spark` | none: it reaches the page through the action and the mark | the window | the window in both themes |
-| `action`, `onAction`, `actionGlow` | `--action`, `--on-action`, `--action-glow` | spark and night | "The primary action" |
+| `action`, `onAction`, `actionHover`, `actionGlow` | `--action`, `--on-action`, `--action-hover`, `--action-glow` | spark and night | "The primary action" |
 | `sparkMark` | mark only | the window solved to 3:1 on the tile | dark: the window; light: deeper gold |
 | Layers | `--layer-*`, `--sys-*`; `--on-layer-*` | the rectangle | "Layers" |
 | `danger` | `--danger` | red, h 28 | solved for 4.5:1 |
@@ -112,10 +113,16 @@ stricter than WCAG, which accepts a labelled button without one.
 | Dark | spark gold | night | gold |
 | Light | night | spark gold | night |
 
-Gates: the label ≥ 4.5:1 on the pill; the icon ≥ 3:1 on the disc; the pill
-≥ 3:1 on the page and on every surface it sits on; the hover fill (the pill
-mixed 12% toward its disc) keeps the label at 4.5:1. The light that follows
-the pointer is `actionGlow`, the spark lifted toward white.
+On hover and focus the pill takes `actionHover`, the pill mixed in OKLab a
+step toward its disc colour. The light that follows the pointer is
+`actionGlow`: the brightest spark-hued light the label still reads on at
+4.5:1, solved down from white, drawn at the palette's glow strength. On the
+dark theme that is white over the gold pill; on the light theme a deep gold
+over the night pill.
+
+Gates, on the emitted colours: the label ≥ 4.5:1 on the pill, on the hover
+fill and under the pointer light composited over either; the icon ≥ 3:1 on
+the disc; the pill ≥ 3:1 on every surface it sits on.
 
 ## Layers
 
@@ -125,7 +132,8 @@ so no layer outweighs another. Lightness is solved per theme by
 generated table, `src/lib/design/palette-tones.gen.ts`, written by
 `npm run palette:tones`. The resolver reads the table; a test reruns the
 solver and fails when the committed table drifts. Nothing searches at
-render.
+render. Every other role lives in `palette-spec.ts`, which never reads the
+table, so the generator runs even with the table missing.
 
 **Search.** Each slot takes lightness from the theme's band on a grid of
 0.02 starting at the band's floor. Every combination is checked against the
@@ -175,6 +183,26 @@ tones into `mark-tones.gen.ts` (BRAND_MARK.md "Colour").
   pin number; the action keeps a border so its pill still shows; focus uses
   the system `Highlight`.
 
+## Authored data
+
+Everything the palette does not derive, in `src/lib/design/palette-spec.ts`,
+with what holds each value:
+
+| Value | Where | Held by |
+|---|---|---|
+| Anchors: frame, window, tile | `PaletteSpec.anchors` | the owner's pick of the mark |
+| Surface lightness steps, ink lightness | `RECIPES[theme]` | the ink tiers' floors (7:1, 4.5:1) solved against them; the elevation tests |
+| Preferred starts for ink2, ink3, accent (light), danger | `RECIPES[theme].preferred` | solving moves each only as far as its floor needs |
+| Layer band | `RECIPES[theme].band` | the data-visualisation method |
+| Shadow lightness and strength | `RECIPES[theme].shadow*` | the elevation tests (BENTO_POLISH.md) |
+| Surface share of the tile's chroma | `RECIPES[theme].neutralChroma` | light surfaces read as tinted at a third of the chroma |
+| Layer chroma, 0.13 | `PaletteSpec.layerChroma` | the categorical gates, which the solver must clear |
+| Danger hue and chroma, h 28, C 0.19 | `PaletteSpec.danger` | the convention for red; the role gate against the kin layer |
+| Ink tier chroma, 0.012, 0.024, 0.036 | `PaletteSpec.inkChroma` | the tile's hue stays visible in the quieter tiers |
+| Soft accent share, 0.55 | `PaletteSpec.softShare` | its own 4.5:1 floor |
+| Action hover step, 0.12, and glow strength, 0.45 | `PaletteSpec.action` | the action's label gates |
+| Gate values | `CATEGORICAL_GATES`, `FLOORS` | the data-visualisation method and WCAG |
+
 ## One palette
 
 The site has one palette, `lantern`. The module keeps its shape (a list of
@@ -186,8 +214,9 @@ when there is more than one palette.
 
 LabRoot writes one rule per palette × theme on `[data-lab]` and
 `[data-swatch]`, then the increased-contrast overrides inside
-`@media (prefers-contrast: more)`. Every value is an sRGB hex, so canvas
-renderers read the variables directly. Contrast is measured on the colour
+`@media (prefers-contrast: more)`. Every value is an sRGB hex: six digits
+for an opaque role, eight for a translucent one (the shadow, the pointer
+light). Canvas renderers read the variables directly. Contrast is measured on the colour
 quantised to those 8 bits, so a solved floor holds for the emitted hex.
 Client modules import only `palette-ids.ts`; the solver runs only in the
 generator and the tests.

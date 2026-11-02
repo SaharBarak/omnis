@@ -1,6 +1,7 @@
 import sharp from 'sharp'
 import { LANTERN, MARK_PARTS, MARK_THEMES, lanternShape, markSvg, type MarkGround, type MarkPart, type MarkTheme, type MarkTones } from './mark'
-import { paletteSpec, resolvePalette, type Role } from '@/lib/design/bento-palette'
+import { resolvePalette } from '@/lib/design/bento-palette'
+import { paletteSpec, type Role } from '@/lib/design/palette-spec'
 import { toHex } from '@/lib/design/color'
 import { DEFAULT_PALETTE } from '@/lib/design/palette-ids'
 

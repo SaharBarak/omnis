@@ -5,7 +5,8 @@ import { MotionRoot } from './motion/motion-root'
 import { BAZI_ELEMENT_COLORS } from '@/lib/design/bazi-elements'
 import { markCss } from '@/lib/brand/mark'
 import { MARK_TONES } from '@/lib/brand/mark-tones.gen'
-import { DEFAULT_PALETTE, paletteCss } from '@/lib/design/bento-palette'
+import { paletteCss } from '@/lib/design/bento-palette'
+import { DEFAULT_PALETTE } from '@/lib/design/palette-ids'
 import { elevationCss } from '@/lib/design/elevation'
 import { motionCssVars } from '@/lib/design/motion-tokens'
 import { layoutCssVars } from '@/lib/design/layout-tokens'
@@ -26,7 +27,7 @@ const PALETTE_CSS = paletteCss(['[data-lab]', '[data-swatch]']) + markCss(['[dat
 
 /**
  * Theme root for the lab: the palette stylesheet from bento-palette.ts, dark
- * and Groundwater by default. The inline boot script applies a remembered
+ * and the Lantern palette by default. The inline boot script applies a remembered
  * theme and palette before first paint; the attributes it sets are expected
  * to differ from the server render.
  */

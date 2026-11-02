@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { THEMES } from './bento-palette'
+import { THEMES } from './palette-spec'
 import { EDGE, IMAGE_OUTLINE, LEVELS, RAISED, elevationCss, elevationCssVars, elevationLayers, heightOf, riseLayer, riseShare, type Level } from './elevation'
 import { labSheets } from './lab-sheets'
 

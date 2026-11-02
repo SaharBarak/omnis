@@ -208,6 +208,12 @@ export function solveLightness(color: Oklch, backdrops: readonly Oklch[], ratio:
   return { ...color, l: far }
 }
 
+/** CSS `color-mix(in oklab, a, b share)`: `share` of the way from a to b in OKLab. */
+export const mix = (a: Oklch, b: Oklch, share: number): Oklch => {
+  const [x, y] = [toLab(a), toLab(b)]
+  return toLch([x[0] + (y[0] - x[0]) * share, x[1] + (y[1] - x[1]) * share, x[2] + (y[2] - x[2]) * share])
+}
+
 /** Shortest distance between two hues on the wheel, in degrees. */
 export const hueDistance = (a: number, b: number): number => {
   const d = Math.abs(a - b) % 360

@@ -95,8 +95,16 @@
 
 .select:focus-visible {
   outline: none;
-  border-color: var(--lab-bright);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--lab-bright) 22%, transparent);
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 22%, transparent);
+}
+
+/* Forced colours drop the ring's shadow and force the border, so focus takes a system outline. */
+@media (forced-colors: active) {
+  .select:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
 }
 
 .selectIcon {
@@ -911,7 +919,7 @@
 
 .warn {
   font-size: var(--type-caption);
-  color: var(--sys-astrology-strong, var(--lab-text-2));
+  color: var(--lab-text-2);
 }
 
 .formRow {

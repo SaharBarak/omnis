@@ -96,9 +96,9 @@ function assign<T>(ref: ForwardedRef<T>, value: T | null): void {
 }
 
 /**
- * The view's one call to action (BENTO_SITE.md "Primary action"): an ink
- * pill with a real label and one spark disc whose icon turns on hover and
- * focus. While motion is allowed, a light follows a mouse across it and it
+ * The view's one call to action (BENTO_SITE.md "Primary action"): the
+ * lantern at button size, a pill with a real label and one signal disc whose
+ * icon turns on hover and focus. While motion is allowed, a light follows a mouse across it and it
  * leans toward the mouse; pressing scales it everywhere. Every attribute,
  * handler and ref a link or button takes reaches the element.
  */
