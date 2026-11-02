@@ -113,7 +113,7 @@ export const SYSTEM_CATALOG: readonly SystemInfo[] = [
   {
     key: 'dreamspell',
     label: 'Dreamspell',
-    description: 'Modern Mayan calendar system by Jose Arguelles',
+    description: 'Modern calendar by José Argüelles, built on the 260-day count',
     group: 'readings',
   },
   {
@@ -165,9 +165,10 @@ export const SYSTEM_CATALOG: readonly SystemInfo[] = [
   {
     key: 'genekeys',
     label: 'Gene Keys',
-    description: 'The Golden Path — shadow, gift, and siddhi',
+    description: 'The Golden Path: shadow, gift, and siddhi',
     group: 'readings',
     requiresTime: true,
+    requiresLocation: true,
   },
   {
     key: 'oracles',

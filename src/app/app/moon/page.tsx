@@ -7,20 +7,11 @@ import { usePeople } from '@/lib/hooks/use-people'
 import { MoonGlyph } from '@/components/moon/moon-glyph'
 import { PageHeader, EmptyState } from '@/components/dashboard'
 import { DataRow, Eyebrow, PageSection, SkeletonCard } from '@/components/app-kit'
+import { MOON_PHASE_HINTS } from '@/lib/data/moon-phases'
 import { COLORS } from '@/lib/design/landing-tokens'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 
-const PHASE_HINTS: Record<string, string> = {
-  'New Moon': 'beginnings, intention-setting',
-  'Waxing Crescent': 'momentum, first steps',
-  'First Quarter': 'decision, friction, commitment',
-  'Waxing Gibbous': 'refinement, persistence',
-  'Full Moon': 'culmination, visibility',
-  'Waning Gibbous': 'gratitude, sharing outward',
-  'Last Quarter': 'release, course-correction',
-  'Waning Crescent': 'rest, surrender, closure',
-}
 
 /** Tabular-mono numeral for DataRow values. */
 function Mono({ children }: { children: React.ReactNode }) {
@@ -71,7 +62,7 @@ export default function MoonMapPage() {
               <h2 className="font-display text-2xl font-semibold tracking-tight text-white/90 md:text-3xl">
                 {lunation.phase}
               </h2>
-              <p className="mt-1 text-sm text-white/50">{PHASE_HINTS[lunation.phase]}</p>
+              <p className="mt-1 text-sm text-white/50">{MOON_PHASE_HINTS[lunation.phase]}</p>
               <div className="mt-4">
                 <DataRow
                   label="Illumination"
@@ -125,7 +116,7 @@ export default function MoonMapPage() {
                         {bucket.phase}
                       </h3>
                       <Eyebrow className="block truncate text-[10px] tracking-[0.15em]">
-                        {PHASE_HINTS[bucket.phase]}
+                        {MOON_PHASE_HINTS[bucket.phase]}
                       </Eyebrow>
                     </div>
                   </div>

@@ -297,11 +297,11 @@ export const notification_settings = pgTable(
   {
     id: id(),
     user_id: text('user_id').notNull(),
-    // Opt-OUT digest (migration 0005): new rows get the daily brief over
-    // email + in-app until the user turns it off in settings.
+    // Opt-IN digest (migration 0006, reversing 0005): a new row gets no daily
+    // brief and in-app only until the user switches it on in settings.
     enabled: boolean('enabled').notNull().default(true),
-    channels: jsonb('channels').notNull().default(['in-app', 'email']),
-    daily_digest: boolean('daily_digest').notNull().default(true),
+    channels: jsonb('channels').notNull().default(['in-app']),
+    daily_digest: boolean('daily_digest').notNull().default(false),
     daily_digest_time: text('daily_digest_time').notNull().default('08:00'),
     weekly_digest: boolean('weekly_digest').notNull().default(false),
     weekly_digest_day: integer('weekly_digest_day').notNull().default(0),

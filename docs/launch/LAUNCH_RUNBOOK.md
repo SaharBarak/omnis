@@ -9,17 +9,29 @@ so these are deliberately manual.
 
 ## Verified state
 
+Re-verified 2026-09-03 directly in App Store Connect and Play Console, replacing
+the 2026-07-28 table, which was wrong on almost every line — the IAP products all
+exist now, and the real blockers moved.
+
 | Piece | State |
 |---|---|
-| iOS build | #9 (1.0.0) finished, **submitted to TestFlight** — ASC app 6793060798 |
+| iOS builds | #9, #10, #11 (1.0.0) finished on EAS. **#11 = commit `43e468c`, which predates the Human Design fix `c103651`** — that commit touches `packages/engine` *and* `packages/mobile/src/lib/people/compute.ts`, so every existing build ships the wrong Rave wheel. A build #12 off current HEAD is required before submission. |
 | Android build | .aab versionCode 7 finished on EAS (artifact downloadable) |
-| ASC record | Created; subscription group "Pleiad Subscriptions" `22252675` exists |
-| IAP products | **0 of 4 created** — the main open thread |
-| RevenueCat | Project `369bf568`; `.p8` uploaded; products not imported (nothing to import yet) |
-| Play Console | **App record does not exist** |
-| Screenshots | 4 of 5 at `~/Desktop/pleiad-shots/` (`01_today 02_people 03_map 04_person`); Circles pending; framing/headlines pending |
-| ASC listing copy | Ready to push: `packages/mobile/store.config.json` (see step 2) |
-| `STORE_PRODUCT_*` env | Not yet in `.prod.vars` (blocked on products existing) |
+| ASC record | Created — app `6793060798`, "Pleiad: The Living Map", version 1.0 in Prepare for Submission |
+| IAP products | **All 4 exist**, all Prepare for Submission: `pleiad_explorer_monthly`, `pleiad_complete_monthly`, `pleiad_practitioner_monthly` (group `22252675`) and `pleiad_founding_lifetime` (Non-Consumable) |
+| Subscription tier order | **Wrong.** Level 1 Explorer → Level 3 Practitioner. Apple reads level 1 as the highest tier, so an Explorer→Practitioner move is classified a downgrade and defers to period end instead of prorating. Must be Practitioner 1, Complete 2, Explorer 3. Drag-reorder in the group's Edit → Edit Level dialog; synthetic drags do not register, so this one is by hand. |
+| Money plumbing | **Done.** Paid Apps Agreement Active; Bank Hapoalim BM (ILS, USD royalties) Active; W-8BEN + Certificate of Foreign Status Active; DSA compliance Active for 27 EU countries |
+| Apple licence agreement | **Blocking.** "The Apple Developer Program License Agreement has been updated" — the Account Holder must accept before any new submission is possible |
+| Pricing | **Set 2026-09-03** — Free (USD 0.00), base US, 175 countries |
+| Availability | **Set 2026-09-03** — all 175 countries, Available on App Release |
+| Screenshots | **Uploaded 2026-09-03** — 5 at 6.5" (Today, Map, People, Inner Circle, Library). Sources live at `~/Desktop/Pleiad.io/pleiad-shots/` (not `~/Desktop/pleiad-shots/`); they are 1080×2400 Android captures, converted to 1284×2778 by centre-cropping 63px of height then scaling, into `pleiad-shots/ios-6.5/`. Unframed, no headlines. |
+| App Privacy | Policy URL set (`https://pleiad.io/privacy`); **data-collection questionnaire never started** |
+| Build attached to 1.0 | **None** — see the build row above |
+| App Review sign-in | **Empty.** Sign-in is required and passwordless, so review fails without the demo account. `packages/mobile/store.config.js` carries the block; needs `ASC_DEMO_PASSWORD` (from `scripts/create-review-account.mjs`) and `ASC_CONTACT_PHONE` exported, then `npx eas-cli metadata:push` |
+| Age rating | Not answered. Deliberately manual — it is a content attestation |
+| RevenueCat | Project `369bf568`; `.p8` uploaded; products still not imported |
+| Play Console | **Cannot be created yet.** Account `Two Circle Studios` (`8812426242441460658`, personal) exists but Create app is locked: "Complete account verifications to create new apps". Needs, in order — sign in to the Play Console mobile app on a real Android device, identity documents approved by Google, then contact phone verification. Days of latency; iOS is the only near-term revenue path. |
+| `STORE_PRODUCT_*` env | Not yet in `.prod.vars` |
 
 ## Order of operations
 

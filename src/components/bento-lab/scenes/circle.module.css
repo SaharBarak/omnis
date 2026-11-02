@@ -1,0 +1,170 @@
+/*
+ * Circles (BENTO_MOTION.md storyboard 4). Centred: the ring across the width,
+ * the heaviest pairs in one row under it. The shell, art well, raised surface
+ * and action come from figure.module.css; this file holds what is the circle's
+ * own. anime.js moves the people, draws the lines and sends the sonar once;
+ * nothing here waits on it.
+ */
+
+.scene {
+  display: grid;
+  gap: 12px;
+}
+
+/* Range rings round the hub under the drawing: the sonar's ground. */
+.rings {
+  --range: 56px;
+
+  padding: 24px;
+}
+
+.rings::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background: repeating-radial-gradient(
+    circle at 50% 50%,
+    transparent 0 calc(var(--range) - 1px),
+    color-mix(in srgb, var(--tint) 18%, transparent) calc(var(--range) - 1px) var(--range)
+  );
+  -webkit-mask-image: radial-gradient(closest-side, var(--lab-ink) 35%, transparent);
+  mask-image: radial-gradient(closest-side, var(--lab-ink) 35%, transparent);
+}
+
+.rings > .drawing {
+  position: relative;
+}
+
+.rings > .drawing svg {
+  max-height: min(70svh, 720px);
+  overflow: visible;
+}
+
+.drawing [data-hub] {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* ---------- heaviest pairs, then the action, in one row ---------- */
+
+/* Without an action the three facts share the row (wide only; narrow layouts below hold either way). */
+@media (min-width: 961px) {
+  .facts:not([data-action]) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 0.85fr);
+  gap: 10px;
+}
+
+.pairs {
+  grid-column: 1 / 4;
+  display: grid;
+  grid-template-columns: subgrid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'duo bits'
+    'text text';
+  align-items: center;
+  gap: 10px 12px;
+  padding: 14px 18px;
+}
+
+.duo {
+  grid-area: duo;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.seal {
+  position: relative;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--lab-line);
+  border-radius: 50%;
+  background: var(--lab-chip);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--lab-ink) 8%, transparent);
+}
+
+.seal::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  background: var(--layer-kin);
+  -webkit-mask: var(--src) center / contain no-repeat;
+  mask: var(--src) center / contain no-repeat;
+}
+
+.link {
+  flex: 1 1 auto;
+  max-width: 72px;
+  height: var(--w);
+  border-radius: 999px;
+  background: var(--tone);
+}
+
+.bits {
+  grid-area: bits;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-small);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  color: var(--lab-ink);
+}
+
+.pairText {
+  grid-area: text;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.names {
+  font-size: var(--type-small);
+  font-weight: 600;
+  color: var(--lab-ink);
+}
+
+.tie {
+  font-size: var(--type-caption);
+  line-height: 1.35;
+  color: var(--lab-text-2);
+}
+
+@media (max-width: 960px) {
+  .facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pairs {
+    grid-column: auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+}
+
+@media (max-width: 640px) {
+  .pairs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rings {
+    --range: 40px;
+
+    padding: 12px;
+  }
+}

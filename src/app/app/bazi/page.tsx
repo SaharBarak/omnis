@@ -20,6 +20,7 @@ import {
   Pill,
   SkeletonCard,
 } from '@/components/app-kit'
+import { BAZI_ELEMENT_COLORS } from '@/lib/design/bazi-elements'
 import { cn } from '@/lib/utils'
 
 /**
@@ -31,13 +32,6 @@ import { cn } from '@/lib/utils'
 
 const ACCENT = '#CF6F6F' // the Chinese-tradition vermilion of the calendar page
 
-const ELEMENT_COLORS: Record<BaziElement, string> = {
-  Wood: '#86C89B',
-  Fire: '#D98E5F',
-  Earth: '#D9B36A',
-  Metal: '#C9CDD4',
-  Water: '#7FA8D4',
-}
 
 function PersonChip({
   name,
@@ -81,7 +75,7 @@ function PillarCard({ label, pillar }: { label: string; pillar: StemBranch }) {
         <span
           aria-hidden
           className="size-2 rounded-full"
-          style={{ backgroundColor: ELEMENT_COLORS[pillar.element] }}
+          style={{ backgroundColor: BAZI_ELEMENT_COLORS[pillar.element] }}
         />
         <span className="text-[11px] text-white/40">
           stem {pillar.element} · branch {pillar.branchElement}
@@ -247,7 +241,7 @@ export default function BaziPage() {
                         <span
                           key={j}
                           className="h-2 w-6 rounded-full"
-                          style={{ backgroundColor: ELEMENT_COLORS[element] }}
+                          style={{ backgroundColor: BAZI_ELEMENT_COLORS[element] }}
                         />
                       ))}
                       {count === 0 && (

@@ -1,0 +1,31 @@
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 14px 16px 0;
+  font-size: 12px;
+  color: var(--lab-text-3);
+}
+
+.stripTitle {
+  font-family: var(--font-display), system-ui, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stripLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.stripLinks a:hover {
+  color: var(--lab-ink);
+}

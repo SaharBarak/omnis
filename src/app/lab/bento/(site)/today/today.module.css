@@ -1,0 +1,25 @@
+/* T3 Board, public: stepper, the full-width board, the day's kin under it, the brief line. */
+
+.stepper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.kin {
+  display: grid;
+  justify-items: center;
+  gap: 20px;
+  margin-top: 12px;
+  padding: 28px 20px;
+  border-radius: 28px;
+  text-align: center;
+}
+
+.kinText {
+  display: grid;
+  gap: 12px;
+  max-width: 62ch;
+}

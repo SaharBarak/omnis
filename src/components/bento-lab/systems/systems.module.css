@@ -1,0 +1,1048 @@
+/*
+ * Template T12, the signed-in system page (docs/redesign/BENTO_SITE.md):
+ * the mural as a band over the centred head and person picker, the system
+ * figure across the full width, then its readout, plan gate and the note on
+ * what the layer reads in a row under it.
+ */
+
+.page {
+  --accent: var(--brand);
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+  padding-top: 24px;
+}
+
+.head {
+  display: grid;
+  gap: 28px;
+  margin-bottom: 12px;
+}
+
+.head > :last-child {
+  margin-bottom: 0;
+}
+
+/* ---------- 1 banner ---------- */
+
+.banner {
+  position: relative;
+  height: clamp(132px, 15vw, 188px);
+  border-radius: 26px;
+  overflow: hidden;
+  background: var(--lab-art);
+}
+
+.bannerArt {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+}
+
+.bannerShade {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(70% 140% at 50% 100%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 70%),
+    linear-gradient(180deg, transparent 55%, color-mix(in srgb, var(--lab-page) 40%, transparent));
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.eyebrow::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* ---------- picker ---------- */
+
+.picker {
+  display: grid;
+  gap: 6px;
+  min-width: min(100%, 260px);
+  text-align: start;
+}
+
+.selectWrap {
+  position: relative;
+}
+
+.select {
+  width: 100%;
+  height: 46px;
+  padding: 0 40px 0 14px;
+  border: 1px solid var(--lab-line);
+  border-radius: 12px;
+  background: var(--lab-page);
+  color: var(--lab-ink);
+  font: inherit;
+  font-size: var(--type-body);
+  appearance: none;
+  cursor: pointer;
+}
+
+.select:focus-visible {
+  outline: none;
+  border-color: var(--lab-bright);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--lab-bright) 22%, transparent);
+}
+
+.selectIcon {
+  position: absolute;
+  inset-inline-end: 14px;
+  top: 50%;
+  translate: 0 -50%;
+  pointer-events: none;
+  color: var(--lab-text-3);
+}
+
+/* ---------- 2 + 3 grid ---------- */
+
+.grid {
+  display: grid;
+  gap: 16px;
+}
+
+/* Readout, gate and note share the row under the figure; each card takes the room its content needs. */
+.side {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  align-items: start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.figure {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+  min-height: 320px;
+}
+
+.figureHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.readout {
+  margin: 0;
+}
+
+.readoutCols {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  column-gap: 32px;
+}
+
+.readoutCols .row,
+.readoutCols .row:first-child {
+  padding: 11px 0;
+  border-top: 0;
+  border-bottom: 1px solid var(--lab-line);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(96px, 128px) minmax(0, 1fr);
+  gap: 4px 14px;
+  padding: 11px 0;
+  border-top: 1px solid var(--lab-line);
+}
+
+.row:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.row dt {
+  font-size: var(--type-caption);
+  color: var(--lab-text-3);
+  padding-top: 2px;
+}
+
+.row dd {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  min-width: 0;
+  font-size: var(--type-small);
+  color: var(--lab-ink);
+  overflow-wrap: anywhere;
+}
+
+.detail {
+  font-size: var(--type-caption);
+  line-height: 1.5;
+  color: var(--lab-text-2);
+}
+
+@media (max-width: 420px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- 4 gate ---------- */
+
+.gate {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding: 24px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 55%, var(--lab-line));
+  border-radius: 22px;
+}
+
+/* ---------- 5 note ---------- */
+
+.note {
+  display: grid;
+  gap: 10px;
+  padding: 18px 20px;
+  border: 1px solid var(--lab-line);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--lab-chip) 70%, transparent);
+}
+
+.note p {
+  margin: 0;
+  font-size: var(--type-small);
+  line-height: 1.6;
+  color: var(--lab-text-2);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ---------- extra sections ---------- */
+
+.section {
+  display: grid;
+  gap: 14px;
+  padding-top: 20px;
+  border-top: 1px solid var(--lab-line);
+  min-width: 0;
+}
+
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px 20px;
+}
+
+.sectionHead p {
+  margin: 4px 0 0;
+  max-width: 62ch;
+  font-size: var(--type-small);
+  line-height: 1.55;
+  color: var(--lab-text-2);
+}
+
+/* ---------- controls ---------- */
+
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--lab-line);
+  border-radius: 999px;
+  background: var(--lab-chip);
+}
+
+.segment {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: var(--type-caption);
+  color: var(--lab-text-2);
+}
+
+.segment[aria-pressed='true'] {
+  background: var(--lab-surface);
+  color: var(--lab-ink);
+  box-shadow: 0 0 0 1px var(--lab-line);
+}
+
+/* ---------- shared figure parts ---------- */
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr));
+  gap: 10px;
+}
+
+.tile {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--lab-line);
+  border-radius: 16px;
+  background: var(--lab-page);
+}
+
+.tileActive {
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--lab-line));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent) inset;
+}
+
+.tileLabel {
+  font-size: var(--type-caption);
+  color: var(--lab-text-3);
+}
+
+.tileValue {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-figure);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.tileText {
+  font-size: var(--type-caption);
+  line-height: 1.45;
+  color: var(--lab-text-2);
+}
+
+.big {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-poster);
+  font-weight: 600;
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+  color: var(--lab-ink);
+}
+
+.hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px 24px;
+}
+
+.heroText {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  max-width: 36ch;
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dot, currentColor);
+  box-shadow: 0 0 0 1px var(--lab-line);
+  flex-shrink: 0;
+}
+
+.muted {
+  color: var(--lab-text-3);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- BaZi ---------- */
+
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pillar {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pillarLabel {
+  font-size: var(--type-caption);
+  color: var(--lab-text-3);
+  text-align: center;
+}
+
+.cell {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  min-height: 88px;
+  align-content: center;
+  padding: 10px 6px;
+  border: 1px solid var(--lab-line);
+  border-top: 3px solid var(--el, var(--lab-line));
+  border-radius: 14px;
+  background: var(--lab-page);
+  text-align: center;
+}
+
+.cellBig {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-heading);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.cellSmall {
+  font-size: var(--type-caption);
+  color: var(--lab-text-2);
+}
+
+.cellEmpty {
+  border-style: dashed;
+  border-top-width: 1px;
+  color: var(--lab-text-3);
+}
+
+.pillarCenter .cell:first-of-type {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.bars {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bar {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--type-caption);
+  color: var(--lab-text-2);
+}
+
+.track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--lab-chip);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--el, var(--accent));
+}
+
+.el-Wood {
+  --el: var(--el-wood);
+}
+.el-Fire {
+  --el: var(--el-fire);
+}
+.el-Earth {
+  --el: var(--el-earth);
+}
+.el-Metal {
+  --el: var(--el-metal);
+}
+.el-Water {
+  --el: var(--el-water);
+}
+
+/* ---------- hexagram, rune, tarot ---------- */
+
+.draws {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 560px) {
+  .draws {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.draw {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 10px;
+  min-height: 220px;
+  padding: 18px 14px;
+  border: 1px solid var(--lab-line);
+  border-radius: 18px;
+  background: var(--lab-page);
+  text-align: center;
+}
+
+.hexagram {
+  display: grid;
+  gap: 7px;
+  width: 92px;
+  padding-top: 8px;
+}
+
+.yang,
+.yin {
+  display: flex;
+  gap: 14px;
+  height: 9px;
+}
+
+.yang::before,
+.yin::before,
+.yin::after {
+  content: '';
+  flex: 1;
+  border-radius: 2px;
+  background: var(--lab-ink);
+}
+
+.yin::after {
+  flex: 1;
+}
+
+.draw strong {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-body);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.cycle {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 6px;
+}
+
+@media (max-width: 560px) {
+  .cycle {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.phase {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 10px 4px;
+  border: 1px solid var(--lab-line);
+  border-radius: 12px;
+  font-size: var(--type-micro);
+  line-height: 1.3;
+  text-align: center;
+  color: var(--lab-text-2);
+}
+
+.phaseNow {
+  border-color: var(--accent);
+  color: var(--lab-ink);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.rune {
+  font-size: var(--type-poster);
+  line-height: 1;
+  color: var(--lab-ink);
+}
+
+.tarot {
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 140px;
+  border: 1px solid var(--lab-line);
+  border-radius: 12px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 22%, var(--lab-surface)), var(--lab-surface));
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-title);
+  font-weight: 600;
+}
+
+.reversed {
+  rotate: 180deg;
+}
+
+/* ---------- tree ---------- */
+
+.tree {
+  width: 100%;
+  max-width: 440px;
+  height: auto;
+  margin-inline: auto;
+  display: block;
+}
+
+.treePath line {
+  stroke: var(--lab-line);
+  stroke-width: 0.9;
+}
+
+.treePath .hit {
+  stroke: transparent;
+  stroke-width: 4;
+  cursor: pointer;
+}
+
+.treePath[aria-pressed='true'] line:first-child {
+  stroke: var(--accent);
+  stroke-width: 1.6;
+}
+
+.treePath:focus-visible line:first-child {
+  stroke: var(--lab-bright);
+  stroke-width: 1.6;
+}
+
+.sefirah {
+  cursor: pointer;
+}
+
+.sefirah circle {
+  fill: var(--lab-surface);
+  stroke: var(--lab-text-3);
+  stroke-width: 0.6;
+}
+
+.sefirah text {
+  fill: var(--lab-ink);
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.sefirah .sefirahName {
+  fill: var(--lab-text-2);
+}
+
+.sefirah[aria-pressed='true'] circle {
+  fill: color-mix(in srgb, var(--accent) 40%, var(--lab-surface));
+  stroke: var(--accent);
+  stroke-width: 1;
+}
+
+.sefirah:focus-visible circle {
+  stroke: var(--lab-bright);
+  stroke-width: 1.2;
+}
+
+.sefirah:focus,
+.treePath:focus {
+  outline: none;
+}
+
+/* ---------- calendar ---------- */
+
+.weekdays,
+.month {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.weekdays span {
+  font-size: var(--type-micro);
+  text-align: center;
+  color: var(--lab-text-3);
+}
+
+.day {
+  display: grid;
+  align-content: space-between;
+  justify-items: start;
+  min-height: 58px;
+  padding: 6px;
+  border: 1px solid var(--lab-line);
+  border-radius: 10px;
+  text-align: start;
+  font-size: var(--type-caption);
+}
+
+.day:hover {
+  border-color: var(--lab-text-3);
+}
+
+.day[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.dayOut {
+  opacity: 0.4;
+}
+
+.dayNum {
+  color: var(--lab-text-2);
+}
+
+.dayToday .dayNum {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: var(--on-accent);
+}
+
+.dayKin {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--lab-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 480px) {
+  .day {
+    min-height: 48px;
+    padding: 4px;
+    font-size: var(--type-micro);
+  }
+  .dayKin .dot {
+    display: none;
+  }
+}
+
+.moons {
+  display: grid;
+  gap: 12px;
+}
+
+.moonRow {
+  display: grid;
+  gap: 6px;
+}
+
+.moonHead {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  font-size: var(--type-caption);
+  color: var(--lab-text-2);
+}
+
+.moonDays {
+  display: grid;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  gap: 3px;
+}
+
+@media (min-width: 1280px) {
+  .moonDays {
+    grid-template-columns: repeat(28, minmax(0, 1fr));
+  }
+}
+
+.moonDay {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 4px 0;
+  border: 1px solid var(--lab-line);
+  border-radius: 6px;
+  font-size: var(--type-micro);
+  color: var(--lab-text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.moonDay[aria-pressed='true'] {
+  border-color: var(--accent);
+  color: var(--lab-ink);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.strip {
+  display: grid;
+  grid-template-columns: repeat(13, minmax(0, 1fr));
+  gap: 4px;
+}
+
+@media (max-width: 560px) {
+  .strip {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+}
+
+.stripCell {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  padding: 6px 0;
+  border: 1px solid var(--lab-line);
+  border-radius: 8px;
+  font-size: var(--type-micro);
+  color: var(--lab-text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.stripCurrent {
+  border-color: var(--accent);
+  color: var(--lab-ink);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.sealGlyph {
+  width: 64px;
+  height: 64px;
+}
+
+/* ---------- moon ---------- */
+
+.buckets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: 10px;
+}
+
+.tile strong {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.people {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---------- settings ---------- */
+
+.toggles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  column-gap: 40px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.toggle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--lab-line);
+}
+
+.toggleText {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.toggleText label,
+.switch {
+  position: relative;
+  width: 44px;
+  height: 26px;
+  margin: 0;
+  border: 1px solid var(--lab-line);
+  border-radius: 999px;
+  background: var(--lab-chip);
+  appearance: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  inset-inline-start: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--lab-text-3);
+  transition: translate 0.2s ease, background-color 0.2s ease;
+}
+
+.switch:checked {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+.switch:checked::after {
+  translate: 18px 0;
+  background: var(--on-accent);
+}
+
+.switch:focus-visible {
+  outline: 2px solid var(--lab-bright);
+  outline-offset: 2px;
+}
+
+.switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.warn {
+  font-size: var(--type-caption);
+  color: var(--sys-astrology-strong, var(--lab-text-2));
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 14px;
+}
+
+.status {
+  font-size: var(--type-caption);
+  color: var(--lab-text-3);
+}
+
+.plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: 10px;
+}
+
+.facts {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--type-caption);
+  color: var(--lab-text-2);
+}
+
+/* ---------- library ---------- */
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chipLink[aria-current='page'] {
+  background: var(--lab-ink);
+  border-color: var(--lab-ink);
+  color: var(--lab-on-ink);
+}
+
+.articles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+}
+
+.articleCard {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  transition: border-color 0.2s ease, translate 0.2s ease;
+}
+
+.articleCard:hover {
+  border-color: var(--lab-bright);
+}
+
+.prose {
+  display: grid;
+  gap: 14px;
+  max-width: 68ch;
+}
+
+.prose p {
+  margin: 0;
+  font-size: var(--type-body);
+  line-height: 1.7;
+  color: var(--lab-text-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch,
+  .switch::after,
+  .articleCard {
+    transition: none;
+  }
+}
+
+/* ---------- system tiles: each system page as its mural ---------- */
+
+.systemTiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.systemTile {
+  display: grid;
+  grid-template-rows: 96px auto;
+  overflow: hidden;
+  border: 1px solid var(--lab-line);
+  border-radius: 20px;
+  background: var(--lab-surface);
+  transition: border-color var(--dur-quick) var(--ease-standard), translate var(--dur-quick) var(--ease-standard);
+}
+
+.systemTile:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--lab-line));
+  translate: 0 -2px;
+}
+
+.systemTileArt {
+  background: var(--mural) center / cover no-repeat;
+  box-shadow: inset 0 -40px 40px -24px var(--lab-surface);
+}
+
+.systemTileLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px 14px;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-small);
+  font-weight: 600;
+}
+
+.systemTileDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.systemTileArrow {
+  margin-inline-start: auto;
+  color: var(--lab-text-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .systemTile {
+    transition: none;
+  }
+}

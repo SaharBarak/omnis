@@ -32,6 +32,14 @@
  * silently reintroduces exactly the problem this module exists to remove.
  */
 
+/** Random pairs each base rate was measured over (method: CONNECTION_ATLAS.md). */
+export const MEASURED_PAIRS = Object.freeze({
+  /** Dreamspell and Tzolkin: a date is enough. */
+  dateOnly: 7140,
+  /** Human Design and astrology: date, time and place. */
+  fullBirth: 780,
+})
+
 /** Measured P(tie fires between two random people). */
 export const BASE_RATE: Readonly<Record<string, number>> = Object.freeze({
   // ---- Dreamspell: the exact oracle. 1 in 260 each. ----
@@ -99,14 +107,17 @@ export const BASE_RATE: Readonly<Record<string, number>> = Object.freeze({
 })
 
 /**
- * Bits of information carried by observing this tie.
- *
- * An unknown tie is treated as a coin flip (1 bit) rather than as a discovery —
- * we do not reward a relation for being unmeasured.
+ * The base rate an unmeasured tie is given: a coin flip (1 bit), so a
+ * relation is never rewarded for being unmeasured.
  */
+export const UNMEASURED_RATE = 0.5
+
+/** Measured P(tie fires between two random people); an unmeasured type counts as a coin flip. */
+export const baseRateOf = (type: string): number => BASE_RATE[type] ?? UNMEASURED_RATE
+
+/** Bits of information carried by observing this tie. */
 export function surprisal(type: string): number {
-  const p = BASE_RATE[type]
-  if (p === undefined) return 1
+  const p = baseRateOf(type)
   if (p >= 1) return 0 // fires for everyone: zero information, by definition
   if (p <= 0) return 0
   return -Math.log2(p)
@@ -147,3 +158,30 @@ export function rarityScore(ties: readonly { type: string }[]): number {
   // 12 bits ≈ everything we can currently observe firing at once.
   return Math.round(Math.min(100, (bits / 12) * 100))
 }
+
+/**
+ * Tiers from docs/redesign/CONNECTION_ATLAS.md §2, keyed by measured base
+ * rate. The tier decides what a UI may do with a tie: T0 and T1 are never
+ * drawn as a line, T2 may be drawn and must be named, T3 is the headline.
+ */
+export type Tier = 'T0' | 'T1' | 'T2' | 'T3'
+
+/** Upper base-rate bound of each tier below T0, rarest first. */
+export const TIER_CEILING: readonly (readonly [Tier, number])[] = Object.freeze([
+  Object.freeze(['T3', 0.03] as const),
+  Object.freeze(['T2', 0.2] as const),
+  Object.freeze(['T1', 0.75] as const),
+])
+
+export function tierOf(baseRate: number): Tier {
+  return TIER_CEILING.find(([, ceiling]) => baseRate < ceiling)?.[0] ?? 'T0'
+}
+
+/** Tiers whose ties may carry a line on a map: the selective and the rare. */
+const DRAWN_TIERS: ReadonlySet<Tier> = new Set<Tier>(['T2', 'T3'])
+
+/** A tie at or above this base rate never gets a line: the ceiling of the commonest drawn tier. */
+export const EDGE_CEILING: number = Math.max(...TIER_CEILING.filter(([tier]) => DRAWN_TIERS.has(tier)).map(([, ceiling]) => ceiling))
+
+/** Only selective and rare ties may carry a line on a map. */
+export const mayDrawEdge = (baseRate: number): boolean => DRAWN_TIERS.has(tierOf(baseRate))

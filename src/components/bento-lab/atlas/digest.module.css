@@ -1,0 +1,259 @@
+/* Atlas digest: one visual tile per layer (BENTO_MOTION.md storyboard H, frame 5). */
+
+.digest {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tile {
+  --tile: var(--lab-ink);
+
+  container-type: inline-size;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--lab-line);
+  border-radius: 20px;
+  background: var(--lab-surface);
+  color: var(--lab-ink);
+  text-align: start;
+  transition:
+    border-color var(--dur-quick) var(--ease-standard),
+    background-color var(--dur-quick) var(--ease-standard);
+}
+
+.tile[data-layer='sky'] { --tile: var(--atlas-sky); }
+.tile[data-layer='maya'] { --tile: var(--atlas-maya); }
+.tile[data-layer='body'] { --tile: var(--atlas-body); }
+.tile[data-layer='number'] { --tile: var(--atlas-number); }
+
+.tile:hover {
+  border-color: color-mix(in srgb, var(--tile) 55%, var(--lab-line));
+}
+
+.tile[data-current] {
+  border-color: var(--tile);
+  background: color-mix(in srgb, var(--tile) 12%, var(--lab-surface));
+}
+
+/* Type roles: docs/redesign/BENTO_TYPE.md, "The readout rail". */
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  font-size: var(--type-caption);
+  line-height: var(--type-caption-lh);
+  font-weight: 600;
+  letter-spacing: var(--type-caps-ls);
+  text-transform: uppercase;
+  color: var(--lab-text-2);
+}
+
+.pin {
+  display: grid;
+  place-items: center;
+  width: 1.75em;
+  height: 1.75em;
+  border-radius: 50%;
+  background: var(--tile);
+  color: var(--lab-page);
+  font-size: var(--type-micro);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.mark {
+  display: block;
+  width: var(--size);
+  height: var(--size);
+  background: currentColor;
+  -webkit-mask: var(--src) center / contain no-repeat;
+  mask: var(--src) center / contain no-repeat;
+}
+
+.markEmpty {
+  display: block;
+  width: var(--type-figure);
+  height: var(--type-figure);
+  border: 1px dashed var(--lab-line);
+  border-radius: 50%;
+}
+
+.value {
+  font-size: var(--type-body);
+  font-weight: 500;
+  line-height: var(--type-ui-lh);
+  letter-spacing: var(--type-body-ls);
+  color: var(--lab-ink);
+  overflow-wrap: anywhere;
+}
+
+/* What a value is: sentence case, so the tile head stays the one line in capitals. */
+.label {
+  font-size: var(--type-caption);
+  line-height: var(--type-ui-lh);
+  font-weight: 500;
+  letter-spacing: var(--type-caption-ls);
+  color: var(--lab-text-3);
+}
+
+/* Every tile's leading number, one size across the four tiles so they compare. */
+.numeral {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-figure);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: var(--type-figure-ls);
+  font-variant-numeric: tabular-nums;
+  color: var(--tile);
+}
+
+/* sky: sun, moon, rising */
+
+.trio {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  align-self: end;
+}
+
+.cell {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  text-align: center;
+  color: var(--tile);
+}
+
+/* kin: oracle cross and tone */
+
+.kin {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.cross {
+  display: grid;
+  grid-template-areas:
+    '. guide .'
+    'antipode self analog'
+    '. occult .';
+  grid-template-columns: repeat(3, 26px);
+  grid-template-rows: repeat(3, 26px);
+  place-items: center;
+}
+
+.seat {
+  display: grid;
+  place-items: center;
+  color: var(--lab-text-2);
+}
+
+.seat[data-seat='guide'] { grid-area: guide; }
+.seat[data-seat='antipode'] { grid-area: antipode; }
+.seat[data-seat='analog'] { grid-area: analog; }
+.seat[data-seat='occult'] { grid-area: occult; }
+
+.seat[data-seat='self'] {
+  grid-area: self;
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid var(--tile);
+  border-radius: 50%;
+  color: var(--tile);
+}
+
+.kinText {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.tone {
+  width: 24px;
+  height: 20px;
+  color: var(--tile);
+}
+
+/* body: bodygraph and profile */
+
+.body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.figure {
+  height: 88px;
+  color: var(--tile);
+}
+
+.bodyText {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* number: life path and three more */
+
+.numbers {
+  display: grid;
+  gap: 8px;
+}
+
+.lifePath {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.smallRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.numeralSmall {
+  font-size: var(--type-lead);
+  line-height: var(--type-ui-lh);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--lab-ink);
+}
+
+/* Narrow tiles: the three small numbers become labelled rows instead of a squeezed row. */
+@container (max-width: 210px) {
+  .smallRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+  .smallRow .cell {
+    grid-template-columns: minmax(0, 1fr) auto;
+    justify-items: start;
+    align-items: baseline;
+    text-align: start;
+  }
+  .smallRow .cell > :first-child {
+    order: 2;
+  }
+  .kin,
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile {
+    transition: none;
+  }
+}

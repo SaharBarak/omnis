@@ -5,12 +5,12 @@ import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { AmbientVideo } from './ambient-video'
 import { Magnetic } from './magnetic'
-import { EgoStar } from './ego-star'
+import { RelationshipField } from './relationship-field'
 import { Button } from '@/components/ui/button'
 import { track } from '@/lib/analytics/posthog'
 import { MURAL_GROUND } from '@/lib/design/system-flavors'
 import { COLORS, TYPE } from '@/lib/design/landing-tokens'
-import type { EgoStarData } from '@/lib/data/homepage-demo'
+import type { RelationshipFieldData } from '@/lib/data/homepage-demo'
 
 // ============================================
 // HERO — Railway-pattern: the sky lives inside an inset, rounded panel
@@ -22,11 +22,11 @@ import type { EgoStarData } from '@/lib/data/homepage-demo'
 const easeOut = [0.4, 0, 0.2, 1] as const
 
 interface HeroV2Props {
-  /** Engine-computed hero map: one person and their five kin relations. */
-  readonly star: EgoStarData
+  /** Engine-computed people field: six profiles and all fifteen pair calculations. */
+  readonly field: RelationshipFieldData
 }
 
-export function HeroV2({ star }: HeroV2Props) {
+export function HeroV2({ field }: HeroV2Props) {
   return (
     <section className="relative px-3 pt-20 sm:px-5 md:pt-24">
       <div
@@ -57,7 +57,7 @@ export function HeroV2({ star }: HeroV2Props) {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.1 }}
           >
-            Astrology · Dreamspell · Tzolkin · Long Count · Human Design · Kabbalah
+            Personal, relationship, and group readings
           </motion.p>
 
           <motion.h1
@@ -66,23 +66,26 @@ export function HeroV2({ star }: HeroV2Props) {
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             transition={{ duration: 0.8, delay: 0.2, ease: easeOut }}
           >
-            Map the people who shape your life.
+            See the people in your life through six symbolic systems.
           </motion.h1>
 
           <motion.p
-            className="mt-6 max-w-xl text-lg leading-relaxed text-white/70"
+            className="mt-6 max-w-2xl text-lg leading-relaxed text-white/70"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.35, ease: easeOut }}
           >
-            Six systems read every birth. One map holds every relationship.
-            Add a person once; Pleiad remembers forever.
+            Pleiad is one private place to calculate and save symbolic profiles
+            for yourself, partners, family, friends, clients, and teams. Read
+            each person through Dreamspell, Tzolkin, Long Count, Astrology,
+            Human Design, and Hebrew Gematria. Add more people to compare pairs
+            and explore group patterns.
           </motion.p>
 
           {/* ONE primary action (CTA canon). The account path stays a quiet
               text link — a second button here split the hero's ask in two. */}
           <motion.div
-            className="mt-9 flex flex-col items-center gap-4"
+            className="mt-9 flex flex-col items-center gap-3"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5, ease: easeOut }}
@@ -94,16 +97,17 @@ export function HeroV2({ star }: HeroV2Props) {
                 className="rounded-xl bg-brand px-8 text-base font-semibold text-white transition-transform hover:bg-brand-soft active:scale-[0.98]"
               >
                 <Link href="/calculate" onClick={() => track('landing_cta_clicked')}>
-                  Start with your birthday
+                  Try a free Dreamspell reading
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
             </Magnetic>
+            <p className="text-sm text-white/60">No account or card required—just a birth date.</p>
             <Link
               href="/login"
               className="text-sm text-white/50 underline-offset-4 transition-colors hover:text-white hover:underline"
             >
-              Create a free account
+              Create a free account and save up to 3 people
             </Link>
           </motion.div>
         </div>
@@ -132,12 +136,12 @@ export function HeroV2({ star }: HeroV2Props) {
                 </span>
               </div>
               <span className="shrink-0 whitespace-nowrap font-mono text-xs text-white/50">
-                {star.spokes.length + 1} people · {star.spokes.length} named ties
+                {field.nodes.length} people · {field.edges.length} computed pairs
               </span>
             </div>
 
             <div className="p-4 sm:p-6">
-              <EgoStar data={star} />
+              <RelationshipField data={field} />
             </div>
           </div>
         </motion.div>

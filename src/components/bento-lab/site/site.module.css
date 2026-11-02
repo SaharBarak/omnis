@@ -1,0 +1,642 @@
+/*
+ * Bento site kit: shell, sections, cards, buttons, fields and states
+ * (docs/redesign/BENTO_SITE.md). Page grids live next to their routes.
+ */
+
+.page {
+  width: 100%;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+
+@media (min-width: 720px) {
+  .page {
+    padding-inline: var(--page-gutter);
+  }
+}
+
+/* ---------- nav ---------- */
+
+.navWrap {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding-top: var(--nav-gap);
+}
+
+/* The page under the bar (the shell's <main>): it and anything a link or a skip lands on in it clear the bar. */
+.underBar,
+.underBar :where([id]) {
+  scroll-margin-top: var(--nav-clear);
+}
+
+.nav {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  height: var(--nav-bar);
+  padding: 0 8px 0 16px;
+  border-radius: 999px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-lead);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.navCentre {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.navLinks {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: var(--type-small);
+  color: var(--lab-text-2);
+  cursor: pointer;
+  transition: color var(--dur-quick) var(--ease-standard), background-color var(--dur-quick) var(--ease-standard);
+}
+
+.navLink:hover,
+.navLink[aria-current='page'],
+.navMenu[open] > .navLink,
+.navMenu:has([aria-current='page']) > .navLink {
+  color: var(--lab-ink);
+  background: var(--lab-chip);
+}
+
+/* A menu in the bar: its summary looks like a link; the panel drops under it. */
+.navMenu,
+.menu {
+  position: relative;
+}
+
+.navMenu > summary,
+.menu > summary {
+  list-style: none;
+}
+
+.navMenu > summary::-webkit-details-marker,
+.menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.navMenuChevron {
+  transition: rotate var(--dur-quick) var(--ease-standard);
+}
+
+.navMenu[open] .navMenuChevron {
+  rotate: 180deg;
+}
+
+.navMenuPanel {
+  position: absolute;
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  top: calc(100% + 12px);
+  min-width: 220px;
+  padding: 8px;
+  border-radius: 18px;
+}
+
+.navMenuList,
+.menuList {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.navMenuLink,
+.menuLink {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: var(--type-body);
+  color: var(--lab-text-2);
+}
+
+.navMenuLink:hover,
+.navMenuLink[aria-current='page'],
+.menuLink:hover,
+.menuLink[aria-current='page'] {
+  color: var(--lab-ink);
+  background: var(--lab-chip);
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navActionsWide {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu {
+  display: none;
+}
+
+.menuPanel {
+  position: absolute;
+  inset-inline-end: 0;
+  top: calc(100% + 10px);
+  display: grid;
+  gap: 10px;
+  width: min(86vw, 300px);
+  max-height: 75dvh;
+  overflow-y: auto;
+  padding: 8px;
+  border-radius: 18px;
+}
+
+.menuGroup {
+  display: grid;
+  gap: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--lab-line);
+}
+
+.menuGroupTitle {
+  padding: 0 12px;
+  font-size: var(--type-micro);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--lab-text-3);
+}
+
+.menuControls {
+  display: flex;
+  gap: 8px;
+  padding: 8px 4px 2px;
+  border-top: 1px solid var(--lab-line);
+}
+
+@media (max-width: 960px) {
+  .navCentre,
+  .hideNarrow {
+    display: none;
+  }
+  .nav {
+    grid-template-columns: auto 1fr;
+  }
+  .navActions {
+    justify-content: flex-end;
+  }
+  .menu {
+    display: block;
+  }
+}
+
+/* ---------- footer ---------- */
+
+.footer {
+  margin-top: 96px;
+  padding-block: 48px 32px;
+  border-top: 1px solid var(--lab-line);
+}
+
+.footerGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(4, minmax(0, 1fr));
+  gap: 32px;
+}
+
+.footerCol {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: var(--type-small);
+  color: var(--lab-text-2);
+}
+
+.footerCol a:hover {
+  color: var(--lab-ink);
+}
+
+.footerNote {
+  max-width: 34ch;
+  margin-top: 14px;
+  font-size: var(--type-small);
+  line-height: 1.55;
+  color: var(--lab-text-3);
+}
+
+.footerBase {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 40px;
+  font-size: var(--type-caption);
+  color: var(--lab-text-3);
+}
+
+@media (max-width: 960px) {
+  .footerGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .footerLead {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---------- type ---------- */
+
+.display {
+  margin: 0;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-display);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.h2 {
+  margin: 0;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-title);
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.h3 {
+  margin: 0;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-heading);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.lead {
+  margin: 0;
+  max-width: 60ch;
+  font-size: var(--type-lead);
+  line-height: 1.6;
+  color: var(--lab-text-2);
+}
+
+.body {
+  margin: 0;
+  max-width: 65ch;
+  font-size: var(--type-body);
+  line-height: 1.65;
+  color: var(--lab-text-2);
+}
+
+.num {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- section ---------- */
+
+.section {
+  padding-block: 88px 0;
+}
+
+.sectionHead {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.sectionTitle {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  text-wrap: balance;
+}
+
+.pageHead {
+  padding-block: 56px 0;
+}
+
+.pageHead > .sectionHead {
+  margin-bottom: 8px;
+}
+
+/* A centred row of actions: under a page head, or under a centred list. */
+.pageHeadBelow,
+.actionsCentred {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+}
+
+.sectionHead .lead {
+  text-wrap: pretty;
+}
+
+@media (max-width: 860px) {
+  .section {
+    padding-block: 64px 0;
+  }
+}
+
+/* ---------- surfaces ---------- */
+
+.card {
+  position: relative;
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid var(--lab-line);
+  border-radius: 22px;
+  background: var(--lab-surface);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--lab-ink) 6%, transparent) inset;
+}
+
+.cardTight {
+  padding: 16px;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--lab-chip);
+  border: 1px solid var(--lab-line);
+  font-size: var(--type-caption);
+  color: var(--lab-text-2);
+  white-space: nowrap;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+/* ---------- buttons ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 22px;
+  border: 1px solid var(--lab-line);
+  border-radius: 999px;
+  background: var(--lab-chip);
+  color: var(--lab-ink);
+  font-size: var(--type-body);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.btn:hover {
+  border-color: var(--lab-bright);
+}
+
+.btn:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btnSolid {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--on-accent);
+}
+
+.btnSolid:hover {
+  background: color-mix(in srgb, var(--brand) 86%, var(--lab-ink));
+  border-color: transparent;
+}
+
+.btnSmall {
+  height: 36px;
+  padding: 0 14px;
+  font-size: var(--type-small);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* The one line under a centred figure: what it means, and where to go next (BENTO_SITE.md "centred sections"). */
+.figureLine {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 6px 18px;
+  margin: 20px auto 0;
+  max-width: 80ch;
+  font-size: var(--type-small);
+  line-height: 1.55;
+  text-align: center;
+  color: var(--lab-text-2);
+}
+
+.figureLineLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.textLink {
+  color: var(--lab-bright);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--lab-bright) 40%, transparent);
+  text-underline-offset: 3px;
+}
+
+/* ---------- fields: label above, hint, error below ---------- */
+
+.field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.label {
+  font-size: var(--type-caption);
+  font-weight: 500;
+  color: var(--lab-text-2);
+}
+
+.input {
+  width: 100%;
+  min-width: 0;
+  height: 46px;
+  padding: 0 14px;
+  border: 1px solid var(--lab-line);
+  border-radius: 12px;
+  background: var(--lab-page);
+  color: var(--lab-ink);
+  font: inherit;
+  font-size: var(--type-body);
+  color-scheme: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--lab-bright);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--lab-bright) 22%, transparent);
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+.hint {
+  font-size: var(--type-caption);
+  line-height: 1.45;
+  color: var(--lab-text-3);
+}
+
+.error {
+  font-size: var(--type-caption);
+  line-height: 1.45;
+  color: var(--danger);
+}
+
+/* ---------- states ---------- */
+
+.skeleton {
+  border-radius: 12px;
+  background: linear-gradient(
+    100deg,
+    var(--lab-chip) 30%,
+    color-mix(in srgb, var(--lab-ink) 10%, var(--lab-chip)) 50%,
+    var(--lab-chip) 70%
+  );
+  background-size: 300% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+.state {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding: 28px;
+  border: 1px dashed var(--lab-line);
+  border-radius: 22px;
+}
+
+.stateError {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--lab-line));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+/* ---------- table ---------- */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--type-small);
+}
+
+.table th {
+  padding: 0 12px 10px 0;
+  text-align: start;
+  font-size: var(--type-micro);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--lab-text-3);
+}
+
+.table td {
+  padding: 12px 12px 12px 0;
+  border-top: 1px solid var(--lab-line);
+  vertical-align: top;
+  color: var(--lab-text-2);
+}
+
+.table td:first-child {
+  color: var(--lab-ink);
+}
+
+.tableScroll {
+  /* Holds .srOnly text: see kit.module.css. */
+  position: relative;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

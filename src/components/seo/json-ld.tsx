@@ -62,7 +62,7 @@ export const webSiteSchema: JsonLdData = {
   name: SITE_NAME,
   url: SITE_URL,
   description:
-    'The living map of the people in your life: read through six wisdom systems, remembered forever.',
+    'Save the people in your life, calculate six symbolic profiles, and compare patterns between them.',
   publisher: { '@id': ORGANIZATION_ID },
   potentialAction: {
     '@type': 'SearchAction',
@@ -87,7 +87,7 @@ export const softwareApplicationSchema: JsonLdData = {
   operatingSystem: 'Web',
   url: SITE_URL,
   description:
-    'A persistent map of the people in your life, read through six wisdom systems at once: Astrology, Dreamspell, traditional Tzolkin, Human Design, Hebrew Gematria, and an integration layer that braids them together.',
+    'A private people library for Dreamspell, Tzolkin, Long Count, Astrology, Human Design, and Hebrew Gematria profiles, with relationship comparisons and group analysis on eligible plans.',
   publisher: { '@id': ORGANIZATION_ID },
   offers: [
     {
@@ -97,7 +97,16 @@ export const softwareApplicationSchema: JsonLdData = {
       priceCurrency: 'USD',
       availability: 'https://schema.org/InStock',
       description:
-        'Six-system personal reading, daily kin, and a small people library.',
+        'Save up to 3 people with Dreamspell readings, daily kin, and the Today board.',
+    },
+    {
+      '@type': 'Offer',
+      name: 'Explorer',
+      price: '5',
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+      description:
+        'Up to 15 people, all six profile systems, relationship readings, timeline access, and 5 AI interpretations a month. Billed monthly.',
     },
     {
       '@type': 'Offer',
@@ -106,7 +115,7 @@ export const softwareApplicationSchema: JsonLdData = {
       priceCurrency: 'USD',
       availability: 'https://schema.org/InStock',
       description:
-        'Unlimited people, full relationship map and group dynamics, AI interpretations. Billed monthly.',
+        'Up to 25 people, all six profile systems, relationship readings, 5 boards, PDF exports, and 50 AI interpretations a month. Billed monthly.',
     },
     {
       '@type': 'Offer',
@@ -115,20 +124,20 @@ export const softwareApplicationSchema: JsonLdData = {
       priceCurrency: 'USD',
       availability: 'https://schema.org/InStock',
       description:
-        'Collaborators, client maps, and exports for professional readers. Billed monthly.',
+        'Unlimited people and boards, advanced relationship tools, group analysis, PDF exports, unlimited AI interpretations, and API access. Billed monthly.',
     },
   ],
   featureList: [
-    'Living relationship map across six wisdom systems',
-    'Six-system personal reading from one birthday',
-    'Persistent people library: enter a birthday once',
-    'Group dynamics, layered or fused',
-    'Shareable living map links',
+    'Saved people library with account-scoped profiles',
+    'Six profile systems with system-specific input requirements',
+    'Relationship comparisons across up to five symbolic layers',
+    'Group compatibility and Human Design composite analysis on eligible plans',
+    'Shareable map links',
     'Human Design Bodygraph',
     'Dreamspell Galactic Signature',
     'Astrology Natal Chart',
     'Traditional Tzolkin day sign',
-    'Kabbalah & Hebrew Gematria',
+    'Hebrew Gematria',
   ],
 }
 

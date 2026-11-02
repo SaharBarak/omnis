@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { track } from '@/lib/analytics/posthog'
 import { useAuth } from '@/lib/hooks/use-auth'
+import { safeRedirect } from '@/lib/auth/safe-redirect'
 import { BrandMark } from '@/components/brand-mark'
 
 function LoginForm() {
@@ -17,7 +18,7 @@ function LoginForm() {
   const [notice, setNotice] = useState<string | null>(null)
   const searchParams = useSearchParams()
   const router = useRouter()
-  const redirectTo = searchParams.get('redirectTo') || '/app'
+  const redirectTo = safeRedirect(searchParams.get('redirectTo'))
 
   const { signInWithGoogle, signInWithPassword, signUp, resetPassword } = useAuth()
 
@@ -85,9 +86,8 @@ function LoginForm() {
   return (
     <div className="w-full max-w-[400px]">
       <div className="rounded-[28px] bg-white px-8 py-10 shadow-2xl">
-        {/* Six-System Seal */}
         <div className="mb-8 flex justify-center">
-          <BrandMark size={56} mono className="text-brand" />
+          <BrandMark size={56} tone="light" />
         </div>
 
         <h1 className="text-center text-[28px] font-bold text-gray-900">Welcome</h1>

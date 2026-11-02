@@ -1,0 +1,298 @@
+/* Composition B — notched media (docs/redesign/BENTO_HERO_LAB.md §B). */
+
+.stage {
+  padding: 12px 12px 24px;
+}
+
+.page {
+  --notch-r: 26px;
+  --notch-bg: var(--lab-page);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.42fr);
+  grid-template-rows: minmax(0, 0.42fr) minmax(0, 0.58fr);
+  gap: 12px;
+  width: 100%;
+  max-width: 1320px;
+  height: clamp(620px, calc(100svh - 76px), 900px);
+  margin: 0 auto;
+}
+
+.main,
+.stat,
+.second {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  background: var(--lab-art);
+}
+
+.main {
+  grid-row: 1 / -1;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 70% 40%, transparent 40%, color-mix(in srgb, var(--ground) 45%, transparent));
+}
+
+.brand {
+  position: absolute;
+  z-index: 3;
+  top: 16px;
+  left: 16px;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--lab-glass);
+  border: 1px solid var(--lab-glass-line);
+  backdrop-filter: blur(10px);
+}
+
+/* ---------- top-right notch: nav ---------- */
+
+.navNotch {
+  padding: 0 0 10px 10px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.navPill {
+  height: 30px;
+  padding: 0 13px;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.navIcon {
+  width: 30px;
+  height: 30px;
+}
+
+/* ---------- bottom-left notch: headline ---------- */
+
+.titleNotch {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  max-width: 56%;
+  padding: 16px 28px 14px 4px;
+}
+
+.eyebrow {
+  height: 30px;
+  font-size: 12px;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: clamp(56px, 7.2vw, 120px);
+  font-weight: 500;
+  line-height: 0.88;
+  letter-spacing: -0.045em;
+  color: var(--lab-ink);
+}
+
+.titleLine {
+  display: block;
+  white-space: nowrap;
+}
+
+/* ---------- stat card ---------- */
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px 18px 18px;
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--brand) 70%, transparent), color-mix(in srgb, var(--ground) 78%, transparent) 72%),
+    url('/images/redesign/mural/zone-dreamspell.webp') center / cover;
+  color: var(--lab-on-media);
+}
+
+.statTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.statPill {
+  height: 28px;
+  background: color-mix(in srgb, var(--lab-on-media) 12%, transparent);
+  border-color: color-mix(in srgb, var(--lab-on-media) 40%, transparent);
+  color: var(--lab-on-media);
+  font-size: 12px;
+}
+
+.statPill:hover {
+  border-color: var(--lab-on-media);
+}
+
+.seats {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+
+.avatars {
+  display: flex;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1.5px solid var(--lab-on-media-2);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ground) 70%, transparent);
+}
+
+.avatar + .avatar {
+  margin-inline-start: -8px;
+}
+
+.avatarGlyph {
+  filter: invert(1);
+}
+
+.seatsCaption {
+  font-size: 12px;
+  color: var(--lab-on-media-2);
+}
+
+.statFigure {
+  display: grid;
+  gap: 8px;
+  max-width: calc(100% - 64px);
+}
+
+.statFigure b {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: clamp(54px, 6.4vw, 104px);
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+}
+
+.statFigure span {
+  max-width: 300px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--lab-on-media-2);
+}
+
+.arrowNotch {
+  padding: 8px 0 0 8px;
+}
+
+.arrow {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--lab-ink);
+  color: var(--lab-on-ink);
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.arrow:hover {
+  background: var(--brand);
+  color: var(--lab-on-media);
+  transform: rotate(45deg);
+}
+
+/* ---------- second media ---------- */
+
+.caption {
+  position: absolute;
+  z-index: 2;
+  inset-inline: 10px;
+  bottom: 10px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 12px;
+  row-gap: 8px;
+  padding: 14px 16px;
+  border-radius: 20px;
+}
+
+.captionDot {
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 2px;
+  background: var(--brand-soft);
+}
+
+.caption p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.captionToday {
+  grid-column: 2;
+  font-size: 11px !important;
+  color: var(--lab-text-3);
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 960px) {
+  .page {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    height: auto;
+  }
+
+  .main {
+    grid-row: auto;
+    height: min(86svh, 760px);
+  }
+
+  .stat {
+    min-height: 260px;
+  }
+
+  .second {
+    height: 460px;
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    --notch-r: 20px;
+  }
+
+  .navPill:not(:last-of-type) {
+    display: none;
+  }
+
+  .titleNotch {
+    max-width: 82%;
+    padding: 12px 20px 2px 2px;
+  }
+
+  .title {
+    font-size: clamp(48px, 15vw, 72px);
+  }
+
+  .statFigure b {
+    font-size: 56px;
+  }
+}

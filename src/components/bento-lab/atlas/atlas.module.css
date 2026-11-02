@@ -1,0 +1,733 @@
+/*
+ * Atlas drawing (docs/redesign/BENTO_SITE.md, "The Atlas"). Each layer reads
+ * its palette role (src/lib/design/bento-palette.ts), solved for contrast in
+ * both themes, so no theme override is needed here.
+ */
+
+.atlas {
+  --atlas-sky: var(--layer-sky);
+  --atlas-maya: var(--layer-kin);
+  --atlas-body: var(--layer-body);
+  --atlas-number: var(--layer-number);
+  --atlas-line: color-mix(in srgb, var(--lab-ink) 20%, transparent);
+  --atlas-faint: color-mix(in srgb, var(--lab-ink) 8%, transparent);
+  --atlas-text: var(--lab-text-2);
+
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+
+.svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.layer {
+  transition: opacity 0.35s ease;
+}
+
+.atlas[data-focus='sky'] .layer:not([data-layer='sky']),
+.atlas[data-focus='maya'] .layer:not([data-layer='maya']),
+.atlas[data-focus='body'] .layer:not([data-layer='body']),
+.atlas[data-focus='number'] .layer {
+  opacity: 0.24;
+}
+
+.ring {
+  fill: none;
+  stroke: var(--atlas-line);
+  stroke-width: 1;
+}
+
+.divider {
+  stroke: var(--atlas-line);
+  stroke-width: 1;
+}
+
+.tick {
+  stroke: var(--atlas-line);
+  stroke-width: 1;
+}
+
+.glyph {
+  filter: invert(1);
+  opacity: 0.86;
+}
+
+[data-lab][data-theme='light'] .glyph {
+  filter: none;
+  opacity: 0.72;
+}
+
+.glyphOn {
+  filter: none;
+  opacity: 0.92;
+}
+
+.planetLead {
+  stroke: var(--atlas-sky);
+  stroke-width: 1;
+  opacity: 0.7;
+}
+
+.planetDot {
+  fill: var(--atlas-sky);
+}
+
+.dayArc {
+  fill: none;
+  stroke: var(--atlas-sky);
+  stroke-width: 5;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+
+.ascendant {
+  stroke: var(--atlas-sky);
+  stroke-width: 1.5;
+}
+
+.label {
+  fill: var(--atlas-text);
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+  font-size: 11px; /* drawing */
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.symbol {
+  fill: var(--atlas-sky);
+  font-size: 15px; /* drawing */
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.litSeal {
+  fill: var(--atlas-maya);
+}
+
+.seat {
+  fill: none;
+  stroke: var(--atlas-maya);
+  stroke-width: 1.5;
+}
+
+.toneMark {
+  fill: var(--atlas-maya);
+}
+
+.channel {
+  fill: none;
+  stroke: var(--atlas-faint);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.channelOn {
+  fill: none;
+  stroke: var(--atlas-body);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.center {
+  fill: color-mix(in srgb, var(--lab-ink) 7%, var(--lab-art));
+  stroke: color-mix(in srgb, var(--lab-ink) 34%, transparent);
+  stroke-width: 2;
+}
+
+.centerOn {
+  fill: var(--atlas-body);
+  stroke: var(--atlas-body);
+  stroke-width: 2;
+}
+
+.gate {
+  fill: var(--atlas-body);
+}
+
+.empty {
+  fill: var(--atlas-text);
+  font-size: 13px; /* drawing */
+  text-anchor: middle;
+}
+
+@media (max-width: 720px) {
+  .zoom {
+    transform-box: view-box;
+    transform-origin: 50% 50%;
+    transform: scale(var(--atlas-zoom, 1));
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layer,
+  .zoom {
+    transition: none;
+  }
+}
+
+/* ---------- readout: the atlas as text ---------- */
+
+.readout {
+  display: grid;
+  gap: 18px;
+  margin: 0;
+}
+
+.readoutGroup {
+  display: grid;
+  gap: 6px;
+  transition: opacity 0.3s ease;
+}
+
+.readout[data-focus] .readoutGroup:not([data-active]) {
+  opacity: 0.45;
+}
+
+.readoutHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--type-micro);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--lab-text-3);
+}
+
+.swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.swatch[data-layer='sky'] { background: var(--atlas-sky); }
+.swatch[data-layer='maya'] { background: var(--atlas-maya); }
+.swatch[data-layer='body'] { background: var(--atlas-body); }
+.swatch[data-layer='number'] { background: var(--atlas-number); }
+
+.readoutRow {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 10px;
+  padding-block: 5px;
+  border-top: 1px solid var(--lab-line);
+  font-size: var(--type-small);
+}
+
+.readoutRow dt {
+  color: var(--lab-text-3);
+}
+
+.readoutRow dd {
+  margin: 0;
+  color: var(--lab-ink);
+  overflow-wrap: anywhere;
+}
+
+/* The readout and strip sit outside the drawing; they read the same tokens. */
+.tokens {
+  --atlas-sky: var(--layer-sky);
+  --atlas-maya: var(--layer-kin);
+  --atlas-body: var(--layer-body);
+  --atlas-number: var(--layer-number);
+}
+
+
+/* ---------- number strip ---------- */
+
+.strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--lab-line);
+  border-radius: 16px;
+  background: var(--lab-line);
+}
+
+.stripCell {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  background: var(--lab-surface);
+}
+
+.stripValue {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-figure);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--atlas-number);
+  font-variant-numeric: tabular-nums;
+}
+
+.stripLabel {
+  font-size: var(--type-caption);
+  color: var(--lab-text-3);
+}
+
+@media (max-width: 520px) {
+  .strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ---------- pins over the drawing ---------- */
+
+.pins {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pin {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.pinDot {
+  position: absolute;
+  left: -11px;
+  top: -11px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--lab-ink);
+  color: var(--lab-page);
+  font-size: var(--type-micro);
+  font-weight: 700;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--lab-page) 70%, transparent);
+}
+
+.pinCard {
+  position: absolute;
+  top: -15px;
+  width: max-content;
+  max-width: 190px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: var(--type-caption);
+  line-height: 1.35;
+}
+
+.pin[data-side='right'] .pinCard {
+  left: 18px;
+}
+
+.pin[data-side='left'] .pinCard {
+  right: 18px;
+  text-align: end;
+}
+
+.pinCard strong {
+  display: block;
+  font-weight: 600;
+  color: var(--lab-ink);
+}
+
+.pinCard span {
+  color: var(--lab-text-2);
+}
+
+@media (max-width: 720px) {
+  .pins {
+    display: none;
+  }
+}
+
+/* ---------- layer switch ---------- */
+
+.switch {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--lab-line);
+  border-radius: 999px;
+  background: var(--lab-chip);
+}
+
+.switch button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: var(--type-caption);
+  color: var(--lab-text-2);
+}
+
+.switch button[aria-pressed='true'] {
+  background: var(--lab-surface);
+  color: var(--lab-ink);
+  box-shadow: 0 1px 2px var(--lab-shadow);
+}
+
+/* ---------- pair and circle ---------- */
+
+.relation {
+  position: relative;
+  width: 100%;
+}
+
+.relation svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.landscape {
+  display: block;
+}
+
+.portrait {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .landscape {
+    display: none;
+  }
+  .portrait {
+    display: block;
+  }
+}
+
+.tie {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.tie[data-layer='sky'],
+.tieEnd[data-layer='sky'] { stroke: var(--atlas-sky); fill: var(--atlas-sky); }
+.tie[data-layer='maya'],
+.tieEnd[data-layer='maya'] { stroke: var(--atlas-maya); fill: var(--atlas-maya); }
+.tie[data-layer='body'],
+.tieEnd[data-layer='body'] { stroke: var(--atlas-body); fill: var(--atlas-body); }
+.tie[data-layer='number'],
+.tieEnd[data-layer='number'] { stroke: var(--atlas-number); fill: var(--atlas-number); }
+
+.tie {
+  fill: none !important;
+}
+
+.tieEnd {
+  stroke: var(--lab-page) !important;
+  stroke-width: 2;
+}
+
+.tieLabelBg {
+  fill: var(--lab-surface);
+  stroke: var(--lab-line);
+}
+
+.tieLabel {
+  fill: var(--lab-ink);
+  font-size: 13px; /* drawing */
+  font-weight: 500;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.personName,
+.personSub {
+  paint-order: stroke;
+  stroke: var(--lab-art);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+
+/* Sizes come from PERSON_LABEL (geometry.ts), set on the text by the drawings. */
+.personName {
+  fill: var(--lab-ink);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+.personSub {
+  fill: var(--lab-text-3);
+  text-anchor: middle;
+}
+
+.node {
+  fill: var(--lab-surface);
+  stroke: var(--lab-line);
+  stroke-width: 1.5;
+}
+
+.nodeHub {
+  stroke: var(--atlas-maya);
+  stroke-width: 2.5;
+}
+
+.common summary {
+  cursor: pointer;
+  font-size: var(--type-caption);
+  color: var(--lab-text-2);
+  padding-block: 10px;
+}
+
+/* ---------- stage: drawing, switch, status, numbers ---------- */
+
+.stage {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 680px;
+  overflow: hidden;
+  border-radius: 28px;
+  background: var(--lab-art);
+  isolation: isolate;
+}
+
+.stageTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 14px 0;
+}
+
+.stageDrawing {
+  position: relative;
+  align-self: center;
+  justify-self: center;
+  width: min(100%, 640px);
+  padding: 8px 20px;
+  transition: opacity 0.3s ease;
+}
+
+.stageDrawing[data-busy] {
+  opacity: 0.6;
+}
+
+.square {
+  position: relative;
+  width: 100%;
+}
+
+/* Fit: the stage fills its slot's height; the drawing is the largest square that fits. */
+.stageFit {
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  height: 100%;
+}
+
+.stageFit .stageDrawing {
+  container-type: size;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+}
+
+.stageFit .square {
+  width: min(100cqw, 100cqh);
+}
+
+.pinDot[data-layer='sky'] { background: var(--atlas-sky); }
+.pinDot[data-layer='maya'] { background: var(--atlas-maya); }
+.pinDot[data-layer='body'] { background: var(--atlas-body); }
+
+.stageBottom {
+  display: grid;
+  gap: 8px;
+  padding: 0 14px 14px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: var(--type-caption);
+  color: var(--lab-text-2);
+}
+
+.badgeDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sys-human-design);
+  animation: badge-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes badge-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.stripBadge {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-inline-end: 6px;
+  border-radius: 50%;
+  background: var(--lab-ink);
+  color: var(--lab-page);
+  font-size: var(--type-micro);
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .stage {
+    min-height: 0;
+    border-radius: 22px;
+  }
+  .stageDrawing {
+    padding: 4px 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badgeDot {
+    animation: none;
+  }
+  .stageDrawing {
+    transition: none;
+  }
+}
+
+/* ---------- first paint: the map draws itself (BENTO_MOTION.md, storyboard H) ----------
+ * CSS owns the entrance so it starts with the first paint, before any script,
+ * and never hides content waiting on JavaScript. anime.js later turns ring
+ * groups on new data; it never touches these properties. The rules match
+ * only while the lab root carries data-entrance (useEntrance): reduced
+ * motion, a pause, or the entrance having played removes it, which leaves
+ * the final frame and never replays it. */
+
+.bodyFigure {
+  display: block;
+  height: 100%;
+  width: auto;
+  overflow: visible;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The order of the draw, in fractions of the draw token: rings, then signs, seals, the body, the pins. */
+  [data-lab][data-entrance] .tokens {
+    --enter-signs: calc(var(--dur-draw) / 4);
+    --enter-seals: calc(var(--dur-draw) / 2);
+    --enter-body: calc(var(--dur-draw) * 5 / 6);
+    --enter-pins: calc(var(--dur-draw) + var(--dur-quick));
+  }
+
+  [data-lab][data-entrance] .draw {
+    stroke-dasharray: 1 1;
+    animation: atlas-draw var(--dur-draw) var(--ease-emphasized) both;
+  }
+
+  [data-lab][data-entrance] .enterSign {
+    animation: atlas-enter var(--dur-settle) var(--ease-standard) both;
+    animation-delay: calc(var(--enter-signs) + var(--i, 0) * var(--stagger));
+  }
+
+  /* Twenty seals share the window the signs take, so each steps three quarters of a stagger. */
+  [data-lab][data-entrance] .enterSeal {
+    animation: atlas-enter var(--dur-settle) var(--ease-standard) both;
+    animation-delay: calc(var(--enter-seals) + var(--i, 0) * var(--stagger) * 3 / 4);
+  }
+
+  [data-lab][data-entrance] .enterCenter {
+    animation: atlas-enter var(--dur-settle) var(--ease-standard) both;
+    animation-delay: calc(var(--enter-body) + var(--i, 0) * var(--stagger));
+  }
+
+  [data-lab][data-entrance] .drawLate {
+    stroke-dasharray: 1 1;
+    animation: atlas-draw var(--dur-draw) var(--ease-emphasized) both;
+    animation-delay: var(--enter-body);
+  }
+
+  [data-lab][data-entrance] .pinDot {
+    animation: atlas-pin var(--dur-settle) var(--ease-emphasized) both;
+    animation-delay: calc(var(--enter-pins) + var(--i, 0) * var(--stagger) * 2);
+  }
+}
+
+@keyframes atlas-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes atlas-enter {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes atlas-pin {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.6);
+  }
+}
+
+/* ---------- number ring (exploded view) ---------- */
+
+.numberBig {
+  fill: var(--atlas-number);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 104px; /* drawing */
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+.numberSmall {
+  fill: var(--lab-ink);
+  font-size: 30px; /* drawing */
+  font-weight: 600;
+  text-anchor: middle;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- home sections 3 and 4: pair layers and circle sonar (BENTO_MOTION.md storyboards 3, 4) ----------
+ * Added for the "Two people" and "Circles" home sections. The layered pair
+ * frame stacks three SVGs on one view box (person a, person b, ties) so a
+ * scroll scene can move each as a composited box. The sonar ring is at rest
+ * invisible; an illustration sends it outward once. */
+
+.pairStack {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--pair-w) / var(--pair-h);
+}
+
+.pairStack > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.sonar {
+  fill: none;
+  stroke: var(--atlas-maya);
+  stroke-width: 2;
+  opacity: 0;
+  pointer-events: none;
+}

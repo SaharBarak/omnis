@@ -1,8 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
-
-const PROTECTED_PATHS = ['/app', '/dashboard', '/people', '/profile', '/onboarding']
-const AUTH_PATHS = ['/login', '/signup']
+import { gateRedirect } from '@/lib/auth/gates'
 
 export async function middleware(request: NextRequest) {
   // The response carries Supabase's refreshed auth cookies. Every branch below
@@ -36,29 +34,12 @@ export async function middleware(request: NextRequest) {
   const { data } = await supabase.auth.getClaims()
   const user = data?.claims?.sub ? data.claims : null
 
-  const { pathname } = request.nextUrl
+  const target = gateRedirect(request.nextUrl.pathname, request.nextUrl.search, user !== null)
+  if (!target) return response
 
-  const redirectWithSession = (pathnameTo: string, withRedirectParam = false) => {
-    const url = request.nextUrl.clone()
-    url.pathname = pathnameTo
-    url.search = ''
-    if (withRedirectParam) url.searchParams.set('redirectTo', pathname)
-    const redirect = NextResponse.redirect(url)
-    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie))
-    return redirect
-  }
-
-  const isProtected = PROTECTED_PATHS.some((p) => pathname.startsWith(p))
-  if (isProtected && !user) {
-    return redirectWithSession('/login', true)
-  }
-
-  const isAuthPath = AUTH_PATHS.some((p) => pathname === p)
-  if (isAuthPath && user) {
-    return redirectWithSession('/app')
-  }
-
-  return response
+  const redirect = NextResponse.redirect(new URL(target, request.url))
+  response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie))
+  return redirect
 }
 
 export const config = {

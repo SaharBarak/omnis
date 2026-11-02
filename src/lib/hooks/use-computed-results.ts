@@ -16,12 +16,6 @@ import { dateToTzolkin } from '@pleiad/engine/calculations/tzolkin'
 // Long Count imports
 import { getLongCountData } from '@pleiad/engine/calculations/long-count'
 
-// Astrology imports
-import { calculateNatalChart, calculateSunSignChart } from '@pleiad/engine/calculations/astrology'
-
-// Human Design imports
-import { calculateBodygraph } from '@pleiad/engine/calculations/human-design'
-
 // Gematria imports
 import { calculateGematria } from '@pleiad/engine/calculations/gematria'
 
@@ -29,7 +23,10 @@ import { calculateGematria } from '@pleiad/engine/calculations/gematria'
 import type { Seal } from '@pleiad/engine/types/seal'
 import type { Tone } from '@pleiad/engine/types/tone'
 import type { TzolkinDaySign } from '@pleiad/engine/types/tzolkin'
-import type { Bodygraph } from '@pleiad/engine/types/human-design'
+import { lazyModule } from '@/lib/lazy-module'
+
+/** Astrology and Human Design sit on ephemeris packages: loaded on the first compute, not with the page. */
+const loadHeavySystems = lazyModule(() => import('./computed-heavy'))
 
 // Client-facing shape mirrors the original Supabase computed_results row
 // contract (nullable, never undefined) so existing consumers keep type-checking.
@@ -245,127 +242,19 @@ export function useComputedResults() {
     }
   }, [])
 
-  // Helper to find dominant key in a balance record
-  const findDominant = (balance: Readonly<Record<string, number>>): string => {
-    let maxKey = 'unknown'
-    let maxValue = 0
-    for (const [key, value] of Object.entries(balance)) {
-      if (value > maxValue) {
-        maxKey = key
-        maxValue = value
-      }
-    }
-    return maxKey
-  }
-
-  // Compute Astrology data for a birth date
-  const computeAstrology = useCallback((
+  // Compute Astrology data for a birth date (loads the astrology engine on first use)
+  const computeAstrology = useCallback(async (
     birthDate: string,
     birthTime?: string | null,
     birthPlace?: { lat: number; lng: number } | null
-  ): AstrologyComputedData => {
-    const hasBirthTime = !!birthTime
-    const lat = birthPlace?.lat ?? 32.0853 // Default: Tel Aviv
-    const lng = birthPlace?.lng ?? 34.7818
+  ): Promise<AstrologyComputedData> => (await loadHeavySystems()).astrologyData(birthDate, birthTime, birthPlace), [])
 
-    // If we have birth time, calculate full chart
-    if (birthTime) {
-      const chart = calculateNatalChart({
-        date: birthDate,
-        time: birthTime,
-        latitude: lat,
-        longitude: lng,
-      })
-
-      return {
-        hasBirthTime: true,
-        sunSign: chart.sunSign.id,
-        moonSign: chart.moonSign.id,
-        risingSign: chart.risingSign?.id || null,
-        summary: {
-          sunSignHebrew: chart.sunSign.hebrew,
-          moonSignHebrew: chart.moonSign.hebrew,
-          risingSignHebrew: chart.risingSign?.hebrew || null,
-          dominantElement: findDominant(chart.elementBalance),
-          dominantModality: findDominant(chart.modalityBalance),
-        },
-      }
-    }
-
-    // Without birth time, use sun sign chart
-    const chart = calculateSunSignChart(birthDate, lat, lng)
-    const moonPosition = chart.planets.find(p => p.planet.id === 'moon')
-
-    return {
-      hasBirthTime: false,
-      sunSign: chart.sunSign.id,
-      moonSign: moonPosition?.sign.id || null,
-      risingSign: null,
-      summary: {
-        sunSignHebrew: chart.sunSign.hebrew,
-        moonSignHebrew: moonPosition?.sign.hebrew || null,
-        risingSignHebrew: null,
-        dominantElement: 'unknown',
-        dominantModality: 'unknown',
-      },
-    }
-  }, [])
-
-  // Compute Human Design data
-  const computeHumanDesign = useCallback((
+  // Compute Human Design data (loads the Human Design engine on first use)
+  const computeHumanDesign = useCallback(async (
     birthDate: string,
     birthTime?: string | null,
     birthPlace?: { lat: number; lng: number } | null
-  ): HumanDesignComputedData | null => {
-    const lat = birthPlace?.lat ?? 32.0853
-    const lng = birthPlace?.lng ?? 34.7818
-
-    try {
-      const result = calculateBodygraph({
-        birthDate,
-        birthTime: birthTime || null,
-        latitude: lat,
-        longitude: lng,
-      })
-
-      // Check if we got a partial result (no birth time)
-      if (!result.hasBirthTime) {
-        return {
-          hasBirthTime: false,
-          type: 'Unknown',
-          typeHebrew: 'לא ידוע',
-          strategy: 'Unknown',
-          strategyHebrew: 'לא ידוע',
-          authority: 'Unknown',
-          authorityHebrew: 'לא ידוע',
-          profile: null,
-          profileHebrew: null,
-          definedCenters: [],
-          undefinedCenters: [],
-        }
-      }
-
-      // We have a complete bodygraph
-      const bodygraph = result as Bodygraph
-
-      return {
-        hasBirthTime: true,
-        type: bodygraph.typeDefinition.name,
-        typeHebrew: bodygraph.typeDefinition.nameHebrew,
-        strategy: bodygraph.typeDefinition.strategy,
-        strategyHebrew: bodygraph.typeDefinition.strategyHebrew,
-        authority: bodygraph.authorityDefinition.name,
-        authorityHebrew: bodygraph.authorityDefinition.nameHebrew,
-        profile: bodygraph.profile.name,
-        profileHebrew: bodygraph.profile.nameHebrew,
-        definedCenters: [...bodygraph.definedCenters],
-        undefinedCenters: [...bodygraph.undefinedCenters],
-      }
-    } catch (error) {
-      console.error('Error computing Human Design:', error)
-      return null
-    }
-  }, [])
+  ): Promise<HumanDesignComputedData | null> => (await loadHeavySystems()).humanDesignData(birthDate, birthTime, birthPlace), [])
 
   // Compute Gematria data for a Hebrew name
   const computeGematria = useCallback((hebrewName: string): GematriaComputedData | null => {
@@ -446,8 +335,10 @@ export function useComputedResults() {
     const dreamspellData = computeDreamspell(birthDate)
     const tzolkinData = computeTzolkin(birthDate)
     const longcountData = computeLongCount(birthDate)
-    const astrologyData = computeAstrology(birthDate, birthTime, birthPlace)
-    const humandesignData = computeHumanDesign(birthDate, birthTime, birthPlace)
+    const [astrologyData, humandesignData] = await Promise.all([
+      computeAstrology(birthDate, birthTime, birthPlace),
+      computeHumanDesign(birthDate, birthTime, birthPlace),
+    ])
     const gematriaData = hebrewName ? computeGematria(hebrewName) : null
 
     await Promise.all([
@@ -536,14 +427,18 @@ export function useComputedResults() {
   }, [deleteComputedResults])
 
   // Compute results without storing (for immediate display)
-  const computeImmediate = useCallback((params: ComputeParams): ComputedResultsForPerson => {
+  const computeImmediate = useCallback(async (params: ComputeParams): Promise<ComputedResultsForPerson> => {
     const { birthDate, birthTime, birthPlace, hebrewName } = params
+    const [astrology, humandesign] = await Promise.all([
+      computeAstrology(birthDate, birthTime, birthPlace),
+      computeHumanDesign(birthDate, birthTime, birthPlace),
+    ])
     return {
       dreamspell: computeDreamspell(birthDate),
       tzolkin: computeTzolkin(birthDate),
       longcount: computeLongCount(birthDate),
-      astrology: computeAstrology(birthDate, birthTime, birthPlace),
-      humandesign: computeHumanDesign(birthDate, birthTime, birthPlace),
+      astrology,
+      humandesign,
       gematria: hebrewName ? computeGematria(hebrewName) : null,
     }
   }, [computeDreamspell, computeTzolkin, computeLongCount, computeAstrology, computeHumanDesign, computeGematria])

@@ -7,6 +7,7 @@ import { identifyUser, resetIdentity } from '@/lib/analytics/posthog'
 import { QUERY_CACHE_STORAGE_KEY } from '@/lib/query-provider'
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import type { profiles } from '@/lib/db/schema'
+import { safeRedirect } from '@/lib/auth/safe-redirect'
 
 export type Profile = typeof profiles.$inferSelect
 
@@ -18,11 +19,6 @@ export type Profile = typeof profiles.$inferSelect
  * redirect); resetPassword sends a link that returns through /auth/callback.
  */
 
-/** Same-origin relative paths only — an absolute URL here is an open redirect. */
-function safeRedirect(redirectTo?: string): string {
-  if (!redirectTo?.startsWith('/') || redirectTo.startsWith('//')) return '/app'
-  return redirectTo
-}
 
 function callbackUrl(redirectTo?: string): string {
   const params = new URLSearchParams({ redirectTo: safeRedirect(redirectTo) })
@@ -147,7 +143,7 @@ export function useAuth() {
     [supabase]
   )
 
-  const signOut = useCallback(async () => {
+  const signOut = useCallback(async (returnTo?: string) => {
     resetIdentity()
     // Drop the persisted query cache synchronously — the redirect below kills
     // the page before the persister's throttled write could flush a cleared
@@ -158,7 +154,7 @@ export function useAuth() {
       // Storage can be unavailable (private mode); never block sign-out.
     }
     await supabase.auth.signOut()
-    window.location.href = '/'
+    window.location.href = safeRedirect(returnTo, '/')
   }, [supabase])
 
   const updateProfile = useCallback(

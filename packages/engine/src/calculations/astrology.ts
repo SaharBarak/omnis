@@ -823,20 +823,35 @@ export function getApproximateSunSign(month: number, day: number): ZodiacSign {
 /**
  * Get the current planetary positions (for transit calculations)
  */
+/** Greenwich, the engine's neutral site for positions read from a date alone. */
+const NEUTRAL_SITE = { latitude: 51.4772, longitude: -0.0005 } as const
+
 export function getCurrentPlanetaryPositions(date: string = new Date().toISOString().split('T')[0]): PlanetPosition[] {
-  // Calculate for a neutral location (Greenwich)
-  const chart = calculateNatalChart({
-    date,
-    latitude: 51.4772,
-    longitude: -0.0005,
-    time: '12:00',
-  })
+  const chart = calculateNatalChart({ date, time: '12:00', ...NEUTRAL_SITE })
 
   // Return positions without house placements
   return chart.planets.map(p => ({
     ...p,
     house: null,
   }))
+}
+
+/**
+ * Where each body stands at the first and last minute of a date at the
+ * neutral site. A chart read from a date alone can only place a body within
+ * this arc: about 13° for the Moon, under 2° for everything else.
+ */
+export function getPlanetaryDayArcs(date: string): ReadonlyMap<PlanetId, readonly [number, number]> {
+  const at = (time: string) =>
+    new Map(calculateNatalChart({ date, time, ...NEUTRAL_SITE }).planets.map(p => [p.planet.id, p.position.longitude]))
+  const start = at('00:00')
+  const end = at('23:59')
+  return new Map(
+    [...start].flatMap(([id, from]) => {
+      const to = end.get(id)
+      return to === undefined ? [] : [[id, [from, to] as const] as const]
+    })
+  )
 }
 
 /**

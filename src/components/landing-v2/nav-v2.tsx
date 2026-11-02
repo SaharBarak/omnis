@@ -14,7 +14,8 @@ import { BrandMark } from '@/components/brand-mark'
 // ============================================
 
 const LINKS = [
-  { label: 'Your reading', href: '/calculate' },
+  { label: 'Free reading', href: '/calculate' },
+  { label: 'How it works', href: '/#how-it-works' },
   { label: 'Knowledge', href: '/learn' },
   { label: 'Pricing', href: '/pricing' },
 ] as const
@@ -75,7 +76,7 @@ export function NavV2() {
             size="sm"
             className="rounded-xl bg-brand px-5 font-semibold text-white transition-transform hover:bg-brand-soft active:scale-[0.98]"
           >
-            <Link href="/login">Open your map</Link>
+            <Link href="/login">Create free account</Link>
           </Button>
           <button
             type="button"

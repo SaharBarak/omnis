@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { surprisal, rarityScore, bySurprisal, BASE_RATE } from './rarity'
+import { surprisal, rarityScore, bySurprisal, BASE_RATE, baseRateOf, UNMEASURED_RATE, tierOf, mayDrawEdge } from './rarity'
 
 describe('surprisal', () => {
   it('gives a near-universal tie almost no weight', () => {
@@ -23,6 +23,21 @@ describe('surprisal', () => {
   it('treats an unmeasured tie as a coin flip, not a discovery', () => {
     expect(surprisal('not-a-real-tie')).toBe(1)
   })
+})
+
+describe('baseRateOf', () => {
+  it('reads the measured table', () => {
+    expect(baseRateOf('guide')).toBe(BASE_RATE.guide)
+    expect(baseRateOf('electromagnetic')).toBe(BASE_RATE.electromagnetic)
+  })
+
+  it('gives an unmeasured tie the coin-flip rate that surprisal reads as one bit', () => {
+    expect(baseRateOf('not-a-real-tie')).toBe(UNMEASURED_RATE)
+    expect(surprisal('not-a-real-tie')).toBe(-Math.log2(UNMEASURED_RATE))
+  })
+})
+
+describe('surprisal ordering', () => {
 
   it('sorts ties by what they actually say', () => {
     const ties = [
@@ -68,5 +83,27 @@ describe('the base-rate table', () => {
       expect(p, type).toBeGreaterThan(0)
       expect(p, type).toBeLessThanOrEqual(1)
     }
+  })
+})
+
+describe('tierOf', () => {
+  it('sorts measured base rates into the atlas tiers', () => {
+    expect(tierOf(BASE_RATE['guide'])).toBe('T3')
+    expect(tierOf(0.1)).toBe('T2')
+    expect(tierOf(0.5)).toBe('T1')
+    expect(tierOf(BASE_RATE['electromagnetic'])).toBe('T0')
+  })
+
+  it('lets only T2 and T3 ties carry a line', () => {
+    expect(mayDrawEdge(BASE_RATE['guide'])).toBe(true)
+    expect(mayDrawEdge(BASE_RATE['electromagnetic'])).toBe(false)
+  })
+})
+
+describe('EDGE_CEILING', () => {
+  it('is the base rate where lines stop', async () => {
+    const { EDGE_CEILING, mayDrawEdge } = await import('./rarity')
+    expect(mayDrawEdge(EDGE_CEILING - 1e-9)).toBe(true)
+    expect(mayDrawEdge(EDGE_CEILING)).toBe(false)
   })
 })

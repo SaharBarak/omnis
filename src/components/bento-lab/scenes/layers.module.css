@@ -1,0 +1,182 @@
+/*
+ * Layers scene (BENTO_MOTION.md storyboard "Layers"). The layout is all here:
+ * a tall track with a sticky frame when motion is on, the stack already apart
+ * so the frame reads without script. GSAP scrubs progress only, unitless 0 to
+ * 1: --part (how far apart the stack is), --raise and --fade per plate, and
+ * --drift for the contours. The geometry they drive is set here, per
+ * breakpoint, and nowhere else.
+ */
+
+.track {
+  position: relative;
+}
+
+.frame {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px;
+  height: var(--figure-h);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab]:not([data-motion='paused']) .track {
+    height: calc(var(--units) * 70svh);
+  }
+  [data-lab]:not([data-motion='paused']) .frame {
+    position: sticky;
+    top: var(--nav-clear);
+    height: var(--figure-pinned-h);
+  }
+}
+
+.stage {
+  --contour: var(--brand);
+  --contour-strength: 3.2;
+  /* How far the contours drift under the stack across the whole scene. */
+  --drift-distance: -240px;
+  --drift: 0;
+  --contour-y: calc(var(--drift) * var(--drift-distance));
+
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--lab-line);
+  border-radius: 28px;
+  background: var(--lab-art);
+  perspective: 1800px;
+  perspective-origin: 50% 30%;
+}
+
+.stack {
+  --tilt-apart: 56deg;
+  --gap-apart: 72px;
+  --part: 1;
+  --tilt: calc(var(--tilt-apart) * var(--part));
+  --gap: calc(var(--gap-apart) * var(--part));
+
+  position: relative;
+  width: min(62cqh, 500px, 66cqw);
+  aspect-ratio: 1;
+  transform-style: preserve-3d;
+  transform: translateY(calc(var(--gap) * 1.4)) rotateX(var(--tilt)) rotateZ(-24deg);
+}
+
+.stage {
+  container-type: size;
+}
+
+.plate {
+  --lift-step: 56px;
+  --dim: 0.22;
+  --raise: 0;
+  --fade: 0;
+
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--plate) 55%, transparent);
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--lab-art) 30%, transparent) 0 58%, color-mix(in srgb, var(--plate) 10%, color-mix(in srgb, var(--lab-art) 72%, transparent)) 100%);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--lab-ink) 6%, transparent) inset,
+    0 30px 60px -30px var(--lab-shadow);
+  opacity: calc(1 - var(--fade) * (1 - var(--dim)));
+  transform: translateZ(calc(var(--k) * var(--gap) + var(--raise) * var(--lift-step)));
+  transform-style: preserve-3d;
+}
+
+.plate[data-layer='sky'] { --plate: var(--layer-sky); }
+.plate[data-layer='maya'] { --plate: var(--layer-kin); }
+.plate[data-layer='body'] { --plate: var(--layer-body); }
+.plate[data-layer='number'] { --plate: var(--layer-number); }
+
+.plate > svg {
+  width: 100%;
+  height: 100%;
+}
+
+.plateName {
+  position: absolute;
+  inset-inline-start: 4%;
+  top: 6%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--lab-page) 80%, transparent);
+  color: var(--lab-ink);
+  font-size: var(--type-caption);
+  font-weight: 600;
+  transform: rotateZ(24deg) rotateX(calc(var(--tilt) * -1));
+}
+
+.plateN {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--plate);
+  color: var(--lab-page);
+  font-size: var(--type-micro);
+}
+
+/* Motion off: a tile brings its layer forward (data-focus is never set while the scene runs). */
+.stack[data-focus] .plate {
+  --fade: 1;
+
+  transition: opacity var(--dur-quick) var(--ease-standard);
+}
+
+.stack[data-focus='sky'] .plate[data-layer='sky'],
+.stack[data-focus='maya'] .plate[data-layer='maya'],
+.stack[data-focus='body'] .plate[data-layer='body'],
+.stack[data-focus='number'] .plate[data-layer='number'] {
+  --fade: 0;
+}
+
+.frame .legend {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .frame .legend {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .frame {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .stack {
+    --gap-apart: 40px;
+
+    width: min(54cqh, 76cqw);
+  }
+  .frame .legend {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 74%;
+    /* Holds .srOnly text: see kit.module.css. */
+    position: relative;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .frame .legend > * {
+    scroll-snap-align: start;
+  }
+}
+
+[data-lab][data-theme='light'] .stage {
+  --contour-strength: 1.6;
+}
+
+[data-lab][data-theme='light'] .plate {
+  border-color: color-mix(in srgb, var(--plate) 85%, transparent);
+}

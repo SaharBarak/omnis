@@ -115,7 +115,7 @@ export async function getGroupWithMembers(userId: string, groupId: string) {
     })
     .filter((m): m is NonNullable<typeof m> => m !== null)
 
-  return { ...serialize(group), members }
+  return { ...serialize<typeof groups.$inferSelect>(group), members }
 }
 
 export async function createGroup(

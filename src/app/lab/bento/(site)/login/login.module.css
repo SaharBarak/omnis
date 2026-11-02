@@ -1,0 +1,78 @@
+.wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 440px);
+  gap: 12px;
+  min-height: calc(100dvh - 92px);
+  padding-top: 12px;
+}
+
+.art {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  background: var(--lab-art);
+  isolation: isolate;
+}
+
+.artText {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 1;
+  display: grid;
+  gap: 10px;
+  padding: 32px;
+  color: var(--lab-on-media);
+  background: linear-gradient(to top, color-mix(in srgb, var(--ground) 85%, transparent), transparent);
+}
+
+.card {
+  display: grid;
+  align-content: center;
+  gap: 18px;
+  padding: 32px;
+  border: 1px solid var(--lab-line);
+  border-radius: 28px;
+  background: var(--lab-surface);
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--lab-line);
+  border-radius: 999px;
+  background: var(--lab-chip);
+}
+
+.tabs button {
+  height: 34px;
+  border-radius: 999px;
+  font-size: var(--type-small);
+  color: var(--lab-text-2);
+}
+
+.tabs button[aria-pressed='true'] {
+  background: var(--lab-surface);
+  color: var(--lab-ink);
+}
+
+.notice {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--lab-chip);
+  font-size: var(--type-small);
+}
+
+@media (max-width: 860px) {
+  .wrap {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .art {
+    min-height: 220px;
+  }
+  .card {
+    padding: 22px;
+  }
+}

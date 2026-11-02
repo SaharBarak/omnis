@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { Input } from './input'
 import { Button } from './button'
 import { cn } from '@/lib/utils'
+import { searchPlacesRaw, type GeocodingResult } from '@/lib/geo/place-search'
 
 export interface BirthPlace {
   name: string
@@ -19,19 +20,6 @@ interface LocationPickerProps {
   onChange: (value: BirthPlace | null) => void
   disabled?: boolean
   className?: string
-}
-
-interface GeocodingResult {
-  display_name: string
-  lat: string
-  lon: string
-  address?: {
-    city?: string
-    town?: string
-    village?: string
-    municipality?: string
-    country?: string
-  }
 }
 
 // Debounce helper
@@ -76,15 +64,7 @@ export function LocationPicker({ value, onChange, disabled, className }: Locatio
 
     setIsSearching(true)
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`,
-        {
-          headers: {
-            'User-Agent': 'Pleiad App (https://pleiad.io)',
-          },
-        }
-      )
-      const data: GeocodingResult[] = await response.json()
+      const data = await searchPlacesRaw(query)
       setResults(data)
       setShowResults(data.length > 0)
     } catch (error) {

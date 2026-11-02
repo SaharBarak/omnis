@@ -5,6 +5,7 @@ import {
   getSunSign,
   getApproximateSunSign,
   getCurrentPlanetaryPositions,
+  getPlanetaryDayArcs,
   formatPlanetPosition,
   getChartSummary,
 } from './astrology'
@@ -567,5 +568,24 @@ describe('Known Date Validation', () => {
 
     // Sun should be in Virgo or Libra (cusp around Sep 22-23)
     expect(['Virgo', 'Libra']).toContain(chart.sunSign.name)
+  })
+})
+
+describe('getPlanetaryDayArcs', () => {
+  const span = (arc: readonly [number, number]): number => ((arc[1] - arc[0] + 540) % 360) - 180
+
+  it('gives the Moon a day arc inside its known range of daily motion', () => {
+    for (const date of ['1991-03-14', '2012-12-21', '2024-07-01']) {
+      const moon = getPlanetaryDayArcs(date).get('moon')
+      expect(moon).toBeDefined()
+      const width = span(moon!)
+      expect(width).toBeGreaterThan(11.5)
+      expect(width).toBeLessThan(15.5)
+    }
+  })
+
+  it('keeps the Sun within its daily motion of about one degree', () => {
+    const sun = getPlanetaryDayArcs('2012-12-21').get('sun')
+    expect(Math.abs(span(sun!))).toBeLessThan(1.1)
   })
 })

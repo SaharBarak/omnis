@@ -210,6 +210,42 @@ describe('syncSubscription — out-of-order delivery', () => {
     })
   })
 
+  it('never revokes a hand-granted comp row', async () => {
+    state.rows.set('user-1', {
+      user_id: 'user-1',
+      plan: 'practitioner',
+      status: 'active',
+      billing_provider: 'manual',
+      updated_at: new Date().toISOString(),
+    })
+    // The provider has no purchase on file for a comped user.
+    state.fetchEntitlement.mockResolvedValue(freeEntitlement())
+
+    expect(await syncSubscription('user-1')).toBe('synced')
+    expect(snapshot('user-1')).toMatchObject({
+      plan: 'practitioner',
+      status: 'active',
+      billing_provider: 'manual',
+    })
+  })
+
+  it('lets a real purchase that outranks the comp take over', async () => {
+    state.rows.set('user-1', {
+      user_id: 'user-1',
+      plan: 'complete',
+      status: 'active',
+      billing_provider: 'manual',
+      updated_at: new Date().toISOString(),
+    })
+    state.fetchEntitlement.mockResolvedValue(entitlement({ plan: 'practitioner' }))
+
+    expect(await syncSubscription('user-1')).toBe('synced')
+    expect(snapshot('user-1')).toMatchObject({
+      plan: 'practitioner',
+      billing_provider: 'revenuecat',
+    })
+  })
+
   it('propagates provider failures so webhook callers can 500 for retry', async () => {
     state.fetchEntitlement.mockRejectedValue(new Error('revenuecat down'))
 

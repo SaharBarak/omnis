@@ -32,6 +32,19 @@ export function isPaidPlanTier(value: unknown): value is PaidPlanTier {
   return (PAID_PLAN_TIERS as readonly string[]).includes(value as string)
 }
 
+/**
+ * `subscriptions.billing_provider` marking a row granted by hand rather than
+ * bought — a comp, a support credit, a partner account. No store holds a
+ * purchase for it, so it is entitlement without revenue: real access for the
+ * user, and something revenue reporting must exclude rather than count as a
+ * sale.
+ *
+ * Lives here, next to the plan vocabulary, because both the sync path (which
+ * must not let a provider revoke a grant) and the reporting path (which must
+ * not bill it as income) need the same word for it.
+ */
+export const COMP_GRANT_PROVIDER = 'manual'
+
 // Subscription status (internal representation)
 export type SubscriptionStatus =
   | 'active'

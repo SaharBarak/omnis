@@ -46,7 +46,7 @@ export function PortalCta() {
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            The map starts with one birthday. Yours.
+            Start with one birthday.
           </motion.h2>
           <motion.p
             className="mt-5 text-lg text-white/70"
@@ -55,8 +55,9 @@ export function PortalCta() {
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            Add yourself first. Then the people who shape your days. Pleiad
-            remembers them, connects them, and lets the map grow with your life.
+            Try the free Dreamspell calculator first. If the reading is useful,
+            save the person and add someone else. That is when Pleiad becomes
+            more than a calculator: it becomes a map of the people you return to.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -70,9 +71,10 @@ export function PortalCta() {
                 size="lg"
                 className="rounded-xl bg-brand px-10 text-base font-semibold text-white transition-transform hover:bg-brand-soft active:scale-[0.98]"
               >
-                <Link href="/calculate">Start with your birthday</Link>
+                <Link href="/calculate">Try a free Dreamspell reading</Link>
               </Button>
             </Magnetic>
+            <p className="mt-3 text-sm text-white/50">No account or card required.</p>
           </motion.div>
         </div>
       </div>

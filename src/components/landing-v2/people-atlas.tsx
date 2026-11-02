@@ -66,15 +66,15 @@ export function PeopleAtlas({ people, charts, pairs }: PeopleAtlasProps) {
           className={`${TYPE.eyebrow} inline-block rounded-full border px-4 py-1.5`}
           style={{ borderColor: `${COLORS.brand}55`, color: COLORS.brand, backgroundColor: `${COLORS.brand}14` }}
         >
-          Your collection
+          Your private people library
         </span>
 
         <div className="mt-6 grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-end">
-          <h2 className={TYPE.section}>One person. Every chart. Every connection.</h2>
+          <h2 className={TYPE.section}>Keep every person ready to reopen.</h2>
           <p className="text-lg leading-relaxed text-white/70">
-            Add the people who matter. Each one gets a full chart in every
-            system, and Pleiad names exactly how they connect to everyone else
-            you&apos;ve added.
+            Save their birth date, time, place, and name once. Their available
+            readings and the comparisons you choose stay together in your
+            account, ready when you want to return to them.
           </p>
         </div>
 

@@ -1,0 +1,211 @@
+/* T2 tool: people rail, map stage, findings, save bar (BENTO_SITE.md "Templates"). */
+
+.tool {
+  display: grid;
+  grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+}
+
+.rail {
+  position: sticky;
+  top: var(--nav-clear);
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  max-height: var(--figure-fit);
+  overflow-y: auto;
+  min-width: 0;
+  overscroll-behavior: contain;
+}
+
+.main {
+  display: grid;
+  align-items: start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.tool[data-count='one'] .main {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+}
+
+.findings {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* The findings column is too narrow for a 2×2 digest: one tile per row, like the hero. */
+.findings .digest {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.card {
+  display: grid;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--lab-line);
+  border-radius: 22px;
+  background: var(--lab-surface);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.cardHead::-webkit-details-marker {
+  display: none;
+}
+
+.when {
+  font-size: var(--type-caption);
+  color: var(--lab-text-3);
+  white-space: nowrap;
+}
+
+.card[open] .when {
+  display: none;
+}
+
+.letter {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--lab-ink);
+  color: var(--lab-page);
+  font-size: var(--type-caption);
+  font-weight: 700;
+}
+
+.who {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.stageSlot {
+  min-width: 0;
+}
+
+.relationStage {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 8px;
+  min-height: 420px;
+  padding: 14px;
+  border-radius: 28px;
+  background: var(--lab-art);
+}
+
+.relationTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.relationBody {
+  align-self: center;
+  min-width: 0;
+  transition: opacity 0.3s ease;
+}
+
+.relationBody[data-busy] {
+  opacity: 0.6;
+}
+
+.waiting {
+  display: grid;
+  place-items: center;
+  min-height: 420px;
+  padding: 24px;
+  text-align: center;
+  color: var(--lab-text-2);
+}
+
+.preview {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 24px;
+  list-style: none;
+}
+
+.previewRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.previewText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  color: var(--lab-text-2);
+  font-size: var(--type-caption);
+}
+
+.previewText strong {
+  color: var(--lab-ink);
+  font-size: var(--type-small);
+}
+
+.saveBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 14px 18px;
+  border: 1px solid var(--lab-line);
+  border-radius: 999px;
+  background: var(--lab-surface);
+}
+
+@media (max-width: 1180px) {
+  .tool[data-count='one'] .main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .tool {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rail {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 720px) {
+  .relationStage {
+    min-height: 0;
+    border-radius: 22px;
+  }
+  .saveBar {
+    border-radius: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .relationBody {
+    transition: none;
+  }
+}

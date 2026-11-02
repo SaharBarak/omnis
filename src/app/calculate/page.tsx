@@ -103,11 +103,11 @@ function LockedSection({
       <p className="mt-4 text-sm leading-relaxed text-white/50">{teaser}</p>
 
       <Link
-        href="/login"
+        href="/pricing"
         className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium transition-transform duration-300 hover:translate-x-1"
         style={{ color: flavor.accentSoft }}
       >
-        Create a free account
+        See access options
         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M5 12h14M12 5l7 7-7 7" />
         </svg>
@@ -196,12 +196,12 @@ export default function CalculatePage() {
           <div className="mb-12 text-center">
             <p className={`${TYPE.eyebrow} text-brand`}>Free calculator</p>
             <h1 className={`${TYPE.hero} mx-auto mt-4`}>
-              One birthday. Six complete readings.
+              Start with a free Dreamspell reading.
             </h1>
             <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-white/70">
-              Enter any birth date for a free, full Dreamspell reading, and see
-              what Astrology, the Tzolkin, Human Design, Kabbalah, and the
-              integrated view are waiting to say about the same moment.
+              Enter a birth date for a complete Dreamspell reading, plus
+              date-based previews from Tzolkin, Long Count, and Astrology.
+              No account or card is required.
             </p>
           </div>
 
@@ -237,7 +237,7 @@ export default function CalculatePage() {
                         Calculating...
                       </span>
                     ) : (
-                      'Calculate my readings'
+                      'Calculate my Dreamspell reading'
                     )}
                   </Button>
                 </div>
@@ -361,19 +361,19 @@ export default function CalculatePage() {
                 </div>
               </section>
 
-              {/* The other five readings the funnel promises */}
               <div className="pt-2">
-                <h3 className={TYPE.h3}>Your other five readings</h3>
+                <h3 className={TYPE.h3}>Complete this person&apos;s profile</h3>
                 <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/50">
-                  Dreamspell is free forever. The same birthday also answers to
-                  five more systems: here&apos;s what each one is waiting to say.
+                  Your date also gives you Tzolkin and Long Count. Birth time,
+                  place, and a Hebrew name add the complete Astrology, Human
+                  Design, and Hebrew Gematria layers.
                 </p>
               </div>
 
               <LockedSection
                 flavor={SYSTEM_FLAVORS.astrology}
-                unlockNote="Unlocks with birth time"
-                teaser="Your Moon sign, rising sign, houses, and aspects are one birth time away. A free account keeps the full natal chart next to every other reading of this person."
+                unlockNote="Needs birth time + place"
+                teaser="Your Moon sign, rising sign, houses, and aspects need an exact birth time and place. Add them on an all-systems plan to keep the natal chart beside this person's other readings."
               >
                 <div className="mt-6 flex items-center gap-4">
                   <span
@@ -396,8 +396,8 @@ export default function CalculatePage() {
 
               <LockedSection
                 flavor={SYSTEM_FLAVORS.tzolkin}
-                unlockNote="Full count in the app"
-                teaser="The traditional Maya count runs beside the Dreamspell: your wavespell position, calendar round, and tun birthdays unlock in your account."
+                unlockNote="All-systems plan"
+                teaser="The traditional Maya count sits beside Dreamspell: your day sign, tone, calendar position, and Long Count date in one profile."
               >
                 <div className="mt-6">
                   <div className="font-display text-xl text-white">
@@ -412,19 +412,19 @@ export default function CalculatePage() {
               <LockedSection
                 flavor={SYSTEM_FLAVORS.humanDesign}
                 unlockNote="Needs birth time + place"
-                teaser="Your Type, Strategy, and inner Authority, the bodygraph that shows how you're built to decide. It's drawn from birth time and place; add them once and Pleiad keeps the chart forever."
+                teaser="Your Type, Strategy, Authority, and bodygraph are calculated from an exact birth time and place. Add them once to keep this layer with the person's profile."
               />
 
               <LockedSection
                 flavor={SYSTEM_FLAVORS.gematria}
                 unlockNote="Needs a Hebrew name"
-                teaser="The gematria of your Hebrew name: its number, the letters that carry it, and which people in your life share its resonance. Add a Hebrew name to unlock this layer."
+                teaser="Hebrew Gematria calculates the value of a Hebrew name and shows how each letter contributes. Add a Hebrew name to include this layer."
               />
 
               <LockedSection
                 flavor={INTEGRATION_FLAVOR}
                 unlockNote="Unlocks with all systems"
-                teaser="Five traditions that never met each other, reading the same moment: you. Where independent readings agree, pay attention: the integrated view finds those overlaps automatically."
+                teaser="The integrated view places the available systems side by side so you can examine recurring themes without hiding the individual readings."
               />
 
               {/* Actions */}
@@ -434,7 +434,7 @@ export default function CalculatePage() {
                   asChild
                 >
                   <Link href="/login">
-                    Create a free account
+                    Create a free account to save this person
                   </Link>
                 </Button>
                 <Button

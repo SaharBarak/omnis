@@ -1,0 +1,1038 @@
+/*
+ * Shared marketing blocks: day board, base-rate chart, plans, FAQ, closing
+ * call (BENTO_SITE.md; storyboards 5 to 9 in BENTO_MOTION.md). Every surface
+ * here is the final frame; scenes and responses only move what is already
+ * in place. Colours are palette roles only.
+ */
+
+/* ---------- surfaces: layered, a 1px inner highlight, a tinted shadow ---------- */
+
+.boardWrap,
+.chart,
+.plan,
+.faqItem {
+  --highlight: 0 1px 0 color-mix(in srgb, var(--lab-ink) 8%, transparent) inset;
+}
+
+/* ---------- day board (storyboard 5) ---------- */
+
+.boardWrap {
+  --contour: var(--layer-kin);
+  --contour-strength: 2.8;
+
+  container-type: inline-size;
+  padding: 10px;
+  border: 1px solid var(--lab-line);
+  border-radius: 30px;
+  background: color-mix(in srgb, var(--lab-art) 72%, var(--lab-page));
+  box-shadow:
+    var(--highlight),
+    0 48px 96px -56px var(--lab-shadow);
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(var(--cols-narrow), minmax(0, 1fr));
+  grid-auto-flow: row dense;
+  gap: 10px;
+  margin: 0;
+}
+
+.tile {
+  --tile: var(--lab-text-2);
+
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 14px;
+  min-width: 0;
+  padding: 16px 18px 18px;
+  border: 1px solid color-mix(in srgb, var(--tile) 18%, var(--lab-line));
+  border-radius: 22px;
+  background:
+    radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--tile) 9%, transparent), transparent 62%),
+    var(--lab-surface);
+  box-shadow:
+    var(--highlight),
+    0 22px 40px -30px var(--lab-shadow);
+}
+
+.tile[data-art] {
+  min-height: 188px;
+}
+
+.tile:not([data-art]) {
+  gap: 8px;
+}
+
+.tile[data-shape='feature'],
+.tile[data-shape='wide'] {
+  grid-column: span 2;
+}
+
+/* The last tile takes what its row leaves, so the board ends square (spans from board.tsx). */
+.tile[data-last] {
+  grid-column: span var(--span-narrow);
+}
+
+@container (min-width: 760px) {
+  .board {
+    grid-template-columns: repeat(var(--cols-wide), minmax(0, 1fr));
+  }
+  .tile[data-shape='feature'] {
+    grid-row: span 2;
+  }
+  .tile[data-last] {
+    grid-column: span var(--span-wide);
+  }
+}
+
+.tileLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: var(--type-micro);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--lab-text-3);
+}
+
+.tileDot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--tile);
+}
+
+.tileBody {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  margin: 0;
+}
+
+.tile[data-art] .tileBody {
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.art {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  min-height: 60px;
+  color: var(--tile);
+}
+
+.tile[data-shape='feature'] .art {
+  align-content: center;
+  justify-items: center;
+}
+
+.face {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.value {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+/* The plain copy holds the layout and is what assistive tech reads. */
+.ghost {
+  color: transparent;
+}
+
+.roller {
+  position: absolute;
+  inset: 0;
+}
+
+.roller > span {
+  display: grid;
+  width: 100%;
+  height: 100%;
+}
+
+.big {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-figure);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--lab-ink);
+}
+
+.tile[data-shape='feature'] .big {
+  font-size: var(--type-poster);
+  line-height: 0.95;
+  color: var(--tile);
+}
+
+.plain {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-lead);
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.small {
+  font-size: var(--type-caption);
+  line-height: 1.35;
+  color: var(--lab-text-2);
+  overflow-wrap: anywhere;
+}
+
+.note {
+  font-size: var(--type-caption);
+  color: var(--lab-text-3);
+}
+
+/* drawings */
+
+.mark {
+  display: block;
+  background: currentColor;
+  -webkit-mask: var(--src) center / contain no-repeat;
+  mask: var(--src) center / contain no-repeat;
+}
+
+.signMark {
+  width: 54px;
+  height: 54px;
+}
+
+.seal {
+  --seal: 76px;
+
+  position: relative;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 4px;
+  width: var(--seal);
+  aspect-ratio: 1;
+}
+
+.tile[data-shape='feature'] .seal {
+  --seal: clamp(150px, 21cqi, 250px);
+}
+
+.sealRing {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+}
+
+.sealRing svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.ringLine {
+  fill: none;
+  stroke: color-mix(in srgb, var(--tile) 28%, transparent);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.tick {
+  stroke: color-mix(in srgb, var(--tile) 50%, transparent);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.tickLit {
+  stroke: var(--tile);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.sealMark {
+  width: calc(var(--seal) * 0.4);
+  height: calc(var(--seal) * 0.4);
+}
+
+.sealTone {
+  width: calc(var(--seal) * 0.17);
+  height: auto;
+  fill: currentColor;
+}
+
+.moon {
+  width: 58px;
+  height: 58px;
+  overflow: visible;
+}
+
+.moonDark {
+  fill: color-mix(in srgb, var(--tile) 12%, var(--surface-2));
+}
+
+.moonLit {
+  fill: var(--tile);
+}
+
+.moonRim {
+  fill: none;
+  stroke: color-mix(in srgb, var(--tile) 45%, transparent);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.hexagram {
+  display: grid;
+  gap: 5px;
+  width: 60px;
+}
+
+.hexLine {
+  display: flex;
+  gap: 8px;
+  height: 5px;
+  transform-origin: 50% 50%;
+}
+
+.seg {
+  flex: 1;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--tile) 38%, transparent);
+}
+
+.hexLine[data-active] .seg {
+  background: var(--tile);
+}
+
+.script {
+  font-size: var(--type-title);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--tile);
+}
+
+.places {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.place {
+  width: 24px;
+  height: 26px;
+  fill: currentColor;
+}
+
+.shell {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+}
+
+.elements {
+  width: 60px;
+  height: 60px;
+}
+
+.elementPath {
+  fill: none;
+  stroke: color-mix(in srgb, var(--tile) 30%, transparent);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.element {
+  fill: color-mix(in srgb, var(--el) 55%, transparent);
+}
+
+.elementLit {
+  fill: var(--el);
+}
+
+/* ---------- base-rate chart (storyboard 6) ---------- */
+
+.chartTrack {
+  position: relative;
+}
+
+.chartFrame {
+  display: grid;
+  align-content: center;
+  gap: 14px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab]:not([data-motion='paused']) .chartTrack[data-pin] {
+    height: 250svh;
+  }
+  [data-lab]:not([data-motion='paused']) .chartTrack[data-pin] .chartFrame {
+    position: sticky;
+    top: var(--nav-clear);
+    min-height: var(--figure-fit);
+  }
+}
+
+.chart {
+  --contour: var(--brand);
+  --contour-strength: 2.4;
+  --bar-off: color-mix(in srgb, var(--lab-text-3) 42%, var(--surface-2));
+
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 22px clamp(14px, 3vw, 32px) 20px;
+  border: 1px solid var(--lab-line);
+  border-radius: 30px;
+  background: color-mix(in srgb, var(--lab-art) 72%, var(--lab-page));
+  box-shadow:
+    var(--highlight),
+    0 48px 96px -56px var(--lab-shadow);
+}
+
+.chartTitle {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  font-size: var(--type-caption);
+  font-weight: 500;
+  color: var(--lab-text-2);
+}
+
+.chartSource {
+  color: var(--lab-text-3);
+  font-weight: 400;
+}
+
+.field {
+  --sweep: 0;
+  --at-edge: calc(var(--edge) + (1 - var(--edge)) * var(--sweep));
+
+  /* The sweep moves the threshold and its zones by transform across the field's width (100cqw), never by layout. */
+  container-type: inline-size;
+  position: relative;
+  display: grid;
+  padding-top: 58px;
+}
+
+.zones {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 0 16px 16px 0;
+  pointer-events: none;
+}
+
+.zoneOff,
+.zoneOn,
+.zoneLead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  overflow: hidden;
+  font-size: var(--type-micro);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.zoneOff {
+  inset-inline-start: 0;
+  color: var(--lab-text-3);
+}
+
+.zoneOn {
+  left: 0;
+  width: 100%;
+  transform: translateX(calc(var(--at-edge) * 100cqw));
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--brand) 9%, transparent), color-mix(in srgb, var(--brand) 4%, transparent));
+  color: var(--brand);
+}
+
+.zoneLead {
+  left: 0;
+  width: 100%;
+  transform: translateX(calc(max(var(--at-edge), var(--lead)) * 100cqw));
+  background: color-mix(in srgb, var(--brand) 7%, transparent);
+  box-shadow: 1px 0 0 color-mix(in srgb, var(--brand) 30%, transparent) inset;
+  color: var(--brand);
+}
+
+.zoneOnLabel,
+.zoneLeadLabel {
+  display: block;
+  padding: 8px 0 0 12px;
+}
+
+/* While the threshold sweeps in from the rare end, both zones start at it; "Leads" fades in over the last tenth of the sweep, as the threshold lands, so the two labels never sit on each other. */
+.zoneLeadLabel {
+  opacity: clamp(0, calc(1 - var(--sweep) * 10), 1);
+}
+
+.zoneOff {
+  padding-top: 8px;
+}
+
+.plot {
+  position: relative;
+  height: clamp(200px, 35svh, 360px);
+}
+
+.gridLine {
+  position: absolute;
+  inset-inline: 0;
+  bottom: calc(var(--at) * 100%);
+  border-top: 1px dashed color-mix(in srgb, var(--lab-line) 80%, transparent);
+}
+
+.plot::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  border-top: 1px solid var(--lab-line);
+}
+
+.columns {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.column {
+  --rise: 1;
+  --lit: 0;
+  /* The bar's full height; the bar and its odds label both stand on it. */
+  --bar-h: max(calc(var(--share) * 100%), 3px);
+
+  position: relative;
+  display: grid;
+  justify-items: center;
+}
+
+.column[data-drawn] {
+  --lit: 1;
+}
+
+.bar {
+  position: absolute;
+  bottom: 0;
+  width: min(44%, 64px);
+  height: var(--bar-h);
+  border-radius: 10px 10px 2px 2px;
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--brand) calc(var(--lit) * 100%), var(--bar-off)),
+    color-mix(in srgb, color-mix(in srgb, var(--brand) calc(var(--lit) * 100%), var(--bar-off)) 72%, var(--lab-ink))
+  );
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--lab-ink) 18%, transparent) inset;
+  transform: scaleY(var(--rise));
+  transform-origin: 50% 100%;
+}
+
+.column[data-leads] .bar {
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--lab-ink) 18%, transparent) inset,
+    0 0 0 3px color-mix(in srgb, var(--brand) calc(var(--lit) * 22%), transparent);
+}
+
+/* The label rides the bar's top by transform only: a track as tall as the bar, moved down by what the bar has yet to rise. */
+.oddsTrack {
+  position: absolute;
+  bottom: 0;
+  display: grid;
+  justify-items: center;
+  width: 100%;
+  height: var(--bar-h);
+  transform: translateY(calc((1 - var(--rise)) * 100%));
+}
+
+.odds {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  max-width: 100%;
+  padding-inline: 2px;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-caption);
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--brand) calc(var(--lit) * 100%), var(--lab-text-2));
+  opacity: var(--rise);
+}
+
+.lane {
+  position: relative;
+  height: calc(52px + var(--levels) * 14px);
+  margin-top: 12px;
+  border-top: 1px dashed color-mix(in srgb, var(--lab-line) 80%, transparent);
+}
+
+.laneName {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 8px;
+  font-size: var(--type-caption);
+  font-weight: 500;
+  color: var(--lab-text-2);
+}
+
+.dot {
+  --lit: 0;
+
+  position: absolute;
+  left: calc(var(--x) * 100%);
+  top: calc(34px + var(--level) * 14px);
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border: 2px solid color-mix(in srgb, var(--brand) calc(var(--lit) * 100%), var(--lab-text-3));
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--brand) calc(var(--lit) * 100%), var(--lab-surface));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--lab-page) 70%, transparent);
+}
+
+.dot[data-drawn] {
+  --lit: 1;
+}
+
+.dotLabel {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  translate: -50% 0;
+  font-size: var(--type-caption);
+  font-weight: 600;
+  white-space: nowrap;
+  color: color-mix(in srgb, var(--brand) calc(var(--lit) * 100%), var(--lab-text-3));
+}
+
+.dot[data-end] .dotLabel {
+  left: auto;
+  right: -4px;
+  translate: 0 0;
+}
+
+.edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(calc(var(--at-edge) * 100cqw));
+  width: 2px;
+  margin-left: -1px;
+  background: var(--brand);
+  opacity: calc((1 - var(--sweep)) * 6);
+}
+
+.edgeLabel {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  translate: -50% 0;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: var(--on-accent);
+  font-size: var(--type-caption);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.names {
+  display: grid;
+  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.names li {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 2px;
+  min-width: 0;
+  text-align: center;
+}
+
+.name {
+  font-size: var(--type-caption);
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--lab-ink);
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.nameBits {
+  font-size: var(--type-micro);
+  font-variant-numeric: tabular-nums;
+  color: var(--lab-text-3);
+}
+
+@media (max-width: 560px) {
+  .zoneOff,
+  .zoneLeadLabel {
+    display: none;
+  }
+  .zoneOnLabel {
+    padding-inline-start: 8px;
+  }
+  .odds {
+    font-size: var(--type-micro);
+  }
+  .name {
+    font-size: var(--type-micro);
+  }
+}
+
+/* ---------- plans (storyboard 7) ---------- */
+
+.plans {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 1180px) {
+  .plans {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .plans > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .plans {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.plan {
+  --lift: 0;
+
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 16px;
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid color-mix(in srgb, var(--lab-bright) calc(var(--lift) * 45%), var(--lab-line));
+  border-radius: 24px;
+  background:
+    linear-gradient(to bottom, color-mix(in srgb, var(--lab-ink) 3%, transparent), transparent 40%),
+    var(--lab-surface);
+  box-shadow:
+    var(--highlight),
+    0 calc(6px + var(--lift) * 18px) calc(18px + var(--lift) * 30px) calc(-14px - var(--lift) * 6px) var(--lab-shadow);
+}
+
+.planFeatured {
+  border-color: var(--brand);
+  background:
+    radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--brand) 12%, transparent), transparent 70%),
+    var(--lab-surface);
+  box-shadow:
+    var(--highlight),
+    0 0 0 1px var(--brand) inset,
+    0 calc(10px + var(--lift) * 18px) calc(28px + var(--lift) * 30px) -16px color-mix(in srgb, var(--brand) 22%, var(--lab-shadow));
+}
+
+.planHead {
+  display: grid;
+  gap: 6px;
+}
+
+.planTagline {
+  font-size: var(--type-caption);
+  line-height: 1.45;
+  color: var(--lab-text-3);
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.price {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-title);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.cadence {
+  margin-inline-start: 6px;
+  font-size: var(--type-small);
+  color: var(--lab-text-3);
+}
+
+.facts {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  margin: 0;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--lab-line);
+  list-style: none;
+  font-size: var(--type-small);
+  line-height: 1.45;
+  color: var(--lab-text-2);
+}
+
+.facts li {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.factMark {
+  margin-top: 2px;
+  color: var(--brand);
+}
+
+.ledger tbody tr {
+  transform-origin: 50% 0;
+}
+
+/* Where the ledger follows the plans directly (home), it keeps a section's breath from them. */
+.plans + .ledger {
+  margin-top: 36px;
+}
+
+/* ---------- FAQ (storyboard 8) ---------- */
+
+.faq {
+  display: grid;
+  gap: 8px;
+  max-width: 860px;
+  margin-inline: auto;
+}
+
+.faqItem {
+  border: 1px solid var(--lab-line);
+  border-radius: 20px;
+  background: var(--lab-surface);
+  box-shadow:
+    var(--highlight),
+    0 18px 36px -32px var(--lab-shadow);
+}
+
+.faqQ {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 22px;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 500;
+  line-height: 1.4;
+  list-style: none;
+}
+
+.faqQ::-webkit-details-marker {
+  display: none;
+}
+
+.faqQ:focus-visible {
+  outline: 2px solid var(--lab-bright);
+  outline-offset: 2px;
+}
+
+.faqIcon {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--lab-chip);
+}
+
+.faqIcon::before,
+.faqIcon::after {
+  content: '';
+  position: absolute;
+  inset: 50% 6px auto;
+  height: 1.5px;
+  margin-top: -0.75px;
+  border-radius: 1px;
+  background: var(--lab-ink);
+}
+
+.faqIcon::after {
+  rotate: 90deg;
+}
+
+.faqItem[open]:not([data-closing]) .faqIcon::after {
+  rotate: 0deg;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab]:not([data-motion='paused']) .faqIcon::after {
+    transition: rotate var(--dur-quick) var(--ease-standard);
+  }
+}
+
+.faqA {
+  overflow: hidden;
+}
+
+.faqA p {
+  margin: 0;
+  max-width: 70ch;
+  padding: 0 20px 20px;
+  line-height: 1.6;
+  color: var(--lab-text-2);
+}
+
+/* ---------- close (storyboard 9) ---------- */
+
+.close {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: clamp(420px, 62svh, 620px);
+  overflow: hidden;
+  border-radius: 32px;
+  clip-path: inset(0 round 32px);
+  background: var(--lab-art);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--lab-ink) 10%, transparent) inset;
+  isolation: isolate;
+}
+
+.closeArt {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  transform-origin: 50% 60%;
+}
+
+.closeScrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(70% 60% at 50% 55%, color-mix(in srgb, var(--lab-art) 62%, transparent), transparent 100%),
+    linear-gradient(to top, color-mix(in srgb, var(--lab-art) 70%, transparent), transparent 60%);
+}
+
+.closeBody {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  max-width: 640px;
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--lab-on-media);
+}
+
+.closeTitle {
+  max-width: 16ch;
+}
+
+.closeLead {
+  color: var(--lab-on-media-2);
+}
+
+.closeAction {
+  margin-top: 6px;
+}
+
+@media (max-width: 560px) {
+  .closeBody {
+    padding: 32px 18px;
+  }
+}
+
+/* ---------- oracle cross ---------- */
+
+.cross {
+  display: grid;
+  grid-template-areas:
+    '. guide .'
+    'antipode self analog'
+    '. occult .';
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  max-width: 420px;
+}
+
+.seat {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 12px 8px;
+  border: 1px solid var(--lab-line);
+  border-radius: 18px;
+  background: var(--lab-surface);
+  text-align: center;
+}
+
+.seatLit {
+  border-color: var(--sys-dreamspell);
+  background: color-mix(in srgb, var(--sys-dreamspell) 16%, var(--lab-surface));
+}
+
+.seatGlyph {
+  filter: invert(1);
+  opacity: 0.9;
+}
+
+[data-lab][data-theme='light'] .seatGlyph {
+  filter: none;
+}
+
+.seat figcaption {
+  display: grid;
+  gap: 2px;
+  font-size: var(--type-caption);
+  color: var(--lab-text-3);
+}
+
+.seat strong {
+  font-size: var(--type-small);
+  font-weight: 600;
+  color: var(--lab-ink);
+}
+
+/* The day a board was computed for, and the way to today's once it turns over (board-day.tsx). */
+.boardDay {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 14px;
+  margin: 0 0 14px;
+  font-size: var(--type-caption);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--lab-text-3);
+}
+
+.boardDayLink {
+  color: var(--brand);
+  font-weight: 600;
+}

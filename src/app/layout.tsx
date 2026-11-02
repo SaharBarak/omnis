@@ -3,7 +3,9 @@ import Script from "next/script";
 import { Barlow, Rubik, IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { PostHogAnalytics } from "@/lib/analytics/posthog-provider";
+import { ServiceWorkerRegistrar } from "@/lib/pwa/service-worker-registrar";
 import { QueryProvider } from "@/lib/query-provider";
+import { BRAND, BRAND_TITLE } from "@/lib/brand/identity";
 import "./globals.css";
 
 const barlow = Barlow({
@@ -47,8 +49,8 @@ export const metadata: Metadata = {
   // is inherited by every page that doesn't override it, which would point
   // all sub-pages at the homepage. Each public page declares its own.
   title: {
-    default: "Pleiad — See Your People Through Six Symbolic Systems",
-    template: "%s | Pleiad"
+    default: BRAND_TITLE,
+    template: `%s | ${BRAND.name}`
   },
   description: "Save the people in your life, read each one through Dreamspell, Tzolkin, Human Design, Astrology, and Hebrew Gematria, and compare the patterns between them.",
   keywords: [
@@ -70,9 +72,9 @@ export const metadata: Metadata = {
     "hebrew numerology",
     "spiritual guidance"
   ],
-  authors: [{ name: "Pleiad" }],
-  creator: "Pleiad",
-  publisher: "Pleiad",
+  authors: [{ name: BRAND.name }],
+  creator: BRAND.name,
+  publisher: BRAND.name,
   robots: {
     index: true,
     follow: true,
@@ -87,8 +89,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    siteName: "Pleiad",
-    title: "Pleiad — See Your People Through Six Symbolic Systems",
+    siteName: BRAND.name,
+    title: BRAND_TITLE,
     description: "Save symbolic profiles, compare two people, and explore group patterns. Start with a free Dreamspell reading.",
     images: [
       {
@@ -105,11 +107,18 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     images: ["/og-image.png"],
   },
-  icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+  // No `icons` here: favicon.ico, icon.svg and apple-icon.png are App Router
+  // files (src/app), and Next drops file icons whenever metadata.icons is
+  // set. All of them are drawn by `npm run brand:icons`.
+  // Served by src/app/manifest.ts, the only web manifest.
+  manifest: "/manifest.webmanifest",
+  // iOS ignores the manifest's `display` field; these drive standalone launch
+  // and the status-bar treatment when added to the home screen.
+  appleWebApp: {
+    capable: true,
+    title: BRAND.name,
+    statusBarStyle: "black-translucent",
   },
-  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({
@@ -132,6 +141,7 @@ export default function RootLayout({
         <script defer src="https://clever-swan-577.convex.site/beacon.js" data-slug="omnis" />
         <QueryProvider>{children}</QueryProvider>
         <PostHogAnalytics />
+        <ServiceWorkerRegistrar />
         <GoogleAnalytics gaId="G-KY20RW9LY7" />
         {process.env.NEXT_PUBLIC_CF_BEACON_TOKEN && (
           <Script

@@ -12,6 +12,10 @@ import { serialize, serializeMany, toEntityId } from '@/lib/db/serialize'
  * id from requireUserId(), never from client input.
  */
 
+/** The row contract these reads return: the table's own row, timestamps as ISO strings. */
+export type PersonRow = typeof people.$inferSelect
+export type TagRow = typeof tags.$inferSelect
+
 export interface PersonInput {
   name: string
   hebrew_name?: string | null
@@ -57,10 +61,10 @@ export async function listPeopleWithTags(userId: string) {
       .filter((pt) => pt.person_id === person.id)
       .map((pt) => tagById.get(pt.tag_id))
       .filter((t): t is NonNullable<typeof t> => Boolean(t))
-    return { ...serialize(person), tags: serializeMany(pTags) }
+    return { ...serialize<PersonRow>(person), tags: serializeMany<TagRow>(pTags) }
   })
 
-  return { people: peopleWithTags, tags: serializeMany(tagRows) }
+  return { people: peopleWithTags, tags: serializeMany<TagRow>(tagRows) }
 }
 
 /**
@@ -96,7 +100,7 @@ export async function getPersonWithTags(userId: string, id: string) {
         .orderBy(asc(tags.sort_order))
     : []
 
-  return { ...serialize(person), tags: serializeMany(tagRows) }
+  return { ...serialize<PersonRow>(person), tags: serializeMany<TagRow>(tagRows) }
 }
 
 async function setPersonTags(userId: string, personId: string, tagIds: string[]) {

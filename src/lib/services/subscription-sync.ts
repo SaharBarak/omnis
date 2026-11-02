@@ -17,6 +17,7 @@
  */
 
 import { getBillingProvider } from '@/lib/services/billing-provider'
+import { COMP_GRANT_PROVIDER, planRank, type PlanTier } from '@/lib/services/billing'
 import {
   getSubscription,
   upsertSubscriptionByUserId,
@@ -25,6 +26,13 @@ import {
 } from '@/lib/db/repositories/subscriptions-repo'
 
 export type SyncResult = 'synced' | 'unresolved_user'
+
+/**
+ * Re-exported so callers already reaching for it here keep working. The
+ * definition lives in `billing.ts` because revenue reporting needs the same
+ * word without importing the sync path.
+ */
+export { COMP_GRANT_PROVIDER }
 
 /**
  * Re-fetch the user's entitlement from the provider (the source of truth) and
@@ -40,11 +48,24 @@ export async function syncSubscription(userId: string): Promise<SyncResult> {
   const provider = await getBillingProvider()
   const entitlement = await provider.fetchEntitlement(userId)
 
+  const local = await getSubscription(userId)
+
   // Founding Lifetime guard: a lifetime grant is permanent by product decision.
   // Once a local row is on 'lifetime', no later sync may pull a founding member
   // off it — a lapsed or canceled subscription must not downgrade them.
-  const local = await getSubscription(userId)
   if (local?.plan === 'lifetime' && entitlement.plan !== 'lifetime') {
+    return 'synced'
+  }
+
+  // Comp grant guard: a hand-granted plan is not the provider's to revoke. The
+  // provider has no purchase on file for these users and would resolve them to
+  // `free` on the next stale read. A real purchase that outranks the grant still
+  // wins, so a comped user who later subscribes is not stuck below what they pay
+  // for.
+  if (
+    local?.billing_provider === COMP_GRANT_PROVIDER &&
+    planRank(entitlement.plan) <= planRank(local.plan as PlanTier)
+  ) {
     return 'synced'
   }
 

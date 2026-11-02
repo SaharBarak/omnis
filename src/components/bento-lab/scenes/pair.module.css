@@ -1,0 +1,259 @@
+/*
+ * Two people (BENTO_MOTION.md storyboard 3). The layout is all here: a track
+ * with a sticky frame when motion is on, the pair already joined so the frame
+ * reads without script, the facts in one row under it, the tie rows under
+ * that. GSAP moves the person layers and shows the tie layer; anime.js draws
+ * the lines, the mark and the gauge; Motion settles the rows.
+ *
+ * The figure's shell, art well, raised surface and action are shared with the
+ * other home figures and live in figure.module.css.
+ */
+
+.scene {
+  display: grid;
+  gap: 28px;
+}
+
+.track {
+  --frame-h: var(--figure-h);
+
+  position: relative;
+}
+
+.frame {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px;
+  height: var(--frame-h);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab]:not([data-motion='paused']) .track {
+    --frame-h: var(--figure-pinned-h);
+
+    height: calc(var(--frame-h) + 100svh);
+  }
+  [data-lab]:not([data-motion='paused']) .frame {
+    position: sticky;
+    top: var(--nav-clear);
+  }
+  [data-lab]:not([data-motion='paused']) .drawing [data-side],
+  [data-lab]:not([data-motion='paused']) .drawing [data-ties] {
+    will-change: transform, opacity;
+  }
+}
+
+/* The drawing fills the well (figure.module.css .stage); each orientation's stack is the largest box of its ratio that fits. */
+.frame .drawing {
+  position: absolute;
+  inset: 22px 24px 14px;
+  width: auto;
+}
+
+.drawing [data-orient] {
+  position: relative;
+  height: 100%;
+  container-type: size;
+}
+
+.drawing [data-pair-stack] {
+  --fit: min(100cqw, 100cqh * var(--pair-w) / var(--pair-h));
+
+  position: absolute;
+  inset: 0;
+  width: var(--fit);
+  height: calc(var(--fit) * var(--pair-h) / var(--pair-w));
+  margin: auto;
+}
+
+/* ---------- facts: one row under the figure ---------- */
+
+/* Without an action the three facts share the row (wide only; narrow layouts below hold either way). */
+@media (min-width: 961px) {
+  .facts:not([data-action]) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 0.85fr);
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+}
+
+.factText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.factLabel {
+  font-size: var(--type-micro);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--lab-text-3);
+}
+
+.factValue {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-figure);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--lab-ink);
+  overflow-wrap: anywhere;
+}
+
+.factMeta {
+  font-size: var(--type-caption);
+  line-height: 1.35;
+  color: var(--lab-text-2);
+}
+
+/* the rarest tie: its line in miniature */
+
+.mark {
+  width: 64px;
+  height: 40px;
+  overflow: visible;
+}
+
+.markLine {
+  fill: none;
+  stroke: var(--tone);
+  stroke-linecap: round;
+}
+
+.markEnd {
+  fill: var(--tone);
+  stroke: var(--lab-surface);
+  stroke-width: 2;
+}
+
+.markEmpty {
+  width: 44px;
+  height: 44px;
+  border: 1px dashed var(--lab-line);
+  border-radius: 50%;
+}
+
+/* lines drawn: one dot per tie checked, lit in its layer's colour once its line lands */
+
+.dots {
+  display: grid;
+  grid-template-columns: repeat(5, 10px);
+  gap: 5px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--lab-ink) 14%, transparent);
+}
+
+.dot[data-layer] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--dot);
+  transition: background-color var(--dur-settle) var(--ease-emphasized);
+}
+
+.dot[data-layer][data-lit] {
+  background: var(--dot);
+}
+
+.dot[data-layer='sky'] { --dot: var(--layer-sky); }
+.dot[data-layer='maya'] { --dot: var(--layer-kin); }
+.dot[data-layer='body'] { --dot: var(--layer-body); }
+.dot[data-layer='number'] { --dot: var(--layer-number); }
+
+/* rarity out of 100 */
+
+.gauge {
+  width: 46px;
+  height: 46px;
+}
+
+.gaugeTrack {
+  fill: none;
+  stroke: color-mix(in srgb, var(--lab-ink) 12%, transparent);
+  stroke-width: 5;
+}
+
+.gaugeArc {
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+/* ---------- the tie rows, centred under the pair ---------- */
+
+.rows {
+  width: min(100%, 980px);
+  margin-inline: auto;
+  padding: 22px 24px 10px;
+  border-radius: 28px;
+}
+
+.table {
+  min-width: 0;
+}
+
+@media (max-width: 960px) {
+  .facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .frame .drawing {
+    inset: 12px;
+  }
+  .fact {
+    gap: 12px;
+    padding: 12px 14px;
+  }
+  .factValue {
+    font-size: var(--type-lead);
+  }
+  .mark {
+    width: 44px;
+    height: 28px;
+  }
+  .dots {
+    grid-template-columns: repeat(4, 8px);
+    gap: 4px;
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+  }
+  .gauge {
+    width: 38px;
+    height: 38px;
+  }
+  .rows {
+    padding: 16px 14px 6px;
+    border-radius: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot[data-layer] {
+    transition: none;
+  }
+}

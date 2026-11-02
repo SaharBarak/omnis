@@ -1,0 +1,49 @@
+/*
+ * A person's map as a full-width figure: the stage fills the viewport under
+ * the bar, less the digest row under it, between the figure floor and ceiling
+ * (kit tokens). Narrow screens let the stage keep its square and the row scroll.
+ */
+
+.figure {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px;
+  height: var(--figure-h);
+}
+
+.stage {
+  min-height: 0;
+}
+
+.figure .digest {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .figure {
+    height: auto;
+    grid-template-rows: auto auto;
+  }
+  .stage {
+    aspect-ratio: 1 / 1.08;
+  }
+  .figure .digest {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .figure .digest {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 74%;
+    /* Holds .srOnly text: see kit.module.css. */
+    position: relative;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+  }
+  .figure .digest > * {
+    scroll-snap-align: start;
+  }
+}

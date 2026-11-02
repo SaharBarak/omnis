@@ -1,0 +1,11 @@
+/* Motion kit (BENTO_MOTION.md). */
+
+.roll {
+  display: inline-grid;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+.rollValue {
+  grid-area: 1 / 1;
+}

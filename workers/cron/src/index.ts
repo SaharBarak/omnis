@@ -16,9 +16,9 @@ interface Env {
 const CRON_ROUTES: Record<string, string> = {
   '0 6 * * *': '/api/cron/daily-kin',
   '0 4 * * *': '/api/cron/daily-predictions',
-  // Hourly: the route matches each recipient's chosen digest hour in their
-  // own timezone (#65) — a single daily firing served only one hour's worth.
-  '0 * * * *': '/api/cron/send-notifications',
+  // The customer daily digest (/api/cron/send-notifications) has no schedule:
+  // retired 2026-09-22. The route still works on demand; re-add
+  // '0 * * * *' here AND in wrangler.jsonc to resume hourly sends.
   '0 7 * * *': '/api/cron/daily-briefing',
 }
 
