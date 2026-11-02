@@ -90,11 +90,11 @@ unless they start at the repository root.
 | 9 | Compression | Done | Cloudflare edge compression; `compress: true` | — |
 | 10 | Hot-data cache | Partial | KV for rate limits only; R2 incremental cache; persisted client cache | Edge-cache public reads (daily kin, today, knowledge, shares) |
 | 11 | Unused dependencies | Gap | No imports of `@react-three/fiber`, `@react-three/drei`, `cheerio`, `jose`, `node-fetch`, `node-addon-api`; `@types/three` is a runtime dependency | Remove after a build check |
-| 12 | External timeouts | Partial | `briefing/http.ts` has one; Turnstile, RevenueCat, push and the LLM clients have none | `AbortSignal.timeout` on each |
+| 12 | External timeouts | Done | One deadline table, `lib/http/deadline.ts`, read by Turnstile, RevenueCat, Expo push, the briefing collectors and both LLM clients | — |
 | 13 | Streamed AI | Gap | `services/llm.ts` and `api/ai/interpret` return whole responses | Stream the quick reading |
 | 14 | Optimistic UI | Gap | No `onMutate`; people and boards wait for a refetch, two Sydney round trips | `onMutate` with rollback |
 | 15 | Lazy images | Partial | Two `loading="lazy"`; raw `<img>` in `canvas/nodes/person-node.tsx`, `learn/dreamspell/page.tsx` | `next/image` or `loading="lazy"` |
-| 16 | Parallel requests | Partial | `api/share/[token]` makes four queries in a row, one a redundant owner lookup; `api/people` reads plan then usage in sequence | Fold and parallelise |
+| 16 | Parallel requests | Partial | The share route takes its owner from the atomic view count, and `api/people` reads plan and usage together; the password path still reads the share twice | Fold the password check into the share read |
 | 17 | Indexes | Partial | Owner indexes exist; no vector index on `content_chunks.embedding`; no (owner, `updated_at`) on boards or (owner, `start_date`) on predictions | One migration, applied by the owner |
 | 18 | Tracing | Partial | `observability.enabled` gives logs only | Turn on Workers traces |
 | 19 | Near the database | Done | Smart Placement and Hyperdrive; the database stays in Sydney | — |
@@ -102,30 +102,35 @@ unless they start at the repository root.
 | 21 | Third-party scripts late | Partial | Analytics load after hydration; one beacon is a raw deferred script in the root layout | Load it `lazyOnload` |
 | 22 | Code split | Done | No heavy library in shared shells; graphs and 3D load dynamically | Load the canvas export (html2canvas, jspdf) on demand |
 | 23 | Virtual lists | Partial | Mobile uses FlashList; the web people list renders every row | When lists grow |
-| 24 | Needed columns | Partial | 32 bare `.select()`; `listBoards` reads each board's canvas, layers and thumbnail | Select list columns |
+| 24 | Needed columns | Partial | The board list leaves out the drawing (`BoardSummary`), and plan caps and usage count rows (`countBoards`, `countTrackedPeople`) instead of loading every board and person with tags; other bare `.select()` calls remain | Audit the remaining list reads |
 | 25 | Pooling | Done | Hyperdrive plus postgres-js `max: 4` | — |
 | 26 | Re-renders | Partial | React Compiler on mobile only | Try it on web |
-| 27 | Browser caching | Partial | `public/_headers` covers `/_next/static` and `/icons` only; `next.config` headers do not reach static assets on Workers | Long-lived rules for images, videos and the dreamspell art |
+| 27 | Browser caching | Done | `public/_headers`: hashed build output and icons for a year, immutable; hand-placed images, videos, dreamspell art and textures for a day, refreshed in the background for a week | — |
 | 28 | Load balancing | N/A | Workers scale across isolates and locations | — |
-| 29 | Fonts | Partial | `next/font` self-hosts, but four families and 15 weights load; Barlow 300 is unused; stale Google preconnects | Cut weights and preconnects |
+| 29 | Fonts | Partial | `next/font` self-hosts; the unused Barlow 300 and the stale Google preconnects are gone; four families and 14 weights remain | Measure which weights each surface renders |
 | 30 | Real-user speed | Partial | PostHog pageviews; no Web Vitals reporting | `useReportWebVitals` to PostHog |
 | 31 | Slow devices | Gap | CI typechecks, lints, tests and builds only | Lighthouse CI with mobile throttling |
 
 The browser also calls `supabase.auth.getUser()` on every app load
-(`lib/hooks/use-auth.ts`), a network trip to Supabase Auth; `getClaims()`
-verifies the token locally.
+(`lib/hooks/use-auth.ts`), a network trip to Supabase Auth. It is not on the
+critical path: `onAuthStateChange` delivers the stored session first and
+the UI renders from it, while `getUser` confirms the session with the
+server. It stays.
 
 ## Phases
 
 Ordered by user-visible payoff for effort. Each phase is measured before
 and after, and committed on its own.
 
-1. **Quick wins.** Long-lived caching for public media (27). The board list
-   reads list columns only (24). The share and people routes fold and
-   parallelise their queries (16). Auth on load verifies claims locally.
-   Timeouts on external calls (12). The beacon loads late (21). Unused font
-   weights and preconnects go (29). Unused dependencies go after a build
-   check (11).
+1. **Quick wins.** Landed 2026-11-02: caching for public media (27), the
+   board list without its drawing and counted caps (24), the share and
+   people routes folded and parallel (16), deadlines on outbound calls
+   (12), the unused font weight and preconnects (29). Still in this phase:
+   unused dependencies (11), removed in a commit of their own after a full
+   web build and a mobile bundle, since a root uninstall re-hoists the
+   workspaces. The beacon (21) already loads deferred after parsing, so
+   moving it to `lazyOnload` would trade lost pageviews for no measured
+   gain; it stays.
 2. **Felt speed.** Optimistic mutations for people and boards (14). Web
    Vitals reported to PostHog (30). Images converted and lazy (2, 15). The
    remaining raw fetches move into queries (3).
