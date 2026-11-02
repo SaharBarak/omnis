@@ -450,7 +450,7 @@
 }
 
 .btn:active {
-  transform: translateY(1px) scale(0.99);
+  transform: scale(var(--press-scale));
 }
 
 .btn:disabled {
@@ -458,15 +458,110 @@
   cursor: not-allowed;
 }
 
-.btnSolid {
-  background: var(--brand);
-  border-color: var(--brand);
-  color: var(--on-accent);
+/*
+ * The primary action (BENTO_SITE.md "Primary action"): an ink pill with a
+ * real label and one spark disc, inset so pill and disc are concentric. The
+ * component sets data-follow and writes --mx/--my (where the light sits) and
+ * --lean-x/--lean-y (the magnet) only while motion is allowed and a mouse is
+ * over it, and clears them when either stops.
+ */
+.primary {
+  --h: 46px;
+  --inset: 4px;
+  --disc: calc(var(--h) - 2 * var(--inset));
+  --lean-x: 0px;
+  --lean-y: 0px;
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  block-size: var(--h);
+  padding-inline: calc(var(--h) / 2) var(--inset);
+  border-radius: 999px;
+  background: var(--lab-ink);
+  color: var(--lab-on-ink);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-body);
+  font-weight: 500;
+  white-space: nowrap;
+  translate: var(--lean-x) var(--lean-y);
+  transition-property: translate, scale;
+  transition-duration: var(--dur-quick), var(--dur-press);
+  transition-timing-function: var(--ease-standard);
 }
 
-.btnSolid:hover {
-  background: color-mix(in srgb, var(--brand) 86%, var(--lab-ink));
-  border-color: transparent;
+.primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(circle calc(var(--h) * 2) at var(--mx, 50%) var(--my, 50%), color-mix(in oklab, var(--spark) 30%, transparent), transparent);
+  opacity: 0;
+  transition: opacity var(--dur-quick) var(--ease-standard);
+}
+
+.primary[data-follow]::before {
+  opacity: 1;
+}
+
+.primary:active {
+  scale: var(--press-scale);
+}
+
+.primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  translate: none;
+  scale: none;
+}
+
+.primaryLabel {
+  min-width: 0;
+}
+
+.signal {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: var(--disc);
+  block-size: var(--disc);
+  border-radius: 50%;
+  background: var(--spark);
+  color: var(--on-spark);
+}
+
+.signal svg {
+  transition: rotate var(--dur-turn) var(--ease-emphasized);
+}
+
+.primary:hover .signal svg,
+.primary:focus-visible .signal svg {
+  rotate: var(--turn);
+}
+
+.primary:dir(rtl) .signal[data-mirror] svg {
+  scale: -1 1;
+}
+
+.primary:dir(rtl):hover .signal[data-mirror] svg,
+.primary:dir(rtl):focus-visible .signal[data-mirror] svg {
+  rotate: calc(-1 * var(--turn));
+}
+
+.primarySmall {
+  --h: 36px;
+  --inset: 3px;
+  font-size: var(--type-small);
+}
+
+/* A small pill keeps a 44px target without growing (make-interfaces-feel-better "Minimum hit area"). */
+.primarySmall::after {
+  content: '';
+  position: absolute;
+  inset: calc((var(--h) - 44px) / 2) 0;
 }
 
 .btnSmall {

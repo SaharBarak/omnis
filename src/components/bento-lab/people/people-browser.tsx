@@ -1,14 +1,14 @@
 'use client'
 
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { ArrowRight, Plus, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { AddPersonForm } from './add-person-form'
 import { newCircleHref, pairHref, personHref } from './hrefs'
 import p from './people.module.css'
 import { PersonTile, TileSkeletons } from './person-tile'
 import kit from '../kit.module.css'
+import { PrimaryAction } from '../site/action'
 import { Field } from '../site/field'
 import site from '../site/site.module.css'
 import { EmptyState, ErrorState, Loading } from '../site/states'
@@ -48,15 +48,13 @@ function CompareBar({ ids, onClear }: { readonly ids: readonly string[]; readonl
           Clear
         </button>
         {ids.length === 2 ? (
-          <Link href={pairHref(ids[0], ids[1])} className={`${site.btn} ${site.btnSmall} ${site.btnSolid}`}>
+          <PrimaryAction href={pairHref(ids[0], ids[1])} size="small">
             Map these two
-            <ArrowRight size={14} aria-hidden />
-          </Link>
+          </PrimaryAction>
         ) : (
-          <Link href={newCircleHref(ids)} className={`${site.btn} ${site.btnSmall} ${site.btnSolid}`}>
+          <PrimaryAction href={newCircleHref(ids)} size="small">
             Make a circle
-            <ArrowRight size={14} aria-hidden />
-          </Link>
+          </PrimaryAction>
         )}
       </div>
     </div>
@@ -115,10 +113,9 @@ export function PeopleBrowser({ startAdding = false }: { readonly startAdding?: 
           {shown.length === people.length ? `${people.length} people` : `${shown.length} of ${people.length}`}
         </span>
         {!adding && (
-          <button type="button" className={`${site.btn} ${site.btnSolid}`} onClick={() => setAdding(true)}>
-            <Plus size={16} aria-hidden />
+          <PrimaryAction intent="add" onClick={() => setAdding(true)}>
             Add a person
-          </button>
+          </PrimaryAction>
         )}
       </div>
       {filters.length > 0 && (

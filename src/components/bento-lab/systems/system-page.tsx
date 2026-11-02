@@ -4,7 +4,7 @@ import { ArrowUpRight, BookOpen, ChevronDown } from 'lucide-react'
 import s from './systems.module.css'
 import type { SavedPerson, SystemStatus } from './use-system-people'
 import kit from '../kit.module.css'
-import { EmptyState, ErrorState, Loading, Skeleton } from '../site'
+import { EmptyState, ErrorState, Loading, PrimaryAction, Skeleton } from '../site'
 import site from '../site/site.module.css'
 import { MISSING_LABEL, type MissingField } from '@/lib/atlas/app/saved-person'
 import { PLANS } from '@/lib/services/billing'
@@ -224,17 +224,17 @@ export function PlanGate({ spec, opensOn, planName }: { readonly spec: SystemPag
       <p className={site.body}>
         Your account is on {planName}. Saved people stay as they are; the reading appears here once the plan includes it.
       </p>
-      <Link href={`${siteHref('/app/settings')}#plan`} className={`${site.btn} ${site.btnSmall} ${site.btnSolid}`}>
+      <PrimaryAction href={`${siteHref('/app/settings')}#plan`} size="small">
         See plans
-      </Link>
+      </PrimaryAction>
     </div>
   )
 }
 
 const addPeopleLink = () => (
-  <Link href={siteHref('/app/people')} className={`${site.btn} ${site.btnSmall} ${site.btnSolid}`}>
+  <PrimaryAction href={siteHref('/app/people')} intent="add" size="small">
     Add a person
-  </Link>
+  </PrimaryAction>
 )
 
 /** Shown when the person on screen lacks the birth data the system needs. */

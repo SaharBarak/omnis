@@ -9,7 +9,7 @@ import { FigureCard, GridSkeleton, PersonPicker, Readout, SystemGrid, SystemPage
 import { useComputed, useToday } from './use-computed'
 import { useSystemPeople, type SavedPerson, type SystemStatus } from './use-system-people'
 import kit from '../kit.module.css'
-import { EmptyState, ErrorState, Skeleton } from '../site'
+import { EmptyState, ErrorState, PrimaryAction, Skeleton } from '../site'
 import site from '../site/site.module.css'
 import { MOON_PHASE_HINTS } from '@/lib/data/moon-phases'
 import { routeTitle, siteHref  } from '@/lib/site/routes'
@@ -73,9 +73,9 @@ function BornUnder({ status, people, data, births }: { readonly status: SystemSt
       <EmptyState
         title="No saved people yet"
         action={
-          <Link href={siteHref('/app/people')} className={`${site.btn} ${site.btnSmall} ${site.btnSolid}`}>
+          <PrimaryAction href={siteHref('/app/people')} intent="add" size="small">
             Add a person
-          </Link>
+          </PrimaryAction>
         }
       >
         Add people to see the moon each of them was born under.

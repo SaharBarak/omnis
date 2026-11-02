@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowRight, Plus } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { YourBoard } from '@/components/bento-lab/app'
 import { DashboardPeople, personHref, TiesSections } from '@/components/bento-lab/people'
 import { MapFigure } from '@/components/bento-lab/scenes'
-import { EmptyState, ErrorState, PageHead, Section, site } from '@/components/bento-lab/site'
+import { EmptyState, ErrorState, PageHead, PrimaryAction, Section, site } from '@/components/bento-lab/site'
 import { ownedPeople } from '@/lib/atlas/app/owned'
 import { atlasPeopleOf, issueLine } from '@/lib/atlas/app/saved-person'
 import { birthLine } from '@/lib/atlas/birth-line'
@@ -73,10 +73,9 @@ export default async function AppTodayPage() {
           <EmptyState
             title="No one saved yet"
             action={
-              <Link href={ADD_PERSON} className={`${site.btn} ${site.btnSolid}`}>
-                <Plus size={16} aria-hidden />
+              <PrimaryAction href={ADD_PERSON} intent="add">
                 Add a person
-              </Link>
+              </PrimaryAction>
             }
           >
             Start with your own birth date. The map draws itself here.

@@ -7,7 +7,7 @@ import { NotificationSettings } from './notification-settings'
 import { PlanSettings } from './plan-settings'
 import { SelectField, SystemSection } from './system-page'
 import kit from '../kit.module.css'
-import { Skeleton } from '../site'
+import { PrimaryAction, Skeleton } from '../site'
 import site from '../site/site.module.css'
 import { PageHead } from '../site/page-head'
 import { routeTitle } from '@/lib/site/routes'
@@ -114,9 +114,9 @@ function SystemsSettings() {
             </div>
           ))}
           <div className={site.actions} style={{ alignItems: 'center' }}>
-            <button type="button" className={`${site.btn} ${site.btnSmall} ${site.btnSolid}`} onClick={() => void save()} disabled={draft === null}>
+            <PrimaryAction intent="save" size="small" onClick={() => void save()} disabled={draft === null}>
               Save systems
-            </button>
+            </PrimaryAction>
             <button type="button" className={`${site.btn} ${site.btnSmall}`} onClick={() => setDraft(DEFAULT_SYSTEM_PREFERENCES)}>
               Turn every system on
             </button>
@@ -151,9 +151,9 @@ function DisplaySettings() {
             <SelectField id="timezone" label="Timezone" value={shownZone} options={zones.map((z) => ({ value: z, label: z.replaceAll('_', ' ') }))} onChange={setZone} />
           </div>
           <div className={site.actions} style={{ alignItems: 'center' }}>
-            <button
-              type="button"
-              className={`${site.btn} ${site.btnSmall} ${site.btnSolid}`}
+            <PrimaryAction
+              intent="save"
+              size="small"
               disabled={!dirty}
               onClick={() =>
                 void run(async () => {
@@ -164,7 +164,7 @@ function DisplaySettings() {
               }
             >
               Save language and time
-            </button>
+            </PrimaryAction>
             <span className={s.status} role="status" aria-live="polite">
               {dirty ? 'Unsaved changes' : note}
             </span>

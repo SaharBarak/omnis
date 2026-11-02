@@ -3,9 +3,9 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, type FormEvent } from 'react'
-import { Plus } from 'lucide-react'
 import { groupHref } from './hrefs'
 import p from './people.module.css'
+import { PrimaryAction } from '../site/action'
 import { Field } from '../site/field'
 import site from '../site/site.module.css'
 import { EmptyState, ErrorState, Loading, Skeleton } from '../site/states'
@@ -73,9 +73,9 @@ function NewCircleForm({ preselect, onCancel }: { readonly preselect: readonly s
         </p>
       )}
       <div className={site.actions}>
-        <button type="submit" className={`${site.btn} ${site.btnSolid}`} disabled={!ready}>
+        <PrimaryAction type="submit" intent="save" disabled={!ready}>
           {save.kind === 'saving' ? 'Saving' : 'Save circle'}
-        </button>
+        </PrimaryAction>
         {onCancel && (
           <button type="button" className={site.btn} onClick={onCancel}>
             Cancel
@@ -140,10 +140,9 @@ export function GroupsBrowser({ preselect }: { readonly preselect: readonly stri
         <NewCirclePanel preselect={preselect} onCancel={() => setCreating(false)} />
       ) : (
         <div className={site.actions}>
-          <button type="button" className={`${site.btn} ${site.btnSolid}`} onClick={() => setCreating(true)}>
-            <Plus size={16} aria-hidden />
+          <PrimaryAction intent="add" onClick={() => setCreating(true)}>
             New circle
-          </button>
+          </PrimaryAction>
         </div>
       )}
       <section className={p.panel} aria-label="Your circles">

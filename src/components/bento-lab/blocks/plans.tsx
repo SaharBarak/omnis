@@ -3,12 +3,12 @@ import { Check, Minus } from 'lucide-react'
 import b from './blocks.module.css'
 import { LiftCard, RevealRows } from './plan-motion'
 import kit from '../kit.module.css'
+import { PrimaryAction } from '../site/action'
 import site from '../site/site.module.css'
 import { planCards, planLedger, PLAN_ORDER, type PlanCard } from '@/lib/site/plans'
 import { PLANS } from '@/lib/services/billing'
 
 function Card({ plan }: { plan: PlanCard }) {
-  const button = `${site.btn} ${site.btnSmall} ${plan.featured ? site.btnSolid : ''}`
   return (
     <LiftCard className={`${b.plan} ${plan.featured ? b.planFeatured : ''}`} labelledBy={`plan-${plan.id}`}>
       <header className={b.planHead}>
@@ -29,12 +29,16 @@ function Card({ plan }: { plan: PlanCard }) {
           </li>
         ))}
       </ul>
-      {plan.action.external ? (
-        <a href={plan.action.href} target="_blank" rel="noreferrer" className={button}>
+      {plan.featured ? (
+        <PrimaryAction href={plan.action.href} external={plan.action.external} intent={plan.action.external ? 'out' : 'forward'} size="small">
+          {plan.cta}
+        </PrimaryAction>
+      ) : plan.action.external ? (
+        <a href={plan.action.href} target="_blank" rel="noreferrer" className={`${site.btn} ${site.btnSmall}`}>
           {plan.cta}
         </a>
       ) : (
-        <Link href={plan.action.href} className={button}>
+        <Link href={plan.action.href} className={`${site.btn} ${site.btnSmall}`}>
           {plan.cta}
         </Link>
       )}

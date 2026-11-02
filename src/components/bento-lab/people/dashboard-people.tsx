@@ -5,6 +5,7 @@ import { ArrowRight, Plus } from 'lucide-react'
 import { pairHref } from './hrefs'
 import p from './people.module.css'
 import { PersonTile, TileSkeletons } from './person-tile'
+import { PrimaryAction } from '../site/action'
 import site from '../site/site.module.css'
 import { EmptyState, ErrorState, Loading } from '../site/states'
 import { usePeople } from '@/lib/hooks/use-people'
@@ -44,10 +45,9 @@ export function DashboardPeople() {
       <EmptyState
         title="No one saved yet"
         action={
-          <Link href={addHref} className={`${site.btn} ${site.btnSolid}`}>
-            <Plus size={16} aria-hidden />
+          <PrimaryAction href={addHref} intent="add">
             Add a person
-          </Link>
+          </PrimaryAction>
         }
       >
         Add someone&apos;s birth date to draw their map.

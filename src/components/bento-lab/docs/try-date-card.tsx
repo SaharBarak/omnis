@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, type FormEvent } from 'react'
-import { Field, site } from '../site'
+import { Field, PrimaryAction, site } from '../site'
 import d from './docs.module.css'
 import { parseBirthInput } from '@/lib/atlas/birth-input'
 import { encodePeople, SHARE_PARAM } from '@/lib/atlas/share'
@@ -47,9 +47,7 @@ export function TryDateCard() {
           setError(null)
         }}
       />
-      <button type="submit" className={`${site.btn} ${site.btnSolid}`}>
-        Open my map
-      </button>
+      <PrimaryAction type="submit">Open my map</PrimaryAction>
     </form>
   )
 }

@@ -2,13 +2,13 @@
 
 import Link from 'next/link'
 import { useState, type CSSProperties } from 'react'
-import { ArrowRight, Plus, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import s from './hero.module.css'
 import { PixelVideo, kit } from '@/components/bento-lab'
 import { AtlasReadout, AtlasStage, PairDrawing, StageBadge, TieList, atlasStyles } from '@/components/bento-lab/atlas'
 import { AtlasDigest } from '@/components/bento-lab/atlas/digest'
 import { BirthFields } from '@/components/bento-lab/atlas/birth-fields'
-import { site } from '@/components/bento-lab/site'
+import { PrimaryAction, site } from '@/components/bento-lab/site'
 import { loadPairAtlas, loadPersonAtlas } from '@/lib/atlas/load'
 import type { AtlasPerson } from '@/lib/atlas/pair'
 import type { AtlasLayerId, PairAtlas, PersonAtlas } from '@/lib/atlas/types'
@@ -94,10 +94,7 @@ export function Hero({ seed, today, artwork }: { readonly seed: HeroSeed; readon
           {formA.sample && <Sample name={seed.person.name} line={seed.sampleLine} />}
         </div>
         <div className={site.actions}>
-          <Link href={signInHref('/app/people')} className={`${site.btn} ${site.btnSolid}`}>
-            Keep this map
-            <ArrowRight size={16} aria-hidden />
-          </Link>
+          <PrimaryAction href={signInHref('/app/people')}>Keep this map</PrimaryAction>
           <Link href={siteHref('/map')} className={site.btn}>
             Open the full map
           </Link>
@@ -134,10 +131,9 @@ export function Hero({ seed, today, artwork }: { readonly seed: HeroSeed; readon
           <>
             <AtlasDigest atlas={atlas} focus={focus} onFocus={setFocus} className={s.digest} />
             <AtlasReadout atlas={atlas} id={READOUT_ID} focus={focus} className={kit.srOnly} />
-            <button type="button" className={`${site.btn} ${site.btnSolid}`} onClick={() => setMode('two')}>
-              <Plus size={16} aria-hidden />
+            <PrimaryAction intent="add" onClick={() => setMode('two')}>
               Add a second person
-            </button>
+            </PrimaryAction>
           </>
         ) : (
           <>

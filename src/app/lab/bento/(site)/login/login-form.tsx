@@ -4,7 +4,7 @@ import { useState, type FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import s from './login.module.css'
 import { PixelVideo } from '@/components/bento-lab'
-import { Field, site } from '@/components/bento-lab/site'
+import { Field, PrimaryAction, site } from '@/components/bento-lab/site'
 import { safeRedirect } from '@/lib/auth/safe-redirect'
 import { PORTAL_LOOP } from '@/lib/data/lab-media'
 import { useAuth } from '@/lib/hooks/use-auth'
@@ -120,9 +120,9 @@ export function LoginForm() {
             {notice}
           </p>
         )}
-        <button type="submit" className={`${site.btn} ${site.btnSolid}`} disabled={busy || !email || !password}>
+        <PrimaryAction type="submit" disabled={busy || !email || !password}>
           {busy ? 'Working' : mode === 'signin' ? 'Sign in' : 'Create account'}
-        </button>
+        </PrimaryAction>
         {mode === 'signin' && (
           <button type="button" className={site.textLink} style={{ justifySelf: 'start', fontSize: 14 }} onClick={reset} disabled={busy}>
             Forgot the password

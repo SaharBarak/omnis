@@ -31,6 +31,7 @@ never new layout CSS.
 | Shared text | Legal policies live once, as typed data in `src/lib/site/legal/`; the live `/terms`, `/privacy` and `/refund` pages and the bento ones render the same documents, and the support and privacy addresses are defined once. The library reads `src/lib/docs/content.ts`; the index ships section titles only, never article bodies. The contact form posts `{name, email, message}` to the live `/api/contact`, so the server's schema is the one rule. |
 | Route table | `src/lib/site/routes.ts` is the contract: path, label, template, nav group, auth, the live route it replaces, and whether it is indexed. Nav, footer, wireframe index, metadata and the promotion step read it. |
 | Type | One scale for the tree (BENTO_TYPE.md): roles from `src/lib/design/type-scale.ts`, emitted on the lab root; no raw font size in a lab CSS module (`type-scale.test.ts`). |
+| Surfaces | One elevation scale and one set of radius roles (BENTO_POLISH.md): `src/lib/design/elevation.ts` and `radius.ts`, emitted on the lab root; no drop shadow or raw radius in a lab CSS module (`elevation.test.ts`, `radius.test.ts`). |
 | Kit | `src/components/bento-lab` grows into the site kit: shell (one top bar for the site and the app, footer), scenes, page templates, cards, notch, atlas renderers, forms. |
 | Data | Reuse, never fork: engine (`@pleiad/engine`) for computation, the existing API routes and React Query hooks for signed-in data, `src/lib/data/*` builders for marketing numbers. |
 | Compute | Public tools compute in the browser with the pure engine (no account needed), by deep import only. Dreamspell, Tzolkin and numerology load with the page; astrology and Human Design load on demand once a date is valid, debounced. Every on-demand engine load goes through `lazyModule` (`src/lib/lazy-module.ts`): one load shared by concurrent callers, and a failed load retries on the next call. The people hook's computed results load astrology and Human Design the same way, so no client page bundles an ephemeris package (`src/lib/atlas/client-bundle.test.ts`). Signed-in pages read saved people through the existing API and hooks. |
@@ -324,6 +325,47 @@ Each one is built
 against its motion storyboard (BENTO_MOTION.md "Storyboards"), and each
 section's code lives in its own file under `src/app/lab/bento/(site)/_home/`.
 
+## Primary action
+
+A view's call to action is one component, `PrimaryAction`
+(`src/components/bento-lab/site/action.tsx`), styled in `site.module.css`.
+It follows the metic.studio button reel (BENTO_MOTION.md "Sources") in the
+site's own tokens:
+
+| Detail | Here |
+|---|---|
+| At least 44 px | 46 px regular. The small size is 36 px tall and its hit area reaches 44 px through a pseudo-element |
+| Full pill, concentric | The disc is the pill's height less two insets, so pill and disc share a centre line and their curves stay parallel |
+| A real typeface | The display face at weight 500 |
+| Almost black | The pill is `ink` and its label `onInk`: near-black on a light theme, near-white on a dark one, the strongest contrast the page has |
+| One signal | The disc is `spark` (BENTO_MOTION.md "Palette"); its icon is `onSpark` |
+| The arrow turns | On hover and focus the icon turns over `turn` on `emphasized` |
+| A light follows the pointer | A radial `spark` glow at the pointer, faded in over `quick` |
+| It leans toward the pointer | `MAGNET`: a share of the pointer's offset, clamped |
+| Press | `scale: var(--press-scale)` over `press` |
+
+What the action does picks the icon, how far it turns and whether it
+mirrors in right-to-left text, from one table (`INTENTS`): `forward` turns
+its arrow up and on (−45°), `add` turns its plus a quarter, and `save`,
+`send` and `out` keep icons that already point. Only icons that point along
+the line (the arrows and the paper plane) mirror. A call site names its
+intent, never an icon or an angle. Every attribute, handler and ref a link
+or button takes reaches the element; the component composes its pointer
+handlers after the caller's.
+
+The light and the lean run only for a mouse, and only while motion is
+allowed (`useMotionAllowed`): the component marks the pill `data-follow`
+while both hold, and the light shows only then, so a touch's sticky hover
+or a paused page never lights it. Both clear when the pointer leaves or is
+cancelled, and when motion stops. The turn
+and the press are state, so they stay under reduced motion, without their
+transitions. Motion never carries meaning alone: the label says what the
+action does.
+
+There is one primary action per view, plus the one in the nav. Every other
+action is a quiet `.btn`, so the spark stays rare enough to read as the way
+forward. Secondary buttons press with the same `--press-scale`.
+
 ## Copy rules
 
 From stop-slop (hardikpandya/stop-slop, MIT) and the taste-skill AI-tell
@@ -371,6 +413,8 @@ each wireframe is the slot contract the built page must fill.
 - Signed-in pages show real saved people, with loading, empty and error
   states.
 - Copy passes the copy rules; numbers pass the data-source rule.
+- No call site styles its own solid button: `grep btnSolid` finds nothing,
+  and every primary action is a `PrimaryAction` with an intent.
 - Typecheck, lint and tests pass.
 
 ## Second opinion

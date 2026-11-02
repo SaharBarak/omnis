@@ -3,6 +3,7 @@
 import { useId, useState, type FormEvent } from 'react'
 import p from './people.module.css'
 import { BirthFields } from '../atlas/birth-fields'
+import { PrimaryAction } from '../site/action'
 import { Field } from '../site/field'
 import site from '../site/site.module.css'
 import { personInsertOf } from '@/lib/atlas/app/saved-person'
@@ -66,9 +67,9 @@ export function AddPersonForm({ onSaved, onCancel }: { readonly onSaved: (id: st
         </p>
       )}
       <div className={site.actions}>
-        <button type="submit" className={`${site.btn} ${site.btnSolid}`} disabled={!ready}>
+        <PrimaryAction type="submit" intent="save" disabled={!ready}>
           {save.kind === 'saving' ? 'Saving' : 'Save person'}
-        </button>
+        </PrimaryAction>
         {onCancel && (
           <button type="button" className={site.btn} onClick={onCancel}>
             Cancel

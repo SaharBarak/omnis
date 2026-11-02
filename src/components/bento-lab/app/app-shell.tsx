@@ -2,9 +2,10 @@
 
 import Link from 'next/link'
 import type { ReactNode } from 'react'
-import { ChevronDown, LogOut, Plus } from 'lucide-react'
+import { ChevronDown, LogOut } from 'lucide-react'
 import s from './app.module.css'
 import kit from '../kit.module.css'
+import { PrimaryAction } from '../site/action'
 import { Disclosure } from '../site/disclosure'
 import { SiteFooter } from '../site/site-footer'
 import site from '../site/site.module.css'
@@ -85,10 +86,9 @@ export function AppShell({ user, children }: { readonly user: ShellUser; readonl
         menus={[{ label: 'Systems', items: systems }]}
         actions={<AccountMenu user={user} />}
         primary={
-          <Link href={ADD_PERSON} className={`${site.btn} ${site.btnSmall} ${site.btnSolid}`}>
-            <Plus size={15} aria-hidden />
+          <PrimaryAction href={ADD_PERSON} intent="add" size="small">
             Add a person
-          </Link>
+          </PrimaryAction>
         }
         narrowFooter={
           <div className={site.menuGroup}>

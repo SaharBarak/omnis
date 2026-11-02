@@ -1,8 +1,6 @@
 'use client'
 
-import Link from 'next/link'
 import { useMemo } from 'react'
-import { Plus } from 'lucide-react'
 import { newCircleHref, pairHref } from './hrefs'
 import p from './people.module.css'
 import { TieRows } from './ties-with-others'
@@ -10,8 +8,8 @@ import { useRankedTies, type Tied } from './use-ranked-ties'
 import { circleSeats } from '../atlas/circle-drawing'
 import { CircleScene } from '../scenes/circle-scene'
 import { PairScene } from '../scenes/pair-scene'
+import { PrimaryAction } from '../site/action'
 import { Section } from '../site/section'
-import site from '../site/site.module.css'
 import { EmptyState, ErrorState, Loading, Skeleton } from '../site/states'
 import { loadCircleAtlasInTurn, loadPairAtlasFrom } from '@/lib/atlas/load'
 import { buildMaya } from '@/lib/atlas/maya'
@@ -34,10 +32,9 @@ function FigureSkeleton({ label }: { readonly label: string }) {
 }
 
 const addAction = (
-  <Link href={ADD_PERSON} className={`${site.btn} ${site.btnSolid}`}>
-    <Plus size={16} aria-hidden />
+  <PrimaryAction href={ADD_PERSON} intent="add">
     Add a person
-  </Link>
+  </PrimaryAction>
 )
 
 /**

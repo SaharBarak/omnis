@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { useCallback, useState } from 'react'
-import { ArrowRight, Link2, Plus } from 'lucide-react'
+import { Link2, Plus } from 'lucide-react'
 import { LightPreview } from './light-preview'
 import { PersonCard, type Slot } from './person-card'
 import s from './tools.module.css'
 import { AtlasReadout, AtlasStage, CircleDrawing, CirclePairs, PairDrawing, StageBadge, TieTable } from '../atlas'
 import { AtlasDigest } from '../atlas/digest'
 import kit from '../kit.module.css'
+import { PrimaryAction } from '../site/action'
 import site from '../site/site.module.css'
 import { loadCircleAtlas, loadPairAtlas, loadPersonAtlas } from '@/lib/atlas/load'
 import type { AtlasPerson } from '@/lib/atlas/pair'
@@ -193,10 +194,9 @@ export function PeopleTool({
             <Link2 size={14} aria-hidden />
             {copied === 'done' ? 'Link copied' : copied === 'failed' ? 'Copy failed' : 'Copy share link'}
           </button>
-          <Link href={signInHref('/app/people')} className={`${site.btn} ${site.btnSmall} ${site.btnSolid}`}>
+          <PrimaryAction href={signInHref('/app/people')} size="small">
             Keep these people
-            <ArrowRight size={14} aria-hidden />
-          </Link>
+          </PrimaryAction>
         </div>
       </div>
     </>

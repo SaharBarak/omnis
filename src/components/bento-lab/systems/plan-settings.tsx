@@ -5,7 +5,7 @@ import s from './systems.module.css'
 import { SystemSection } from './system-page'
 import kit from '../kit.module.css'
 import { PlanLedger } from '../blocks'
-import { Skeleton } from '../site'
+import { PrimaryAction, Skeleton } from '../site'
 import site from '../site/site.module.css'
 import { usePlan } from '@/lib/hooks/use-plan'
 import { planCards } from '@/lib/site/plans'
@@ -48,9 +48,9 @@ export function PlanSettings() {
             {hasStoreLinks ? (
               <div className={site.actions}>
                 {APP_STORE_URL && (
-                  <a href={APP_STORE_URL} target="_blank" rel="noreferrer" className={`${site.btn} ${site.btnSmall} ${site.btnSolid}`}>
+                  <PrimaryAction href={APP_STORE_URL} external intent="out" size="small">
                     App Store
-                  </a>
+                  </PrimaryAction>
                 )}
                 {PLAY_STORE_URL && (
                   <a href={PLAY_STORE_URL} target="_blank" rel="noreferrer" className={`${site.btn} ${site.btnSmall}`}>

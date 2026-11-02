@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import { ErrorState, Field, Loading, site } from '../site'
+import { ErrorState, Field, Loading, PrimaryAction, site } from '../site'
 import d from './docs.module.css'
 
 /** The live contact endpoint (src/app/api/contact/route.ts); it validates and rate-limits. */
@@ -112,9 +112,9 @@ export function ContactForm({ fallbackAddress }: { readonly fallbackAddress: str
         </ErrorState>
       )}
       <div className={site.actions}>
-        <button type="submit" className={`${site.btn} ${site.btnSolid}`} disabled={sending}>
+        <PrimaryAction type="submit" intent="send" disabled={sending}>
           Send message
-        </button>
+        </PrimaryAction>
         {sending && (
           <Loading label="Sending your message">
             <span className={site.hint}>Sending your message</span>

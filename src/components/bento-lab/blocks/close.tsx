@@ -1,8 +1,7 @@
-import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 import b from './blocks.module.css'
 import { CloseScene } from './close-scene'
 import { PixelVideo } from '../pixel-video'
+import { PrimaryAction } from '../site/action'
 import site from '../site/site.module.css'
 import type { LabMedia } from '@/lib/data/lab-media'
 
@@ -18,10 +17,9 @@ export function CloseCta({ media, title, body, href, action }: { readonly media:
           <p className={`${site.lead} ${b.closeLead}`} data-close-line="">
             {body}
           </p>
-          <Link href={href} className={`${site.btn} ${site.btnSolid} ${b.closeAction}`}>
+          <PrimaryAction href={href} className={b.closeAction}>
             {action}
-            <ArrowRight size={16} aria-hidden />
-          </Link>
+          </PrimaryAction>
         </div>
       </CloseScene>
     </section>

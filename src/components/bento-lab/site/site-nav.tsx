@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { PrimaryAction } from './action'
 import s from './site.module.css'
 import { TopBar } from './top-bar'
 import { primaryNav, siteHref } from '@/lib/site/routes'
@@ -15,9 +16,9 @@ export function SiteNav() {
         </Link>
       }
       primary={
-        <Link href={siteHref('/map')} className={`${s.btn} ${s.btnSmall} ${s.btnSolid}`}>
+        <PrimaryAction href={siteHref('/map')} size="small">
           Map a birth date
-        </Link>
+        </PrimaryAction>
       }
       narrowFooter={
         <Link href={siteHref('/login')} className={s.menuLink}>
