@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import sharp from 'sharp'
 import { describe, expect, it } from 'vitest'
-import { LANTERN, MARK_MIN_PX, MARK_THEMES, OPTICAL_MIN_PX, lanternShape, markSvg, optical, sagitta } from './mark'
+import { LANTERN, MARK_MIN_PX, MARK_THEMES, OPTICAL_MIN_PX, lanternShape, lockup, markSvg, optical, sagitta } from './mark'
 import { MARK_TONES } from './mark-tones.gen'
 import { OG_SIZE } from './og-card'
 import { MARK_ROLES, OUTPUTS, drawingSvg, mobileModule, render, resolveMarkTones, tonesModule, type Output } from './outputs'
@@ -130,6 +130,18 @@ describe('the drawing at small sizes', () => {
 
   it('draws the table as it stands from 40 px up', () => {
     for (const px of sweep(40, 200, 1)) expect(optical(px), `${px}`).toEqual({ ...LANTERN, ring: { ...LANTERN.ring } })
+  })
+})
+
+describe('the lockup', () => {
+  it.each([LANTERN, ...[12, 16, 20, 24, 32].map((px) => optical(px))])('stands the body on the baseline and reaches the cap line, at %#', (table) => {
+    const { box } = lanternShape(table)
+    const { height, drop, gap } = lockup(table)
+    const cap = box.height / height
+    const baseline = box.y + box.height - drop * cap
+    expect(baseline).toBeCloseTo(table.length, 9)
+    expect(baseline - cap).toBeCloseTo(-table.body + table.brim, 9)
+    expect(gap * cap).toBeCloseTo(box.width / 2, 9)
   })
 })
 

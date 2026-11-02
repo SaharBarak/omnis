@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import s from './site.module.css'
-import { BrandMark } from '@/components/brand-mark'
+import { BrandLockup } from '@/components/brand-mark'
 import { routesIn, siteHref, type NavGroup } from '@/lib/site/routes'
 
 const COLUMNS: readonly { readonly title: string; readonly groups: readonly NavGroup[] }[] = [
@@ -17,8 +17,7 @@ export function SiteFooter() {
       <div className={s.footerGrid}>
         <div className={s.footerLead}>
           <Link href={siteHref('/')} className={s.brand}>
-            <BrandMark size={26} />
-            Pleiad
+            <BrandLockup />
           </Link>
           <p className={s.footerNote}>
             One map per person: Human Design, the 260-day count, astrology and numerology, and the ties

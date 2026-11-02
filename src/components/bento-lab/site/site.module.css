@@ -41,13 +41,13 @@
   border-radius: 999px;
 }
 
+/* The lockup sizes its mark from this text (BRAND_MARK.md "Lockup"); weight 500 matches the mark's wall. */
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
   font-family: var(--font-display), system-ui, sans-serif;
   font-size: var(--type-lead);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.01em;
 }
 

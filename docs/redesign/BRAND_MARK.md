@@ -241,6 +241,31 @@ On both platforms the box is `size` tall and the mark's own aspect wide.
   device pixels. The app therefore draws the table as it stands, at a fixed
   1 : 2 box.
 
+## Lockup
+
+The mark beside the name is set as type, not as an icon centred on the
+text. `lockup()` in `mark.ts` derives its proportions from the drawing, in
+cap heights of the word's font:
+
+- The body, from the brim to the foot, is one cap height. Its flat foot
+  stands on the baseline. Its round crown rises a little past the cap line,
+  as round letters overshoot.
+- The ring rises above the body like an ascender, and the base hangs below
+  the baseline like a descender.
+- The gap to the word is half the mark's width.
+
+`BrandLockup` in `brand-mark.tsx` writes these as `--lockup-*` and its CSS
+module turns them into lengths with the `cap` unit. The browser reads the
+cap height from the font in use, so the lockup follows any size or face the
+surrounding text sets. A fallback face gives a slightly different lockup
+until the web font loads; nothing else changes. The proportions come from
+the fitted table the mark is drawn with (`optical(fit)`), so a small lockup
+whose parts grew still sits on its baseline.
+
+The word is set at weight 500. Its stems are then about as thick as the
+mark's wall, so neither half reads heavier (make-interfaces-feel-better,
+"Match icon stroke to text weight").
+
 ## Acceptance
 
 - One geometry table. Both components and every file derive from it, and
@@ -271,6 +296,8 @@ On both platforms the box is `size` tall and the mark's own aspect wide.
     from the outputs table;
   - every painted pixel of the mark lies inside each safe circle;
   - each URL has one owner.
+- In the lockup, the body's foot sits on the word's baseline and its brim
+  on the cap line, within a pixel, at 1440 and 390 px.
 - Every web call site renders with no layout shift and no horizontal
   overflow at 1440 and 390 px. The 16 px favicon reads as a lantern.
 

@@ -1,0 +1,26 @@
+/* BRAND_MARK.md "Lockup": every length is in the word's cap height, read from the font in use. */
+.lockup {
+  display: inline-flex;
+  align-items: baseline;
+  gap: calc(1cap * var(--lockup-gap));
+}
+
+.lockup > svg {
+  flex-shrink: 0;
+  block-size: calc(1cap * var(--lockup-height));
+  inline-size: auto;
+  translate: 0 calc(1cap * var(--lockup-drop));
+}
+
+/* Without the cap unit (Safari before 17.2), an em stands in at the display face's cap-to-em ratio, so the mark never falls back to an unsized SVG. */
+@supports not (height: 1cap) {
+  .lockup {
+    --cap: 0.7em;
+    gap: calc(var(--cap) * var(--lockup-gap));
+  }
+
+  .lockup > svg {
+    block-size: calc(var(--cap) * var(--lockup-height));
+    translate: 0 calc(var(--cap) * var(--lockup-drop));
+  }
+}

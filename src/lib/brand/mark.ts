@@ -202,6 +202,30 @@ export function optical(px: number, l: Lantern = LANTERN): Lantern {
   return table
 }
 
+/** How the mark sets beside its word, in cap heights of the word's font. */
+export interface Lockup {
+  /** The whole mark's height. */
+  readonly height: number
+  /** How far the base hangs below the baseline. */
+  readonly drop: number
+  /** The space between the mark and the word. */
+  readonly gap: number
+}
+
+/**
+ * The lockup, from the drawing (BRAND_MARK.md "Lockup"). The body, brim to
+ * foot, is the word's cap height: its flat foot stands on the baseline and
+ * its round crown overshoots the cap line as round letters do. The ring rises
+ * above like an ascender and the base hangs below like a descender. The gap
+ * to the word is half the mark's width.
+ */
+export function lockup(l: Lantern = LANTERN): Lockup {
+  const y = levels(l)
+  const cap = y.bodyBottom - y.brim
+  const half = Math.max(l.body, l.lid, l.ring.outer)
+  return { height: (y.bottom - y.top) / cap, drop: (y.bottom - y.bodyBottom) / cap, gap: half / cap }
+}
+
 /** A tile's corner radius as a share of its side: Apple's app-icon corner. */
 export const TILE_CORNER = 0.2237
 

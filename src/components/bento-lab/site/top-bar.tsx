@@ -8,7 +8,7 @@ import kit from '../kit.module.css'
 import { MotionToggle } from '../motion-toggle'
 import { PaletteSwitch } from '../palette-switch'
 import { ThemeToggle } from '../theme-toggle'
-import { BrandMark } from '@/components/brand-mark'
+import { BrandLockup } from '@/components/brand-mark'
 
 /** A titled set of links that opens from the bar, e.g. the app's system pages. */
 export interface NavMenu {
@@ -46,8 +46,7 @@ export function TopBar({ home, links, menus = [], actions, primary, narrowFooter
       </a>
       <nav className={`${s.nav} ${kit.glass}`} aria-label={label}>
         <Link href={home} className={s.brand}>
-          <BrandMark size={28} />
-          Pleiad
+          <BrandLockup />
         </Link>
         <div className={s.navCentre}>
           <NavLinks items={links} className={s.navLinks} />
