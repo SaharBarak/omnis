@@ -13,6 +13,7 @@
  */
 import Groq from 'groq-sdk'
 import { GoogleGenAI } from '@google/genai'
+import { UPSTREAM_TIMEOUT_MS } from '@/lib/http/deadline'
 
 export type LLMProvider = 'groq' | 'gemini'
 
@@ -58,14 +59,14 @@ let geminiClient: GoogleGenAI | null = null
 function getGroq(): Groq {
   const key = process.env.GROQ_API_KEY
   if (!key) throw new Error('GROQ_API_KEY is not configured')
-  if (!groqClient) groqClient = new Groq({ apiKey: key })
+  if (!groqClient) groqClient = new Groq({ apiKey: key, timeout: UPSTREAM_TIMEOUT_MS.llm })
   return groqClient
 }
 
 function getGemini(): GoogleGenAI {
   const key = process.env.GEMINI_API_KEY
   if (!key) throw new Error('GEMINI_API_KEY is not configured')
-  if (!geminiClient) geminiClient = new GoogleGenAI({ apiKey: key })
+  if (!geminiClient) geminiClient = new GoogleGenAI({ apiKey: key, httpOptions: { timeout: UPSTREAM_TIMEOUT_MS.llm } })
   return geminiClient
 }
 

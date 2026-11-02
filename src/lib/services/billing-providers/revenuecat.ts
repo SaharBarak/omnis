@@ -25,6 +25,7 @@ import type {
   NormalizedSubscription,
 } from '@/lib/services/billing-provider'
 import type { SubscriptionStatus } from '@/lib/db/repositories/subscriptions-repo'
+import { deadline } from '@/lib/http/deadline'
 
 const API_BASE = 'https://api.revenuecat.com/v1'
 
@@ -81,6 +82,7 @@ async function fetchSubscriber(userId: string): Promise<RCSubscriber | null> {
         Authorization: `Bearer ${secretKey()}`,
         'Content-Type': 'application/json',
       },
+      signal: deadline('revenuecat'),
     }
   )
 

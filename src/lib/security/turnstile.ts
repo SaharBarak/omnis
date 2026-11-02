@@ -15,6 +15,8 @@
  * Docs: https://developers.cloudflare.com/turnstile/get-started/server-side-validation/
  */
 
+import { deadline } from '@/lib/http/deadline'
+
 const VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify'
 
 export interface TurnstileVerification {
@@ -44,7 +46,7 @@ export async function verifyTurnstileToken(
     const body = new URLSearchParams({ secret, response: token })
     if (remoteip) body.set('remoteip', remoteip)
 
-    const res = await fetch(VERIFY_URL, { method: 'POST', body })
+    const res = await fetch(VERIFY_URL, { method: 'POST', body, signal: deadline('turnstile') })
     if (!res.ok) return { ok: false, skipped: false }
     const data = (await res.json()) as { success?: boolean }
     return { ok: data.success === true, skipped: false }

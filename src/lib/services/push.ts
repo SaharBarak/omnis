@@ -4,6 +4,8 @@
  * Returns tokens Expo reported as dead so callers can prune them.
  */
 
+import { deadline } from '@/lib/http/deadline'
+
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send'
 const BATCH_SIZE = 100
 
@@ -40,6 +42,7 @@ export async function sendExpoPush(
         accept: 'application/json',
       },
       body: JSON.stringify(batch),
+      signal: deadline('expoPush'),
     })
     if (!response.ok) {
       result.failed += batch.length

@@ -8,8 +8,10 @@
  * ceiling that can never reject.
  */
 
-/** Default per-request deadline. */
-export const REQUEST_TIMEOUT_MS = 8_000
+import { UPSTREAM_TIMEOUT_MS } from '@/lib/http/deadline'
+
+/** Default per-request deadline (the briefing row of the upstream table). */
+export const REQUEST_TIMEOUT_MS = UPSTREAM_TIMEOUT_MS.briefing
 /** Default whole-collector deadline (a few requests fanned out concurrently). */
 export const COLLECTOR_TIMEOUT_MS = 20_000
 
@@ -23,13 +25,7 @@ export async function fetchWithTimeout(
   init: RequestInit = {},
   timeoutMs: number = REQUEST_TIMEOUT_MS,
 ): Promise<Response> {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), timeoutMs)
-  try {
-    return await fetch(input, { ...init, signal: controller.signal })
-  } finally {
-    clearTimeout(timer)
-  }
+  return fetch(input, { ...init, signal: AbortSignal.timeout(timeoutMs) })
 }
 
 /**
