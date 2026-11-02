@@ -12,6 +12,8 @@ export const DURATION = Object.freeze({
   press: 120,
   /** Hover, toggles, small state changes. */
   quick: 220,
+  /** An icon turning in place, e.g. the primary action's arrow. */
+  turn: 350,
   /** A component arriving; exits use `quick`. */
   settle: 480,
   /** A ring or line drawing itself. */
@@ -22,6 +24,15 @@ export const CURVE = Object.freeze({
   standard: [0.2, 0, 0, 1] as Curve,
   emphasized: [0.05, 0.7, 0.1, 1] as Curve,
 })
+
+/** Anything pressable scales to this while pressed: tactile, never below 0.95. */
+export const PRESS_SCALE = 0.97
+
+/**
+ * A pointer-following control: it leans toward the pointer by `pull` of the
+ * pointer's offset from its centre, never further than `reach` px.
+ */
+export const MAGNET = Object.freeze({ pull: 0.18, reach: 6 })
 
 /** Motion's spring for responses; specific to Motion, not mirrored in the other engines. */
 export const SPRING = Object.freeze({ type: 'spring' as const, stiffness: 260, damping: 30, mass: 1 })
@@ -51,4 +62,5 @@ export const motionCssVars = (): Readonly<Record<string, string>> => ({
   ...Object.fromEntries(Object.entries(DURATION).map(([k, v]) => [`--dur-${k}`, `${v}ms`])),
   ...Object.fromEntries(Object.entries(CURVE).map(([k, v]) => [`--ease-${k}`, cssCurve(v)])),
   '--stagger': `${STAGGER.step}ms`,
+  '--press-scale': String(PRESS_SCALE),
 })

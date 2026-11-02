@@ -42,6 +42,13 @@ reference: ★2,175, updated October 2026): `motion.md`, `color.md`,
 | charting-data.md › Best practices | A chart stays simple and accessible; detail on demand |
 | design-principles.md | Delight is not decoration: an animation that carries no information is cut |
 
+Two short design references set the spark and the press:
+
+| Reference | Rule applied here |
+|---|---|
+| Niki Aroca, colour reel (Instagram, 2026) | Two colours set the mood; a third, off the mood's hues, is the accent and is used sparingly, on the call to action |
+| metic.studio, button reel (Instagram, 2026) | A primary button is at least 44 px, a full pill in a real typeface, almost black, with one signal colour; its arrow turns on hover, a light follows the pointer, it leans toward the pointer and it scales a little when pressed |
+
 Library versions were read from the npm registry on 2026-10-28 and are
 pinned exactly:
 
@@ -77,12 +84,21 @@ client modules never load the solver.
 |---|---|---|
 | `ground`, `surface1`, `surface2`, `chip`, `line`, `art` | `--lab-page`, `--lab-surface`, `--surface-2`, `--lab-chip`, `--lab-line`, `--lab-art` | Page, raised surface, inset surface, chips, hairline, drawing ground |
 | `ink`, `ink2`, `ink3` | `--lab-ink`, `--lab-text-2`, `--lab-text-3` | Text tiers: ink2 ≥ 7:1, ink3 ≥ 4.5:1 on every text surface |
-| `accent`, `accentSoft`, `onAccent` | `--brand`, `--lab-bright`, `--brand-soft`, `--on-accent` | The one action color and the text on it |
+| `accent`, `accentSoft`, `onAccent` | `--brand`, `--lab-bright`, `--brand-soft`, `--on-accent` | The palette's mood color: links, focus, selection, and the text on it |
+| `spark`, `onSpark` | `--spark`, `--on-spark` | The contrasting signal: the disc on the primary action (BENTO_SITE.md "Primary action") and nothing else, and the icon on it |
 | `sky`, `kin`, `body`, `number` | `--layer-*`; `--sys-*` read them through `SYSTEM_LAYER` | The four map layers and the systems they read, one color each everywhere |
 | `danger`, `shadow` | `--danger`, `--lab-shadow` | Errors (always with their message), tinted shadow |
 
-The accent and the four layers are a categorical set. A test holds every
-pair at ΔE OK ≥ 0.1 in every palette and theme, so a color names one thing.
+The spark sits on the ink-filled primary action, not on a page surface, so
+it is solved against ink. Its floor is 3:1, WCAG 2.2's floor for a graphic
+that identifies a control (1.4.11), and `onSpark` meets the same floor on
+it. Each palette's spark hue sits off its mood and its layers at chroma 0.2:
+magenta h 340 in Groundwater, violet h 290 in Brass and h 305 in Aurora.
+
+The accent, the spark and the four layers are a categorical set. A test
+holds every pair at ΔE OK ≥ 0.1 in every palette and theme, so a color
+names one thing. The spark is also held apart from `danger`, so a call to
+action never reads as an error.
 Color is never the only carrier: every layer also has its glyph and its pin
 number (`LAYER_META.pin`).
 
@@ -166,19 +182,22 @@ Lifecycle rules for every wrapper:
 milliseconds and Bézier tuples. Each wrapper converts them where it
 imports its engine: seconds for GSAP and Motion, `cubicBezier(...)` for
 anime.js. LabRoot also writes them as CSS variables (`--dur-*`, `--ease-*`,
-`--stagger`).
+`--stagger`, `--press-scale`).
 
 | Token | Value | Use |
 |---|---|---|
 | `none` | 0 | Reduced motion, instant state |
 | `press` | 120 ms | Press feedback |
 | `quick` | 220 ms | Hover, toggles, exits, values rolling |
+| `turn` | 350 ms | An icon turning in place: the primary action's arrow |
 | `settle` | 480 ms | A component arriving; rings turning |
 | `draw` | 1200 ms | A ring or line drawing itself |
 | `standard` | cubic-bezier(0.2, 0, 0, 1) | Most movement |
 | `emphasized` | cubic-bezier(0.05, 0.7, 0.1, 1) | Arrivals that land with weight |
 | `SPRING` | stiffness 260, damping 30, mass 1 | Motion only |
 | `STAGGER` | 40 ms step, whole set within 600 ms (`staggerStep`) | Siblings in a set |
+| `PRESS_SCALE` | 0.97 (`--press-scale`) | Anything pressable while pressed; never below 0.95 |
+| `MAGNET` | `pull` 0.18 of the pointer's offset from centre, at most `reach` 6 px | A pointer-following control leaning toward the mouse |
 
 Scroll scenes scrub linearly. Their distance is the CSS track, not a
 duration.

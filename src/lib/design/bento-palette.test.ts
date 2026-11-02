@@ -3,7 +3,7 @@ import { FLOORS, LAYERS, PALETTES, THEMES, paletteCss, paletteSelector, resolveP
 import { contrast, difference } from './color'
 
 const TEXT_BACKDROPS: readonly Role[] = ['ground', 'surface1', 'surface2', 'chip']
-const CATEGORICAL: readonly Role[] = ['accent', ...LAYERS]
+const CATEGORICAL: readonly Role[] = ['accent', 'spark', ...LAYERS]
 const MIN_CATEGORY_DISTANCE = 0.1
 
 describe.each(PALETTES.flatMap((spec) => THEMES.map((theme) => [spec.id, theme, resolvePalette(spec, theme)] as const)))(
@@ -17,16 +17,25 @@ describe.each(PALETTES.flatMap((spec) => THEMES.map((theme) => [spec.id, theme, 
       }
     })
 
-    it('puts readable text on the accent', () => {
+    it('puts readable text on the accent and a visible icon on the spark', () => {
       expect(contrast(palette.onAccent.oklch, palette.accent.oklch)).toBeGreaterThanOrEqual(FLOORS.colour)
+      expect(contrast(palette.onSpark.oklch, palette.spark.oklch)).toBeGreaterThanOrEqual(FLOORS.mark)
     })
 
-    it('keeps the accent and the four layers apart, so a colour names one thing', () => {
+    it('keeps the accent, the spark and the four layers apart, so a colour names one thing', () => {
       for (const [i, a] of CATEGORICAL.entries()) {
         for (const b of CATEGORICAL.slice(i + 1)) {
           expect(difference(palette[a].oklch, palette[b].oklch), `${a} vs ${b}`).toBeGreaterThanOrEqual(MIN_CATEGORY_DISTANCE)
         }
       }
+    })
+
+    it('marks the ink-filled primary action with the spark', () => {
+      expect(contrast(palette.spark.oklch, palette.ink.oklch)).toBeGreaterThanOrEqual(FLOORS.mark - 1e-9)
+    })
+
+    it('keeps the spark apart from danger, so a call to action never reads as an error', () => {
+      expect(difference(palette.spark.oklch, palette.danger.oklch)).toBeGreaterThanOrEqual(MIN_CATEGORY_DISTANCE)
     })
   },
 )
