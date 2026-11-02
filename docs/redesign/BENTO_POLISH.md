@@ -19,7 +19,7 @@ shadow is a literal picked for its own box (`0 48px 96px -56px`,
 `0 22px 40px -30px`, `0 20px 36px -30px`, `0 18px 40px -22px`), radii run
 through fifteen values from 6 to 34 px, and depth is carried by solid
 1 px borders in the opaque hairline colour. A solid line reads as a drawn
-stroke on the contour field and the portal art; in light it reads as a
+stroke on the star field and the portal art; in light it reads as a
 wireframe, and in dark the drops under it barely show. A new surface
 should take a level and a radius role, never a shadow or a size.
 
@@ -165,7 +165,7 @@ LabRoot. Out of scope: the brand lockup (`site/top-bar.tsx`,
 | Severity | Location | Before | After | Why |
 |---|---|---|---|---|
 | MEDIUM | `blocks/blocks.module.css` board, tile, chart, plan, FAQ; `scenes/figure.module.css` shell, surface, action; `scenes/layers.module.css` plate; `kit.module.css` glass, skip; `atlas/atlas.module.css` segment | Each surface writes its own drop (`0 48px 96px -56px`, `0 22px 40px -30px`, `0 20px 36px -30px`, `0 18px 40px -22px`, `0 1px 2px`) over a local `--highlight` | `box-shadow: var(--elevation-N)` from one scale | One height per role; a new surface takes a level, not a literal |
-| MEDIUM | `site/site.module.css` card; `tools/tools.module.css` card, save bar; `people/people.module.css` tile, panel; `atlas/digest.module.css` tile; `docs/docs.module.css` lines, system layer and shelf; `systems/systems.module.css` note, tile, system tile; `_home/hero.module.css` columns; `login/login.module.css` card; `scenes/layers.module.css` stage; `scenes/circle.module.css` seal; `blocks/blocks.module.css` seat | `border: 1px solid var(--lab-line)` as the only depth | Edge in `--elevation-edge` over the page, plus a level | An opaque line reads as a stroke on the contour field and as a wireframe in light; a translucent edge and a drop adapt to any ground |
+| MEDIUM | `site/site.module.css` card; `tools/tools.module.css` card, save bar; `people/people.module.css` tile, panel; `atlas/digest.module.css` tile; `docs/docs.module.css` lines, system layer and shelf; `systems/systems.module.css` note, tile, system tile; `_home/hero.module.css` columns; `login/login.module.css` card; `scenes/layers.module.css` stage; `scenes/circle.module.css` seal; `blocks/blocks.module.css` seat | `border: 1px solid var(--lab-line)` as the only depth | Edge in `--elevation-edge` over the page, plus a level | An opaque line reads as a stroke on the star field and as a wireframe in light; a translucent edge and a drop adapt to any ground |
 | MEDIUM | `blocks/blocks.module.css` `--highlight`; `scenes/figure.module.css`; `site/site.module.css` card; `scenes/circle.module.css` seal | Top highlight `inset 0 1px 0` of `--lab-ink` in both themes | Highlight in dark only, inside the level | In light, ink is dark: the highlight drew a dark line under the top edge, which reads as a recess |
 | LOW | `systems/systems.module.css` segment; `atlas/atlas.module.css` layer switch; `login/login.module.css` tabs | Selected segment marked by a 1 px line or an ad-hoc `0 1px 2px` | `var(--elevation-1)` | The three segmented controls lift their selection the same way |
 | LOW | `people/people.module.css` tile; `systems/systems.module.css` system tile, article card; `docs/docs.module.css` neighbours | Hover changes the border colour only | Hover also rises one level | The card answers the pointer with height, as the plans do |
