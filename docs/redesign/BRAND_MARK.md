@@ -86,18 +86,20 @@ transparent grounds, and in one colour.
 
 ## Colour
 
-Each part takes a role from the Groundwater palette, resolved per theme by
-`resolvePalette` (BENTO_MOTION.md "Palette"):
+The mark's colours are the palette's anchors (BENTO_COLOR.md "Anchors"):
+the palette is derived from the mark, and the mark is drawn back from the
+palette's roles, resolved per theme by `resolvePalette`:
 
 | Part | Role | Dark | Light |
 | --- | --- | --- | --- |
-| Frame (ring, cap, body) | `accent` | teal | deep teal |
-| Window | `sky` | gold | deep gold |
+| Frame (ring, cap, body) | `accent` | the frame anchor, `#42e5e0` | deep teal |
+| Window | `sparkMark` | the window anchor, `#eeb318` | deeper gold, 3:1 on the white tile |
 | Base | `ink` | pale | near black |
 | Icon tile | `surface1` | navy | white |
 
-The mark keeps Groundwater whichever palette a lab page shows: it is the
-brand, not a theme. It does follow the theme, dark or light.
+The mark takes the default palette's roles whichever palette a page shows:
+it is the brand, not a theme. It does follow the theme, dark or light, and
+in the dark theme it is exactly the colours the owner picked.
 
 The resolved hex values are written by the generator into
 `src/lib/brand/mark-tones.gen.ts`, so client code never imports the palette
@@ -273,7 +275,8 @@ mark's wall, so neither half reads heavier (make-interfaces-feel-better,
 
 - One geometry table. Both components and every file derive from it, and
   `grep` finds no other drawing of the mark.
-- The tones equal `resolvePalette(groundwater, theme)` for each role.
+- The tones equal `resolvePalette(lantern, theme)` for each role, and the
+  dark frame and window equal the anchors.
 - The geometry tests read the mark as it renders. They draw it 400 px tall,
   mono and on no ground, and check that:
   - the opaque pixels span 20 × 40 units;

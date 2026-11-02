@@ -89,10 +89,10 @@
   transform-style: preserve-3d;
 }
 
-.plate[data-layer='sky'] { --plate: var(--layer-sky); }
-.plate[data-layer='maya'] { --plate: var(--layer-kin); }
-.plate[data-layer='body'] { --plate: var(--layer-body); }
-.plate[data-layer='number'] { --plate: var(--layer-number); }
+.plate[data-layer='sky'] { --plate: var(--layer-sky); --on-plate: var(--on-layer-sky); }
+.plate[data-layer='maya'] { --plate: var(--layer-kin); --on-plate: var(--on-layer-kin); }
+.plate[data-layer='body'] { --plate: var(--layer-body); --on-plate: var(--on-layer-body); }
+.plate[data-layer='number'] { --plate: var(--layer-number); --on-plate: var(--on-layer-number); }
 
 .plate > svg {
   width: 100%;
@@ -122,7 +122,7 @@
   height: 18px;
   border-radius: 50%;
   background: var(--plate);
-  color: var(--lab-page);
+  color: var(--on-plate);
   font-size: var(--type-micro);
 }
 

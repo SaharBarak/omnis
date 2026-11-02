@@ -695,6 +695,7 @@
 
 .systemLayer {
   --tile: var(--lab-ink);
+  --on-tile: var(--lab-page);
 
   display: grid;
   grid-template-rows: auto 1fr auto;
@@ -708,10 +709,10 @@
   box-shadow: var(--elevation-1);
 }
 
-.systemLayer[data-layer='sky'] { --tile: var(--layer-sky); }
-.systemLayer[data-layer='maya'] { --tile: var(--layer-kin); }
-.systemLayer[data-layer='body'] { --tile: var(--layer-body); }
-.systemLayer[data-layer='number'] { --tile: var(--layer-number); }
+.systemLayer[data-layer='sky'] { --tile: var(--layer-sky); --on-tile: var(--on-layer-sky); }
+.systemLayer[data-layer='maya'] { --tile: var(--layer-kin); --on-tile: var(--on-layer-kin); }
+.systemLayer[data-layer='body'] { --tile: var(--layer-body); --on-tile: var(--on-layer-body); }
+.systemLayer[data-layer='number'] { --tile: var(--layer-number); --on-tile: var(--on-layer-number); }
 
 .systemLayerHead {
   display: flex;
@@ -731,7 +732,7 @@
   height: 18px;
   border-radius: 50%;
   background: var(--tile);
-  color: var(--lab-page);
+  color: var(--on-tile);
   font-size: var(--type-micro);
   letter-spacing: 0;
 }

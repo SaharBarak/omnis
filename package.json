@@ -24,6 +24,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "brand:icons": "tsx scripts/brand/make-icons.ts",
+    "palette:tones": "tsx scripts/design/palette-tones.ts",
     "ingest:knowledge": "npx tsx packages/scraper/src/ingest.ts",
     "ingest:knowledge:dry-run": "npx tsx packages/scraper/src/ingest.ts --dry-run",
     "ingest:knowledge:verify": "npx tsx packages/scraper/src/verify.ts"

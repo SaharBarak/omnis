@@ -337,10 +337,9 @@ site's own tokens:
 | At least 44 px | 46 px regular. The small size is 36 px tall and its hit area reaches 44 px through a pseudo-element |
 | Full pill, concentric | The disc is the pill's height less two insets, so pill and disc share a centre line and their curves stay parallel |
 | A real typeface | The display face at weight 500 |
-| Almost black | The pill is `ink` and its label `onInk`: near-black on a light theme, near-white on a dark one, the strongest contrast the page has |
-| One signal | The disc is `spark` (BENTO_MOTION.md "Palette"); its icon is `onSpark` |
+| One signal colour | The lantern at button size (BENTO_COLOR.md "The primary action"): the pill is `action` and its label and disc `onAction`, gold and night. On the dark theme the pill is the mark's gold with a night label; on the light theme it is night with a gold label and disc |
 | The arrow turns | On hover and focus the icon turns over `turn` on `emphasized` |
-| A light follows the pointer | A radial `spark` glow at the pointer, faded in over `quick` |
+| A light follows the pointer | A radial `actionGlow` light at the pointer, faded in over `quick` |
 | It leans toward the pointer | `MAGNET`: a share of the pointer's offset, clamped |
 | Press | `scale: var(--press-scale)` over `press` |
 
@@ -360,8 +359,8 @@ or a paused page never lights it. Both clear when the pointer leaves or is
 cancelled, and when motion stops. The turn, the press and every
 transition follow BENTO_MOTION.md "Policy": they run only while motion is
 allowed, and hover turns the icon only where a pointer can hover. The pill
-also warms toward the spark on hover and focus, a colour change that stays
-with motion off, and the label says what the action does, so motion never
+also moves a step toward its disc colour on hover and focus, a colour
+change that stays with motion off, and the label says what the action does, so motion never
 carries meaning alone. A disabled pill neither lights nor leans.
 
 There is one primary action per section of a page, plus the one in the

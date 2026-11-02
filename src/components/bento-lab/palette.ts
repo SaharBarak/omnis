@@ -1,5 +1,3 @@
-import { srgbVar } from '@/lib/design/palette-ids'
-
 export type Rgb = readonly [number, number, number]
 
 /** Canvas colours, read from the lab root's custom properties so art follows the theme. */
@@ -24,10 +22,10 @@ export const parseHex = (value: string): Rgb => {
   return Number.isNaN(n) || full.length !== 6 ? FALLBACK : [(n >> 16) & 255, (n >> 8) & 255, n & 255]
 }
 
-/** Reads the sRGB twins the palette stylesheet keeps beside each variable, so a P3 display never hands a canvas a value it cannot parse. */
+/** Reads the palette variables, which the stylesheet writes as sRGB hex (BENTO_COLOR.md "Emission"). */
 export function readPalette(root: Element): LabPalette {
   const css = getComputedStyle(root)
-  const token = (name: string): Rgb => parseHex(css.getPropertyValue(srgbVar(name)))
+  const token = (name: string): Rgb => parseHex(css.getPropertyValue(name))
   return {
     ink: token('--lab-ink'),
     muted: token('--lab-muted'),

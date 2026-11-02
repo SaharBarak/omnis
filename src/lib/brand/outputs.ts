@@ -14,12 +14,12 @@ import { DEFAULT_PALETTE } from '@/lib/design/palette-ids'
 /** The palette role each part paints with, and the tile's. */
 export const MARK_ROLES: Readonly<Record<MarkPart | 'tile', Role>> = Object.freeze({
   frame: 'accent',
-  window: 'sky',
+  window: 'sparkMark',
   base: 'ink',
   tile: 'surface1',
 })
 
-/** The brand keeps Groundwater whichever palette a page shows. */
+/** The mark takes the default palette's roles whichever palette a page shows. */
 export function resolveMarkTones(): MarkTones {
   const spec = paletteSpec(DEFAULT_PALETTE)
   const tone = (theme: MarkTheme) => {

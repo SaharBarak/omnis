@@ -146,12 +146,18 @@ describe('the lockup', () => {
 })
 
 describe('the tones', () => {
-  it('are the Groundwater roles for each theme', () => {
+  it('are the default palette roles for each theme', () => {
     const spec = paletteSpec(DEFAULT_PALETTE)
     for (const theme of MARK_THEMES) {
       const resolved = resolvePalette(spec, theme)
       for (const [part, role] of Object.entries(MARK_ROLES)) expect(MARK_TONES[theme][part as keyof typeof MARK_ROLES]).toBe(toHex(resolved[role].oklch))
     }
+  })
+
+  it('keep the colours the owner picked in the dark theme', () => {
+    const { anchors } = paletteSpec(DEFAULT_PALETTE)
+    expect(MARK_TONES.dark.frame).toBe(anchors.frame)
+    expect(MARK_TONES.dark.window).toBe(anchors.window)
   })
 })
 

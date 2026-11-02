@@ -544,9 +544,9 @@
   width: min(100cqw, 100cqh);
 }
 
-.pinDot[data-layer='sky'] { background: var(--atlas-sky); }
-.pinDot[data-layer='maya'] { background: var(--atlas-maya); }
-.pinDot[data-layer='body'] { background: var(--atlas-body); }
+.pinDot[data-layer='sky'] { background: var(--atlas-sky); color: var(--on-layer-sky); }
+.pinDot[data-layer='maya'] { background: var(--atlas-maya); color: var(--on-layer-kin); }
+.pinDot[data-layer='body'] { background: var(--atlas-body); color: var(--on-layer-body); }
 
 .stageBottom {
   display: grid;

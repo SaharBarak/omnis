@@ -1,13 +1,16 @@
-import { contrast, solveLightness, toHex, toP3, type Oklch } from './color'
-import { PALETTE_LABELS, srgbVar, type PaletteId } from './palette-ids'
+import type { CategoricalProblem } from './categorical'
+import { contrast, hexToOklch, solveLightness, toHex, type Oklch } from './color'
+import { PALETTE_LABELS, type PaletteId } from './palette-ids'
+import { PALETTE_TONES } from './palette-tones.gen'
 import type { SystemKey } from './system-flavors'
 
 /**
- * Bento palettes as data (docs/redesign/BENTO_MOTION.md "Palette"). A palette
- * is authored as hues and chroma only; every lightness comes from the theme
- * recipe below, and text and colour roles are solved for WCAG contrast
- * against the surfaces they sit on. sRGB and Display P3 values are both
- * gamut-mapped from the one OKLCH source.
+ * The bento palette as data (docs/redesign/BENTO_COLOR.md). A palette is
+ * authored as the mark's anchor colours and the rule that derives each role
+ * from them. Surfaces take the theme recipe's lightness; text and colour
+ * roles are solved for WCAG contrast against the surfaces they sit on; the
+ * four map layers read their lightness from a generated table that the
+ * categorical solver writes (`npm run palette:tones`).
  */
 
 export const THEMES = ['dark', 'light'] as const
@@ -16,57 +19,56 @@ export type Theme = (typeof THEMES)[number]
 export const LAYERS = ['sky', 'kin', 'body', 'number'] as const
 export type Layer = (typeof LAYERS)[number]
 
+/** The mark's colours as the owner picked them (BRAND_MARK.md), stored as hex so the dark theme reproduces them exactly. */
+interface Anchors {
+  readonly frame: string
+  readonly window: string
+  readonly tile: string
+}
+
+/** A layer's hue: an anchor's, turned round the wheel. */
+interface LayerHue {
+  readonly anchor: 'frame' | 'window'
+  readonly turn: number
+}
+
 interface Tint {
   readonly h: number
   readonly c: number
-  /** Authored lightness intent per theme; the solver starts here instead of the recipe's default. */
-  readonly l?: Partial<Record<Theme, number>>
 }
 
 export interface PaletteSpec {
   readonly id: PaletteId
   readonly label: string
   readonly intent: string
-  readonly neutral: Tint
-  readonly accent: Tint
-  /** The one contrasting accent: a colour off the palette's mood, kept for the primary call to action. */
-  readonly spark: Tint
+  readonly anchors: Anchors
+  /** The map layers: the anchors and their complements, a double-complementary rectangle. */
+  readonly layers: Readonly<Record<Layer, LayerHue>>
+  /** One chroma for all four layers, so no layer outweighs another. */
+  readonly layerChroma: number
+  /** Red, the convention for an error; the one hue outside the rectangle. */
   readonly danger: Tint
-  readonly layers: Readonly<Record<Layer, Tint>>
 }
 
 export const PALETTES: readonly PaletteSpec[] = Object.freeze([
   {
-    id: 'groundwater',
-    label: PALETTE_LABELS.groundwater,
-    intent: 'Survey map: dark water, a sounding line, warm finds',
-    neutral: { h: 245, c: 0.024 },
-    accent: { h: 192, c: 0.13 },
-    spark: { h: 340, c: 0.2 },
-    danger: { h: 18, c: 0.19 },
-    layers: { sky: { h: 84, c: 0.16 }, kin: { h: 30, c: 0.17 }, body: { h: 278, c: 0.15 }, number: { h: 132, c: 0.19 } },
-  },
-  {
-    id: 'brass',
-    label: PALETTE_LABELS.brass,
-    intent: 'Instrument and almanac: warm black, ivory, gold',
-    neutral: { h: 70, c: 0.012 },
-    accent: { h: 88, c: 0.035, l: { dark: 0.93, light: 0.3 } },
-    spark: { h: 290, c: 0.2 },
-    danger: { h: 22, c: 0.18 },
-    layers: { sky: { h: 85, c: 0.15 }, kin: { h: 35, c: 0.18 }, body: { h: 165, c: 0.12 }, number: { h: 238, c: 0.11 } },
-  },
-  {
-    id: 'aurora',
-    label: PALETTE_LABELS.aurora,
-    intent: 'Night sky, high energy',
-    neutral: { h: 290, c: 0.03 },
-    accent: { h: 118, c: 0.2 },
-    spark: { h: 305, c: 0.2 },
-    danger: { h: 22, c: 0.19 },
-    layers: { sky: { h: 62, c: 0.17 }, kin: { h: 350, c: 0.17 }, body: { h: 260, c: 0.13 }, number: { h: 190, c: 0.13 } },
+    id: 'lantern',
+    label: PALETTE_LABELS.lantern,
+    intent: 'The mark: a cyan frame and a gold window in a navy night',
+    anchors: { frame: '#42e5e0', window: '#eeb318', tile: '#0b161f' },
+    layers: {
+      sky: { anchor: 'window', turn: 0 },
+      number: { anchor: 'frame', turn: 0 },
+      kin: { anchor: 'frame', turn: 180 },
+      body: { anchor: 'window', turn: 180 },
+    },
+    layerChroma: 0.13,
+    danger: { h: 28, c: 0.19 },
   },
 ])
+
+type OnLayer = `on${Capitalize<Layer>}`
+export const onLayer = (layer: Layer): OnLayer => `on${layer[0].toUpperCase()}${layer.slice(1)}` as OnLayer
 
 export const ROLES = [
   'ground',
@@ -83,10 +85,14 @@ export const ROLES = [
   'accentSoft',
   'onAccent',
   'spark',
-  'onSpark',
+  'sparkMark',
+  'action',
+  'onAction',
+  'actionGlow',
   'danger',
   'shadow',
   ...LAYERS,
+  ...LAYERS.map(onLayer),
 ] as const
 export type Role = (typeof ROLES)[number]
 
@@ -97,17 +103,23 @@ export interface Swatch {
 
 export type Resolved = Readonly<Record<Role, Swatch>>
 
-/** Contrast floors (WCAG 2.2: 4.5:1 body text, 7:1 enhanced, 3:1 a graphic that marks a control). */
+/** Committed layer lightness per palette and theme, written by `npm run palette:tones`. */
+export type PaletteTones = Readonly<Record<PaletteId, Readonly<Record<Theme, Readonly<Record<Layer, number>>>>>>
+
+/** Contrast floors (WCAG 2.2: 4.5:1 body text, 7:1 enhanced, 3:1 a graphic that carries meaning or marks a control). */
 export const FLOORS = Object.freeze({ ink2: 7, ink3: 4.5, colour: 4.5, mark: 3 })
 
 interface Recipe {
   readonly towards: 0 | 1
   readonly surfaces: Readonly<Record<'ground' | 'surface1' | 'surface2' | 'chip' | 'line' | 'art', number>>
   readonly ink: number
-  readonly preferred: Readonly<Record<'ink2' | 'ink3' | 'accent' | 'spark' | 'layer' | 'danger', number>>
+  /** Where solved roles start; an absent accent starts at the frame's own lightness. */
+  readonly preferred: Readonly<{ ink2: number; ink3: number; accent?: number; danger: number }>
+  /** The categorical lightness band for the layers (the data-visualisation method). */
+  readonly band: readonly [number, number]
   readonly shadow: Swatch['alpha']
   readonly shadowL: number
-  /** Share of the palette's neutral chroma the surfaces keep; light surfaces need less tint to read as tinted. */
+  /** Share of the tile's chroma the surfaces keep; light surfaces need less tint to read as tinted. */
   readonly neutralChroma: number
 }
 
@@ -117,7 +129,8 @@ const RECIPES: Readonly<Record<Theme, Recipe>> = {
     towards: 1,
     surfaces: { ground: 0.155, surface1: 0.195, surface2: 0.235, chip: 0.275, line: 0.335, art: 0.125 },
     ink: 0.965,
-    preferred: { ink2: 0.82, ink3: 0.68, accent: 0.84, spark: 0.62, layer: 0.8, danger: 0.72 },
+    preferred: { ink2: 0.82, ink3: 0.68, danger: 0.72 },
+    band: [0.48, 0.67],
     shadow: 0.55,
     shadowL: 0.05,
     neutralChroma: 1,
@@ -126,7 +139,8 @@ const RECIPES: Readonly<Record<Theme, Recipe>> = {
     towards: 0,
     surfaces: { ground: 0.972, surface1: 0.995, surface2: 0.945, chip: 0.925, line: 0.86, art: 0.93 },
     ink: 0.2,
-    preferred: { ink2: 0.4, ink3: 0.5, accent: 0.52, spark: 0.62, layer: 0.58, danger: 0.52 },
+    preferred: { ink2: 0.4, ink3: 0.5, accent: 0.45, danger: 0.56 },
+    band: [0.43, 0.77],
     shadow: 0.18,
     shadowL: 0.3,
     neutralChroma: 0.35,
@@ -138,43 +152,101 @@ const SOFT_CHROMA = 0.55
 
 const solid = (oklch: Oklch): Swatch => ({ oklch, alpha: 1 })
 
-export function resolvePalette(spec: PaletteSpec, theme: Theme): Resolved {
+const anchorsOf = (spec: PaletteSpec) => ({
+  frame: hexToOklch(spec.anchors.frame),
+  window: hexToOklch(spec.anchors.window),
+  tile: hexToOklch(spec.anchors.tile),
+})
+
+export const layerHue = (spec: PaletteSpec, layer: Layer): number => {
+  const { anchor, turn } = spec.layers[layer]
+  return (anchorsOf(spec)[anchor].h + turn) % 360
+}
+
+/** Every role but the layers: what the layers are solved against. */
+function brandRoles(spec: PaletteSpec, theme: Theme) {
   const r = RECIPES[theme]
-  const neutral = (l: number, c = spec.neutral.c * r.neutralChroma): Oklch => ({ l, c, h: spec.neutral.h })
+  const { frame, window, tile } = anchorsOf(spec)
+  const neutral = (l: number, c = tile.c * r.neutralChroma): Oklch => ({ l, c, h: tile.h })
   const s = r.surfaces
   const surfaces = { ground: neutral(s.ground), surface1: neutral(s.surface1), surface2: neutral(s.surface2), chip: neutral(s.chip) }
-  const textBackdrops = Object.values(surfaces)
+  const backdrops = Object.values(surfaces)
   const ink = neutral(r.ink, NEUTRAL_INK_CHROMA)
-  const solve = (tint: Tint, preferred: number, floor: number): Oklch =>
-    solveLightness({ l: tint.l?.[theme] ?? preferred, c: tint.c, h: tint.h }, textBackdrops, floor, r.towards)
-  const accent = solve(spec.accent, r.preferred.accent, FLOORS.colour)
-  /** The spark is the signal disc on the ink-filled primary action, so it is solved against ink, not the page. */
-  const spark = solveLightness({ l: spec.spark.l?.[theme] ?? r.preferred.spark, c: spec.spark.c, h: spec.spark.h }, [ink], FLOORS.mark, r.towards === 1 ? 0 : 1)
-  const onAccent = theme === 'dark' ? surfaces.ground : surfaces.surface1
-  /** The darkest or lightest surface, or ink, whichever reads on a colour. */
-  const on = (colour: Oklch, floor: number): Swatch => solid(contrast(colour, onAccent) >= floor ? onAccent : ink)
-  const layers = Object.fromEntries(LAYERS.map((layer) => [layer, solid(solve(spec.layers[layer], r.preferred.layer, FLOORS.colour))])) as Record<Layer, Swatch>
+  const solve = (color: Oklch, floor: number): Oklch => solveLightness(color, backdrops, floor, r.towards)
+  const accent = solve({ ...frame, l: r.preferred.accent ?? frame.l }, FLOORS.colour)
+  /** Night is the dark pole of the neutral ramp: the ground in the dark theme, ink in the light one. */
+  const night = surfaces.ground.l < ink.l ? surfaces.ground : ink
+  /** The action pill takes the spark where the spark reads against the page, otherwise night; its label and disc take the other. */
+  const sparkLeads = contrast(window, surfaces.ground) >= FLOORS.mark
   return {
-    ...(Object.fromEntries(Object.entries(surfaces).map(([k, v]) => [k, solid(v)])) as Record<keyof typeof surfaces, Swatch>),
-    line: solid(neutral(s.line)),
-    art: solid(neutral(s.art)),
-    ink: solid(ink),
-    ink2: solid(solve({ h: spec.neutral.h, c: NEUTRAL_INK_CHROMA * 2 }, r.preferred.ink2, FLOORS.ink2)),
-    ink3: solid(solve({ h: spec.neutral.h, c: NEUTRAL_INK_CHROMA * 3 }, r.preferred.ink3, FLOORS.ink3)),
-    onInk: solid(theme === 'dark' ? surfaces.ground : surfaces.surface1),
-    accent: solid(accent),
-    accentSoft: solid(solve({ ...spec.accent, c: spec.accent.c * SOFT_CHROMA }, r.preferred.accent, FLOORS.colour)),
-    onAccent: on(accent, FLOORS.colour),
-    spark: solid(spark),
-    /** onSpark draws the disc's icon, a graphic. */
-    onSpark: on(spark, FLOORS.mark),
-    danger: solid(solve(spec.danger, r.preferred.danger, FLOORS.colour)),
-    shadow: { oklch: neutral(r.shadowL), alpha: r.shadow },
-    ...layers,
+    surfaces,
+    backdrops,
+    ink,
+    accent,
+    accentSoft: solve({ ...frame, c: frame.c * SOFT_CHROMA, l: r.preferred.accent ?? frame.l }, FLOORS.colour),
+    spark: window,
+    sparkMark: solveLightness(window, [surfaces.surface1], FLOORS.mark, r.towards),
+    action: sparkLeads ? window : night,
+    onAction: sparkLeads ? night : window,
+    actionGlow: { ...window, l: (window.l + 1) / 2 },
+    danger: solve({ ...spec.danger, l: r.preferred.danger }, FLOORS.colour),
+    ink2: solve({ h: tile.h, c: NEUTRAL_INK_CHROMA * 2, l: r.preferred.ink2 }, FLOORS.ink2),
+    ink3: solve({ h: tile.h, c: NEUTRAL_INK_CHROMA * 3, l: r.preferred.ink3 }, FLOORS.ink3),
+    line: neutral(s.line),
+    art: neutral(s.art),
+    shadow: neutral(r.shadowL),
   }
 }
 
-export { DEFAULT_PALETTE, PALETTE_IDS, isPaletteId, srgbVar, type PaletteId } from './palette-ids'
+/** The layer set's problem for the categorical solver: the rectangle's hues, the theme's band, and every role it must clear. */
+export function layerProblem(spec: PaletteSpec, theme: Theme): CategoricalProblem<Layer> {
+  const base = brandRoles(spec, theme)
+  return {
+    slots: LAYERS.map((layer) => ({ key: layer, hue: layerHue(spec, layer) })),
+    chroma: spec.layerChroma,
+    band: RECIPES[theme].band,
+    surfaces: base.backdrops,
+    labels: [base.surfaces.ground, base.ink],
+    roles: [base.accent, base.spark, base.danger],
+  }
+}
+
+export function resolvePalette(spec: PaletteSpec, theme: Theme): Resolved {
+  const r = RECIPES[theme]
+  const base = brandRoles(spec, theme)
+  const tones = PALETTE_TONES[spec.id]?.[theme]
+  if (!tones) throw new Error(`No layer tones for ${spec.id} ${theme}: run npm run palette:tones`)
+  const onAccent = theme === 'dark' ? base.surfaces.ground : base.surfaces.surface1
+  /** The darkest or lightest surface, or ink, whichever reads on a colour. */
+  const on = (colour: Oklch, floor: number): Oklch => (contrast(colour, onAccent) >= floor ? onAccent : base.ink)
+  /** A label on a layer takes the ground or ink, whichever reads better; the solver guaranteed one reaches 4.5:1. */
+  const label = (colour: Oklch): Oklch =>
+    contrast(colour, base.surfaces.ground) >= contrast(colour, base.ink) ? base.surfaces.ground : base.ink
+  const layers = LAYERS.map((layer) => [layer, { l: tones[layer], c: spec.layerChroma, h: layerHue(spec, layer) }] as const)
+  return {
+    ...(Object.fromEntries(Object.entries(base.surfaces).map(([k, v]) => [k, solid(v)])) as Record<keyof typeof base.surfaces, Swatch>),
+    line: solid(base.line),
+    art: solid(base.art),
+    ink: solid(base.ink),
+    ink2: solid(base.ink2),
+    ink3: solid(base.ink3),
+    onInk: solid(theme === 'dark' ? base.surfaces.ground : base.surfaces.surface1),
+    accent: solid(base.accent),
+    accentSoft: solid(base.accentSoft),
+    onAccent: solid(on(base.accent, FLOORS.colour)),
+    spark: solid(base.spark),
+    sparkMark: solid(base.sparkMark),
+    action: solid(base.action),
+    onAction: solid(base.onAction),
+    actionGlow: solid(base.actionGlow),
+    danger: solid(base.danger),
+    shadow: { oklch: base.shadow, alpha: r.shadow },
+    ...(Object.fromEntries(layers.map(([layer, colour]) => [layer, solid(colour)])) as Record<Layer, Swatch>),
+    ...(Object.fromEntries(layers.map(([layer, colour]) => [onLayer(layer), solid(label(colour))])) as Record<OnLayer, Swatch>),
+  }
+}
+
+export { DEFAULT_PALETTE, PALETTE_IDS, isPaletteId, type PaletteId } from './palette-ids'
 
 /* ---------- CSS ---------- */
 
@@ -199,13 +271,27 @@ export const CSS_VARS: Readonly<Record<string, Role>> = Object.freeze({
   '--brand-soft': 'accentSoft',
   '--brand-bright': 'ink',
   '--on-accent': 'onAccent',
-  '--spark': 'spark',
-  '--on-spark': 'onSpark',
+  '--focus': 'accent',
+  '--action': 'action',
+  '--on-action': 'onAction',
+  '--action-glow': 'actionGlow',
   '--danger': 'danger',
   '--layer-sky': 'sky',
   '--layer-kin': 'kin',
   '--layer-body': 'body',
   '--layer-number': 'number',
+  '--on-layer-sky': 'onSky',
+  '--on-layer-kin': 'onKin',
+  '--on-layer-body': 'onBody',
+  '--on-layer-number': 'onNumber',
+})
+
+/** Increased contrast (BENTO_COLOR.md "Contrast modes"): the lower text tiers take ink and hairlines take the tertiary ink. */
+export const CONTRAST_MORE: Readonly<Record<string, Role>> = Object.freeze({
+  '--lab-text-2': 'ink',
+  '--lab-text-3': 'ink',
+  '--lab-muted': 'ink',
+  '--lab-line': 'ink3',
 })
 
 /** Which layer colour each system reads, so a system and its map layer are one colour everywhere. */
@@ -224,13 +310,8 @@ const SYSTEM_VARS: readonly (readonly [string, string])[] = Object.entries(SYSTE
   [`--sys-${kebab(system)}-strong`, `var(--layer-${layer})`],
 ])
 
-const withAlpha = (base: string, alpha: number): string => (alpha >= 1 ? base : `color-mix(in srgb, ${base} ${Math.round(alpha * 100)}%, transparent)`)
-
-const srgbOf = (swatch: Swatch): string => withAlpha(toHex(swatch.oklch), swatch.alpha)
-const p3Of = (swatch: Swatch): string => withAlpha(toP3(swatch.oklch), swatch.alpha)
-
-/** Roles whose colour sRGB cannot fully show; only these get a P3 value. */
-const WIDE_ROLES: readonly Role[] = ['accent', 'accentSoft', 'spark', 'danger', ...LAYERS]
+const colourOf = ({ oklch, alpha }: Swatch): string =>
+  alpha >= 1 ? toHex(oklch) : `color-mix(in srgb, ${toHex(oklch)} ${Math.round(alpha * 100)}%, transparent)`
 
 const block = (selector: string, decls: readonly (readonly [string, string])[]): string =>
   `${selector}{${decls.map(([k, v]) => `${k}:${v}`).join(';')}}`
@@ -240,29 +321,18 @@ export const paletteSelector = (roots: readonly string[], id: PaletteId, theme: 
 
 /**
  * The stylesheet for every palette and theme on each of `roots` (an element
- * carrying `data-palette` and `data-theme`): complete sRGB rules, then
- * Display P3 overrides for wide roles on displays that show P3.
+ * carrying `data-palette` and `data-theme`). sRGB only: the palette lives
+ * where the mark does, and every gate is measured on exactly these values.
  */
 export function paletteCss(roots: readonly string[]): string {
-  const pairs = PALETTES.flatMap((spec) => THEMES.map((theme) => ({ spec, theme, resolved: resolvePalette(spec, theme) })))
-  const base = pairs.map(({ spec, theme, resolved }) =>
-    block(paletteSelector(roots, spec.id, theme), [
-      ...Object.entries(CSS_VARS).flatMap(([name, role]) => [
-        [name, srgbOf(resolved[role])] as const,
-        [srgbVar(name), srgbOf(resolved[role])] as const,
-      ]),
-      ...SYSTEM_VARS,
-    ]),
+  const rules = PALETTES.flatMap((spec) =>
+    THEMES.map((theme) => ({ selector: paletteSelector(roots, spec.id, theme), resolved: resolvePalette(spec, theme) })),
   )
-  const wide = pairs.map(({ spec, theme, resolved }) =>
-    block(
-      paletteSelector(roots, spec.id, theme),
-      Object.entries(CSS_VARS)
-        .filter(([, role]) => WIDE_ROLES.includes(role))
-        .map(([name, role]) => [name, p3Of(resolved[role])] as const),
-    ),
-  )
-  return `${base.join('')}@media (color-gamut:p3){@supports (color:color(display-p3 0 0 0)){${wide.join('')}}}`
+  const decls = (vars: Readonly<Record<string, Role>>, resolved: Resolved) =>
+    Object.entries(vars).map(([name, role]) => [name, colourOf(resolved[role])] as const)
+  const base = rules.map(({ selector, resolved }) => block(selector, [...decls(CSS_VARS, resolved), ...SYSTEM_VARS]))
+  const more = rules.map(({ selector, resolved }) => block(selector, decls(CONTRAST_MORE, resolved)))
+  return `${base.join('')}@media (prefers-contrast:more){${more.join('')}}`
 }
 
 export const paletteSpec = (id: PaletteId): PaletteSpec => PALETTES.find((p) => p.id === id) ?? PALETTES[0]

@@ -11,7 +11,7 @@ import type { SystemKey } from '@/lib/system-preferences'
 import type { TodayAcrossSystems } from '@/lib/today-board'
 import { TODAY_ROWS, todayRows, type TodayRowValue } from '@/lib/today-rows'
 
-/** The map layer each calendar reads, so a row takes its layer's colour (BENTO_MOTION.md "Palette"). */
+/** The map layer each calendar reads, so a row takes its layer's colour (BENTO_COLOR.md "Layers"). */
 const ROW_LAYER: Partial<Readonly<Record<SystemKey, string>>> = {
   dreamspell: 'var(--layer-kin)',
   longcount: 'var(--layer-kin)',

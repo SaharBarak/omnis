@@ -13,5 +13,5 @@ export const MARK_PATHS = {
 
 export const MARK_TONES = {
   dark: { frame: '#42e5e0', window: '#eeb318', base: '#edf5fb', tile: '#0b161f' },
-  light: { frame: '#007471', window: '#896000', base: '#12171b', tile: '#f9feff' },
+  light: { frame: '#006563', window: '#c18900', base: '#12171b', tile: '#f9feff' },
 } as const

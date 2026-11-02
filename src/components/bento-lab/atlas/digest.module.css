@@ -8,6 +8,7 @@
 
 .tile {
   --tile: var(--lab-ink);
+  --on-tile: var(--lab-page);
 
   container-type: inline-size;
   display: grid;
@@ -28,10 +29,10 @@
     background-color var(--dur-quick) var(--ease-standard);
 }
 
-.tile[data-layer='sky'] { --tile: var(--atlas-sky); }
-.tile[data-layer='maya'] { --tile: var(--atlas-maya); }
-.tile[data-layer='body'] { --tile: var(--atlas-body); }
-.tile[data-layer='number'] { --tile: var(--atlas-number); }
+.tile[data-layer='sky'] { --tile: var(--atlas-sky); --on-tile: var(--on-layer-sky); }
+.tile[data-layer='maya'] { --tile: var(--atlas-maya); --on-tile: var(--on-layer-kin); }
+.tile[data-layer='body'] { --tile: var(--atlas-body); --on-tile: var(--on-layer-body); }
+.tile[data-layer='number'] { --tile: var(--atlas-number); --on-tile: var(--on-layer-number); }
 
 .tile:hover {
   border-color: color-mix(in srgb, var(--tile) 55%, var(--lab-line));
@@ -63,7 +64,7 @@
   height: 1.75em;
   border-radius: 50%;
   background: var(--tile);
-  color: var(--lab-page);
+  color: var(--on-tile);
   font-size: var(--type-micro);
   line-height: 1;
   letter-spacing: 0;
@@ -104,7 +105,7 @@
   color: var(--lab-text-3);
 }
 
-/* Every tile's leading number, one size across the four tiles so they compare. */
+/* Every tile's leading number, one size across the four tiles so they compare; text wears ink, the layer colours the marks (BENTO_COLOR.md "Layers"). */
 .numeral {
   font-family: var(--font-display), system-ui, sans-serif;
   font-size: var(--type-figure);
@@ -112,7 +113,7 @@
   line-height: 1;
   letter-spacing: var(--type-figure-ls);
   font-variant-numeric: tabular-nums;
-  color: var(--tile);
+  color: var(--lab-ink);
 }
 
 /* sky: sun, moon, rising */

@@ -474,8 +474,10 @@
 }
 
 /*
- * The primary action (BENTO_SITE.md "Primary action"): an ink pill with a
- * real label and one spark disc, inset so pill and disc are concentric. The
+ * The primary action (BENTO_SITE.md "Primary action"): the lantern at button
+ * size (BENTO_COLOR.md "The primary action"), a pill with a real label and
+ * one signal disc, inset so pill and disc are concentric. The pill takes
+ * --action and the label and disc --on-action, gold and night. The
  * component sets data-follow and writes --mx/--my (where the light sits) and
  * --lean-x/--lean-y (the magnet) only while motion is allowed and a mouse is
  * over it, and clears them when either stops. The press is the kit's.
@@ -496,8 +498,8 @@
   block-size: var(--h);
   padding-inline: calc(var(--h) / 2) var(--inset);
   border-radius: 999px;
-  background: var(--lab-ink);
-  color: var(--lab-on-ink);
+  background: var(--action);
+  color: var(--on-action);
   font-family: var(--font-display), system-ui, sans-serif;
   font-size: var(--type-body);
   font-weight: 500;
@@ -511,13 +513,13 @@
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  background: radial-gradient(circle calc(var(--h) * 2) at var(--mx, 50%) var(--my, 50%), color-mix(in oklab, var(--spark) 30%, transparent), transparent);
+  background: radial-gradient(circle calc(var(--h) * 2) at var(--mx, 50%) var(--my, 50%), color-mix(in oklab, var(--action-glow) 45%, transparent), transparent);
   opacity: 0;
 }
 
-/* The static cue: the pill warms toward the spark on hover and focus, with or without motion. */
+/* The static cue: the pill moves a step toward its disc on hover and focus, with or without motion. */
 .primary:is(:hover, :focus-visible):not(:disabled, [aria-disabled='true']) {
-  background: color-mix(in oklab, var(--lab-ink) 90%, var(--spark));
+  background: color-mix(in oklab, var(--action) 88%, var(--on-action));
 }
 
 .primary[data-follow]:not(:disabled, [aria-disabled='true'])::before {
@@ -531,6 +533,13 @@
   translate: none;
 }
 
+/* Forced colours drop the fill, so the pill keeps a system-coloured edge. */
+@media (forced-colors: active) {
+  .primary {
+    border: 1px solid ButtonText;
+  }
+}
+
 .primaryLabel {
   min-width: 0;
 }
@@ -542,8 +551,8 @@
   inline-size: var(--disc);
   block-size: var(--disc);
   border-radius: 50%;
-  background: var(--spark);
-  color: var(--on-spark);
+  background: var(--on-action);
+  color: var(--action);
 }
 
 .primary:dir(rtl) .signal[data-mirror] svg {

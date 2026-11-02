@@ -133,8 +133,14 @@
 }
 
 .lab :where(a, button):focus-visible {
-  outline: 2px solid var(--lab-bright);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+  .lab :where(a, button):focus-visible {
+    outline-color: Highlight;
+  }
 }
 
 /* ---------- canvas art ---------- */
