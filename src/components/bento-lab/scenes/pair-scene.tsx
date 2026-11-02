@@ -146,7 +146,7 @@ export function PairScene({ pair, action }: { readonly pair: PairAtlas; readonly
       timeline.fromTo(gsap.utils.toArray<SVGSVGElement>('[data-ties]', root), { opacity: 0 }, { opacity: 1, duration: 0.001 }, JOIN)
       timeline.to({}, { duration: 1 - JOIN }, JOIN)
       const ground = root.querySelector<HTMLElement>('[data-ground]')
-      if (ground) timeline.fromTo(ground, { '--contour-y': '0px' }, { '--contour-y': '-160px', duration: 1 }, 0)
+      if (ground) timeline.fromTo(ground, { '--field-y': '0px' }, { '--field-y': '-160px', duration: 1 }, 0)
       const trigger = ScrollTrigger.create({
         trigger: root,
         start: 'top top',
@@ -215,7 +215,7 @@ export function PairScene({ pair, action }: { readonly pair: PairAtlas; readonly
         <div className={p.frame}>
           <div className={f.shell}>
             <div className={f.stage} data-tint={top ? TIE_LAYER[top.system] : undefined}>
-              <div className={`${f.ground} ${kit.contours}`} data-ground="" aria-hidden />
+              <div className={`${f.ground} ${kit.starfield}`} data-ground="" aria-hidden />
               <PairDrawing pair={pair} describedBy={tableId} gap={GAP} layered className={p.drawing} />
             </div>
           </div>

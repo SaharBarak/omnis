@@ -3,7 +3,7 @@
  * a tall track with a sticky frame when motion is on, the stack already apart
  * so the frame reads without script. GSAP scrubs progress only, unitless 0 to
  * 1: --part (how far apart the stack is), --raise and --fade per plate, and
- * --drift for the contours. The geometry they drive is set here, per
+ * --drift for the star field. The geometry they drive is set here, per
  * breakpoint, and nowhere else.
  */
 
@@ -30,12 +30,12 @@
 }
 
 .stage {
-  --contour: var(--brand);
-  --contour-strength: 3.2;
-  /* How far the contours drift under the stack across the whole scene. */
+  --field: var(--brand);
+  --field-strength: 1.6;
+  /* How far the star field drifts under the stack across the whole scene. */
   --drift-distance: -240px;
   --drift: 0;
-  --contour-y: calc(var(--drift) * var(--drift-distance));
+  --field-y: calc(var(--drift) * var(--drift-distance));
 
   display: grid;
   place-items: center;
@@ -176,7 +176,7 @@
 }
 
 [data-lab][data-theme='light'] .stage {
-  --contour-strength: 1.6;
+  --field-strength: 0.8;
 }
 
 [data-lab][data-theme='light'] .plate {

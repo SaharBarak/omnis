@@ -90,7 +90,7 @@ export function LayersScene({ atlas }: { readonly atlas: PersonAtlas }) {
       </a>
       <div ref={trackRef} className={l.track} data-scene="layers" style={{ '--units': UNITS } as CSSProperties}>
       <div className={l.frame}>
-        <div className={`${l.stage} ${kit.contours}`} data-stage="">
+        <div className={`${l.stage} ${kit.starfield}`} data-stage="">
           <div className={l.stack} data-stack="" data-focus={allowed ? undefined : (focus ?? undefined)}>
             {[...STEPS].reverse().map((layer, k) => (
               <div key={layer} className={l.plate} data-plate={layer} data-layer={layer} style={{ '--k': k } as CSSProperties}>

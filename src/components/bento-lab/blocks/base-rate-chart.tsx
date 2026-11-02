@@ -90,7 +90,7 @@ export function BaseRateChart({
   return (
     <div ref={rootRef} className={b.chartTrack} data-pin={pin || undefined} data-scene="base-rates">
       <div className={b.chartFrame}>
-        <figure className={`${b.chart} ${kit.contours}`} aria-labelledby={`${id}-title`}>
+        <figure className={`${b.chart} ${kit.starfield}`} aria-labelledby={`${id}-title`}>
           <figcaption id={`${id}-title`} className={b.chartTitle}>
             <span>{label}</span>
             <span className={b.chartSource}>

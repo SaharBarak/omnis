@@ -117,7 +117,7 @@ export function CircleScene({ circle, action }: { readonly circle: CircleAtlas; 
     <div className={c.scene}>
       <div ref={figureRef} className={f.shell}>
         <div className={`${f.stage} ${c.rings}`} data-tint={lead ? TIE_LAYER[lead.system] : undefined}>
-          <div className={`${f.ground} ${kit.contours}`} aria-hidden />
+          <div className={`${f.ground} ${kit.starfield}`} aria-hidden />
           <CircleDrawing circle={circle} describedBy={listId} sonar fit className={c.drawing} />
         </div>
       </div>

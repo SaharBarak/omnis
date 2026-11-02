@@ -1,6 +1,6 @@
 /*
  * The home figure (BENTO_SITE.md "centred sections"): a raised shell around a
- * contoured art well, raised surfaces for the facts row under it, and the one
+ * star-charted art well, raised surfaces for the facts row under it, and the one
  * action. Shared by every home section built as a centred figure, so it is
  * held once here; each section's own module holds only what is its own.
  * Edges, lift and radii come from the elevation and radius scales
@@ -20,8 +20,8 @@
 
 .stage {
   --tint: var(--brand);
-  --contour: var(--tint);
-  --contour-strength: 3.4;
+  --field: var(--tint);
+  --field-strength: 1.7;
 
   position: relative;
   isolation: isolate;
@@ -35,7 +35,7 @@
     inset 0 1px 0 color-mix(in srgb, var(--lab-ink) 10%, transparent);
 }
 
-/* The contour field on its own empty layer, so drifting it never restyles the drawing. */
+/* The star field on its own empty layer, so drifting it never restyles the drawing. */
 .stage > .ground {
   position: absolute;
   inset: 0;

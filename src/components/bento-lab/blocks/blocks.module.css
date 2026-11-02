@@ -11,8 +11,8 @@
 
 /* A frame around its tiles: its padding is what makes the two radii concentric. */
 .boardWrap {
-  --contour: var(--layer-kin);
-  --contour-strength: 2.8;
+  --field: var(--layer-kin);
+  --field-strength: 1.4;
 
   container-type: inline-size;
   padding: calc(var(--radius-frame) - var(--radius-card) - var(--edge-w));
@@ -376,8 +376,8 @@
 }
 
 .chart {
-  --contour: var(--brand);
-  --contour-strength: 2.4;
+  --field: var(--brand);
+  --field-strength: 1.2;
   --bar-off: color-mix(in srgb, var(--lab-text-3) 42%, var(--surface-2));
 
   display: grid;

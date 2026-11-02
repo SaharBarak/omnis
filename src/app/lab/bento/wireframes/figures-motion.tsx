@@ -190,7 +190,7 @@ export function LayersStoryboard() {
         {
           at: 'scroll 75%',
           engine: 'GSAP',
-          caption: 'Body lifts, then Number. Choosing a tile scrolls to its layer; the contour field drifts under the stack.',
+          caption: 'Body lifts, then Number. Choosing a tile scrolls to its layer; the star field drifts under the stack.',
           draw: <Exploded open={3} lit={2} />,
         },
         {

@@ -194,7 +194,7 @@ export function TodayBoard({
   const shapes = rows.map((row) => (figures?.[row.field] ? ROW_SHAPE[row.field] : undefined))
   const last = { '--span-narrow': lastSpan(shapes, COLUMNS.narrow), '--span-wide': lastSpan(shapes, COLUMNS.wide) } as CSSProperties
   return (
-    <div className={`${b.boardWrap} ${kit.contours}`}>
+    <div className={`${b.boardWrap} ${kit.starfield}`}>
       <dl ref={ref} className={b.board} style={{ '--cols-narrow': COLUMNS.narrow, '--cols-wide': COLUMNS.wide } as CSSProperties}>
         {rows.map((row, i) => (
           <Tile key={row.field} row={row} face={figures?.[row.field]} on={i < rolled} direction={direction} last={i === rows.length - 1 ? last : undefined} />
