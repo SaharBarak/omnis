@@ -155,25 +155,6 @@ export async function getSharedViewByToken(
 }
 
 /**
- * INTERNAL (server-only) — resolves the owning tenant of an active share so
- * the public share route can load the shared content through the normal
- * owner-scoped repositories. The returned owner_id MUST NEVER be included in
- * any response payload; it exists purely to key `getGroupWithMembers`-style
- * lookups on behalf of an anonymous viewer.
- */
-export async function getSharedViewOwnerIdByToken(
-  token: string
-): Promise<string | null> {
-  const db = getDb()
-  const [row] = await db
-    .select({ owner_id: shared_views.owner_id })
-    .from(shared_views)
-    .where(and(eq(shared_views.url_token, token), eq(shared_views.active, true)))
-    .limit(1)
-  return row?.owner_id ?? null
-}
-
-/**
  * PUBLIC — server-side password check for a protected share. Compares the
  * candidate against the stored hash without ever returning the hash. Returns
  * true when the share has no password or the candidate matches.
@@ -202,6 +183,18 @@ export async function verifySharePassword(
  * increment, false when the share is missing/expired/capped.
  */
 export async function incrementSharedViewCount(token: string): Promise<boolean> {
+  return (await countSharedView(token)) !== null
+}
+
+/**
+ * INTERNAL (server-only) — the same atomic count, returning the owning tenant
+ * of the share it counted (null when missing, expired or capped), so the
+ * public share route loads the shared content through the owner-scoped
+ * repositories without a second lookup. The owner id MUST NEVER be included
+ * in any response payload; it exists purely to key `getGroupWithMembers`-style
+ * lookups on behalf of an anonymous viewer.
+ */
+export async function countSharedView(token: string): Promise<string | null> {
   const db = getDb()
   const now = new Date().toISOString()
 
@@ -222,9 +215,9 @@ export async function incrementSharedViewCount(token: string): Promise<boolean> 
         )
       )
     )
-    .returning({ view_count: shared_views.view_count, max_views: shared_views.max_views })
+    .returning({ owner_id: shared_views.owner_id, view_count: shared_views.view_count, max_views: shared_views.max_views })
 
-  if (incremented.length === 0) return false
+  if (incremented.length === 0) return null
 
   // Deactivate once the cap is reached so the next read short-circuits.
   const [row] = incremented
@@ -234,5 +227,5 @@ export async function incrementSharedViewCount(token: string): Promise<boolean> 
       .set({ active: false })
       .where(eq(shared_views.url_token, token))
   }
-  return true
+  return row.owner_id
 }

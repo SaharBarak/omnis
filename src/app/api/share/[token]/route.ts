@@ -4,8 +4,7 @@ import { analyzeGroup } from '@pleiad/engine/services/group-analysis'
 import { handleApiError } from '@/lib/api/respond'
 import {
   getSharedViewByToken,
-  getSharedViewOwnerIdByToken,
-  incrementSharedViewCount,
+  countSharedView,
   verifySharePassword,
 } from '@/lib/db/repositories/shares-repo'
 import { getGroupWithMembers } from '@/lib/db/repositories/groups-repo'
@@ -39,8 +38,9 @@ type Ctx = { params: Promise<{ token: string }> }
  * 4. Password → 401 { requiresPassword: true } until the correct password is
  *    POSTed; verification happens via verifySharePassword so the hash never
  *    leaves the server.
- * 5. Atomic view-count increment (incrementSharedViewCount) — the conditional
- *    UPDATE is the max_views race fix; a false return means capped/expired.
+ * 5. Atomic view-count increment (countSharedView) — the conditional UPDATE
+ *    is the max_views race fix; a null return means capped/expired. It returns
+ *    the share's owner id, resolved internally and never surfaced.
  * 6. Content load through the owner-scoped groups repository, keyed by the
  *    share's owner (resolved internally, never surfaced).
  *
@@ -80,9 +80,10 @@ async function resolveShare(
   }
 
   // Atomic conditional UPDATE — cap check + increment in one statement, so
-  // concurrent anonymous viewers cannot race past max_views.
-  const counted = await incrementSharedViewCount(token)
-  if (!counted) {
+  // concurrent anonymous viewers cannot race past max_views. It also returns
+  // the share's owner, for keying the content load below; never surfaced.
+  const ownerId = await countSharedView(token)
+  if (ownerId === null) {
     const capped = view.max_views !== null && view.view_count >= view.max_views
     return respond(
       { error: capped ? 'Link has reached maximum views' : 'Link has expired' },
@@ -96,10 +97,7 @@ async function resolveShare(
   }
 
   if (view.share_type === 'group' && typeof options.groupId === 'string') {
-    const ownerId = await getSharedViewOwnerIdByToken(token)
-    const group = ownerId
-      ? await getGroupWithMembers(ownerId, options.groupId)
-      : null
+    const group = await getGroupWithMembers(ownerId, options.groupId)
     if (!group) {
       return respond({ error: 'Shared content is no longer available' }, 404)
     }
