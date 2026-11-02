@@ -1,4 +1,16 @@
+# Content-hashed build output and generated icons never change under a URL.
 /_next/static/*
   Cache-Control: public,max-age=31536000,immutable
 /icons/*
   Cache-Control: public,max-age=31536000,immutable
+
+# Hand-placed media keeps its URL when it changes, so browsers keep it a day
+# and refresh it in the background for a week (docs/perf/APP_PERFORMANCE_PROMPT.md, 27).
+/images/*
+  Cache-Control: public,max-age=86400,stale-while-revalidate=604800
+/videos/*
+  Cache-Control: public,max-age=86400,stale-while-revalidate=604800
+/dreamspell/*
+  Cache-Control: public,max-age=86400,stale-while-revalidate=604800
+/textures/*
+  Cache-Control: public,max-age=86400,stale-while-revalidate=604800
