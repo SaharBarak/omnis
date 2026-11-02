@@ -113,14 +113,21 @@
   rotate: 180deg;
 }
 
+/* A menu's panel is concentric with its rows: their radius plus the padding and its edge. */
+.navMenuPanel,
+.menuPanel {
+  --menu-pad: 8px;
+
+  padding: var(--menu-pad);
+  border-radius: calc(var(--radius-control) + var(--menu-pad) + var(--edge-w));
+}
+
 .navMenuPanel {
   position: absolute;
   inset-inline-start: 50%;
   translate: -50% 0;
   top: calc(100% + 12px);
   min-width: 220px;
-  padding: 8px;
-  border-radius: 18px;
 }
 
 .navMenuList,
@@ -138,7 +145,7 @@
   align-items: center;
   min-height: 40px;
   padding: 0 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   font-size: var(--type-body);
   color: var(--lab-text-2);
 }
@@ -176,8 +183,6 @@
   width: min(86vw, 300px);
   max-height: 75dvh;
   overflow-y: auto;
-  padding: 8px;
-  border-radius: 18px;
 }
 
 .menuGroup {
@@ -304,6 +309,7 @@
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.015em;
+  text-wrap: balance;
 }
 
 .lead {
@@ -312,6 +318,7 @@
   font-size: var(--type-lead);
   line-height: 1.6;
   color: var(--lab-text-2);
+  text-wrap: pretty;
 }
 
 .body {
@@ -320,6 +327,7 @@
   font-size: var(--type-body);
   line-height: 1.65;
   color: var(--lab-text-2);
+  text-wrap: pretty;
 }
 
 .num {
@@ -368,26 +376,27 @@
   max-width: 100%;
 }
 
-.sectionHead .lead {
-  text-wrap: pretty;
-}
-
 @media (max-width: 860px) {
   .section {
     padding-block: 64px 0;
   }
 }
 
-/* ---------- surfaces ---------- */
+/* ---------- surfaces ----------
+ * Edge and lift come from the elevation scale (BENTO_POLISH.md). The edge is
+ * the border in a translucent ink over the page (the background stops at the
+ * padding box), so it reads on any ground, a hover or a selection can colour
+ * it, and forced colours paints it; the level carries highlight and drops. */
 
 .card {
   position: relative;
   min-width: 0;
   padding: 24px;
-  border: 1px solid var(--lab-line);
-  border-radius: 22px;
+  border: var(--edge-w) solid var(--elevation-edge);
+  border-radius: var(--radius-card);
   background: var(--lab-surface);
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--lab-ink) 6%, transparent) inset;
+  background-clip: padding-box;
+  box-shadow: var(--elevation-1);
 }
 
 .cardTight {
@@ -626,13 +635,13 @@
   height: 46px;
   padding: 0 14px;
   border: 1px solid var(--lab-line);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   background: var(--lab-page);
   color: var(--lab-ink);
   font: inherit;
   font-size: var(--type-body);
   color-scheme: inherit;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color var(--dur-quick) var(--ease-standard), box-shadow var(--dur-quick) var(--ease-standard);
 }
 
 .input:focus {
@@ -660,7 +669,7 @@
 /* ---------- states ---------- */
 
 .skeleton {
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   background: linear-gradient(
     100deg,
     var(--lab-chip) 30%,
@@ -686,7 +695,7 @@
   gap: 12px;
   padding: 28px;
   border: 1px dashed var(--lab-line);
-  border-radius: 22px;
+  border-radius: var(--radius-card);
 }
 
 .stateError {
@@ -702,10 +711,12 @@
 
 /* ---------- table ---------- */
 
+/* Tabular figures: a tie's weight rolls in its cell, and proportional digits would shift the column every frame. */
 .table {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--type-small);
+  font-variant-numeric: tabular-nums;
 }
 
 .table th {

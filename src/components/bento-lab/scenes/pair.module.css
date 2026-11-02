@@ -206,7 +206,7 @@
   width: min(100%, 980px);
   margin-inline: auto;
   padding: 22px 24px 10px;
-  border-radius: 28px;
+  border-radius: var(--radius-stage);
 }
 
 .table {
@@ -248,7 +248,7 @@
   }
   .rows {
     padding: 16px 14px 6px;
-    border-radius: 22px;
+    border-radius: var(--radius-card);
   }
 }
 

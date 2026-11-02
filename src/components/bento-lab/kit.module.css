@@ -7,7 +7,9 @@
  */
 
 .lab {
-  --notch-r: 22px;
+  --notch-r: var(--radius-card);
+  /* A control's smallest target (BENTO_POLISH.md "Minimum hit area"): the most the bar's 8 px gaps allow without two targets meeting. */
+  --hit-min: 40px;
   --nav-gap: 12px;
   --nav-bar: 56px;
   --nav-h: calc(var(--nav-gap) + var(--nav-bar));
@@ -24,7 +26,6 @@
   --lab-on-media: #ffffff;
   --lab-on-media-2: rgb(255 255 255 / 0.88);
   --lab-glass: color-mix(in srgb, var(--surface-2) 64%, transparent);
-  --lab-glass-line: color-mix(in srgb, var(--lab-ink) 16%, transparent);
   --lab-highlight: linear-gradient(
     100deg,
     color-mix(in srgb, var(--brand) 55%, transparent) 0%,
@@ -41,12 +42,11 @@
   color-scheme: dark;
   isolation: isolate;
   font-family: var(--font-sans), system-ui, sans-serif;
-  transition: background-color 0.4s ease, color 0.4s ease;
+  transition: background-color var(--dur-settle) var(--ease-standard), color var(--dur-settle) var(--ease-standard);
 }
 
 .lab[data-theme='light'] {
   --lab-glass: color-mix(in srgb, var(--lab-surface) 68%, transparent);
-  --lab-glass-line: color-mix(in srgb, var(--lab-surface) 85%, transparent);
   --grain: 0.05;
   --contour-alpha: 0.07;
   color-scheme: light;
@@ -276,7 +276,10 @@
   font-size: var(--type-caption);
   line-height: 1;
   white-space: nowrap;
-  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  transition:
+    border-color var(--dur-quick) var(--ease-standard),
+    background-color var(--dur-quick) var(--ease-standard),
+    color var(--dur-quick) var(--ease-standard);
 }
 
 .pill:hover {
@@ -296,6 +299,7 @@
 }
 
 .iconButton {
+  position: relative;
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -305,18 +309,47 @@
   border-radius: 50%;
   background: var(--lab-chip);
   color: var(--lab-ink);
-  transition: border-color 0.2s ease, transform 0.2s ease;
+  transition: border-color var(--dur-quick) var(--ease-standard);
+}
+
+/* The target reaches --hit-min around the drawn disc. */
+.iconButton::after {
+  content: '';
+  position: absolute;
+  inset: calc((100% - var(--hit-min)) / 2);
+  border-radius: 50%;
 }
 
 .iconButton:hover {
   border-color: var(--lab-bright);
 }
 
+/* Press feedback (BENTO_POLISH.md "Scale on press"): a control sinks while held, only while motion is allowed. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab]:not([data-motion='paused']) .pill {
+    transition:
+      border-color var(--dur-quick) var(--ease-standard),
+      background-color var(--dur-quick) var(--ease-standard),
+      color var(--dur-quick) var(--ease-standard),
+      scale var(--dur-press) var(--ease-standard);
+  }
+  [data-lab]:not([data-motion='paused']) .iconButton {
+    transition:
+      border-color var(--dur-quick) var(--ease-standard),
+      scale var(--dur-press) var(--ease-standard);
+  }
+  [data-lab]:not([data-motion='paused']) :is(.pill, .iconButton):active {
+    scale: var(--press-scale);
+  }
+}
+
+/* Glass over content: the elevation edge and highlight are its rim. */
 .glass {
   background: var(--lab-glass);
-  border: 1px solid var(--lab-glass-line);
-  border-radius: 14px;
-  box-shadow: 0 18px 40px -22px var(--lab-shadow);
+  background-clip: padding-box;
+  border: var(--edge-w) solid var(--elevation-edge);
+  border-radius: var(--radius-control);
+  box-shadow: var(--elevation-3);
   /* Unprefixed only: the CSS compiler adds the -webkit- form for its targets, and a hand-written one after it replaces this one. */
   backdrop-filter: blur(14px) saturate(1.2);
 }
@@ -356,9 +389,11 @@
   clip-path: none;
   margin-inline: auto;
   padding: 8px 14px;
+  border: var(--edge-w) solid var(--elevation-edge);
   border-radius: 999px;
   background: var(--lab-surface);
-  box-shadow: 0 0 0 1px var(--lab-line);
+  background-clip: padding-box;
+  box-shadow: var(--elevation-3);
   color: var(--lab-ink);
   font-size: var(--type-small);
 }

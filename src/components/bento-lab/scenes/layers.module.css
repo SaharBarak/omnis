@@ -41,9 +41,11 @@
   place-items: center;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid var(--lab-line);
-  border-radius: 28px;
+  border: var(--edge-w) solid var(--elevation-edge);
+  border-radius: var(--radius-stage);
   background: var(--lab-art);
+  background-clip: padding-box;
+  box-shadow: var(--elevation-4);
   perspective: 1800px;
   perspective-origin: 50% 30%;
 }
@@ -81,7 +83,7 @@
   background: radial-gradient(circle, color-mix(in srgb, var(--lab-art) 30%, transparent) 0 58%, color-mix(in srgb, var(--plate) 10%, color-mix(in srgb, var(--lab-art) 72%, transparent)) 100%);
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--lab-ink) 6%, transparent) inset,
-    0 30px 60px -30px var(--lab-shadow);
+    var(--elevation-rise-3);
   opacity: calc(1 - var(--fade) * (1 - var(--dim)));
   transform: translateZ(calc(var(--k) * var(--gap) + var(--raise) * var(--lift-step)));
   transform-style: preserve-3d;

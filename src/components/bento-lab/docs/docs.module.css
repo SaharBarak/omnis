@@ -128,11 +128,11 @@
 .railLink {
   display: block;
   padding: 7px 10px;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   font-size: var(--type-small);
   line-height: 1.35;
   color: var(--lab-text-2);
-  transition: color 0.2s ease, background-color 0.2s ease;
+  transition: color var(--dur-quick) var(--ease-standard), background-color var(--dur-quick) var(--ease-standard);
 }
 
 .railLink:hover,
@@ -199,9 +199,11 @@
   min-width: 0;
   padding: 20px;
   overflow: hidden;
-  border-radius: 22px;
+  border-radius: var(--radius-card);
   background: var(--lab-art);
   color: var(--lab-on-media);
+  outline: var(--edge-w) solid var(--image-outline);
+  outline-offset: calc(-1 * var(--edge-w));
   isolation: isolate;
 }
 
@@ -219,19 +221,23 @@
   inset-inline: 20px;
   top: 0;
   height: 3px;
-  border-radius: 0 0 3px 3px;
+  border-radius: 0 0 3px 3px; /* drawing */
   background: var(--accent);
 }
 
 .tileArt {
   z-index: -2;
   object-fit: cover;
-  transition: transform 0.6s ease;
 }
 
-.tile:hover .tileArt,
-.tile:focus-visible .tileArt {
-  transform: scale(1.04);
+/* The art leans in under the pointer: movement, so only while motion is allowed. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab]:not([data-motion='paused']) .tileArt {
+    transition: transform var(--dur-settle) var(--ease-standard);
+  }
+  [data-lab]:not([data-motion='paused']) :is(.tile:hover, .tile:focus-visible) .tileArt {
+    transform: scale(1.04);
+  }
 }
 
 .tileName {
@@ -371,12 +377,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .tileArt {
-    transition: none;
-  }
-}
-
 /* ---------- article (T6) ---------- */
 
 .banner {
@@ -384,7 +384,7 @@
   height: clamp(240px, 30vw, 380px);
   margin-top: 24px;
   overflow: hidden;
-  border-radius: 28px;
+  border-radius: var(--radius-stage);
   background: var(--lab-art);
 }
 
@@ -566,9 +566,10 @@
 .lines {
   margin: 0;
   padding: 16px 18px;
-  border: 1px solid var(--lab-line);
-  border-radius: 14px;
+  border: var(--edge-w) solid var(--elevation-edge);
+  border-radius: var(--radius-inset);
   background: var(--lab-chip);
+  background-clip: padding-box;
   display: grid;
   gap: 4px;
   font-size: var(--type-small);
@@ -585,12 +586,13 @@
 .neighbour {
   display: grid;
   gap: 4px;
-  transition: border-color 0.2s ease;
+  transition: border-color var(--dur-quick) var(--ease-standard), box-shadow var(--dur-quick) var(--ease-standard);
 }
 
 .neighbour:hover,
 .neighbour:focus-visible {
   border-color: var(--accent, var(--lab-bright));
+  box-shadow: var(--elevation-2);
 }
 
 .neighbourNext {
@@ -699,9 +701,11 @@
   gap: 12px;
   min-width: 0;
   padding: 14px;
-  border: 1px solid color-mix(in srgb, var(--tile) 40%, var(--lab-line));
-  border-radius: 20px;
+  border: var(--edge-w) solid color-mix(in srgb, var(--tile) 40%, var(--elevation-edge));
+  border-radius: var(--radius-card);
   background: linear-gradient(to bottom, color-mix(in srgb, var(--tile) 12%, var(--lab-surface)), var(--lab-surface) 70%);
+  background-clip: padding-box;
+  box-shadow: var(--elevation-1);
 }
 
 .systemLayer[data-layer='sky'] { --tile: var(--layer-sky); }
@@ -776,9 +780,11 @@
   align-content: start;
   gap: 10px;
   padding: 14px;
-  border: 1px solid var(--lab-line);
-  border-radius: 20px;
+  border: var(--edge-w) solid var(--elevation-edge);
+  border-radius: var(--radius-card);
   background: var(--lab-surface);
+  background-clip: padding-box;
+  box-shadow: var(--elevation-1);
 }
 
 .systemRow {

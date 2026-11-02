@@ -9,8 +9,10 @@
 .art {
   position: relative;
   overflow: hidden;
-  border-radius: 28px;
+  border-radius: var(--radius-stage);
   background: var(--lab-art);
+  outline: var(--edge-w) solid var(--image-outline);
+  outline-offset: calc(-1 * var(--edge-w));
   isolation: isolate;
 }
 
@@ -31,9 +33,11 @@
   align-content: center;
   gap: 18px;
   padding: 32px;
-  border: 1px solid var(--lab-line);
-  border-radius: 28px;
+  border: var(--edge-w) solid var(--elevation-edge);
+  border-radius: var(--radius-stage);
   background: var(--lab-surface);
+  background-clip: padding-box;
+  box-shadow: var(--elevation-2);
 }
 
 .tabs {
@@ -56,11 +60,12 @@
 .tabs button[aria-pressed='true'] {
   background: var(--lab-surface);
   color: var(--lab-ink);
+  box-shadow: var(--elevation-1);
 }
 
 .notice {
   padding: 12px 14px;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   background: var(--lab-chip);
   font-size: var(--type-small);
 }

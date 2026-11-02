@@ -6,20 +6,23 @@ import { BAZI_ELEMENT_COLORS } from '@/lib/design/bazi-elements'
 import { markCss } from '@/lib/brand/mark'
 import { MARK_TONES } from '@/lib/brand/mark-tones.gen'
 import { DEFAULT_PALETTE, paletteCss } from '@/lib/design/bento-palette'
+import { elevationCss } from '@/lib/design/elevation'
 import { motionCssVars } from '@/lib/design/motion-tokens'
 import { layoutCssVars } from '@/lib/design/layout-tokens'
+import { radiusCssVars } from '@/lib/design/radius'
 import { typeCssVars } from '@/lib/design/type-scale'
 
-/** BaZi element colours, motion, type and layout tokens; none varies by palette. */
+/** BaZi element colours, motion, type, layout and radius tokens; none varies by palette. */
 const ROOT_TOKENS = {
   ...Object.fromEntries(Object.entries(BAZI_ELEMENT_COLORS).map(([element, color]) => [`--el-${element.toLowerCase()}`, color])),
   ...motionCssVars(),
   ...typeCssVars(),
   ...layoutCssVars(),
+  ...radiusCssVars(),
 } as CSSProperties
 
-/** Every palette and theme, for the lab root and for palette swatches; their attributes pick one. The mark follows the theme only. */
-const PALETTE_CSS = paletteCss(['[data-lab]', '[data-swatch]']) + markCss(['[data-lab]'], MARK_TONES)
+/** Every palette and theme, for the lab root and for palette swatches; their attributes pick one. The mark and the elevation scale follow the theme only. */
+const PALETTE_CSS = paletteCss(['[data-lab]', '[data-swatch]']) + markCss(['[data-lab]'], MARK_TONES) + elevationCss(['[data-lab]'])
 
 /**
  * Theme root for the lab: the palette stylesheet from bento-palette.ts, dark

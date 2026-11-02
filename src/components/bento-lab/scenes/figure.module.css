@@ -3,19 +3,19 @@
  * contoured art well, raised surfaces for the facts row under it, and the one
  * action. Shared by every home section built as a centred figure, so it is
  * held once here; each section's own module holds only what is its own.
+ * Edges, lift and radii come from the elevation and radius scales
+ * (BENTO_POLISH.md): the shell is a frame, concentric with its stage.
  */
 
 .shell {
   display: grid;
   min-height: 0;
-  padding: 6px;
-  border: 1px solid var(--lab-line);
-  border-radius: 34px;
+  padding: var(--frame-rim);
+  border: var(--edge-w) solid var(--elevation-edge);
+  border-radius: var(--radius-frame);
   background: linear-gradient(180deg, var(--lab-surface), var(--surface-2));
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--lab-ink) 10%, transparent),
-    0 1px 2px var(--lab-shadow),
-    0 48px 90px -56px var(--lab-shadow);
+  background-clip: padding-box;
+  box-shadow: var(--elevation-4);
 }
 
 .stage {
@@ -26,7 +26,7 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border-radius: 28px;
+  border-radius: var(--radius-stage);
   background:
     radial-gradient(64% 58% at 50% 30%, color-mix(in srgb, var(--tint) 11%, transparent), transparent 74%),
     linear-gradient(180deg, color-mix(in srgb, var(--lab-ink) 3%, var(--lab-art)), var(--lab-art) 62%);
@@ -48,17 +48,16 @@
 .stage[data-tint='body'] { --tint: var(--layer-body); }
 .stage[data-tint='number'] { --tint: var(--layer-number); }
 
-/* A raised surface: hairline, top highlight, tinted shadow. Its layer, when it has one, sets --tone. */
+/* A raised surface. Its layer, when it has one, sets --tone. */
 .surface {
   --tone: var(--lab-ink);
 
   min-width: 0;
-  border: 1px solid var(--lab-line);
-  border-radius: 22px;
+  border: var(--edge-w) solid var(--elevation-edge);
+  border-radius: var(--radius-card);
   background: linear-gradient(180deg, var(--lab-surface), color-mix(in srgb, var(--lab-surface) 55%, var(--surface-2)));
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--lab-ink) 8%, transparent),
-    0 20px 36px -30px var(--lab-shadow);
+  background-clip: padding-box;
+  box-shadow: var(--elevation-2);
 }
 
 .surface[data-layer='sky'] { --tone: var(--layer-sky); }
@@ -80,17 +79,15 @@
   gap: 12px;
   min-height: 64px;
   padding: 0 22px;
-  border-radius: 22px;
+  border-radius: var(--radius-card);
   background: var(--brand);
   color: var(--on-accent);
   font-size: var(--type-body);
   font-weight: 600;
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--on-accent) 24%, transparent),
-    0 20px 36px -28px var(--lab-shadow);
-  transition:
-    background-color var(--dur-quick) var(--ease-standard),
-    transform var(--dur-press) var(--ease-standard);
+    var(--elevation-2);
+  transition: background-color var(--dur-quick) var(--ease-standard);
 }
 
 /* Beats the lab's link reset (`.lab :where(a)`) without depending on load order. */
@@ -102,21 +99,23 @@
   background: color-mix(in srgb, var(--brand) 88%, var(--lab-ink));
 }
 
-.actionLink:active {
-  transform: translateY(1px) scale(0.99);
-}
+/* Press and the arrow's nudge are movement: only while motion is allowed (BENTO_POLISH.md "Scale on press"). */
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab]:not([data-motion='paused']) .actionLink {
+    transition:
+      background-color var(--dur-quick) var(--ease-standard),
+      scale var(--dur-press) var(--ease-standard);
+  }
 
-.actionLink svg {
-  transition: transform var(--dur-quick) var(--ease-standard);
-}
+  [data-lab]:not([data-motion='paused']) .actionLink:active {
+    scale: var(--press-scale);
+  }
 
-.actionLink:hover svg {
-  transform: translateX(3px);
-}
+  [data-lab]:not([data-motion='paused']) .actionLink svg {
+    transition: transform var(--dur-quick) var(--ease-standard);
+  }
 
-@media (prefers-reduced-motion: reduce) {
-  .actionLink,
-  .actionLink svg {
-    transition: none;
+  [data-lab]:not([data-motion='paused']) .actionLink:hover svg {
+    transform: translateX(3px);
   }
 }

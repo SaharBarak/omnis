@@ -15,7 +15,7 @@ export function MapPageSkeleton({ label }: { readonly label: string }) {
       </div>
       <div className={site.page} aria-hidden>
         <div className={p.figureSkeleton}>
-          <Skeleton height="100%" style={{ borderRadius: 28 }} />
+          <Skeleton height="100%" style={{ borderRadius: 'var(--radius-stage)' }} />
         </div>
       </div>
     </Loading>

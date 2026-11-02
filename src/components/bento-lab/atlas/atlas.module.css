@@ -27,7 +27,7 @@
 }
 
 .layer {
-  transition: opacity 0.35s ease;
+  transition: opacity var(--dur-quick) var(--ease-standard);
 }
 
 .atlas[data-focus='sky'] .layer:not([data-layer='sky']),
@@ -161,7 +161,7 @@
     transform-box: view-box;
     transform-origin: 50% 50%;
     transform: scale(var(--atlas-zoom, 1));
-    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform var(--dur-settle) var(--ease-emphasized);
   }
 }
 
@@ -183,7 +183,7 @@
 .readoutGroup {
   display: grid;
   gap: 6px;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--dur-quick) var(--ease-standard);
 }
 
 .readout[data-focus] .readoutGroup:not([data-active]) {
@@ -249,7 +249,7 @@
   gap: 1px;
   overflow: hidden;
   border: 1px solid var(--lab-line);
-  border-radius: 16px;
+  border-radius: var(--radius-inset);
   background: var(--lab-line);
 }
 
@@ -317,7 +317,7 @@
   width: max-content;
   max-width: 190px;
   padding: 6px 10px;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   font-size: var(--type-caption);
   line-height: 1.35;
 }
@@ -373,7 +373,7 @@
 .switch button[aria-pressed='true'] {
   background: var(--lab-surface);
   color: var(--lab-ink);
-  box-shadow: 0 1px 2px var(--lab-shadow);
+  box-shadow: var(--elevation-1);
 }
 
 /* ---------- pair and circle ---------- */
@@ -489,8 +489,11 @@
   grid-template-rows: auto minmax(0, 1fr) auto;
   min-height: 680px;
   overflow: hidden;
-  border-radius: 28px;
+  border-radius: var(--radius-stage);
   background: var(--lab-art);
+  /* A media well: the neutral outline, inset by its own width (BENTO_POLISH.md "Image outlines"). */
+  outline: var(--edge-w) solid var(--image-outline);
+  outline-offset: calc(-1 * var(--edge-w));
   isolation: isolate;
 }
 
@@ -509,7 +512,7 @@
   justify-self: center;
   width: min(100%, 640px);
   padding: 8px 20px;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--dur-quick) var(--ease-standard);
 }
 
 .stageDrawing[data-busy] {
@@ -592,7 +595,7 @@
 @media (max-width: 720px) {
   .stage {
     min-height: 0;
-    border-radius: 22px;
+    border-radius: var(--radius-card);
   }
   .stageDrawing {
     padding: 4px 8px;

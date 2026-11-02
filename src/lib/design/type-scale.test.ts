@@ -1,6 +1,5 @@
-import { readdirSync, readFileSync } from 'node:fs'
-import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { declarations, labSheets } from './lab-sheets'
 import { TYPE_SCALE, TYPE_STEPS, isText, roleSet, sizeAt, stepSize, typeCssVars, type TypeRole } from './type-scale'
 
 const ROLES = (Object.keys(TYPE_STEPS) as TypeRole[]).sort((a, b) => TYPE_STEPS[a] - TYPE_STEPS[b])
@@ -42,41 +41,23 @@ describe('the type scale', () => {
   })
 })
 
-/* Every font size in the lab is a role (docs/redesign/BENTO_TYPE.md, "Custom properties"). */
-const ROOTS = ['src/components/bento-lab', 'src/app/lab/bento']
-/** Drawing units in page miniatures, not type read at that size. */
-const EXEMPT = new Set(['src/components/bento-lab/wireframe/wireframe.module.css'])
-/** Marks SVG text placed in viewBox units: drawing, not type (BENTO_TYPE.md). */
-const DRAWING = '/* drawing */'
+/* Every font size in the lab is a role (docs/redesign/BENTO_TYPE.md, "Custom properties"); SVG text in viewBox units is marked as drawing. */
 const ALLOWED = /^(var\(--type-[a-z]+\)|inherit|-?\d*\.?\d+em|calc\(.*var\(--type-[a-z]+\).*\))$/
 
-const walk = (dir: string): string[] =>
-  readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(dir, entry.name)
-    return entry.isDirectory() ? walk(path) : entry.name.endsWith('.module.css') ? [path] : []
-  })
-
 describe('lab CSS takes its sizes from the scale', () => {
-  const root = process.cwd()
-  const sheets = ROOTS.flatMap((dir) => walk(join(root, dir))).map((path) => relative(root, path)).filter((path) => !EXEMPT.has(path))
+  const sheets = labSheets()
 
   it('finds the sheets', () => {
     expect(sheets.length).toBeGreaterThan(5)
   })
 
   it('has no font size outside the scale', () => {
-    const strays = sheets.flatMap((path) =>
-      readFileSync(join(root, path), 'utf8')
-        .split('\n')
-        .flatMap((line, index) => {
-          if (line.includes(DRAWING)) return []
-          const size = /(?:^|[\s;{])font-size\s*:\s*([^;]+);/.exec(line)?.[1]?.trim()
-          const shorthand = /(?:^|[\s;{])font\s*:\s*([^;]+);/.exec(line)?.[1]?.trim()
-          if (size !== undefined && !ALLOWED.test(size)) return [`${path}:${index + 1} font-size: ${size}`]
-          if (shorthand !== undefined && shorthand !== 'inherit') return [`${path}:${index + 1} font: ${shorthand}`]
-          return []
-        }),
-    )
-    expect(strays).toEqual([])
+    const sizes = declarations(sheets, /font-size/)
+      .filter(({ value }) => !ALLOWED.test(value))
+      .map(({ at, value }) => `${at} font-size: ${value}`)
+    const shorthands = declarations(sheets, /font/)
+      .filter(({ value }) => value !== 'inherit')
+      .map(({ at, value }) => `${at} font: ${value}`)
+    expect([...sizes, ...shorthands]).toEqual([])
   })
 })

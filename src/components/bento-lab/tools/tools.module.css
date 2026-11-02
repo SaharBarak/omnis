@@ -46,9 +46,11 @@
   display: grid;
   gap: 14px;
   padding: 14px 16px;
-  border: 1px solid var(--lab-line);
-  border-radius: 22px;
+  border: var(--edge-w) solid var(--elevation-edge);
+  border-radius: var(--radius-card);
   background: var(--lab-surface);
+  background-clip: padding-box;
+  box-shadow: var(--elevation-1);
 }
 
 .cardHead {
@@ -105,8 +107,10 @@
   gap: 8px;
   min-height: 420px;
   padding: 14px;
-  border-radius: 28px;
+  border-radius: var(--radius-stage);
   background: var(--lab-art);
+  outline: var(--edge-w) solid var(--image-outline);
+  outline-offset: calc(-1 * var(--edge-w));
 }
 
 .relationTop {
@@ -120,7 +124,7 @@
 .relationBody {
   align-self: center;
   min-width: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--dur-quick) var(--ease-standard);
 }
 
 .relationBody[data-busy] {
@@ -172,9 +176,11 @@
   gap: 12px;
   margin-top: 12px;
   padding: 14px 18px;
-  border: 1px solid var(--lab-line);
+  border: var(--edge-w) solid var(--elevation-edge);
   border-radius: 999px;
   background: var(--lab-surface);
+  background-clip: padding-box;
+  box-shadow: var(--elevation-1);
 }
 
 @media (max-width: 1180px) {
@@ -197,10 +203,10 @@
 @media (max-width: 720px) {
   .relationStage {
     min-height: 0;
-    border-radius: 22px;
+    border-radius: var(--radius-card);
   }
   .saveBar {
-    border-radius: 22px;
+    border-radius: var(--radius-card);
   }
 }
 

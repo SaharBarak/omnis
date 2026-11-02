@@ -63,19 +63,25 @@
   gap: 12px;
   align-items: start;
   padding: 16px;
-  border: 1px solid var(--lab-line);
-  border-radius: 20px;
+  border: var(--edge-w) solid var(--elevation-edge);
+  border-radius: var(--radius-card);
   background: var(--lab-surface);
-  transition: border-color 0.2s ease, transform 0.15s ease;
+  background-clip: padding-box;
+  box-shadow: var(--elevation-1);
+  transition: border-color var(--dur-quick) var(--ease-standard), box-shadow var(--dur-quick) var(--ease-standard);
 }
 
+/* The pointer raises a tile one level (BENTO_POLISH.md). */
 .tile:hover {
   border-color: color-mix(in srgb, var(--lab-bright) 50%, var(--lab-line));
+  box-shadow: var(--elevation-2);
 }
 
+/* Selection is an edge, never a shadow: it keeps the hover transition whole and still paints in forced colours. */
 .tile[data-selected] {
   border-color: var(--brand);
-  box-shadow: 0 0 0 1px var(--brand) inset;
+  outline: var(--edge-w) solid var(--brand);
+  outline-offset: calc(-2 * var(--edge-w));
 }
 
 .seal {
@@ -147,7 +153,7 @@
   width: 26px;
   height: 26px;
   border: 1px solid var(--lab-line);
-  border-radius: 8px;
+  border-radius: var(--radius-cell);
   background: var(--lab-page);
   color: var(--lab-ink);
 }
@@ -175,9 +181,11 @@
 .panel {
   min-width: 0;
   padding: 22px;
-  border: 1px solid var(--lab-line);
-  border-radius: 24px;
+  border: var(--edge-w) solid var(--elevation-edge);
+  border-radius: var(--radius-card);
   background: var(--lab-surface);
+  background-clip: padding-box;
+  box-shadow: var(--elevation-1);
 }
 
 .panelTitle {
@@ -274,7 +282,7 @@
   height: 46px;
   padding: 0 14px;
   border: 1px solid var(--lab-line);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   background: var(--lab-page);
   color: var(--lab-ink);
   font: inherit;
@@ -301,7 +309,7 @@
   min-height: 38px;
   padding: 6px 10px;
   border: 1px solid var(--lab-line);
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   font-size: var(--type-small);
   cursor: pointer;
 }
@@ -321,7 +329,7 @@
     grid-template-columns: minmax(0, 1fr);
   }
   .compare {
-    border-radius: 20px;
+    border-radius: var(--radius-card);
   }
   .panel {
     padding: 18px;

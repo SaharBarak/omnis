@@ -5,29 +5,22 @@
  * in place. Colours are palette roles only.
  */
 
-/* ---------- surfaces: layered, a 1px inner highlight, a tinted shadow ---------- */
-
-.boardWrap,
-.chart,
-.plan,
-.faqItem {
-  --highlight: 0 1px 0 color-mix(in srgb, var(--lab-ink) 8%, transparent) inset;
-}
+/* ---------- surfaces: edge and lift from the elevation scale (BENTO_POLISH.md) ---------- */
 
 /* ---------- day board (storyboard 5) ---------- */
 
+/* A frame around its tiles: its padding is what makes the two radii concentric. */
 .boardWrap {
   --contour: var(--layer-kin);
   --contour-strength: 2.8;
 
   container-type: inline-size;
-  padding: 10px;
-  border: 1px solid var(--lab-line);
-  border-radius: 30px;
+  padding: calc(var(--radius-frame) - var(--radius-card) - var(--edge-w));
+  border: var(--edge-w) solid var(--elevation-edge);
+  border-radius: var(--radius-frame);
   background: color-mix(in srgb, var(--lab-art) 72%, var(--lab-page));
-  box-shadow:
-    var(--highlight),
-    0 48px 96px -56px var(--lab-shadow);
+  background-clip: padding-box;
+  box-shadow: var(--elevation-4);
 }
 
 .board {
@@ -47,14 +40,13 @@
   gap: 14px;
   min-width: 0;
   padding: 16px 18px 18px;
-  border: 1px solid color-mix(in srgb, var(--tile) 18%, var(--lab-line));
-  border-radius: 22px;
+  border: var(--edge-w) solid var(--elevation-edge);
+  border-radius: var(--radius-card);
   background:
     radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--tile) 9%, transparent), transparent 62%),
     var(--lab-surface);
-  box-shadow:
-    var(--highlight),
-    0 22px 40px -30px var(--lab-shadow);
+  background-clip: padding-box;
+  box-shadow: var(--elevation-2);
 }
 
 .tile[data-art] {
@@ -308,7 +300,7 @@
 
 .seg {
   flex: 1;
-  border-radius: 3px;
+  border-radius: 3px; /* drawing */
   background: color-mix(in srgb, var(--tile) 38%, transparent);
 }
 
@@ -393,12 +385,11 @@
   gap: 14px;
   margin: 0;
   padding: 22px clamp(14px, 3vw, 32px) 20px;
-  border: 1px solid var(--lab-line);
-  border-radius: 30px;
+  border: var(--edge-w) solid var(--elevation-edge);
+  border-radius: var(--radius-frame);
   background: color-mix(in srgb, var(--lab-art) 72%, var(--lab-page));
-  box-shadow:
-    var(--highlight),
-    0 48px 96px -56px var(--lab-shadow);
+  background-clip: padding-box;
+  box-shadow: var(--elevation-4);
 }
 
 .chartTitle {
@@ -431,7 +422,7 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  border-radius: 0 16px 16px 0;
+  border-radius: 0 var(--radius-inset) var(--radius-inset) 0;
   pointer-events: none;
 }
 
@@ -536,7 +527,7 @@
   bottom: 0;
   width: min(44%, 64px);
   height: var(--bar-h);
-  border-radius: 10px 10px 2px 2px;
+  border-radius: 10px 10px 2px 2px; /* drawing */
   background: linear-gradient(
     to top,
     color-mix(in srgb, var(--brand) calc(var(--lit) * 100%), var(--bar-off)),
@@ -738,14 +729,49 @@
   gap: 16px;
   min-width: 0;
   padding: 22px;
-  border: 1px solid color-mix(in srgb, var(--lab-bright) calc(var(--lift) * 45%), var(--lab-line));
-  border-radius: 24px;
+  border: var(--edge-w) solid color-mix(in srgb, var(--lab-bright) calc(var(--lift) * 45%), var(--elevation-edge));
+  border-radius: var(--radius-card);
   background:
     linear-gradient(to bottom, color-mix(in srgb, var(--lab-ink) 3%, transparent), transparent 40%),
     var(--lab-surface);
-  box-shadow:
-    var(--highlight),
-    0 calc(6px + var(--lift) * 18px) calc(18px + var(--lift) * 30px) calc(-14px - var(--lift) * 6px) var(--lab-shadow);
+  background-clip: padding-box;
+  box-shadow: var(--elevation-2);
+}
+
+/*
+ * The lift (storyboard 7): Motion raises the card and tints its edge through
+ * --lift; the next level's rise fades in on its own box, so the card lands on
+ * exactly level 3 and its stack is never repainted.
+ */
+.plan::after {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--edge-w));
+  border-radius: inherit;
+  box-shadow: var(--elevation-rise-3);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-quick) var(--ease-standard);
+}
+
+@media (hover: hover) {
+  .plan:hover::after {
+    opacity: 1;
+  }
+}
+
+/* With motion off the card is static (plan-motion.tsx): the pointer still tints its edge and raises it, at once. */
+@media (prefers-reduced-motion: reduce) {
+  .plan:hover {
+    --lift: 1;
+  }
+  .plan::after {
+    transition: none;
+  }
+}
+
+[data-lab][data-motion='paused'] .plan:hover {
+  --lift: 1;
 }
 
 .planFeatured {
@@ -754,9 +780,8 @@
     radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--brand) 12%, transparent), transparent 70%),
     var(--lab-surface);
   box-shadow:
-    var(--highlight),
     0 0 0 1px var(--brand) inset,
-    0 calc(10px + var(--lift) * 18px) calc(28px + var(--lift) * 30px) -16px color-mix(in srgb, var(--brand) 22%, var(--lab-shadow));
+    var(--elevation-2);
 }
 
 .planHead {
@@ -833,12 +858,11 @@
 }
 
 .faqItem {
-  border: 1px solid var(--lab-line);
-  border-radius: 20px;
+  border: var(--edge-w) solid var(--elevation-edge);
+  border-radius: var(--radius-card);
   background: var(--lab-surface);
-  box-shadow:
-    var(--highlight),
-    0 18px 36px -32px var(--lab-shadow);
+  background-clip: padding-box;
+  box-shadow: var(--elevation-1);
 }
 
 .faqQ {
@@ -847,7 +871,7 @@
   align-items: center;
   gap: 16px;
   padding: 18px 20px;
-  border-radius: 20px;
+  border-radius: inherit;
   cursor: pointer;
   font-weight: 500;
   line-height: 1.4;
@@ -878,7 +902,7 @@
   inset: 50% 6px auto;
   height: 1.5px;
   margin-top: -0.75px;
-  border-radius: 1px;
+  border-radius: 1px; /* drawing */
   background: var(--lab-ink);
 }
 
@@ -906,6 +930,7 @@
   padding: 0 20px 20px;
   line-height: 1.6;
   color: var(--lab-text-2);
+  text-wrap: pretty;
 }
 
 /* ---------- close (storyboard 9) ---------- */
@@ -916,10 +941,12 @@
   place-items: center;
   min-height: clamp(420px, 62svh, 620px);
   overflow: hidden;
-  border-radius: 32px;
-  clip-path: inset(0 round 32px);
+  border-radius: var(--radius-frame);
+  clip-path: inset(0 round var(--radius-frame));
   background: var(--lab-art);
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--lab-ink) 10%, transparent) inset;
+  /* Its clip-path clips any outer shadow, so the art keeps only the media outline. */
+  outline: var(--edge-w) solid var(--image-outline);
+  outline-offset: calc(-1 * var(--edge-w));
   isolation: isolate;
 }
 
@@ -986,9 +1013,11 @@
   gap: 6px;
   margin: 0;
   padding: 12px 8px;
-  border: 1px solid var(--lab-line);
-  border-radius: 18px;
+  border: var(--edge-w) solid var(--elevation-edge);
+  border-radius: var(--radius-inset);
   background: var(--lab-surface);
+  background-clip: padding-box;
+  box-shadow: var(--elevation-1);
   text-align: center;
 }
 

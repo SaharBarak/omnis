@@ -51,7 +51,7 @@ export function PlaceField({
         <span className={site.label} id={`${id}-label`}>
           Birth place
         </span>
-        <div className={site.chip} style={{ height: 46, borderRadius: 12, justifyContent: 'space-between', paddingInline: 14 }} aria-labelledby={`${id}-label`}>
+        <div className={site.chip} style={{ height: 46, borderRadius: 'var(--radius-control)', justifyContent: 'space-between', paddingInline: 14 }} aria-labelledby={`${id}-label`}>
           <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
             <MapPin size={14} aria-hidden />
             {value.label ?? `${value.lat.toFixed(2)}, ${value.lng.toFixed(2)}`}
@@ -104,7 +104,7 @@ export function PlaceField({
               <button
                 type="button"
                 className={site.chip}
-                style={{ width: '100%', height: 'auto', minHeight: 34, padding: '6px 12px', whiteSpace: 'normal', textAlign: 'start', borderRadius: 10 }}
+                style={{ width: '100%', height: 'auto', minHeight: 34, padding: '6px 12px', whiteSpace: 'normal', textAlign: 'start', borderRadius: 'var(--radius-control)' }}
                 onClick={() => {
                   onChange(birthPlaceOf(hit))
                   setState({ kind: 'idle' })

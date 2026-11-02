@@ -21,9 +21,11 @@
   gap: 16px;
   min-height: 0;
   padding: 22px;
-  border: 1px solid var(--lab-line);
-  border-radius: 28px;
+  border: var(--edge-w) solid var(--elevation-edge);
+  border-radius: var(--radius-stage);
   background: var(--lab-surface);
+  background-clip: padding-box;
+  box-shadow: var(--elevation-2);
 }
 
 .claim {
@@ -137,6 +139,6 @@
   .claim,
   .side {
     padding: 18px;
-    border-radius: 22px;
+    border-radius: var(--radius-card);
   }
 }
