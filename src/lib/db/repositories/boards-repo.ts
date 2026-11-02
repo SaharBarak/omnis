@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, isNull, or, sql } from 'drizzle-orm'
+import { and, count, desc, eq, getTableColumns, gt, isNull, or, sql } from 'drizzle-orm'
 
 import { getDb } from '@/lib/db/client'
 import { board_shares, boards, profiles } from '@/lib/db/schema'
@@ -68,10 +68,20 @@ const DEFAULT_LAYERS: Array<Record<string, unknown>> = [
 // Owner-scoped board CRUD
 // ---------------------------------------------------------------------------
 
+/** How many boards the user owns, without reading them. */
+export async function countBoards(userId: string): Promise<number> {
+  const db = getDb()
+  const [row] = await db.select({ n: count() }).from(boards).where(eq(boards.owner_id, userId))
+  return row?.n ?? 0
+}
+
+/** A board without its drawing: what a list shows. The canvas and layers load with the board itself. */
+const { canvas: _canvas, layers: _layers, ...SUMMARY_COLUMNS } = getTableColumns(boards)
+
 export async function listBoards(userId: string) {
   const db = getDb()
   const rows = await db
-    .select()
+    .select(SUMMARY_COLUMNS)
     .from(boards)
     .where(eq(boards.owner_id, userId))
     .orderBy(desc(boards.updated_at))

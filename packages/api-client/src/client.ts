@@ -2,6 +2,7 @@ import type {
   AiInterpretRequest,
   AiInterpretation,
   Board,
+  BoardSummary,
   ComputedResult,
   GroupWithMembers,
   Group,
@@ -393,8 +394,8 @@ export function createPleiadClient(options: PleiadClientOptions) {
 
     boards: {
       /** GET /api/boards — v1 read-only on mobile. */
-      async list(): Promise<Board[]> {
-        const { boards } = await request<{ boards: Board[] }>('/api/boards')
+      async list(): Promise<BoardSummary[]> {
+        const { boards } = await request<{ boards: BoardSummary[] }>('/api/boards')
         return boards
       },
       /** GET /api/boards/recent?limit=... */

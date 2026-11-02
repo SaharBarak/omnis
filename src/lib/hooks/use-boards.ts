@@ -59,8 +59,11 @@ export interface BoardShare {
   created_at: string
 }
 
+/** A board as the list returns it: everything but the drawing, which loads with `getBoard`. */
+export type BoardSummary = Omit<Board, 'canvas' | 'layers'>
+
 interface UseBoardsState {
-  boards: Board[]
+  boards: BoardSummary[]
   loading: boolean
   error: string | null
 }
@@ -115,7 +118,7 @@ export function useBoards(): UseBoardsReturn {
   // immediately while a background refetch runs.
   const query = useQuery({
     queryKey: BOARDS_QUERY_KEY,
-    queryFn: () => fetchJson<{ boards: Board[] }>('/api/boards'),
+    queryFn: () => fetchJson<{ boards: BoardSummary[] }>('/api/boards'),
   })
 
   // Mutators await the refetch before resolving, mirroring the previous

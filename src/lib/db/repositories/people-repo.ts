@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNull, or } from 'drizzle-orm'
+import { and, asc, count, eq, inArray, isNull, or } from 'drizzle-orm'
 
 import { getDb } from '@/lib/db/client'
 import { people, person_tags, tags } from '@/lib/db/schema'
@@ -31,6 +31,16 @@ export interface PersonInput {
 
 export type PersonUpdateInput = Partial<PersonInput> & {
   deleted_at?: string | null
+}
+
+/** The people a plan's cap counts: saved, not deleted, and not the user's own entry (free on every plan). */
+export async function countTrackedPeople(userId: string): Promise<number> {
+  const db = getDb()
+  const [row] = await db
+    .select({ n: count() })
+    .from(people)
+    .where(and(eq(people.owner_id, userId), isNull(people.deleted_at), eq(people.is_self, false)))
+  return row?.n ?? 0
 }
 
 export async function listPeopleWithTags(userId: string) {

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireUserId } from '@/lib/auth-server'
 import { handleApiError } from '@/lib/api/respond'
-import { listBoards, createBoard } from '@/lib/db/repositories/boards-repo'
+import { countBoards, listBoards, createBoard } from '@/lib/db/repositories/boards-repo'
 import { getUserPlan } from '@/lib/services/usage'
 import { getPlanLimits, PLANS } from '@/lib/services/billing'
 
@@ -41,13 +41,13 @@ export async function POST(request: Request) {
 
     // Plan entitlement: cap boards per tier (free = 0 → boards are a paid
     // feature). Counted from actual owned rows since boards are persistent.
-    // Fetched alongside the plan — the list is only consulted for capped
+    // Counted alongside the plan: the count is only consulted for capped
     // tiers, but a possibly-unused cheap count beats a serial round trip.
-    const [plan, existing] = await Promise.all([getUserPlan(userId), listBoards(userId)])
+    const [plan, existing] = await Promise.all([getUserPlan(userId), countBoards(userId)])
     const limits = getPlanLimits(plan)
     const boardLimit = limits.boards
     if (boardLimit !== Infinity) {
-      if (existing.length >= boardLimit) {
+      if (existing >= boardLimit) {
         return NextResponse.json(
           {
             error:

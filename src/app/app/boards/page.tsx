@@ -32,9 +32,8 @@ import { BoardShareDialog } from '@/components/boards/board-share-dialog'
 import { EmptyState } from '@/components/dashboard'
 import { useConfirm } from '@/components/dashboard/confirm-dialog'
 import { Notice, fadeUp, staggerParent, VIEWPORT_ONCE } from '@/components/app-kit'
-import { useBoards } from '@/lib/hooks/use-boards'
+import { useBoards, type BoardSummary } from '@/lib/hooks/use-boards'
 import { BOARD_TEMPLATES, type BoardTemplate } from '@/lib/types/board'
-import type { Board } from '@/lib/types/database.types'
 import { TEMPLATE_ICONS, FALLBACK_TEMPLATE_ICON } from '@/components/canvas/template-selector'
 import { cn } from '@/lib/utils'
 
@@ -275,7 +274,7 @@ export default function BoardsPage() {
 
 // Board card component
 interface BoardCardProps {
-  board: Board
+  board: BoardSummary
   onDelete: () => void
   onDuplicate: () => void
   onShare: () => void

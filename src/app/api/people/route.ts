@@ -51,11 +51,12 @@ export async function POST(request: NextRequest) {
 
     // Plan entitlement: cap saved profiles per the user's tier. getPersistentUsage
     // is the same count the subscription API reports, so what we enforce here and
-    // what the app shows the user cannot drift apart.
-    const plan = await getUserPlan(userId)
+    // what the app shows the user cannot drift apart. Both reads are one round
+    // trip each, so they run together.
+    const [plan, usage] = await Promise.all([getUserPlan(userId), getPersistentUsage(userId)])
     const profileLimit = getPlanLimits(plan).profiles
     if (profileLimit !== Infinity) {
-      const { profiles: tracked } = await getPersistentUsage(userId)
+      const tracked = usage.profiles
       if (tracked >= profileLimit) {
         return NextResponse.json(
           {

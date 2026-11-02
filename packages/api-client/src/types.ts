@@ -293,6 +293,9 @@ export interface Board {
   updated_at: string
 }
 
+/** A board as a list returns it: everything but the drawing. */
+export type BoardSummary = Omit<Board, 'canvas' | 'layers'>
+
 // ---------------------------------------------------------------------------
 // Notifications
 // ---------------------------------------------------------------------------

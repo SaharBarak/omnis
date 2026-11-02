@@ -10,8 +10,8 @@ import {
   incrementUsage as incrementUsageInRepo,
   type UsageMetric,
 } from '@/lib/db/repositories/subscriptions-repo'
-import { listPeopleWithTags } from '@/lib/db/repositories/people-repo'
-import { listBoards } from '@/lib/db/repositories/boards-repo'
+import { countTrackedPeople } from '@/lib/db/repositories/people-repo'
+import { countBoards } from '@/lib/db/repositories/boards-repo'
 
 // Usage metrics (re-exported for existing consumers).
 export type { UsageMetric }
@@ -221,16 +221,8 @@ export class LimitExceededError extends Error {
 export async function getPersistentUsage(
   userId: string
 ): Promise<{ profiles: number; boards: number }> {
-  const [people, boards] = await Promise.all([
-    listPeopleWithTags(userId),
-    listBoards(userId),
-  ])
-
-  const tracked = people.people.filter(
-    (p) => !(p as { is_self?: boolean }).is_self
-  )
-
-  return { profiles: tracked.length, boards: boards.length }
+  const [profiles, boards] = await Promise.all([countTrackedPeople(userId), countBoards(userId)])
+  return { profiles, boards }
 }
 
 function percentage(used: number, limit: number): number {
