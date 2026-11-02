@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { contrast, gamutMap, hexToOklch, hueDistance, solveLightness, toHex, toP3 } from './color'
+import { contrast, gamutMap, hexToOklch, hueDistance, solveLightness, toHex } from './color'
 
 describe('OKLCH conversion', () => {
   it('round-trips sRGB primaries and neutrals through OKLCH', () => {
@@ -23,7 +23,6 @@ describe('OKLCH conversion', () => {
       expect(x).toBeGreaterThanOrEqual(0)
       expect(x).toBeLessThanOrEqual(1)
     }
-    expect(toP3(vivid)).toMatch(/^color\(display-p3 [\d.]+ [\d.]+ [\d.]+\)$/)
     const back = hexToOklch(toHex(vivid))
     expect(back.c).toBeLessThan(vivid.c)
     expect(hueDistance(back.h, vivid.h)).toBeLessThan(3)

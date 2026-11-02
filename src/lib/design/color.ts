@@ -11,7 +11,7 @@ export interface Oklch {
   readonly h: number
 }
 
-type Vec3 = readonly [number, number, number]
+export type Vec3 = readonly [number, number, number]
 type Mat3 = readonly [Vec3, Vec3, Vec3]
 
 export type Gamut = 'srgb' | 'p3'
@@ -162,11 +162,6 @@ export const toHex = (color: Oklch): string => {
   return `#${byte(r)}${byte(g)}${byte(b)}`
 }
 
-export const toP3 = (color: Oklch): string => {
-  const [r, g, b] = gamutMap(color, 'p3')
-  return `color(display-p3 ${fixed(r)} ${fixed(g)} ${fixed(b)})`
-}
-
 export const toOklch = (color: Oklch): string => `oklch(${fixed(color.l)} ${fixed(color.c)} ${fixed(color.h)})`
 
 export const hexToOklch = (hex: string): Oklch => {
@@ -174,9 +169,15 @@ export const hexToOklch = (hex: string): Oklch => {
   return toLch(fromEncoded([((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255], 'srgb'))
 }
 
-/** WCAG 2 relative luminance of the colour as it renders in sRGB. */
+/** Linear-light sRGB channels of the colour as it renders: gamut-mapped and quantised to the 8 bits a hex carries. */
+export const linearSrgb = (color: Oklch): Vec3 => gamutMap(color, 'srgb').map((x) => decode(Math.round(x * 255) / 255)) as unknown as Vec3
+
+/** OKLab coordinates of linear-light sRGB channels. */
+export const oklabOfLinearSrgb = (rgb: Vec3): Vec3 => linearSrgbToLab(rgb)
+
+/** WCAG 2 relative luminance of the colour as it renders in sRGB, so a solved contrast holds for the emitted hex. */
 export const luminance = (color: Oklch): number => {
-  const [r, g, b] = gamutMap(color, 'srgb').map(decode) as unknown as Vec3
+  const [r, g, b] = linearSrgb(color)
   return 0.2126 * r + 0.7152 * g + 0.0722 * b
 }
 
