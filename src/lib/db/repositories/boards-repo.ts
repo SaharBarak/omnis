@@ -330,7 +330,8 @@ export async function getBoardByShareToken(
  * Owner-scoped: only duplicates a board the user owns. Copies
  * description/template/canvas/layers into a fresh board owned by the same user.
  * Defaults the name to `"<original> (העתק)"` when `newTitle` is omitted. Returns
- * the new board id, or null if the source board is not owned by the user.
+ * the new board as a list shows it (no drawing), or null if the source board
+ * is not owned by the user.
  */
 export async function duplicateBoard(
   userId: string,
@@ -356,8 +357,8 @@ export async function duplicateBoard(
       canvas: source.canvas,
       layers: source.layers,
     })
-    .returning({ id: boards.id })
-  return copy.id
+    .returning(SUMMARY_COLUMNS)
+  return serialize(copy)
 }
 
 /**

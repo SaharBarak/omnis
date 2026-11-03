@@ -1,9 +1,13 @@
 'use client'
 
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { useComputedResults } from './use-computed-results'
 import { track } from '@/lib/analytics/posthog'
+import { fetchJson, jsonInit } from '@/lib/http/json'
+import { cacheMutation } from '@/lib/query/cache-mutation'
+import { QUERY_KEYS } from '@/lib/query/keys'
+import { ascendingBy, dropRow, patchRow, sortedBy, upsertRow, within } from '@/lib/query/list-ops'
 
 // Client-facing shapes mirror the original Supabase row contract (nullable,
 // never undefined) so existing consumers keep type-checking. The server
@@ -65,16 +69,71 @@ export interface PersonWithTags extends Person {
   tags: Tag[]
 }
 
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, { credentials: 'include', ...init })
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}))
-    throw new Error(data.error || `Request failed: ${res.status}`)
-  }
-  return res.json() as Promise<T>
-}
+type PeopleData = { people: PersonWithTags[]; tags: Tag[] }
 
-export const PEOPLE_QUERY_KEY = ['people'] as const
+const PEOPLE_ORDER = sortedBy(ascendingBy<PersonWithTags>((p) => p.name))
+
+/** Shown by name, fetched and settled rows alike; module-level so the query memoises it. */
+const showPeople = (data: PeopleData): PeopleData => ({ ...data, people: PEOPLE_ORDER(data.people) })
+
+const inPeople = within<PeopleData, readonly PersonWithTags[]>(
+  (data) => data.people,
+  (data, people) => ({ ...data, people: [...people] })
+)
+
+const tagsWithIds = (tags: readonly Tag[], ids: readonly string[]): Tag[] => tags.filter((t) => ids.includes(t.id))
+
+/** The server's person as the list shows it, with tags from the cache: the ones just set, else the ones it had. */
+const listed = (person: Person, data: PeopleData, tagIds?: readonly string[]): PersonWithTags => ({
+  ...person,
+  tags: tagIds ? tagsWithIds(data.tags, tagIds) : (data.people.find((p) => p.id === person.id)?.tags ?? []),
+})
+
+const upsertPerson = (person: Person, tagIds?: readonly string[]) => (data: PeopleData): PeopleData => ({
+  ...data,
+  people: [...upsertRow(listed(person, data, tagIds))(data.people)],
+})
+
+/** Relationship and group rows embed people, so a person's change refreshes them too. */
+const EMBEDDING = [QUERY_KEYS.relationships, QUERY_KEYS.groups]
+
+const ADD = cacheMutation<PeopleData, { person: Omit<PersonInsert, 'owner_id'>; tagIds: string[] }, Person>({
+  key: QUERY_KEYS.people,
+  request: async (body) => (await fetchJson<{ person: Person }>('/api/people', jsonInit('POST', body))).person,
+  settle: (created, { tagIds }) => upsertPerson(created, tagIds),
+})
+
+const UPDATE = cacheMutation<PeopleData, { id: string; updates: PersonUpdate; tagIds?: string[] }, Person>({
+  key: QUERY_KEYS.people,
+  request: async ({ id, updates, tagIds }) =>
+    (await fetchJson<{ person: Person }>(`/api/people/${id}`, jsonInit('PATCH', { updates, tagIds }))).person,
+  optimistic: ({ id, updates, tagIds }) => (data) =>
+    inPeople(patchRow<PersonWithTags>(id, { ...updates, ...(tagIds ? { tags: tagsWithIds(data.tags, tagIds) } : {}) }))(data),
+  settle: (person, { tagIds }) => upsertPerson(person, tagIds),
+  also: EMBEDDING,
+})
+
+const REMOVE = cacheMutation<PeopleData, string, unknown>({
+  key: QUERY_KEYS.people,
+  request: (id) => fetchJson(`/api/people/${id}`, { method: 'DELETE' }),
+  optimistic: (id) => inPeople(dropRow<PersonWithTags>(id)),
+  also: EMBEDDING,
+})
+
+const RESTORE = cacheMutation<PeopleData, string, unknown>({
+  key: QUERY_KEYS.people,
+  request: (id) => fetchJson(`/api/people/${id}`, jsonInit('PATCH', { action: 'restore' })),
+  also: EMBEDDING,
+})
+
+const ERASE = cacheMutation<PeopleData, string, unknown>({
+  key: QUERY_KEYS.people,
+  request: (id) => fetchJson(`/api/people/${id}?permanent=true`, { method: 'DELETE' }),
+  optimistic: (id) => inPeople(dropRow<PersonWithTags>(id)),
+  also: EMBEDDING,
+})
+
+const reportReadings = (error: unknown) => console.error('Storing readings failed; the person page computes them on its first visit:', error)
 
 export function usePeople() {
   const queryClient = useQueryClient()
@@ -83,90 +142,58 @@ export function usePeople() {
   // true only when there's nothing to show yet: a restored cache renders
   // immediately while a background refetch runs.
   const query = useQuery({
-    queryKey: PEOPLE_QUERY_KEY,
-    queryFn: () =>
-      fetchJson<{ people: PersonWithTags[]; tags: Tag[] }>('/api/people'),
+    queryKey: QUERY_KEYS.people,
+    queryFn: ({ signal }) => fetchJson<PeopleData>('/api/people', { signal }),
+    select: showPeople,
   })
 
   const { computeAndStore, invalidateResults } = useComputedResults()
 
-  // Mutators await the refetch before resolving, mirroring the previous
-  // hand-rolled behavior that callers rely on (dialogs close on fresh data).
   const fetchPeople = useCallback(async () => {
-    await queryClient.refetchQueries({ queryKey: PEOPLE_QUERY_KEY })
+    await queryClient.refetchQueries({ queryKey: QUERY_KEYS.people })
   }, [queryClient])
+
+  // Mutators resolve on the server's answer, already written into the list
+  // (docs/perf/APP_PERFORMANCE_PROMPT.md "Mutations answer from the cache").
+  // Readings are computed and stored after, off the critical path.
+  const { mutateAsync: add } = useMutation(ADD)
+  const { mutateAsync: update } = useMutation(UPDATE)
+  const { mutateAsync: remove } = useMutation(REMOVE)
+  const { mutateAsync: restore } = useMutation(RESTORE)
+  const { mutateAsync: erase } = useMutation(ERASE)
 
   const addPerson = useCallback(
     async (person: Omit<PersonInsert, 'owner_id'>, tagIds: string[] = []) => {
-      const { person: created } = await fetchJson<{ person: Person }>(
-        '/api/people',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ person, tagIds }),
-        }
-      )
+      const created = await add({ person, tagIds })
       track('person_created', { is_self: created.is_self })
-      await computeAndStore(created.id, {
-        birthDate: created.birth_date,
-        hebrewName: created.hebrew_name,
-      })
-      await fetchPeople()
+      void computeAndStore(created.id, { birthDate: created.birth_date, hebrewName: created.hebrew_name }).catch(reportReadings)
       return created
     },
-    [fetchPeople, computeAndStore]
+    [add, computeAndStore]
   )
 
   const updatePerson = useCallback(
     async (id: string, updates: PersonUpdate, tagIds?: string[]) => {
-      const { person } = await fetchJson<{ person: Person }>(
-        `/api/people/${id}`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ updates, tagIds }),
-        }
-      )
+      const person = await update({ id, updates, tagIds })
       if (updates.birth_date) {
-        await invalidateResults(id)
-        await computeAndStore(id, {
-          birthDate: person.birth_date,
-          hebrewName: person.hebrew_name,
-        })
+        void invalidateResults(id)
+          .then(() => computeAndStore(id, { birthDate: person.birth_date, hebrewName: person.hebrew_name }))
+          .catch(reportReadings)
       }
-      await fetchPeople()
       return person
     },
-    [fetchPeople, invalidateResults, computeAndStore]
+    [update, invalidateResults, computeAndStore]
   )
 
-  const deletePerson = useCallback(
-    async (id: string) => {
-      await fetchJson(`/api/people/${id}`, { method: 'DELETE' })
-      await fetchPeople()
-    },
-    [fetchPeople]
-  )
-
-  const restorePerson = useCallback(
-    async (id: string) => {
-      await fetchJson(`/api/people/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'restore' }),
-      })
-      await fetchPeople()
-    },
-    [fetchPeople]
-  )
-
-  const permanentlyDeletePerson = useCallback(
-    async (id: string) => {
-      await fetchJson(`/api/people/${id}?permanent=true`, { method: 'DELETE' })
-      await fetchPeople()
-    },
-    [fetchPeople]
-  )
+  const deletePerson = useCallback(async (id: string) => {
+    await remove(id)
+  }, [remove])
+  const restorePerson = useCallback(async (id: string) => {
+    await restore(id)
+  }, [restore])
+  const permanentlyDeletePerson = useCallback(async (id: string) => {
+    await erase(id)
+  }, [erase])
 
   return {
     people: query.data?.people ?? [],

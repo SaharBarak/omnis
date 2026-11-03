@@ -19,9 +19,9 @@ export async function POST(request: Request, { params }: Ctx) {
     const body = await request.json().catch(() => ({}))
     const { newName } = bodySchema.parse(body)
 
-    const newBoardId = await duplicateBoard(userId, id, newName ?? null)
-    if (!newBoardId) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-    return NextResponse.json({ id: newBoardId }, { status: 201 })
+    const board = await duplicateBoard(userId, id, newName ?? null)
+    if (!board) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    return NextResponse.json({ id: board.id, board }, { status: 201 })
   } catch (error) {
     return handleApiError(error, 'POST /api/boards/[id]/duplicate')
   }

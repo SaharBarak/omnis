@@ -81,8 +81,9 @@ export async function listRelationshipsWithPeople(userId: string) {
 /**
  * Create a relationship owned by the user. Verifies both people belong to the
  * user first (replaces the Postgres INSERT WITH CHECK EXISTS clauses).
- * Throws if either person is missing/not owned, or on the unique-constraint
- * violation from the (owner_id, person1_id, person2_id, type) index.
+ * Returns the row joined with both people, as the list returns it. Throws if
+ * either person is missing/not owned, or on the unique-constraint violation
+ * from the (owner_id, person1_id, person2_id, type) index.
  */
 export async function createRelationship(userId: string, input: RelationshipInput) {
   const db = getDb()
@@ -99,7 +100,7 @@ export async function createRelationship(userId: string, input: RelationshipInpu
     bidirectional && rawP1 > rawP2 ? [rawP2, rawP1] : [rawP1, rawP2]
 
   const owned = await db
-    .select({ id: people.id })
+    .select()
     .from(people)
     .where(
       and(
@@ -130,7 +131,13 @@ export async function createRelationship(userId: string, input: RelationshipInpu
         notes: input.notes ?? null,
       })
       .returning()
-    return serialize(created)
+    // The ownership check read both people, so the row returns joined, as the list shows it.
+    const personById = new Map(owned.map((p) => [p.id, p]))
+    return {
+      ...serialize(created),
+      person1: serialize(personById.get(created.person1_id)!),
+      person2: serialize(personById.get(created.person2_id)!),
+    }
   } catch (error) {
     if (isUniqueViolation(error)) {
       throw new DuplicateRelationshipError(

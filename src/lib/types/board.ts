@@ -470,6 +470,8 @@ export interface CreateBoardInput {
   name: string
   description?: string
   template?: BoardTemplate
+  /** A drawing to start from; the template's empty canvas otherwise. */
+  canvas?: CanvasState
 }
 
 export interface UpdateBoardInput {

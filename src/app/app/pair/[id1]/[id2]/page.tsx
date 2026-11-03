@@ -19,6 +19,8 @@ import {
 import { getSeal } from '@pleiad/engine/data/seals'
 import { getTone } from '@pleiad/engine/data/tones'
 import type { HarmonyType } from '@pleiad/engine/types/relationship'
+import { useBoards } from '@/lib/hooks/use-boards'
+import type { PersonNode } from '@/lib/types/board'
 import { usePeople, type Person } from '@/lib/hooks/use-people'
 import { SealIcon } from '@/components/cards/SealIcon'
 import { MoonGlyph } from '@/components/moon/moon-glyph'
@@ -129,13 +131,14 @@ function CreateBoardButton({
   person2: Person
 }) {
   const router = useRouter()
+  const { createBoard } = useBoards()
   const [state, setState] = useState<'idle' | 'creating' | 'error'>('idle')
   const [error, setError] = useState<string | null>(null)
 
   const create = useCallback(async () => {
     setState('creating')
     setError(null)
-    const node = (person: Person, x: number) => ({
+    const node = (person: Person, x: number): PersonNode => ({
       id: `person-${person.id}`,
       type: 'person',
       personId: person.id,
@@ -151,49 +154,39 @@ function CreateBoardButton({
       style: { opacity: 1 },
     })
     try {
-      const res = await fetch('/api/boards', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: `${person1.name} × ${person2.name}`,
-          description: 'Couple map — created from the pair view',
-          template: 'relationship-map',
-          canvas: {
-            width: 1920,
-            height: 1080,
-            viewBox: { x: 0, y: 0, width: 1920, height: 1080, zoom: 1 },
-            background: { type: 'solid', color: '#0B0D16' },
-            grid: { visible: true, size: 20, snap: true, color: '#1A1E2C' },
-            nodes: [node(person1, 560), node(person2, 1100)],
-            connections: [
-              {
-                id: `pair-${person1.id}-${person2.id}`,
-                type: 'relationship',
-                sourceId: `person-${person1.id}`,
-                targetId: `person-${person2.id}`,
-                sourceAnchor: 'auto',
-                targetAnchor: 'auto',
-                style: { color: '#7D5BC9', width: 2 },
-                label: 'couple',
-                layerId: 'connections',
-              },
-            ],
-            annotations: [],
-          },
-        }),
+      const board = await createBoard({
+        name: `${person1.name} × ${person2.name}`,
+        description: 'Couple map — created from the pair view',
+        template: 'relationship-map',
+        canvas: {
+          width: 1920,
+          height: 1080,
+          viewBox: { x: 0, y: 0, width: 1920, height: 1080, zoom: 1 },
+          background: { type: 'solid', color: '#0B0D16' },
+          grid: { visible: true, size: 20, snap: true, color: '#1A1E2C' },
+          nodes: [node(person1, 560), node(person2, 1100)],
+          connections: [
+            {
+              id: `pair-${person1.id}-${person2.id}`,
+              type: 'relationship',
+              sourceId: `person-${person1.id}`,
+              targetId: `person-${person2.id}`,
+              sourceAnchor: 'auto',
+              targetAnchor: 'auto',
+              style: { color: '#7D5BC9', width: 2 },
+              label: 'couple',
+              layerId: 'connections',
+            },
+          ],
+          annotations: [],
+        },
       })
-      const data = (await res.json()) as { board?: { id: string }; error?: string }
-      if (!res.ok || !data.board) {
-        setState('error')
-        setError(data.error ?? 'Could not create the board.')
-        return
-      }
-      router.push(`/app/boards/${data.board.id}`)
-    } catch {
+      router.push(`/app/boards/${board.id}`)
+    } catch (err) {
       setState('error')
-      setError('Could not create the board.')
+      setError(err instanceof Error ? err.message : 'Could not create the board.')
     }
-  }, [person1, person2, router])
+  }, [person1, person2, router, createBoard])
 
   return (
     <div className="space-y-3">

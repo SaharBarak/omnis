@@ -1,7 +1,11 @@
 'use client'
 
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useState } from 'react'
+import { fetchJson, jsonInit } from '@/lib/http/json'
+import { cacheMutation } from '@/lib/query/cache-mutation'
+import { QUERY_KEYS } from '@/lib/query/keys'
+import { dropRow, newestBy, patchRow, sortedBy, upsertRow, within } from '@/lib/query/list-ops'
 import type {
   CanvasState,
   Layer,
@@ -91,24 +95,81 @@ interface UseBoardsReturn extends UseBoardsState {
   } | null>
 }
 
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, { credentials: 'include', ...init })
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}))
-    throw new Error(data.error || `Request failed: ${res.status}`)
-  }
-  return res.json() as Promise<T>
+/** The cached shape, as persisted in browsers; kept so restored caches stay readable. */
+type Summaries = { boards: BoardSummary[] }
+
+const inBoards = within<Summaries, readonly BoardSummary[]>(
+  (data) => data.boards,
+  (data, boards) => ({ ...data, boards: [...boards] })
+)
+
+/** A board as the list shows it: the server's row without its drawing. */
+const summaryOf = ({ canvas: _canvas, layers: _layers, ...summary }: BoardSummary & Partial<Pick<Board, 'canvas' | 'layers'>>): BoardSummary => summary
+
+const BOARD_ORDER = sortedBy(newestBy<BoardSummary>((b) => b.updated_at))
+
+/** Newest change first, fetched and settled rows alike; module-level so the query memoises it. */
+const showBoards = (data: Summaries): Summaries => ({ ...data, boards: BOARD_ORDER(data.boards) })
+
+/** The fields of an update the list shows, in the API's names. */
+type ShownChanges = Partial<Pick<BoardSummary, 'name' | 'description' | 'thumbnail' | 'is_public'>>
+
+function shownChanges(input: UpdateBoardInput): ShownChanges {
+  const changes: ShownChanges = {}
+  if (input.name !== undefined) changes.name = input.name
+  if (input.description !== undefined) changes.description = input.description
+  if (input.thumbnail !== undefined) changes.thumbnail = input.thumbnail
+  if (input.isPublic !== undefined) changes.is_public = input.isPublic
+  return changes
 }
 
-function jsonInit(method: string, body: unknown): RequestInit {
-  return {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  }
-}
+/** The whole update in the API's names: what the list shows, plus the drawing. */
+const boardChanges = (input: UpdateBoardInput) => ({
+  ...shownChanges(input),
+  ...(input.canvas !== undefined ? { canvas: input.canvas } : {}),
+  ...(input.layers !== undefined ? { layers: input.layers } : {}),
+})
 
-export const BOARDS_QUERY_KEY = ['boards'] as const
+const settleBoard = (board: Board | BoardSummary) => (data: Summaries): Summaries => ({
+  ...data,
+  boards: [...upsertRow(summaryOf(board))(data.boards)],
+})
+
+const CREATE = cacheMutation<Summaries, CreateBoardInput, Board>({
+  key: QUERY_KEYS.boards,
+  request: async (input) =>
+    (
+      await fetchJson<{ board: Board }>(
+        '/api/boards',
+        jsonInit('POST', {
+          name: input.name,
+          description: input.description ?? null,
+          template: input.template ?? 'blank',
+          ...(input.canvas !== undefined ? { canvas: input.canvas } : {}),
+        })
+      )
+    ).board,
+  settle: settleBoard,
+})
+
+const UPDATE = cacheMutation<Summaries, { id: string; input: UpdateBoardInput }, Board>({
+  key: QUERY_KEYS.boards,
+  request: async ({ id, input }) => (await fetchJson<{ board: Board }>(`/api/boards/${id}`, jsonInit('PATCH', boardChanges(input)))).board,
+  optimistic: ({ id, input }) => inBoards(patchRow<BoardSummary>(id, shownChanges(input))),
+  settle: settleBoard,
+})
+
+const REMOVE = cacheMutation<Summaries, string, unknown>({
+  key: QUERY_KEYS.boards,
+  request: (id) => fetchJson(`/api/boards/${id}`, { method: 'DELETE' }),
+  optimistic: (id) => inBoards(dropRow<BoardSummary>(id)),
+})
+
+const DUPLICATE = cacheMutation<Summaries, { id: string; newName?: string }, { id: string; board: BoardSummary }>({
+  key: QUERY_KEYS.boards,
+  request: ({ id, newName }) => fetchJson(`/api/boards/${id}/duplicate`, jsonInit('POST', { newName: newName ?? null })),
+  settle: ({ board }) => settleBoard(board),
+})
 
 export function useBoards(): UseBoardsReturn {
   const queryClient = useQueryClient()
@@ -117,16 +178,15 @@ export function useBoards(): UseBoardsReturn {
   // true only when there's nothing to show yet: a restored cache renders
   // immediately while a background refetch runs.
   const query = useQuery({
-    queryKey: BOARDS_QUERY_KEY,
-    queryFn: () => fetchJson<{ boards: BoardSummary[] }>('/api/boards'),
+    queryKey: QUERY_KEYS.boards,
+    queryFn: ({ signal }) => fetchJson<Summaries>('/api/boards', { signal }),
+    select: showBoards,
   })
 
-  // Mutators await the refetch before resolving, mirroring the previous
-  // hand-rolled behavior that callers rely on (fresh data on resolve).
   // Fetch failures surface through `error`, not the returned promise,
   // matching the old fetchBoards which never threw.
   const fetchBoards = useCallback(async () => {
-    await queryClient.refetchQueries({ queryKey: BOARDS_QUERY_KEY })
+    await queryClient.refetchQueries({ queryKey: QUERY_KEYS.boards })
   }, [queryClient])
 
   // Get a single board by ID
@@ -141,53 +201,19 @@ export function useBoards(): UseBoardsReturn {
     return board
   }, [])
 
-  // Create a new board
-  const createBoard = useCallback(async (input: CreateBoardInput): Promise<Board> => {
-    const { board } = await fetchJson<{ board: Board }>(
-      '/api/boards',
-      jsonInit('POST', {
-        name: input.name,
-        description: input.description ?? null,
-        template: input.template ?? 'blank',
-      })
-    )
-    await fetchBoards()
-    return board
-  }, [fetchBoards])
+  // Mutators resolve on the server's answer, already written into the list
+  // (docs/perf/APP_PERFORMANCE_PROMPT.md "Mutations answer from the cache").
+  const { mutateAsync: create } = useMutation(CREATE)
+  const { mutateAsync: update } = useMutation(UPDATE)
+  const { mutateAsync: remove } = useMutation(REMOVE)
+  const { mutateAsync: duplicate } = useMutation(DUPLICATE)
 
-  // Update a board
-  const updateBoard = useCallback(async (id: string, input: UpdateBoardInput): Promise<Board> => {
-    const updateData: Record<string, unknown> = {}
-    if (input.name !== undefined) updateData.name = input.name
-    if (input.description !== undefined) updateData.description = input.description
-    if (input.canvas !== undefined) updateData.canvas = input.canvas
-    if (input.layers !== undefined) updateData.layers = input.layers
-    if (input.thumbnail !== undefined) updateData.thumbnail = input.thumbnail
-    if (input.isPublic !== undefined) updateData.is_public = input.isPublic
-
-    const { board } = await fetchJson<{ board: Board }>(
-      `/api/boards/${id}`,
-      jsonInit('PATCH', updateData)
-    )
-    await fetchBoards()
-    return board
-  }, [fetchBoards])
-
-  // Delete a board
-  const deleteBoard = useCallback(async (id: string): Promise<void> => {
-    await fetchJson(`/api/boards/${id}`, { method: 'DELETE' })
-    await fetchBoards()
-  }, [fetchBoards])
-
-  // Duplicate a board
-  const duplicateBoard = useCallback(async (id: string, newName?: string): Promise<string> => {
-    const { id: newId } = await fetchJson<{ id: string }>(
-      `/api/boards/${id}/duplicate`,
-      jsonInit('POST', { newName: newName ?? null })
-    )
-    await fetchBoards()
-    return newId
-  }, [fetchBoards])
+  const createBoard = useCallback((input: CreateBoardInput) => create(input), [create])
+  const updateBoard = useCallback((id: string, input: UpdateBoardInput) => update({ id, input }), [update])
+  const deleteBoard = useCallback(async (id: string) => {
+    await remove(id)
+  }, [remove])
+  const duplicateBoard = useCallback(async (id: string, newName?: string) => (await duplicate({ id, newName })).id, [duplicate])
 
   // Get recent boards with stats
   const getRecentBoards = useCallback(async (limit = 10): Promise<BoardWithStats[]> => {
