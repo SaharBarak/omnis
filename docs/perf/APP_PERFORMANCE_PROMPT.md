@@ -170,9 +170,11 @@ key. The factory owns the protocol, in TanStack's own callbacks:
    fresher than what the server last said.
 2. `onError` undoes the guess, and only the guess (below).
 3. `onSuccess` applies `settle` or `replace`.
-4. `onSettled` refetches the key, every key beneath it and the `also` keys
-   in the background, once no other mutation under the key is running. It
-   is not awaited: the caller's promise resolves on the server's answer.
+4. `onSettled` refetches the key, every key beneath it and each `also` key
+   in the background, each once no mutation under it is still running. The
+   check runs on the next task, when this mutation no longer counts, so two
+   that finish together cannot both leave the refetch to the other. It is
+   not awaited: the caller's promise resolves on the server's answer.
 
 **Guesses undo themselves.** A guess is the edited value plus its own
 undo, so a failed mutation never restores a whole-list snapshot over
@@ -189,11 +191,11 @@ in `lib/query/list-ops.ts`.
 
 | Operation | Guess | With the answer | Why |
 |---|---|---|---|
-| Update | patch the row | upsert the server's row | the row is known |
+| Update | patch the row | the server's row in place of the listed one | the row is known; a row deleted meanwhile stays gone |
 | Delete | drop the row | — | nothing to add |
-| Create, duplicate | — | upsert the server's row | a temporary id would leak into links and child requests before the server names the row |
+| Create, duplicate | — | add the server's row | a temporary id would leak into links and child requests before the server names the row |
 | Restore | — | — | no caller; the refetch brings the row |
-| Save a settings record | swap in the merged record | replace with the server's record | the record is known; saves run serial so the last edit lands last |
+| Save a settings record, save a board | swap in the merged record; patch the row | replace with the server's record; the server's row | saves run serial so the last edit lands last |
 
 Every answer that becomes a row carries the row the list shows: a person
 with its tags, a board without its drawing, a relationship with both
@@ -211,8 +213,9 @@ changes a sort field moves the row at once.
 that derives from another lives beneath it (the compatibility matrix is
 `people/matrix`), so the parent's refetch refreshes it. A person's change
 also refreshes relationships and groups, whose rows embed people. Group
-membership writes run under their group's key, so the groups list refetch
-waits for them.
+membership writes run under the groups key, so the list's refetch waits
+for them and each group's member list beneath the key refreshes after
+them.
 
 **Persistence holds no guesses.** The persisted cache skips any query with
 a mutation running under its key and never stores mutations; a reload
@@ -229,7 +232,14 @@ page computes and stores whatever is missing on its first visit
 
 The hooks' public signatures do not change. Mutators still return the
 server's row and still reject on failure; the shares hook still reports
-failure through its `error` slot and a null or false return.
+failure through its `error` slot and a null or false return. A page that
+only adds or saves a board uses `useCreateBoard` or `useUpdateBoard`,
+which do not load the list, and the editor reads its board with
+`fetchBoard`.
+
+Every route that adds a board, by creating or by duplicating, asks
+`lib/api/board-entitlement.ts` first, so the plan's board cap holds
+whichever way the board arrives.
 
 ### Real-user Web Vitals (30)
 
@@ -257,12 +267,15 @@ webhook, the billing page also runs a sync: a read of `refresh=1` whose
 answer replaces the canonical entry after cancelling any plain read in
 flight, so a slower plain read cannot overwrite the synced plan. The sync
 is a query of its own (deduplicated, refreshed when the window regains
-focus, never persisted), not an effect.
+focus once the app's default freshness has passed, never persisted), not
+an effect.
 
 **Notification settings.** One key, `notifications/settings`, holding the
 full record. `useNotificationSettings().save(patch)` merges the patch
 into the cached record and sends the whole of it, serially, so a field a
-screen does not show keeps its stored value. The predictions panel edits a
+screen does not show keeps its stored value; a change whose own save
+failed goes up again with the next save, so the stored record ends as the
+screen does. The predictions panel edits a
 local draft seeded from the cache and saves it through the same call.
 
 ### Every image states how it loads (2, 15)
@@ -289,3 +302,7 @@ a day of traffic has reported.
 Codex (`gpt-6-astra`), 2026-11-02: the mutation protocol, rollback,
 persistence, list order, the relationship join, Web Vitals, the
 subscription sync and the image rule. Incorporated.
+
+Architect review, 2026-11-03: refetch gating, settlement of updates,
+list-free board hooks, serial board saves, the sync's freshness, the
+board cap on duplicate. Incorporated.
