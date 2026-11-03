@@ -169,6 +169,7 @@ anime.js. LabRoot also writes them as CSS variables (`--dur-*`, `--ease-*`,
 | `STAGGER` | 40 ms step, whole set within 600 ms (`staggerStep`) | Siblings in a set |
 | `PRESS_SCALE` | 0.97 (`--press-scale`) | Anything pressable while pressed; never below 0.95 |
 | `MAGNET` | `pull` 0.18 of the pointer's offset from centre, at most `reach` 6 px | A pointer-following control leaning toward the mouse |
+| `TRAVEL` | 4 px (`--travel`) | How far a small surface moves as it appears or leaves: a card over a drawing |
 
 Scroll scenes scrub linearly. Their distance is the CSS track, not a
 duration.
@@ -223,6 +224,7 @@ with its facts in one row under it.
 | # | Section | Kind | Storyboard in one line |
 |---|---|---|---|
 | H | Hero (fits one viewport) | CSS first paint + illustration + response | The rings draw, signs and seals stagger, the bodygraph fills, and the pins drop, all in CSS before script. A new date turns the rings the short way (anime.js), and the digest values roll (Motion) |
+| A | Atlas marks | Response | A mark under the pointer, finger or focus gets an outline ring that draws itself in; related marks stay lit while the rest dim; the card fades in from the mark. A tap or Enter keeps the card, Escape or a tap outside lets it go |
 | 2 | Layers | Scene | The map pins face-on, tilts and parts into four plates in depth. Each scroll step lifts one plate with its digest tile lit, the star field drifts underneath, and the map closes back into one |
 | 3 | Two people | Scene + illustration | Two maps slide together across the full width. Tie lines draw rarest first, and the tie rows settle under the pair with bits rolling |
 | 4 | Circles | Illustration | People settle into the ring heaviest first, the strongest ties draw, and the hub sends one sonar ring |

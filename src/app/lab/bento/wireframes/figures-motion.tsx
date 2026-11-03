@@ -569,6 +569,78 @@ export function PricingStoryboard() {
   )
 }
 
+/** The atlas rings for the marks storyboard; `lit` rings one seal, and `dim` greys the rest. */
+function MarkRings({ lit, dim = false }: { lit?: number; dim?: boolean }) {
+  return (
+    <g opacity={dim ? 0.4 : 1}>
+      <Ring r={78} />
+      <Ring r={58} />
+      <Marks r={68} count={12} />
+      <Marks r={48} count={20} size={3} lit={dim ? undefined : lit} />
+      <Bodygraph scale={0.5} filled={4} channels={2} />
+    </g>
+  )
+}
+
+/** The seal at twelve o'clock on the Kin ring, where the frames below point. */
+const SEAL: Pt = [160, 52]
+
+export function AtlasMarksStoryboard() {
+  return (
+    <Storyboard
+      id="m-marks"
+      layout="Inside the atlas wherever it is drawn; the card hangs toward the centre, and docks to the far edge under 720 px"
+      code="A"
+      title="Atlas marks"
+      kind="Response"
+      still="With motion off the outline ring, the dimming and the card appear at once; nothing is lost."
+      frames={[
+        { at: 'at rest', engine: 'still', caption: 'Every mark drawn; the pointer is off the drawing.', draw: <MarkRings /> },
+        {
+          at: 'hover or focus',
+          engine: 'CSS',
+          caption: 'The nearest mark in reach gets an outline ring that draws itself in (quick, emphasized). Its oracle seats and tone stay lit; the rest dim (quick).',
+          draw: (
+            <g>
+              <MarkRings dim />
+              <Marks r={48} count={20} size={3} shown={1} lit={0} />
+              <Ring c={SEAL} r={8} />
+              <Note x={160} y={30}>
+                nearest mark in reach
+              </Note>
+            </g>
+          ),
+        },
+        {
+          at: 'card in',
+          engine: 'CSS',
+          caption: 'The card fades in, travelling 4 px from the mark toward the centre (quick, standard): layer, label, the value as the strong line, meaning, facts.',
+          draw: (
+            <g>
+              <MarkRings dim />
+              <Ring c={SEAL} r={8} />
+              <Box x={170} y={58} w={110} h={58} label="card" />
+              <Move a={[164, 64]} b={[176, 70]} />
+            </g>
+          ),
+        },
+        {
+          at: 'kept, narrow',
+          engine: 'CSS',
+          caption: 'A tap, click or Enter keeps the card; its edge takes the layer colour. Under 720 px it docks to the edge away from its mark. Escape or a press outside lets it go.',
+          draw: (
+            <g>
+              <MarkRings dim />
+              <Ring c={SEAL} r={8} />
+              <Box x={60} y={150} w={200} h={36} solid label="kept card" />
+            </g>
+          ),
+        },
+      ]}
+    />
+  )
+}
+
 function Faq({ open }: { open: number }) {
   return (
     <g>
@@ -666,6 +738,7 @@ export function CloseStoryboard() {
 
 export const MOTION_INDEX = [
   ['m-hero', 'H Hero'],
+  ['m-marks', 'A Atlas marks'],
   ['m-layers', '2 Layers'],
   ['m-pair', '3 Two people'],
   ['m-circles', '4 Circles'],
@@ -680,6 +753,7 @@ export function MotionStoryboards() {
   return (
     <>
       <HeroStoryboard />
+      <AtlasMarksStoryboard />
       <LayersStoryboard />
       <PairStoryboard />
       <CirclesStoryboard />

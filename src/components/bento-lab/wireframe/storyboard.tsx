@@ -7,7 +7,7 @@ import s from './wireframe.module.css'
  * that moves what, and draws the movement as dashed arrows.
  */
 
-export type Engine = 'GSAP' | 'anime.js' | 'Motion' | 'still'
+export type Engine = 'GSAP' | 'anime.js' | 'Motion' | 'CSS' | 'still'
 
 export const W = 320
 export const H = 200
@@ -36,6 +36,7 @@ const ENGINE_MARK: Readonly<Record<Engine, ReactNode>> = {
   GSAP: <rect x={-4} y={-4} width={8} height={8} />,
   'anime.js': <circle r={4.5} />,
   Motion: <path d="M0 -5 L5 4 L-5 4 Z" />,
+  CSS: <path d="M0 -5 L5 0 L0 5 L-5 0 Z" />,
   still: <path d="M-4 -4 L4 4 M4 -4 L-4 4" strokeWidth={1.6} />,
 }
 

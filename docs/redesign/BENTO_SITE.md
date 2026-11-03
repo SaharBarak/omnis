@@ -153,6 +153,148 @@ Motion follows storyboard H (BENTO_MOTION.md). CSS draws the map at first
 paint. On a new date, anime.js turns the rings the short way and glides
 the pins, and the digest values roll.
 
+### Marks explain themselves
+
+Every mark on a person's atlas answers the pointer, a tap and the keyboard
+with a card: what the mark is, the person's value at it, and what the
+tradition reads into it. This holds wherever `AtlasStage` draws a person
+(the hero, the map figure, the people tool). The card enhances and never
+gates: every value it shows is also in the readout, and every mark is a
+named button the keyboard and a screen reader reach.
+
+**Marks.** `src/lib/atlas/marks.ts` names the marks: their identity
+(`AtlasMarkRef`), their stable key (`planet:sun`, `sign:leo`, `rising`,
+`seal:12`, `tone`, `centre:g`, `channel:64-47`, `gate:1`), what each is
+called and reads for this person (`markTitle`), and which marks belong
+with it (`relatedMarks`). It is light: it reads only tables the drawing
+already ships, and the centres come from their own engine module
+(`data/human-design-centers.ts`) so naming them costs nothing.
+`src/components/bento-lab/atlas/mark-geometry.ts` places them
+(`placeMarks`) with the same functions the drawing uses for its glyphs, and
+a test renders the drawing and checks every glyph against its mark. The
+drawing writes each key on the mark's own group as `data-mark`.
+
+| Kind | Layer | Shape | Drawn when |
+|---|---|---|---|
+| planet | Sky | the glyph on the planet track, at its spread angle | every body |
+| sign | Sky | the glyph on the sign track | always, 12 |
+| rising | Sky | the ascendant line | a birth time and place are known |
+| seal | Kin | the glyph on the seal track, with its disc or seat ring | always, 20 |
+| tone | Kin | the bar-and-dot mark | always |
+| centre | Body | the centre's layout position and size | a bodygraph is drawn, 9 |
+| channel | Body | the channel's polyline, anchored at its length midpoint | the channel is defined |
+| gate | Body | the gate mouth | the gate is active outside a defined channel |
+
+A channel draws its own two gates, so gates inside a defined channel are
+not marks. Without a bodygraph the layer draws its outline and has no
+marks. The Number layer is drawn by the strip and the digest, not inside
+the drawing, so it has none either.
+
+**Words.** A card's head is the mark's title: a label (what the mark is,
+secondary) and a value (the person's value at it, the strong line). The
+rest comes from `explain(atlas, ref)` (`src/lib/atlas/explain.ts`), pure
+and server-safe, which adds a meaning and a row of facts. No copy is
+written for the cards: every line comes from a table the product already
+reads, and a mark whose source has nothing for a line leaves it out.
+
+| Kind | Label | Value | Meaning | Facts | Source |
+|---|---|---|---|---|---|
+| planet | Planet name | Its place in the readout's words (`Leo 12°`, the day's arc, retrograde) | Keywords | Kind | `PLANETS` |
+| sign | Sign name | The bodies drawn in it, or "No planets" | Keywords | Element, modality, ruler | `ZODIAC_SIGNS`, `PLANETS` |
+| rising | Rising | Sign and degree | The first house's theme and keywords | House | `HOUSES` |
+| seal | Colour and seal name | Every oracle seat it holds in this kin (Your seal, Guide, Analog, Antipode, Occult), or its number | The first seat's description | Power, action, essence | `ORACLE_ROLES`, `SEAL_MEANINGS` |
+| tone | Tone | Name and number | | Action, power, phase | `TONE_MEANINGS` |
+| centre | Centre name | Defined or Open | Its function | Not-self theme, when open | `CENTERS` |
+| channel | Channel name | Its two gates | Keywords | The centres it joins, circuit | `CHANNELS` |
+| gate | Gate and number | Its centre | Gate name and keywords | | `GATES` |
+
+A sign holds the bodies where the drawing puts them: without a birth time,
+at noon, the same place the readout's day arc starts from. The oracle
+seats live in one table, `ORACLE_ROLES` (`src/lib/dreamspell-oracle.ts`),
+read by the learn page's oracle section, the readout and the cards.
+
+The readout is built from the same titles, so it states every mark: all
+the bodies, the rising sign, the oracle, the defined and open centres, the
+channels and the lone gates.
+
+**Relations.** `relatedMarks` lights a planet's sign, a sign's planets,
+and the rising sign's sign. The person's own seal lights its four seats
+and the tone; any other seat lights the person's seal; the tone lights the
+person's seal; a seal holding several seats lights the union. A centre
+lights its defined channels and the centres at their far ends, a channel
+its two centres, a lone gate its centre. Every relation is read from the
+atlas and the engine tables; none is stored.
+
+**Pointer.** One nearest-mark layer reads the pointer for every mark,
+because planets and gates sit closer than a finger. The pointer is mapped
+into drawing units from the drawing's box and the zoom group's live scale,
+read from its computed style, so the narrow-screen zoom holds mid-
+transition. A ring that is still turning to a new date is read through its
+live turn, so the pointer hits a mark where it shows. A mark answers when
+the pointer is within its reach: the larger of the mark's own radius and
+half of 24 CSS px (WCAG 2.5.8), in drawing units at the current size. Of
+the marks in reach, the one whose distance is the smallest share of its
+reach wins; a point mark wins a tie with a line, then reading order
+decides. While the layer switch holds a layer forward, only that layer's
+marks answer. The readout is the equivalent for anyone the targets do not
+suit.
+
+**Keyboard.** The marks are one toolbar (`role="toolbar"`, "Marks on the
+map", with its key hint as its description) holding a button per mark,
+rendered on the server from the light titles, with a roving tab stop. The
+arrow keys step through the marks in reading order: layer by layer from
+the outside in, ring by ring from the outside in, clockwise from twelve
+o'clock; the bodygraph top to bottom, then left to right. Home and End go
+to the first and last. Each button is named by its label and value, and
+only the active one is described by the card (`role="tooltip"`, which
+holds no controls). Focus shows the same card as hover, and focus moving
+to a mark replaces any kept card, so a button is never described by
+another mark's words.
+
+**Keeping and closing.** A tap opens the nearest mark's card and keeps
+it; a click, Enter and Space keep a card the same way. A kept card stays
+while the pointer moves over other marks and closes on a second press on
+its mark, on Escape, or on a press outside the drawing. A card the
+pointer opened stays while the pointer moves onto it (WCAG 1.4.13), and
+closes when it leaves both. Escape closes any card without moving the
+pointer or focus, and a card closed on purpose stays closed until the
+pointer finds another mark or leaves. A new atlas or a new layer focus
+closes the card, because the marks it described moved or stopped
+answering.
+
+**Card.** From the top: the eyebrow (the layer's pin number and name,
+keyed by a short stroke of the layer colour), the label, the value in the
+display face, the meaning, and the facts row. Every string is set as text.
+The surface is the pins' glass. The card hangs from its mark toward the
+drawing's centre on both axes, set off by the mark's halo and never closer
+than half the least target, no wider than its measure or half the drawing
+less that offset, and it is measured once placed and moved back inside the
+drawing if it would cross an edge. Under 720 px, where the pins are
+hidden, it docks to the drawing's edge away from its mark, so it never
+covers what it describes.
+
+**Micro-interactions.** The active point mark gets an outline ring in its
+layer colour, off the mark by the 2 px surface gap (`HALO_GAP`), which
+draws itself in (`quick`, `emphasized`). Its related marks keep full
+strength while every other mark dims to the opacity the layer switch uses
+(`--atlas-dim`), over `quick`. A defined channel that is active or related
+turns to ink. The card fades in travelling `TRAVEL` from its mark
+(`quick`, `standard`) and leaves the same way. A kept card's edge takes
+its layer colour. The pins fade while a card is open. The cursor is a
+pointer only while a mark is in reach. Each mark's own group owns its
+opacity and the entrance animates the group around it, so the two never
+write one property. All of it is CSS behind the motion switch
+(BENTO_MOTION.md "Policy"), the atlas's existing layer, zoom and readout
+transitions included; with motion off the ring, the dimming and the card
+appear at once and lose nothing.
+
+**Loading.** The meanings reach the browser after the first paint, through
+`lazyModule` (`useExplain`), on the first idle moment or on the first
+pointer or focus over the drawing. Until then a card shows its title,
+which is already in the first bundle with the marks, their geometry and
+their relations. `client-bundle.test.ts` keeps `explain.ts` out of every
+static client import graph.
+
 ## Public tools (T2)
 
 `/map`, `/pair` and `/circle` are one component, `PeopleTool`, with a preset
@@ -426,3 +568,4 @@ each wireframe is the slot contract the built page must fill.
 | Codex CLI (gpt-5.5) | Architecture, route strategy, auth reuse, engine bundle, Atlas risks | 2026-10-11 | Incorporated |
 | Codex CLI (gpt-5.5) | Middleware gate, redirect safety, share links, deferred compute, plan derivation, route contract | 2026-10-11 | Incorporated |
 | Codex CLI (gpt-6-astra) | Signed-in app in the landing language: shell, scene ownership, dashboard compute bounds, motion and a11y | 2026-10-28 | Incorporated |
+| Codex CLI (gpt-6-astra) | Atlas mark interactions: pointer mapping across browsers, ring turns, keyboard and tooltip model, opacity ownership, text equivalence, hit geometry | 2026-11-03 | Incorporated |
