@@ -232,11 +232,13 @@ read from its computed style, so the narrow-screen zoom holds mid-
 transition. A ring that is still turning to a new date is read through its
 live turn, so the pointer hits a mark where it shows. A mark answers when
 the pointer is within its reach: the larger of the mark's own radius and
-half of 24 CSS px (WCAG 2.5.8), in drawing units at the current size. Of
-the marks in reach, the one whose distance is the smallest share of its
-reach wins; a point mark wins a tie with a line, then reading order
-decides. While the layer switch holds a layer forward, only that layer's
-marks answer. The readout is the equivalent for anyone the targets do not
+half of 24 CSS px (WCAG 2.5.8), in drawing units at the current size. A
+point mark whose own shape holds the pointer wins outright, so a glyph is
+never lost to a line drawn across it. Otherwise, of the marks in reach,
+the one whose distance is the smallest share of its reach wins; a point
+mark wins a tie with a line, then reading order decides. Every layer
+group's live turn is read, not a list of the rings that turn. While the
+layer switch holds a layer forward, only that layer's marks answer. The readout is the equivalent for anyone the targets do not
 suit.
 
 **Keyboard.** The marks are one toolbar (`role="toolbar"`, "Marks on the
@@ -245,7 +247,11 @@ rendered on the server from the light titles, with a roving tab stop. The
 arrow keys step through the marks in reading order: layer by layer from
 the outside in, ring by ring from the outside in, clockwise from twelve
 o'clock; the bodygraph top to bottom, then left to right. Home and End go
-to the first and last. Each button is named by its label and value, and
+to the first and last. Under the narrow-screen zoom, a mark the zoom
+pushes past the drawing's edge has no button, so focus never lands on
+something unseen; the zoom read is the one the stylesheet is heading for
+(`--atlas-zoom` while the zoom group has a transform), so the breakpoint
+lives in the stylesheet alone. Each button is named by its label and value, and
 only the active one is described by the card (`role="tooltip"`, which
 holds no controls). Focus shows the same card as hover, and focus moving
 to a mark replaces any kept card, so a button is never described by
@@ -255,10 +261,14 @@ another mark's words.
 it; a click, Enter and Space keep a card the same way. A kept card stays
 while the pointer moves over other marks and closes on a second press on
 its mark, on Escape, or on a press outside the drawing. A card the
-pointer opened stays while the pointer moves onto it (WCAG 1.4.13), and
-closes when it leaves both. Escape closes any card without moving the
-pointer or focus, and a card closed on purpose stays closed until the
-pointer finds another mark or leaves. A new atlas or a new layer focus
+pointer opened stays while the pointer moves onto it (WCAG 1.4.13): the
+pointer leaving the marks closes the card after a grace of `quick`, which
+any other event, or the pointer reaching the card, cancels, and moving on
+empty ground does not restart. Escape closes any card without moving the
+pointer or focus; the stage hears it in the capture phase and stops it
+there, so one press never also closes a menu or sheet around the atlas.
+A card closed on purpose stays closed until the pointer finds another
+mark or leaves. A new atlas or a new layer focus
 closes the card, because the marks it described moved or stopped
 answering.
 
@@ -268,16 +278,22 @@ display face, the meaning, and the facts row. Every string is set as text.
 The surface is the pins' glass. The card hangs from its mark toward the
 drawing's centre on both axes, set off by the mark's halo and never closer
 than half the least target, no wider than its measure or half the drawing
-less that offset, and it is measured once placed and moved back inside the
-drawing if it would cross an edge. Under 720 px, where the pins are
+less that offset. `placeCard` is pure: from the mark's anchor, the card's
+layout size and the drawing's size it returns the card's top-left corner,
+clamped inside the drawing; the card is set there by `transform`, measured
+from its layout box (never its transformed box, which the entrance moves),
+and placed again whenever the card or the drawing resizes. Under 720 px, where the pins are
 hidden, it docks to the drawing's edge away from its mark, so it never
 covers what it describes.
 
 **Micro-interactions.** The active point mark gets an outline ring in its
 layer colour, off the mark by the 2 px surface gap (`HALO_GAP`), which
-draws itself in (`quick`, `emphasized`). Its related marks keep full
+draws itself in (`quick`, `emphasized`); it is drawn inside the mark's
+layer group, so it turns with its ring. Its related marks keep full
 strength while every other mark dims to the opacity the layer switch uses
-(`--atlas-dim`), over `quick`. A defined channel that is active or related
+(`--atlas-dim`), over `quick`. While the switch holds a layer forward, only
+that layer's marks dim; the layers it already dims stay at one dim, never
+dimmed twice. A defined channel that is active or related
 turns to ink. The card fades in travelling `TRAVEL` from its mark
 (`quick`, `standard`) and leaves the same way. A kept card's edge takes
 its layer colour. The pins fade while a card is open. The cursor is a
@@ -292,8 +308,9 @@ appear at once and lose nothing.
 `lazyModule` (`useExplain`), on the first idle moment or on the first
 pointer or focus over the drawing. Until then a card shows its title,
 which is already in the first bundle with the marks, their geometry and
-their relations. `client-bundle.test.ts` keeps `explain.ts` out of every
-static client import graph.
+their relations. `client-bundle.test.ts` keeps `explain.ts`, and the long
+tables only it reads (`dreamspell-meanings.ts`, the engine's gate table),
+out of every static client import graph.
 
 ## Public tools (T2)
 
