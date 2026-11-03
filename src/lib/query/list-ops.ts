@@ -73,11 +73,15 @@ export const swap =
   <T>(next: T): Edit<T> =>
   (data) => ({ data: next, undo: (current) => (sameValue(current, next) ? data : current) })
 
-/** Puts the server's row in the list, replacing a row with its id or adding it. */
-export const upsertRow =
-  <T extends Identified>(row: T) =>
-  (list: Rows<T>): Rows<T> =>
-    list.some((r) => r.id === row.id) ? list.map((r) => (r.id === row.id ? row : r)) : [...list, row]
+/** How the server's row enters a list: added if new, or only in place of the row it updates. */
+export type Placement = <T extends Identified>(row: T) => (list: Rows<T>) => Rows<T>
+
+/** For a create: replaces a row with its id or adds it. */
+export const upsertRow: Placement = (row) => (list) =>
+  list.some((r) => r.id === row.id) ? list.map((r) => (r.id === row.id ? row : r)) : [...list, row]
+
+/** For an update: replaces the listed row; a row dropped meanwhile, say by a delete, stays gone. */
+export const replaceRow: Placement = (row) => (list) => list.map((r) => (r.id === row.id ? row : r))
 
 /** Aims an edit at one part of a larger value, such as the `people` array beside the `tags`. */
 export const within =

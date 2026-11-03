@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CanvasProvider, CanvasEditor, ExportDialog, useCanvas } from '@/components/canvas'
-import { useBoards, useBoard } from '@/lib/hooks/use-boards'
+import { fetchBoard, useBoard, useUpdateBoard } from '@/lib/hooks/use-boards'
 import type { CanvasState, Layer } from '@/lib/types/board'
 
 export default function BoardEditorPage() {
@@ -14,7 +14,6 @@ export default function BoardEditorPage() {
   const router = useRouter()
   const boardId = params.id as string
 
-  const { getBoard } = useBoards()
   const [board, setBoard] = useState<{
     id: string
     name: string
@@ -28,7 +27,7 @@ export default function BoardEditorPage() {
   useEffect(() => {
     async function loadBoard() {
       try {
-        const data = await getBoard(boardId)
+        const data = await fetchBoard(boardId)
         if (!data) {
           setError('Board not found')
           return
@@ -47,7 +46,7 @@ export default function BoardEditorPage() {
     }
 
     loadBoard()
-  }, [boardId, getBoard])
+  }, [boardId])
 
   if (loading) {
     // Layout-matched header skeleton — the canvas itself stays dark until data lands.
@@ -98,7 +97,7 @@ interface BoardEditorContentProps {
 
 function BoardEditorContent({ boardId, boardName }: BoardEditorContentProps) {
   const { canvas, layers, isDirty, clearDirty } = useCanvas()
-  const { updateBoard } = useBoards()
+  const updateBoard = useUpdateBoard()
   const [saving, setSaving] = useState(false)
   const [isExportOpen, setIsExportOpen] = useState(false)
   const canvasContainerRef = useRef<HTMLDivElement>(null)

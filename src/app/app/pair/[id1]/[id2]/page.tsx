@@ -19,7 +19,7 @@ import {
 import { getSeal } from '@pleiad/engine/data/seals'
 import { getTone } from '@pleiad/engine/data/tones'
 import type { HarmonyType } from '@pleiad/engine/types/relationship'
-import { useBoards } from '@/lib/hooks/use-boards'
+import { useCreateBoard } from '@/lib/hooks/use-boards'
 import type { PersonNode } from '@/lib/types/board'
 import { usePeople, type Person } from '@/lib/hooks/use-people'
 import { SealIcon } from '@/components/cards/SealIcon'
@@ -131,7 +131,7 @@ function CreateBoardButton({
   person2: Person
 }) {
   const router = useRouter()
-  const { createBoard } = useBoards()
+  const createBoard = useCreateBoard()
   const [state, setState] = useState<'idle' | 'creating' | 'error'>('idle')
   const [error, setError] = useState<string | null>(null)
 

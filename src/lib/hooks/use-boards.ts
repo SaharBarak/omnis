@@ -5,7 +5,7 @@ import { useCallback, useState } from 'react'
 import { fetchJson, jsonInit } from '@/lib/http/json'
 import { cacheMutation } from '@/lib/query/cache-mutation'
 import { QUERY_KEYS } from '@/lib/query/keys'
-import { dropRow, newestBy, patchRow, sortedBy, upsertRow, within } from '@/lib/query/list-ops'
+import { dropRow, newestBy, patchRow, replaceRow, sortedBy, upsertRow, within, type Placement } from '@/lib/query/list-ops'
 import type {
   CanvasState,
   Layer,
@@ -130,9 +130,9 @@ const boardChanges = (input: UpdateBoardInput) => ({
   ...(input.layers !== undefined ? { layers: input.layers } : {}),
 })
 
-const settleBoard = (board: Board | BoardSummary) => (data: Summaries): Summaries => ({
+const placeBoard = (place: Placement) => (board: Board | BoardSummary) => (data: Summaries): Summaries => ({
   ...data,
-  boards: [...upsertRow(summaryOf(board))(data.boards)],
+  boards: [...place(summaryOf(board))(data.boards)],
 })
 
 const CREATE = cacheMutation<Summaries, CreateBoardInput, Board>({
@@ -149,14 +149,16 @@ const CREATE = cacheMutation<Summaries, CreateBoardInput, Board>({
         })
       )
     ).board,
-  settle: settleBoard,
+  settle: placeBoard(upsertRow),
 })
 
 const UPDATE = cacheMutation<Summaries, { id: string; input: UpdateBoardInput }, Board>({
   key: QUERY_KEYS.boards,
   request: async ({ id, input }) => (await fetchJson<{ board: Board }>(`/api/boards/${id}`, jsonInit('PATCH', boardChanges(input)))).board,
   optimistic: ({ id, input }) => inBoards(patchRow<BoardSummary>(id, shownChanges(input))),
-  settle: settleBoard,
+  settle: placeBoard(replaceRow),
+  // Saves of one board's drawing must reach the server in the order they were made.
+  serial: true,
 })
 
 const REMOVE = cacheMutation<Summaries, string, unknown>({
@@ -168,8 +170,34 @@ const REMOVE = cacheMutation<Summaries, string, unknown>({
 const DUPLICATE = cacheMutation<Summaries, { id: string; newName?: string }, { id: string; board: BoardSummary }>({
   key: QUERY_KEYS.boards,
   request: ({ id, newName }) => fetchJson(`/api/boards/${id}/duplicate`, jsonInit('POST', { newName: newName ?? null })),
-  settle: ({ board }) => settleBoard(board),
+  settle: ({ board }) => placeBoard(upsertRow)(board),
 })
+
+/**
+ * One board with its drawing, or null when it is not the user's. Not cached:
+ * the editor keeps its own draft, and drawings would bloat the persisted cache.
+ */
+export async function fetchBoard(id: string): Promise<Board | null> {
+  const res = await fetch(`/api/boards/${id}`, { credentials: 'include' })
+  if (res.status === 404) return null
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data.error || `Request failed: ${res.status}`)
+  }
+  const { board } = (await res.json()) as { board: Board }
+  return board
+}
+
+/** Creates a board without loading the list, for a page that only adds one. */
+export function useCreateBoard(): (input: CreateBoardInput) => Promise<Board> {
+  return useMutation(CREATE).mutateAsync
+}
+
+/** Updates a board without loading the list, for the editor. */
+export function useUpdateBoard(): (id: string, input: UpdateBoardInput) => Promise<Board> {
+  const { mutateAsync } = useMutation(UPDATE)
+  return useCallback((id: string, input: UpdateBoardInput) => mutateAsync({ id, input }), [mutateAsync])
+}
 
 export function useBoards(): UseBoardsReturn {
   const queryClient = useQueryClient()
@@ -189,27 +217,12 @@ export function useBoards(): UseBoardsReturn {
     await queryClient.refetchQueries({ queryKey: QUERY_KEYS.boards })
   }, [queryClient])
 
-  // Get a single board by ID
-  const getBoard = useCallback(async (id: string): Promise<Board | null> => {
-    const res = await fetch(`/api/boards/${id}`, { credentials: 'include' })
-    if (res.status === 404) return null
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      throw new Error(data.error || `Request failed: ${res.status}`)
-    }
-    const { board } = (await res.json()) as { board: Board }
-    return board
-  }, [])
-
   // Mutators resolve on the server's answer, already written into the list
   // (docs/perf/APP_PERFORMANCE_PROMPT.md "Mutations answer from the cache").
-  const { mutateAsync: create } = useMutation(CREATE)
-  const { mutateAsync: update } = useMutation(UPDATE)
+  const createBoard = useCreateBoard()
+  const updateBoard = useUpdateBoard()
   const { mutateAsync: remove } = useMutation(REMOVE)
   const { mutateAsync: duplicate } = useMutation(DUPLICATE)
-
-  const createBoard = useCallback((input: CreateBoardInput) => create(input), [create])
-  const updateBoard = useCallback((id: string, input: UpdateBoardInput) => update({ id, input }), [update])
   const deleteBoard = useCallback(async (id: string) => {
     await remove(id)
   }, [remove])
@@ -336,7 +349,7 @@ export function useBoards(): UseBoardsReturn {
     loading: query.isPending,
     error: query.error ? query.error.message : null,
     fetchBoards,
-    getBoard,
+    getBoard: fetchBoard,
     createBoard,
     updateBoard,
     deleteBoard,

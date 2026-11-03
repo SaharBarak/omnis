@@ -6,7 +6,7 @@ import { track } from '@/lib/analytics/posthog'
 import { fetchJson, jsonInit } from '@/lib/http/json'
 import { cacheMutation } from '@/lib/query/cache-mutation'
 import { QUERY_KEYS } from '@/lib/query/keys'
-import { ascendingBy, dropRow, patchRow, sortedBy, upsertRow, within } from '@/lib/query/list-ops'
+import { ascendingBy, dropRow, patchRow, replaceRow, sortedBy, upsertRow, within, type Placement } from '@/lib/query/list-ops'
 import type { Group } from '@/lib/types/database.types'
 import type {
   GroupWithMembers,
@@ -50,7 +50,7 @@ const GROUP_ORDER = sortedBy(ascendingBy<Group>((g) => g.name))
 /** By name, fetched and settled rows alike; module-level so the query memoises it. */
 const showGroups = (data: GroupsData): GroupsData => ({ ...data, groups: GROUP_ORDER(data.groups) })
 
-const settleGroup = (group: Group) => (data: GroupsData): GroupsData => ({ ...data, groups: [...upsertRow(group)(data.groups)] })
+const placeGroup = (place: Placement) => (group: Group) => (data: GroupsData): GroupsData => ({ ...data, groups: [...place(group)(data.groups)] })
 
 const groupPath = (id: string) => `/api/groups/${encodeURIComponent(id)}`
 
@@ -58,14 +58,14 @@ const CREATE = cacheMutation<GroupsData, CreateGroupInput, Group>({
   key: QUERY_KEYS.groups,
   request: async ({ name, description, personIds }) =>
     (await fetchJson<{ group: Group }>('/api/groups', jsonInit('POST', { name, description, personIds }))).group,
-  settle: settleGroup,
+  settle: placeGroup(upsertRow),
 })
 
 const UPDATE = cacheMutation<GroupsData, { id: string; input: UpdateGroupInput }, Group>({
   key: QUERY_KEYS.groups,
   request: async ({ id, input }) => (await fetchJson<{ group: Group }>(groupPath(id), jsonInit('PATCH', input))).group,
   optimistic: ({ id, input }) => inGroups(patchRow<Group>(id, input)),
-  settle: settleGroup,
+  settle: placeGroup(replaceRow),
 })
 
 const REMOVE = cacheMutation<GroupsData, string, unknown>({

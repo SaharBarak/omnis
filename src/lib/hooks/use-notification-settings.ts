@@ -14,7 +14,9 @@ import { swap } from '@/lib/query/list-ops'
  * go through queries"). The PUT replaces the whole record, so `save` merges a
  * patch into the cached record and sends all of it: a field a screen does not
  * show keeps its stored value. Saves run in order, so the last edit lands
- * last.
+ * last, and each carries everything the screen shows: a change whose own save
+ * failed goes up again with the next one, so the stored record ends as the
+ * screen does.
  */
 
 const SETTINGS_URL = '/api/notifications/settings'

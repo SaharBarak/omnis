@@ -7,7 +7,7 @@ import { track } from '@/lib/analytics/posthog'
 import { fetchJson, jsonInit } from '@/lib/http/json'
 import { cacheMutation } from '@/lib/query/cache-mutation'
 import { QUERY_KEYS } from '@/lib/query/keys'
-import { ascendingBy, dropRow, patchRow, sortedBy, upsertRow, within } from '@/lib/query/list-ops'
+import { ascendingBy, dropRow, patchRow, replaceRow, sortedBy, upsertRow, within, type Placement } from '@/lib/query/list-ops'
 
 // Client-facing shapes mirror the original Supabase row contract (nullable,
 // never undefined) so existing consumers keep type-checking. The server
@@ -89,9 +89,9 @@ const listed = (person: Person, data: PeopleData, tagIds?: readonly string[]): P
   tags: tagIds ? tagsWithIds(data.tags, tagIds) : (data.people.find((p) => p.id === person.id)?.tags ?? []),
 })
 
-const upsertPerson = (person: Person, tagIds?: readonly string[]) => (data: PeopleData): PeopleData => ({
+const placePerson = (place: Placement) => (person: Person, tagIds?: readonly string[]) => (data: PeopleData): PeopleData => ({
   ...data,
-  people: [...upsertRow(listed(person, data, tagIds))(data.people)],
+  people: [...place(listed(person, data, tagIds))(data.people)],
 })
 
 /** Relationship and group rows embed people, so a person's change refreshes them too. */
@@ -100,7 +100,7 @@ const EMBEDDING = [QUERY_KEYS.relationships, QUERY_KEYS.groups]
 const ADD = cacheMutation<PeopleData, { person: Omit<PersonInsert, 'owner_id'>; tagIds: string[] }, Person>({
   key: QUERY_KEYS.people,
   request: async (body) => (await fetchJson<{ person: Person }>('/api/people', jsonInit('POST', body))).person,
-  settle: (created, { tagIds }) => upsertPerson(created, tagIds),
+  settle: (created, { tagIds }) => placePerson(upsertRow)(created, tagIds),
 })
 
 const UPDATE = cacheMutation<PeopleData, { id: string; updates: PersonUpdate; tagIds?: string[] }, Person>({
@@ -109,7 +109,7 @@ const UPDATE = cacheMutation<PeopleData, { id: string; updates: PersonUpdate; ta
     (await fetchJson<{ person: Person }>(`/api/people/${id}`, jsonInit('PATCH', { updates, tagIds }))).person,
   optimistic: ({ id, updates, tagIds }) => (data) =>
     inPeople(patchRow<PersonWithTags>(id, { ...updates, ...(tagIds ? { tags: tagsWithIds(data.tags, tagIds) } : {}) }))(data),
-  settle: (person, { tagIds }) => upsertPerson(person, tagIds),
+  settle: (person, { tagIds }) => placePerson(replaceRow)(person, tagIds),
   also: EMBEDDING,
 })
 

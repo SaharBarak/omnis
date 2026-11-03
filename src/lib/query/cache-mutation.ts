@@ -12,7 +12,7 @@ import type { Edit } from './list-ops'
  * 3. On success: apply the server's answer (a whole-value answer only when no
  *    later mutation's guess sits on top of it).
  * 4. Either way: refetch the key, the keys beneath it and the `also` keys in
- *    the background, once no other mutation under the key is running. The
+ *    the background, each once no mutation under it is still running. The
  *    caller's promise resolves on the server's answer, not on the refetch.
  */
 
@@ -72,8 +72,13 @@ export function cacheMutation<TData, TVariables = void, TResult = unknown>({
       if (settle !== undefined) client.setQueryData<TData>(key, (data) => (data === undefined ? data : settle(result, variables)(data)))
     },
     onSettled: (_result, _error, _variables, _rollback, { client }) => {
-      if (client.isMutating({ mutationKey: key }) > 1) return
-      for (const queryKey of [key, ...also]) void client.invalidateQueries({ queryKey })
+      // Checked on the next task, when this mutation no longer counts as running, so of two that finish
+      // together neither waits on the other; each key waits only for the mutations under it.
+      setTimeout(() => {
+        for (const queryKey of [key, ...also]) {
+          if (client.isMutating({ mutationKey: queryKey }) === 0) void client.invalidateQueries({ queryKey })
+        }
+      }, 0)
     },
   }
 }

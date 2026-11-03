@@ -57,8 +57,9 @@ export const subscriptionQuery = queryOptions({
  * Re-syncs the plan from the store (`refresh=1`): a purchase on the phone
  * can race the store's webhook. The answer replaces the canonical entry,
  * after cancelling any plain read in flight so a slower one cannot overwrite
- * it. A query rather than an effect, so it is deduplicated and runs again
- * when the window regains focus, as after buying in the app; never persisted.
+ * it. A query rather than an effect, so it is deduplicated and, once the
+ * app's default freshness has passed, runs again when the window regains
+ * focus, as after buying in the app; never persisted.
  */
 const subscriptionSyncQuery = queryOptions({
   queryKey: QUERY_KEYS.subscriptionSync,
@@ -68,7 +69,6 @@ const subscriptionSyncQuery = queryOptions({
     client.setQueryData(QUERY_KEYS.subscription, synced)
     return synced.plan
   },
-  staleTime: 0,
   gcTime: 0,
   meta: { persist: false },
 })

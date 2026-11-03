@@ -102,17 +102,41 @@ describe('cacheMutation', () => {
     await expect(run<Rows, void, string>({ key: KEY, request: async () => 'ok' }, undefined)).resolves.toBe('ok')
   })
 
-  it('refetches the key and the also keys once, after the last mutation under the key', async () => {
+  const refreshed = () => vi.mocked(client.invalidateQueries).mock.calls.map(([filters]) => filters?.queryKey)
+
+  it('refetches the key once, after the last mutation under it', async () => {
     setup()
     const first = pending<void>()
-    const declaration = { key: KEY, request: () => first.promise, also: [['other']] }
-    const a = run<Rows, void, void>(declaration, undefined)
-    const b = run<Rows, void, void>({ key: KEY, request: async () => undefined }, undefined)
-    await b
-    expect(client.invalidateQueries).not.toHaveBeenCalled()
+    const a = run<Rows, void, void>({ key: KEY, request: () => first.promise }, undefined)
+    await run<Rows, void, void>({ key: KEY, request: async () => undefined }, undefined)
+    await tick()
+    expect(refreshed()).toEqual([])
     first.resolve()
     await a
-    expect(vi.mocked(client.invalidateQueries).mock.calls.map(([filters]) => filters?.queryKey)).toEqual([KEY, ['other']])
+    await tick()
+    expect(refreshed()).toEqual([KEY])
+  })
+
+  it('refreshes an also key at once, even while its own key is still busy', async () => {
+    setup()
+    const first = pending<void>()
+    const a = run<Rows, void, void>({ key: KEY, request: () => first.promise }, undefined)
+    await run<Rows, void, void>({ key: KEY, request: async () => undefined, also: [['other']] }, undefined)
+    await tick()
+    expect(refreshed()).toEqual([['other']])
+    first.resolve()
+    await a
+  })
+
+  it('refreshes when two mutations finish in the same task', async () => {
+    setup()
+    const both = pending<void>()
+    const a = run<Rows, void, void>({ key: KEY, request: () => both.promise }, undefined)
+    const b = run<Rows, void, void>({ key: KEY, request: () => both.promise }, undefined)
+    both.resolve()
+    await Promise.all([a, b])
+    await tick()
+    expect(refreshed().length).toBeGreaterThan(0)
   })
 
   it('applies serial guesses at once but sends the requests in order', async () => {

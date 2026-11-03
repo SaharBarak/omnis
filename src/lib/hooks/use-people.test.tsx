@@ -132,4 +132,18 @@ describe('usePeople mutations answer from the cache', () => {
     await act(() => done)
     await waitFor(() => expect(names(result.current.people)).toEqual(['Bo', 'Cy']))
   })
+
+  it('does not bring back a person deleted while their edit was in flight', async () => {
+    const edit = held()
+    route = (method) => (method === 'PATCH' ? edit.response : Promise.resolve(json({ ok: true })))
+    const { result } = await mount()
+    let editing!: Promise<Person>
+    act(() => {
+      editing = result.current.updatePerson('a', { name: 'Ana' })
+    })
+    await act(() => result.current.deletePerson('a'))
+    edit.release(json({ person: { ...person('a', 'Ana') } }))
+    await act(() => editing)
+    await waitFor(() => expect(names(result.current.people)).toEqual(['Bo']))
+  })
 })

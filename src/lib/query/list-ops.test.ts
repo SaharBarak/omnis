@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ascendingBy, dropRow, newestBy, patchRow, sortedBy, swap, upsertRow, within } from './list-ops'
+import { ascendingBy, dropRow, newestBy, patchRow, replaceRow, sortedBy, swap, upsertRow, within } from './list-ops'
 
 interface Row {
   readonly id: string
@@ -73,6 +73,13 @@ describe('swap', () => {
     expect(guess.undo({ on: true })).toBe(before)
     const later = { on: false, hour: 9 }
     expect(guess.undo(later)).toBe(later)
+  })
+})
+
+describe('replaceRow', () => {
+  it('replaces a listed row and leaves out a row no longer listed', () => {
+    expect(replaceRow<Row>({ id: 'c', name: 'Cyd', at: '2026-01-05' })(rows).map((r) => r.name)).toEqual(['Ada', 'Cyd', 'Eve'])
+    expect(replaceRow<Row>({ id: 'gone', name: 'Ghost', at: '2026-01-05' })(rows)).toEqual(rows)
   })
 })
 
