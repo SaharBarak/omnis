@@ -111,6 +111,7 @@ export function TodayKin({ className, userKin, now }: TodayKinProps) {
             <img
               src={getSealGlyphPath(data.seal.number)}
               alt={data.seal.english}
+              loading="eager"
               className="relative z-10 h-16 w-16 object-contain drop-shadow-lg"
             />
           </div>
@@ -130,6 +131,7 @@ export function TodayKin({ className, userKin, now }: TodayKinProps) {
           <img
             src={getToneGlyphPath(data.tone.number)}
             alt={`Tone ${data.tone.number}`}
+            loading="eager"
             className="h-12 w-12 shrink-0 object-contain opacity-80"
           />
         </div>

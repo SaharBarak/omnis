@@ -300,11 +300,13 @@ export default function CalculatePage() {
                       <img
                         src={getSealGlyphPath(result.seal.number)}
                         alt={result.seal.english}
+                        loading="eager"
                         className="w-20 h-20 object-contain"
                       />
                       <img
                         src={getToneGlyphPath(result.tone.number)}
                         alt={`Tone ${result.tone.number}`}
+                        loading="eager"
                         className="w-14 h-14 object-contain"
                       />
                     </div>
@@ -351,6 +353,7 @@ export default function CalculatePage() {
                           <img
                             src={getSmallSealGlyphPath(seal.number)}
                             alt={seal.english}
+                            loading="lazy"
                             className="w-10 h-10 mx-auto mb-1 object-contain"
                           />
                           <div className="text-sm font-medium text-white/90">{seal.english}</div>

@@ -42,7 +42,7 @@ export function SystemPage({ spec, picker, children }: { readonly spec: SystemPa
     <article className={`${site.page} ${s.page}`} style={{ '--accent': spec.accent } as CSSProperties}>
       <header className={s.head}>
         <div className={s.banner}>
-          <img src={spec.mural} alt="" className={s.bannerArt} fetchPriority="high" decoding="async" />
+          <img src={spec.mural} alt="" className={s.bannerArt} loading="eager" fetchPriority="high" decoding="async" />
           <div className={s.bannerShade} aria-hidden />
         </div>
         <div className={site.sectionHead}>

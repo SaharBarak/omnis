@@ -34,7 +34,7 @@ export const PersonCanvasNode = memo(function PersonCanvasNode({
         `}
       >
         {avatarUrl ? (
-          <img src={avatarUrl} alt={personName} className="w-full h-full rounded-full object-cover" />
+          <img src={avatarUrl} alt={personName} loading="lazy" className="w-full h-full rounded-full object-cover" />
         ) : (
           <span className="text-lg font-bold text-primary">
             {(personName || hebrewName || '?').charAt(0)}
@@ -59,7 +59,7 @@ export const PersonCanvasNode = memo(function PersonCanvasNode({
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
             {avatarUrl ? (
-              <img src={avatarUrl} alt={personName} className="w-full h-full rounded-full object-cover" />
+              <img src={avatarUrl} alt={personName} loading="lazy" className="w-full h-full rounded-full object-cover" />
             ) : (
               <span className="text-sm font-bold text-primary">
                 {(personName || hebrewName || '?').charAt(0)}
@@ -91,7 +91,7 @@ export const PersonCanvasNode = memo(function PersonCanvasNode({
         {/* Avatar */}
         <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
           {avatarUrl ? (
-            <img src={avatarUrl} alt={personName} className="w-full h-full rounded-full object-cover" />
+            <img src={avatarUrl} alt={personName} loading="lazy" className="w-full h-full rounded-full object-cover" />
           ) : (
             <span className="text-2xl font-bold text-primary">
               {(personName || hebrewName || '?').charAt(0)}

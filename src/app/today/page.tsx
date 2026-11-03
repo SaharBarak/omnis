@@ -87,6 +87,7 @@ function SealChip({
       <img
         src={small ? getSmallSealGlyphPath(sealNumber) : getSealGlyphPath(sealNumber)}
         alt={alt}
+        loading={small ? 'lazy' : 'eager'}
         className={`${glyphClass} object-contain`}
       />
     </span>

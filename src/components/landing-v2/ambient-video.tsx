@@ -104,7 +104,7 @@ export function AmbientVideo({
 
   if (reducedMotion || stillOnly) {
      
-    return <img src={poster} alt="" className={className} />
+    return <img src={poster} alt="" loading="eager" className={className} />
   }
 
   return (

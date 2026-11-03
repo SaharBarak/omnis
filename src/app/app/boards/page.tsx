@@ -292,6 +292,7 @@ function BoardCard({ board, onDelete, onDuplicate, onShare }: BoardCardProps) {
             <img
               src={board.thumbnail}
               alt={board.name}
+              loading="lazy"
               className="h-full w-full object-cover"
             />
           ) : (

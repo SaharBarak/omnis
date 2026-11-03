@@ -151,7 +151,7 @@ export default function DreamspellDocsPage() {
       {/* Hunab Ku accent — chipped so the glyph never sits naked on the ground. */}
       <div className="mb-8 flex justify-center">
         <GlyphChip accent={ACCENT} className="p-4">
-          <img src={getHunabKuPath()} alt="Hunab Ku" className="h-20 w-20 object-contain opacity-80" />
+          <img src={getHunabKuPath()} alt="Hunab Ku" loading="eager" className="h-20 w-20 object-contain opacity-80" />
         </GlyphChip>
       </div>
 
@@ -247,6 +247,7 @@ export default function DreamspellDocsPage() {
                 <img
                   src={getSealGlyphPath(seal.number)}
                   alt={seal.english}
+                  loading="lazy"
                   className="mx-auto mb-2 h-12 w-12 object-contain"
                 />
                 <div className={`mb-0.5 font-display text-lg ${colors.text}`}>{seal.number}</div>
@@ -274,6 +275,7 @@ export default function DreamspellDocsPage() {
                   <img
                     src={getToneGlyphPath(tone.number)}
                     alt={`Tone ${tone.number}`}
+                    loading="lazy"
                     className="h-10 w-10 object-contain"
                   />
                 </GlyphChip>
@@ -313,6 +315,7 @@ export default function DreamspellDocsPage() {
                   <img
                     src={getToneGlyphPath(day.day)}
                     alt={`Tone ${day.day}`}
+                    loading="lazy"
                     className="h-7 w-7 object-contain"
                   />
                 </GlyphChip>

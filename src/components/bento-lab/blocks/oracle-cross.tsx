@@ -4,7 +4,7 @@ import type { GlyphRef, MayaLayer } from '@/lib/atlas/types'
 const Seat = ({ role, seal, area, lit }: { role: string; seal: GlyphRef; area: string; lit?: boolean }) => (
   <figure className={`${b.seat} ${lit ? b.seatLit : ''}`} style={{ gridArea: area }}>
     { }
-    <img src={seal.src} alt="" width={40} height={40} className={b.seatGlyph} />
+    <img src={seal.src} alt="" width={40} height={40} loading="lazy" className={b.seatGlyph} />
     <figcaption>
       <strong>{seal.name}</strong>
       <span>{role}</span>

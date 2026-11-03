@@ -197,7 +197,7 @@ function Calendar({ today }: { readonly today: string }) {
             title="Selected day"
             head={
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <img src={sealGlyphSrc(detail.seal.number, detail.seal.english)} alt="" className={`${kit.glyph} ${s.sealGlyph}`} />
+                <img src={sealGlyphSrc(detail.seal.number, detail.seal.english)} alt="" loading="eager" className={`${kit.glyph} ${s.sealGlyph}`} />
                 <div style={{ display: 'grid', gap: 2 }}>
                   <span className={s.tileValue}>Kin {detail.kin}</span>
                   <span className={s.tileText}>

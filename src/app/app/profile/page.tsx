@@ -211,6 +211,7 @@ export default function ProfilePage() {
                 <img
                   src={`/dreamspell/gifs/glyph${dreamspellSeal.number}.gif`}
                   alt={dreamspellSeal.english}
+                  loading="eager"
                   className="h-full w-full object-contain"
                 />
               </div>

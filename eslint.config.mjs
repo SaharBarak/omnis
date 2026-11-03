@@ -73,4 +73,21 @@ export default [
       "react-hooks/refs": "warn",
     },
   },
+  {
+    // Every image the browser renders states how it loads: lazy under the
+    // fold, eager in the first view (docs/perf/APP_PERFORMANCE_PROMPT.md
+    // "Every image states how it loads"). The Open Graph card is drawn to PNG
+    // on the server, and tests render no page.
+    files: ["src/**/*.tsx"],
+    ignores: ["src/lib/brand/og-card.tsx", "src/test/**", "**/*.test.tsx"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "JSXOpeningElement[name.name='img']:not(:has(JSXAttribute[name.name='loading']))",
+          message: 'State how this image loads: loading="lazy" under the fold, loading="eager" in the first view.',
+        },
+      ],
+    },
+  },
 ];
