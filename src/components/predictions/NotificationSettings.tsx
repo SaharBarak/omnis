@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import type { NotificationSettings as NotificationSettingsType, PredictionIntensity, PredictionSystem } from '@pleiad/engine/types/prediction'
 import { Eyebrow } from '@/components/app-kit'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useNotificationSettings } from '@/lib/hooks/use-notification-settings'
 import { cn } from '@/lib/utils'
 
 interface NotificationSettingsProps {
@@ -47,45 +48,22 @@ const ADVANCE_NOTICE_OPTIONS: { value: number; label: string }[] = [
 ]
 
 export function NotificationSettings({ onSave, className }: NotificationSettingsProps) {
-  const [settings, setSettings] = useState<NotificationSettingsType | null>(null)
+  const { settings: saved, save } = useNotificationSettings()
+  // Edits collect in a local draft over the shared record until Save.
+  const [draft, setDraft] = useState<NotificationSettingsType | null>(null)
+  const settings = draft ?? saved
   const [isSaving, setIsSaving] = useState(false)
   const [isTesting, setIsTesting] = useState(false)
   const [testResult, setTestResult] = useState<string | null>(null)
 
-  // Fetch current settings
-  useEffect(() => {
-    let cancelled = false
-    async function fetchSettings() {
-      try {
-        const response = await fetch('/api/notifications/settings')
-        const data = await response.json()
-        if (data.success && !cancelled) {
-          setSettings(data.data)
-        }
-      } catch (error) {
-        console.error('Error fetching settings:', error)
-      }
-    }
-    fetchSettings()
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
   async function handleSave() {
-    if (!settings) return
+    if (!draft) return
     setIsSaving(true)
 
     try {
-      const response = await fetch('/api/notifications/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
-      })
-      const data = await response.json()
-      if (data.success) {
-        onSave?.(data.data)
-      }
+      const result = await save(draft)
+      setDraft(null)
+      onSave?.(result)
     } catch (error) {
       console.error('Error saving settings:', error)
     } finally {
@@ -115,7 +93,7 @@ export function NotificationSettings({ onSave, className }: NotificationSettings
     value: NotificationSettingsType[K]
   ) {
     if (!settings) return
-    setSettings({ ...settings, [key]: value })
+    setDraft({ ...settings, [key]: value })
   }
 
   function toggleChannel(channel: 'in-app' | 'email' | 'sms') {
@@ -345,7 +323,7 @@ export function NotificationSettings({ onSave, className }: NotificationSettings
 
         {/* Actions */}
         <div className="flex items-center gap-3 border-t border-white/[0.07] pt-4">
-          <Button onClick={handleSave} disabled={isSaving} className="rounded-xl active:scale-[0.98]">
+          <Button onClick={handleSave} disabled={isSaving || draft === null} className="rounded-xl active:scale-[0.98]">
             {isSaving ? 'Saving...' : 'Save Settings'}
           </Button>
           {settings.channels.includes('email') && (

@@ -1,12 +1,14 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import type { NotificationSettings } from '@pleiad/engine/types/prediction'
 import { toast } from 'sonner'
 import { PageHeader } from '@/components/dashboard'
 import { DataRow, Notice, PageSection, getFlavor } from '@/components/app-kit'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
+import { useNotificationSettings } from '@/lib/hooks/use-notification-settings'
 
 /**
  * Notification settings (#65) — the page every digest email's "Manage
@@ -17,60 +19,29 @@ import { Switch } from '@/components/ui/switch'
 
 const FLAVOR = getFlavor('integration')
 
-interface SettingsData {
-  enabled: boolean
-  channels: string[]
-  dailyDigest: boolean
-  dailyDigestTime: string
-}
-
 export default function NotificationSettingsPage() {
-  const [settings, setSettings] = useState<SettingsData | null>(null)
+  const { settings, error, save: saveSettings } = useNotificationSettings()
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
 
   useEffect(() => {
-    let cancelled = false
-    void (async () => {
-      try {
-        const res = await fetch('/api/notifications/settings', { credentials: 'include' })
-        const data = await res.json()
-        if (!cancelled && data?.data) {
-          setSettings({
-            enabled: Boolean(data.data.enabled),
-            channels: data.data.channels ?? ['in-app'],
-            dailyDigest: Boolean(data.data.dailyDigest),
-            dailyDigestTime: data.data.dailyDigestTime ?? '08:00',
-          })
-        }
-      } catch {
-        if (!cancelled) toast.error('Could not load notification settings')
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [])
+    if (error !== null) toast.error('Could not load notification settings')
+  }, [error])
 
+  // The whole record goes up with every save, so preferences this page does
+  // not show (weekly digest, systems, intensity) keep their stored values.
   const save = useCallback(
-    async (next: SettingsData) => {
-      setSettings(next)
+    async (patch: Partial<NotificationSettings>) => {
       setSaving(true)
       try {
-        const res = await fetch('/api/notifications/settings', {
-          method: 'PUT',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(next),
-        })
-        if (!res.ok) throw new Error(`save failed: ${res.status}`)
+        await saveSettings(patch)
       } catch (e) {
         toast.error(e instanceof Error ? e.message : 'Save failed')
       } finally {
         setSaving(false)
       }
     },
-    []
+    [saveSettings]
   )
 
   const sendTest = useCallback(async () => {
@@ -113,7 +84,7 @@ export default function NotificationSettingsPage() {
                 </span>
                 <Switch
                   checked={settings.enabled}
-                  onCheckedChange={(enabled) => void save({ ...settings, enabled })}
+                  onCheckedChange={(enabled) => void save({ enabled })}
                 />
               </label>
               <label className="flex items-center justify-between gap-4">
@@ -125,7 +96,7 @@ export default function NotificationSettingsPage() {
                 </span>
                 <Switch
                   checked={settings.dailyDigest}
-                  onCheckedChange={(dailyDigest) => void save({ ...settings, dailyDigest })}
+                  onCheckedChange={(dailyDigest) => void save({ dailyDigest })}
                 />
               </label>
               <label className="flex items-center justify-between gap-4">
@@ -139,9 +110,8 @@ export default function NotificationSettingsPage() {
                   checked={emailOn}
                   onCheckedChange={(on) =>
                     void save({
-                      ...settings,
                       channels: on
-                        ? [...new Set([...settings.channels, 'email'])]
+                        ? [...new Set([...settings.channels, 'email' as const])]
                         : settings.channels.filter((c) => c !== 'email'),
                     })
                   }
@@ -159,7 +129,7 @@ export default function NotificationSettingsPage() {
                   value={settings.dailyDigestTime}
                   step={3600}
                   onChange={(e) =>
-                    void save({ ...settings, dailyDigestTime: e.target.value || '08:00' })
+                    void save({ dailyDigestTime: e.target.value || '08:00' })
                   }
                   className="w-fit"
                 />

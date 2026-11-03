@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import type { CompatSystem } from '@pleiad/engine/services/compatibility'
 import type { Bodygraph } from '@pleiad/engine/types/human-design'
@@ -20,6 +20,7 @@ import {
   useCountUp,
 } from '@/components/app-kit'
 import { usePeople, type Person } from '@/lib/hooks/use-people'
+import { useResonanceMatrix, type MatrixPerson } from '@/lib/hooks/use-resonance-matrix'
 import {
   MATRIX_RAMP,
   type MatrixPairScore,
@@ -33,19 +34,6 @@ import {
  * computes + caches pairwise scores); cells climb the brand-violet ramp with
  * resonance, and clicking a cell opens the per-system breakdown sheet.
  */
-
-interface MatrixPerson {
-  id: string
-  name: string
-  hebrew_name: string | null
-  is_self: boolean
-}
-
-interface MatrixResponse {
-  people: MatrixPerson[]
-  pairs: MatrixPairScore[]
-  meta: { pairCount: number; cachedCount: number; computedCount: number }
-}
 
 const SYSTEM_ORDER: CompatSystem[] = [
   'dreamspell',
@@ -240,9 +228,7 @@ function MatrixSkeleton() {
 }
 
 export function ResonanceMatrix() {
-  const [data, setData] = useState<MatrixResponse | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { data, loading, error, retry } = useResonanceMatrix()
   const [selected, setSelected] = useState<SelectedPair | null>(null)
   // Full person rows (birth data) power the composite bodygraph drill-down.
   const { people: fullPeople } = usePeople()
@@ -250,27 +236,6 @@ export function ResonanceMatrix() {
     () => new Map<string, Person>(fullPeople.map((p) => [p.id, p])),
     [fullPeople]
   )
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/compatibility/matrix', { credentials: 'include' })
-      const body = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        throw new Error(body.error || `Request failed: ${res.status}`)
-      }
-      setData(body as MatrixResponse)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load the matrix')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    load()
-  }, [load])
 
   const pairMap = useMemo(() => {
     const map = new Map<string, MatrixPairScore>()
@@ -295,7 +260,7 @@ export function ResonanceMatrix() {
     return (
       <div className="flex flex-col items-center justify-center h-full p-12 text-center gap-4">
         <p className="text-sm text-white/50">{error}</p>
-        <Button variant="outline" size="sm" onClick={load} className="rounded-xl">
+        <Button variant="outline" size="sm" onClick={() => void retry()} className="rounded-xl">
           Try again
         </Button>
       </div>

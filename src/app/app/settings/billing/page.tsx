@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { X } from 'lucide-react'
 import { SubscriptionStatus } from '@/components/billing/subscription-status'
 import { UsageDisplay } from '@/components/billing/usage-display'
 import { GetTheApp } from '@/components/billing/get-the-app'
-import { PlanTier } from '@/lib/services/billing'
+import { useSubscription } from '@/lib/hooks/use-plan'
 import { PageHeader } from '@/components/dashboard'
 import { Eyebrow, Notice, SkeletonCard } from '@/components/app-kit'
 
@@ -17,50 +17,9 @@ import { Eyebrow, Notice, SkeletonCard } from '@/components/app-kit'
  * current entitlement, points upgrades at the app, and deep-links to the OS
  * subscription settings for anything else.
  */
-interface SubscriptionData {
-  plan: PlanTier
-  planName: string
-  status: string
-  currentPeriodEnd?: string
-  cancelAtPeriodEnd: boolean
-  hasSubscription: boolean
-  usage: {
-    profiles: { used: number; limit: number; percentage: number }
-    aiInterpretations: { used: number; limit: number; percentage: number }
-    boards: { used: number; limit: number; percentage: number }
-  }
-  features: {
-    exports: boolean
-    timeline: boolean
-    relationships: boolean | string
-    groupAnalysis: boolean
-    apiAccess: boolean
-  }
-}
-
 export default function BillingPage() {
-  const [subscription, setSubscription] = useState<SubscriptionData | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { subscription, loading } = useSubscription({ sync: true })
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
-
-  const fetchSubscription = useCallback(async () => {
-    try {
-      // refresh=1 re-syncs from the billing provider — a purchase made on the
-      // phone moments ago may still be racing the webhook.
-      const response = await fetch('/api/billing/subscription?refresh=1')
-      if (response.ok) {
-        setSubscription(await response.json())
-      }
-    } catch (error) {
-      console.error('Failed to fetch subscription:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchSubscription()
-  }, [fetchSubscription])
 
   const handleManageSubscription = async () => {
     try {
