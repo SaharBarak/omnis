@@ -56,6 +56,11 @@ export function initPostHog(): void {
     // SPA-aware pageviews: initial load + every history push/replace.
     capture_pageview: 'history_change',
     capture_pageleave: true,
+    // Real-user LCP, CLS, FCP and INP as `$web_vitals`, which Web Analytics
+    // reads (docs/perf/APP_PERFORMANCE_PROMPT.md, practice 30). Attribution
+    // off loads the lighter web-vitals build; network timing only feeds
+    // session replay, which is not used.
+    capture_performance: { web_vitals: true, web_vitals_attribution: false, network_timing: false },
     respect_dnt: true,
   })
   initialized = true
