@@ -7,6 +7,8 @@
  * - Ra Uru Hu: "I am not the guru. I am a mechanic."
  */
 
+import { ORACLE_ROLES } from '@/lib/dreamspell-oracle'
+
 // ============================================================================
 // DREAMSPELL DOCUMENTATION
 // ============================================================================
@@ -188,38 +190,7 @@ export const dreamspellDocs = {
       that reveals the full context of that day or person's energy. The Oracle shows that
       you never operate in isolation but are always part of a larger pattern.
     `,
-    positions: [
-      {
-        name: 'Destiny (Center)',
-        color: '#F59E0B',
-        description: 'Your core Kin, the central theme of your energy. This is your Galactic Signature.',
-        calculation: 'Your birth date Kin'
-      },
-      {
-        name: 'Guide',
-        color: '#10B981',
-        description: 'The higher wisdom that leads you. Based on your Tone, this Seal of the same color guides your path.',
-        calculation: 'Same color family, determined by Tone'
-      },
-      {
-        name: 'Analog (Support)',
-        color: '#3B82F6',
-        description: 'Your support energy, a complementary partner that adds up to 19 with your Seal number.',
-        calculation: 'Seal number that + your Seal = 19'
-      },
-      {
-        name: 'Antipode (Challenge)',
-        color: '#EF4444',
-        description: 'Your challenge and gift, the energy that stretches you. Located 10 Seals away.',
-        calculation: 'Your Seal + 10 (or -10 if over 20)'
-      },
-      {
-        name: 'Occult (Hidden Power)',
-        color: '#8B5CF6',
-        description: 'Hidden, magical power that emerges from the shadows. The Seal that + yours = 21.',
-        calculation: 'Seal number that + your Seal = 21'
-      }
-    ]
+    positions: ORACLE_ROLES
   },
 
   castles: {
