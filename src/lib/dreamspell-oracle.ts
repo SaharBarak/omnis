@@ -6,6 +6,9 @@
 
 export type OracleRoleId = 'destiny' | 'guide' | 'analog' | 'antipode' | 'occult'
 
+/** The four seats round the person's own seal. */
+export type OracleSeatId = Exclude<OracleRoleId, 'destiny'>
+
 export interface OracleRole {
   readonly id: OracleRoleId
   /** The seat's name on the learn page. */
@@ -59,6 +62,11 @@ export const ORACLE_ROLES: readonly OracleRole[] = Object.freeze([
     calculation: 'Seal number that + your Seal = 21',
   },
 ])
+
+const isSeat = (id: OracleRoleId): id is OracleSeatId => id !== 'destiny'
+
+/** The four seats round the person's own seal, in the table's order. */
+export const ORACLE_SEATS: readonly OracleSeatId[] = Object.freeze(ORACLE_ROLES.map((role) => role.id).filter(isSeat))
 
 const BY_ID: ReadonlyMap<OracleRoleId, OracleRole> = new Map(ORACLE_ROLES.map((role) => [role.id, role]))
 

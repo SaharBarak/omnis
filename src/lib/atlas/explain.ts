@@ -4,7 +4,7 @@ import { CHANNELS } from '@pleiad/engine/data/human-design-channels'
 import { GATES } from '@pleiad/engine/data/human-design-gates'
 import { PLANETS } from '@pleiad/engine/data/planets'
 import { ZODIAC_SIGNS } from '@pleiad/engine/data/zodiac-signs'
-import { andList, MARK_LAYER, markTitle, rolesOf, type AtlasMarkKind, type AtlasMarkRef, type MarkSource, type MarkTitle } from './marks'
+import { andList, capital, centreName, MARK_LAYER, markTitle, rolesOf, type AtlasMarkKind, type AtlasMarkRef, type MarkSource, type MarkTitle } from './marks'
 import type { AtlasLayerId } from './types'
 import { getSealMeaning, getToneMeaning } from '@/lib/dreamspell-meanings'
 
@@ -21,19 +21,16 @@ export interface MarkFact {
   readonly value: string
 }
 
-export interface MarkExplanation extends MarkTitle {
+/** What explain adds to a mark's title. */
+export interface MarkReading {
+  readonly meaning: string | null
+  readonly facts: readonly MarkFact[]
+}
+
+export interface MarkExplanation extends MarkTitle, MarkReading {
   readonly layer: AtlasLayerId
   readonly kind: AtlasMarkKind
-  readonly meaning: string | null
-  readonly facts: readonly MarkFact[]
 }
-
-interface Reading {
-  readonly meaning: string | null
-  readonly facts: readonly MarkFact[]
-}
-
-const capital = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1)
 
 /** Keywords as one sentence: `Identity, vitality, ego.` */
 const sentence = (words: readonly string[]): string | null => (words.length === 0 ? null : `${capital(words.join(', '))}.`)
@@ -43,11 +40,9 @@ const prose = (...parts: readonly (string | null)[]): string | null => parts.fil
 
 const fact = (label: string, value: string): MarkFact => ({ label, value })
 
-const NOTHING: Reading = { meaning: null, facts: [] }
+const NOTHING: MarkReading = { meaning: null, facts: [] }
 
-const centreName = (id: string): string => CENTERS.find((c) => c.id === id)?.name ?? capital(id)
-
-function reading(atlas: MarkSource, ref: AtlasMarkRef): Reading {
+function reading(atlas: MarkSource, ref: AtlasMarkRef): MarkReading {
   switch (ref.kind) {
     case 'planet': {
       const planet = PLANETS.find((p) => p.id === ref.id)

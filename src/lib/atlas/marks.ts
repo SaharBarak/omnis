@@ -7,7 +7,7 @@ import type { PlanetId, ZodiacSignId } from '@pleiad/engine/types/astrology'
 import type { CenterId } from '@pleiad/engine/types/human-design'
 import { bodyValue, placeAt } from './place'
 import type { AtlasLayerId, BodyLayer, MayaLayer, PersonAtlas } from './types'
-import { ORACLE_ROLES, type OracleRole, type OracleRoleId } from '@/lib/dreamspell-oracle'
+import { ORACLE_ROLES, ORACLE_SEATS, type OracleRole, type OracleRoleId } from '@/lib/dreamspell-oracle'
 
 /**
  * The marks a person's atlas draws (docs/redesign/BENTO_SITE.md, "Marks
@@ -65,7 +65,8 @@ export interface MarkTitle {
   readonly value: string
 }
 
-const capital = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1)
+/** First letter upper case, as table words are written into sentences. */
+export const capital = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1)
 
 /** `A`, `A and B`, `A, B and C`. */
 export const andList = (items: readonly string[]): string =>
@@ -79,13 +80,16 @@ export const loneGates = (body: BodyLayer): readonly number[] => {
 
 export const centreOfGate = (gate: number): CenterId | null => CENTERS.find((c) => c.gates.includes(gate))?.id ?? null
 
-const centreName = (id: CenterId): string => CENTERS.find((c) => c.id === id)?.name ?? capital(id)
+export const centreName = (id: CenterId): string => CENTERS.find((c) => c.id === id)?.name ?? capital(id)
 
 /** A seal's name with its colour, e.g. `Yellow Sun`. */
 const sealName = (n: number): string => {
   const seal = SEALS[n - 1]
   return `${capital(seal.color)} ${seal.english}`
 }
+
+/** The seals in the four seats round the person's own seal. */
+export const seatsOf = (maya: MayaLayer): ReadonlySet<number> => new Set(ORACLE_SEATS.map((seat) => maya.oracle[seat].n))
 
 /** The oracle seats a seal holds in this kin, the person's own seal first. */
 export const rolesOf = (maya: MayaLayer, n: number): readonly OracleRole[] => {
@@ -141,8 +145,6 @@ export function markTitle(atlas: MarkSource, ref: AtlasMarkRef): MarkTitle | nul
 
 const channelCentres = (id: string): readonly CenterId[] => CHANNELS.find((c) => c.id === id)?.centers ?? []
 
-const SEATS = ['guide', 'analog', 'antipode', 'occult'] as const
-
 const unique = (refs: readonly AtlasMarkRef[], self: AtlasMarkRef): readonly AtlasMarkRef[] => {
   const seen = new Set([markKey(self)])
   return refs.filter((r) => {
@@ -176,7 +178,7 @@ export function relatedMarks(atlas: MarkSource, ref: AtlasMarkRef): readonly Atl
       case 'seal':
         return rolesOf(maya, ref.n).flatMap((role): AtlasMarkRef[] =>
           role.id === 'destiny'
-            ? [...SEATS.map((seat): AtlasMarkRef => ({ kind: 'seal', n: maya.oracle[seat].n })), { kind: 'tone' }]
+            ? [...ORACLE_SEATS.map((seat): AtlasMarkRef => ({ kind: 'seal', n: maya.oracle[seat].n })), { kind: 'tone' }]
             : [{ kind: 'seal', n: maya.seal.n }],
         )
       case 'tone':

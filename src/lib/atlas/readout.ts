@@ -2,7 +2,7 @@ import { CENTERS } from '@pleiad/engine/data/human-design-centers'
 import { andList, loneGates, markTitle, type AtlasMarkRef, type MarkSource } from './marks'
 import { bodyValue, placeAt } from './place'
 import type { BodyLayer, MayaLayer, MissingInput, NumberLayer, ReadoutRow, SkyLayer } from './types'
-import { oracleRole } from '@/lib/dreamspell-oracle'
+import { ORACLE_SEATS, oracleRole } from '@/lib/dreamspell-oracle'
 
 /**
  * The atlas as text: every value the drawing shows, in reading order, so the
@@ -31,11 +31,9 @@ const skyRows = (sky: SkyLayer, needs: MissingInput | null): ReadoutRow[] => [
   ...sky.bodies.filter((b) => !HEADLINE.has(b.id)).map((b): ReadoutRow => ({ layer: 'sky', label: b.name, value: bodyValue(b) })),
 ]
 
-const SEATS = ['guide', 'analog', 'antipode', 'occult'] as const
-
 const mayaRows = (maya: MayaLayer): ReadoutRow[] => [
   { layer: 'maya', label: 'Kin', value: `${maya.kin}, ${maya.title}` },
-  ...SEATS.map((seat): ReadoutRow => ({ layer: 'maya', label: oracleRole(seat).label, value: maya.oracle[seat].name })),
+  ...ORACLE_SEATS.map((seat): ReadoutRow => ({ layer: 'maya', label: oracleRole(seat).label, value: maya.oracle[seat].name })),
   { layer: 'maya', label: 'Tzolkin', value: maya.tzolkin },
 ]
 
