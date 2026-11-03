@@ -1,7 +1,7 @@
 'use client'
 
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, defaultShouldDehydrateQuery, type Query } from '@tanstack/react-query'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { useState } from 'react'
 
@@ -16,6 +16,11 @@ import { useState } from 'react'
  *
  * On the server (and the first client render, keeping hydration identical)
  * there is no localStorage — a plain provider is used there.
+ *
+ * Only confirmed data is persisted: a query with a mutation running under its
+ * key holds a guess (lib/query/cache-mutation.ts) and is skipped until the
+ * mutation settles; mutations themselves are never stored, since nothing
+ * replays them offline; and a query may opt out with `meta: { persist: false }`.
  */
 
 /** localStorage key — removed wholesale on sign-out (see use-auth). */
@@ -52,7 +57,17 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
   return (
     <PersistQueryClientProvider
       client={queryClient}
-      persistOptions={{ persister, maxAge: PERSIST_MAX_AGE_MS }}
+      persistOptions={{
+        persister,
+        maxAge: PERSIST_MAX_AGE_MS,
+        dehydrateOptions: {
+          shouldDehydrateQuery: (query: Query) =>
+            defaultShouldDehydrateQuery(query) &&
+            query.meta?.persist !== false &&
+            queryClient.isMutating({ mutationKey: query.queryKey }) === 0,
+          shouldDehydrateMutation: () => false,
+        },
+      }}
     >
       {children}
     </PersistQueryClientProvider>
