@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireUserId } from '@/lib/auth-server'
 import { handleApiError } from '@/lib/api/respond'
-import { countBoards, listBoards, createBoard } from '@/lib/db/repositories/boards-repo'
-import { getUserPlan } from '@/lib/services/usage'
-import { getPlanLimits, PLANS } from '@/lib/services/billing'
+import { boardEntitlement } from '@/lib/api/board-entitlement'
+import { listBoards, createBoard } from '@/lib/db/repositories/boards-repo'
+import { PLANS } from '@/lib/services/billing'
 
 const templateEnum = z.enum([
   'blank',
@@ -39,27 +39,8 @@ export async function POST(request: Request) {
     const body = await request.json()
     const input = createSchema.parse(body)
 
-    // Plan entitlement: cap boards per tier (free = 0 → boards are a paid
-    // feature). Counted from actual owned rows since boards are persistent.
-    // Counted alongside the plan: the count is only consulted for capped
-    // tiers, but a possibly-unused cheap count beats a serial round trip.
-    const [plan, existing] = await Promise.all([getUserPlan(userId), countBoards(userId)])
-    const limits = getPlanLimits(plan)
-    const boardLimit = limits.boards
-    if (boardLimit !== Infinity) {
-      if (existing >= boardLimit) {
-        return NextResponse.json(
-          {
-            error:
-              boardLimit === 0
-                ? `Boards aren't included on ${PLANS[plan].name}. Upgrade to create boards.`
-                : `You've reached your plan's limit of ${boardLimit} boards on ${PLANS[plan].name}. Upgrade for more.`,
-            code: 'limit_exceeded',
-          },
-          { status: 403 }
-        )
-      }
-    }
+    const { plan, limits, refusal } = await boardEntitlement(userId)
+    if (refusal) return refusal
 
     // People on the board are capped by the same per-tier profiles limit that
     // governs the map — a board is the map re-arranged, not a way around it.

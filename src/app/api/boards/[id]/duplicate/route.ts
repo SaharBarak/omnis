@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireUserId } from '@/lib/auth-server'
+import { boardEntitlement } from '@/lib/api/board-entitlement'
 import { handleApiError } from '@/lib/api/respond'
 import { duplicateBoard } from '@/lib/db/repositories/boards-repo'
 
@@ -18,6 +19,9 @@ export async function POST(request: Request, { params }: Ctx) {
     const { id } = await params
     const body = await request.json().catch(() => ({}))
     const { newName } = bodySchema.parse(body)
+
+    const { refusal } = await boardEntitlement(userId)
+    if (refusal) return refusal
 
     const board = await duplicateBoard(userId, id, newName ?? null)
     if (!board) return NextResponse.json({ error: 'Not found' }, { status: 404 })
