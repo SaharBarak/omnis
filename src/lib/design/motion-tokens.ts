@@ -34,6 +34,9 @@ export const PRESS_SCALE = 0.97
  */
 export const MAGNET = Object.freeze({ pull: 0.18, reach: 6 })
 
+/** How far a small surface moves as it appears or leaves, in px: a card over a drawing. */
+export const TRAVEL = 4
+
 /** Motion's spring for responses; specific to Motion, not mirrored in the other engines. */
 export const SPRING = Object.freeze({ type: 'spring' as const, stiffness: 260, damping: 30, mass: 1 })
 
@@ -63,4 +66,5 @@ export const motionCssVars = (): Readonly<Record<string, string>> => ({
   ...Object.fromEntries(Object.entries(CURVE).map(([k, v]) => [`--ease-${k}`, cssCurve(v)])),
   '--stagger': `${STAGGER.step}ms`,
   '--press-scale': String(PRESS_SCALE),
+  '--travel': `${TRAVEL}px`,
 })

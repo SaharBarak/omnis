@@ -12,6 +12,8 @@
   --atlas-line: color-mix(in srgb, var(--lab-ink) 20%, transparent);
   --atlas-faint: color-mix(in srgb, var(--lab-ink) 8%, transparent);
   --atlas-text: var(--lab-text-2);
+  /* What the drawing keeps of a mark or layer set aside: by the layer switch, or while another mark is read. */
+  --atlas-dim: 0.24;
 
   position: relative;
   width: 100%;
@@ -26,16 +28,40 @@
   overflow: hidden;
 }
 
-.layer {
-  transition: opacity var(--dur-quick) var(--ease-standard);
-}
-
 .atlas[data-focus='sky'] .layer:not([data-layer='sky']),
 .atlas[data-focus='maya'] .layer:not([data-layer='maya']),
 .atlas[data-focus='body'] .layer:not([data-layer='body']),
 .atlas[data-focus='number'] .layer {
-  opacity: 0.24;
+  opacity: var(--atlas-dim);
 }
+
+/* ---------- marks being read (BENTO_SITE.md, "Marks explain themselves") ----------
+ * Each mark's own group owns its opacity; the entrance animates the group
+ * around it, so the two never write the same property of one element. */
+
+.atlas[data-inspect] .mark:not([data-state]) {
+  opacity: var(--atlas-dim);
+}
+
+.mark[data-state] .glyph,
+.mark[data-state] .glyphOn,
+.mark[data-state] .planetLead {
+  opacity: 1;
+}
+
+.mark[data-state] .channelOn {
+  stroke: var(--lab-ink);
+}
+
+.halo {
+  fill: none;
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+
+.halo[data-layer='sky'] { stroke: var(--atlas-sky); }
+.halo[data-layer='maya'] { stroke: var(--atlas-maya); }
+.halo[data-layer='body'] { stroke: var(--atlas-body); }
 
 .ring {
   fill: none;
@@ -88,7 +114,6 @@
 
 .ascendant {
   stroke: var(--atlas-sky);
-  stroke-width: 1.5;
 }
 
 .label {
@@ -123,14 +148,12 @@
 .channel {
   fill: none;
   stroke: var(--atlas-faint);
-  stroke-width: 7;
   stroke-linecap: round;
 }
 
 .channelOn {
   fill: none;
   stroke: var(--atlas-body);
-  stroke-width: 7;
   stroke-linecap: round;
 }
 
@@ -157,18 +180,31 @@
 }
 
 @media (max-width: 720px) {
-  .zoom {
+  .zoom,
+  .targetRing {
     transform-box: view-box;
     transform-origin: 50% 50%;
     transform: scale(var(--atlas-zoom, 1));
-    transition: transform var(--dur-settle) var(--ease-emphasized);
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .layer,
-  .zoom {
-    transition: none;
+/* Transitions run only while motion is allowed: the OS setting and the lab pause (BENTO_MOTION.md "Policy"). */
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab]:not([data-motion='paused']) .layer,
+  [data-lab]:not([data-motion='paused']) .mark {
+    transition: opacity var(--dur-quick) var(--ease-standard);
+  }
+
+  [data-lab]:not([data-motion='paused']) .halo {
+    stroke-dasharray: 1 1;
+    animation: atlas-draw var(--dur-quick) var(--ease-emphasized) both;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (max-width: 720px) {
+  [data-lab]:not([data-motion='paused']) .zoom,
+  [data-lab]:not([data-motion='paused']) .targetRing {
+    transition: transform var(--dur-settle) var(--ease-emphasized);
   }
 }
 
@@ -183,11 +219,16 @@
 .readoutGroup {
   display: grid;
   gap: 6px;
-  transition: opacity var(--dur-quick) var(--ease-standard);
 }
 
 .readout[data-focus] .readoutGroup:not([data-active]) {
   opacity: 0.45;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab]:not([data-motion='paused']) .readoutGroup {
+    transition: opacity var(--dur-quick) var(--ease-standard);
+  }
 }
 
 .readoutHead {
@@ -344,6 +385,196 @@
 @media (max-width: 720px) {
   .pins {
     display: none;
+  }
+}
+
+/* ---------- mark targets and cards (BENTO_SITE.md, "Marks explain themselves") ---------- */
+
+/* One layer reads the pointer for every mark; the buttons inside only carry focus and names. */
+.targets {
+  position: absolute;
+  inset: 0;
+}
+
+.targets[data-hot] {
+  cursor: pointer;
+}
+
+.targetRing {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.target {
+  position: absolute;
+  width: max(var(--ring), var(--target));
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: none;
+  pointer-events: none;
+}
+
+.target:focus-visible {
+  outline: 2px solid var(--lab-ink);
+  outline-offset: 2px;
+}
+
+/* The drawing's square holds the card and measures it. */
+.square {
+  container-type: inline-size;
+}
+
+.square[data-inspect] .pins {
+  opacity: 0;
+}
+
+.card {
+  /* Off the mark by its halo, never closer than half the least target. */
+  --gap: max(calc(var(--halo) * 100cqi), calc(var(--target) / 2));
+  --tx: 0px;
+  --ty: 0px;
+
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  z-index: 2;
+  display: grid;
+  gap: 2px;
+  width: max-content;
+  max-inline-size: min(32ch, calc(50cqi - var(--gap)));
+  padding: 10px 12px;
+  border-radius: var(--radius-control);
+  font-size: var(--type-caption);
+  line-height: 1.35;
+  text-align: start;
+  translate:
+    calc(var(--px) + var(--nudge-x, 0px) + var(--tx))
+    calc(var(--py) + var(--nudge-y, 0px) + var(--ty));
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.card[data-side='right'] { --px: var(--gap); }
+.card[data-side='left'] { --px: calc(-100% - var(--gap)); }
+.card[data-drop='down'] { --py: calc(-1 * var(--gap)); }
+.card[data-drop='up'] { --py: calc(-100% + var(--gap)); }
+
+/* Closed, the card sits a travel nearer its mark; it fades out along that line. */
+.card[data-side='right']:not([data-open]) { --tx: calc(-1 * var(--travel)); }
+.card[data-side='left']:not([data-open]) { --tx: var(--travel); }
+
+.card[data-open] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.card[data-kept][data-layer='sky'] { border-color: var(--atlas-sky); }
+.card[data-kept][data-layer='maya'] { border-color: var(--atlas-maya); }
+.card[data-kept][data-layer='body'] { border-color: var(--atlas-body); }
+
+.cardEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-block-end: 2px;
+  font-size: var(--type-micro);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--lab-text-3);
+}
+
+/* A short stroke of the layer colour keys the card, as a tooltip row keys its series. */
+.cardEyebrow::before {
+  content: '';
+  width: 12px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.cardEyebrow[data-layer='sky']::before { background: var(--atlas-sky); }
+.cardEyebrow[data-layer='maya']::before { background: var(--atlas-maya); }
+.cardEyebrow[data-layer='body']::before { background: var(--atlas-body); }
+
+.cardLabel {
+  color: var(--lab-text-2);
+}
+
+.cardValue {
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+  font-size: var(--type-small);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--lab-ink);
+}
+
+.cardMeaning {
+  margin-block-start: 4px;
+  color: var(--lab-text-2);
+}
+
+.cardFacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin: 6px 0 0;
+  font-size: var(--type-micro);
+}
+
+.cardFacts div {
+  display: flex;
+  gap: 4px;
+}
+
+.cardFacts dt {
+  color: var(--lab-text-3);
+}
+
+.cardFacts dd {
+  margin: 0;
+  color: var(--lab-ink);
+}
+
+/* Under 720 px, where the pins hide, the card docks to the edge away from its mark. */
+@media (max-width: 720px) {
+  .card {
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-inline-size: none;
+    translate: 0 var(--ty);
+  }
+  .card[data-dock='bottom'] {
+    top: auto;
+    bottom: 8px;
+  }
+  .card[data-dock='top'] {
+    top: 8px;
+  }
+  .card[data-dock='bottom']:not([data-open]) { --ty: var(--travel); }
+  .card[data-dock='top']:not([data-open]) { --ty: calc(-1 * var(--travel)); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab]:not([data-motion='paused']) .card {
+    transition:
+      opacity var(--dur-quick) var(--ease-standard),
+      translate var(--dur-quick) var(--ease-standard),
+      visibility 0s linear var(--dur-quick);
+  }
+  [data-lab]:not([data-motion='paused']) .card[data-open] {
+    transition:
+      opacity var(--dur-quick) var(--ease-standard),
+      translate var(--dur-quick) var(--ease-standard),
+      visibility 0s;
+  }
+  [data-lab]:not([data-motion='paused']) .pins {
+    transition: opacity var(--dur-quick) var(--ease-standard);
   }
 }
 
@@ -512,7 +743,6 @@
   justify-self: center;
   width: min(100%, 640px);
   padding: 8px 20px;
-  transition: opacity var(--dur-quick) var(--ease-standard);
 }
 
 .stageDrawing[data-busy] {
@@ -606,8 +836,11 @@
   .badgeDot {
     animation: none;
   }
-  .stageDrawing {
-    transition: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab]:not([data-motion='paused']) .stageDrawing {
+    transition: opacity var(--dur-quick) var(--ease-standard);
   }
 }
 
