@@ -23,6 +23,7 @@ import { calculateGematria } from '@pleiad/engine/calculations/gematria'
 import type { Seal } from '@pleiad/engine/types/seal'
 import type { Tone } from '@pleiad/engine/types/tone'
 import type { TzolkinDaySign } from '@pleiad/engine/types/tzolkin'
+import { fetchJson } from '@/lib/http/json'
 import { lazyModule } from '@/lib/lazy-module'
 
 /** Astrology and Human Design sit on ephemeris packages: loaded on the first compute, not with the page. */
@@ -159,15 +160,6 @@ export interface ComputeParams {
   birthTime?: string | null
   birthPlace?: { lat: number; lng: number } | null
   hebrewName?: string | null
-}
-
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, { credentials: 'include', ...init })
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}))
-    throw new Error(data.error || `Request failed: ${res.status}`)
-  }
-  return res.json() as Promise<T>
 }
 
 export function useComputedResults() {
