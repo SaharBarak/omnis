@@ -1,5 +1,14 @@
-import { getZodiacSignFromLongitude } from '@pleiad/engine/data/zodiac-signs'
-import type { BodyLayer, MayaLayer, MissingInput, NumberLayer, ReadoutRow, SkyBody, SkyLayer } from './types'
+import { CENTERS } from '@pleiad/engine/data/human-design-centers'
+import { andList, loneGates, markTitle, type AtlasMarkRef, type MarkSource } from './marks'
+import { bodyValue, placeAt } from './place'
+import type { BodyLayer, MayaLayer, MissingInput, NumberLayer, ReadoutRow, SkyLayer } from './types'
+import { oracleRole } from '@/lib/dreamspell-oracle'
+
+/**
+ * The atlas as text: every value the drawing shows, in reading order, so the
+ * drawing carries nothing a reader without it would miss. Mark values come
+ * from `markTitle`, the same words the mark cards use.
+ */
 
 const NEEDS: Readonly<Record<MissingInput, string>> = {
   time: 'Add a birth time',
@@ -9,48 +18,57 @@ const NEEDS: Readonly<Record<MissingInput, string>> = {
 
 export const needsLabel = (missing: MissingInput): string => NEEDS[missing]
 
-const at = (longitude: number): string =>
-  `${getZodiacSignFromLongitude(longitude).name} ${Math.floor((((longitude % 360) + 360) % 360) % 30)}°`
+/** Sun and Moon lead the sky; the rest follow the rising sign in the engine's order. */
+const HEADLINE = new Set(['sun', 'moon'])
 
-const bodyValue = (b: SkyBody): string => {
-  const place = b.arc && Math.abs(b.arc[1] - b.arc[0]) >= 1 ? `${at(b.arc[0])} to ${at(b.arc[1])}` : at(b.longitude)
-  return b.retrograde ? `${place}, retrograde` : place
-}
+const skyRows = (sky: SkyLayer, needs: MissingInput | null): ReadoutRow[] => [
+  ...sky.bodies.filter((b) => HEADLINE.has(b.id)).map((b): ReadoutRow => ({ layer: 'sky', label: b.name, value: bodyValue(b) })),
+  {
+    layer: 'sky',
+    label: 'Rising',
+    value: sky.ascendant !== null ? placeAt(sky.ascendant) : needsLabel(needs ?? 'time-and-place'),
+  },
+  ...sky.bodies.filter((b) => !HEADLINE.has(b.id)).map((b): ReadoutRow => ({ layer: 'sky', label: b.name, value: bodyValue(b) })),
+]
 
-const skyRows = (sky: SkyLayer, needs: MissingInput | null): ReadoutRow[] => {
-  const find = (id: string) => sky.bodies.find((b) => b.id === id)
-  const sun = find('sun')
-  const moon = find('moon')
-  return [
-    ...(sun ? [{ layer: 'sky' as const, label: 'Sun', value: bodyValue(sun) }] : []),
-    ...(moon ? [{ layer: 'sky' as const, label: 'Moon', value: bodyValue(moon) }] : []),
-    {
-      layer: 'sky',
-      label: 'Rising',
-      value: sky.ascendant !== null ? at(sky.ascendant) : needsLabel(needs ?? 'time-and-place'),
-    },
-  ]
-}
+const SEATS = ['guide', 'analog', 'antipode', 'occult'] as const
 
 const mayaRows = (maya: MayaLayer): ReadoutRow[] => [
   { layer: 'maya', label: 'Kin', value: `${maya.kin}, ${maya.title}` },
-  { layer: 'maya', label: 'Guide', value: maya.oracle.guide.name },
-  { layer: 'maya', label: 'Analog', value: maya.oracle.analog.name },
-  { layer: 'maya', label: 'Antipode', value: maya.oracle.antipode.name },
-  { layer: 'maya', label: 'Occult', value: maya.oracle.occult.name },
+  ...SEATS.map((seat): ReadoutRow => ({ layer: 'maya', label: oracleRole(seat).label, value: maya.oracle[seat].name })),
   { layer: 'maya', label: 'Tzolkin', value: maya.tzolkin },
 ]
 
-const bodyRows = (body: BodyLayer | null, needs: MissingInput | null): ReadoutRow[] =>
-  body
-    ? [
-        { layer: 'body', label: 'Type', value: body.type },
-        { layer: 'body', label: 'Strategy', value: body.strategy },
-        { layer: 'body', label: 'Authority', value: body.authority },
-        { layer: 'body', label: 'Profile', value: body.profile },
-        { layer: 'body', label: 'Definition', value: body.definition },
-      ]
-    : [{ layer: 'body', label: 'Bodygraph', value: needsLabel(needs ?? 'time-and-place') }]
+/** Marks as one line: `Abstraction (64–47) and Awareness (61–24)`. */
+const listed = (source: MarkSource, refs: readonly AtlasMarkRef[]): string =>
+  andList(refs.flatMap((ref) => {
+    const title = markTitle(source, ref)
+    return title ? [`${title.label} (${title.value})`] : []
+  })) || 'None'
+
+const centreNames = (source: MarkSource, body: BodyLayer, defined: boolean): string =>
+  andList(
+    CENTERS.filter((c) => body.definedCenters.includes(c.id) === defined).flatMap((c) => markTitle(source, { kind: 'centre', id: c.id })?.label ?? []),
+  ) || 'None'
+
+const bodyRows = (source: MarkSource, needs: MissingInput | null): ReadoutRow[] => {
+  const { body } = source
+  if (!body) return [{ layer: 'body', label: 'Bodygraph', value: needsLabel(needs ?? 'time-and-place') }]
+  const lone = loneGates(body)
+  return [
+    { layer: 'body', label: 'Type', value: body.type },
+    { layer: 'body', label: 'Strategy', value: body.strategy },
+    { layer: 'body', label: 'Authority', value: body.authority },
+    { layer: 'body', label: 'Profile', value: body.profile },
+    { layer: 'body', label: 'Definition', value: body.definition },
+    { layer: 'body', label: 'Defined centres', value: centreNames(source, body, true) },
+    { layer: 'body', label: 'Open centres', value: centreNames(source, body, false) },
+    ...(body.channels.length > 0
+      ? [{ layer: 'body' as const, label: 'Channels', value: listed(source, body.channels.map((c): AtlasMarkRef => ({ kind: 'channel', id: c.id }))) }]
+      : []),
+    ...(lone.length > 0 ? [{ layer: 'body' as const, label: 'Gates', value: listed(source, lone.map((n): AtlasMarkRef => ({ kind: 'gate', n }))) }] : []),
+  ]
+}
 
 const numberRows = (n: NumberLayer): ReadoutRow[] => [
   { layer: 'number', label: 'Life path', value: String(n.lifePath) },
@@ -66,5 +84,6 @@ export function buildReadout(
   number: NumberLayer,
   needs: MissingInput | null,
 ): readonly ReadoutRow[] {
-  return [...skyRows(sky, needs), ...mayaRows(maya), ...bodyRows(body, needs), ...numberRows(number)]
+  const source: MarkSource = { sky, maya, body }
+  return [...skyRows(sky, needs), ...mayaRows(maya), ...bodyRows(source, needs), ...numberRows(number)]
 }
