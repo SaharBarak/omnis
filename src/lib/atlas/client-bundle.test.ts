@@ -6,13 +6,16 @@ import { describe, expect, it } from 'vitest'
  * Packages that must reach the browser only through a dynamic `import()`:
  * the heavy engine's two ephemeris packages (through load.ts), and the scene
  * and illustration engines (through useScene, useIllustration and useTurn,
- * docs/redesign/BENTO_MOTION.md "Policy"). This walks the static import
+ * docs/redesign/BENTO_MOTION.md "Policy"); and local modules held back the
+ * same way, such as the atlas mark meanings (through useExplain). This walks the static import
  * graph of every client module in the bento tree and fails if one of them
  * reaches one of these packages.
  */
 
 const ROOT = process.cwd()
 const HEAVY = new Set(['circular-natal-horoscope-js', 'astronomy-engine', 'gsap', 'animejs'])
+/** Local modules that reach the browser only after first paint: the atlas mark meanings (BENTO_SITE.md, "Marks explain themselves"). */
+const LAZY_FILES = new Set(['src/lib/atlas/explain.ts'].map((f) => join(ROOT, f)))
 const CLIENT_ROOTS = ['src/components/bento-lab', 'src/app/lab/bento'].map((d) => join(ROOT, d))
 const EXTENSIONS = ['.ts', '.tsx', '/index.ts', '/index.tsx']
 
@@ -69,6 +72,7 @@ function heavyPath(entry: string): readonly string[] | null {
         if (HEAVY.has(next.pkg)) return [...chain, next.pkg]
         continue
       }
+      if (next.file && LAZY_FILES.has(next.file)) return [...chain, next.file]
       if (next.file) queue.push([...chain, next.file])
     }
   }
@@ -82,7 +86,7 @@ describe('client bundle boundary', () => {
     expect(clients.length).toBeGreaterThan(10)
   })
 
-  it('keeps the ephemeris and motion engines out of every static client import graph', () => {
+  it('keeps the ephemeris and motion engines, and the mark meanings, out of every static client import graph', () => {
     const leaks = clients
       .map((f) => heavyPath(f))
       .filter((p): p is readonly string[] => p !== null)
