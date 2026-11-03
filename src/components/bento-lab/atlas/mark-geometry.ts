@@ -3,7 +3,7 @@ import { SEALS } from '@pleiad/engine/data/seals'
 import { CENTERS } from '@pleiad/engine/data/human-design-centers'
 import { BODY_SCALE, bodyPoint, C, norm, polar, px, RING, sealAngle, SIZE, skyAngle, spreadAngles, type Point } from './geometry'
 import { CENTER_POSITIONS, CHANNEL_PATHS, GATE_MOUTHS, splitPolyline } from '@/components/human-design/bodygraph-layout'
-import { loneGates, markKey, MARK_LAYER, type AtlasMarkRef } from '@/lib/atlas/marks'
+import { loneGates, markKey, MARK_LAYER, seatsOf, type AtlasMarkRef } from '@/lib/atlas/marks'
 import type { AtlasLayerId, PersonAtlas, SkyBody, SkyLayer } from '@/lib/atlas/types'
 
 /**
@@ -102,18 +102,25 @@ const skyMarks = (sky: SkyLayer): readonly PlacedMark[] => [
   ...(sky.ascendant !== null ? [place({ kind: 'rising' }, RISING_MIDDLE, MARK_SIZE.risingStroke / 2, RISING_LINE)] : []),
 ]
 
+/** How a seal is drawn: the person's own on a disc, an oracle seat ringed, the rest as the glyph alone. */
+export type SealStyle = 'own' | 'seat' | 'plain'
+
+export const sealStyle = (seal: number, own: number, seats: ReadonlySet<number>): SealStyle =>
+  seal === own ? 'own' : seats.has(seal) ? 'seat' : 'plain'
+
+/** A seal's drawn radius: its disc, its seat ring, or its glyph. */
+export const SEAL_RADIUS: Readonly<Record<SealStyle, number>> = {
+  own: MARK_SIZE.litSeal,
+  seat: MARK_SIZE.seat,
+  plain: MARK_SIZE.seal / 2,
+}
+
 const kinMarks = (atlas: PersonAtlas): readonly PlacedMark[] => {
-  const lit = atlas.maya.seal.n
-  const seats = new Set(Object.values(atlas.maya.oracle).map((s) => s.n))
+  const own = atlas.maya.seal.n
+  const seats = seatsOf(atlas.maya)
   return [
     place({ kind: 'tone' }, TONE_POINT, MARK_SIZE.toneWidth / 2),
-    ...SEALS.map((seal) =>
-      place(
-        { kind: 'seal', n: seal.number },
-        sealPoint(seal.number, lit),
-        seal.number === lit ? MARK_SIZE.litSeal : seats.has(seal.number) ? MARK_SIZE.seat : MARK_SIZE.seal / 2,
-      ),
-    ),
+    ...SEALS.map((seal) => place({ kind: 'seal', n: seal.number }, sealPoint(seal.number, own), SEAL_RADIUS[sealStyle(seal.number, own, seats)])),
   ]
 }
 
@@ -199,25 +206,38 @@ export interface Probe {
 }
 
 /**
- * The mark the pointer is on: of the marks within their reach (the larger of
- * the mark's own radius and half the least target), the one whose distance
- * is the smallest share of its reach. A point mark wins a tie with a line,
- * then reading order decides.
+ * The mark the pointer is on. A point mark the pointer is inside wins over
+ * everything, so a line through a glyph or a centre never takes it. Failing
+ * that, of the marks within their reach (the larger of the mark's own radius
+ * and half the least target), the one whose distance is the smallest share of
+ * its reach wins; a point mark wins a tie with a line, then reading order
+ * decides.
  */
 export function hitMark(marks: readonly PlacedMark[], probe: Probe): PlacedMark | null {
-  let best: { mark: PlacedMark; score: number } | null = null
+  let best: { mark: PlacedMark; inside: boolean; score: number } | null = null
   for (const mark of marks) {
     const turn = probe.turns?.[mark.layer]
     const p = turn ? undo(turn, probe.point) : probe.point
     const reach = Math.max(mark.r, probe.reach)
     const d = distTo(mark, p)
     if (d > reach) continue
+    const inside = !mark.path && d <= mark.r
     const score = d / reach
-    const better = !best || score < best.score - 1e-9 || (Math.abs(score - best.score) <= 1e-9 && !mark.path && best.mark.path)
-    if (better) best = { mark, score }
+    const better =
+      !best ||
+      (inside && !best.inside) ||
+      (inside === best.inside && (score < best.score - 1e-9 || (Math.abs(score - best.score) <= 1e-9 && !mark.path && best.mark.path)))
+    if (better) best = { mark, inside, score }
   }
   return best?.mark ?? null
 }
+
+/** Whether a mark's anchor shows inside the drawing at `zoom` about the centre. */
+export const inView = (mark: PlacedMark, zoom: number): boolean =>
+  mark.anchor.every((v) => {
+    const shown = C + (v - C) * zoom
+    return shown >= 0 && shown <= SIZE
+  })
 
 export interface DrawingBox {
   readonly left: number

@@ -2,7 +2,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { C, polar, RING, SIZE } from './geometry'
-import { hitMark, MARK_SIZE, placeMarks, reachFor, toDrawing, undo, type Linear, type PlacedMark } from './mark-geometry'
+import { hitMark, inView, MARK_SIZE, placeMarks, reachFor, toDrawing, undo, type Linear, type PlacedMark } from './mark-geometry'
 import { linearOf } from './mark-targets'
 import { PersonAtlasDrawing } from './person-atlas'
 import { buildPersonAtlas } from '@/lib/atlas/build'
@@ -13,11 +13,14 @@ const atlas = buildPersonAtlas(demoPerson('maya').input, TODAY)
 const marks = placeMarks(atlas)
 const byKey = (key: string): PlacedMark => marks.find((m) => m.key === key)!
 
+const markGroups = (): readonly RegExpMatchArray[] => [
+  ...renderToStaticMarkup(createElement(PersonAtlasDrawing, { atlas })).matchAll(/data-mark="([^"]+)"[^>]*>(.*?)<\/g>/g),
+]
+
 /** Centres of the glyph images the drawing renders inside each mark group, by mark key. */
 function drawnGlyphs(): ReadonlyMap<string, readonly [number, number]> {
-  const html = renderToStaticMarkup(createElement(PersonAtlasDrawing, { atlas }))
   const out = new Map<string, readonly [number, number]>()
-  for (const group of html.matchAll(/data-mark="([^"]+)"[^>]*>(.*?)<\/g>/g)) {
+  for (const group of markGroups()) {
     const image = group[2].match(/<image[^>]*x="([\d.-]+)" y="([\d.-]+)" width="([\d.]+)"/)
     if (image) out.set(group[1], [Number(image[1]) + Number(image[3]) / 2, Number(image[2]) + Number(image[3]) / 2])
   }
@@ -34,6 +37,15 @@ describe('placeMarks', () => {
       expect(Math.abs(x - m.anchor[0]), m.key).toBeLessThan(0.02)
       expect(Math.abs(y - m.anchor[1]), m.key).toBeLessThan(0.02)
     }
+  })
+
+  it('reaches each ringed or disced seal by the radius the drawing draws', () => {
+    const ringed = markGroups().flatMap((group) => {
+      const circle = group[2].match(/<circle[^>]*r="([\d.]+)"/)
+      return circle && group[1].startsWith('seal:') ? [[group[1], Number(circle[1])] as const] : []
+    })
+    expect(ringed.length).toBeGreaterThanOrEqual(1 + 4 - 1)
+    for (const [key, r] of ringed) expect(byKey(key).r, key).toBe(r)
   })
 
   it('lists one mark per key, sky then Kin then body', () => {
@@ -91,6 +103,14 @@ describe('hitMark', () => {
     expect(hitMark([line, sun], { point: sun.anchor, reach: 12 })?.key).toBe('planet:sun')
   })
 
+  it('lets a glyph under the pointer win over a line passing closer to it', () => {
+    const line: PlacedMark = { ...sun, key: 'line', path: [[sun.anchor[0] - 20, sun.anchor[1] + 1], [sun.anchor[0] + 20, sun.anchor[1] + 1]] }
+    const alongTheLine: [number, number] = [sun.anchor[0] + sun.r * 0.6, sun.anchor[1] + 1]
+    expect(hitMark([line, sun], { point: alongTheLine, reach: 12 })?.key).toBe('planet:sun')
+    const beyondTheGlyph: [number, number] = [sun.anchor[0] + sun.r + 4, sun.anchor[1] + 1]
+    expect(hitMark([line, sun], { point: beyondTheGlyph, reach: 12 })?.key).toBe('line')
+  })
+
   it('reads a turning ring where it shows', () => {
     const turn: Linear = [0, 1, -1, 0]
     const shown = undo([0, -1, 1, 0], sun.anchor)
@@ -118,6 +138,14 @@ describe('the pointer in drawing units', () => {
     expect(linearOf('none')).toBeNull()
     expect(linearOf('matrix(1.36, 0, 0, 1.36, -10, -10)')).toEqual([1.36, 0, 0, 1.36])
     expect(linearOf('matrix3d(0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)')).toEqual([0, 1, -1, 0])
+  })
+
+  it('keeps a mark in view only while the zoom leaves it inside the square', () => {
+    const sun = byKey('planet:sun')
+    const edge: PlacedMark = { ...sun, anchor: [C + (SIZE / 2) * 0.9, C] }
+    expect(inView(edge, 1)).toBe(true)
+    expect(inView(edge, 1.36)).toBe(false)
+    expect(inView({ ...sun, anchor: [C, C] }, 1.36)).toBe(true)
   })
 
   it('places the rising mark on the ascendant line', () => {

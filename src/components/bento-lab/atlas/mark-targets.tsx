@@ -1,16 +1,13 @@
 'use client'
 
-import { useId, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react'
+import { useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react'
 import s from './atlas.module.css'
 import { percent, SIZE } from './geometry'
-import { HALO_GAP, hitMark, reachFor, TARGET_MIN_PX, toDrawing, type Linear, type PlacedMark } from './mark-geometry'
+import { HALO_GAP, hitMark, inView, reachFor, TARGET_MIN_PX, toDrawing, type Linear, type PlacedMark } from './mark-geometry'
 import type { InspectEvent } from './inspect'
 import kit from '../kit.module.css'
 import type { AtlasMarkRef, MarkTitle } from '@/lib/atlas/marks'
 import type { AtlasLayerId } from '@/lib/atlas/types'
-
-/** The rings that turn on a new date (useTurn), read live so a turning ring is hit where it shows. */
-const TURNING: readonly AtlasLayerId[] = ['sky', 'maya']
 
 /** Whether an event's related target sits inside `container`; a target outside the document, or none, does not. */
 export const holds = (container: Element | null | undefined, target: EventTarget | null | undefined): boolean =>
@@ -24,20 +21,38 @@ export const linearOf = (transform: string): Linear | null => {
   return values[1] ? [n[0], n[1], n[4], n[5]] : [n[0], n[1], n[2], n[3]]
 }
 
+/** The zoom group's live scale: mid-transition, the scale on screen now. */
+const liveZoom = (svg: SVGSVGElement): number => {
+  const group = svg.querySelector('[data-zoom]')
+  return group ? (linearOf(getComputedStyle(group).transform)?.[0] ?? 1) : 1
+}
+
+/**
+ * The scale the zoom group is heading for: the drawing's `--atlas-zoom`
+ * while the stylesheet applies the zoom, otherwise none. Read from CSS, so the
+ * breakpoint that turns the zoom on lives in the stylesheet alone.
+ */
+const settledZoom = (svg: SVGSVGElement): number => {
+  const group = svg.querySelector('[data-zoom]')
+  if (!group || !linearOf(getComputedStyle(group).transform)) return 1
+  return Number(getComputedStyle(svg.parentElement ?? svg).getPropertyValue('--atlas-zoom')) || 1
+}
+
+/** Each layer group's live turn, read where the browser has one: a ring still turning to a new date. */
+const liveTurns = (svg: SVGSVGElement): Partial<Record<AtlasLayerId, Linear>> =>
+  Object.fromEntries(
+    Array.from(svg.querySelectorAll<SVGGElement>('g[data-layer]')).flatMap((group) => {
+      const turn = linearOf(getComputedStyle(group).transform)
+      return turn ? [[group.dataset.layer as AtlasLayerId, turn]] : []
+    }),
+  )
+
 /** The mark under a pointer event, read through the drawing's live zoom and ring turns. */
 function markAt(svg: SVGSVGElement, marks: readonly PlacedMark[], clientX: number, clientY: number): PlacedMark | null {
   const box = svg.getBoundingClientRect()
   if (box.width === 0) return null
-  const zoomGroup = svg.querySelector('[data-zoom]')
-  const zoom = zoomGroup ? (linearOf(getComputedStyle(zoomGroup).transform)?.[0] ?? 1) : 1
-  const turns = Object.fromEntries(
-    TURNING.flatMap((layer) => {
-      const group = svg.querySelector(`g[data-layer="${layer}"]`)
-      const turn = group ? linearOf(getComputedStyle(group).transform) : null
-      return turn ? [[layer, turn]] : []
-    }),
-  )
-  return hitMark(marks, { point: toDrawing([clientX, clientY], box, zoom), reach: reachFor(box.width, zoom), turns })
+  const zoom = liveZoom(svg)
+  return hitMark(marks, { point: toDrawing([clientX, clientY], box, zoom), reach: reachFor(box.width, zoom), turns: liveTurns(svg) })
 }
 
 const KEYS: Readonly<Record<string, (index: number, last: number) => number>> = {
@@ -72,8 +87,21 @@ export interface MarkTargetsProps {
 export function MarkTargets({ marks, titleOf, activeKey, cardId, isInCard, onEvent, onIntent }: MarkTargetsProps) {
   const rootRef = useRef<HTMLDivElement>(null)
   const [stop, setStop] = useState<string | null>(null)
+  const [zoom, setZoom] = useState(1)
   const hintId = useId()
-  const tabStop = marks.some((m) => m.key === stop) ? stop : (marks[0]?.key ?? null)
+  const reachable = marks.filter((m) => inView(m, zoom))
+  const tabStop = reachable.some((m) => m.key === stop) ? stop : (reachable[0]?.key ?? null)
+
+  useLayoutEffect(() => {
+    const svg = rootRef.current?.parentElement?.querySelector('svg')
+    if (!svg) return
+    const measure = () => setZoom(settledZoom(svg))
+    measure()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(measure)
+    observer.observe(svg)
+    return () => observer.disconnect()
+  }, [marks])
 
   const under = (e: PointerEvent | MouseEvent): PlacedMark | null => {
     const svg = rootRef.current?.parentElement?.querySelector('svg')
@@ -101,10 +129,10 @@ export function MarkTargets({ marks, titleOf, activeKey, cardId, isInCard, onEve
 
   const move = (e: KeyboardEvent<HTMLDivElement>) => {
     const step = KEYS[e.key]
-    if (!step || marks.length === 0) return
+    if (!step || reachable.length === 0) return
     e.preventDefault()
-    const at = marks.findIndex((m) => m.key === (e.target as HTMLElement).dataset.target)
-    const next = marks[step(Math.max(at, 0), marks.length - 1)]
+    const at = reachable.findIndex((m) => m.key === (e.target as HTMLElement).dataset.target)
+    const next = reachable[step(Math.max(at, 0), reachable.length - 1)]
     rootRef.current?.querySelector<HTMLButtonElement>(`[data-target="${next.key}"]`)?.focus()
   }
 
@@ -118,7 +146,7 @@ export function MarkTargets({ marks, titleOf, activeKey, cardId, isInCard, onEve
       onPointerLeave={onPointerLeave}
       onClick={onClick}
     >
-      {marks.length > 0 && (
+      {reachable.length > 0 && (
         <div
           className={s.targetRing}
           role="toolbar"
@@ -133,7 +161,7 @@ export function MarkTargets({ marks, titleOf, activeKey, cardId, isInCard, onEve
           <span id={hintId} className={kit.srOnly}>
             Arrow keys move between marks. Enter keeps a card open; Escape closes it.
           </span>
-          {marks.map((m) => {
+          {reachable.map((m) => {
             const title = titleOf(m.ref)
             if (!title) return null
             return (

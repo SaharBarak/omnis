@@ -10,7 +10,9 @@ import {
   planetPoint,
   RISING_LABEL,
   RISING_LINE,
+  SEAL_RADIUS,
   sealPoint,
+  sealStyle,
   signPoint,
   TONE_POINT,
   type PlacedMark,
@@ -24,7 +26,7 @@ import {
   getCenterPath,
   pointsToPath,
 } from '@/components/human-design/bodygraph-layout'
-import { loneGates, markKey } from '@/lib/atlas/marks'
+import { loneGates, markKey, seatsOf } from '@/lib/atlas/marks'
 import type { AtlasLayerId, PersonAtlas, SkyLayer, MayaLayer, BodyLayer } from '@/lib/atlas/types'
 import { needsLabel } from '@/lib/atlas/readout'
 import { sealGlyphSrc, signGlyphSrc } from '@/lib/design/glyph-paths'
@@ -72,6 +74,17 @@ const Glyph = ({ href, point, size, on }: { href: string; point: Point; size: nu
     className={on ? s.glyphOn : s.glyph}
   />
 )
+
+/**
+ * The outline ring round the active point mark, standing off it by the
+ * surface gap. It sits inside its layer's group, so a ring still turning to a
+ * new date carries it with the mark. A line mark lights its stroke instead.
+ */
+function Halo({ lit, layer }: { readonly lit: Lit; readonly layer: AtlasLayerId }) {
+  const mark = lit?.active
+  if (!mark || mark.layer !== layer || mark.path) return null
+  return <circle key={mark.key} cx={mark.anchor[0]} cy={mark.anchor[1]} r={mark.r + HALO_GAP} className={s.halo} data-layer={layer} pathLength={1} />
+}
 
 function Sky({ sky, lit }: { sky: SkyLayer; lit: Lit }) {
   const asc = sky.ascendant
@@ -128,6 +141,7 @@ function Sky({ sky, lit }: { sky: SkyLayer; lit: Lit }) {
           </text>
         </Mark>
       )}
+      <Halo lit={lit} layer="sky" />
     </g>
   )
 }
@@ -163,7 +177,7 @@ export function ToneMark({ tone, point }: { readonly tone: number; readonly poin
 
 function Maya({ maya, lit }: { maya: MayaLayer; lit: Lit }) {
   const own = maya.seal.n
-  const seats = new Set([maya.oracle.guide.n, maya.oracle.analog.n, maya.oracle.antipode.n, maya.oracle.occult.n])
+  const seats = seatsOf(maya)
   return (
     <g className={s.layer} data-layer="maya">
       <circle cx={C} cy={C} r={RING.mayaOuter} className={`${s.ring} ${s.draw}`} pathLength={1} />
@@ -171,14 +185,14 @@ function Maya({ maya, lit }: { maya: MayaLayer; lit: Lit }) {
       {SEALS.map((seal) => {
         const angle = sealAngle(seal.number, own)
         const point = sealPoint(seal.number, own)
-        const isOwn = seal.number === own
+        const style = sealStyle(seal.number, own, seats)
         return (
           <g key={seal.number} className={s.enterSeal} style={order(seal.number - 1)}>
             <line {...lineProps(polar(RING.mayaInner, angle + 180 / SEAL_COUNT), polar(RING.mayaOuter, angle + 180 / SEAL_COUNT))} className={s.divider} />
             <Mark id={markKey({ kind: 'seal', n: seal.number })} lit={lit}>
-              {isOwn && <circle cx={point[0]} cy={point[1]} r={MARK_SIZE.litSeal} className={s.litSeal} />}
-              {seats.has(seal.number) && !isOwn && <circle cx={point[0]} cy={point[1]} r={MARK_SIZE.seat} className={s.seat} />}
-              <Glyph href={sealGlyphSrc(seal.number, seal.english)} point={point} size={MARK_SIZE.seal} on={isOwn} />
+              {style === 'own' && <circle cx={point[0]} cy={point[1]} r={SEAL_RADIUS.own} className={s.litSeal} />}
+              {style === 'seat' && <circle cx={point[0]} cy={point[1]} r={SEAL_RADIUS.seat} className={s.seat} />}
+              <Glyph href={sealGlyphSrc(seal.number, seal.english)} point={point} size={MARK_SIZE.seal} on={style === 'own'} />
             </Mark>
           </g>
         )
@@ -186,6 +200,7 @@ function Maya({ maya, lit }: { maya: MayaLayer; lit: Lit }) {
       <Mark id={markKey({ kind: 'tone' })} lit={lit}>
         <ToneMark tone={maya.tone.n} point={TONE_POINT} />
       </Mark>
+      <Halo lit={lit} layer="maya" />
     </g>
   )
 }
@@ -245,6 +260,7 @@ function Body({ body, needs, lit }: { body: BodyLayer | null; needs: PersonAtlas
           {needsLabel(needs)}
         </text>
       )}
+      <Halo lit={lit} layer="body" />
     </g>
   )
 }
@@ -311,12 +327,6 @@ export function AtlasLayers({ atlas, lit = null }: { readonly atlas: PersonAtlas
   )
 }
 
-/** The outline ring round the active point mark, standing off it by the surface gap; a line mark lights its stroke instead. */
-function Halo({ mark }: { readonly mark: PlacedMark }) {
-  if (mark.path) return null
-  return <circle cx={mark.anchor[0]} cy={mark.anchor[1]} r={mark.r + HALO_GAP} className={s.halo} data-layer={mark.layer} pathLength={1} />
-}
-
 export interface PersonAtlasProps {
   readonly atlas: PersonAtlas
   readonly focus?: AtlasLayerId | null
@@ -343,7 +353,6 @@ export function PersonAtlasDrawing({ atlas, focus = null, highlight = null, desc
       <svg viewBox={`0 0 ${C * 2} ${C * 2}`} className={s.svg} role="img" aria-label={label} aria-describedby={describedBy}>
         <g className={s.zoom} data-zoom="">
           <AtlasLayers atlas={atlas} lit={highlight} />
-          {highlight && <Halo key={highlight.active.key} mark={highlight.active} />}
         </g>
       </svg>
       {children}

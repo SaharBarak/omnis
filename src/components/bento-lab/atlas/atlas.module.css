@@ -37,9 +37,14 @@
 
 /* ---------- marks being read (BENTO_SITE.md, "Marks explain themselves") ----------
  * Each mark's own group owns its opacity; the entrance animates the group
- * around it, so the two never write the same property of one element. */
+ * around it, so the two never write the same property of one element.
+ * A layer the switch already dims stays at one dim: reading a mark dims only
+ * the marks still at full strength. */
 
-.atlas[data-inspect] .mark:not([data-state]) {
+.atlas[data-inspect]:not([data-focus]) .mark:not([data-state]),
+.atlas[data-inspect][data-focus='sky'] .layer[data-layer='sky'] .mark:not([data-state]),
+.atlas[data-inspect][data-focus='maya'] .layer[data-layer='maya'] .mark:not([data-state]),
+.atlas[data-inspect][data-focus='body'] .layer[data-layer='body'] .mark:not([data-state]) {
   opacity: var(--atlas-dim);
 }
 
@@ -431,36 +436,29 @@
 }
 
 .card {
-  /* Off the mark by its halo, never closer than half the least target. */
-  --gap: max(calc(var(--halo) * 100cqi), calc(var(--target) / 2));
   --tx: 0px;
   --ty: 0px;
 
+  /* Placed by placeCard (mark-card.tsx): a transform, so moving it is no layout shift; the travel is the separate translate. */
   position: absolute;
-  left: var(--x);
-  top: var(--y);
+  left: 0;
+  top: 0;
   z-index: 2;
   display: grid;
   gap: 2px;
   width: max-content;
-  max-inline-size: min(32ch, calc(50cqi - var(--gap)));
+  max-inline-size: min(32ch, calc(50cqi - var(--gap, 0px)));
   padding: 10px 12px;
   border-radius: var(--radius-control);
   font-size: var(--type-caption);
   line-height: 1.35;
   text-align: start;
-  translate:
-    calc(var(--px) + var(--nudge-x, 0px) + var(--tx))
-    calc(var(--py) + var(--nudge-y, 0px) + var(--ty));
+  transform: translate(var(--at-x, 0px), var(--at-y, 0px));
+  translate: var(--tx) var(--ty);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
 }
-
-.card[data-side='right'] { --px: var(--gap); }
-.card[data-side='left'] { --px: calc(-100% - var(--gap)); }
-.card[data-drop='down'] { --py: calc(-1 * var(--gap)); }
-.card[data-drop='up'] { --py: calc(-100% + var(--gap)); }
 
 /* Closed, the card sits a travel nearer its mark; it fades out along that line. */
 .card[data-side='right']:not([data-open]) { --tx: calc(-1 * var(--travel)); }
@@ -547,7 +545,8 @@
     right: 8px;
     width: auto;
     max-inline-size: none;
-    translate: 0 var(--ty);
+    transform: none;
+    --tx: 0px;
   }
   .card[data-dock='bottom'] {
     top: auto;

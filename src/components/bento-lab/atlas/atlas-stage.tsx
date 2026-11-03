@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useId, useReducer, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react'
+import { useEffect, useId, useReducer, useRef, useState, type CSSProperties, type Dispatch, type ReactNode, type RefObject } from 'react'
 import s from './atlas.module.css'
-import { IDLE, inspect } from './inspect'
+import { IDLE, inspect, type InspectEvent } from './inspect'
 import { MarkCard } from './mark-card'
 import { placeMarks, type PlacedMark } from './mark-geometry'
 import { holds, MarkTargets } from './mark-targets'
@@ -14,6 +14,7 @@ import { atlasPins } from './pins'
 import { useExplain } from './use-explain'
 import kit from '../kit.module.css'
 import { useTurn } from '../motion/use-turn'
+import { DURATION } from '@/lib/design/motion-tokens'
 import { LAYER_META } from '@/lib/atlas/layers'
 import { markKey, markTitle, relatedMarks, type AtlasMarkRef } from '@/lib/atlas/marks'
 import type { AtlasLayerId, PersonAtlas } from '@/lib/atlas/types'
@@ -45,6 +46,38 @@ const answering = (marks: readonly PlacedMark[], focus: AtlasLayerId | null): Re
 
 const find = (marks: ReadonlyMap<string, PlacedMark>, ref: AtlasMarkRef | null): PlacedMark | null => (ref ? (marks.get(markKey(ref)) ?? null) : null)
 
+const leaving = (event: InspectEvent): boolean => event.type === 'point' && event.ref === null
+
+/**
+ * Hover grace (WCAG 1.4.13): the pointer leaving the marks closes the card a
+ * beat later, so it can cross the gap onto the card. Any other event, or the
+ * pointer reaching the card (`hold`), cancels the pending close; leaving again
+ * while one is pending does not restart it.
+ */
+function useGrace(dispatch: Dispatch<InspectEvent>) {
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hold = () => {
+    if (timer.current === null) return
+    clearTimeout(timer.current)
+    timer.current = null
+  }
+  useEffect(() => () => {
+    if (timer.current !== null) clearTimeout(timer.current)
+  }, [])
+  const send = (event: InspectEvent) => {
+    if (!leaving(event)) {
+      hold()
+      dispatch(event)
+      return
+    }
+    timer.current ??= setTimeout(() => {
+      timer.current = null
+      dispatch(event)
+    }, DURATION.quick)
+  }
+  return { send, hold }
+}
+
 /**
  * Which mark's card is open, and the drawing's highlight for it
  * (BENTO_SITE.md, "Marks explain themselves"). A new atlas or a new layer
@@ -63,23 +96,27 @@ function useMarkInspect(atlas: PersonAtlas, focus: AtlasLayerId | null, squareRe
   const open = active !== null
   const kept = state.kept
 
+  const { send, hold } = useGrace(dispatch)
+
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') dispatch({ type: 'dismiss' })
+      if (e.key !== 'Escape') return
+      e.stopPropagation()
+      dispatch({ type: 'dismiss' })
     }
     const onDown = (e: PointerEvent) => {
       if (kept && !holds(squareRef.current, e.target)) dispatch({ type: 'dismiss' })
     }
-    document.addEventListener('keydown', onKey)
+    document.addEventListener('keydown', onKey, true)
     document.addEventListener('pointerdown', onDown)
     return () => {
-      document.removeEventListener('keydown', onKey)
+      document.removeEventListener('keydown', onKey, true)
       document.removeEventListener('pointerdown', onDown)
     }
   }, [open, kept, squareRef])
 
-  return { state, dispatch, marks: [...marks.values()], active, shown: find(marks, state.shown), highlight }
+  return { state, send, hold, marks: [...marks.values()], active, shown: find(marks, state.shown), highlight }
 }
 
 /**
@@ -116,7 +153,7 @@ export function AtlasStage({
   const cardId = useId()
   useTurn(drawingRef, 'g[data-layer="sky"]', skyAnchor(atlas))
   useTurn(drawingRef, 'g[data-layer="maya"]', kinAnchor(atlas))
-  const { state, dispatch, marks, active, shown, highlight } = useMarkInspect(atlas, focus, drawingRef)
+  const { state, send, hold, marks, active, shown, highlight } = useMarkInspect(atlas, focus, drawingRef)
   const { explainer, prime } = useExplain()
   const reading = shown && explainer ? explainer.explain(atlas, shown.ref) : null
   return (
@@ -139,7 +176,7 @@ export function AtlasStage({
               activeKey={active?.key ?? null}
               cardId={cardId}
               isInCard={(target) => holds(cardRef.current, target)}
-              onEvent={dispatch}
+              onEvent={send}
               onIntent={prime}
             />
           </PersonAtlasDrawing>
@@ -152,8 +189,9 @@ export function AtlasStage({
             reading={reading}
             open={active !== null}
             kept={state.kept && active !== null}
+            onPointerEnter={hold}
             onPointerLeave={(e) => {
-              if (!holds(drawingRef.current, e.relatedTarget)) dispatch({ type: 'point', ref: null })
+              if (!holds(drawingRef.current, e.relatedTarget)) send({ type: 'point', ref: null })
             }}
           />
         </div>
