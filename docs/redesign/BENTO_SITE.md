@@ -536,9 +536,9 @@ the figure's shape while it reads, and an empty state that names what to add.
 "No saved people" and "saved people whose birth data cannot be read" are
 different states with different actions.
 
-The pair scene's sticky track holds only when the viewport is tall enough
-for its frame; below that it lays out flat. A skip link before each scroll
-scene jumps past it.
+Every scene has one height with motion on or off. It plays once as it
+comes into view (BENTO_MOTION.md, "Motion engines"), so nothing on the page is
+taller than its content and no skip link is needed past it.
 
 A system page opens on the person named in `?person=<id>` when that person
 belongs to the account, then on the account's own person, then on the

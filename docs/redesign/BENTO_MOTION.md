@@ -142,9 +142,13 @@ Lifecycle rules for every wrapper:
   scrolling back, pausing and resuming all leave the final frame. When it
   ends it reverts its inline styles, so the stylesheet's final frame takes
   over and a later state, such as a layer brought forward, belongs to the
-  stylesheet alone.
-- Input supersedes a sequence. A reader acting on its section while it
-  plays (`finish`), or motion turning off, ends it at the final frame.
+  stylesheet alone. While it is armed or playing its root carries
+  `data-sequence`, and the stylesheet holds its own transitions off until
+  it ends, so a transition never chases the timeline.
+- Input supersedes a sequence. A reader acting on its section, while it
+  plays or before it ever arms (`finish`), or motion turning off, ends it
+  at the final frame for good. The layers tour lights its layer's tile with
+  its own cue (`spot`), apart from a pressed tile.
 - First-paint entrances match only while the lab root carries
   `data-entrance` (`useEntrance`). It comes off once the page's finite CSS
   animations finish, or when motion is paused, and goes back on before
@@ -255,8 +259,10 @@ with its facts in one row under it.
   grow.
 - No motion reads scroll position. `motion-policy.test.ts` fails on a
   scroll-linked timeline in the lab's CSS (`animation-timeline`,
-  `scroll-timeline`, `view-timeline`) or a scroll-linked API in its
-  scripts (`ScrollTrigger`, `useScroll`, `scrub`).
+  `scroll-timeline`, `view-timeline`), on a scroll-linked API in its
+  scripts, comments aside (GSAP imported statically or by `import()`,
+  `ScrollTrigger`, `scrub`, Motion's `scroll` and `useScroll`, anime's
+  `onScroll`, a `scroll` listener), and on GSAP in `package.json`.
 - Light and dark: text tiers at 4.5:1 or better (BENTO_COLOR.md).
 - One element, one engine: no component imports two engines for the same
   node.
