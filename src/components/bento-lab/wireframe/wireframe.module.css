@@ -241,6 +241,18 @@
   line-height: 1;
 }
 
+/* A value in a component's anatomy: the strong line (lead) or a support's value. */
+.value {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.value[data-size='sm'] {
+  font-size: 12px;
+}
+
 .row {
   display: flex;
   flex-wrap: wrap;

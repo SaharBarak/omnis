@@ -1,4 +1,5 @@
 import { Box, Field, Figure, Label, Lines, Num, Ph, Pill, Row, Rule, Title } from '@/components/bento-lab/wireframe/primitives'
+import { DIGEST_SHAPE, tileOf, type TileId } from '@/lib/atlas/digest-shape'
 import { DIGEST, LAYER_META, LAYERS_BY_PIN, systemLabel, type DigestEntry } from '@/lib/atlas/layers'
 import type { AtlasLayerId } from '@/lib/atlas/types'
 
@@ -6,13 +7,10 @@ import type { AtlasLayerId } from '@/lib/atlas/types'
 const entryName = (entry: DigestEntry): string => (entry.kind === 'layer' ? LAYER_META[entry.layer].name : systemLabel(entry.system))
 const pinOf = (layer: AtlasLayerId): string => `${LAYER_META[layer].pin} ${LAYER_META[layer].name}`
 const LAYER_NAMES = LAYERS_BY_PIN.map((layer) => LAYER_META[layer].name).join(', ')
-/** What each digest tile shows, for the wireframe's placeholders (BENTO_SITE.md, "The digest"). */
-const TILE_CONTENT: Readonly<Record<AtlasLayerId | 'longcount', string>> = {
-  maya: 'kin, tone, seal',
-  body: 'type, profile, authority',
-  longcount: 'one numeral per place, round',
-  number: 'life path, birthday, expression',
-  sky: 'sun, moon, rising',
+/** What each digest tile shows: its lead, then its supports (DIGEST_SHAPE, the table the tile reads). */
+const tileContent = (tile: TileId): string => {
+  const shape = DIGEST_SHAPE[tile]
+  return [shape.lead, ...shape.supports].map((fact) => fact.label.toLowerCase()).join(', ')
 }
 
 /* T1 — Home. Hero is drawn at full precision; the sections below it at section scale. */
@@ -30,7 +28,7 @@ export function HomeWireframe() {
         { n: 4, text: 'Primary CTA: save this map (sign up); secondary: see two people' },
         { n: 5, text: 'Atlas card over dimmed portal artwork; person tabs in the top notch (A, B, +)' },
         { n: 6, text: `Four layer pins on the atlas, numbered in the lead order: ${LAYER_NAMES}` },
-        { n: 7, text: 'Digest: one tile per system in the lead order, its name and pin over a row of facts, each a mark over its value and label; the Maya Long Count is read beside the map' },
+        { n: 7, text: 'Digest: one tile per system in the lead order, its name and pin toggle, its lead fact, then its supports, every fact opening a card (C1, C2); the Maya Long Count is read beside the map' },
         { n: 8, text: 'Add a second person: turns the hero into the pair atlas' },
         { n: 9, text: 'Layers: the map taken apart in depth, one layer lifted at a time as it comes into view, the digest row under it' },
         { n: 10, text: 'Two people: both maps across the full width, the tie rows under them' },
@@ -117,7 +115,7 @@ export function HomeWireframe() {
           </Box>
 
           <Box rows={[...DIGEST.map(() => '1fr'), 'auto'].join(' ')} gap={10}>
-            {DIGEST.map((entry) => `${entryName(entry)} · ${TILE_CONTENT[entry.kind === 'layer' ? entry.layer : entry.system]}`).map((label, i) => (
+            {DIGEST.map((entry) => `${entryName(entry)} · ${tileContent(tileOf(entry))}`).map((label, i) => (
               <Box key={label} frame="solid" n={i === 0 ? 7 : undefined}>
                 <Ph label={label} h={56} />
               </Box>

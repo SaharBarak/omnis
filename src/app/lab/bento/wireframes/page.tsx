@@ -1,4 +1,5 @@
 import { AppListWireframe, AppPersonWireframe, AppRelationWireframe, AppSystemWireframe } from './figures-app'
+import { DigestColumnWireframe, DigestTileWireframe } from './figures-digest'
 import {
   ArticleWireframe,
   AuthWireframe,
@@ -27,6 +28,8 @@ const INDEX = [
   ['t10-app-person', 'T10 App person'],
   ['t11-app-relation', 'T11 App relation'],
   ['t12-app-system', 'T12 App system'],
+  ['c1-digest-tile', 'C1 Digest tile'],
+  ['c2-digest-column', 'C2 Digest column'],
 ] as const
 
 /** Every page template of the bento site, greyscale, with the slot contract under each (BENTO_SITE.md). */
@@ -62,6 +65,8 @@ export default function WireframesPage() {
       <AppPersonWireframe />
       <AppRelationWireframe />
       <AppSystemWireframe />
+      <DigestTileWireframe />
+      <DigestColumnWireframe />
       <header id="motion" className={wf.index}>
         <h2>Motion storyboards</h2>
         <p>

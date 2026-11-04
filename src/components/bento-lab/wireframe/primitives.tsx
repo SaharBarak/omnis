@@ -95,6 +95,12 @@ export function Field({ label, hint, n }: { readonly label: string; readonly hin
 
 export const Label = ({ children }: { readonly children: ReactNode }) => <span className={s.label}>{children}</span>
 export const Num = ({ children }: { readonly children: ReactNode }) => <span className={s.num}>{children}</span>
+/** A value in a component's anatomy: `lead` for the strong line, `sm` for a support. */
+export const Value = ({ children, size = 'lead' }: { readonly children: ReactNode; readonly size?: 'lead' | 'sm' }) => (
+  <span className={s.value} data-size={size}>
+    {children}
+  </span>
+)
 export const Row = ({ children, gap = 8 }: { readonly children: ReactNode; readonly gap?: number }) => (
   <div className={s.row} style={{ gap }}>
     {children}
