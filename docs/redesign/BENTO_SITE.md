@@ -182,52 +182,62 @@ the pins, and the digest values roll.
 ### The digest
 
 `AtlasDigest` reads the person in the lead order (`DIGEST`): one tile per
-layer and one per system read beside the map. Every tile is one grammar,
+layer and one per system read beside the map. Every tile has one grammar,
 so the eye learns it once:
 
-- **Figure** on the leading side, in the layer's colour, as tall as the
-  three lines of text beside it when the support fits one line (caption,
-  lead and small at UI leading, so the size is derived from the type roles,
-  not set). Figures are aria-hidden: every value they show is in the words. A layer's pin sits on
-  the figure's corner, as pins sit on the drawing; a tile beside the map
-  has none.
-- **Text column**, whose start edge every tile shares: the system's name
-  (caption, capitals), a strong line (lead, 600, ink, with what the value
-  is in the label's voice beside it) and one support line (small, ink 2).
-  Support is a list of short phrases; a narrow tile breaks the line between
-  phrases, never inside one.
+- **Head.** The system's name (caption, capitals) at the start. At the end
+  sits the layer's pin, as on the drawing. A tile beside the map has no
+  pin; it shows one more fact in words there instead (the Long Count's
+  calendar round).
+- **Facts.** A row of the system's facts. Each fact stands its mark over
+  its value, with what the value is beneath. The facts share their rows
+  (subgrid), so the marks, the values and the labels each sit on one line
+  across the tile.
+  - A mark is drawn in the layer's colour at the figure role's height.
+    Marks are aria-hidden: every value they show is in the words.
+  - A number is its own mark: it fills the mark's and the value's rows at
+    the figure role, so its label stays on the label line.
 
-| Tile | Figure | Strong line | Support |
-|---|---|---|---|
-| Dreamspell | The kin as the drawing sets it at twelve o'clock, cropped (`KinMark`: the lit seal on its disc, the tone above) | Kin number · "Kin" | The kin's title |
-| Human Design | The bodygraph | Type | Profile |
-| Maya Long Count | The five places as bar-and-dot numerals in paired columns, read left to right and down; a lone last place is centred | The dotted date | The calendar round |
-| Numerology | The life path in a ring, the number in ink | "Life path" (the number with it for assistive tech) | Birthday and expression |
-| Astrology | The sun's sign glyph | Sun sign · "Sun" | Moon and rising |
+| Tile | Facts: mark, value, label |
+|---|---|
+| Dreamspell | The kin number, "Kin"; the tone as a bar-and-dot numeral, its name, "Tone"; the seal's glyph, its colour and name, "Seal" |
+| Human Design | The bodygraph, the type, "Type"; the profile's lines as a number, "Profile"; the authority's centre (`authorityCentre`), the authority's own word, "Authority" |
+| Maya Long Count | One bar-and-dot numeral per place, most significant first, its number, the place's name (Baktun to Kin, with Piktun above when a count carries) |
+| Numerology | Life path, birthday and expression, each a number |
+| Astrology | Sun, Moon and Rising, each its sign's glyph and name |
 
-Missing input is stated, never guessed: without a time and place the
-Human Design tile's strong line is the input it needs, over an empty
-bodygraph, and Astrology's support says what the rising sign needs
-(`needsPhrase`: "Rising needs a birth time"). Without a birth time a body
-whose day's arc crosses into the next sign is named by both signs
-("Aquarius or Pisces moon", `signsOf`), the same arc the readout states
-in degrees.
+Tone numerals and Long Count places stand on the mark row's floor, in a
+box as tall as the largest value they can take (13 for a tone, 19 for a
+place, `LARGEST`). A row of them therefore shares one baseline.
 
-A layer tile is a button that brings its layer forward (or, in `travel`
-mode, scrolls the layers scene to it). A tile beside the map is text,
-not a control, and takes no hover. The layers scene's legend is the legend
-of the four plates, so it lists the layers alone (`beside={false}`).
+Missing input is stated, never guessed:
 
-Columns are set by the context, from the tile count (`--tiles`): one per
-row in the hero's column and the tool's findings; one row in the map
-figure on wide screens; two columns where the row would be too narrow,
-with an odd last tile across both. In the hero's column the rows share
-its height but never squeeze a tile below its words; past that the column
-scrolls. Inside a tile the figure and the words share a line while the
-words keep their measure, the widest strong line a tile carries (a Long
-Count date of five two-digit places and four dots: 14ch at the lead), and
-the figure goes above them when they would not. Tiles in a row share a
-width and a measure, so they decide alike.
+- **No time and place.** Human Design shows one fact: the empty bodygraph
+  over the input it needs (`needsLabel`). Rising shows an open mark over
+  the same words.
+- **No birth time.** A body whose day's arc crosses into the next sign
+  shows both signs' glyphs and names ("Aries or Taurus", `signsOf`). This
+  is the same arc the readout states in degrees.
+- **No centre.** Mental and lunar authority have no centre of their own,
+  so their mark is open.
+
+A layer tile is a button. It brings its layer forward (or, in `travel`
+mode, scrolls the layers scene to it). A tile beside the map is text, not
+a control, and takes no hover. The layers scene's legend is the legend of
+the four plates, so it lists the layers alone (`beside={false}`).
+
+Columns are set by the context, from the tile count (`--tiles`):
+
+- **Hero, one person.** The column has no panel of its own. The tiles
+  stand on the page as cards, one per row, and share the column's height
+  without being squeezed below their content; past that the column
+  scrolls.
+- **Tool findings.** One tile per row.
+- **Map figure.** One row on wide screens. Where a row would be too
+  narrow, two columns, with an odd last tile across both.
+
+Inside a tile the facts share its width equally (`--facts`). A value
+balances across at most two lines.
 
 ### Marks explain themselves
 

@@ -8,11 +8,11 @@ const pinOf = (layer: AtlasLayerId): string => `${LAYER_META[layer].pin} ${LAYER
 const LAYER_NAMES = LAYERS_BY_PIN.map((layer) => LAYER_META[layer].name).join(', ')
 /** What each digest tile shows, for the wireframe's placeholders (BENTO_SITE.md, "The digest"). */
 const TILE_CONTENT: Readonly<Record<AtlasLayerId | 'longcount', string>> = {
-  maya: 'kin glyph, kin, title',
-  body: 'bodygraph, type, profile',
-  longcount: 'bar-and-dot places, date, round',
-  number: 'life path ring, two more',
-  sky: 'sun glyph, sun, moon and rising',
+  maya: 'kin, tone, seal',
+  body: 'type, profile, authority',
+  longcount: 'one numeral per place, round',
+  number: 'life path, birthday, expression',
+  sky: 'sun, moon, rising',
 }
 
 /* T1 — Home. Hero is drawn at full precision; the sections below it at section scale. */
@@ -30,7 +30,7 @@ export function HomeWireframe() {
         { n: 4, text: 'Primary CTA: save this map (sign up); secondary: see two people' },
         { n: 5, text: 'Atlas card over dimmed portal artwork; person tabs in the top notch (A, B, +)' },
         { n: 6, text: `Four layer pins on the atlas, numbered in the lead order: ${LAYER_NAMES}` },
-        { n: 7, text: 'Digest: one tile per system in the lead order, figure beside a name, a strong line and one support line; the Maya Long Count is read beside the map' },
+        { n: 7, text: 'Digest: one tile per system in the lead order, its name and pin over a row of facts, each a mark over its value and label; the Maya Long Count is read beside the map' },
         { n: 8, text: 'Add a second person: turns the hero into the pair atlas' },
         { n: 9, text: 'Layers: the map taken apart in depth, one layer per scroll step, the digest row under it' },
         { n: 10, text: 'Two people: both maps across the full width, the tie rows under them' },

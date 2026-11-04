@@ -146,23 +146,18 @@ A role keeps one weight wherever it appears.
 
 ## The digest (home hero, `AtlasDigest`)
 
-Each tile reads top to bottom as system, then reading, then support, in a
-text column beside the figure (BENTO_SITE.md, "The digest").
+Each tile is a head over a row of facts (BENTO_SITE.md, "The digest").
 
 - **Name.** The system's name: caption, 600, capitals, ink 2.
-- **Strong line.** The reading: lead, 600, ink, tabular figures, so a kin
-  number, a type, a five-place date and a sign take one size across the
-  tiles and compare. What the value is (Kin, Sun) sits beside it: caption,
-  500, sentence case, ink 3.
-- **Support.** One line of short phrases (a title, a profile, the moon and
-  rising): small, 500, ink 2.
-- **Pin.** The pin digit is micro, on a disc sized 1.75 times the digit,
-  on the figure's corner.
-- **Figure size.** The figure is as tall as the three lines beside it: the
-  sum of caption, lead and small at UI leading, plus the two line gaps.
-- **Measure.** The text column keeps 14ch at the lead (a five-place date
-  in tabular figures) beside the figure, or takes the line below it.
-  The numerology ring's number is the figure role, in ink.
+- **Note.** The extra fact at the end of a beside tile's head: caption,
+  500, ink 3.
+- **Pin.** The pin digit is micro, on a disc 1.75 times the digit.
+- **Mark.** As tall as the figure role (`--mark`), so a glyph, a drawing
+  and a number weigh alike across the tiles.
+- **Number.** Figure role, 600, ink, tabular figures, leading 1. It
+  stands on the values' line.
+- **Value.** Small, 500, ink, with balanced wrapping.
+- **Label.** What the value is: caption, 500, sentence case, ink 3.
 
 ## Acceptance
 
@@ -170,8 +165,8 @@ text column beside the figure (BENTO_SITE.md, "The digest").
 - The scale is monotonic and nothing resolves below 11 px.
 - The home hero at 1512×768, 1440×900, 1280×720, 1100 and 390, dark and
   light: the claim column and the rail fit with nothing cut off, no tile's
-  content is taller or wider than the tile, and every tile's figure resolves
-  to the same size.
+  content is taller or wider than the tile, and every tile's marks resolve
+  to the same height.
 - Labels in ink 3 hold 4.5:1 on a selected tile's tint in both themes.
 - Every route in the route table renders at 1440 and 390 with no horizontal
   scroll after the migration.
