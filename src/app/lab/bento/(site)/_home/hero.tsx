@@ -9,12 +9,14 @@ import { AtlasReadout, AtlasStage, PairDrawing, StageBadge, TieList, atlasStyles
 import { AtlasDigest } from '@/components/bento-lab/atlas/digest'
 import { BirthFields } from '@/components/bento-lab/atlas/birth-fields'
 import { PrimaryAction, site } from '@/components/bento-lab/site'
+import { DIGEST } from '@/lib/atlas/layers'
 import { loadPairAtlas, loadPersonAtlas } from '@/lib/atlas/load'
 import type { AtlasPerson } from '@/lib/atlas/pair'
 import type { AtlasLayerId, PairAtlas, PersonAtlas } from '@/lib/atlas/types'
 import { useAtlasDraft, type AtlasDraft } from '@/lib/atlas/use-atlas-draft'
 import type { LabMedia } from '@/lib/data/lab-media'
 import { INPUT_SETTLE_MS, useDeferredCompute } from '@/lib/hooks/use-deferred-compute'
+import { Spelled } from '@/lib/site/number-words'
 import { signInHref, siteHref } from '@/lib/site/routes'
 
 export interface HeroSeed {
@@ -28,6 +30,9 @@ export interface HeroSeed {
 }
 
 const READOUT_ID = 'hero-readout'
+
+/** The claim counts the systems the digest shows, so it can't drift from the tiles beside it. */
+const CLAIM = `${Spelled(DIGEST.length)} systems. One map.`
 
 const personOf = (base: AtlasPerson, form: AtlasDraft, fallback: string): AtlasPerson | null =>
   form.input ? { id: base.id, name: form.sample ? base.name : fallback, input: form.input } : null
@@ -80,14 +85,10 @@ export function Hero({ seed, today, artwork }: { readonly seed: HeroSeed; readon
     <section className={`${site.page} ${s.hero}`} aria-labelledby="hero-title">
       <div className={`${s.claim} ${kit.rise}`}>
         <div className={s.claimTop}>
-          <span className={kit.eyebrow}>A survey map for people</span>
           <h1 id="hero-title" className={site.h2}>
-            Know where to dig
+            {CLAIM}
           </h1>
-          <p className={`${site.body} ${s.lead}`}>
-            One map of a person, drawn from a birth date: sky, Kin, body and number. Add a second person and every tie
-            between you is weighed by how rare it is.
-          </p>
+          <p className={`${site.body} ${s.lead}`}>Start with your birth date.</p>
         </div>
         <div className={s.person}>
           <BirthFields id="hero-a" form={formA} dense />

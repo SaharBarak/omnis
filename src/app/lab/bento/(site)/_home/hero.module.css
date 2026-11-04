@@ -121,7 +121,6 @@
     height: min(80svh, 720px);
   }
   .side .digest {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-auto-rows: auto;
   }
 }
