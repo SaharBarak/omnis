@@ -213,8 +213,9 @@ dash (`The seeker`). The words after the dash go on the number's card.
   empty bodygraph over the input it needs (`needsLabel`). Rising shows an
   open mark over the same words.
 - **No birth time.** A body whose day's arc crosses into the next sign
-  shows both glyphs and names (`Pisces or Aries`, `signsOf`) and no
-  degree.
+  shows both glyphs and names (`Pisces or Aries`, `signsOf`). A body whose
+  day's arc spans a degree or more shows no degree (`dayArc`), as the
+  readout gives that arc in degrees.
 - **No centre.** Mental and lunar authority have no centre of their own,
   so their mark is open.
 - **No name.** Expression is an open mark over "Needs a name"
@@ -226,7 +227,10 @@ cannot hold other controls, and these facts each open their own card:
 - **The pin toggle** brings its layer forward and a second press lets it
   go (`aria-pressed`, named "Bring Dreamspell forward"). The disc keeps the
   drawing's pin size. Its hit area is at least 40 px (44 px on coarse
-  pointers), set by a pseudo-element, so the head's height does not change.
+  pointers), set by a pseudo-element stacked above the lead, so the head's
+  height does not change. The digest leaves room above its first row for
+  the part of that area that overhangs the tile, so a scrolling column
+  never clips it.
 - **The name, the lead and each support** are buttons that open a card
   (below). Each button's text puts the label before the value, so a screen
   reader says "Profile, 1/3, Investigator/Martyr". Marks are aria-hidden.
@@ -275,10 +279,15 @@ every value it shows is also in the tile or the readout.
 
 **References.** `src/lib/atlas/readings.ts` names what a digest fact refers
 to (`ReadingRef`). A mark the drawing draws keeps its mark reference (the
-tone, the guide seal, the rising sign). The rest are reading references:
-`system`, `kin`, `type`, `profile`, `authority`, `number` (with its role:
-life path, birthday or expression), `longcount`, `place` (by its unit, Kin
-to Piktun, never by its value) and `placement` (a body in its sign).
+tone, the rising sign). The rest are reading references: `system`, `kin`,
+`seat` (an oracle seat by its role, so the guide reads as the guide even on
+the tones where it is the person's own seal), `type`, `profile`,
+`authority`, `number` (with its role: life path, birthday or expression),
+`longcount`, `place` (by its unit, Kin to Piktun, never by its value) and
+`placement` (a body in its sign). Whether a tile reads a layer or a system
+beside the map, and so its name, pin, eyebrow and what it reads and needs,
+comes from its `DIGEST` entry (`tileLayer`, `tileName`, `tilePin`,
+`tileMeta` in `digest-shape.ts`).
 `readingKey` gives each a stable key, using `markKey` for marks. The card's
 head is the fact's own label and value, so the tile and its card can never
 name it two ways.
@@ -292,17 +301,24 @@ line leaves it out.
 |---|---|---|---|
 | system | The catalog description | Reads, Needs | `SYSTEM_CATALOG`, `LAYER_META`, `BESIDE_META` |
 | kin | The wavespell's purpose | Wavespell, Castle, Court | `WAVESPELLS`, `CASTLES` |
-| tone, seal, rising | As the drawing's mark | As the drawing's mark | `explain` |
+| seat | The seat's description | Power, action and essence of the seal in it | `ORACLE_ROLES`, `SEAL_MEANINGS` |
+| tone, rising | As the drawing's mark | As the drawing's mark | `explain` |
 | type | The type's aura | Strategy, Signature, Not-self, Share of people | `TYPES` |
 | profile | The profile's theme | Each line's name and theme | `PROFILES`, `LINE_THEMES` |
 | authority | Its description | Decision | `AUTHORITIES` |
 | number | The words after the dash | From (the input it is reckoned from) | `NUMBER_MEANINGS` |
-| longcount | The catalog description | Days since creation, Tzolk'in, Haab | `getLongCountData` |
-| place | How many days one unit holds | Days, Count (value times days) | `PLACE_DAYS` |
+| longcount | The catalog description | Since creation (in days), Tzolk'in, Haab | `getLongCountData` |
+| place | How many days one unit holds | Count (the value times those days) | `PLACE_DAYS` |
 | placement | The sign's keywords | Element, Modality, Ruler | `ZODIAC_SIGNS`, `PLANETS` |
 
-A missing fact explains what it waits on: its meaning is what the fact
-would read, and its value is the input it needs.
+A missing fact's value is the input it needs, and its card keeps what its
+source says of the fact itself: the first house for Rising, the system for
+Human Design, and what the number is reckoned from for Expression. No card
+guesses a value.
+
+A system's card is headed "System" over the system's name. A fact's card
+is headed by the fact's own label and its full value (`Profile`, `1/3
+Investigator/Martyr`).
 
 **State.** One card per digest. The digest feeds the inspect reducer
 (`createInspect(readingKey)`, the same reducer the drawing uses with
@@ -321,13 +337,20 @@ would read, and its value is the input it needs.
 pin and name, keyed by a stroke of the layer colour, or ink 3 beside the
 map), label, value in the display face, meaning, facts. It is a
 `popover="manual"` in the top layer, so no column's overflow or entrance
-transform clips it. CSS anchor positioning hangs it from the active fact
-(`anchor-name` on that fact, a name per digest from `useId`): toward the
-inline start, top edges aligned. Where that would leave the viewport it
-tries, in order, the same side with bottom edges aligned, the other side,
-then below and above the fact (`position-try-fallbacks`). Under
-720 px, and in a browser without anchor positioning, it docks to the bottom
-of the viewport and scrolls within half its height. No script measures or
+transform clips it. CSS anchor positioning hangs it from the tile holding
+the active fact, so it never covers that tile (`anchor-name` on the tile, a
+name per digest from `useId`, which the card inherits). Where the tiles
+stack one per row (the hero, the tool findings) it sits beside the tile
+toward the inline start, top edges aligned; where they sit in a row (the
+map figure, the layers legend) it sits above the tile (`cardAt="above"`).
+Both are in logical terms, so a right-to-left page mirrors them. Where that would leave the viewport it
+tries, in order, the same side flipped along the block axis, the other
+side, then below and above the tile (`position-try-fallbacks`). Under
+720 px, and in a browser without `position-area` (which includes the
+releases that shipped only `inset-area`), it docks to the bottom of the
+viewport and scrolls within half its height. It fades in; it fades out in
+the top layer where the browser transitions `overlay`, and closes at once
+elsewhere rather than fall back into its column. No script measures or
 places it and nothing listens to scroll. The active fact is described by
 the card (`role="tooltip"`, `aria-describedby`); the card holds no
 controls.
@@ -775,3 +798,4 @@ each wireframe is the slot contract the built page must fill.
 | Solution-architect review (Claude subagent, read-only) | The digest round: Long Count range, date-only fit, moon arcs, button names, kin crop, derived measure, stale names | 2026-11-04 | Incorporated |
 | Solution-architect review (Claude subagent, read-only) | The digest as a head over a row of facts: content-derived wrap, authority and profile from data, missing name, reading order, pin and gap owners | 2026-11-04 | Incorporated |
 | Codex CLI (gpt-6-astra) | Digest hierarchy and knowledge: lead and supports within the hero's height, a dedicated pin toggle, ordinary fact buttons, reading references apart from marks, focus owning the card | 2026-11-04 | Incorporated |
+| Solution-architect review (Claude subagent, read-only, live checks) | The digest's head, lead and supports and its fact cards: pin hit area, accessible names, oracle seats, day-arc degrees, missing facts, shared dismissal, tile derivation, logical anchoring, support guards, exit fade | 2026-11-04 | Incorporated |
