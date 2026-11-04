@@ -194,7 +194,8 @@ function Tile({ entry, atlas, focus, spot, onFocus }: TileProps) {
       type="button"
       className={d.tile}
       data-layer={layer}
-      data-current={current || spot === layer ? '' : undefined}
+      data-current={current ? '' : undefined}
+      data-spot={spot === layer && !current ? '' : undefined}
       aria-pressed={current}
       onClick={() => onFocus(current ? null : layer)}
     >

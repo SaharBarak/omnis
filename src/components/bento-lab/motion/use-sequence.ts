@@ -26,20 +26,22 @@ export interface Sequence {
  *   already see keeps its final frame, and is spent.
  * - It plays when the section enters view (`ENTER_MARGIN`) and never again:
  *   scrolling back, pausing and resuming, or new data leave the final frame.
+ * - While armed or playing, its root carries `data-sequence`, so the
+ *   stylesheet holds its own transitions off rather than fight the timeline.
  * - When it ends, by playing out, by the returned `finish` (input
- *   supersedes it) or by motion turning off, its scope reverts every inline
- *   style it set, so the stylesheet's final frame takes over.
+ *   supersedes it, at any time, even before it armed) or by motion turning
+ *   off, its scope reverts every inline style it set, so the stylesheet's
+ *   final frame takes over.
  */
 export function useSequence(ref: RefObject<HTMLElement | null>, build: (kit: IllustrationKit) => Sequence | null, deps: DependencyList): () => void {
   const allowed = useMotionAllowed()
   const spent = useRef(false)
-  const end = useRef<() => void>(() => undefined)
+  const stopRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     const root = ref.current
     if (!allowed || !root || spent.current) return
     let disposed = false
-    let stop: (() => void) | null = null
     void import('animejs').then((anime) => {
       if (disposed || spent.current) return
       spent.current = true
@@ -60,29 +62,31 @@ export function useSequence(ref: RefObject<HTMLElement | null>, build: (kit: Ill
         { rootMargin: ENTER_MARGIN },
       )
       let ended = false
-      stop = () => {
+      const stop = () => {
         if (ended) return
         ended = true
         observer.disconnect()
         scope.revert()
+        root.removeAttribute('data-sequence')
         built.sequence?.settle?.()
       }
+      stopRef.current = stop
       if (!built.sequence) return stop()
-      void built.sequence.timeline.then(() => stop?.())
+      root.setAttribute('data-sequence', '')
+      void built.sequence.timeline.then(stop)
       observer.observe(root)
     })
-    end.current = () => {
-      spent.current = true
-      stop?.()
-    }
     return () => {
       disposed = true
-      stop?.()
-      end.current = () => undefined
+      stopRef.current?.()
+      stopRef.current = null
     }
     // `build` is read fresh on each run; `deps` names what should rerun it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allowed, ...deps])
 
-  return useCallback(() => end.current(), [])
+  return useCallback(() => {
+    spent.current = true
+    stopRef.current?.()
+  }, [])
 }

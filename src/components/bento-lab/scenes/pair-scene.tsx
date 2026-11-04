@@ -11,7 +11,7 @@ import kit from '../kit.module.css'
 import { PrimaryAction } from '../site/action'
 import { PairDrawing, TieTable } from '@/components/bento-lab/atlas'
 import { TIE_LAYER, tieStroke } from '@/components/bento-lab/atlas/tie-geometry'
-import { drawStroke, landsAt, Rolling, undrawnStroke, useMotionAllowed, useSequence } from '@/components/bento-lab/motion'
+import { drawStroke, ENTER_MARGIN, landsAt, Rolling, undrawnStroke, useMotionAllowed, useSequence } from '@/components/bento-lab/motion'
 import type { PairAtlas } from '@/lib/atlas/types'
 import { CURVE, DURATION, seconds, staggerStep } from '@/lib/design/motion-tokens'
 import { centerName, type Tie } from '@/lib/relations/pair-ties'
@@ -97,17 +97,18 @@ export function PairScene({ pair, action }: { readonly pair: PairAtlas; readonly
   const sceneRef = useRef<HTMLDivElement>(null)
   const rowsRef = useRef<HTMLDivElement>(null)
   const allowed = useMotionAllowed()
-  /** Lines drawn so far while the sequence runs; null is the final frame. */
-  const [landed, setLanded] = useState<number | null>(null)
-  const rowsInView = useInView(rowsRef, { once: true, amount: 0.2 })
+  /** Lines landed while the sequence draws them; `drawn` once it has ended, every line in; null is the final frame. */
+  const [landed, setLanded] = useState<number | 'drawn' | null>(null)
+  const rowsInView = useInView(rowsRef, { once: true, margin: ENTER_MARGIN })
 
   const ties = pair.reading.ties
   const drawn = ties.filter((t) => mayDrawEdge(t.baseRate))
   const top = drawn[0]
   const names = Object.fromEntries(pair.people.map((x) => [x.id, x.name]))
   const live = allowed && landed !== null
-  const lit = live ? landed : drawn.length
-  const rowsShown = !live || (landed >= drawn.length && rowsInView)
+  const lit = typeof landed === 'number' && live ? landed : drawn.length
+  const allIn = landed === 'drawn' || lit >= drawn.length
+  const rowsShown = !live || (allIn && rowsInView)
   const step = staggerStep(drawn.length)
 
   useSequence(
@@ -127,7 +128,7 @@ export function PairScene({ pair, action }: { readonly pair: PairAtlas; readonly
         const at = met + i * step
         const land = landsAt(at)
         add(part('[data-tie-end="from"]'), { opacity: [0, 1], duration: DURATION.quick, ease: ease(CURVE.standard) }, at)
-        add(part('[data-tie-line]'), { ...drawStroke(ease), onComplete: () => setLanded((n) => Math.max(n ?? 0, i + 1)) }, at)
+        add(part('[data-tie-line]'), { ...drawStroke(ease), onComplete: () => setLanded((n) => (typeof n === 'number' ? Math.max(n, i + 1) : n)) }, at)
         add(part('[data-tie-end="to"]'), { opacity: [0, 1], duration: DURATION.quick, ease: ease(CURVE.standard) }, land)
         add(part('[data-tie-label]'), { opacity: [0, 1], translateY: [8, 0], duration: DURATION.settle, ease: ease(CURVE.emphasized) }, land)
       })
@@ -137,8 +138,8 @@ export function PairScene({ pair, action }: { readonly pair: PairAtlas; readonly
       anime.utils.set(all('[data-tie-end], [data-tie-label]'), { opacity: 0 })
       anime.utils.set(all('[data-gauge]'), { strokeDashoffset: pair.reading.rarity + 1 })
       setLanded(0)
-      // Ended any way, every line is in: the rows still wait to be seen before they settle.
-      return { timeline, settle: () => setLanded((n) => (n === null ? null : drawn.length)) }
+      // Ended any way, every line is in, whatever the pair: the rows still wait to be seen before they settle.
+      return { timeline, settle: () => setLanded((n) => (n === null ? null : 'drawn')) }
     },
     [pair],
   )

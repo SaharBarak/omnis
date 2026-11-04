@@ -47,7 +47,8 @@ button.tile {
   cursor: pointer;
   transition:
     border-color var(--dur-quick) var(--ease-standard),
-    background-color var(--dur-quick) var(--ease-standard);
+    background-color var(--dur-quick) var(--ease-standard),
+    box-shadow var(--dur-quick) var(--ease-standard);
 }
 
 button.tile:hover {
@@ -57,6 +58,14 @@ button.tile:hover {
 .tile[data-current] {
   border-color: var(--tile);
   background: color-mix(in srgb, var(--tile) 12%, var(--lab-surface));
+}
+
+/* The layer a tour is showing on its own: outlined in its colour, never tinted like a press. */
+.tile[data-spot] {
+  border-color: var(--tile);
+  box-shadow:
+    var(--elevation-1),
+    0 0 0 3px color-mix(in srgb, var(--tile) 22%, transparent);
 }
 
 /* ---------- head ---------- */

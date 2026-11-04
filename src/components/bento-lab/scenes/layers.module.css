@@ -124,8 +124,12 @@
   --fade: 0;
 }
 
+/* A layer coming forward or going back moves; while the tour plays (data-sequence) the timeline alone moves them. */
 @media (prefers-reduced-motion: no-preference) {
-  [data-lab]:not([data-motion='paused']) .stack[data-focus] .plate {
+  [data-lab]:not([data-motion='paused']) .frame:not([data-sequence]) .stack {
+    transition: transform var(--dur-settle) var(--ease-standard);
+  }
+  [data-lab]:not([data-motion='paused']) .frame:not([data-sequence]) .plate {
     transition:
       opacity var(--dur-quick) var(--ease-standard),
       transform var(--dur-settle) var(--ease-standard);
