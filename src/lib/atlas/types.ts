@@ -1,5 +1,5 @@
 import type { PlanetId } from '@pleiad/engine/types/astrology'
-import type { CenterId } from '@pleiad/engine/types/human-design'
+import type { Authority, CenterId, HumanDesignType } from '@pleiad/engine/types/human-design'
 import type { CircleReading } from './circle'
 import type { PairReading } from '@/lib/relations/pair-ties'
 
@@ -61,6 +61,11 @@ export interface LongCountReading {
   readonly date: string
   /** The day's Tzolkin and Haab together, e.g. "7 Manik' 0 Kumku". */
   readonly round: string
+  /** The round's two counts apart: "7 Manik'" and "0 Kumku". */
+  readonly tzolkin: string
+  readonly haab: string
+  /** Days since the count's creation date. */
+  readonly days: number
 }
 
 export interface SkyBody {
@@ -103,6 +108,11 @@ export interface BodyLayer {
   readonly profile: string
   /** The profile's two lines, e.g. "1/3". */
   readonly profileLines: string
+  /** The profile's name, e.g. "Investigator/Martyr". */
+  readonly profileName: string
+  /** The engine's ids, for the tables that explain the type and the authority. */
+  readonly typeId: HumanDesignType
+  readonly authorityId: Authority
   readonly definition: string
   readonly cross: string
   readonly definedCenters: readonly CenterId[]

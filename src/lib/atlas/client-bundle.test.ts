@@ -16,10 +16,17 @@ const ROOT = process.cwd()
 const HEAVY = new Set(['circular-natal-horoscope-js', 'astronomy-engine', 'animejs'])
 /**
  * Local modules that reach the browser only after first paint: the atlas mark
- * meanings and the long tables only they read (BENTO_SITE.md, "Marks explain themselves").
+ * meanings and the long tables only they read (BENTO_SITE.md, "Marks explain themselves",
+ * "Facts explain themselves").
  */
 const LAZY_FILES = new Set(
-  ['src/lib/atlas/explain.ts', 'src/lib/dreamspell-meanings.ts', 'packages/engine/src/data/human-design-gates.ts'].map((f) => join(ROOT, f)),
+  [
+    'src/lib/atlas/explain.ts',
+    'src/lib/dreamspell-meanings.ts',
+    'packages/engine/src/data/human-design-gates.ts',
+    'packages/engine/src/data/wavespells.ts',
+    'packages/engine/src/data/castles.ts',
+  ].map((f) => join(ROOT, f)),
 )
 const CLIENT_ROOTS = ['src/components/bento-lab', 'src/app/lab/bento'].map((d) => join(ROOT, d))
 const EXTENSIONS = ['.ts', '.tsx', '/index.ts', '/index.tsx']

@@ -6,12 +6,14 @@ import type { TzolkinDay } from '../types/tzolkin'
 // GMT correlation constant (same as used in tzolkin.ts)
 const GMT_CORRELATION = 584283
 
-// Long Count unit values in days
-const DAYS_PER_KIN = 1
-const DAYS_PER_WINAL = 20
-const DAYS_PER_TUN = 360
-const DAYS_PER_KATUN = 7200
-const DAYS_PER_BAKTUN = 144000
+/** Days in one unit of each Long Count place. */
+export const PLACE_DAYS = Object.freeze({ kin: 1, winal: 20, tun: 360, katun: 7200, baktun: 144000 })
+
+const DAYS_PER_KIN = PLACE_DAYS.kin
+const DAYS_PER_WINAL = PLACE_DAYS.winal
+const DAYS_PER_TUN = PLACE_DAYS.tun
+const DAYS_PER_KATUN = PLACE_DAYS.katun
+const DAYS_PER_BAKTUN = PLACE_DAYS.baktun
 
 // Calendar Round cycle length (52 Haab years = 18,980 days)
 const CALENDAR_ROUND_DAYS = 18980

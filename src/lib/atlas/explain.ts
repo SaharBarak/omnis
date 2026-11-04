@@ -4,9 +4,18 @@ import { CHANNELS } from '@pleiad/engine/data/human-design-channels'
 import { GATES } from '@pleiad/engine/data/human-design-gates'
 import { PLANETS } from '@pleiad/engine/data/planets'
 import { ZODIAC_SIGNS } from '@pleiad/engine/data/zodiac-signs'
+import { getCastleByKin } from '@pleiad/engine/data/castles'
+import { getAuthorityDefinition, getProfile, getTypeDefinition, LINE_THEMES } from '@pleiad/engine/data/human-design'
+import { getWavespellByKin } from '@pleiad/engine/data/wavespells'
+import type { TileId } from './digest-shape'
+import { BESIDE_META, LAYER_META } from './layers'
+import { PLACE_NAMES, placeDays } from './long-count'
 import { andList, capital, centreName, MARK_LAYER, markTitle, rolesOf, type AtlasMarkKind, type AtlasMarkRef, type MarkSource, type MarkTitle } from './marks'
+import { signsOf } from './place'
+import { isMarkRef, numberWords, type NumberRole, type ReadingRef, type ReadingSource } from './readings'
 import type { AtlasLayerId } from './types'
 import { getSealMeaning, getToneMeaning } from '@/lib/dreamspell-meanings'
+import { SYSTEM_CATALOG, type ReadingSystemKey } from '@/lib/system-preferences'
 
 /**
  * What the tradition reads into a mark on the atlas (docs/redesign/BENTO_SITE.md,
@@ -95,4 +104,106 @@ function reading(atlas: MarkSource, ref: AtlasMarkRef): MarkReading {
 export function explain(atlas: MarkSource, ref: AtlasMarkRef): MarkExplanation | null {
   const title = markTitle(atlas, ref)
   return title ? { ...title, layer: MARK_LAYER[ref.kind], kind: ref.kind, ...reading(atlas, ref) } : null
+}
+
+/* ---------- digest readings (BENTO_SITE.md, "Facts explain themselves") ---------- */
+
+const count = new Intl.NumberFormat('en-US')
+
+const days = (n: number): string => `${count.format(n)} ${n === 1 ? 'day' : 'days'}`
+
+const catalogKey = (tile: TileId): ReadingSystemKey => (tile === 'longcount' ? tile : LAYER_META[tile].systems[0])
+
+const description = (tile: TileId): string | null => {
+  const key = catalogKey(tile)
+  const found = SYSTEM_CATALOG.find((system) => system.key === key)
+  return found ? `${found.description}.` : null
+}
+
+const NUMBER_FROM: Readonly<Record<NumberRole, string>> = {
+  lifePath: 'Birth date',
+  birthday: 'Day of birth',
+  expression: 'Full name, in Latin letters',
+}
+
+const numberAt = (atlas: ReadingSource, role: NumberRole): number | null => atlas.number[role]
+
+function systemReading(tile: TileId): MarkReading {
+  const meta = tile === 'longcount' ? BESIDE_META[tile] : LAYER_META[tile]
+  return { meaning: description(tile), facts: [fact('Reads', meta.reads), fact('Needs', meta.needs)] }
+}
+
+function placementReading(atlas: ReadingSource, id: string): MarkReading {
+  const body = atlas.sky.bodies.find((b) => b.id === id)
+  const planet = PLANETS.find((p) => p.id === id)
+  if (!body || !planet) return NOTHING
+  const signs = signsOf(body)
+  if (signs.length > 1) return { meaning: sentence(planet.keywords), facts: [fact('Sign', signs.map((s) => s.name).join(' or '))] }
+  const sign = ZODIAC_SIGNS[signs[0].n - 1]
+  const ruler = PLANETS.find((p) => p.id === sign.ruler)?.name ?? capital(sign.ruler)
+  return {
+    meaning: prose(sentence(planet.keywords), sentence(sign.keywords)),
+    facts: [fact('Element', capital(sign.element)), fact('Modality', capital(sign.modality)), fact('Ruler', ruler)],
+  }
+}
+
+/** What explain adds to a digest fact: its meaning and facts. The fact's own label and value head the card. */
+export function explainReading(atlas: ReadingSource, ref: ReadingRef): MarkReading {
+  if (isMarkRef(ref)) return reading(atlas, ref)
+  const { maya, body, longCount } = atlas
+  switch (ref.kind) {
+    case 'system':
+      return systemReading(ref.id)
+    case 'kin': {
+      const wavespell = getWavespellByKin(maya.kin)
+      const castle = getCastleByKin(maya.kin)
+      return {
+        meaning: `${wavespell.purpose}.`,
+        facts: [fact('Wavespell', wavespell.name), fact('Castle', `${capital(castle.color)} ${castle.name}`), fact('Court', castle.court)],
+      }
+    }
+    case 'type': {
+      if (!body) return systemReading('body')
+      const type = getTypeDefinition(body.typeId)
+      return {
+        meaning: `${capital(type.aura)} aura.`,
+        facts: [
+          fact('Strategy', type.strategy),
+          fact('Signature', type.signatureTheme),
+          fact('Not-self', type.notSelfTheme),
+          fact('Share of people', type.population),
+        ],
+      }
+    }
+    case 'profile': {
+      const profile = body ? getProfile(body.profileLines) : undefined
+      if (!profile) return NOTHING
+      const lines = [...new Set([profile.conscious, profile.unconscious])]
+      return { meaning: profile.theme, facts: lines.map((line) => fact(LINE_THEMES[line].name, capital(LINE_THEMES[line].theme))) }
+    }
+    case 'authority': {
+      if (!body) return NOTHING
+      const authority = getAuthorityDefinition(body.authorityId)
+      return { meaning: authority.description, facts: [fact('Decision', authority.decisionProcess)] }
+    }
+    case 'number': {
+      const n = numberAt(atlas, ref.role)
+      const words = n === null ? null : numberWords(n)
+      return { meaning: words?.reads ? `${capital(words.reads)}.` : null, facts: [fact('From', NUMBER_FROM[ref.role])] }
+    }
+    case 'longcount':
+      return {
+        meaning: description('longcount'),
+        facts: [fact('Since creation', days(longCount.days)), fact("Tzolk'in", longCount.tzolkin), fact('Haab', longCount.haab)],
+      }
+    case 'place': {
+      const name = PLACE_NAMES[ref.unit]
+      const value = longCount.places[longCount.places.length - 1 - ref.unit]
+      if (name === undefined || value === undefined) return NOTHING
+      const unit = placeDays(ref.unit)
+      return { meaning: `One ${name.toLowerCase()} holds ${days(unit)}.`, facts: [fact('Count', days(value * unit))] }
+    }
+    case 'placement':
+      return placementReading(atlas, ref.id)
+  }
 }

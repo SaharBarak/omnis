@@ -44,6 +44,11 @@ const LAYER_BASE: Readonly<Record<AtlasLayerId, Omit<LayerMeta, 'id' | 'name' | 
   number: { reads: 'Pythagorean numbers', needs: 'Date. A name in Latin letters adds expression.', systems: ['numerology'] },
 }
 
+/** What a system read beside the map reads and needs, as a layer's meta says it for the layer. */
+export const BESIDE_META: Readonly<Record<BesideSystem, Pick<LayerMeta, 'reads' | 'needs'>>> = {
+  longcount: { reads: 'The days since the count began, in base-twenty places', needs: 'Date only.' },
+}
+
 /** A catalog system's label; every system the map names is in the catalog. */
 export function systemLabel(key: ReadingSystemKey): string {
   const system = SYSTEM_CATALOG.find((s) => s.key === key)

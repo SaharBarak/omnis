@@ -83,7 +83,7 @@ export const centreOfGate = (gate: number): CenterId | null => CENTERS.find((c) 
 export const centreName = (id: CenterId): string => CENTERS.find((c) => c.id === id)?.name ?? capital(id)
 
 /** A seal's name with its colour, e.g. `Yellow Sun`. */
-const sealName = (n: number): string => {
+export const sealName = (n: number): string => {
   const seal = SEALS[n - 1]
   return `${capital(seal.color)} ${seal.english}`
 }
