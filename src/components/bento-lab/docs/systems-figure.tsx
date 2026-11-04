@@ -2,12 +2,12 @@ import type { CSSProperties } from 'react'
 import { Clock } from 'lucide-react'
 import kit from '../kit.module.css'
 import d from './docs.module.css'
-import { LAYER_META } from '@/lib/atlas/layers'
+import { LAYER_META, LAYERS_BY_PIN } from '@/lib/atlas/layers'
 import type { AtlasLayerId } from '@/lib/atlas/types'
 import { CHART_SYSTEMS } from '@/lib/site/plans'
 import { SYSTEM_CATALOG, type SystemInfo } from '@/lib/system-preferences'
 
-const LAYER_ORDER: readonly AtlasLayerId[] = (Object.keys(LAYER_META) as AtlasLayerId[]).sort((a, b) => LAYER_META[a].pin - LAYER_META[b].pin)
+const LAYER_ORDER: readonly AtlasLayerId[] = LAYERS_BY_PIN
 const ON_MAP = new Set<string>(LAYER_ORDER.flatMap((layer) => LAYER_META[layer].systems))
 const CHART = SYSTEM_CATALOG.filter((system) => CHART_SYSTEMS.includes(system.key))
 const BESIDE = CHART.filter((system) => !ON_MAP.has(system.key))

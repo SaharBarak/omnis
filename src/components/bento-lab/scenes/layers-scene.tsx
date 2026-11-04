@@ -18,7 +18,7 @@ const UNITS = STEPS.length + 2
 /** Where in a layer's timeline unit the scroll lands when its tile is chosen: past the lift, inside the hold. */
 const HOLD_AT = 0.7
 
-/** The layer lifted at a timeline time: unit 0 opens the stack, units 1..4 are the layers. */
+/** The layer lifted at a timeline time: unit 0 opens the stack, units 1 to `STEPS.length` are the layers. */
 const stepAt = (time: number): AtlasLayerId | null => STEPS[Math.floor(time) - 1] ?? null
 
 /**

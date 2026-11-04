@@ -94,7 +94,8 @@
 .side .digest {
   flex: 1;
   grid-template-columns: minmax(0, 1fr);
-  grid-auto-rows: minmax(0, 1fr);
+  /* Rows share the column's height but never squeeze a tile below its words; past that, the column scrolls. */
+  grid-auto-rows: minmax(min-content, 1fr);
   min-height: 0;
 }
 

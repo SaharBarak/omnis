@@ -21,7 +21,6 @@
   --tile: var(--lab-text-2);
   --on-tile: var(--lab-page);
 
-  container-type: inline-size;
   display: grid;
   align-content: center;
   min-width: 0;
@@ -57,29 +56,23 @@ button.tile:hover {
   background: color-mix(in srgb, var(--tile) 12%, var(--lab-surface));
 }
 
+/*
+ * The figure and the words share a line while the words keep their
+ * measure, and the figure goes above them when they would not: every tile
+ * in a row has the same width and the same measure, so they decide alike.
+ */
 .face {
-  display: grid;
-  grid-template-columns: var(--figure) minmax(0, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-}
-
-/*
- * A tile too narrow for the figure, the gap and the widest line a tile
- * carries (a profile at small, the five-place date at lead) sets the
- * figure above the words instead of squeezing them.
- */
-@container (width < 13.5rem) {
-  .face {
-    grid-template-columns: minmax(0, 1fr);
-    justify-items: start;
-  }
 }
 
 /* ---------- figure ---------- */
 
 /* A flex box, not a grid: its children's percentage sizes resolve against its own definite size. */
 .figure {
+  flex: none;
   position: relative;
   display: flex;
   align-items: center;
@@ -147,10 +140,19 @@ button.tile:hover {
 
 /* ---------- text column ---------- */
 
+/*
+ * The words' measure is the widest strong line a tile carries: a Long Count
+ * date of five two-digit places and four dots, in tabular figures at the
+ * lead (one figure is 1ch), so 14ch at the lead's size.
+ */
 .text {
+  --measure: 14ch;
+
+  flex: 1 1 var(--measure);
   display: grid;
   gap: var(--line-gap);
   min-width: 0;
+  font-size: var(--type-lead);
 }
 
 .name {

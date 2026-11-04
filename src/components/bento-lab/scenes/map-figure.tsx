@@ -12,8 +12,7 @@ const READY: StageStatus = { status: 'ready', error: null }
 
 /**
  * One person's map as a full-width figure (BENTO_SITE.md "Figures"): the
- * atlas sized to the viewport under the bar, its four layers as a digest row
- * under it. A tile or the layer switch brings one layer forward; the full
+ * atlas sized to the viewport under the bar, its digest as a row under it. A tile or the layer switch brings one layer forward; the full
  * readout is there for assistive tech, as on the home hero.
  */
 export function MapFigure({ atlas }: { readonly atlas: PersonAtlas }) {

@@ -7,10 +7,12 @@ import s from './atlas.module.css'
 import { MayaNumeral, numeralHeight, numeralStep } from './maya-numeral'
 import { BodygraphFigure, KinMark } from './person-atlas'
 import { MARK_SIZE } from './mark-geometry'
+import kit from '../kit.module.css'
 import { Rolling } from '../motion/rolling'
 import { DIGEST, LAYER_META, systemLabel, type BesideSystem, type DigestEntry } from '@/lib/atlas/layers'
-import { barDot, LARGEST, rowsOf } from '@/lib/atlas/maya-numeral'
-import { needsLabel } from '@/lib/atlas/readout'
+import { LARGEST } from '@/lib/atlas/maya-numeral'
+import { signsOf } from '@/lib/atlas/place'
+import { needsLabel, needsPhrase } from '@/lib/atlas/readout'
 import type { AtlasLayerId, GlyphRef, LongCountReading, PersonAtlas } from '@/lib/atlas/types'
 import { signGlyphSrc } from '@/lib/design/glyph-paths'
 
@@ -32,13 +34,16 @@ interface Reading {
 /** A glyph drawn in the current colour, so it takes its layer's colour in every palette. */
 const Mark = ({ src }: { src: string }) => <span className={d.mark} style={{ '--src': `url("${src}")` } as CSSProperties} aria-hidden />
 
-/** A strong line: the value, then what it is in the label's voice. */
-const Strong = ({ value, unit }: { value: string | number; unit?: string }) => (
+/** A strong line: the value, then what it is in the label's voice. `rank` orders a text value so it rolls the way it moved. */
+const Strong = ({ value, unit, rank }: { value: string | number; unit?: string; rank?: number }) => (
   <>
-    <Rolling value={value} className={d.value} />
+    <Rolling value={value} rank={rank} className={d.value} />
     {unit && <span className={d.unit}>{unit}</span>}
   </>
 )
+
+/** Either sign of a body whose day's arc crosses into the next, never a guess between them. */
+const OR = ' or '
 
 const signAt = (longitude: number): GlyphRef => {
   const sign = getZodiacSignFromLongitude(longitude)
@@ -46,16 +51,17 @@ const signAt = (longitude: number): GlyphRef => {
 }
 
 const sky = (atlas: PersonAtlas): Reading => {
-  const sign = (id: string) => atlas.sky.bodies.find((b) => b.id === id)?.sign ?? null
-  const sun = sign('sun')
-  const moon = sign('moon')
+  const body = (id: string) => atlas.sky.bodies.find((b) => b.id === id) ?? null
+  const sun = body('sun')
+  const moon = body('moon')
   const rising = atlas.sky.ascendant === null ? null : signAt(atlas.sky.ascendant)
   return {
-    figure: sun ? <Mark src={sun.src} /> : null,
-    strong: <Strong value={sun?.name ?? '–'} unit="Sun" />,
-    support: [moon ? `${moon.name} moon` : null, rising ? `${rising.name} rising` : `Rising: ${needsLabel(atlas.bodyNeeds ?? 'time-and-place').toLowerCase()}`].filter(
-      (phrase): phrase is string => phrase !== null,
-    ),
+    figure: sun ? <Mark src={sun.sign.src} /> : null,
+    strong: <Strong value={sun ? signsOf(sun).join(OR) : '–'} unit="Sun" />,
+    support: [
+      moon ? `${signsOf(moon).join(OR)} moon` : null,
+      rising ? `${rising.name} rising` : needsPhrase('Rising', atlas.bodyNeeds ?? 'time-and-place'),
+    ].filter((phrase): phrase is string => phrase !== null),
   }
 }
 
@@ -76,25 +82,28 @@ const number = (atlas: PersonAtlas): Reading => {
   const n = atlas.number
   return {
     figure: (
-      <span className={d.ring}>
+      <span className={d.ring} aria-hidden>
         <Rolling value={n.lifePath} className={d.ringValue} />
       </span>
     ),
-    strong: <Strong value="Life path" />,
+    // The ring shows the number; the words name it, and carry it for assistive tech.
+    strong: (
+      <span className={d.value}>
+        Life path<span className={kit.srOnly}> {n.lifePath}</span>
+      </span>
+    ),
     support: [`Birthday ${n.birthday}`, n.expression === null ? null : `Expression ${n.expression}`].filter((phrase): phrase is string => phrase !== null),
   }
 }
 
 /** Maya inscriptions read in paired columns, left to right, then down. */
 const COLUMNS = 2
-/** Every place's cell is as tall as the tallest numeral, so the numerals in a row stand on one line. */
-const CELL = rowsOf(barDot(LARGEST))
-
-/** The Long Count's five places as bar-and-dot numerals, in the paired columns of an inscription. */
+/** The Long Count's places as bar-and-dot numerals, in the paired columns of an inscription. */
 function LongCountFigure({ reading }: { reading: LongCountReading }) {
   const width = MARK_SIZE.toneWidth
   const step = numeralStep(width)
-  const cell = CELL * step
+  // Every cell is as tall as the tallest numeral's ink, so the numerals in a row stand on one line.
+  const cell = numeralHeight(LARGEST, width)
   const rows = Math.ceil(reading.places.length / COLUMNS)
   const box = { width: COLUMNS * width + (COLUMNS - 1) * step, height: rows * cell + (rows - 1) * step }
   return (
@@ -114,7 +123,7 @@ function LongCountFigure({ reading }: { reading: LongCountReading }) {
 const BESIDE: Readonly<Record<BesideSystem, (atlas: PersonAtlas) => Reading>> = {
   longcount: (atlas) => ({
     figure: <LongCountFigure reading={atlas.longCount} />,
-    strong: <Strong value={atlas.longCount.date} />,
+    strong: <Strong value={atlas.longCount.date} rank={atlas.longCount.days} />,
     support: atlas.longCount.round,
   }),
 }

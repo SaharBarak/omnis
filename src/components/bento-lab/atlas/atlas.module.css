@@ -586,7 +586,7 @@
   max-width: 100%;
   overflow-x: auto;
   overscroll-behavior-x: contain;
-  scrollbar-width: none;
+  scrollbar-width: thin;
   gap: 4px;
   padding: 4px;
   border: 1px solid var(--lab-line);
