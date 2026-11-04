@@ -4,25 +4,29 @@
  * (the system's name, its pin or note at the far end) over a row of facts.
  * A fact stands its mark over its value and what it is; the facts share
  * their rows (subgrid), so marks, values and labels each sit on one line.
+ * Tiles wrap by their content: none is narrower than its longest word or
+ * mark, and a row holds as many as fit. A context that wants one tile per
+ * row sets its own grid.
  */
 
 .digest {
   /* A mark is as tall as the figure role, so a glyph and a number fact weigh alike. */
   --mark: var(--type-figure);
 
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tile-gap);
 }
 
 .tile {
   --tile: var(--lab-text-2);
   --on-tile: var(--lab-page);
 
+  flex: 1 1 0;
   display: grid;
   align-content: center;
   gap: 4px;
-  min-width: 0;
+  min-width: min-content;
   padding: 8px 12px;
   border: var(--edge-w) solid var(--elevation-edge);
   border-radius: var(--radius-card);
@@ -66,6 +70,7 @@ button.tile:hover {
 }
 
 .name {
+  white-space: nowrap;
   font-size: var(--type-caption);
   line-height: var(--type-ui-lh);
   font-weight: 600;
@@ -74,10 +79,8 @@ button.tile:hover {
   color: var(--lab-text-2);
 }
 
-/* The layer's pin number, as on the drawing. */
+/* The layer's pin number, the same disc as the drawing's pins. */
 .pin {
-  --pin: calc(var(--type-micro) * 1.75);
-
   flex: none;
   display: grid;
   place-items: center;
@@ -105,7 +108,7 @@ button.tile:hover {
 
 .facts {
   display: grid;
-  grid-template-columns: repeat(var(--facts), minmax(0, 1fr));
+  grid-template-columns: repeat(var(--facts), minmax(min-content, 1fr));
   grid-template-rows: var(--mark) auto auto;
   column-gap: 4px;
   row-gap: 2px;
@@ -121,6 +124,7 @@ button.tile:hover {
 }
 
 .mark {
+  grid-row: 1;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -159,6 +163,7 @@ button.tile:hover {
 }
 
 .value {
+  grid-row: 2;
   font-size: var(--type-small);
   line-height: var(--type-ui-lh);
   font-weight: 500;
@@ -167,9 +172,14 @@ button.tile:hover {
   text-wrap: balance;
 }
 
-/* A number is its own mark: it stands in the mark's and the value's rows, on the values' line. */
+/*
+ * A number is its own mark: it stands in the mark's and the value's rows, on
+ * the values' line. It never wraps, and its rolling copies clip, which would
+ * let its column shrink past it, so it holds its own width.
+ */
 .numeral {
   grid-row: 1 / 3;
+  min-width: max-content;
   align-self: end;
   font-family: var(--font-display), system-ui, sans-serif;
   font-size: var(--type-figure);
@@ -181,6 +191,7 @@ button.tile:hover {
 }
 
 .label {
+  grid-row: 3;
   font-size: var(--type-caption);
   line-height: var(--type-ui-lh);
   font-weight: 500;

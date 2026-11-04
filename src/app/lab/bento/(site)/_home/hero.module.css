@@ -93,6 +93,7 @@
 
 .side .digest {
   flex: 1;
+  display: grid;
   grid-template-columns: minmax(0, 1fr);
   /* Rows share the column's height but never squeeze a tile below its words; past that, the column scrolls. */
   grid-auto-rows: minmax(min-content, 1fr);
@@ -105,7 +106,7 @@
 
 /* The digest's tiles are cards themselves: with one person the column holds them bare, no card around cards. */
 .side[data-bare] {
-  gap: 6px;
+  gap: var(--tile-gap);
   padding: 0;
   border: 0;
   background: none;

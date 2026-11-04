@@ -12,7 +12,7 @@ import { DIGEST, LAYER_META, systemLabel, type BesideSystem, type DigestEntry } 
 import { PLACE_NAMES } from '@/lib/atlas/long-count'
 import { LARGEST } from '@/lib/atlas/maya-numeral'
 import { signAt, signsOf } from '@/lib/atlas/place'
-import { needsLabel } from '@/lib/atlas/readout'
+import { NAME_NEEDED, needsLabel } from '@/lib/atlas/readout'
 import type { AtlasLayerId, GlyphRef, PersonAtlas } from '@/lib/atlas/types'
 
 /**
@@ -25,7 +25,8 @@ export type DigestMode = 'toggle' | 'travel'
 /**
  * One fact in a tile. A `mark` fact stands its mark over its value and what
  * it is; a `number` fact's numeral takes the mark's and the value's rows, so
- * every fact's label sits on one line.
+ * every fact's label sits on one line. The label comes first in the text, so
+ * assistive tech reads what a value is before the value.
  */
 type Fact =
   | { readonly kind: 'mark'; readonly mark: ReactNode; readonly value: string; readonly label: string }
@@ -91,11 +92,6 @@ const maya = ({ maya }: PersonAtlas): Reading => ({
   ],
 })
 
-/** The authority's own word: "Splenic" of "Splenic Authority". */
-const AUTHORITY_WORD = /\s*Authority$/
-/** The profile's lines: "1/3" of "1/3 Investigator/Martyr". */
-const PROFILE_LINES = /^\d\/\d/
-
 const body = (atlas: PersonAtlas): Reading => {
   const layer = atlas.body
   if (!layer) {
@@ -104,11 +100,11 @@ const body = (atlas: PersonAtlas): Reading => {
   return {
     facts: [
       { kind: 'mark', mark: <BodygraphMark body={layer} className={d.drawing} />, value: layer.type, label: 'Type' },
-      { kind: 'number', value: layer.profile.match(PROFILE_LINES)?.[0] ?? layer.profile, label: 'Profile' },
+      { kind: 'number', value: layer.profileLines, label: 'Profile' },
       {
         kind: 'mark',
         mark: layer.authorityCentre ? <CentreMark centre={layer.authorityCentre} className={d.drawing} /> : <Open />,
-        value: layer.authority.replace(AUTHORITY_WORD, ''),
+        value: layer.authorityWord,
         label: 'Authority',
       },
     ],
@@ -119,7 +115,9 @@ const number = ({ number: n }: PersonAtlas): Reading => ({
   facts: [
     { kind: 'number', value: n.lifePath, label: 'Life path' },
     { kind: 'number', value: n.birthday, label: 'Birthday' },
-    { kind: 'number', value: n.expression ?? '–', label: 'Expression' },
+    n.expression !== null
+      ? { kind: 'number', value: n.expression, label: 'Expression' }
+      : { kind: 'mark', mark: <Open />, value: NAME_NEEDED, label: 'Expression' },
   ],
 })
 
@@ -143,16 +141,16 @@ function FactCell({ fact }: { fact: Fact }) {
   if (fact.kind === 'number') {
     return (
       <span className={d.fact} data-kind="number">
-        <Rolling value={fact.value} className={d.numeral} />
         <span className={d.label}>{fact.label}</span>
+        <Rolling value={fact.value} className={d.numeral} />
       </span>
     )
   }
   return (
     <span className={d.fact}>
+      <span className={d.label}>{fact.label}</span>
       <span className={d.mark}>{fact.mark}</span>
       <span className={d.value}>{fact.value}</span>
-      <span className={d.label}>{fact.label}</span>
     </span>
   )
 }
@@ -246,7 +244,6 @@ export function AtlasDigest({
   return (
     <div
       className={[d.digest, s.tokens, className].filter(Boolean).join(' ')}
-      style={{ '--tiles': entries.length } as CSSProperties}
       role="group"
       aria-label={GROUP_LABEL[mode]}
     >

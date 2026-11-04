@@ -140,14 +140,7 @@
   --fade: 0;
 }
 
-.frame .legend {
-  grid-template-columns: repeat(var(--tiles), minmax(0, 1fr));
-}
-
 @media (max-width: 900px) {
-  .frame .legend {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
   .frame {
     min-height: 0;
   }
@@ -160,7 +153,7 @@
     width: min(54cqh, 76cqw);
   }
   .frame .legend {
-    grid-template-columns: none;
+    display: grid;
     grid-auto-flow: column;
     grid-auto-columns: 74%;
     /* Holds .srOnly text: see kit.module.css. */

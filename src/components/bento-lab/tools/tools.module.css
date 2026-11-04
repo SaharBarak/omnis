@@ -39,6 +39,7 @@
 
 /* The findings column is too narrow for a 2×2 digest: one tile per row, like the hero. */
 .findings .digest {
+  display: grid;
   grid-template-columns: minmax(0, 1fr);
 }
 

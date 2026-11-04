@@ -343,12 +343,12 @@
 
 .pinDot {
   position: absolute;
-  left: -11px;
-  top: -11px;
+  left: calc(var(--pin) / -2);
+  top: calc(var(--pin) / -2);
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: var(--pin);
+  height: var(--pin);
   border-radius: 50%;
   background: var(--lab-ink);
   color: var(--lab-page);

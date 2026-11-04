@@ -1,7 +1,8 @@
 /*
  * A person's map as a full-width figure: the stage fills the viewport under
- * the bar, less the digest row under it, between the figure floor and ceiling
- * (kit tokens). Narrow screens let the stage keep its square and the row scroll.
+ * the bar, less the digest under it, between the figure floor and ceiling
+ * (kit tokens). The digest wraps its tiles by their content; narrow screens
+ * let the stage keep its square and the tiles become a swiped row.
  */
 
 .figure {
@@ -15,10 +16,6 @@
   min-height: 0;
 }
 
-.figure .digest {
-  grid-template-columns: repeat(var(--tiles), minmax(0, 1fr));
-}
-
 @media (max-width: 900px) {
   .figure {
     height: auto;
@@ -27,18 +24,11 @@
   .stage {
     aspect-ratio: 1 / 1.08;
   }
-  .figure .digest {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  /* An odd last tile takes the whole row, so two columns never end on a hole. */
-  .figure .digest > :last-child:nth-child(odd) {
-    grid-column: 1 / -1;
-  }
 }
 
 @media (max-width: 560px) {
   .figure .digest {
-    grid-template-columns: none;
+    display: grid;
     grid-auto-flow: column;
     grid-auto-columns: 74%;
     /* Holds .srOnly text: see kit.module.css. */
@@ -47,9 +37,7 @@
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;
   }
-  .figure .digest > *,
-  .figure .digest > :last-child:nth-child(odd) {
-    grid-column: auto;
+  .figure .digest > * {
     scroll-snap-align: start;
   }
 }
