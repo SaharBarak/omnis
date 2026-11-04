@@ -160,6 +160,8 @@ text column beside the figure (BENTO_SITE.md, "The digest").
   on the figure's corner.
 - **Figure size.** The figure is as tall as the three lines beside it: the
   sum of caption, lead and small at UI leading, plus the two line gaps.
+- **Measure.** The text column keeps 14ch at the lead (a five-place date
+  in tabular figures) beside the figure, or takes the line below it.
   The numerology ring's number is the figure role, in ink.
 
 ## Acceptance

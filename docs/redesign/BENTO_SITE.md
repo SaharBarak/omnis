@@ -86,8 +86,10 @@ its place among the layers in it (`LAYERS_BY_PIN`).
 
 **Read beside the map.** A chart system that a birth date gives without a
 drawn layer is read beside the map: today the Maya Long Count
-(`buildLongCount`: the five places, the dotted date and the calendar
-round, GMT correlation). It is light, so it ships with the light half of
+(`buildLongCount`: the places, the dotted date, the calendar round and the
+day count, GMT correlation). Every place is one numeral, 0 to 19: a count
+past 19 baktuns carries into the place above, as inscriptions write it, so
+any date the birth fields accept draws. It is light, so it ships with the light half of
 the atlas, and it has a digest tile but no pin, no ring and no switch
 entry: there is nothing on the drawing to bring forward.
 
@@ -149,9 +151,11 @@ The hero is the Atlas, live, seeded with a sample person so it is never
 empty. On screens 1180 px and wider, its three columns fit one viewport
 under the nav: `100svh` minus `--nav-h`, floored at 600 px.
 
-- **Left column:** the claim, "Five systems. One map.", its count spelled
-  from the digest (`DIGEST.length`, `src/lib/site/number-words.ts`) so it
-  can't drift from the tiles beside it; one short line, "Start with your
+- **Left column:** the claim, "Five systems. One map.", counting the
+  systems the digest names, one per tile (`DIGEST.length`, spelled by
+  `src/lib/site/number-words.ts`), so it can't drift from the tiles beside
+  it; the plans count every catalog system a plan opens, which is a
+  different number; one short line, "Start with your
   birth date."; and the birth fields (date and time paired, then place)
   that redraw the atlas as the user types. Then the sample's birth line,
   "Keep this map" (sign in, return to people) and "Open the full map".
@@ -182,8 +186,9 @@ layer and one per system read beside the map. Every tile is one grammar,
 so the eye learns it once:
 
 - **Figure** on the leading side, in the layer's colour, as tall as the
-  three lines of text beside it (caption, lead and small at UI leading, so
-  the size is derived from the type roles, not set). A layer's pin sits on
+  three lines of text beside it when the support fits one line (caption,
+  lead and small at UI leading, so the size is derived from the type roles,
+  not set). Figures are aria-hidden: every value they show is in the words. A layer's pin sits on
   the figure's corner, as pins sit on the drawing; a tile beside the map
   has none.
 - **Text column**, whose start edge every tile shares: the system's name
@@ -197,12 +202,16 @@ so the eye learns it once:
 | Dreamspell | The kin as the drawing sets it at twelve o'clock, cropped (`KinMark`: the lit seal on its disc, the tone above) | Kin number · "Kin" | The kin's title |
 | Human Design | The bodygraph | Type | Profile |
 | Maya Long Count | The five places as bar-and-dot numerals in paired columns, read left to right and down; a lone last place is centred | The dotted date | The calendar round |
-| Numerology | The life path in a ring, the number in ink | "Life path" | Birthday and expression |
+| Numerology | The life path in a ring, the number in ink | "Life path" (the number with it for assistive tech) | Birthday and expression |
 | Astrology | The sun's sign glyph | Sun sign · "Sun" | Moon and rising |
 
 Missing input is stated, never guessed: without a time and place the
 Human Design tile's strong line is the input it needs, over an empty
-bodygraph, and Astrology's support says what the rising sign needs.
+bodygraph, and Astrology's support says what the rising sign needs
+(`needsPhrase`: "Rising needs a birth time"). Without a birth time a body
+whose day's arc crosses into the next sign is named by both signs
+("Aquarius or Pisces moon", `signsOf`), the same arc the readout states
+in degrees.
 
 A layer tile is a button that brings its layer forward (or, in `travel`
 mode, scrolls the layers scene to it). A tile beside the map is text,
@@ -212,9 +221,13 @@ of the four plates, so it lists the layers alone (`beside={false}`).
 Columns are set by the context, from the tile count (`--tiles`): one per
 row in the hero's column and the tool's findings; one row in the map
 figure on wide screens; two columns where the row would be too narrow,
-with an odd last tile across both. A tile narrower than its figure, gap
-and widest line (a container query on the tile) sets the figure above the
-words instead of squeezing them.
+with an odd last tile across both. In the hero's column the rows share
+its height but never squeeze a tile below its words; past that the column
+scrolls. Inside a tile the figure and the words share a line while the
+words keep their measure, the widest strong line a tile carries (a Long
+Count date of five two-digit places and four dots: 14ch at the lead), and
+the figure goes above them when they would not. Tiles in a row share a
+width and a measure, so they decide alike.
 
 ### Marks explain themselves
 
@@ -650,3 +663,4 @@ each wireframe is the slot contract the built page must fill.
 | Codex CLI (gpt-6-astra) | Signed-in app in the landing language: shell, scene ownership, dashboard compute bounds, motion and a11y | 2026-10-28 | Incorporated |
 | Codex CLI (gpt-6-astra) | Atlas mark interactions: pointer mapping across browsers, ring turns, keyboard and tooltip model, opacity ownership, text equivalence, hit geometry | 2026-11-03 | Incorporated |
 | Codex CLI (gpt-6-astra) | Digest in the lead order: the Long Count beside the map, two orders (structure and lead), catalog-derived names, tile grammar, hero claim | 2026-11-04 | Incorporated |
+| Solution-architect review (Claude subagent, read-only) | The digest round: Long Count range, date-only fit, moon arcs, button names, kin crop, derived measure, stale names | 2026-11-04 | Incorporated |

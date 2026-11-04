@@ -1,4 +1,19 @@
 import { Box, Field, Figure, Label, Lines, Num, Ph, Pill, Row, Rule, Title } from '@/components/bento-lab/wireframe/primitives'
+import { DIGEST, LAYER_META, LAYERS_BY_PIN, systemLabel, type DigestEntry } from '@/lib/atlas/layers'
+import type { AtlasLayerId } from '@/lib/atlas/types'
+
+/** Names and order come from the layer tables, so the wireframes say what the site says. */
+const entryName = (entry: DigestEntry): string => (entry.kind === 'layer' ? LAYER_META[entry.layer].name : systemLabel(entry.system))
+const pinOf = (layer: AtlasLayerId): string => `${LAYER_META[layer].pin} ${LAYER_META[layer].name}`
+const LAYER_NAMES = LAYERS_BY_PIN.map((layer) => LAYER_META[layer].name).join(', ')
+/** What each digest tile shows, for the wireframe's placeholders (BENTO_SITE.md, "The digest"). */
+const TILE_CONTENT: Readonly<Record<AtlasLayerId | 'longcount', string>> = {
+  maya: 'kin glyph, kin, title',
+  body: 'bodygraph, type, profile',
+  longcount: 'bar-and-dot places, date, round',
+  number: 'life path ring, two more',
+  sky: 'sun glyph, sun, moon and rising',
+}
 
 /* T1 — Home. Hero is drawn at full precision; the sections below it at section scale. */
 export function HomeWireframe() {
@@ -14,7 +29,7 @@ export function HomeWireframe() {
         { n: 3, text: 'Birth-date field (date, optional time + place) that redraws the atlas live' },
         { n: 4, text: 'Primary CTA: save this map (sign up); secondary: see two people' },
         { n: 5, text: 'Atlas card over dimmed portal artwork; person tabs in the top notch (A, B, +)' },
-        { n: 6, text: 'Four layer pins on the atlas, numbered in the lead order: Dreamspell, Human Design, Numerology, Astrology' },
+        { n: 6, text: `Four layer pins on the atlas, numbered in the lead order: ${LAYER_NAMES}` },
         { n: 7, text: 'Digest: one tile per system in the lead order, figure beside a name, a strong line and one support line; the Maya Long Count is read beside the map' },
         { n: 8, text: 'Add a second person: turns the hero into the pair atlas' },
         { n: 9, text: 'Layers: the map taken apart in depth, one layer per scroll step, the digest row under it' },
@@ -88,10 +103,10 @@ export function HomeWireframe() {
               </Row>
             </div>
             {[
-              { l: '10%', t: '12%', label: '1 Sky · Sun 22° Aries' },
-              { l: '62%', t: '30%', label: '2 Kin · 207' },
-              { l: '14%', t: '58%', label: '3 Body · Projector 2/4' },
-              { l: '58%', t: '82%', label: '4 Number · Life path 7' },
+              { l: '62%', t: '30%', label: `${pinOf('maya')} · 207` },
+              { l: '14%', t: '58%', label: `${pinOf('body')} · Projector 2/4` },
+              { l: '58%', t: '82%', label: `${pinOf('number')} · Life path 7` },
+              { l: '10%', t: '12%', label: `${pinOf('sky')} · Sun 22° Aries` },
             ].map((pin, i) => (
               <div key={pin.label} style={{ position: 'absolute', left: pin.l, top: pin.t }}>
                 <Box n={i === 0 ? 6 : undefined}>
@@ -101,8 +116,8 @@ export function HomeWireframe() {
             ))}
           </Box>
 
-          <Box rows="1fr 1fr 1fr 1fr 1fr auto" gap={10}>
-            {['Dreamspell · kin glyph, kin, title', 'Human Design · bodygraph, type, profile', 'Maya Long Count · bar-and-dot places, date, round', 'Numerology · life path ring, two more', 'Astrology · sun glyph, sun, moon and rising'].map((label, i) => (
+          <Box rows={[...DIGEST.map(() => '1fr'), 'auto'].join(' ')} gap={10}>
+            {DIGEST.map((entry) => `${entryName(entry)} · ${TILE_CONTENT[entry.kind === 'layer' ? entry.layer : entry.system]}`).map((label, i) => (
               <Box key={label} frame="solid" n={i === 0 ? 7 : undefined}>
                 <Ph label={label} h={56} />
               </Box>
@@ -118,8 +133,8 @@ export function HomeWireframe() {
           <Title widths={[40]} />
           <Ph label="Exploded atlas · four plates in depth · pinned while it scrolls" h={260} />
           <Box cols="1fr 1fr 1fr 1fr" gap={10}>
-            {['Dreamspell', 'Human Design', 'Numerology', 'Astrology'].map((l) => (
-              <Ph key={l} label={l} h={56} />
+            {LAYERS_BY_PIN.map((layer) => (
+              <Ph key={layer} label={LAYER_META[layer].name} h={56} />
             ))}
           </Box>
         </Box>
@@ -188,7 +203,7 @@ export function ToolWireframe() {
       slots={[
         { n: 1, text: 'People rail: one card per person (A, B, …), each with its birth fields; add person' },
         { n: 2, text: 'Map stage: person atlas, pair atlas or circle map depending on people count' },
-        { n: 3, text: 'Layer switch: all, Dreamspell, Human Design, Numerology, Astrology; switching dims the other rings' },
+        { n: 3, text: `Layer switch: all, ${LAYER_NAMES}; switching dims the other rings` },
         { n: 4, text: 'Findings: per-layer readout for one person, tie table for two or more' },
         { n: 5, text: 'Save bar: sign up to keep these people; share link' },
       ]}
@@ -215,10 +230,9 @@ export function ToolWireframe() {
             <Box n={3}>
               <Row>
                 <Pill solid>All</Pill>
-                <Pill>Dreamspell</Pill>
-                <Pill>Human Design</Pill>
-                <Pill>Numerology</Pill>
-                <Pill>Astrology</Pill>
+                {LAYERS_BY_PIN.map((layer) => (
+                  <Pill key={layer}>{LAYER_META[layer].name}</Pill>
+                ))}
               </Row>
             </Box>
           </Row>

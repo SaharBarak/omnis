@@ -39,7 +39,7 @@ export function HeroStoryboard() {
       code="H"
       title="Hero"
       kind="Illustration + response, fits one viewport"
-      still="The map arrives drawn: every ring, seal, channel and pin in place, the four digest tiles filled. A new date swaps positions without travel."
+      still="The map arrives drawn: every ring, seal, channel and pin in place, every digest tile filled. A new date swaps positions without travel."
       frames={[
         {
           at: 't = 0 ms',
