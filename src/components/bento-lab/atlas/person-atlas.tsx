@@ -3,6 +3,7 @@ import { ZODIAC_SIGNS } from '@pleiad/engine/data/zodiac-signs'
 import { SEALS } from '@pleiad/engine/data/seals'
 import s from './atlas.module.css'
 import { arcPath, bodyTransform, C, polar, RING, sealAngle, skyAngle, type Point } from './geometry'
+import { CentredNumeral, numeralHeight } from './maya-numeral'
 import {
   HALO_GAP,
   MARK_SIZE,
@@ -150,28 +151,25 @@ const lineProps = ([x1, y1]: Point, [x2, y2]: Point) => ({ x1, y1, x2, y2 })
 
 /** The Dreamspell tone in bar-and-dot notation, centred on `point`. */
 export function ToneMark({ tone, point }: { readonly tone: number; readonly point: Point }) {
-  const bars = Math.floor(tone / 5)
-  const dots = tone % 5
-  const w = MARK_SIZE.toneWidth
-  const step = MARK_SIZE.toneStep
-  const top = point[1] - ((bars + (dots > 0 ? 1 : 0)) * step) / 2
+  return <CentredNumeral value={tone} point={point} width={MARK_SIZE.toneWidth} className={s.toneMark} />
+}
+
+/**
+ * The person's kin as the drawing sets it at twelve o'clock, cropped: the lit
+ * seal on its disc and the tone above it, in drawing units, so a figure that
+ * shows the kin alone can never draw it differently from the map.
+ */
+export function KinMark({ maya, className }: { readonly maya: MayaLayer; readonly className?: string }) {
+  const seal = sealPoint(maya.seal.n, maya.seal.n)
+  const radius = SEAL_RADIUS.own
+  const top = TONE_POINT[1] - numeralHeight(maya.tone.n, MARK_SIZE.toneWidth) / 2 - HALO_GAP
+  const box = { x: seal[0] - radius, y: top, width: radius * 2, height: seal[1] + radius - top }
   return (
-    <g>
-      {Array.from({ length: dots }, (_, i) => (
-        <circle key={`d${i}`} cx={point[0] + (i - (dots - 1) / 2) * 4} cy={top + 1.5} r={1.6} className={s.toneMark} />
-      ))}
-      {Array.from({ length: bars }, (_, i) => (
-        <rect
-          key={`b${i}`}
-          x={point[0] - w / 2}
-          y={top + (dots > 0 ? step : 0) + i * step}
-          width={w}
-          height={2.4}
-          rx={1.2}
-          className={s.toneMark}
-        />
-      ))}
-    </g>
+    <svg viewBox={`${box.x} ${box.y} ${box.width} ${box.height}`} className={[s.svg, className].filter(Boolean).join(' ')} aria-hidden>
+      <circle cx={seal[0]} cy={seal[1]} r={radius} className={s.litSeal} />
+      <Glyph href={maya.seal.src} point={seal} size={MARK_SIZE.seal} on />
+      <ToneMark tone={maya.tone.n} point={TONE_POINT} />
+    </svg>
   )
 }
 

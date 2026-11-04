@@ -124,7 +124,7 @@ export const SYSTEM_CATALOG: readonly SystemInfo[] = [
   },
   {
     key: 'longcount',
-    label: 'Long Count',
+    label: 'Maya Long Count',
     description: 'Ancient Mayan long count calendar system',
     group: 'readings',
   },

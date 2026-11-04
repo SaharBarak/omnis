@@ -21,9 +21,8 @@ export const MARK_SIZE = Object.freeze({
   /** The disc behind the person's own seal, and the ring round an oracle seat, as radii. */
   litSeal: 22 * 0.85,
   seat: 22 * 0.72,
-  /** The tone's bars: width and the pitch between rows. */
+  /** The tone's bar width; its rows, dots and bars follow from it (maya-numeral.tsx). */
   toneWidth: 16,
-  toneStep: 4,
   /** The ascendant line's stroke. */
   risingStroke: 1.5,
   /** Bodygraph strokes and dots, in layout units before the body is scaled into the atlas. */

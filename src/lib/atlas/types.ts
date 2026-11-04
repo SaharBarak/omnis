@@ -51,6 +51,16 @@ export interface MayaLayer {
   readonly tzolkin: string
 }
 
+/** The Maya Long Count, a chart system read beside the map: date only. */
+export interface LongCountReading {
+  /** Baktun, katun, tun, winal and kin, most significant first. */
+  readonly places: readonly [number, number, number, number, number]
+  /** The places written with dots, e.g. "12.18.17.16.7". */
+  readonly date: string
+  /** The day's Tzolkin and Haab together, e.g. "7 Manik' 0 Kumku". */
+  readonly round: string
+}
+
 export interface SkyBody {
   readonly id: PlanetId
   readonly name: string
@@ -117,12 +127,13 @@ export interface PersonAtlas {
   /** Why the body layer is empty, when it is. */
   readonly bodyNeeds: MissingInput | null
   readonly number: NumberLayer
+  readonly longCount: LongCountReading
   /** The atlas as text: every value the drawing shows, in reading order. */
   readonly readout: readonly ReadoutRow[]
 }
 
-/** The two light layers, available before the heavy engines load. */
-export type LightAtlas = Pick<PersonAtlas, 'input' | 'maya' | 'number'>
+/** The light readings (two layers and the Long Count), available before the heavy engines load. */
+export type LightAtlas = Pick<PersonAtlas, 'input' | 'maya' | 'number' | 'longCount'>
 
 export interface AtlasPersonRef {
   readonly id: string
