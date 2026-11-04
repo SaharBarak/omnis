@@ -85,7 +85,7 @@ export function Pill({ children, solid, icon, n }: { readonly children?: ReactNo
 
 export function Field({ label, hint, n }: { readonly label: string; readonly hint: string; readonly n?: number }) {
   return (
-    <div className={s.box} style={{ gap: 6 }}>
+    <div className={cx(s.box, s.field)}>
       <Tag n={n} />
       <span className={s.label}>{label}</span>
       <span className={s.input}>{hint}</span>

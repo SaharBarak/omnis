@@ -11,7 +11,7 @@ function AppFrame({ children, n }: { readonly children: React.ReactNode; readonl
         <Box gap={10} align="start">
           {['Today', 'People', 'Circles', 'Calendar', 'Library', 'Systems', 'Settings'].map((k, i) => (
             <Row key={k}>
-              <span style={{ width: 12, height: 12, borderRadius: 3, border: '1.5px solid #222', background: i === 1 ? '#222' : 'transparent' }} />
+              <span style={{ width: 12, height: 12, borderRadius: 3, border: '1.5px solid var(--wf-ink)', background: i === 1 ? 'var(--wf-ink)' : 'transparent' }} />
               <Label>{k}</Label>
             </Row>
           ))}

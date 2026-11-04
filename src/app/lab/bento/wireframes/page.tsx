@@ -32,7 +32,7 @@ const INDEX = [
 /** Every page template of the bento site, greyscale, with the slot contract under each (BENTO_SITE.md). */
 export default function WireframesPage() {
   return (
-    <div className={wf.doc}>
+    <div className={wf.doc} data-print="wire">
       <header className={wf.index}>
         <h1>Bento site · wireframes</h1>
         <p>
