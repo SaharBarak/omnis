@@ -10,6 +10,7 @@ import { explain, explainReading } from './explain'
 import { PLACE_NAMES, placeDays } from './long-count'
 import { markKey } from './marks'
 import { numberWords, readingKey, type ReadingRef } from './readings'
+import { ORACLE_ROLES } from '@/lib/dreamspell-oracle'
 
 const TODAY = '2026-10-11'
 const maya = buildPersonAtlas(demoPerson('maya').input, TODAY)
@@ -23,6 +24,8 @@ describe('reading keys', () => {
       { kind: 'system', id: 'maya' },
       { kind: 'system', id: 'longcount' },
       { kind: 'kin' },
+      { kind: 'seat', role: 'guide' },
+      { kind: 'seat', role: 'destiny' },
       { kind: 'type' },
       { kind: 'profile' },
       { kind: 'authority' },
@@ -105,6 +108,15 @@ describe('explainReading', () => {
     const sun = explainReading(maya, { kind: 'placement', id: 'sun' })
     expect(sun.facts.map((f) => f.label)).toEqual(['Element', 'Modality', 'Ruler'])
     expect(explainReading(maya, { kind: 'placement', id: 'pluto' }).facts.length).toBeGreaterThan(0)
+  })
+
+  it('reads the guide as the guide, even on the tones where the guide is the own seal', () => {
+    const guideRole = ORACLE_ROLES.find((r) => r.id === 'guide')!
+    const ownGuide = buildPersonAtlas({ ...demoPerson('maya').input, date: '1987-08-01' }, TODAY)
+    expect([1, 6, 11]).toContain(ownGuide.maya.tone.n)
+    expect(ownGuide.maya.oracle.guide.n).toBe(ownGuide.maya.seal.n)
+    expect(explainReading(ownGuide, { kind: 'seat', role: 'guide' }).meaning).toBe(guideRole.description)
+    expect(explainReading(maya, { kind: 'seat', role: 'guide' }).facts.map((f) => f.label)).toEqual(['Power', 'Action', 'Essence'])
   })
 
   it('reads a mark reference the way the drawing does', () => {

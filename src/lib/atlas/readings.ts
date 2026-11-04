@@ -3,6 +3,7 @@ import type { PlanetId } from '@pleiad/engine/types/astrology'
 import type { TileId } from './digest-shape'
 import { MARK_LAYER, markKey, type AtlasMarkRef } from './marks'
 import type { PersonAtlas } from './types'
+import type { OracleRoleId } from '@/lib/dreamspell-oracle'
 
 /**
  * What a digest fact refers to (docs/redesign/BENTO_SITE.md, "Facts explain
@@ -17,6 +18,8 @@ export type ReadingRef =
   | AtlasMarkRef
   | { readonly kind: 'system'; readonly id: TileId }
   | { readonly kind: 'kin' }
+  /** A seat of the oracle, read as that seat even where its seal also holds another (the guide is the own seal on tones 1, 6 and 11). */
+  | { readonly kind: 'seat'; readonly role: OracleRoleId }
   | { readonly kind: 'type' }
   | { readonly kind: 'profile' }
   | { readonly kind: 'authority' }
@@ -39,7 +42,8 @@ export const readingKey = (ref: ReadingRef): string => {
     case 'system':
       return `system:${ref.id}`
     case 'number':
-      return `number:${ref.role}`
+    case 'seat':
+      return `${ref.kind}:${ref.role}`
     case 'place':
       return `place:${ref.unit}`
     case 'placement':

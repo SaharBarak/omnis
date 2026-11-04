@@ -26,6 +26,7 @@ const LAZY_FILES = new Set(
     'packages/engine/src/data/human-design-gates.ts',
     'packages/engine/src/data/wavespells.ts',
     'packages/engine/src/data/castles.ts',
+    'packages/engine/src/data/human-design.ts',
   ].map((f) => join(ROOT, f)),
 )
 const CLIENT_ROOTS = ['src/components/bento-lab', 'src/app/lab/bento'].map((d) => join(ROOT, d))

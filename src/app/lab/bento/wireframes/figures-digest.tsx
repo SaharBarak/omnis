@@ -1,6 +1,6 @@
 import { Box, Figure, Label, Lines, Ph, Pill, Row, Value } from '@/components/bento-lab/wireframe/primitives'
-import { DIGEST_SHAPE, DIGEST_TILES, type FactId, type FactShape, type TileId } from '@/lib/atlas/digest-shape'
-import { LAYER_META, systemLabel } from '@/lib/atlas/layers'
+import { DIGEST_SHAPE, DIGEST_TILES, tileName, tilePin, type FactId, type FactShape, type TileId } from '@/lib/atlas/digest-shape'
+import { needsLabel } from '@/lib/atlas/readout'
 
 /**
  * The digest drawn twice (BENTO_SITE.md, "The digest"): C1 the tile as a
@@ -34,8 +34,8 @@ const NOTE: Readonly<Record<TileId, string>> = {
   sky: 'Sun  12°',
 }
 
-const tileName = (tile: TileId): string => (tile === 'longcount' ? systemLabel(tile) : LAYER_META[tile].name)
-const pinOf = (tile: TileId): number | null => (tile === 'longcount' ? null : LAYER_META[tile].pin)
+/** What a fact waiting on the birth time and place says, as the tile says it. */
+const NEEDS = needsLabel('time-and-place')
 
 function Support({ fact, n }: { readonly fact: FactShape; readonly n?: number }) {
   const sketch = SKETCH[fact.id]
@@ -54,7 +54,7 @@ function Support({ fact, n }: { readonly fact: FactShape; readonly n?: number })
 function TileSketch({ tile, tags = false }: { readonly tile: TileId; readonly tags?: boolean }) {
   const shape = DIGEST_SHAPE[tile]
   const lead = SKETCH[shape.lead.id]
-  const pin = pinOf(tile)
+  const pin = tilePin(tile)
   return (
     <Box frame="solid" gap={8}>
       <Box cols="1fr auto" align="center" gap={8}>
@@ -143,19 +143,19 @@ export function DigestTileWireframe() {
 
       <Box cols="minmax(0, 312px) 1fr" gap={28} n={8}>
         <Box frame="solid" gap={8}>
-          <Label>{LAYER_META.body.name.toUpperCase()}</Label>
+          <Label>{tileName('body').toUpperCase()}</Label>
           <Box cols="44px 1fr" gap={10} align="center">
             <Ph h={44} label="empty" />
             <Box gap={2}>
-              <Value>Add birth time and place</Value>
+              <Value>{NEEDS}</Value>
             </Box>
           </Box>
         </Box>
         <Box frame="solid" gap={8}>
-          <Label>{LAYER_META.sky.name.toUpperCase()}</Label>
+          <Label>{tileName('sky').toUpperCase()}</Label>
           <Row gap={12}>
             <Ph h={16} label="open" style={{ width: 22 }} />
-            <Value>Add birth time and place</Value>
+            <Value>{NEEDS}</Value>
             <Label>Rising</Label>
           </Row>
         </Box>

@@ -7,15 +7,15 @@ import { ZODIAC_SIGNS } from '@pleiad/engine/data/zodiac-signs'
 import { getCastleByKin } from '@pleiad/engine/data/castles'
 import { getAuthorityDefinition, getProfile, getTypeDefinition, LINE_THEMES } from '@pleiad/engine/data/human-design'
 import { getWavespellByKin } from '@pleiad/engine/data/wavespells'
-import type { TileId } from './digest-shape'
-import { BESIDE_META, LAYER_META } from './layers'
+import { tileMeta, tileSystem, type TileId } from './digest-shape'
 import { PLACE_NAMES, placeDays } from './long-count'
 import { andList, capital, centreName, MARK_LAYER, markTitle, rolesOf, type AtlasMarkKind, type AtlasMarkRef, type MarkSource, type MarkTitle } from './marks'
 import { signsOf } from './place'
 import { isMarkRef, numberWords, type NumberRole, type ReadingRef, type ReadingSource } from './readings'
 import type { AtlasLayerId } from './types'
 import { getSealMeaning, getToneMeaning } from '@/lib/dreamspell-meanings'
-import { SYSTEM_CATALOG, type ReadingSystemKey } from '@/lib/system-preferences'
+import { ORACLE_ROLES } from '@/lib/dreamspell-oracle'
+import { SYSTEM_CATALOG } from '@/lib/system-preferences'
 
 /**
  * What the tradition reads into a mark on the atlas (docs/redesign/BENTO_SITE.md,
@@ -70,13 +70,8 @@ function reading(atlas: MarkSource, ref: AtlasMarkRef): MarkReading {
       const first = HOUSES[0]
       return { meaning: prose(`${first.theme}.`, sentence(first.keywords)), facts: [fact('House', first.name)] }
     }
-    case 'seal': {
-      const seal = getSealMeaning(ref.n)
-      return {
-        meaning: rolesOf(atlas.maya, ref.n)[0]?.description ?? null,
-        facts: [fact('Power', seal.power), fact('Action', seal.action), fact('Essence', seal.essence)],
-      }
-    }
+    case 'seal':
+      return { meaning: rolesOf(atlas.maya, ref.n)[0]?.description ?? null, facts: sealFacts(ref.n) }
     case 'tone': {
       const tone = getToneMeaning(atlas.maya.tone.n)
       return { meaning: null, facts: [fact('Action', tone.action), fact('Power', tone.power), fact('Phase', tone.phase)] }
@@ -112,10 +107,8 @@ const count = new Intl.NumberFormat('en-US')
 
 const days = (n: number): string => `${count.format(n)} ${n === 1 ? 'day' : 'days'}`
 
-const catalogKey = (tile: TileId): ReadingSystemKey => (tile === 'longcount' ? tile : LAYER_META[tile].systems[0])
-
 const description = (tile: TileId): string | null => {
-  const key = catalogKey(tile)
+  const key = tileSystem(tile)
   const found = SYSTEM_CATALOG.find((system) => system.key === key)
   return found ? `${found.description}.` : null
 }
@@ -129,8 +122,14 @@ const NUMBER_FROM: Readonly<Record<NumberRole, string>> = {
 const numberAt = (atlas: ReadingSource, role: NumberRole): number | null => atlas.number[role]
 
 function systemReading(tile: TileId): MarkReading {
-  const meta = tile === 'longcount' ? BESIDE_META[tile] : LAYER_META[tile]
+  const meta = tileMeta(tile)
   return { meaning: description(tile), facts: [fact('Reads', meta.reads), fact('Needs', meta.needs)] }
+}
+
+/** The seal's own facts: what any seat it holds shares. */
+const sealFacts = (n: number): readonly MarkFact[] => {
+  const seal = getSealMeaning(n)
+  return [fact('Power', seal.power), fact('Action', seal.action), fact('Essence', seal.essence)]
 }
 
 function placementReading(atlas: ReadingSource, id: string): MarkReading {
@@ -154,6 +153,11 @@ export function explainReading(atlas: ReadingSource, ref: ReadingRef): MarkReadi
   switch (ref.kind) {
     case 'system':
       return systemReading(ref.id)
+    case 'seat': {
+      const role = ORACLE_ROLES.find((r) => r.id === ref.role)
+      const n = ref.role === 'destiny' ? maya.seal.n : maya.oracle[ref.role].n
+      return { meaning: role?.description ?? null, facts: sealFacts(n) }
+    }
     case 'kin': {
       const wavespell = getWavespellByKin(maya.kin)
       const castle = getCastleByKin(maya.kin)
