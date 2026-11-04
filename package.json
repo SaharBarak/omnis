@@ -28,7 +28,13 @@
     "texture:sky": "tsx scripts/textures/sky.ts",
     "ingest:knowledge": "npx tsx packages/scraper/src/ingest.ts",
     "ingest:knowledge:dry-run": "npx tsx packages/scraper/src/ingest.ts --dry-run",
-    "ingest:knowledge:verify": "npx tsx packages/scraper/src/verify.ts"
+    "ingest:knowledge:verify": "npx tsx packages/scraper/src/verify.ts",
+    "figma:measure": "node scripts/design/figma-print/measure.mjs",
+    "figma:plan": "node scripts/design/figma-print/plan/index.mts",
+    "figma:build": "node scripts/design/figma-print/build.mjs",
+    "figma:receive": "node scripts/design/figma-print/receiver.mjs",
+    "figma:check": "node scripts/design/figma-print/check.mts",
+    "figma:test": "node --test scripts/design/figma-print/plan/one-print.test.mts && FIGMA_PRINT_TABLE=twin node --test $(find scripts/design/figma-print -name '*.test.m[jt]s' ! -name 'one-print.test.mts' ! -path '*/dist/*')"
   },
   "dependencies": {
     "@google/genai": "^2.8.0",
@@ -89,6 +95,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260612.1",
+    "@figma/plugin-typings": "1.142.0",
     "@opennextjs/cloudflare": "^1.19.11",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -98,11 +105,14 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.2",
     "drizzle-kit": "^0.31.10",
+    "esbuild": "0.27.3",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.1.6",
     "eslint-plugin-import-x": "^4.17.1",
     "jsdom": "^27.4.0",
+    "neverthrow": "8.2.0",
     "node-gyp": "^11.5.0",
+    "playwright": "1.63.0",
     "postcss": "^8",
     "sharp": "0.34.5",
     "tailwindcss": "^3.4.1",

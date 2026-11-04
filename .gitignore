@@ -57,3 +57,7 @@ packages/mobile/.env
 # Python bytecode from the Human Design verification oracle
 __pycache__/
 *.pyc
+
+# Figma print build output (docs/redesign/FIGMA_PRINT.md)
+.figma-print/
+scripts/design/figma-print/plugin/dist/

@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title><!--print:title--></title>
+    <style>
+      /* Figma's theme colours (showUI themeColors); spacing and type on one scale. */
+      :root {
+        --space: 4px;
+        --space-2: calc(var(--space) * 2);
+        --space-3: calc(var(--space) * 3);
+        --space-4: calc(var(--space) * 4);
+        --type: 11px;
+        --type-title: 13px;
+        --leading: 1.45;
+        --radius: calc(var(--space) * 1.5);
+        --rule: 1px;
+        color-scheme: light dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--figma-color-bg);
+        color: var(--figma-color-text);
+        font: var(--type) / var(--leading) Inter, system-ui, sans-serif;
+      }
+      main {
+        display: grid;
+        gap: var(--space-3);
+        padding: var(--space-3);
+      }
+      h1,
+      h2 {
+        margin: 0;
+        font-size: var(--type-title);
+        font-weight: 600;
+      }
+      h2 {
+        font-size: var(--type);
+      }
+      section {
+        display: grid;
+        gap: var(--space-2);
+      }
+      p,
+      ul,
+      ol {
+        margin: 0;
+      }
+      ul,
+      ol {
+        padding-inline-start: var(--space-4);
+      }
+      .quiet {
+        color: var(--figma-color-text-secondary);
+      }
+      .actions {
+        display: flex;
+        gap: var(--space-2);
+      }
+      button {
+        font: inherit;
+        padding: var(--space) var(--space-3);
+        border: var(--rule) solid var(--figma-color-border);
+        border-radius: var(--radius);
+        background: var(--figma-color-bg-secondary);
+        color: var(--figma-color-text);
+        cursor: pointer;
+      }
+      button:disabled {
+        color: var(--figma-color-text-disabled);
+        cursor: default;
+      }
+      progress {
+        inline-size: 100%;
+      }
+      #fatal,
+      #errors {
+        color: var(--figma-color-text-danger);
+      }
+      #errors {
+        max-block-size: calc(var(--space) * 40);
+        overflow: auto;
+      }
+      #receiver[data-ok='false'] {
+        color: var(--figma-color-text-warning);
+      }
+      textarea {
+        inline-size: 100%;
+        block-size: calc(var(--space) * 40);
+        font: var(--type) / var(--leading) ui-monospace, monospace;
+        background: var(--figma-color-bg-secondary);
+        color: var(--figma-color-text);
+        border: var(--rule) solid var(--figma-color-border);
+        border-radius: var(--radius);
+      }
+      #captures {
+        max-block-size: calc(var(--space) * 30);
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1><!--print:title--></h1>
+        <p id="plan" class="quiet">decoding the plan</p>
+      </header>
+      <section aria-label="Print">
+        <progress id="bar" max="1" value="0"></progress>
+        <p id="step" class="quiet"></p>
+        <p id="fatal" hidden></p>
+      </section>
+      <section aria-label="Report">
+        <h2>Report</h2>
+        <ul id="summary"></ul>
+        <ol id="errors"></ol>
+        <p id="receiver" class="quiet"></p>
+        <textarea id="report" readonly spellcheck="false" aria-label="Report JSON"></textarea>
+        <div class="actions"><button id="copy" type="button" disabled>Copy report</button></div>
+      </section>
+      <section aria-label="Old captures">
+        <h2>Old captures</h2>
+        <p class="quiet">Unkeyed layers at the top of the pages this plugin prints. They are never touched until you remove them here.</p>
+        <ul id="captures"></ul>
+        <div class="actions"><button id="remove" type="button" disabled>Remove old captures</button></div>
+        <p id="removal" class="quiet"></p>
+      </section>
+    </main>
+    <!--print:plan-->
+    <!--print:ui-script-->
+  </body>
+</html>
