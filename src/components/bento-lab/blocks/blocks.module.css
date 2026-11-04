@@ -364,17 +364,6 @@
   gap: 14px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  [data-lab]:not([data-motion='paused']) .chartTrack[data-pin] {
-    height: 250svh;
-  }
-  [data-lab]:not([data-motion='paused']) .chartTrack[data-pin] .chartFrame {
-    position: sticky;
-    top: var(--nav-clear);
-    min-height: var(--figure-fit);
-  }
-}
-
 .chart {
   --field: var(--brand);
   --field-strength: 1.2;
@@ -949,11 +938,16 @@
   isolation: isolate;
 }
 
+/* The artwork rests pushed in; the close's sequence brings it there from --push 0 (storyboard 9: a push-in, not a zoom). */
 .closeArt {
+  --push-scale: 1.14;
+  --push: 1;
+
   position: absolute;
   inset: 0;
   z-index: -2;
   transform-origin: 50% 60%;
+  scale: calc(1 + var(--push) * (var(--push-scale) - 1));
 }
 
 .closeScrim {

@@ -2,31 +2,31 @@
 
 import { useRef, type ReactNode } from 'react'
 import b from './blocks.module.css'
-import { useScene } from '../motion'
+import { useSequence } from '../motion'
+import { CURVE, DURATION, STAGGER } from '@/lib/design/motion-tokens'
 
-/** Scale the artwork reaches as the page ends (storyboard 9): a push-in, not a zoom. */
-const PUSH = 1.14
 /** Where the closing line starts its rise, in pixels below its place. */
 const RISE_FROM = 40
 
 /**
- * The closing scene: as the close comes fully into view the portal artwork
- * pushes in and the closing line rises into place, scrubbed by scroll. GSAP
- * owns the artwork wrapper's scale and the line's transform and opacity; the
- * action is never moved. With motion off it is the still: artwork at rest,
- * line in place.
+ * The closing scene: as the close comes into view the portal artwork pushes
+ * in to its rest (`--push`, which the stylesheet turns into its scale) and
+ * the closing line rises into place, once, by time. The action is never
+ * moved. With motion off it is the still: artwork pushed in, line in place.
  */
 export function CloseScene({ media, children }: { readonly media: ReactNode; readonly children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
-  useScene(
+  useSequence(
     ref,
-    ({ gsap, ScrollTrigger, root }) => {
-      const art = root.querySelector('[data-close-art]')
-      const lines = gsap.utils.toArray<HTMLElement>('[data-close-line]', root)
-      const timeline = gsap.timeline({ defaults: { ease: 'none' } })
-      if (art) timeline.fromTo(art, { scale: 1 }, { scale: PUSH, duration: 1 }, 0)
-      timeline.fromTo(lines, { y: RISE_FROM, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.1 }, 0.1)
-      ScrollTrigger.create({ trigger: root, start: 'top bottom', end: 'bottom bottom', scrub: true, animation: timeline })
+    ({ anime, root, ease }) => {
+      const art = root.querySelector<HTMLElement>('[data-close-art]')
+      const lines = [...root.querySelectorAll<HTMLElement>('[data-close-line]')]
+      const timeline = anime.createTimeline({ autoplay: false })
+      if (art) timeline.add(art, { '--push': [0, 1], duration: DURATION.draw, ease: ease(CURVE.standard) }, 0)
+      lines.forEach((line, i) => {
+        timeline.add(line, { translateY: [RISE_FROM, 0], opacity: [0, 1], duration: DURATION.settle, ease: ease(CURVE.emphasized) }, DURATION.quick + i * STAGGER.step)
+      })
+      return { timeline }
     },
     [],
   )

@@ -16,13 +16,6 @@ import { NAME_NEEDED, needsLabel } from '@/lib/atlas/readout'
 import type { AtlasLayerId, GlyphRef, PersonAtlas } from '@/lib/atlas/types'
 
 /**
- * How a tile acts: `toggle` brings its layer forward and a second press lets
- * it go (a pressed state); `travel` takes the reader to its layer (the layers
- * scene), so the current one is marked as the step, not as pressed.
- */
-export type DigestMode = 'toggle' | 'travel'
-
-/**
  * One fact in a tile. A `mark` fact stands its mark over its value and what
  * it is; a `number` fact's numeral takes the mark's and the value's rows, so
  * every fact's label sits on one line. The label comes first in the text, so
@@ -181,11 +174,11 @@ interface TileProps {
   readonly entry: DigestEntry
   readonly atlas: PersonAtlas
   readonly focus: AtlasLayerId | null
+  readonly spot: AtlasLayerId | null
   readonly onFocus: (next: AtlasLayerId | null) => void
-  readonly mode: DigestMode
 }
 
-function Tile({ entry, atlas, focus, onFocus, mode }: TileProps) {
+function Tile({ entry, atlas, focus, spot, onFocus }: TileProps) {
   if (entry.kind === 'beside') {
     return (
       <div className={d.tile} data-beside={entry.system}>
@@ -196,46 +189,42 @@ function Tile({ entry, atlas, focus, onFocus, mode }: TileProps) {
   const { layer } = entry
   const meta = LAYER_META[layer]
   const current = focus === layer
-  const state = mode === 'toggle' ? { 'aria-pressed': current } : { 'aria-current': current ? ('step' as const) : undefined }
   return (
     <button
       type="button"
       className={d.tile}
       data-layer={layer}
-      data-current={current ? '' : undefined}
-      {...state}
-      onClick={() => onFocus(mode === 'toggle' && current ? null : layer)}
+      data-current={current || spot === layer ? '' : undefined}
+      aria-pressed={current}
+      onClick={() => onFocus(current ? null : layer)}
     >
       <Face name={meta.name} pin={meta.pin} reading={LAYER_READING[layer](atlas)} />
     </button>
   )
 }
 
-const GROUP_LABEL: Readonly<Record<DigestMode, string>> = {
-  toggle: 'Map at a glance; choose a layer to bring it forward',
-  travel: 'Map at a glance; choose a layer to go to it',
-}
-
 /**
  * The atlas at a glance, one tile per system in the lead order (`DIGEST`):
  * each layer of the map numbered like its pin on the drawing, and the chart
- * systems read beside the map. A layer tile brings its layer forward, or in
- * `travel` mode takes the reader to it; a tile beside the map has nothing to
- * bring forward, so it is text, not a control. The full text readout stays
- * available to assistive tech through the drawing's description.
+ * systems read beside the map. A layer tile brings its layer forward and a
+ * second press lets it go; a tile beside the map has nothing to bring
+ * forward, so it is text, not a control. `spot` lights a layer the page is
+ * showing on its own (the layers tour) without pressing its tile. The full
+ * text readout stays available to assistive tech through the drawing's
+ * description.
  */
 export function AtlasDigest({
   atlas,
   focus,
+  spot = null,
   onFocus,
-  mode = 'toggle',
   beside = true,
   className,
 }: {
   readonly atlas: PersonAtlas
   readonly focus: AtlasLayerId | null
+  readonly spot?: AtlasLayerId | null
   readonly onFocus: (next: AtlasLayerId | null) => void
-  readonly mode?: DigestMode
   /** False where the digest is the legend of the layers alone (the layers scene). */
   readonly beside?: boolean
   readonly className?: string
@@ -245,10 +234,10 @@ export function AtlasDigest({
     <div
       className={[d.digest, s.tokens, className].filter(Boolean).join(' ')}
       role="group"
-      aria-label={GROUP_LABEL[mode]}
+      aria-label="Map at a glance; choose a layer to bring it forward"
     >
       {entries.map((entry) => (
-        <Tile key={entry.kind === 'layer' ? entry.layer : entry.system} entry={entry} atlas={atlas} focus={focus} onFocus={onFocus} mode={mode} />
+        <Tile key={entry.kind === 'layer' ? entry.layer : entry.system} entry={entry} atlas={atlas} focus={focus} spot={spot} onFocus={onFocus} />
       ))}
     </div>
   )

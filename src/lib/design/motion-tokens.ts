@@ -18,6 +18,8 @@ export const DURATION = Object.freeze({
   settle: 480,
   /** A ring or line drawing itself. */
   draw: 1200,
+  /** A sequence resting on one beat before the next, e.g. a lifted layer. */
+  hold: 800,
 })
 
 export const CURVE = Object.freeze({

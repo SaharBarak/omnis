@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, type RefObject } from 'react'
+import { ENTER_MARGIN, inView } from './in-view'
 import { useMotionAllowed } from './use-motion-allowed'
 
 /**
@@ -10,14 +11,6 @@ import { useMotionAllowed } from './use-motion-allowed'
  * - `shown`: it entered view and plays, once.
  */
 export type RevealPhase = 'rest' | 'armed' | 'shown'
-
-/** How far into the viewport an element must come before its entrance plays. */
-const ENTER_MARGIN = '0px 0px -12% 0px'
-
-const inView = (el: Element): boolean => {
-  const { top, bottom } = el.getBoundingClientRect()
-  return top < window.innerHeight && bottom > 0
-}
 
 /**
  * One entrance per element, never replayed: armed only when the element is

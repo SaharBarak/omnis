@@ -166,8 +166,8 @@ function Frame({ pair, frame, ties, label, describedBy }: FrameProps) {
 
 /**
  * The same frame as three stacked layers sharing one view box: each person
- * (map and name), then the ties on top. A scroll scene moves the layers as
- * whole boxes, so the drawing is composited, never repainted, while it moves.
+ * (map and name), then the ties on top. The pair's sequence moves the layers
+ * as whole boxes, so the drawing is composited, never repainted, while it moves.
  */
 function LayeredFrame({ pair, frame, ties, label, describedBy }: FrameProps) {
   const box = `0 0 ${frame.width} ${frame.height}`

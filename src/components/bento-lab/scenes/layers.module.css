@@ -1,32 +1,17 @@
 /*
- * Layers scene (BENTO_MOTION.md storyboard "Layers"). The layout is all here:
- * a tall track with a sticky frame when motion is on, the stack already apart
- * so the frame reads without script. GSAP scrubs progress only, unitless 0 to
- * 1: --part (how far apart the stack is), --raise and --fade per plate, and
+ * Layers scene (BENTO_MOTION.md storyboard "Layers"). The layout is all here,
+ * the same with motion on or off: the stack already apart, so the frame reads
+ * without script. The sequence tweens progress only, unitless 0 to 1:
+ * --part (how far apart the stack is), --raise and --fade per plate, and
  * --drift for the star field. The geometry they drive is set here, per
  * breakpoint, and nowhere else.
  */
-
-.track {
-  position: relative;
-}
 
 .frame {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
   gap: 12px;
   height: var(--figure-h);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  [data-lab]:not([data-motion='paused']) .track {
-    height: calc(var(--units) * 70svh);
-  }
-  [data-lab]:not([data-motion='paused']) .frame {
-    position: sticky;
-    top: var(--nav-clear);
-    height: var(--figure-pinned-h);
-  }
 }
 
 .stage {
@@ -126,18 +111,25 @@
   font-size: var(--type-micro);
 }
 
-/* Motion off: a tile brings its layer forward (data-focus is never set while the scene runs). */
+/* A tile brings its layer forward: it lifts and the others dim. */
 .stack[data-focus] .plate {
   --fade: 1;
-
-  transition: opacity var(--dur-quick) var(--ease-standard);
 }
 
 .stack[data-focus='sky'] .plate[data-layer='sky'],
 .stack[data-focus='maya'] .plate[data-layer='maya'],
 .stack[data-focus='body'] .plate[data-layer='body'],
 .stack[data-focus='number'] .plate[data-layer='number'] {
+  --raise: 1;
   --fade: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab]:not([data-motion='paused']) .stack[data-focus] .plate {
+    transition:
+      opacity var(--dur-quick) var(--ease-standard),
+      transform var(--dur-settle) var(--ease-standard);
+  }
 }
 
 @media (max-width: 900px) {

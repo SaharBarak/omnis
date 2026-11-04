@@ -5,13 +5,15 @@ import { MEASURED_PAIRS } from '@pleiad/engine/services/rarity'
 import b from './blocks.module.css'
 import { baseRateModel, type BaseRateRow, type BaseRateSample, type ChartModel } from './base-rate-model'
 import kit from '../kit.module.css'
-import { useScene, type SceneKit } from '../motion'
-import { DURATION, seconds } from '@/lib/design/motion-tokens'
+import { useSequence, type IllustrationKit, type Sequence } from '../motion'
+import { CURVE, DURATION } from '@/lib/design/motion-tokens'
 
-/** Scroll-timeline units (scrubbed, so only their ratios matter): bars rise, the sample drops, the threshold sweeps, a hold. */
+/** The sequence's beats as shares of its length (only their ratios matter): bars rise, the sample drops, the threshold sweeps, a hold. */
 const TIMING = Object.freeze({ rise: 0.5, riseStagger: 0.08, drop: 0.3, dropStagger: 0.06, sweep: 0.8, light: 0.08, hold: 0.3 })
-/** The whole scene played by time instead of scroll: the draw token, then a settle for the threshold to land. */
+/** The whole sequence: the draw token, then a settle for the threshold to land. */
 const PLAY_MS = DURATION.draw + DURATION.settle
+/** The beats are written in thousandths of a share, then stretched to `PLAY_MS`. */
+const UNIT = 1000
 /** How far above its seat a sample tie starts its drop, in pixels. */
 const DROP_FROM = -72
 
@@ -20,40 +22,38 @@ const share = (n: number): string => `${Math.round(n * 1000) / 10}%`
 /**
  * Storyboard 6: bars rise to their measured base rates, the sample's ties
  * drop onto the scale at their weight, then the line-or-no-line threshold
- * sweeps in from the rare end, lighting what it passes. Pinned (the home
- * track), the scroll scrubs it. Unpinned (inside an article), it plays once
- * as the chart comes into view, so a reader who stops scrolling never reads
- * a half-swept threshold; a chart already on screen keeps its final frame.
- * Everything it moves is already in place in CSS; GSAP drives CSS
- * variables, transform and opacity only.
+ * sweeps in from the rare end, lighting what it passes. It plays once, by
+ * time, as the chart comes into view, so a reader never rests on a
+ * half-swept threshold; a chart already on screen keeps its final frame.
+ * Everything it moves is already in place in CSS; the sequence tweens CSS
+ * variables, transform and opacity only, and each ends at the stylesheet's
+ * own value.
  */
-function buildScene({ gsap, ScrollTrigger, root }: SceneKit, model: ChartModel, pinned: boolean): void {
+function buildSequence({ anime, root, ease }: IllustrationKit, model: ChartModel): Sequence | null {
   const field = root.querySelector<HTMLElement>('[data-field]')
-  const columns = gsap.utils.toArray<HTMLElement>('[data-column]', root)
-  const dots = gsap.utils.toArray<HTMLElement>('[data-dot]', root)
-  if (!field) return
-  if (!pinned && root.getBoundingClientRect().top < window.innerHeight) return
-  const timeline = gsap.timeline({ defaults: { ease: 'none' }, paused: !pinned })
-  timeline.fromTo(columns, { '--rise': 0 }, { '--rise': 1, duration: TIMING.rise, stagger: TIMING.riseStagger }, 0)
-  const dropAt = timeline.duration()
-  if (dots.length > 0) {
-    timeline.fromTo(dots, { y: DROP_FROM, opacity: 0 }, { y: 0, opacity: 1, duration: TIMING.drop, stagger: TIMING.dropStagger }, dropAt)
-  }
-  const sweepAt = timeline.duration()
-  timeline.fromTo(field, { '--sweep': 1 }, { '--sweep': 0, duration: TIMING.sweep }, sweepAt)
-  const passes = (x: number) => sweepAt + TIMING.sweep * (1 - (x - model.edge.x) / (1 - model.edge.x))
+  const columns = [...root.querySelectorAll<HTMLElement>('[data-column]')]
+  const dots = [...root.querySelectorAll<HTMLElement>('[data-dot]')]
+  if (!field) return null
+  const at = (share: number) => share * UNIT
+  const timeline = anime.createTimeline({ autoplay: false })
+  columns.forEach((column, i) => {
+    timeline.add(column, { '--rise': [0, 1], duration: at(TIMING.rise), ease: ease(CURVE.standard) }, at(i * TIMING.riseStagger))
+  })
+  const dropAt = timeline.duration
+  dots.forEach((dot, i) => {
+    timeline.add(dot, { translateY: [DROP_FROM, 0], opacity: [0, 1], duration: at(TIMING.drop), ease: ease(CURVE.emphasized) }, dropAt + at(i * TIMING.dropStagger))
+  })
+  const sweepAt = timeline.duration
+  // Linear, so the moment the threshold passes a bar is where it is drawn.
+  timeline.add(field, { '--sweep': [1, 0], duration: at(TIMING.sweep), ease: 'linear' }, sweepAt)
+  const passes = (x: number) => sweepAt + at(TIMING.sweep) * (1 - (x - model.edge.x) / (1 - model.edge.x))
   const lit = [...columns.map((el, i) => [el, model.columns[i]] as const), ...dots.map((el, i) => [el, model.dots[i]] as const)]
   lit.forEach(([el, datum]) => {
-    if (!datum?.drawn) return
-    timeline.fromTo(el, { '--lit': 0 }, { '--lit': 1, duration: TIMING.light, immediateRender: true }, passes(datum.x))
+    if (datum?.drawn) timeline.add(el, { '--lit': [0, 1], duration: at(TIMING.light), ease: 'linear' }, passes(datum.x))
   })
-  timeline.to({}, { duration: TIMING.hold })
-  if (pinned) {
-    ScrollTrigger.create({ trigger: root, start: 'top 75%', end: 'bottom bottom', scrub: true, animation: timeline })
-    return
-  }
-  timeline.timeScale(timeline.duration() / seconds(PLAY_MS))
-  ScrollTrigger.create({ trigger: root, start: 'top 80%', once: true, onEnter: () => void timeline.play() })
+  timeline.add(field, { '--sweep': 0, duration: at(TIMING.hold) }, timeline.duration)
+  timeline.stretch(PLAY_MS)
+  return { timeline }
 }
 
 /**
@@ -61,21 +61,18 @@ function buildScene({ gsap, ScrollTrigger, root }: SceneKit, model: ChartModel, 
  * left, the threshold where a tie earns a line on the map, and optionally a
  * sample pair's ties on the same scale. Rows come from the engine's measured
  * rates (`measuredRow`, or the lab's `ties`); the threshold is EDGE_CEILING
- * and the lead mark the rarest tier's ceiling. `pin` holds the chart in a
- * sticky frame while the scene plays (the home page); without it the scene
- * plays as the chart crosses the viewport. `children` sit under the chart,
- * inside the frame. With motion off the chart is drawn in full.
+ * and the lead mark the rarest tier's ceiling. It plays once as it comes
+ * into view. `children` sit under the chart, inside the frame. With motion
+ * off the chart is drawn in full.
  */
 export function BaseRateChart({
   rows,
   sample,
-  pin = false,
   label = 'How often each kind of tie appears between two random people',
   children,
 }: {
   readonly rows: readonly BaseRateRow[]
   readonly sample?: BaseRateSample
-  readonly pin?: boolean
   readonly label?: string
   readonly children?: ReactNode
 }) {
@@ -84,11 +81,11 @@ export function BaseRateChart({
   const model = baseRateModel(rows, sample)
   const key = rows.map((r) => `${r.type}:${r.share}`).join('|') + (sample?.ties.map((t) => t.key).join('|') ?? '')
 
-  useScene(rootRef, (kit) => buildScene(kit, model, pin), [key, pin])
+  useSequence(rootRef, (kit) => buildSequence(kit, model), [key])
 
   const leadWidth = 1 - model.lead.x
   return (
-    <div ref={rootRef} className={b.chartTrack} data-pin={pin || undefined} data-scene="base-rates">
+    <div ref={rootRef} className={b.chartTrack} data-scene="base-rates">
       <div className={b.chartFrame}>
         <figure className={`${b.chart} ${kit.starfield}`} aria-labelledby={`${id}-title`}>
           <figcaption id={`${id}-title`} className={b.chartTitle}>

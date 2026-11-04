@@ -4,8 +4,8 @@ import { describe, expect, it } from 'vitest'
 
 /**
  * Packages that must reach the browser only through a dynamic `import()`:
- * the heavy engine's two ephemeris packages (through load.ts), and the scene
- * and illustration engines (through useScene, useIllustration and useTurn,
+ * the heavy engine's two ephemeris packages (through load.ts), and the
+ * sequence and illustration engine (through useSequence, useIllustration and useTurn,
  * docs/redesign/BENTO_MOTION.md "Policy"); and local modules held back the
  * same way, such as the atlas mark meanings (through useExplain). This walks the static import
  * graph of every client module in the bento tree and fails if one of them
@@ -13,7 +13,7 @@ import { describe, expect, it } from 'vitest'
  */
 
 const ROOT = process.cwd()
-const HEAVY = new Set(['circular-natal-horoscope-js', 'astronomy-engine', 'gsap', 'animejs'])
+const HEAVY = new Set(['circular-natal-horoscope-js', 'astronomy-engine', 'animejs'])
 /**
  * Local modules that reach the browser only after first paint: the atlas mark
  * meanings and the long tables only they read (BENTO_SITE.md, "Marks explain themselves").

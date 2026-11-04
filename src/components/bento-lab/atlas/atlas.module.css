@@ -948,8 +948,8 @@
 
 /* ---------- home sections 3 and 4: pair layers and circle sonar (BENTO_MOTION.md storyboards 3, 4) ----------
  * Added for the "Two people" and "Circles" home sections. The layered pair
- * frame stacks three SVGs on one view box (person a, person b, ties) so a
- * scroll scene can move each as a composited box. The sonar ring is at rest
+ * frame stacks three SVGs on one view box (person a, person b, ties) so the
+ * pair's sequence can move each as a composited box. The sonar ring is at rest
  * invisible; an illustration sends it outward once. */
 
 .pairStack {

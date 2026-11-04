@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { createContext, useContext, useId, useRef, useState, type ReactNode } from 'react'
 import type { AnimationParams } from 'animejs'
 import { m, useInView, type Variants } from 'framer-motion'
 import { mayDrawEdge } from '@pleiad/engine/services/rarity'
@@ -11,7 +11,7 @@ import kit from '../kit.module.css'
 import { PrimaryAction } from '../site/action'
 import { PairDrawing, TieTable } from '@/components/bento-lab/atlas'
 import { TIE_LAYER, tieStroke } from '@/components/bento-lab/atlas/tie-geometry'
-import { drawStroke, landsAt, Rolling, undrawnStroke, useIllustration, useMotionAllowed, useScene } from '@/components/bento-lab/motion'
+import { drawStroke, landsAt, Rolling, undrawnStroke, useMotionAllowed, useSequence } from '@/components/bento-lab/motion'
 import type { PairAtlas } from '@/lib/atlas/types'
 import { CURVE, DURATION, seconds, staggerStep } from '@/lib/design/motion-tokens'
 import { centerName, type Tie } from '@/lib/relations/pair-ties'
@@ -19,22 +19,10 @@ import { tieBits, tieName, tieOdds } from '@/lib/relations/tie-text'
 
 /** The maps sit side by side, outer rings nearly touching (the drawing's own margin). */
 const GAP = 0
-/** How far each map starts from its seat, as a share of the drawing's width (or height, stacked). */
-const SPREAD = 0.15
-/** Where the maps start: a little smaller and dimmer, as if further off. */
-const APART = Object.freeze({ scale: 0.92, opacity: 0.55 })
-/** Share of the scrubbed track at which the maps meet; the rest holds the joined pair. */
-const JOIN = 0.6
 /** The rarity gauge's path length: rarity is out of 100. */
 const GAUGE = 100
 /** The rarest tie's mark is a half-size copy of its line. */
 const MARK_SCALE = 0.5
-
-/** A scene tells the illustration when to draw: once, when the maps meet. */
-interface Cue {
-  fired: boolean
-  play: (() => void) | null
-}
 
 /** True once a row has settled, so its weight rolls after it arrives. */
 const Arrived = createContext(true)
@@ -97,21 +85,19 @@ function Fact({ visual, label, value, meta, layer }: { visual: ReactNode; label:
 
 /**
  * Storyboard 3, "Two people" (BENTO_MOTION.md). The layout is CSS
- * (pair.module.css): a track with a sticky frame holding the pair and its
- * facts, the tie rows under it. GSAP scrubs the two person layers together
- * and shows the tie layer once they meet; anime.js then draws the ties rarest
- * first; Motion settles the rows and rolls their weights. With motion off,
- * every one of them is the final frame.
+ * (pair.module.css): the pair joined, its facts in one row under it, the tie
+ * rows under that. As the section comes into view one sequence slides the
+ * two maps together (`--join`, which the stylesheet turns into each map's
+ * offset), shows the tie layer, and draws the ties rarest first; Motion then
+ * settles the rows and rolls their weights. With motion off, every one of
+ * them is the final frame.
  */
 export function PairScene({ pair, action }: { readonly pair: PairAtlas; readonly action?: SceneAction }) {
   const tableId = useId()
-  const afterId = useId()
   const sceneRef = useRef<HTMLDivElement>(null)
-  const trackRef = useRef<HTMLDivElement>(null)
   const rowsRef = useRef<HTMLDivElement>(null)
-  const cue = useRef<Cue>({ fired: false, play: null })
   const allowed = useMotionAllowed()
-  /** Lines drawn so far while the illustration runs; null is the final frame. */
+  /** Lines drawn so far while the sequence runs; null is the final frame. */
   const [landed, setLanded] = useState<number | null>(null)
   const rowsInView = useInView(rowsRef, { once: true, amount: 0.2 })
 
@@ -124,94 +110,42 @@ export function PairScene({ pair, action }: { readonly pair: PairAtlas; readonly
   const rowsShown = !live || (landed >= drawn.length && rowsInView)
   const step = staggerStep(drawn.length)
 
-  const fire = useCallback(() => {
-    if (cue.current.fired) return
-    cue.current.fired = true
-    cue.current.play?.()
-  }, [])
-
-  useEffect(() => {
-    if (rowsInView) fire()
-  }, [rowsInView, fire])
-
-  useScene(
-    trackRef,
-    ({ gsap, ScrollTrigger, root }) => {
-      const timeline = gsap.timeline({ defaults: { ease: 'none' } })
-      gsap.utils.toArray<SVGSVGElement>('[data-side]', root).forEach((side) => {
-        const away = (side.dataset.side === 'a' ? -SPREAD : SPREAD) * 100
-        const axis = side.parentElement?.dataset.axis === 'y' ? 'yPercent' : 'xPercent'
-        timeline.fromTo(side, { [axis]: away, ...APART }, { [axis]: 0, scale: 1, opacity: 1, duration: JOIN }, 0)
-      })
-      timeline.fromTo(gsap.utils.toArray<SVGSVGElement>('[data-ties]', root), { opacity: 0 }, { opacity: 1, duration: 0.001 }, JOIN)
-      timeline.to({}, { duration: 1 - JOIN }, JOIN)
-      const ground = root.querySelector<HTMLElement>('[data-ground]')
-      if (ground) timeline.fromTo(ground, { '--field-y': '0px' }, { '--field-y': '-160px', duration: 1 }, 0)
-      const trigger = ScrollTrigger.create({
-        trigger: root,
-        start: 'top top',
-        end: 'bottom bottom',
-        scrub: true,
-        animation: timeline,
-        onUpdate: (self) => {
-          if (self.progress >= JOIN) fire()
-        },
-      })
-      if (trigger.progress >= JOIN) fire()
-    },
-    [pair],
-  )
-
-  useIllustration(
+  useSequence(
     sceneRef,
     ({ anime, root, ease }) => {
-      if (cue.current.fired || root.getBoundingClientRect().top < window.innerHeight) {
-        setLanded(null)
-        return
-      }
-      const all = (selector: string) => [...root.querySelectorAll<SVGElement>(selector)]
+      const all = (selector: string) => [...root.querySelectorAll<HTMLElement | SVGElement>(selector)]
       const timeline = anime.createTimeline({ autoplay: false })
-      const add = (targets: SVGElement[], params: AnimationParams, at: number) => {
+      const add = (targets: (HTMLElement | SVGElement)[], params: AnimationParams, at: number) => {
         if (targets.length > 0) timeline.add(targets, params, at)
       }
+      add(all('[data-pair-stack]'), { '--join': [0, 1], duration: DURATION.settle, ease: ease(CURVE.emphasized) }, 0)
+      add(all('[data-ground]'), { '--drift': [1, 0], duration: DURATION.settle + DURATION.draw, ease: 'linear' }, 0)
+      const met = DURATION.settle
+      add(all('[data-ties]'), { opacity: [0, 1], duration: DURATION.quick, ease: ease(CURVE.standard) }, met)
       drawn.forEach((_, i) => {
         const part = (selector: string) => all(`[data-tie="${i}"] ${selector}`)
-        const at = i * step
+        const at = met + i * step
         const land = landsAt(at)
         add(part('[data-tie-end="from"]'), { opacity: [0, 1], duration: DURATION.quick, ease: ease(CURVE.standard) }, at)
-        add(
-          part('[data-tie-line]'),
-          { ...drawStroke(ease), onComplete: () => setLanded((n) => Math.max(n ?? 0, i + 1)) },
-          at,
-        )
+        add(part('[data-tie-line]'), { ...drawStroke(ease), onComplete: () => setLanded((n) => Math.max(n ?? 0, i + 1)) }, at)
         add(part('[data-tie-end="to"]'), { opacity: [0, 1], duration: DURATION.quick, ease: ease(CURVE.standard) }, land)
         add(part('[data-tie-label]'), { opacity: [0, 1], translateY: [8, 0], duration: DURATION.settle, ease: ease(CURVE.emphasized) }, land)
       })
-      add(all('[data-mark-line]'), drawStroke(ease), 0)
-      add(all('[data-gauge]'), { strokeDashoffset: [pair.reading.rarity + 1, 0], duration: DURATION.draw, ease: ease(CURVE.emphasized) }, 0)
-      // The hidden state goes on after the timeline exists, so reverting either leaves no inline style behind.
+      add(all('[data-mark-line]'), drawStroke(ease), met)
+      add(all('[data-gauge]'), { strokeDashoffset: [pair.reading.rarity + 1, 0], duration: DURATION.draw, ease: ease(CURVE.emphasized) }, met)
       anime.utils.set(all('[data-tie-line], [data-mark-line]'), undrawnStroke())
       anime.utils.set(all('[data-tie-end], [data-tie-label]'), { opacity: 0 })
       anime.utils.set(all('[data-gauge]'), { strokeDashoffset: pair.reading.rarity + 1 })
       setLanded(0)
-      let current = true
-      cue.current.play = () => {
-        if (current) timeline.play()
-      }
-      return () => {
-        current = false
-        cue.current.play = null
-      }
+      // Ended any way, every line is in: the rows still wait to be seen before they settle.
+      return { timeline, settle: () => setLanded((n) => (n === null ? null : drawn.length)) }
     },
     [pair],
   )
 
   return (
     <div ref={sceneRef} className={p.scene}>
-      <a href={`#${afterId}`} className={kit.skip}>
-        Skip past the drawing
-      </a>
-      <div ref={trackRef} className={p.track} data-scene="pair">
+      <div data-scene="pair">
         <div className={p.frame}>
           <div className={f.shell}>
             <div className={f.stage} data-tint={top ? TIE_LAYER[top.system] : undefined}>
@@ -274,7 +208,7 @@ export function PairScene({ pair, action }: { readonly pair: PairAtlas; readonly
           </ul>
         </div>
       </div>
-      <div ref={rowsRef} id={afterId} className={`${f.surface} ${p.rows}`}>
+      <div ref={rowsRef} className={`${f.surface} ${p.rows}`}>
         <TieTable
           reading={pair.reading}
           names={names}

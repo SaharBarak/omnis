@@ -30,7 +30,7 @@ export function MethodSection({ lab, pair }: { readonly lab: BentoLabData; reado
       title="Every tie is weighed against strangers"
       lead="A tie's weight is how surprising it is: minus log two of the share of random pairs that have it. A tie most pairs share says nothing about these two."
     >
-      <BaseRateChart rows={lab.ties} sample={sampleOf(pair)} pin>
+      <BaseRateChart rows={lab.ties} sample={sampleOf(pair)}>
         <p className={site.figureLine}>
           <span>
             Rarer than {tieOdds(EDGE_CEILING)}, a tie gets a line on the map

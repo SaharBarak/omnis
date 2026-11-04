@@ -1,9 +1,9 @@
 /*
- * Two people (BENTO_MOTION.md storyboard 3). The layout is all here: a track
- * with a sticky frame when motion is on, the pair already joined so the frame
- * reads without script, the facts in one row under it, the tie rows under
- * that. GSAP moves the person layers and shows the tie layer; anime.js draws
- * the lines, the mark and the gauge; Motion settles the rows.
+ * Two people (BENTO_MOTION.md storyboard 3). The layout is all here, the same
+ * with motion on or off: the pair already joined so the frame reads without
+ * script, the facts in one row under it, the tie rows under that. One
+ * sequence tweens --join (the maps' offset below) and --drift, shows the tie
+ * layer and draws the lines, the mark and the gauge; Motion settles the rows.
  *
  * The figure's shell, art well, raised surface and action are shared with the
  * other home figures and live in figure.module.css.
@@ -14,33 +14,41 @@
   gap: 28px;
 }
 
-.track {
-  --frame-h: var(--figure-h);
-
-  position: relative;
-}
-
 .frame {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
   gap: 12px;
-  height: var(--frame-h);
+  height: var(--figure-h);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  [data-lab]:not([data-motion='paused']) .track {
-    --frame-h: var(--figure-pinned-h);
+/*
+ * The join: --join runs from 0, apart, to 1, together, which is the frame at
+ * rest. Apart, each map sits a share of its own box off its seat, a little
+ * smaller and dimmer, as if further off.
+ */
+.drawing [data-pair-stack] {
+  --join: 1;
+  --spread: 15%;
+  --apart-scale: 0.92;
+  --apart-opacity: 0.55;
+  --away: calc(1 - var(--join));
+}
 
-    height: calc(var(--frame-h) + 100svh);
-  }
-  [data-lab]:not([data-motion='paused']) .frame {
-    position: sticky;
-    top: var(--nav-clear);
-  }
-  [data-lab]:not([data-motion='paused']) .drawing [data-side],
-  [data-lab]:not([data-motion='paused']) .drawing [data-ties] {
-    will-change: transform, opacity;
-  }
+.drawing [data-side] {
+  scale: calc(1 - var(--away) * (1 - var(--apart-scale)));
+  opacity: calc(1 - var(--away) * (1 - var(--apart-opacity)));
+}
+
+.drawing [data-axis='x'] [data-side='a'] { translate: calc(var(--away) * var(--spread) * -1) 0; }
+.drawing [data-axis='x'] [data-side='b'] { translate: calc(var(--away) * var(--spread)) 0; }
+.drawing [data-axis='y'] [data-side='a'] { translate: 0 calc(var(--away) * var(--spread) * -1); }
+.drawing [data-axis='y'] [data-side='b'] { translate: 0 calc(var(--away) * var(--spread)); }
+
+/* The star field drifts in to its rest as the maps meet. */
+.frame [data-ground] {
+  --drift-distance: -160px;
+  --drift: 0;
+  --field-y: calc(var(--drift) * var(--drift-distance));
 }
 
 /* The drawing fills the well (figure.module.css .stage); each orientation's stack is the largest box of its ratio that fits. */

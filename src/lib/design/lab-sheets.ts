@@ -2,9 +2,9 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
 /**
- * The lab's CSS modules, for the tests that hold them to the token tables
- * (type-scale, radius, elevation). Node only: tests import it, the app never
- * does.
+ * The lab's CSS modules and scripts, for the tests that hold them to the
+ * token tables (type-scale, radius, elevation) and the motion policy. Node
+ * only: tests import it, the app never does.
  */
 
 const ROOTS = ['src/components/bento-lab', 'src/app/lab/bento']
@@ -20,18 +20,22 @@ export interface Sheet {
   readonly lines: readonly string[]
 }
 
-const walk = (dir: string): string[] =>
+const walk = (dir: string, keep: (name: string) => boolean): string[] =>
   readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const path = join(dir, entry.name)
-    return entry.isDirectory() ? walk(path) : entry.name.endsWith('.module.css') ? [path] : []
+    return entry.isDirectory() ? walk(path, keep) : keep(entry.name) ? [path] : []
   })
 
-export function labSheets(root = process.cwd()): readonly Sheet[] {
-  return ROOTS.flatMap((dir) => walk(join(root, dir)))
+const read = (root: string, keep: (name: string) => boolean): readonly Sheet[] =>
+  ROOTS.flatMap((dir) => walk(join(root, dir), keep))
     .map((path) => relative(root, path))
     .filter((path) => !EXEMPT.has(path))
     .map((path) => ({ path, lines: readFileSync(join(root, path), 'utf8').split('\n') }))
-}
+
+export const labSheets = (root = process.cwd()): readonly Sheet[] => read(root, (name) => name.endsWith('.module.css'))
+
+/** The lab's scripts, tests left out: what reaches the browser. */
+export const labScripts = (root = process.cwd()): readonly Sheet[] => read(root, (name) => /\.tsx?$/.test(name) && !/\.test\.tsx?$/.test(name))
 
 /** Every `property: value;` in the sheets whose property matches, as `path:line value`, skipping lines marked as drawing. */
 export function declarations(sheets: readonly Sheet[], property: RegExp): readonly { readonly at: string; readonly value: string }[] {

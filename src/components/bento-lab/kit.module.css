@@ -400,7 +400,7 @@
  * screen reader's cursor lands in the right place; the price is that inside a
  * sideways scroller it would widen the page, so every scroller that can hold
  * one is position: relative and keeps it.
- * .skip is a link past a tall scroll scene, or past the bar to the page,
+ * .skip is a link past the bar to the page,
  * hidden until it has keyboard focus.
  */
 .srOnly,
