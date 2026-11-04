@@ -14,7 +14,7 @@
   --tile-pad-block: 6px;
   --tile-pad-inline: 12px;
   /* A fact's fill reaches this far past its words, inside the tile's padding. */
-  --fact-pad: 4px;
+  --fact-pad: 3px;
   /* Concentric with the tile: its radius less the space between their edges. */
   --fact-radius: calc(var(--radius-card) - var(--tile-pad-block) + var(--fact-pad));
   --support-gap: 12px;
@@ -24,6 +24,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--tile-gap);
+  /* Room above the first row for the pin's hit area, which overhangs its tile; a scrolling column would clip it. */
+  padding-block-start: max(0px, calc(var(--hit) / 2 - var(--edge-w) - var(--tile-pad-block) - var(--type-caption) * var(--type-ui-lh) / 2));
 }
 
 @media (pointer: coarse) {
@@ -39,7 +41,7 @@
   flex: 1 1 0;
   display: grid;
   align-content: center;
-  gap: 3px;
+  gap: 2px;
   min-width: min-content;
   padding: var(--tile-pad-block) var(--tile-pad-inline);
   border: var(--edge-w) solid var(--elevation-edge);
@@ -97,11 +99,12 @@
 
 .pin:focus-visible {
   outline: 2px solid var(--lab-ink);
-  outline-offset: 2px;
+  /* Off the pressed ring, so a focused pin still shows whether it is pressed. */
+  outline-offset: 4px;
 }
 
-/* The card hangs from the fact it shows. */
-.fact[data-anchor] {
+/* The card hangs from the tile holding the fact it shows, so it never covers that tile. */
+.tile[data-anchor] {
   anchor-name: var(--fact-anchor);
 }
 
@@ -128,6 +131,8 @@
 /* The layer's pin, the same disc as the drawing's, and the toggle that brings the layer forward. */
 .pin {
   position: relative;
+  /* Above the lead, which comes later and is positioned, so the whole hit area answers. */
+  z-index: 1;
   flex: none;
   display: grid;
   place-items: center;
@@ -343,15 +348,18 @@
 
 /* ---------- the card a fact opens (BENTO_SITE.md, "Facts explain themselves") ---------- */
 
+/* Beside the tile, top edges aligned (`side`), or above it (`above`); the fallbacks flip either one. */
+
 .card {
   --card-gap: 8px;
 
   position: fixed;
   inset: auto;
-  margin: 0 var(--card-gap);
+  margin-block: 0;
+  margin-inline: var(--card-gap);
   position-anchor: var(--fact-anchor);
-  position-area: left span-bottom;
-  /* Same side growing up first, then the other side, then below or above the fact. */
+  position-area: inline-start span-block-end;
+  /* Same side growing up first, then the other side, then below or above the tile. */
   position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline, --fact-below, --fact-above;
   width: max-content;
   max-inline-size: min(34ch, calc(100vw - 2 * var(--card-gap)));
@@ -366,6 +374,12 @@
   opacity: 0;
 }
 
+.card[data-at='above'] {
+  position-area: block-start span-inline-end;
+  margin-block: var(--card-gap);
+  margin-inline: 0;
+}
+
 .card:popover-open {
   display: grid;
   gap: 2px;
@@ -378,18 +392,21 @@
 .card[data-kept][data-layer='number'] { border-color: var(--atlas-number); }
 
 @position-try --fact-below {
-  position-area: bottom span-right;
-  margin: var(--card-gap) 0 0;
+  position-area: block-end span-inline-end;
+  margin-block: var(--card-gap) 0;
+  margin-inline: 0;
 }
 
 @position-try --fact-above {
-  position-area: top span-right;
-  margin: 0 0 var(--card-gap);
+  position-area: block-start span-inline-end;
+  margin-block: 0 var(--card-gap);
+  margin-inline: 0;
 }
 
 /* Under 720 px, and without anchor positioning, the card docks to the bottom of the viewport. */
 @media (max-width: 720px) {
-  .card {
+  .card,
+  .card[data-at] {
     position-area: none;
     position-try-fallbacks: none;
     inset: auto 8px 8px;
@@ -400,8 +417,10 @@
   }
 }
 
-@supports not (anchor-name: --a) {
-  .card {
+/* Anchor positioning as shipped (position-area); browsers with only the older inset-area dock too. */
+@supports not (position-area: block-end) {
+  .card,
+  .card[data-at] {
     inset: auto 8px 8px;
     width: auto;
     max-inline-size: none;
@@ -426,14 +445,23 @@
     transition: box-shadow var(--dur-quick) var(--ease-standard);
   }
   [data-lab]:not([data-motion='paused']) .card {
-    transition:
-      opacity var(--dur-quick) var(--ease-standard),
-      overlay var(--dur-quick) allow-discrete,
-      display var(--dur-quick) allow-discrete;
+    transition: opacity var(--dur-quick) var(--ease-standard);
   }
   @starting-style {
     [data-lab]:not([data-motion='paused']) .card:popover-open {
       opacity: 0;
+    }
+  }
+}
+
+/* The fade out keeps the card in the top layer only where `overlay` transitions; elsewhere it leaves at once rather than fall back into its column. */
+@supports (overlay: auto) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-lab]:not([data-motion='paused']) .card {
+      transition:
+        opacity var(--dur-quick) var(--ease-standard),
+        overlay var(--dur-quick) allow-discrete,
+        display var(--dur-quick) allow-discrete;
     }
   }
 }

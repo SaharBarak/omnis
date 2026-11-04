@@ -12,6 +12,7 @@ import { PersonAtlasDrawing, type MarkHighlight } from './person-atlas'
 import { PinLayer } from './pin-layer'
 import { atlasPins } from './pins'
 import { useExplain } from './use-explain'
+import { useDismiss } from './use-dismiss'
 import { useGrace } from './use-grace'
 import kit from '../kit.module.css'
 import { useTurn } from '../motion/use-turn'
@@ -67,23 +68,7 @@ function useMarkInspect(atlas: PersonAtlas, focus: AtlasLayerId | null, squareRe
 
   const { send, hold } = useGrace(dispatch)
 
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      e.stopPropagation()
-      dispatch({ type: 'dismiss' })
-    }
-    const onDown = (e: PointerEvent) => {
-      if (kept && !holds(squareRef.current, e.target)) dispatch({ type: 'dismiss' })
-    }
-    document.addEventListener('keydown', onKey, true)
-    document.addEventListener('pointerdown', onDown)
-    return () => {
-      document.removeEventListener('keydown', onKey, true)
-      document.removeEventListener('pointerdown', onDown)
-    }
-  }, [open, kept, squareRef])
+  useDismiss(open, kept, dispatch, squareRef)
 
   return { state, send, hold, marks: [...marks.values()], active, shown: find(marks, state.shown), highlight }
 }

@@ -21,7 +21,7 @@ export function MapFigure({ atlas }: { readonly atlas: PersonAtlas }) {
   return (
     <div className={m.figure}>
       <AtlasStage atlas={atlas} status={READY} focus={focus} onFocus={setFocus} readoutId={readoutId} className={m.stage} fit />
-      <AtlasDigest atlas={atlas} focus={focus} onFocus={setFocus} className={m.digest} />
+      <AtlasDigest atlas={atlas} focus={focus} onFocus={setFocus} cardAt="above" className={m.digest} />
       <AtlasReadout atlas={atlas} id={readoutId} focus={focus} className={kit.srOnly} />
     </div>
   )

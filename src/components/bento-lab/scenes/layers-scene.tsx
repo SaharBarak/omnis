@@ -78,7 +78,7 @@ export function LayersScene({ atlas }: { readonly atlas: PersonAtlas }) {
           ))}
         </div>
       </div>
-      <AtlasDigest atlas={atlas} focus={focus} spot={tour} onFocus={choose} beside={false} className={l.legend} />
+      <AtlasDigest atlas={atlas} focus={focus} spot={tour} onFocus={choose} beside={false} cardAt="above" className={l.legend} />
     </div>
   )
 }

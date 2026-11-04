@@ -1,26 +1,26 @@
 'use client'
 
-import { useEffect, useId, useReducer, useRef, type CSSProperties, type ReactNode } from 'react'
+import { useId, useReducer, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { SEALS } from '@pleiad/engine/data/seals'
 import { TONES } from '@pleiad/engine/data/tones'
 import type { CardHead } from './card-body'
 import d from './digest.module.css'
 import s from './atlas.module.css'
-import { FactCard } from './fact-card'
+import { FactCard, type CardAt } from './fact-card'
 import { createInspect, IDLE, type InspectState } from './inspect'
 import { MARK_SIZE } from './mark-geometry'
-import { holds } from './mark-targets'
 import { MayaNumeral, numeralHeight } from './maya-numeral'
 import { BodygraphMark, CentreMark } from './person-atlas'
+import { useDismiss } from './use-dismiss'
 import { useExplain } from './use-explain'
 import { useGrace } from './use-grace'
 import { Rolling } from '../motion/rolling'
-import { DIGEST_SHAPE, tileOf, type FactShape, type TileId } from '@/lib/atlas/digest-shape'
-import { DIGEST, LAYER_META, systemLabel } from '@/lib/atlas/layers'
+import { DIGEST_SHAPE, tileEyebrow, tileLayer, tileName, tileOf, tilePin, type FactShape, type TileId } from '@/lib/atlas/digest-shape'
+import { DIGEST } from '@/lib/atlas/layers'
 import { PLACE_NAMES } from '@/lib/atlas/long-count'
 import { sealName } from '@/lib/atlas/marks'
 import { LARGEST } from '@/lib/atlas/maya-numeral'
-import { bodyValue, placeAt, signAt, signsOf } from '@/lib/atlas/place'
+import { bodyValue, dayArc, degreeAt, placeAt, signAt, signsOf } from '@/lib/atlas/place'
 import { NAME_NEEDED, needsLabel } from '@/lib/atlas/readout'
 import { numberWords, readingKey, type NumberRole, type ReadingRef } from '@/lib/atlas/readings'
 import type { AtlasLayerId, GlyphRef, PersonAtlas, SkyBody } from '@/lib/atlas/types'
@@ -114,8 +114,8 @@ const lead = (shape: FactShape, rest: Omit<LeadView, 'label' | 'weight' | 'head'
 
 const NO_NOTE = { label: null, value: null } as const
 
-/** The degree a body stands at, where its day's arc stays in one sign. */
-const degreeOf = (b: SkyBody): string | null => (signsOf(b).length > 1 ? null : `${Math.floor(((b.longitude % 30) + 30) % 30)}°`)
+/** The degree a body stands at; none where its day's arc spans a degree or more, since the time decides it (as the readout says). */
+const degreeOf = (b: SkyBody): string | null => (dayArc(b) ? null : `${degreeAt(b.longitude)}°`)
 
 const maya = ({ maya: m }: PersonAtlas): TileView => {
   const guide = m.oracle.guide
@@ -136,7 +136,7 @@ const maya = ({ maya: m }: PersonAtlas): TileView => {
         head: { label: 'Tone', value: `${m.tone.name} ${m.tone.n}` },
       }),
       fact(shapeOf('maya', 'guide'), {
-        ref: { kind: 'seal', n: guide.n },
+        ref: { kind: 'seat', role: 'guide' },
         value: SEALS[guide.n - 1] ? sealName(guide.n) : guide.name,
         mark: <Glyph src={guide.src} />,
       }),
@@ -267,10 +267,6 @@ const sky = (atlas: PersonAtlas): TileView => {
 
 const READ: Readonly<Record<TileId, (atlas: PersonAtlas) => TileView>> = { maya, body, longcount, number, sky }
 
-const tileName = (tile: TileId): string => (tile === 'longcount' ? systemLabel(tile) : LAYER_META[tile].name)
-const tileLayer = (tile: TileId): AtlasLayerId | null => (tile === 'longcount' ? null : tile)
-const eyebrowOf = (tile: TileId): string => (tile === 'longcount' ? tileName(tile) : `${LAYER_META[tile].pin} ${tileName(tile)}`)
-
 /** What a digest's card shows for one reference: the fact's own head, under the tile's eyebrow. */
 interface Shown {
   readonly ref: ReadingRef
@@ -304,7 +300,6 @@ function FactButton({ shown, cardId, state, send, prime, className, style, child
       className={className}
       style={style}
       data-active={active ? '' : undefined}
-      data-anchor={keyOf(state.shown) === key ? '' : undefined}
       aria-describedby={active ? cardId : undefined}
       onPointerEnter={(e) => {
         if (e.pointerType === 'touch') return
@@ -339,27 +334,32 @@ function Tile({ tile, atlas, focus, spot, onFocus, facts }: TileProps) {
   const view = READ[tile](atlas)
   const layer = tileLayer(tile)
   const name = tileName(tile)
-  const eyebrow = eyebrowOf(tile)
+  const eyebrow = tileEyebrow(tile)
+  const pin = tilePin(tile)
   const shown = (f: FactView): Shown => ({ ref: f.ref, head: { layer, eyebrow, ...f.head } })
   const current = layer !== null && focus === layer
   const { lead: l } = view
+  const system: ReadingRef = { kind: 'system', id: tile }
+  const shownKey = keyOf(facts.state.shown)
+  const anchored = [system, l.ref, ...view.supports.map((f) => f.ref)].some((ref) => readingKey(ref) === shownKey)
   return (
     <div
       className={d.tile}
       role="group"
       aria-label={name}
+      data-anchor={anchored ? '' : undefined}
       data-layer={layer ?? undefined}
       data-beside={layer === null ? tile : undefined}
       data-current={current ? '' : undefined}
       data-spot={layer !== null && spot === layer && !current ? '' : undefined}
     >
       <div className={d.head}>
-        <FactButton {...facts} shown={{ ref: { kind: 'system', id: tile }, head: { layer, eyebrow, label: 'System', value: name } }} className={`${d.fact} ${d.name}`}>
+        <FactButton {...facts} shown={{ ref: system, head: { layer, eyebrow, label: 'System', value: name } }} className={`${d.fact} ${d.name}`}>
           {name}
         </FactButton>
-        {layer !== null && (
+        {layer !== null && pin !== null && (
           <button type="button" className={d.pin} aria-pressed={current} aria-label={`Bring ${name} forward`} onClick={() => onFocus(current ? null : layer)}>
-            {LAYER_META[layer].pin}
+            {pin}
           </button>
         )}
       </div>
@@ -375,6 +375,7 @@ function Tile({ tile, atlas, focus, spot, onFocus, facts }: TileProps) {
         {(l.note.label || l.note.value) && (
           <span className={d.leadNote}>
             {l.note.label && <span className={d.noteLabel}>{l.note.label}</span>}
+            {l.note.label && l.note.value && ' '}
             {l.note.value}
           </span>
         )}
@@ -412,6 +413,7 @@ export function AtlasDigest({
   spot = null,
   onFocus,
   beside = true,
+  cardAt = 'side',
   className,
 }: {
   readonly atlas: PersonAtlas
@@ -420,6 +422,8 @@ export function AtlasDigest({
   readonly onFocus: (next: AtlasLayerId | null) => void
   /** False where the digest is the legend of the layers alone (the layers scene). */
   readonly beside?: boolean
+  /** Where a fact's card hangs from its tile: beside it where tiles stack one per row, above it where they sit in a row. */
+  readonly cardAt?: CardAt
   readonly className?: string
 }) {
   const id = useId()
@@ -428,32 +432,17 @@ export function AtlasDigest({
   const rootRef = useRef<HTMLDivElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const [state, dispatch] = useReducer(inspectFacts, IDLE)
+  const [seen, setSeen] = useState(atlas)
+  if (seen !== atlas) {
+    setSeen(atlas)
+    dispatch({ type: 'reset' })
+  }
   const { send, hold } = useGrace(dispatch)
   const { explainer, prime } = useExplain()
   const open = state.active !== null
   const kept = state.kept
+  useDismiss(open, kept, dispatch, rootRef, cardRef)
 
-  useEffect(() => {
-    dispatch({ type: 'reset' })
-  }, [atlas])
-
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      e.stopPropagation()
-      dispatch({ type: 'dismiss' })
-    }
-    const onDown = (e: PointerEvent) => {
-      if (kept && !holds(rootRef.current, e.target) && !holds(cardRef.current, e.target)) dispatch({ type: 'dismiss' })
-    }
-    document.addEventListener('keydown', onKey, true)
-    document.addEventListener('pointerdown', onDown)
-    return () => {
-      document.removeEventListener('keydown', onKey, true)
-      document.removeEventListener('pointerdown', onDown)
-    }
-  }, [open, kept])
 
   const tiles = DIGEST.filter((entry) => beside || entry.kind === 'layer').map(tileOf)
   const facts = { cardId, state, send, prime }
@@ -472,7 +461,7 @@ export function AtlasDigest({
       <FactCard
         id={cardId}
         cardRef={cardRef}
-        anchor={anchor}
+        at={cardAt}
         head={shown?.head ?? null}
         reading={shown && explainer ? explainer.explainReading(atlas, shown.ref) : null}
         open={open}
