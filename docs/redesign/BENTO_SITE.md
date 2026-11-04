@@ -182,74 +182,160 @@ the pins, and the digest values roll.
 ### The digest
 
 `AtlasDigest` reads the person in the lead order (`DIGEST`): one tile per
-layer and one per system read beside the map. Every tile has one grammar,
-so the eye learns it once:
+layer and one per system read beside the map. Each tile shows its facts in
+three levels, so the eye finds the most important fact first:
 
-- **Head.** The system's name (caption, capitals) at the start. At the end
-  sits the layer's pin, as on the drawing. A tile beside the map has no
-  pin; it shows one more fact in words there instead (the Long Count's
-  calendar round).
-- **Facts.** A row of the system's facts. Each fact stands its mark over
-  its value, with what the value is beneath. The facts share their rows
-  (subgrid), so the marks, the values and the labels each sit on one line
-  across the tile.
-  - A mark is drawn in the layer's colour at the figure role's height.
-    Marks are aria-hidden: every value they show is in the words.
-  - A number is its own mark: it fills the mark's and the value's rows at
-    the figure role, so its label stays on the label line.
-  - In the text a fact's label comes before its value, so assistive tech
-    reads what a value is first ("Seal, Yellow Sun"). The rows set the
-    order on the page.
+1. **Head.** The system's name (caption, capitals) at the start. A layer
+   tile has its pin toggle at the end: the same disc and number as the
+   drawing's pin. A tile beside the map has no pin.
+2. **Lead.** The system's main fact: its mark, then the value at the lead
+   role over a note in the caption role. A lead whose system has no mark of
+   its own starts its words at the tile's edge.
+3. **Supports.** A row of the system's other facts. Each has a small mark
+   beside its value, with what the value is beneath, lined up with the
+   value. Supports share the row's width by weight (`weight`, default 1),
+   and none is narrower than its longest word.
 
-| Tile | Facts: mark, value, label |
-|---|---|
-| Dreamspell | The kin number, "Kin"; the tone as a bar-and-dot numeral, its name, "Tone"; the seal's glyph, its colour and name, "Seal" |
-| Human Design | The bodygraph, the type, "Type"; the profile's lines as a number (`profileLines`), "Profile"; the authority's centre (`authorityCentre`), the authority's own word (`authorityWord`), "Authority" |
-| Maya Long Count | One bar-and-dot numeral per place, most significant first, its number, the place's name (Baktun to Kin, with Piktun above when a count carries) |
-| Numerology | Life path, birthday and expression, each a number |
-| Astrology | Sun, Moon and Rising, each its sign's glyph and name |
+| Tile | Lead: mark, value, note | Supports: mark, value, label |
+|---|---|---|
+| Dreamspell | Seal glyph; the kin's title (`Yellow Galactic Sun`); `Kin 60` | Tone numeral, tone name, "Tone"; guide seal's glyph, colour and name, "Guide" |
+| Human Design | Bodygraph; type; `Strategy` and the type's strategy | Profile lines (`1/3`), profile name (`Investigator/Martyr`), "Profile", weight 2; authority's centre, authority's word, "Authority" |
+| Maya Long Count | None; the date (`13.0.12.3.15`, display face); the calendar round | One bar-and-dot numeral per place, most significant first, its number, the place's name |
+| Numerology | Life path number (display face); its name in the number table (`The seeker`); "Life path" | Birthday and expression: the number, its name, the label |
+| Astrology | Sun sign glyph; sign name; `Sun` and the degree | Moon and Rising: the sign glyph, sign name, the label |
 
-Tone numerals and Long Count places stand on the mark row's floor, in a
-box as tall as the largest value they can take (13 for a tone, 19 for a
-place, `LARGEST`). A row of them therefore shares one baseline.
+The names of numbers come from `NUMBER_MEANINGS`: the words before the
+dash (`The seeker`). The words after the dash go on the number's card.
 
-Missing input is stated, never guessed:
+**Missing input** is stated, never guessed:
 
-- **No time and place.** Human Design shows one fact: the empty bodygraph
-  over the input it needs (`needsLabel`). Rising shows an open mark over
-  the same words.
+- **No time and place.** Human Design has a lead and no supports: the
+  empty bodygraph over the input it needs (`needsLabel`). Rising shows an
+  open mark over the same words.
 - **No birth time.** A body whose day's arc crosses into the next sign
-  shows both signs' glyphs and names ("Aries or Taurus", `signsOf`). This
-  is the same arc the readout states in degrees.
+  shows both glyphs and names (`Pisces or Aries`, `signsOf`) and no
+  degree.
 - **No centre.** Mental and lunar authority have no centre of their own,
   so their mark is open.
-- **No name.** Expression needs a name in Latin letters. Without one its
-  number is an open mark over "Needs a name" (`NAME_NEEDED`): a statement,
-  because not every form asks for a name.
+- **No name.** Expression is an open mark over "Needs a name"
+  (`NAME_NEEDED`).
 
-A layer tile is a button. It brings its layer forward (or, in `travel`
-mode, scrolls the layers scene to it). A tile beside the map is text, not
-a control, and takes no hover. The layers scene's legend is the legend of
-the four plates, so it lists the layers alone (`beside={false}`).
+**Controls.** A tile is a group of controls, not one button. A button
+cannot hold other controls, and these facts each open their own card:
 
-Tiles wrap by their content. No tile is narrower than its longest word,
-mark or number, and a row holds as many tiles as fit, sharing the width
-left over. A tile alone on its row takes the whole row. No breakpoint
-decides this: a longer type name or a sixth Long Count place moves the
-wrap by itself. Contexts that need something else set their own grid:
+- **The pin toggle** brings its layer forward and a second press lets it
+  go (`aria-pressed`, named "Bring Dreamspell forward"). The disc keeps the
+  drawing's pin size. Its hit area is at least 40 px (44 px on coarse
+  pointers), set by a pseudo-element, so the head's height does not change.
+- **The name, the lead and each support** are buttons that open a card
+  (below). Each button's text puts the label before the value, so a screen
+  reader says "Profile, 1/3, Investigator/Martyr". Marks are aria-hidden.
+- Keyboard: ordinary Tab order, head to supports, tile by tile.
 
-- **Hero, one person.** The column has no panel of its own. The tiles
-  stand on the page as cards, one per row, and share the column's height
-  without being squeezed below their content; past that the column
-  scrolls. The cards and the button under them keep the digest's gap
-  (`--tile-gap`).
+A pressed tile takes its layer's colour on its edge and a tint. A tour
+(the layers scene) lights a layer it shows on its own with a ring in the
+layer's colour (`spot`), never the press tint. The layers scene's legend
+lists the layers alone (`beside={false}`).
+
+**Surface.** A tile is a card on `--elevation-1` with the elevation edge;
+borders mark state only. A fact button's hover and press fill sits inside
+the tile's padding, with a radius concentric to the tile's (the tile's
+radius less the space between their edges). Fact buttons are padded out to
+their hit area and pulled back by the same margin, so the words sit on the
+tile's edges. Only colours and shadows transition, each named (never
+`all`), behind the motion switch.
+
+**Sizes.** All derived from the type roles: the lead mark is as tall as the
+lead line and the note line together (`--lead-mark`), and a support's mark
+as tall as its value line (`--support-mark`). Tone numerals and Long Count
+places stand on their line's floor, in a box as tall as the largest value
+they can take (13 for a tone, 19 for a place, `LARGEST`).
+
+**Container.** Tiles wrap by their content. No tile is narrower than its
+longest word, mark or number, and a row holds as many tiles as fit, sharing
+the width left over. A tile alone on its row takes the whole row. No
+breakpoint decides this. Contexts that need something else set their own
+grid:
+
+- **Hero, one person.** The column has no panel of its own. The tiles stand
+  on the page as cards, one per row, and share the column's height without
+  being squeezed below their content; past that the column scrolls. The
+  cards and the button under them keep the digest's gap (`--tile-gap`).
+  Five tiles and the button fit the column at 1440×730.
 - **Tool findings.** One tile per row.
-- **Phones.** The map figure and the layers scene turn their tiles into
-  a swiped row.
+- **Phones.** The map figure and the layers scene turn their tiles into a
+  swiped row.
 
-Inside a tile the facts share its width equally (`--facts`) unless a fact's
-content needs more. A value wraps in balanced lines. A number never wraps
-and holds its own width.
+#### Facts explain themselves
+
+Every button in a tile opens a card with what the fact is, the person's
+value and what the tradition reads into it. This works the way the
+drawing's marks do ("Marks explain themselves"), and the card never gates:
+every value it shows is also in the tile or the readout.
+
+**References.** `src/lib/atlas/readings.ts` names what a digest fact refers
+to (`ReadingRef`). A mark the drawing draws keeps its mark reference (the
+tone, the guide seal, the rising sign). The rest are reading references:
+`system`, `kin`, `type`, `profile`, `authority`, `number` (with its role:
+life path, birthday or expression), `longcount`, `place` (by its unit, Kin
+to Piktun, never by its value) and `placement` (a body in its sign).
+`readingKey` gives each a stable key, using `markKey` for marks. The card's
+head is the fact's own label and value, so the tile and its card can never
+name it two ways.
+
+**Words.** `explainReading(atlas, ref)` in `explain.ts` adds the meaning
+and the facts. It is pure, server-safe and lazy, like `explain`. Every line
+comes from a table the product already reads; a source with nothing for a
+line leaves it out.
+
+| Reference | Meaning | Facts | Source |
+|---|---|---|---|
+| system | The catalog description | Reads, Needs | `SYSTEM_CATALOG`, `LAYER_META`, `BESIDE_META` |
+| kin | The wavespell's purpose | Wavespell, Castle, Court | `WAVESPELLS`, `CASTLES` |
+| tone, seal, rising | As the drawing's mark | As the drawing's mark | `explain` |
+| type | The type's aura | Strategy, Signature, Not-self, Share of people | `TYPES` |
+| profile | The profile's theme | Each line's name and theme | `PROFILES`, `LINE_THEMES` |
+| authority | Its description | Decision | `AUTHORITIES` |
+| number | The words after the dash | From (the input it is reckoned from) | `NUMBER_MEANINGS` |
+| longcount | The catalog description | Days since creation, Tzolk'in, Haab | `getLongCountData` |
+| place | How many days one unit holds | Days, Count (value times days) | `PLACE_DAYS` |
+| placement | The sign's keywords | Element, Modality, Ruler | `ZODIAC_SIGNS`, `PLANETS` |
+
+A missing fact explains what it waits on: its meaning is what the fact
+would read, and its value is the input it needs.
+
+**State.** One card per digest. The digest feeds the inspect reducer
+(`createInspect(readingKey)`, the same reducer the drawing uses with
+`markKey`):
+
+- Hover opens a preview. Leaving the fact closes it after the hover grace
+  (`useGrace`, `quick`), which the pointer reaching the card cancels.
+- Focus opens a card and owns it: the pointer passing over other facts
+  neither replaces nor closes it. Focus leaving closes it.
+- A tap, a click, Enter or Space keeps the card. A second press on its
+  fact closes it, as do Escape (heard in the capture phase and stopped)
+  and a press outside the digest and its card.
+- A new atlas closes the card.
+
+**Card.** The same body as the drawing's card (`CardBody`): eyebrow (the
+pin and name, keyed by a stroke of the layer colour, or ink 3 beside the
+map), label, value in the display face, meaning, facts. It is a
+`popover="manual"` in the top layer, so no column's overflow or entrance
+transform clips it. CSS anchor positioning hangs it from the active fact
+(`anchor-name` on that fact, a name per digest from `useId`): toward the
+inline start, top edges aligned. Where that would leave the viewport it
+tries, in order, the same side with bottom edges aligned, the other side,
+then below and above the fact (`position-try-fallbacks`). Under
+720 px, and in a browser without anchor positioning, it docks to the bottom
+of the viewport and scrolls within half its height. No script measures or
+places it and nothing listens to scroll. The active fact is described by
+the card (`role="tooltip"`, `aria-describedby`); the card holds no
+controls.
+
+**Loading.** The meanings load with `useExplain`, after first paint or on
+the first pointer or focus in the digest. Until then a card shows its head.
+`client-bundle.test.ts` keeps `explain.ts` and the long tables only it
+reads (wavespells, castles) out of the first bundle.
 
 ### Marks explain themselves
 
@@ -353,7 +439,8 @@ lives in the stylesheet alone. Each button is named by its label and value, and
 only the active one is described by the card (`role="tooltip"`, which
 holds no controls). Focus shows the same card as hover, and focus moving
 to a mark replaces any kept card, so a button is never described by
-another mark's words.
+another mark's words. A card focus opened stays while the pointer passes
+over other marks, and closes when focus leaves.
 
 **Keeping and closing.** A tap opens the nearest mark's card and keeps
 it; a click, Enter and Space keep a card the same way. A kept card stays
@@ -687,3 +774,4 @@ each wireframe is the slot contract the built page must fill.
 | Codex CLI (gpt-6-astra) | Digest in the lead order: the Long Count beside the map, two orders (structure and lead), catalog-derived names, tile grammar, hero claim | 2026-11-04 | Incorporated |
 | Solution-architect review (Claude subagent, read-only) | The digest round: Long Count range, date-only fit, moon arcs, button names, kin crop, derived measure, stale names | 2026-11-04 | Incorporated |
 | Solution-architect review (Claude subagent, read-only) | The digest as a head over a row of facts: content-derived wrap, authority and profile from data, missing name, reading order, pin and gap owners | 2026-11-04 | Incorporated |
+| Codex CLI (gpt-6-astra) | Digest hierarchy and knowledge: lead and supports within the hero's height, a dedicated pin toggle, ordinary fact buttons, reading references apart from marks, focus owning the card | 2026-11-04 | Incorporated |

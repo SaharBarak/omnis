@@ -146,19 +146,23 @@ A role keeps one weight wherever it appears.
 
 ## The digest (home hero, `AtlasDigest`)
 
-Each tile is a head over a row of facts (BENTO_SITE.md, "The digest").
+Each tile is a head, a lead and a row of supports (BENTO_SITE.md, "The
+digest").
 
 - **Name.** The system's name: caption, 600, capitals, ink 2.
-- **Note.** The extra fact at the end of a beside tile's head: caption,
-  500, ink 3.
 - **Pin.** The pin digit is micro, on a disc 1.75 times the digit
   (`--pin`), the same disc as the drawing's pins.
-- **Mark.** As tall as the figure role (`--mark`), so a glyph, a drawing
-  and a number weigh alike across the tiles.
-- **Number.** Figure role, 600, ink, tabular figures, leading 1. It
-  stands on the values' line.
-- **Value.** Small, 500, ink, with balanced wrapping.
-- **Label.** What the value is: caption, 500, sentence case, ink 3.
+- **Lead value.** Lead, 600, ink, with balanced wrapping. A date or a
+  number in the lead is set in the display face with tabular figures.
+- **Lead note.** Caption, 500, ink 2; a label inside it is ink 3.
+- **Lead mark.** As tall as the lead line and the note line together
+  (`--lead-mark`). A number as the lead mark is the figure role, 600, ink,
+  tabular figures, leading 1.
+- **Support value.** Small, 500, ink, with balanced wrapping.
+- **Support mark.** As tall as the support value's line (`--support-mark`).
+  A number as the mark is small, 600, display face, tabular figures.
+- **Label.** What a support is: caption, 500, sentence case, ink 3, under
+  its value.
 
 ## Acceptance
 
