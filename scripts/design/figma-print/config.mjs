@@ -39,6 +39,25 @@ export const CONFIG = {
     { name: 'turbopack-dev', pattern: '^([a-z0-9_-]+?)-module__[A-Za-z0-9_-]{6}__(.+)$' },
     { name: 'webpack', pattern: '^([A-Za-z][A-Za-z0-9]*)_(.+?)__[A-Za-z0-9_-]{5}$' },
   ],
+  /**
+   * What a measured tree is read from (docs/redesign/FIGMA_PRINT.md §3.1,
+   * "Provenance", inputs.mjs). A route's entries are the files Next's app
+   * router renders it with: its page and every layout and template on its
+   * segment chain under `app`. Its source is their module graph, resolved
+   * as the dev server resolves it (tsconfig paths, CSS imports, CSS modules),
+   * packages aside, which `compile` covers through the lockfile with the
+   * config every route compiles with. The measure's own inputs are the graph
+   * of `measure`.
+   */
+  source: {
+    app: 'src/app',
+    page: 'page',
+    conventions: ['layout', 'template'],
+    extensions: ['tsx', 'ts', 'jsx', 'js', 'mdx'],
+    compile: ['next.config.mjs', 'postcss.config.mjs', 'tailwind.config.ts', 'tsconfig.json', 'package-lock.json', 'src/middleware.ts'],
+    loaders: { '.module.css': 'local-css', '.svg': 'empty', '.png': 'empty', '.jpg': 'empty', '.jpeg': 'empty', '.webp': 'empty', '.avif': 'empty', '.gif': 'empty', '.ico': 'empty', '.woff': 'empty', '.woff2': 'empty', '.ttf': 'empty', '.otf': 'empty' },
+    measure: ['scripts/design/figma-print/measure.mjs'],
+  },
   /** How long a page's layout must hold still before it is read, and the most the script waits for that. */
   settle: { quietMs: 1500, maxMs: 20_000, pollMs: 250 },
   /** CDP requests in flight at once. */

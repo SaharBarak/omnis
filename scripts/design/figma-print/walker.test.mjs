@@ -63,7 +63,7 @@ describe('a drawing', () => {
   it('expands a marker into shapes at the end it marks and drops the marker', async () => {
     const { markup } = { markup: svgNodeOf((await walked(DRAWING)).root).svg };
     assert.doesNotMatch(markup, /marker-end|<marker/);
-    assert.match(markup, /<g transform="translate\(90 50\) rotate\(0\) scale\(1\.75\) translate\(-7 -4\)"><path d="M0 0 L8 4 L0 8 Z" fill="rgb\(59, 91, 219\)"/);
+    assert.match(markup, /<g transform="translate\(90 50\) rotate\(0\) scale\(2\) translate\(-6\.125 -3\.5\)" opacity="1"><g transform="matrix\(0\.875 0 0 0\.875 0 0\)"><path d="M0 0 L8 4 L0 8 Z" fill="rgb\(59, 91, 219\)"/);
   });
 
   it('rescales a pathLength dash to the shape’s own length', async () => {
@@ -108,6 +108,88 @@ describe('a drawing', () => {
     const group = /<g(?! transform)[^>]*>/.exec(svgNodeOf((await walked(DRAWING)).root).svg)?.[0] ?? '';
     assert.match(group, /opacity="1"/);
     assert.doesNotMatch(group, /\b(fill|stroke)=/);
+  });
+});
+
+/** One drawing in a print root, with `css` for it. */
+const drawingOf = (body, css = '') => `<style>${css}</style><div data-print="wire"><svg viewBox="0 0 100 100" width="100" height="100">${body}</svg></div>`;
+const ARROW = '<marker id="a" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0 L8 4 L0 8 Z" /></marker>';
+const tagsOf = (markup, tag) => [...markup.matchAll(new RegExp(`<${tag}\\b[^>]*>`, 'g'))].map((match) => match[0]);
+
+describe('a drawing’s transforms', () => {
+  it('writes a CSS transform as the element’s own matrix', async () => {
+    const node = svgNodeOf((await walked(drawingOf('<rect class="moved" x="0" y="0" width="10" height="10" />', '.moved { transform: translate(5px, 6px); }'))).root);
+    assert.match(tagsOf(node.svg, 'rect')[0], /transform="matrix\(1 0 0 1 5 6\)"/);
+  });
+
+  it('puts a marker in the transform of the shape it marks', async () => {
+    const node = svgNodeOf((await walked(drawingOf(`<defs>${ARROW}</defs><line x1="10" y1="50" x2="90" y2="50" transform="rotate(90 50 50)" stroke="black" marker-end="url(#a)" />`))).root);
+    assert.match(node.svg, /<g transform="matrix\(0 1 -1 0 100 0\) translate\(90 50\) rotate\(0\)/);
+  });
+
+  it('fits a marker’s viewBox by its preserveAspectRatio', async () => {
+    const marker = (fit) => `<marker id="w" viewBox="0 0 10 5" refX="0" refY="0" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" preserveAspectRatio="${fit}"><rect width="10" height="5" /></marker>`;
+    const fitted = async (fit) => /<g transform="(matrix\([^)]*\))"><rect/.exec(svgNodeOf((await walked(drawingOf(`<defs>${marker(fit)}</defs><line x1="0" y1="0" x2="50" y2="0" stroke="black" marker-end="url(#w)" />`))).root).svg)?.[1];
+    assert.equal(await fitted('xMidYMid meet'), 'matrix(1 0 0 1 0 2.5)');
+    assert.equal(await fitted('xMinYMin meet'), 'matrix(1 0 0 1 0 0)');
+    assert.equal(await fitted('none'), 'matrix(1 0 0 2 0 0)');
+  });
+
+  it('clips a marker to its viewport only where its content spills past it', async () => {
+    const spilling = '<marker id="s" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse"><path d="M0 0 L12 4 L0 8 Z" /></marker>';
+    const clipped = svgNodeOf((await walked(drawingOf(`<defs>${spilling}</defs><line x1="10" y1="50" x2="90" y2="50" stroke="black" marker-end="url(#s)" />`))).root).svg;
+    assert.match(clipped, /<clipPath id="clip-[^"]+"><rect x="0" y="0" width="8" height="8"><\/rect><\/clipPath>/);
+    assert.match(clipped, /<g transform="[^"]*" opacity="1" clip-path="url\(#clip-/);
+    const contained = svgNodeOf((await walked(drawingOf(`<defs>${ARROW}</defs><line x1="10" y1="50" x2="90" y2="50" stroke="black" marker-end="url(#a)" />`))).root).svg;
+    assert.doesNotMatch(contained, /clip-path|<clipPath/);
+  });
+});
+
+describe('a drawing’s vertices', () => {
+  it('marks each interior vertex of a polyline on the bisector of its turn', async () => {
+    const node = svgNodeOf((await walked(drawingOf(`<defs>${ARROW}</defs><polyline points="10,10 50,10 50,50" fill="none" stroke="black" marker-mid="url(#a)" />`))).root);
+    assert.match(node.svg, /<g transform="translate\(50 10\) rotate\(45\)/);
+    assert.equal(node.unread, undefined);
+  });
+
+  it('lists a path’s mid markers as unread, as the DOM lists no vertices of a path', async () => {
+    const node = svgNodeOf((await walked(drawingOf(`<defs>${ARROW}</defs><path d="M10 10 L50 10 L50 50" fill="none" stroke="black" marker-mid="url(#a)" />`))).root);
+    assert.deepEqual(node.unread, ['marker-mid on a <path>']);
+  });
+});
+
+describe('a drawing’s hidden parts', () => {
+  it('drops a subtree its display hides: no layer, no shape', async () => {
+    const node = svgNodeOf((await walked(drawingOf('<g class="off"><rect class="inner" width="10" height="10" /></g><rect class="on" width="5" height="5" />', '.off { display: none; }'))).root);
+    assert.deepEqual(node.shapes.map((shape) => shape.cls[0]), ['on']);
+    assert.match(tagsOf(node.svg, 'g')[0], /display="none"/);
+    assert.doesNotMatch(tagsOf(node.svg, 'rect')[0], /id=/);
+  });
+
+  it('keeps a child its own visibility shows inside a hidden parent', async () => {
+    const node = svgNodeOf((await walked(drawingOf('<g class="veil"><rect class="shown" width="10" height="10" /><rect class="kept" width="4" height="4" /></g>', '.veil { visibility: hidden; } .shown { visibility: visible; }'))).root);
+    assert.deepEqual(node.shapes.map((shape) => shape.cls[0]), ['shown']);
+    const [group] = tagsOf(node.svg, 'g');
+    assert.doesNotMatch(group, /display=/);
+    assert.match(group, /visibility="hidden"/);
+    const [shown, kept] = tagsOf(node.svg, 'rect');
+    assert.doesNotMatch(shown, /display=/);
+    assert.match(kept, /display="none"/);
+  });
+});
+
+describe('a drawing’s definitions', () => {
+  it('writes the paints a gradient stop declares in CSS', async () => {
+    const node = svgNodeOf((await walked(drawingOf('<defs><linearGradient id="g"><stop class="from" offset="0" /></linearGradient></defs><rect width="10" height="10" fill="url(#g)" />', '.from { stop-color: #3b5bdb; stop-opacity: 0.5; }'))).root);
+    const [stop] = tagsOf(node.svg, 'stop');
+    assert.match(stop, /stop-color="rgb\(59, 91, 219\)"/);
+    assert.match(stop, /stop-opacity="0\.5"/);
+  });
+
+  it('leaves a symbol’s shape the fill it inherits, so the use that draws it passes its own', async () => {
+    const node = svgNodeOf((await walked(drawingOf('<defs><symbol id="dot"><circle cx="5" cy="5" r="5" /></symbol></defs><use href="#dot" class="tinted" />', '.tinted { fill: #3b5bdb; }'))).root);
+    assert.doesNotMatch(tagsOf(node.svg, 'circle')[0], /\bfill=/);
+    assert.match(tagsOf(node.svg, 'use')[0], /fill="rgb\(59, 91, 219\)"/);
   });
 });
 

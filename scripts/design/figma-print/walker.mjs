@@ -124,21 +124,36 @@ export function walk(options) {
   /*
    * An SVG written so it imports without the page's CSS (docs/redesign/
    * FIGMA_PRINT.md §3.1, "Drawings"): every computed paint, dash and text
-   * property on its shapes, a `pathLength` dash in the shape's real length, a
-   * marker expanded into shapes at the end it marks, and each shape named by
-   * its node id, which the importer keeps as the layer's name. A container
-   * keeps its own opacity only: the paints it would pass down are already on
-   * its shapes.
+   * property on its shapes, every element's own transform as a matrix, a
+   * `pathLength` dash in the shape's real length, a marker expanded into
+   * shapes at each vertex it marks, and each shape named by its node id,
+   * which the importer keeps as the layer's name. A container keeps its own
+   * opacity only: the paints it would pass down are already on its shapes.
+   * Content in `defs` keeps the paints it declares, not those it inherits
+   * there, so a `use` that draws it still passes its own down. What the
+   * importer cannot be given is listed as unread.
    */
   const SVG_NS = 'http://www.w3.org/2000/svg';
   const SVG_PAINT = ['fill', 'fill-opacity', 'fill-rule', 'stroke', 'stroke-width', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-dasharray', 'stroke-dashoffset', 'opacity'];
+  const SVG_STOP = ['stop-color', 'stop-opacity'];
+  /** Paints no element inherits (SVG 2 §13, Pservers §6.3, Color 4 §15.4), which a defs element therefore always declares or defaults. */
+  const SVG_OWN = new Set(['opacity', ...SVG_STOP]);
   const SVG_TEXT = ['font-family', 'font-size', 'font-weight', 'font-style', 'letter-spacing', 'text-anchor', 'dominant-baseline'];
   const SVG_SHAPES = new Set(['path', 'line', 'polyline', 'polygon', 'circle', 'ellipse', 'rect', 'text']);
-  const SVG_PAINTED = new Set([...SVG_SHAPES, 'tspan']);
-  const MARKER_ENDS = ['start', 'end'];
+  const SVG_PAINTED = new Set([...SVG_SHAPES, 'tspan', 'use']);
+  /** The elements markers apply to (SVG 2 §13.7, "markable elements"). */
+  const SVG_MARKABLE = new Set(['path', 'line', 'polyline', 'polygon']);
+  /** Elements whose `x`, `y` or viewport place their content beside their transform, so their transform stays as authored. */
+  const SVG_PLACED = new Set(['svg', 'use', 'symbol', 'foreignObject']);
+  /** The SVG `preserveAspectRatio` alignments by their DOM constant (SVGPreserveAspectRatio), as the share of the free space before the box on each axis. */
+  const ALIGNS = { 2: [0, 0], 3: [0.5, 0], 4: [1, 0], 5: [0, 0.5], 6: [0.5, 0.5], 7: [1, 0.5], 8: [0, 1], 9: [0.5, 1], 10: [1, 1] };
+  const ALIGN_NONE = 1;
+  const MEET = 1;
+  const EPSILON = 1e-6;
   /** A shape's layer id: its node id, which the plan keys its paint bindings by. */
   const layerIdOf = (fp) => `fp-${fp}`;
-  const hidden = (computed) => computed.display === 'none' || computed.visibility === 'hidden';
+  const invisible = (computed) => computed.visibility !== 'visible';
+  const hasVisibleDescendant = (element) => [...element.querySelectorAll('*')].some((one) => !invisible(getComputedStyle(one)) && getComputedStyle(one).display !== 'none');
   const writePaint = (element, copy) => {
     const computed = getComputedStyle(element);
     for (const prop of SVG_PAINTED.has(element.tagName) ? SVG_PAINT : ['opacity']) {
@@ -147,6 +162,32 @@ export function walk(options) {
     }
     if (element.tagName === 'text' || element.tagName === 'tspan') for (const prop of SVG_TEXT) copy.setAttribute(prop, computed.getPropertyValue(prop));
     return computed;
+  };
+  /** A defs element's paints: each one its declarations set, not one it only inherits from the defs it sits in. */
+  const writeOwnPaint = (element, copy) => {
+    const computed = getComputedStyle(element);
+    const parent = element.parentElement ? getComputedStyle(element.parentElement) : null;
+    for (const prop of [...SVG_PAINT, ...SVG_STOP]) {
+      const value = computed.getPropertyValue(prop);
+      if (value && (SVG_OWN.has(prop) || parent === null || parent.getPropertyValue(prop) !== value)) copy.setAttribute(prop, value);
+    }
+  };
+  const isIdentity = (m) => Math.abs(m.a - 1) < EPSILON && Math.abs(m.b) < EPSILON && Math.abs(m.c) < EPSILON && Math.abs(m.d - 1) < EPSILON && Math.abs(m.e) < EPSILON && Math.abs(m.f) < EPSILON;
+  const matrixText = (m) => `matrix(${[m.a, m.b, m.c, m.d, m.e, m.f].map((n) => Number(n.toFixed(6))).join(' ')})`;
+  /**
+   * An element's own transform, whatever set it (the attribute, a CSS
+   * `transform` with its origin and box), as its parent's screen matrix
+   * undone from its own; written on the copy as a matrix, or dropped where it
+   * is the identity. Null where the element draws nowhere.
+   */
+  const writeTransform = (element, copy) => {
+    const own = element.getScreenCTM?.();
+    const parent = element.parentElement?.getScreenCTM?.();
+    if (!own || !parent) return null;
+    const local = parent.inverse().multiply(own);
+    copy.removeAttribute('transform');
+    if (!isIdentity(local)) copy.setAttribute('transform', matrixText(local));
+    return local;
   };
   /** A dash normalised by `pathLength`, in the shape's own length. */
   const realDash = (element, copy, computed) => {
@@ -159,6 +200,7 @@ export function walk(options) {
     const offset = Number.parseFloat(computed.getPropertyValue('stroke-dashoffset'));
     if (offset) copy.setAttribute('stroke-dashoffset', String(offset * scale));
   };
+  const degrees = (from, to) => (Math.atan2(to.y - from.y, to.x - from.x) * 180) / Math.PI;
   /** Where a shape's start or end lies, and the direction its line runs there, in degrees. */
   const endOf = (shape, which) => {
     if (typeof shape.getTotalLength !== 'function') return null;
@@ -169,7 +211,23 @@ export function walk(options) {
     const a = shape.getPointAtLength(from);
     const b = shape.getPointAtLength(to);
     const at = which === 'end' ? b : a;
-    return { x: at.x, y: at.y, angle: (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI };
+    return { x: at.x, y: at.y, angle: degrees(a, b) };
+  };
+  /**
+   * The interior vertices of a polyline or polygon, each with the bisector of
+   * the directions in and out of it (SVG 2 §13.7.4), none for a line; null for
+   * a path, whose vertices the DOM does not list.
+   */
+  const midsOf = (shape) => {
+    if (shape.tagName === 'line') return [];
+    if (!shape.points) return null;
+    const points = [...shape.points].map((point) => ({ x: point.x, y: point.y }));
+    const vertices = shape.tagName === 'polygon' && points.length > 1 ? [...points, points[0]] : points;
+    return vertices.slice(1, -1).map((at, index) => {
+      const into = (degrees(vertices[index], at) * Math.PI) / 180;
+      const out = (degrees(at, vertices[index + 2]) * Math.PI) / 180;
+      return { x: at.x, y: at.y, angle: (Math.atan2(Math.sin(into) + Math.sin(out), Math.cos(into) + Math.cos(out)) * 180) / Math.PI };
+    });
   };
   const markerAt = (computed, which) => {
     const id = /#([^"')]+)/.exec(computed.getPropertyValue(`marker-${which}`))?.[1];
@@ -178,7 +236,7 @@ export function walk(options) {
   };
   /**
    * The drawing's shapes by node id, each with the markup ids that draw it:
-   * one for a shape drawn in place, one per end for a marker's shape.
+   * one for a shape drawn in place, one per vertex for a marker's shape.
    */
   const shapesOf = () => {
     const byId = new Map();
@@ -194,16 +252,44 @@ export function walk(options) {
     };
     return { draw, list: () => [...byId.values()] };
   };
-  /** A marker's shapes as a group at the end it marks: turned by its orient, scaled by its units and viewBox, its ref point on the end. */
-  const expandedMarker = (marker, end, which, strokeWidth, draw) => {
+  /** A viewBox fitted to a viewport by `preserveAspectRatio` (SVG 2 §8.2), as `x' = sx·x + tx`, `y' = sy·y + ty`. */
+  const viewBoxFit = (box, width, height, fit) => {
+    if (!box || !(box.width > 0) || !(box.height > 0)) return { sx: 1, sy: 1, tx: 0, ty: 0 };
+    const [sx, sy] = [width / box.width, height / box.height];
+    if (fit.align === ALIGN_NONE) return { sx, sy, tx: -box.x * sx, ty: -box.y * sy };
+    const scale = fit.meetOrSlice === MEET ? Math.min(sx, sy) : Math.max(sx, sy);
+    const [ax, ay] = ALIGNS[fit.align] ?? ALIGNS[6];
+    return { sx: scale, sy: scale, tx: ax * (width - box.width * scale) - box.x * scale, ty: ay * (height - box.height * scale) - box.y * scale };
+  };
+  /** Whether a marker's content reaches past its viewport, in viewBox units. */
+  const spills = (marker, view, width, height) => {
+    const [left, top, right, bottom] = [-view.tx / view.sx, -view.ty / view.sy, (width - view.tx) / view.sx, (height - view.ty) / view.sy];
+    return [...marker.children].some((part) => {
+      const box = typeof part.getBBox === 'function' ? part.getBBox() : null;
+      return box !== null && (box.x < left - EPSILON || box.y < top - EPSILON || box.x + box.width > right + EPSILON || box.y + box.height > bottom + EPSILON);
+    });
+  };
+  /**
+   * A marker's shapes as a group at the vertex it marks (SVG 2 §13.7): in the
+   * shape's own transform and opacity, turned by its orient, scaled by its
+   * units, its reference point on the vertex, its viewBox fitted to its
+   * viewport, and clipped to that viewport where its overflow hides what
+   * spills past it.
+   */
+  const expandedMarker = (marker, vertex, which, shape, draw, clips) => {
     const orient = marker.getAttribute('orient') ?? '0';
-    const angle = orient === 'auto' ? end.angle : orient === 'auto-start-reverse' ? end.angle + (which === 'start' ? 180 : 0) : Number.parseFloat(orient) || 0;
-    const units = (marker.getAttribute('markerUnits') ?? 'strokeWidth') === 'strokeWidth' ? strokeWidth : 1;
-    const box = marker.viewBox.baseVal;
-    const fit = box && box.width > 0 && box.height > 0 ? Math.min(marker.markerWidth.baseVal.value / box.width, marker.markerHeight.baseVal.value / box.height) : 1;
-    const group = document.createElementNS(SVG_NS, 'g');
-    group.setAttribute('transform', `translate(${end.x} ${end.y}) rotate(${angle}) scale(${units * fit}) translate(${-marker.refX.baseVal.value} ${-marker.refY.baseVal.value})`);
-    for (const part of marker.querySelectorAll(':scope > *')) {
+    const angle = orient === 'auto' ? vertex.angle : orient === 'auto-start-reverse' ? vertex.angle + (which === 'start' ? 180 : 0) : Number.parseFloat(orient) || 0;
+    const units = (marker.getAttribute('markerUnits') ?? 'strokeWidth') === 'strokeWidth' ? shape.strokeWidth : 1;
+    const [width, height] = [marker.markerWidth.baseVal.value, marker.markerHeight.baseVal.value];
+    const view = viewBoxFit(marker.viewBox.baseVal, width, height, marker.preserveAspectRatio.baseVal);
+    const [refX, refY] = [view.sx * marker.refX.baseVal.value + view.tx, view.sy * marker.refY.baseVal.value + view.ty];
+    const placed = document.createElementNS(SVG_NS, 'g');
+    placed.setAttribute('transform', `${shape.local && !isIdentity(shape.local) ? `${matrixText(shape.local)} ` : ''}translate(${vertex.x} ${vertex.y}) rotate(${angle}) scale(${units}) translate(${-refX} ${-refY})`);
+    placed.setAttribute('opacity', shape.opacity);
+    if (/^(hidden|clip)$/.test(getComputedStyle(marker).overflow) && spills(marker, view, width, height)) placed.setAttribute('clip-path', `url(#${clips.add(width, height)})`);
+    const fitted = document.createElementNS(SVG_NS, 'g');
+    fitted.setAttribute('transform', `matrix(${view.sx} 0 0 ${view.sy} ${view.tx} ${view.ty})`);
+    for (const part of marker.children) {
       const copy = part.cloneNode(true);
       for (const [source, target] of [[part, copy], ...[...part.querySelectorAll('*')].map((element, at) => [element, copy.querySelectorAll('*')[at]])]) {
         target.removeAttribute('class');
@@ -212,44 +298,88 @@ export function walk(options) {
         writePaint(source, target);
         draw(source, target);
       }
-      group.append(copy);
+      fitted.append(copy);
     }
-    return group;
+    placed.append(fitted);
+    return placed;
+  };
+  /** The clip paths of a drawing's markers, one per viewport size, in a `defs` of the drawing. */
+  const clipsOf = (clone, drawing) => {
+    const made = new Map();
+    let defs = null;
+    const add = (width, height) => {
+      const size = `${width}x${height}`;
+      if (made.has(size)) return made.get(size);
+      const id = `clip-${drawing}-${made.size}`;
+      defs ??= clone.insertBefore(document.createElementNS(SVG_NS, 'defs'), clone.firstChild);
+      const clip = defs.appendChild(document.createElementNS(SVG_NS, 'clipPath'));
+      clip.setAttribute('id', id);
+      const rect = clip.appendChild(document.createElementNS(SVG_NS, 'rect'));
+      for (const [name, value] of [['x', 0], ['y', 0], ['width', width], ['height', height]]) rect.setAttribute(name, String(value));
+      made.set(size, id);
+      return id;
+    };
+    return { add };
   };
   const svgOf = (svg, box) => {
     const clone = svg.cloneNode(true);
     const source = [svg, ...svg.querySelectorAll('*')];
     const target = [clone, ...clone.querySelectorAll('*')];
     const shapes = shapesOf();
+    const clips = clipsOf(clone, svg.getAttribute('data-fp'));
+    const unread = new Set();
+    const skipped = new Set();
     source.forEach((element, index) => {
       const copy = target[index];
-      const fp = element.getAttribute('data-fp');
       copy.removeAttribute('class');
       copy.removeAttribute('style');
       copy.removeAttribute('data-fp');
-      const computed = getComputedStyle(element);
-      if (hidden(computed)) {
-        copy.setAttribute('display', 'none');
+      if (skipped.has(element.parentElement)) {
+        skipped.add(element);
         return;
       }
-      if (element === svg || element.closest('marker, defs') !== null) return;
+      const computed = getComputedStyle(element);
+      // `display` hides a whole subtree; `visibility` only what no descendant makes visible again.
+      if (computed.display === 'none' || (invisible(computed) && !hasVisibleDescendant(element))) {
+        copy.setAttribute('display', 'none');
+        skipped.add(element);
+        return;
+      }
+      if (invisible(computed)) copy.setAttribute('visibility', computed.visibility);
+      if (element === svg) return;
+      if (element.closest('marker') !== null) return;
+      if (element.closest('defs, symbol, clipPath, mask, pattern, linearGradient, radialGradient') !== null) {
+        if (SVG_PAINTED.has(element.tagName) || element.tagName === 'stop') writeOwnPaint(element, copy);
+        return;
+      }
       writePaint(element, copy);
+      const local = SVG_PLACED.has(element.tagName) ? null : writeTransform(element, copy);
       if (!SVG_SHAPES.has(element.tagName)) return;
       realDash(element, copy, computed);
       shapes.draw(element, copy);
-      for (const which of MARKER_ENDS) {
+      if (!SVG_MARKABLE.has(element.tagName)) return;
+      const shape = { local, opacity: computed.opacity, strokeWidth: Number.parseFloat(computed.getPropertyValue('stroke-width')) || 1 };
+      const vertices = {
+        start: () => [endOf(element, 'start')],
+        mid: () => midsOf(element),
+        end: () => [endOf(element, 'end')],
+      };
+      const placed = [];
+      for (const [which, of] of Object.entries(vertices)) {
         copy.removeAttribute(`marker-${which}`);
         const marker = markerAt(computed, which);
-        const end = marker ? endOf(element, which) : null;
-        if (marker && end) copy.after(expandedMarker(marker, end, which, Number.parseFloat(computed.getPropertyValue('stroke-width')) || 1, shapes.draw));
+        if (!marker) continue;
+        const at = of();
+        if (at === null) unread.add(`marker-${which} on a <${element.tagName}>`);
+        for (const vertex of at ?? []) if (vertex) placed.push(expandedMarker(marker, vertex, which, shape, shapes.draw, clips));
       }
-      copy.removeAttribute('marker-mid');
+      copy.after(...placed);
     });
-    for (const defs of clone.querySelectorAll('marker')) defs.remove();
+    for (const marker of clone.querySelectorAll('marker')) marker.remove();
     clone.setAttribute('width', String(box[2]));
     clone.setAttribute('height', String(box[3]));
     clone.setAttribute('xmlns', SVG_NS);
-    return { markup: clone.outerHTML, shapes: shapes.list() };
+    return { markup: clone.outerHTML, shapes: shapes.list(), unread: [...unread] };
   };
 
   const visit = (element, parentId, index, at) => {
@@ -276,6 +406,7 @@ export function walk(options) {
       const drawing = svgOf(element, node.box);
       node.svg = drawing.markup;
       node.shapes = drawing.shapes;
+      if (drawing.unread.length > 0) node.unread = drawing.unread;
       return node;
     }
     if (tag === 'img') {

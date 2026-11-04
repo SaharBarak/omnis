@@ -393,6 +393,13 @@ export function gradients(value: string, w: number, h: number, sizes = 'auto', r
   return { layers, unread };
 }
 
+/** The gradient layers of a declared `background-image`, each as its argument texts in order: its direction or shape, then its stops. */
+export const gradientArgumentsOf = (value: string): string[][] =>
+  splitTop(value, ',').flatMap((layer) => {
+    const match = /^(?:repeating-)?(?:linear|radial)-gradient\((.*)\)$/s.exec(layer.trim());
+    return match ? [splitTop(match[1]!, ',')] : [];
+  });
+
 /** The first family of a computed `font-family` list. */
 export const familiesOf = (value: string): string[] =>
   splitTop(value, ',').map((family) => family.replace(/^["']|["']$/g, '').trim());

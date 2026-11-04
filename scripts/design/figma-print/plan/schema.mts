@@ -367,7 +367,7 @@ export interface PlanBundle {
   readonly complete: boolean;
   readonly stamp: { readonly commit: string; readonly buildId: string | null; readonly measuredAt: string; readonly base: string };
   readonly file: FileSpec;
-  /** `press`, `bento` (the design print) and `bento-wire` (the wire print, keys `wire:<bento key>`). */
+  /** The primitives (when any), the primary print's collection, and one per twin print, whose keys are `<print>:<primary key>` (prints-table.mts). */
   readonly collections: readonly CollectionSpec[];
   readonly textStyles: readonly TextStyleSpec[];
   readonly effectStyles: readonly EffectStyleSpec[];

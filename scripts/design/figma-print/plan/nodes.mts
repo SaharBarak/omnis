@@ -11,7 +11,7 @@
  * mirrored.
  */
 import { CONFIG } from '../config.mjs';
-import { color, gradients, hexOf, isClear, isFlat, matrixOf, meanOf, px, shadows } from './css.mts';
+import { color, gradientArgumentsOf, gradients, hexOf, isClear, isFlat, matrixOf, meanOf, px, shadows, splitTop } from './css.mts';
 import { isText, type RawBinding, type RawElement, type RawKid, type RawPrintNode, type RawProjection, type RawShape, type RawText } from './raw.mts';
 import type { Align, Bound, Box, ColorRef, Constraint, EffectSpec, FrameSpec, GridTrack, LayoutSpec, NodeSpec, PaintSpec, Rgba, Sizing, SvgSpec, TextRun, TextSpec, VariableScope, ViewportName } from './schema.mts';
 import type { EffectStyles } from './effects.mts';
@@ -203,19 +203,61 @@ function shadowTokenOf(context: PageContext, facts: Facts): string | undefined {
   return same ? token : undefined;
 }
 
+/** The custom properties a declared value names, one chain each, in the order the cascade read gives their chains (cascade.mjs). */
+const VAR = /var\(\s*--[\w-]+/g;
+
+/** A gradient's first argument when it is its direction or shape, not a stop. */
+const GRADIENT_LINE = /^(to\s|[-+\d.]+(deg|rad|grad|turn)\b|circle\b|ellipse\b|closest-|farthest-|at\s)/i;
+
+/**
+ * A background's declared stops per gradient layer, each its own binding:
+ * the stop's colour without its positions, and its share of the background's
+ * chains, one per `var()` in declaration order. Empty where it declares none.
+ */
+function declaredStopsOf(binding: RawBinding | undefined): readonly (readonly RawBinding[])[] {
+  if (!binding) return [];
+  let at = 0;
+  return gradientArgumentsOf(binding.value).map((args) =>
+    args.flatMap((arg, index) => {
+      const count = [...arg.matchAll(VAR)].length;
+      const chains = binding.chains.slice(at, at + count);
+      at += count;
+      const text = arg.trim();
+      return index === 0 && GRADIENT_LINE.test(text) ? [] : [{ value: splitTop(text, ' ')[0] ?? text, chains }];
+    })
+  );
+}
+
+/**
+ * The colour of one gradient stop, bound as the stop declared it: first
+ * through the declared stop at its place (a repeating gradient's later
+ * periods repeat its declared stops), then through any other the background
+ * declares, so a tinted stop reads its own mix and two stops of one colour
+ * keep their own tokens.
+ */
+function stopColor(context: PageContext, declared: readonly (readonly RawBinding[])[], layer: number, stop: number, rgba: Rgba): ColorRef {
+  if (rgba[3] <= 0) return { rgba };
+  const stops = declared[layer] ?? [];
+  const placed = stops.length > 0 ? stops[stop % stops.length] : undefined;
+  for (const binding of [...(placed ? [placed] : []), ...declared.flat().filter((other) => other !== placed)]) {
+    const ref = context.vars.color({ kind: 'color', computed: cssOf(rgba), binding, viewport: context.viewport, scope: 'FRAME_FILL' });
+    if (ref.variable) return ref;
+  }
+  return { rgba };
+}
+
 function gradientPaints(context: PageContext, facts: Facts, box: Box, key: string): PaintSpec[] {
   const { style } = facts;
   const { layers, unread } = gradients(style['background-image'] ?? 'none', box[2], box[3], style['background-size'], style['background-repeat']);
+  const declared = declaredStopsOf(bindingOf(facts, 'background-image'));
   for (const one of new Set(unread)) context.notes.approximated.push({ key, what: `background not read: ${one}` });
-  const paints = layers.map((layer): PaintSpec => {
+  const paints = layers.map((layer, layerAt): PaintSpec => {
     if (layer.tile || isFlat(layer)) {
       // A tiled pattern Figma cannot repeat, or a gradient of one colour: its mean colour, flat.
       if (layer.tile) context.notes.approximated.push({ key, what: `a ${layer.tile[0]}x${layer.tile[1]} px pattern printed as its mean tint` });
       return { type: 'SOLID', color: { rgba: layer.tile ? meanOf(layer) : layer.stops[0]!.color } };
     }
-    // A stop binds as any colour does: to the first token in the background's authored chains that holds it.
-    const stopColor = (rgba: Rgba): ColorRef => (rgba[3] > 0 ? measuredColor(context, facts, 'background-image', 'FRAME_FILL', cssOf(rgba)) : { rgba });
-    return { type: layer.kind === 'linear' ? 'GRADIENT_LINEAR' : 'GRADIENT_RADIAL', stops: layer.stops.map((stop) => ({ at: stop.at, color: stopColor(stop.color) })), transform: layer.transform };
+    return { type: layer.kind === 'linear' ? 'GRADIENT_LINEAR' : 'GRADIENT_RADIAL', stops: layer.stops.map((stop, stopAt) => ({ at: stop.at, color: stopColor(context, declared, layerAt, stopAt, stop.color) })), transform: layer.transform };
   });
   // CSS lists the top layer first; Figma paints the last fill on top.
   return paints.reverse();
@@ -1810,6 +1852,7 @@ export function planElement(context: PageContext, element: RawElement, key: stri
 
   if (element.tag === 'svg') {
     const markup = facts.node?.svg ?? '';
+    for (const what of facts.node?.unread ?? []) context.notes.approximated.push({ key, what: `drawing not read whole: ${what}` });
     const spec: SvgSpec = { ...base, type: 'SVG', svg: isIdentity(total) ? markup : bake(markup, total), colors: svgColors(context, facts, markup), layers: svgLayers(context, facts.node?.shapes ?? []) };
     return { spec, style, flow };
   }

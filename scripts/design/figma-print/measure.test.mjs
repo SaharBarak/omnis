@@ -43,21 +43,21 @@ describe('the structure both prints share', () => {
     // The design DOM numbers its children 0 and 1; the wire DOM, with a text node between, numbers them 0, 2 and 4.
     const design = structureOf(element('0', null, 0, [0, 0, 100, 100], [element('1', '0', 0, [0, 0, 100, 10]), element('2', '0', 1, [0, 10, 100, 10])]));
     const wire = element('0', null, 0, [0, 0, 100, 100], [element('1', '0', 0, [0, 0, 100, 10]), element('9', '0', 4, [0, 10, 100, 0]), element('2', '0', 2, [0, 10, 100, 10])]);
-    mergeStructure(design, wire);
+    mergeStructure(design, wire, 'wire');
     assert.deepEqual(ids(design), ['1', '9', '2']);
   });
 
   it('keeps a wire-only element after a text that precedes it in both DOMs', () => {
     const design = structureOf(element('0', null, 0, [0, 0, 100, 100], [{ text: 'lead', at: 0, lines: [] }, element('2', '0', 1, [0, 10, 100, 10])]));
     const wire = element('0', null, 0, [0, 0, 100, 100], [{ text: 'lead', at: 0, lines: [] }, element('9', '0', 1, [0, 0, 1, 1]), element('2', '0', 2, [0, 10, 100, 10])]);
-    mergeStructure(design, wire);
+    mergeStructure(design, wire, 'wire');
     assert.deepEqual(ids(design), ['"lead"', '9', '2']);
   });
 
   it('keeps consecutive wire-only elements in their wire order, and puts one with no known neighbour first', () => {
     const design = structureOf(element('0', null, 0, [0, 0, 100, 100], [{ text: 'lead', at: 0, lines: [] }, element('2', '0', 1, [0, 10, 100, 10])]));
     const wire = element('0', null, 0, [0, 0, 100, 100], [element('7', '0', 0, [0, 0, 1, 1]), element('8', '0', 1, [0, 0, 1, 1]), element('2', '0', 2, [0, 10, 100, 10])]);
-    mergeStructure(design, wire);
+    mergeStructure(design, wire, 'wire');
     assert.deepEqual(ids(design), ['7', '8', '"lead"', '2']);
   });
 
@@ -65,10 +65,10 @@ describe('the structure both prints share', () => {
     const hidden = { ...element('3', '0', 2, [0, 0, 0, 0]), none: true };
     const design = structureOf(element('0', null, 0, [0, 0, 100, 100], [element('1', '0', 0, [0, 0, 100, 10]), element('2', '0', 1, [0, 10, 100, 10]), hidden]));
     const wire = element('0', null, 0, [0, 0, 100, 100], [element('1', '0', 0, [0, 0, 100, 10]), element('2', '0', 1, [0, 12, 100, 10]), element('3', '0', 2, [0, 30, 50, 5], [element('4', '3', 0, [0, 30, 5, 5])])]);
-    const geometry = mergeStructure(design, wire);
+    const geometry = mergeStructure(design, wire, 'wire');
     assert.equal(geometry.moved, 1);
     assert.equal(geometry.maxDelta, 2);
-    assert.deepEqual(geometry.samples, [{ id: '2', tag: 'div', cls: ['c2'], design: [0, 10, 100, 10], wire: [0, 12, 100, 10] }]);
+    assert.deepEqual(geometry.samples, [{ id: '2', tag: 'div', cls: ['c2'], print: 'wire', primary: [0, 10, 100, 10], twin: [0, 12, 100, 10] }]);
     const shown = design.kids.find((kid) => kid.id === '3');
     assert.deepEqual([shown.box, shown.none, ids(shown)], [[0, 30, 50, 5], undefined, ['4']]);
   });

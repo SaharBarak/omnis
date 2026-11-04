@@ -23,26 +23,19 @@ export interface PrintTable {
   readonly primitives: { readonly key: string; readonly name: string };
 }
 
-export const PRINT_TABLES: Readonly<Record<string, PrintTable>> = Object.freeze({
-  /** The wireframes page: one greyscale print. */
-  wireframe: {
-    prints: [{ name: 'wire', collection: { key: 'wireframe', name: 'Wireframe' }, block: 'Wireframes' }],
-    primitives: { key: 'primitives', name: 'Wireframe primitives' },
-  },
-  /** A design print and its wire twin, as the twin path's tests read it. */
-  twin: {
-    prints: [
-      { name: 'design', collection: { key: 'bento', name: 'Bento' }, block: 'Design' },
-      { name: 'wire', collection: { key: 'bento-wire', name: 'Bento wire' }, block: 'Wireframes' },
-    ],
-    primitives: { key: 'press', name: 'Press' },
-  },
+/** The wireframes page: one greyscale print. */
+export const WIREFRAME: PrintTable = Object.freeze({
+  prints: [{ name: 'wire', collection: { key: 'wireframe', name: 'Wireframe' }, block: 'Wireframes' }],
+  primitives: { key: 'primitives', name: 'Wireframe primitives' },
 });
 
-/** `FIGMA_PRINT_TABLE` names another table for a test run; the plugin bundle, which has no environment, carries the default. */
-const named = (globalThis as { readonly process?: { readonly env?: Readonly<Record<string, string | undefined>> } }).process?.env?.['FIGMA_PRINT_TABLE'] ?? 'wireframe';
-const chosen = PRINT_TABLES[named];
-if (!chosen) throw new Error(`FIGMA_PRINT_TABLE names no print table; the tables are ${Object.keys(PRINT_TABLES).join(', ')}`);
+/**
+ * Where a test run puts another table before any stage loads
+ * (`testing/twin-table.mts`, through `node --import`); the stages and the
+ * plugin bundle, which nothing preloads, print the wireframe table.
+ */
+const SEAM = Symbol.for('figma-print/table');
+const chosen = (globalThis as { readonly [SEAM]?: PrintTable })[SEAM] ?? WIREFRAME;
 
 export const PRINT_TABLE: readonly PrintRow[] = chosen.prints;
 

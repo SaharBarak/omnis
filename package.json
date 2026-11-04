@@ -34,7 +34,7 @@
     "figma:build": "node scripts/design/figma-print/build.mjs",
     "figma:receive": "node scripts/design/figma-print/receiver.mjs",
     "figma:check": "node scripts/design/figma-print/check.mts",
-    "figma:test": "node --test scripts/design/figma-print/plan/one-print.test.mts && FIGMA_PRINT_TABLE=twin node --test $(find scripts/design/figma-print -name '*.test.m[jt]s' ! -name 'one-print.test.mts' ! -path '*/dist/*')"
+    "figma:test": "node --test scripts/design/figma-print/plan/one-print.test.mts && node --import ./scripts/design/figma-print/testing/twin-table.mts --test $(find scripts/design/figma-print -name '*.test.m[jt]s' ! -name 'one-print.test.mts' ! -path '*/dist/*')"
   },
   "dependencies": {
     "@google/genai": "^2.8.0",

@@ -1,9 +1,9 @@
 /**
- * The structure both prints share (docs/redesign/FIGMA_PRINT.md §3.1): identity, boxes,
- * text and children, read in the design print, with the elements only the
- * wire print renders spliced in where the wire print has them. The merge
- * counts the boxes the wire read moved; the plan refuses a tree with any
- * (plan/raw.mts).
+ * The structure every print shares (docs/redesign/FIGMA_PRINT.md §3.1):
+ * identity, boxes, text and children, read in the primary print, with the
+ * elements only a twin print renders spliced in where that print has them.
+ * The merge counts the boxes a twin's read moved; the plan refuses a tree
+ * with any (plan/raw.mts). With one print there is nothing to merge.
  */
 
 /** How many moved boxes a tree keeps as examples. */
@@ -38,29 +38,29 @@ export function spliceAfter(kids, copy, before) {
 }
 
 /**
- * Merges the wire walk into the design structure `design`, in place: an
- * element the design print hides takes its wire box and children, and one
- * only the wire DOM holds is spliced in by its preceding wire siblings,
- * texts included (spliceAfter). Returns how many boxes the wire read moved,
- * the largest move, and the first few.
+ * Merges twin print `print`'s walk `twin` into the primary structure
+ * `primary`, in place: an element the primary print hides takes its twin box
+ * and children, and one only the twin DOM holds is spliced in by its
+ * preceding twin siblings, texts included (spliceAfter). Returns how many
+ * boxes the twin's read moved, the largest move, and the first few.
  */
-export function mergeStructure(design, wire) {
+export function mergeStructure(primary, twin, print) {
   const byId = new Map();
   const index = (node) => {
     byId.set(node.id, node);
     for (const kid of node.kids ?? []) if (kid.text === undefined) index(kid);
   };
-  index(design);
+  index(primary);
   let moved = 0;
   let maxDelta = 0;
   const samples = [];
-  const visitWire = (node, wireParent) => {
+  const visitTwin = (node, twinParent) => {
     const known = byId.get(node.id);
     if (known) {
       const delta = Math.max(...known.box.map((value, at) => Math.abs(value - node.box[at])));
       if (!known.none && !node.none && delta > 0.5) {
         moved += 1;
-        if (samples.length < MOVE_SAMPLES) samples.push({ id: node.id, tag: node.tag, cls: node.cls.slice(0, 2), design: known.box, wire: node.box });
+        if (samples.length < MOVE_SAMPLES) samples.push({ id: node.id, tag: node.tag, cls: node.cls.slice(0, 2), print, primary: known.box, twin: node.box });
       }
       if (!known.none && !node.none) maxDelta = Math.max(maxDelta, delta);
       if (known.none && !node.none) {
@@ -73,14 +73,14 @@ export function mergeStructure(design, wire) {
       }
     } else {
       const parent = byId.get(node.parent);
-      if (parent && wireParent) {
+      if (parent && twinParent) {
         const copy = structureOf(node);
-        parent.kids = spliceAfter(parent.kids ?? [], copy, wireParent.kids.slice(0, wireParent.kids.indexOf(node)));
+        parent.kids = spliceAfter(parent.kids ?? [], copy, twinParent.kids.slice(0, twinParent.kids.indexOf(node)));
         index(copy);
       }
     }
-    for (const kid of node.kids ?? []) if (kid.text === undefined) visitWire(kid, node);
+    for (const kid of node.kids ?? []) if (kid.text === undefined) visitTwin(kid, node);
   };
-  visitWire(wire, null);
+  visitTwin(twin, null);
   return { moved, maxDelta, samples };
 }

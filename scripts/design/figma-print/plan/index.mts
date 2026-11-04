@@ -8,8 +8,9 @@
  * It refuses trees whose stamped inputs (`inputs.mjs`) differ from the working
  * tree's and trees not read whole (`faultsOf`), unless `--allow-stale` says
  * the caller knows. A tree read across a change of its source or a reload
- * (`whyUnsound`), and trees from more than one build or browser (`mixesOf`),
- * it refuses whatever the caller allows. It refuses a plan whose class
+ * (`whyUnsound`), a tree not read from a dev server (`whyNotDev`), and trees
+ * from more than one build, Next version or browser (`mixesOf`), it refuses
+ * whatever the caller allows. It refuses a plan whose class
  * grammars spell none of the measured classes, as Next has then renamed its
  * CSS-module classes. It writes the plan and exits non-zero when Figma's
  * layout, as modelled, puts a node off its measured box or cannot hold a
@@ -25,7 +26,7 @@ import { unboundOf } from './audit.mts';
 import { census, digest, type PlannedRoute } from './components.mts';
 import { type FrameFacts, type Notes, partOfClass, planPage, renderedBy } from './nodes.mts';
 import { printOfVariant } from './prints.mts';
-import { faultsOf, mixesOf, projectionOf, type RawElement, type RawPage } from './raw.mts';
+import { faultsOf, mixesOf, projectionOf, whyNotDev, type RawElement, type RawPage } from './raw.mts';
 import { PROTOCOL, type FrameSpec, type NodeSpec, type PlanBundle, type PrintName, type RouteSpec, type ViewportName } from './schema.mts';
 import { Variables } from './tokens.mts';
 import { EffectStyles } from './effects.mts';
@@ -82,7 +83,7 @@ const refusals = (): { readonly refuse: (why: string, tree: string, detail?: str
 
 // A tree read across a change of its source, or a reload, is refused, stale allowed or not.
 const unsound = refusals();
-for (const page of pages) for (const why of whyUnsound(page.stamp)) unsound.refuse(why, `${page.route} ${page.viewport}`);
+for (const page of pages) for (const why of [...whyUnsound(page.stamp), ...whyNotDev(page.stamp)]) unsound.refuse(why, `${page.route} ${page.viewport}`);
 unsound.fail(pages.length, 'measure them again, with the source left alone while they are read; --allow-stale does not excuse it');
 // The class grammars must spell the classes the installed Next wrote, or no element is a kit component.
 const classesOf = (element: RawElement): string[] => [...element.cls, ...(element.kids ?? []).flatMap((kid) => ('text' in kid ? [] : classesOf(kid)))];
@@ -97,11 +98,11 @@ if (mixed.length > 0) fail(`${mixed.join('\n  ')}; --allow-stale does not excuse
 if (!allowStale) {
   // A tree stands while what it was read from does, whatever the commit: a commit to the planner or the plugin alone keeps every tree.
   // And only as a whole read: no box moved between the prints, both settled with their scrollers at rest, and every DevTools read answered.
-  const inputs = inputsOf();
+  const inputs = new Map(await Promise.all([...new Set(pages.map((page) => page.route))].map(async (route) => [route, await inputsOf(route)] as const)));
   const stale = refusals();
   for (const page of pages) {
     const tree = `${page.route} ${page.viewport}`;
-    for (const why of whyStale(page.stamp, inputs)) stale.refuse(why, tree);
+    for (const why of whyStale(page.stamp, inputs.get(page.route)!)) stale.refuse(why, tree);
     for (const fault of faultsOf(page)) stale.refuse(fault.why, tree, fault.detail);
   }
   stale.fail(pages.length, 'measure them again or pass --allow-stale');

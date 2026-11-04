@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { faultsOf, mixesOf, projectionOf, type RawPage, type RawPrint, type RawRead } from './raw.mts';
+import { faultsOf, mixesOf, projectionOf, whyNotDev, type RawPage, type RawPrint, type RawRead } from './raw.mts';
 
 const whole: RawRead = {
   settled: { design: true, wire: true },
@@ -27,8 +27,8 @@ describe('a raw tree read whole', () => {
 
 describe('a raw tree not read whole', () => {
   it('names the boxes the wire read moved, with the first', () => {
-    const geometry = { moved: 3, maxDelta: 12, samples: [{ id: '812', tag: 'div', cls: ['tile', 'wide'], design: [0, 10, 100, 20] as const, wire: [0, 22, 100, 20] as const }] };
-    assert.deepEqual(faultsOf({ ...whole, geometry }), [{ why: 'boxes moved between the prints', detail: '3, up to 12px; first 812 div.tile.wide [0, 10, 100, 20] -> [0, 22, 100, 20]' }]);
+    const geometry = { moved: 3, maxDelta: 12, samples: [{ id: '812', tag: 'div', cls: ['tile', 'wide'], print: 'wire', primary: [0, 10, 100, 20] as const, twin: [0, 22, 100, 20] as const }] };
+    assert.deepEqual(faultsOf({ ...whole, geometry }), [{ why: 'boxes moved between the prints', detail: '3, up to 12px; first 812 div.tile.wide [0, 10, 100, 20] -> wire [0, 22, 100, 20]' }]);
   });
 
   it('names the prints that did not settle and the scrollers left off their start', () => {
@@ -50,7 +50,8 @@ describe('a raw tree not read whole', () => {
   });
 });
 
-const stamp = (buildId: string | null, browser?: string): RawPage['stamp'] => ({ commit: 'c0ffee', dirty: [], base: 'http://localhost:3602', buildId, measuredAt: '2026-10-28T00:00:00.000Z', ...(browser ? { browser } : {}) });
+const DEV = { version: '16.2.9', dev: true } as const;
+const stamp = (buildId: string | null, browser?: string, next: RawPage['stamp']['next'] = DEV): RawPage['stamp'] => ({ commit: 'c0ffee', dirty: [], base: 'http://localhost:3100', buildId, measuredAt: '2026-10-28T00:00:00.000Z', next, ...(browser ? { browser } : {}) });
 
 describe('trees planned together', () => {
   it('come from one build, read by one browser', () => {
@@ -62,8 +63,24 @@ describe('trees planned together', () => {
     assert.deepEqual(mixesOf([stamp('b1', '143.0.7499.4'), stamp('b1', '143.0.7499.4'), stamp('b1', '144.0.7559.2')]), ['the trees were read by 2 browsers (143.0.7499.4: 2, 144.0.7559.2: 1); measure them with one']);
   });
 
+  it('are refused from two Next versions', () => {
+    assert.deepEqual(mixesOf([stamp('b1', '143.0.7499.4'), stamp('b1', '143.0.7499.4', { version: '16.3.0', dev: true })]), ['the trees were served by 2 Next versions (16.2.9: 1, 16.3.0: 1); measure them against one']);
+  });
+
   it('count a tree with no browser stamped as read by another', () => {
     assert.deepEqual(mixesOf([stamp('b1', '143.0.7499.4'), stamp('b1')]), ['the trees were read by 2 browsers (143.0.7499.4: 1, no browser stamped: 1); measure them with one']);
+  });
+});
+
+describe('the server a tree was read from', () => {
+  it('is the dev server', () => {
+    assert.deepEqual(whyNotDev(stamp('development')), []);
+  });
+
+  it('refuses a production server, or no record of one', () => {
+    assert.deepEqual(whyNotDev(stamp('b1', undefined, { version: '16.2.9', dev: false })), ['read from a production server (Next 16.2.9)']);
+    const { next: _next, ...unrecorded } = stamp('b1');
+    assert.deepEqual(whyNotDev(unrecorded), ['no record of the server it was read from']);
   });
 });
 

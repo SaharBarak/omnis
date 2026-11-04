@@ -126,34 +126,63 @@ them (`reports.mts`).
 - **Drawings.** An inline SVG is one layer, written so it imports with
   `createNodeFromSvg` without the page's CSS:
   - every computed paint, dash, dash offset, line cap and join is written onto
-    each shape, and every computed text property (family, size, weight,
-    letter spacing, anchor, baseline) onto each text; a container keeps its
-    own opacity only, as its shapes carry the paints it would pass down;
+    each shape (and each `use`), and every computed text property (family,
+    size, weight, letter spacing, anchor, baseline) onto each text; a
+    container keeps its own opacity only, as its shapes carry the paints it
+    would pass down;
+  - every element's own transform, whatever set it (the attribute, or a CSS
+    `transform` with its origin and box), is written as a matrix: its
+    parent's screen matrix undone from its own. An element that places its
+    content beside its transform (`svg`, `use`, `symbol`, `foreignObject`)
+    keeps its transform as authored;
+  - a subtree `display` hides is dropped whole; an element `visibility` hides
+    is dropped unless a descendant's own visibility shows again, which keeps
+    it, marked hidden;
+  - content in `defs`, a symbol, a gradient, a pattern, a clip path or a mask
+    keeps the paints it declares, `stop-color` and `stop-opacity` included,
+    and not those it only inherits there, so a `use` that draws it passes its
+    own down;
   - a dash normalised by `pathLength` is rescaled to the shape's real length
     and the `pathLength` dropped;
-  - a marker is expanded into its own shapes at the end it marks, turned by its
-    orient to the line's direction and scaled by its units and viewBox, and
-    the marker reference dropped;
+  - a marker on a markable element (a path, line, polyline or polygon) is
+    expanded into its own shapes at each vertex it marks: the start, the end,
+    and each interior vertex of a polyline or polygon on the bisector of its
+    turn. Each expansion sits in the shape's transform and opacity, turned by
+    its orient, scaled by its units, with its viewBox fitted to its viewport
+    by its `preserveAspectRatio` and its reference point on the vertex, and
+    is clipped to that viewport where its overflow hides content that spills
+    past it. The DOM lists no vertices of a path, so a mid marker on a path is
+    listed as unread, which the plan reports as approximated;
   - each shape carries a layer id of its node, `fp-<id>`, which the importer
-    keeps as the layer's name; a marker's shape drawn at several ends carries
-    one id per end (`fp-<id>`, `fp-<id>.1`, …). The raw tree lists each shape
-    with its paints, its authored chains and its layer ids, so the plan binds
-    every imported vector's paints to the token its own shape names (§6).
-- **Provenance.** Every raw tree carries the commit, the working tree's dirty
-  source paths, Next's mode and version, the Chromium version that read it,
+    keeps as the layer's name; a marker's shape drawn at several vertices
+    carries one id per vertex (`fp-<id>`, `fp-<id>.1`, …). The raw tree lists
+    each shape with its paints, its authored chains and its layer ids, so the
+    plan binds every imported vector's paints to the token its own shape
+    names (§6).
+- **Provenance.** Every raw tree carries the commit, the dirty paths of its
+  route's source, Next's mode and version, the Chromium version that read it,
   the page's build id, the viewport, the time, and its inputs (`inputs.mjs`):
-  content digests, as the working tree holds them, of the page's source (the
-  route, the bento lab components, the root layout and global styles, the
-  Next, PostCSS and TypeScript configs, the lockfile) and of the measure's own
-  code. The digests are taken before a route's first read and after its last,
-  and the page's clock origin before and after: a route whose inputs changed
-  in between, or whose page loaded again (a fast refresh), is read once more,
-  and stamped unsound if it changes again. `plan` recomputes the inputs and
-  refuses a tree whose inputs differ or are missing, and a tree not read whole
-  (a moved box, a print that did not settle, a scroller off its start, a
-  DevTools read that missed or failed: `faultsOf`), unless `--allow-stale`
-  says the caller knows. It refuses whatever the caller allows an unsound
-  tree (`whyUnsound`), and trees from more than one build or browser
+  content digests, as the working tree holds them, of the route's source and
+  of the measure's own code. Both are derived, never listed by hand
+  (`CONFIG.source`). A route's entries are the files Next's app router
+  renders it with: its page and every layout and template on its segment
+  chain, matched as the router matches (a static segment before a group's, a
+  group's before a dynamic one, catch-alls last; no parallel slot or private
+  folder serves a URL). Its source is the module graph of those entries as
+  esbuild resolves it with the repo's tsconfig (paths, CSS imports, CSS
+  modules), packages aside, with the files every route compiles with (the
+  Next, PostCSS, Tailwind and TypeScript configs, the middleware, the
+  lockfile). The measure's code is the module graph of `measure.mjs`. The
+  digests are taken before a route loads and after its last read, and the
+  page's clock origin after it loads and after its last read: a route whose
+  inputs changed in between, or whose page loaded again, is read once more,
+  and stamped unsound if it changes again. `plan` recomputes each route's
+  inputs and refuses a tree whose inputs differ or are missing, and a tree
+  not read whole (a moved box, a print that did not settle, a scroller off
+  its start, a DevTools read that missed or failed: `faultsOf`), unless
+  `--allow-stale` says the caller knows. It refuses whatever the caller
+  allows an unsound tree (`whyUnsound`), a tree not read from a dev server
+  (`whyNotDev`), and trees from more than one build, Next version or browser
   (`mixesOf`).
 
 ### 3.2 Plan
@@ -301,10 +330,11 @@ sizing Figma cannot hold as written is a conflict. F9 requires none.
 
 The prints are a table (`prints-table.mts`). Each row names a print, the
 collection it binds and its block on the site page; the first row is the
-primary print. The table here holds one print, `wire`, bound to the collection
-`Wireframe`; a second table, `twin` (a design print and its wire twin, as
-Taruu prints them), is what the twin path's tests run against
-(`FIGMA_PRINT_TABLE=twin`). With one print there are no twins: no twin
+primary print. The table holds one print, `wire`, bound to the collection
+`Wireframe`. The twin path's tests run against a design print and its wire
+twin, as Taruu prints them (`testing/twin-table.mts`), which `node --import`
+puts in place before any stage loads; the stages and the plugin bundle carry
+the wireframe table alone. With one print there are no twins: no twin
 collection, no alias, no print axis on any component, and the purity line
 (F8) has no other print to cross into.
 
@@ -325,9 +355,13 @@ collection, no alias, no print axis on any component, and the purity line
   name, then names the layer for its kit part. A paint no layer binds falls
   back to the drawing's own `color` chain, as a drawing painted in
   `currentColor` authors it.
-- **Gradients.** A gradient stop binds as any colour does, through the
-  background's authored chains. A tiled pattern Figma cannot repeat prints as
-  its mean tint, a measured value the report lists as approximated.
+- **Gradients.** Each gradient stop binds through the stop that declared it:
+  the declared background splits into its layers and stops, each stop with
+  its own share of the chains (one per `var()`, in order), and a measured
+  stop binds first through the declared stop at its place, then through any
+  other. A tinted stop so reads its own mix, and two stops of one colour keep
+  their own tokens. A tiled pattern Figma cannot repeat prints as its mean
+  tint, a measured value the report lists as approximated.
 - **Kit literals.** The kit's stylesheet names every colour through a `--wf-*`
   token, so nothing the kit draws prints as a raw value.
 
@@ -423,10 +457,11 @@ plan it carries and reports; each later build replaces the plan it carries.
 | `npm run figma:build` | measures the route at `CONFIG.base`, plans, and rebuilds the plugin with the new bundle |
 | `npm run figma:receive` | collects the plugin's reports and PNGs on loopback |
 | `npm run figma:check` | judges the newest report against the bundle |
-| `npm run figma:test` | the pipeline's tests: the one-print table, then every suite under the twin table |
+| `npm run figma:test` | the pipeline's tests: the one-print table, then every suite with the twin table preloaded |
 
 ## 11. Second opinion
 
 | Reviewer | Scope | Date | Outcome |
 | --- | --- | --- | --- |
 | Codex CLI (gpt-6-astra, read-only) | The port's shape: one print against twin collections, dev-server provenance, class grammars and kit identity, SVG portability and token binding, page adoption, the root contract | 2026-11-04 | Incorporated |
+| Solution-architect review (Claude subagent, read-only) | The port's code: the print table and its one-print path, derived provenance and the dev-server stamp, the SVG serialiser (transforms, markers, hidden parts, definitions), per-stop gradient binding, shared types | 2026-11-04 | Incorporated |

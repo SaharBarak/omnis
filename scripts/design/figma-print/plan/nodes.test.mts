@@ -141,7 +141,7 @@ interface Plan {
 }
 
 /** The page planned in each print against one library, as the planner plans it, and the library's collections. */
-/** The twin table's two prints (`FIGMA_PRINT_TABLE=twin`), which these cases read by name. */
+/** The twin table's two prints (testing/twin-table.mts), which these cases read by name. */
 function planPrints(root: Element, tokens: Partial<Record<PrintName, Style>> = {}): { readonly design: Plan; readonly wire: Plan; readonly collections: readonly CollectionSpec[] } {
   const page = pageOf(root, tokens);
   const vars = new Variables([page]);
@@ -475,6 +475,27 @@ describe('bindings', () => {
     assert.ok(fill && fill.type === 'SOLID');
     assert.equal(fill.color.variable, '--np-ink');
     assert.equal(fill.color.tint, 0.12);
+  });
+
+  it('bind each gradient stop through its own declared stop: a tint at its share, two tokens of one colour apart', () => {
+    const background: RawBinding = {
+      value: 'linear-gradient(to right, color-mix(in srgb, var(--np-ink) 20%, transparent) 0%, var(--np-paper) 50%, var(--np-white) 100%)',
+      chains: [['--np-ink'], ['--np-paper'], ['--np-white']],
+    };
+    const { frame } = planPrints(
+      { box: [0, 0, 100, 20], style: { 'background-image': 'linear-gradient(to right, rgba(25, 24, 22, 0.2) 0%, rgb(255, 255, 255) 50%, rgb(255, 255, 255) 100%)' }, bind: { 'background-image': background } },
+      { design: { '--np-paper': '#ffffff', '--np-white': '#ffffff' } }
+    ).design;
+    const fill = frame.fills[0];
+    assert.ok(fill && fill.type === 'GRADIENT_LINEAR');
+    assert.deepEqual(
+      fill.stops.map((stop) => [stop.color.variable, stop.color.tint]),
+      [
+        ['--np-ink', 0.2],
+        ['--np-paper', undefined],
+        ['--np-white', undefined],
+      ]
+    );
   });
 
   it('print a token’s lowered alpha as a literal where the code did not mix it with transparency', () => {

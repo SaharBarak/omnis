@@ -9,7 +9,7 @@
  * value are kept per print (`protocol.mjs`).
  *
  * It reads only a base on this machine's loopback. The inputs' digests are
- * taken before a route's first read and after its last; a route whose source
+ * taken before a route loads and after its last read; a route whose source
  * changed in between, or whose page loaded again, is read once more, and
  * stamped unsound if it changes again (`inputs.mjs`).
  *
@@ -22,7 +22,7 @@ import { chromium } from 'playwright';
 import { ROUTES, stemOf } from '../routes.mjs';
 import { hasPrint, visit } from '../visit.mjs';
 import { APP, CONFIG, PLACEHOLDER_PROPS, STYLE_PROPS } from './config.mjs';
-import { inputsOf, SOURCE_PATHSPECS, whyUnsound } from './inputs.mjs';
+import { inputsOf, sourceFilesOf, whyUnsound } from './inputs.mjs';
 import { readProtocol, readsLine } from './protocol.mjs';
 import { mergeStructure, structureOf } from './structure.mjs';
 import { LAYOUT_UNIT, walk } from './walker.mjs';
@@ -79,7 +79,7 @@ function perPrint(walked, protocol) {
   const nodes = {};
   const visitTree = (node) => {
     const shapes = node.shapes?.map((shape) => ({ ...shape, ...(protocol.perNode[shape.id]?.bind ? { bind: protocol.perNode[shape.id].bind } : {}) }));
-    nodes[node.id] = { s: node.style, ...(node.none ? { none: true } : {}), ...(node.svg ? { svg: node.svg, shapes } : {}), ...(node.field ? { placeholder: node.field.placeholderStyle } : {}), ...protocol.perNode[node.id] };
+    nodes[node.id] = { s: node.style, ...(node.none ? { none: true } : {}), ...(node.svg ? { svg: node.svg, shapes, ...(node.unread ? { unread: node.unread } : {}) } : {}), ...(node.field ? { placeholder: node.field.placeholderStyle } : {}), ...protocol.perNode[node.id] };
     for (const kid of node.kids ?? []) if (kid.text === undefined) visitTree(kid);
   };
   visitTree(walked.root);
@@ -108,11 +108,12 @@ const loadOf = (page) => page.evaluate(() => performance.timeOrigin);
 const nextOf = (page) => page.evaluate(() => ({ version: window.next?.version ?? null, dev: document.querySelector('nextjs-portal') !== null }));
 
 async function measureOne(browser, route, viewport, stamp) {
+  // Before the load: an edit that lands while the page loads then shows in the digest after the last read.
+  const inputs = await inputsOf(route);
   const { page, status } = await visit(browser, base + route, { width: viewport.width, height: viewport.height });
   try {
     if (status < 200 || status >= 400) return { route, viewport: viewport.name, status, error: 'not loaded' };
     await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important; scroll-snap-type: none !important; scroll-behavior: auto !important; }' });
-    const inputs = inputsOf();
     const loaded = await loadOf(page);
     const settled = {};
     // Per print, the most scrollers found off their start before any of its reads.
@@ -142,14 +143,14 @@ async function measureOne(browser, route, viewport, stamp) {
     const html = await page.content();
     const buildId = /\\?"b\\?":\\?"([\w-]{10,40})\\?"/.exec(html)?.[1] ?? null;
     const tree = structureOf(walks[PRIMARY].root);
-    const moves = TWINS.map((print) => mergeStructure(tree, walks[print].root));
+    const moves = TWINS.map((print) => mergeStructure(tree, walks[print].root, print));
     const geometry = { moved: moves.reduce((sum, move) => sum + move.moved, 0), maxDelta: Math.max(0, ...moves.map((move) => move.maxDelta)), samples: moves.flatMap((move) => move.samples) };
     return {
       route,
       viewport: viewport.name,
       size: [viewport.width, viewport.height],
       status,
-      stamp: { ...stamp, buildId, next: await nextOf(page), inputs, inputsAfter: inputsOf(), reloaded: (await loadOf(page)) !== loaded, measuredAt: new Date().toISOString() },
+      stamp: { ...stamp, dirty: git('status', '--porcelain', '--', ...(await sourceFilesOf(route))).split('\n').filter(Boolean), buildId, next: await nextOf(page), inputs, inputsAfter: await inputsOf(route), reloaded: (await loadOf(page)) !== loaded, measuredAt: new Date().toISOString() },
       lang: walks[PRIMARY].lang,
       dir: walks[PRIMARY].dir,
       page: walks[PRIMARY].page,
@@ -181,7 +182,6 @@ await mkdir(CONFIG.paths.raw, { recursive: true });
 const browser = await chromium.launch();
 const stamp = {
   commit: git('rev-parse', 'HEAD'),
-  dirty: git('status', '--porcelain', '--', ...SOURCE_PATHSPECS).split('\n').filter(Boolean),
   base,
   browser: browser.version(),
 };
