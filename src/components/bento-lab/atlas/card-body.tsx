@@ -1,0 +1,41 @@
+import s from './atlas.module.css'
+import type { MarkReading } from '@/lib/atlas/explain'
+import type { AtlasLayerId } from '@/lib/atlas/types'
+
+/** What heads a card: the eyebrow naming its system, what the thing is, and the person's value at it. */
+export interface CardHead {
+  /** The layer whose colour keys the eyebrow; null for a system read beside the map. */
+  readonly layer: AtlasLayerId | null
+  readonly eyebrow: string
+  readonly label: string
+  readonly value: string
+}
+
+/**
+ * A card's words, shared by the drawing's marks and the digest's facts
+ * (BENTO_SITE.md, "Marks explain themselves"): the eyebrow, the label, the
+ * value as the strong line, then the meaning and facts once explain.ts has
+ * loaded. Every string is set as text.
+ */
+export function CardBody({ head, reading }: { readonly head: CardHead; readonly reading: MarkReading | null }) {
+  return (
+    <>
+      <span className={s.cardEyebrow} data-layer={head.layer ?? undefined}>
+        {head.eyebrow}
+      </span>
+      <span className={s.cardLabel}>{head.label}</span>
+      <strong className={s.cardValue}>{head.value}</strong>
+      {reading?.meaning && <span className={s.cardMeaning}>{reading.meaning}</span>}
+      {reading && reading.facts.length > 0 && (
+        <dl className={s.cardFacts}>
+          {reading.facts.map((f) => (
+            <div key={f.label}>
+              <dt>{f.label}</dt>
+              <dd>{f.value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+    </>
+  )
+}

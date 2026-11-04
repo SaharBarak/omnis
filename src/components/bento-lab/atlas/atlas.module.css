@@ -498,6 +498,7 @@
 .cardEyebrow[data-layer='sky']::before { background: var(--atlas-sky); }
 .cardEyebrow[data-layer='maya']::before { background: var(--atlas-maya); }
 .cardEyebrow[data-layer='body']::before { background: var(--atlas-body); }
+.cardEyebrow[data-layer='number']::before { background: var(--atlas-number); }
 
 .cardLabel {
   color: var(--lab-text-2);

@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useId, useReducer, useRef, useState, type CSSProperties, type Dispatch, type ReactNode, type RefObject } from 'react'
+import { useEffect, useId, useReducer, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react'
 import s from './atlas.module.css'
-import { IDLE, inspect, type InspectEvent } from './inspect'
+import { IDLE, inspect } from './inspect'
 import { MarkCard } from './mark-card'
 import { placeMarks, type PlacedMark } from './mark-geometry'
 import { holds, MarkTargets } from './mark-targets'
@@ -12,9 +12,9 @@ import { PersonAtlasDrawing, type MarkHighlight } from './person-atlas'
 import { PinLayer } from './pin-layer'
 import { atlasPins } from './pins'
 import { useExplain } from './use-explain'
+import { useGrace } from './use-grace'
 import kit from '../kit.module.css'
 import { useTurn } from '../motion/use-turn'
-import { DURATION } from '@/lib/design/motion-tokens'
 import { LAYER_META } from '@/lib/atlas/layers'
 import { markKey, markTitle, relatedMarks, type AtlasMarkRef } from '@/lib/atlas/marks'
 import type { AtlasLayerId, PersonAtlas } from '@/lib/atlas/types'
@@ -46,37 +46,6 @@ const answering = (marks: readonly PlacedMark[], focus: AtlasLayerId | null): Re
 
 const find = (marks: ReadonlyMap<string, PlacedMark>, ref: AtlasMarkRef | null): PlacedMark | null => (ref ? (marks.get(markKey(ref)) ?? null) : null)
 
-const leaving = (event: InspectEvent): boolean => event.type === 'point' && event.ref === null
-
-/**
- * Hover grace (WCAG 1.4.13): the pointer leaving the marks closes the card a
- * beat later, so it can cross the gap onto the card. Any other event, or the
- * pointer reaching the card (`hold`), cancels the pending close; leaving again
- * while one is pending does not restart it.
- */
-function useGrace(dispatch: Dispatch<InspectEvent>) {
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const hold = () => {
-    if (timer.current === null) return
-    clearTimeout(timer.current)
-    timer.current = null
-  }
-  useEffect(() => () => {
-    if (timer.current !== null) clearTimeout(timer.current)
-  }, [])
-  const send = (event: InspectEvent) => {
-    if (!leaving(event)) {
-      hold()
-      dispatch(event)
-      return
-    }
-    timer.current ??= setTimeout(() => {
-      timer.current = null
-      dispatch(event)
-    }, DURATION.quick)
-  }
-  return { send, hold }
-}
 
 /**
  * Which mark's card is open, and the drawing's highlight for it

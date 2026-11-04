@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, type PointerEventHandler, type RefObject } from 'react'
 import s from './atlas.module.css'
+import { CardBody } from './card-body'
 import { C, SIZE, type Point } from './geometry'
 import { HALO_GAP, TARGET_MIN_PX, type PlacedMark } from './mark-geometry'
 import kit from '../kit.module.css'
@@ -98,22 +99,7 @@ export function MarkCard({ id, cardRef, mark, title, reading, open, kept, onPoin
       onPointerEnter={onPointerEnter}
       onPointerLeave={onPointerLeave}
     >
-      <span className={s.cardEyebrow} data-layer={mark.layer}>
-        {meta.pin} {meta.name}
-      </span>
-      <span className={s.cardLabel}>{title.label}</span>
-      <strong className={s.cardValue}>{title.value}</strong>
-      {reading?.meaning && <span className={s.cardMeaning}>{reading.meaning}</span>}
-      {reading && reading.facts.length > 0 && (
-        <dl className={s.cardFacts}>
-          {reading.facts.map((f) => (
-            <div key={f.label}>
-              <dt>{f.label}</dt>
-              <dd>{f.value}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
+      <CardBody head={{ layer: mark.layer, eyebrow: `${meta.pin} ${meta.name}`, label: title.label, value: title.value }} reading={reading} />
     </div>
   )
 }

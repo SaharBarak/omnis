@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { IDLE, inspect, type InspectEvent, type InspectState } from './inspect'
+import { createInspect, IDLE, inspect, type InspectEvent, type InspectState } from './inspect'
 import type { AtlasMarkRef } from '@/lib/atlas/marks'
 
 const sun: AtlasMarkRef = { kind: 'planet', id: 'sun' }
 const moon: AtlasMarkRef = { kind: 'planet', id: 'moon' }
 
-const run = (...events: InspectEvent[]): InspectState => events.reduce(inspect, IDLE)
+const run = (...events: InspectEvent[]): InspectState => events.reduce(inspect, IDLE as InspectState)
 
 describe('inspect', () => {
   it('opens a card under the pointer and closes it when the pointer leaves the marks', () => {
@@ -50,4 +50,28 @@ describe('inspect', () => {
   it('forgets everything when the atlas changes', () => {
     expect(run({ type: 'keep', ref: sun }, { type: 'reset' })).toBe(IDLE)
   })
+
+  it('lets focus own its card: the pointer passing by neither replaces nor closes it', () => {
+    const focused = run({ type: 'focus', ref: sun })
+    expect(inspect(focused, { type: 'point', ref: moon })).toBe(focused)
+    expect(inspect(focused, { type: 'point', ref: null })).toBe(focused)
+    expect(run({ type: 'focus', ref: sun }, { type: 'blur' }, { type: 'point', ref: moon }).active).toEqual(moon)
+  })
+
+  it('keeps a focused card through a press, and lets a second press close it', () => {
+    const kept = run({ type: 'focus', ref: sun }, { type: 'keep', ref: sun })
+    expect(kept).toMatchObject({ active: sun, kept: true })
+    expect(inspect(kept, { type: 'keep', ref: sun }).active).toBeNull()
+  })
 })
+
+describe('createInspect', () => {
+  it('runs the same model over any reference with a key', () => {
+    const byName = createInspect<{ readonly name: string }>((ref) => ref.name)
+    const a = { name: 'a' }
+    const opened = byName(IDLE, { type: 'point', ref: a })
+    expect(opened).toMatchObject({ active: a, shown: a })
+    expect(byName(opened, { type: 'point', ref: { name: 'a' } })).toBe(opened)
+  })
+})
+
