@@ -44,6 +44,16 @@ describe('buildPersonAtlas', () => {
     }
   })
 
+  it("names the body's authority by its own word and its profile by its lines", () => {
+    for (const person of DEMO_PEOPLE) {
+      const body = buildPersonAtlas(asBirth(person), TODAY).body
+      const graph = demo.charts[person.id].bodygraph
+      expect(body?.profileLines).toBe(graph.profile.id)
+      expect(body?.authorityWord).not.toMatch(/authority|\(|\)/i)
+      expect(graph.authorityDefinition.name.toLowerCase()).toContain(body!.authorityWord.toLowerCase().split(' ')[0])
+    }
+  })
+
   it('draws an exact sky with an ascendant when time and place are known', () => {
     const atlas = buildPersonAtlas(asBirth(maya), TODAY)
     expect(atlas.sky.precision).toBe('exact')

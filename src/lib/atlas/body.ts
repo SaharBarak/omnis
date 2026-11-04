@@ -10,6 +10,18 @@ const DEFINITION_LABEL: Readonly<Record<Definition, string>> = {
   none: 'None',
 }
 
+/** Each authority's own word, without "Authority". */
+const AUTHORITY_WORD: Readonly<Record<Authority, string>> = {
+  emotional: 'Emotional',
+  sacral: 'Sacral',
+  splenic: 'Splenic',
+  'ego-manifested': 'Ego manifested',
+  'ego-projected': 'Ego projected',
+  'self-projected': 'Self-projected',
+  mental: 'Mental',
+  lunar: 'Lunar',
+}
+
 /** The centre each inner authority speaks from; mental and lunar authority have none of their own. */
 const AUTHORITY_CENTRE: Readonly<Record<Authority, CenterId | null>> = {
   emotional: 'solar',
@@ -36,8 +48,10 @@ export function buildBody(input: BirthInput): BodyLayer | null {
     type: graph.typeDefinition.name,
     strategy: graph.typeDefinition.strategy,
     authority: graph.authorityDefinition.name,
+    authorityWord: AUTHORITY_WORD[graph.authority],
     authorityCentre: AUTHORITY_CENTRE[graph.authority],
     profile: `${graph.profile.id} ${graph.profile.name}`,
+    profileLines: graph.profile.id,
     definition: DEFINITION_LABEL[graph.definition],
     cross: graph.incarnationCross.name,
     definedCenters: graph.definedCenters,

@@ -18,6 +18,9 @@ const NEEDS: Readonly<Record<MissingInput, string>> = {
 
 export const needsLabel = (missing: MissingInput): string => NEEDS[missing]
 
+/** What the expression number waits on: a name in Latin letters, which not every form asks for. */
+export const NAME_NEEDED = 'Needs a name'
+
 /** Sun and Moon lead the sky; the rest follow the rising sign in the engine's order. */
 const HEADLINE = new Set(['sun', 'moon'])
 

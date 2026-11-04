@@ -5,17 +5,12 @@ import {
 } from '@pleiad/engine/calculations/astrology'
 import { CELESTIAL_BODIES } from '@pleiad/engine/data/planets'
 import type { PlanetPosition } from '@pleiad/engine/types/astrology'
-import type { BirthInput, GlyphRef, SkyBody, SkyLayer } from './types'
-import { planetGlyphSrc, signGlyphSrc } from '@/lib/design/glyph-paths'
+import { signRef } from './place'
+import type { BirthInput, SkyBody, SkyLayer } from './types'
+import { planetGlyphSrc } from '@/lib/design/glyph-paths'
 
 /** The ten bodies plus the North Node, which synastry ties can name. */
 const DRAWN = new Set([...CELESTIAL_BODIES.map((p) => p.id), 'northNode'])
-
-const signRef = (p: PlanetPosition): GlyphRef => ({
-  n: p.position.sign.number,
-  name: p.position.sign.name,
-  src: signGlyphSrc(p.position.sign.number, p.position.sign.name),
-})
 
 const toBody = (p: PlanetPosition, arc: readonly [number, number] | null): SkyBody => ({
   id: p.planet.id,
@@ -24,7 +19,7 @@ const toBody = (p: PlanetPosition, arc: readonly [number, number] | null): SkyBo
   src: planetGlyphSrc(p.planet.id),
   longitude: p.position.longitude,
   arc,
-  sign: signRef(p),
+  sign: signRef(p.position.sign),
   degree: p.position.degree,
   retrograde: p.retrograde,
 })

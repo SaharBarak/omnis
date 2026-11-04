@@ -96,9 +96,13 @@ export interface BodyLayer {
   readonly type: string
   readonly strategy: string
   readonly authority: string
+  /** The authority's own word, e.g. "Emotional" of "Emotional Authority". */
+  readonly authorityWord: string
   /** The centre the authority speaks from; null for mental and lunar authority, which have none of their own. */
   readonly authorityCentre: CenterId | null
   readonly profile: string
+  /** The profile's two lines, e.g. "1/3". */
+  readonly profileLines: string
   readonly definition: string
   readonly cross: string
   readonly definedCenters: readonly CenterId[]
