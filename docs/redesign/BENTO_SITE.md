@@ -58,19 +58,38 @@ never new layout CSS.
 
 ## The Atlas (hero and product core)
 
-One SVG per person, four layers read from the outside in. Every mark is
+One SVG per person, four layers drawn from the outside in. Every mark is
 computed by the engine; nothing is decorative.
 
-| Layer | What it draws | Engine source |
-|---|---|---|
-| 1 Sky | Zodiac ring, natal planets at their ecliptic longitude | `calculations/astrology` |
-| 2 Kin | 20-seal ring with the kin's seal at 12 o'clock and its antipode at 6, the oracle seats ringed, the tone as a Maya bar-and-dot mark, the traditional Tzolkin day in the readout | `calculations/dreamspell`, `calculations/oracle`, `calculations/tzolkin` |
-| 3 Body | Human Design bodygraph: defined centres filled, active channels drawn | `calculations/human-design`, bodygraph layout |
-| 4 Number | Life path and the core numbers as a strip under the wheel | `calculations/numerology` |
+| Pin | Layer | What it draws | Engine source |
+|---|---|---|---|
+| 1 | Dreamspell | 20-seal ring with the kin's seal at 12 o'clock and its antipode at 6, the oracle seats ringed, the tone as a Maya bar-and-dot mark, the traditional Tzolkin day in the readout | `calculations/dreamspell`, `calculations/oracle`, `calculations/tzolkin` |
+| 2 | Human Design | Bodygraph: defined centres filled, active channels drawn | `calculations/human-design`, bodygraph layout |
+| 3 | Numerology | Life path and the core numbers as a strip under the wheel | `calculations/numerology` |
+| 4 | Astrology | Zodiac ring (outermost), natal planets at their ecliptic longitude | `calculations/astrology` |
 
-The layer is called Kin. The system is described as the 260-day count:
-Dreamspell is labelled Dreamspell and never called the Maya calendar, and
-the traditional Tzolkin day sits beside it.
+**Names.** A layer is named by the first system it reads, with that
+system's label in the catalog (`SYSTEM_CATALOG`), so the map, the settings
+and the system pages never call one system two names. Dreamspell is
+labelled Dreamspell and never called the Maya calendar; its system is
+described as the 260-day count, and the traditional Tzolkin day sits
+beside it.
+
+**Order.** Two orders, each held once in `src/lib/atlas`. The drawing's
+structure is outside in (`ATLAS_LAYERS`: the sky ring outermost, the
+number strip last); it sets the stacking depth of the exploded view. The
+lead order is the order the product reads its systems in (`DIGEST` in
+`layers.ts`: Dreamspell, Human Design, Maya Long Count, Numerology,
+Astrology). The digest tiles, the layer switch, the readout and the layers
+scene's scroll steps follow the lead order, and each layer's pin number is
+its place among the layers in it (`LAYERS_BY_PIN`).
+
+**Read beside the map.** A chart system that a birth date gives without a
+drawn layer is read beside the map: today the Maya Long Count
+(`buildLongCount`: the five places, the dotted date and the calendar
+round, GMT correlation). It is light, so it ships with the light half of
+the atlas, and it has a digest tile but no pin, no ring and no switch
+entry: there is nothing on the drawing to bring forward.
 
 A birth date alone draws the sky at noon with each body's arc for that day
 (`getPlanetaryDayArcs`), and the readout says so; the bodygraph and the
@@ -130,28 +149,72 @@ The hero is the Atlas, live, seeded with a sample person so it is never
 empty. On screens 1180 px and wider, its three columns fit one viewport
 under the nav: `100svh` minus `--nav-h`, floored at 600 px.
 
-- **Left column:** the claim ("Know where to dig"), one sentence on what the
-  map is, and the birth fields (date and time paired, then place) that
-  redraw the atlas as the user types. Then the sample's birth line, "Keep
-  this map" (sign in, return to people) and "Open the full map".
+- **Left column:** the claim, "Five systems. One map.", its count spelled
+  from the digest (`DIGEST.length`, `src/lib/site/number-words.ts`) so it
+  can't drift from the tiles beside it; one short line, "Start with your
+  birth date."; and the birth fields (date and time paired, then place)
+  that redraw the atlas as the user types. Then the sample's birth line,
+  "Keep this map" (sign in, return to people) and "Open the full map".
+  The claim promises only what a date alone draws: Human Design and the
+  rising sign wait for a time and place, and the tiles say so.
 - **Centre:** the atlas over the portal artwork (dimmed, behind a scrim), in
   the stage's `fit` mode. The drawing is the largest square the stage
-  allows, with a status badge for the deferred compute and a layer switch
-  that dims the other rings. Pins carry only their layer number
+  allows, with a status badge for the deferred compute and the sky's
+  precision ("Exact sky" or "Date only"; the values are the digest's) and a
+  layer switch that dims the other rings. The switch keeps one line and
+  scrolls when its names outgrow it. Pins carry only their layer number
   (`LAYER_META.pin`), and an empty bodygraph gets no pin.
-- **Right column:** the digest (`AtlasDigest`), one visual tile per layer,
-  numbered like the pins. Sky shows its sign glyphs for sun, moon and
-  rising. Kin shows the oracle cross, tone and kin number. Body shows the
-  bodygraph with profile and type. Number shows the life path and three
-  more numbers. A tile brings its layer forward. The full text readout
-  stays in the page for assistive tech (`AtlasReadout`, visually hidden,
-  the drawing's description).
+- **Right column:** the digest (`AtlasDigest`, "The digest" below), five
+  tiles in the lead order, one per row. The full text readout stays in the
+  page for assistive tech (`AtlasReadout`, visually hidden, the drawing's
+  description).
 - **"Add a second person"** swaps the stage for the pair drawing, and the
   right column for the second person's fields and the rarest ties.
 
 Motion follows storyboard H (BENTO_MOTION.md). CSS draws the map at first
 paint. On a new date, anime.js turns the rings the short way and glides
 the pins, and the digest values roll.
+
+### The digest
+
+`AtlasDigest` reads the person in the lead order (`DIGEST`): one tile per
+layer and one per system read beside the map. Every tile is one grammar,
+so the eye learns it once:
+
+- **Figure** on the leading side, in the layer's colour, as tall as the
+  three lines of text beside it (caption, lead and small at UI leading, so
+  the size is derived from the type roles, not set). A layer's pin sits on
+  the figure's corner, as pins sit on the drawing; a tile beside the map
+  has none.
+- **Text column**, whose start edge every tile shares: the system's name
+  (caption, capitals), a strong line (lead, 600, ink, with what the value
+  is in the label's voice beside it) and one support line (small, ink 2).
+  Support is a list of short phrases; a narrow tile breaks the line between
+  phrases, never inside one.
+
+| Tile | Figure | Strong line | Support |
+|---|---|---|---|
+| Dreamspell | The kin as the drawing sets it at twelve o'clock, cropped (`KinMark`: the lit seal on its disc, the tone above) | Kin number · "Kin" | The kin's title |
+| Human Design | The bodygraph | Type | Profile |
+| Maya Long Count | The five places as bar-and-dot numerals in paired columns, read left to right and down; a lone last place is centred | The dotted date | The calendar round |
+| Numerology | The life path in a ring, the number in ink | "Life path" | Birthday and expression |
+| Astrology | The sun's sign glyph | Sun sign · "Sun" | Moon and rising |
+
+Missing input is stated, never guessed: without a time and place the
+Human Design tile's strong line is the input it needs, over an empty
+bodygraph, and Astrology's support says what the rising sign needs.
+
+A layer tile is a button that brings its layer forward (or, in `travel`
+mode, scrolls the layers scene to it). A tile beside the map is text,
+not a control, and takes no hover. The layers scene's legend is the legend
+of the four plates, so it lists the layers alone (`beside={false}`).
+
+Columns are set by the context, from the tile count (`--tiles`): one per
+row in the hero's column and the tool's findings; one row in the map
+figure on wide screens; two columns where the row would be too narrow,
+with an odd last tile across both. A tile narrower than its figure, gap
+and widest line (a container query on the tile) sets the figure above the
+words instead of squeezing them.
 
 ### Marks explain themselves
 
@@ -187,7 +250,7 @@ drawing writes each key on the mark's own group as `data-mark`.
 
 A channel draws its own two gates, so gates inside a defined channel are
 not marks. Without a bodygraph the layer draws its outline and has no
-marks. The Number layer is drawn by the strip and the digest, not inside
+marks. The Numerology layer is drawn by the strip and the digest, not inside
 the drawing, so it has none either.
 
 **Words.** A card's head is the mark's title: a label (what the mark is,
@@ -325,12 +388,12 @@ by `plainText`, so a long geocoder line never empties the form. Every field
 the schema refuses (date, time, place, name, Hebrew name) shows its message
 under that field once it holds a value.
 
-With one person, the findings column leads with the same four layer tiles
+With one person, the findings column leads with the same digest tiles
 as the hero (`AtlasDigest`, one per row in the column's width) and the
 readout table under them.
 
-Compute is split by weight. Dreamspell, Tzolkin, numerology and the data
-tables load with the page (`buildLightAtlas`); astrology and Human Design
+Compute is split by weight. Dreamspell, Tzolkin, the Long Count, numerology
+and the data tables load with the page (`buildLightAtlas`); astrology and Human Design
 load once from `src/lib/atlas/heavy.ts` through a memoised dynamic import,
 after the input settles for `INPUT_SETTLE_MS`. `useDeferredCompute` exposes
 idle, loading, ready and error, so every stage has a skeleton and an error
@@ -586,3 +649,4 @@ each wireframe is the slot contract the built page must fill.
 | Codex CLI (gpt-5.5) | Middleware gate, redirect safety, share links, deferred compute, plan derivation, route contract | 2026-10-11 | Incorporated |
 | Codex CLI (gpt-6-astra) | Signed-in app in the landing language: shell, scene ownership, dashboard compute bounds, motion and a11y | 2026-10-28 | Incorporated |
 | Codex CLI (gpt-6-astra) | Atlas mark interactions: pointer mapping across browsers, ring turns, keyboard and tooltip model, opacity ownership, text equivalence, hit geometry | 2026-11-03 | Incorporated |
+| Codex CLI (gpt-6-astra) | Digest in the lead order: the Long Count beside the map, two orders (structure and lead), catalog-derived names, tile grammar, hero claim | 2026-11-04 | Incorporated |

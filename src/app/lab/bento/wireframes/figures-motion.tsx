@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 import { Bodygraph, Box, Curve, Line, Marks, Move, Note, Plate, Ring, Storyboard, Turn, Viewport, type Pt } from '@/components/bento-lab/wireframe/storyboard'
+import { DIGEST, LAYER_META, LAYERS_BY_PIN, systemLabel } from '@/lib/atlas/layers'
+import { ATLAS_LAYERS } from '@/lib/atlas/types'
 
 /*
  * Motion storyboards, one per home section (BENTO_MOTION.md "Storyboards").
@@ -7,7 +9,11 @@ import { Bodygraph, Box, Curve, Line, Marks, Move, Note, Plate, Ring, Storyboard
  */
 
 const ATLAS: Pt = [168, 104]
-const DIGEST = ['Sky', 'Kin', 'Body', 'Number'] as const
+/** The digest's tiles in the lead order, named as the hero names them. */
+const TILES = DIGEST.map((entry) => (entry.kind === 'layer' ? LAYER_META[entry.layer].name : systemLabel(entry.system)))
+/** The digest column's top and bottom in the storyboard, and the gap between tiles. */
+const COLUMN = { top: 22, bottom: 184, gap: 6 } as const
+const TILE_H = (COLUMN.bottom - COLUMN.top - COLUMN.gap * (TILES.length - 1)) / TILES.length
 
 function HeroShell({ digest = 0, children }: { digest?: number; children?: ReactNode }) {
   return (
@@ -17,8 +23,8 @@ function HeroShell({ digest = 0, children }: { digest?: number; children?: React
       <Box x={14} y={38} w={64} h={5} dashed />
       <Box x={14} y={54} w={80} h={18} label="birth date" />
       <Box x={14} y={78} w={44} h={14} solid />
-      {DIGEST.map((name, i) => (
-        <Box key={name} x={256} y={22 + i * 42} w={52} h={36} label={name} dashed={i >= digest} />
+      {TILES.map((name, i) => (
+        <Box key={name} x={256} y={COLUMN.top + i * (TILE_H + COLUMN.gap)} w={52} h={TILE_H} label={name} dashed={i >= digest} />
       ))}
       {children}
     </g>
@@ -96,7 +102,7 @@ export function HeroStoryboard() {
           engine: 'Motion',
           caption: 'Four pins drop onto their layers on the spring token; the digest tiles settle in the same order. All of it sits inside one viewport.',
           draw: (
-            <HeroShell digest={4}>
+            <HeroShell digest={TILES.length}>
               <Ring c={ATLAS} r={68} />
               <Marks c={ATLAS} r={68} count={12} />
               <Marks c={ATLAS} r={46} count={20} lit={6} size={3} />
@@ -115,7 +121,7 @@ export function HeroStoryboard() {
           engine: 'anime.js',
           caption: 'A new birth date turns each ring the short way to its new position (settle token); tile values roll (Motion). Nothing redraws from zero.',
           draw: (
-            <HeroShell digest={4}>
+            <HeroShell digest={TILES.length}>
               <Ring c={ATLAS} r={68} />
               <Marks c={ATLAS} r={68} count={12} />
               <Marks c={ATLAS} r={46} count={20} lit={9} size={3} />
@@ -131,19 +137,18 @@ export function HeroStoryboard() {
   )
 }
 
-const LAYERS = ['Sky', 'Kin', 'Body', 'Number'] as const
-
+/** `lit` counts scroll steps, which follow the lead order; the plates stack outside in. */
 function Exploded({ open, lit }: { open: number; lit: number }) {
+  const step = LAYERS_BY_PIN[lit]
   return (
     <g>
       <Viewport label="pinned" />
-      {[...LAYERS].reverse().map((name, k) => {
-        const i = LAYERS.length - 1 - k
-        const cy = 118 - k * (open > 0 ? 18 : 2) - (i === lit ? 14 : 0)
-        return <Plate key={name} cx={160} cy={cy} rx={64} lit={i === lit} />
+      {[...ATLAS_LAYERS].reverse().map((layer, k) => {
+        const cy = 118 - k * (open > 0 ? 18 : 2) - (layer === step ? 14 : 0)
+        return <Plate key={layer} cx={160} cy={cy} rx={64} lit={layer === step} />
       })}
-      {LAYERS.map((name, i) => (
-        <Box key={name} x={22 + i * 70} y={160} w={64} h={26} label={name} solid={i === lit} />
+      {LAYERS_BY_PIN.map((layer, i) => (
+        <Box key={layer} x={22 + i * 70} y={160} w={64} h={26} label={LAYER_META[layer].name} solid={i === lit} />
       ))}
     </g>
   )
@@ -168,7 +173,7 @@ export function LayersStoryboard() {
         {
           at: 'scroll 25%',
           engine: 'GSAP',
-          caption: 'The map tilts and parts in depth. Sky lifts first and its tile lights in the row below.',
+          caption: `The map tilts and parts in depth. ${LAYER_META[LAYERS_BY_PIN[0]].name} lifts first and its tile lights in the row below.`,
           draw: (
             <g>
               <Exploded open={1} lit={0} />
@@ -179,7 +184,7 @@ export function LayersStoryboard() {
         {
           at: 'scroll 50%',
           engine: 'GSAP',
-          caption: 'Kin lifts and the others dim; its tile shows the oracle cross and tone. One scroll step, one layer.',
+          caption: `${LAYER_META[LAYERS_BY_PIN[1]].name} lifts and the others dim. One scroll step, one layer.`,
           draw: (
             <g>
               <Exploded open={2} lit={1} />
@@ -190,7 +195,7 @@ export function LayersStoryboard() {
         {
           at: 'scroll 75%',
           engine: 'GSAP',
-          caption: 'Body lifts, then Number. Choosing a tile scrolls to its layer; the star field drifts under the stack.',
+          caption: `${LAYER_META[LAYERS_BY_PIN[2]].name} lifts, then ${LAYER_META[LAYERS_BY_PIN[3]].name}. Choosing a tile scrolls to its layer; the star field drifts under the stack.`,
           draw: <Exploded open={3} lit={2} />,
         },
         {

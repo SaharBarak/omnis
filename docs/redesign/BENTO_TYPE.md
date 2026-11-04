@@ -144,20 +144,23 @@ Weights:
 
 A role keeps one weight wherever it appears.
 
-## The readout rail (home hero, `AtlasDigest`)
+## The digest (home hero, `AtlasDigest`)
 
-Each tile reads top to bottom as layer, then reading, then what the reading
-is called.
+Each tile reads top to bottom as system, then reading, then support, in a
+text column beside the figure (BENTO_SITE.md, "The digest").
 
-- **Head.** The pin and the layer name: caption, 600, capitals, ink 2. The
-  pin digit is micro, on a disc sized 1.75 times the digit.
-- **Values** (a sign, a seal's title, a Human Design type): body, 500, ink.
-- **What a value is** (Sun, Rising, Life path, a profile's names): caption,
+- **Name.** The system's name: caption, 600, capitals, ink 2.
+- **Strong line.** The reading: lead, 600, ink, tabular figures, so a kin
+  number, a type, a five-place date and a sign take one size across the
+  tiles and compare. What the value is (Kin, Sun) sits beside it: caption,
   500, sentence case, ink 3.
-- **Figures.** Every tile's leading number is the figure role: the Kin
-  number, the profile, the life path. One size across the four tiles, so the
-  tiles compare. The sky's sign marks are set at the figure's size.
-- **Secondary numbers** (birthday, expression, year): lead, 600.
+- **Support.** One line of short phrases (a title, a profile, the moon and
+  rising): small, 500, ink 2.
+- **Pin.** The pin digit is micro, on a disc sized 1.75 times the digit,
+  on the figure's corner.
+- **Figure size.** The figure is as tall as the three lines beside it: the
+  sum of caption, lead and small at UI leading, plus the two line gaps.
+  The numerology ring's number is the figure role, in ink.
 
 ## Acceptance
 

@@ -10,12 +10,12 @@ export function HomeWireframe() {
       serves="/"
       slots={[
         { n: 1, text: 'Top bar: mark + wordmark, product links, sign in, theme, start CTA' },
-        { n: 2, text: 'Claim: what the map is, in one line; the survey-map metaphor in the sub-line' },
+        { n: 2, text: 'Claim: the count of systems and the one map, in one line; the sub-line says where to start' },
         { n: 3, text: 'Birth-date field (date, optional time + place) that redraws the atlas live' },
         { n: 4, text: 'Primary CTA: save this map (sign up); secondary: see two people' },
         { n: 5, text: 'Atlas card over dimmed portal artwork; person tabs in the top notch (A, B, +)' },
-        { n: 6, text: 'Four layer pins on the atlas: sky, Kin, body, number; each names its value' },
-        { n: 7, text: 'Digest: one visual tile per layer (sign glyphs, oracle cross, bodygraph, numerals), numbered like the pins' },
+        { n: 6, text: 'Four layer pins on the atlas, numbered in the lead order: Dreamspell, Human Design, Numerology, Astrology' },
+        { n: 7, text: 'Digest: one tile per system in the lead order, figure beside a name, a strong line and one support line; the Maya Long Count is read beside the map' },
         { n: 8, text: 'Add a second person: turns the hero into the pair atlas' },
         { n: 9, text: 'Layers: the map taken apart in depth, one layer per scroll step, the digest row under it' },
         { n: 10, text: 'Two people: both maps across the full width, the tie rows under them' },
@@ -50,8 +50,8 @@ export function HomeWireframe() {
         <Box cols="300px 1fr 250px" gap={36} h={600}>
           <Box rows="auto auto auto 1fr" gap={22}>
             <Box gap={14}>
-              <Title size="lg" widths={[92, 70, 84]} n={2} />
-              <Lines widths={[96, 88, 60]} />
+              <Title size="lg" widths={[92, 70]} n={2} />
+              <Lines widths={[60]} />
             </Box>
             <Box frame="solid" gap={10} n={3}>
               <Label>Birth date</Label>
@@ -101,8 +101,8 @@ export function HomeWireframe() {
             ))}
           </Box>
 
-          <Box rows="1fr 1fr 1fr 1fr auto" gap={10}>
-            {['Sky · three sign glyphs', 'Kin · oracle cross + tone', 'Body · bodygraph + profile', 'Number · life path + three'].map((label, i) => (
+          <Box rows="1fr 1fr 1fr 1fr 1fr auto" gap={10}>
+            {['Dreamspell · kin glyph, kin, title', 'Human Design · bodygraph, type, profile', 'Maya Long Count · bar-and-dot places, date, round', 'Numerology · life path ring, two more', 'Astrology · sun glyph, sun, moon and rising'].map((label, i) => (
               <Box key={label} frame="solid" n={i === 0 ? 7 : undefined}>
                 <Ph label={label} h={56} />
               </Box>
@@ -118,7 +118,7 @@ export function HomeWireframe() {
           <Title widths={[40]} />
           <Ph label="Exploded atlas · four plates in depth · pinned while it scrolls" h={260} />
           <Box cols="1fr 1fr 1fr 1fr" gap={10}>
-            {['Sky', 'Kin', 'Body', 'Number'].map((l) => (
+            {['Dreamspell', 'Human Design', 'Numerology', 'Astrology'].map((l) => (
               <Ph key={l} label={l} h={56} />
             ))}
           </Box>
@@ -188,7 +188,7 @@ export function ToolWireframe() {
       slots={[
         { n: 1, text: 'People rail: one card per person (A, B, …), each with its birth fields; add person' },
         { n: 2, text: 'Map stage: person atlas, pair atlas or circle map depending on people count' },
-        { n: 3, text: 'Layer switch: all, sky, Kin, body, number; switching dims the other rings' },
+        { n: 3, text: 'Layer switch: all, Dreamspell, Human Design, Numerology, Astrology; switching dims the other rings' },
         { n: 4, text: 'Findings: per-layer readout for one person, tie table for two or more' },
         { n: 5, text: 'Save bar: sign up to keep these people; share link' },
       ]}
@@ -215,10 +215,10 @@ export function ToolWireframe() {
             <Box n={3}>
               <Row>
                 <Pill solid>All</Pill>
-                <Pill>Sky</Pill>
-                <Pill>Kin</Pill>
-                <Pill>Body</Pill>
-                <Pill>Number</Pill>
+                <Pill>Dreamspell</Pill>
+                <Pill>Human Design</Pill>
+                <Pill>Numerology</Pill>
+                <Pill>Astrology</Pill>
               </Row>
             </Box>
           </Row>
