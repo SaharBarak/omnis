@@ -80,14 +80,14 @@ structure is outside in (`ATLAS_LAYERS`: the sky ring outermost, the
 number strip last); it sets the stacking depth of the exploded view. The
 lead order is the order the product reads its systems in (`DIGEST` in
 `layers.ts`: Dreamspell, Human Design, Maya Long Count, Numerology,
-Astrology). The digest tiles, the layer switch, the readout and the layers
-scene's scroll steps follow the lead order, and each layer's pin number is
+Astrology). The digest tiles, the layer switch, the readout and the order the layers
+scene lifts its plates in follow the lead order, and each layer's pin number is
 its place among the layers in it (`LAYERS_BY_PIN`).
 
 **Read beside the map.** A chart system that a birth date gives without a
 drawn layer is read beside the map: today the Maya Long Count
-(`buildLongCount`: the places, the dotted date, the calendar round and the
-day count, GMT correlation). Every place is one numeral, 0 to 19: a count
+(`buildLongCount`: the places, the dotted date and the calendar round, GMT
+correlation). Every place is one numeral, 0 to 19: a count
 past 19 baktuns carries into the place above, as inscriptions write it, so
 any date the birth fields accept draws. It is light, so it ships with the light half of
 the atlas, and it has a digest tile but no pin, no ring and no switch
@@ -477,8 +477,8 @@ to today's board instead of passing yesterday off as today.
 the layer table (`SystemsFigure`; `LAYER_META.systems` says which systems
 each layer draws): the four layers, the chart systems read beside the map,
 the daily draws and the calendars, with a mark on each that needs a birth
-time. Its tie weights are the home method chart (`BaseRateChart`), which
-inside an article plays once on entering view instead of scrubbing.
+time. Its tie weights are the home method chart (`BaseRateChart`), which plays
+once as it enters view.
 
 Plan cards, the comparison ledger and every plan count derive from
 `PLANS.limits` in `src/lib/site/plans.ts`. The system count is the set of
@@ -565,7 +565,7 @@ display (`undash`) until the engine's text is rewritten at the source.
 | # | Section | Job |
 |---|---|---|
 | 1 | Hero | Live atlas from a birth date |
-| 2 | Layers | The map taken apart in depth, one layer per scroll step, the digest row under it |
+| 2 | Layers | The map taken apart in depth, one layer lifted at a time, the digest row under it |
 | 3 | Two people | Both maps across the full width, ties drawn by rarity, the tie rows under them |
 | 4 | Circles | The group ring across the full width, the heaviest pairs under it |
 | 5 | Every day | One full-width board of the day, the morning brief in one line |

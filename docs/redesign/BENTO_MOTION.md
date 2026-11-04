@@ -1,8 +1,10 @@
 # Bento Motion and Texture
 
 The bento site (BENTO_SITE.md) gets a texture and a motion
-system that makes each section a scene: drawn illustrations, scroll-driven
-reveals, components that answer the hand. This document is the contract for
+system in which every section animates itself: drawings that draw
+themselves, sequences that play once as a section comes into view,
+components that answer the hand. Scroll brings a section into view; it
+never drives one. This document is the contract for
 both. Every section is storyboarded before it is built (`/lab/bento/wireframes`,
 "Motion storyboards").
 
@@ -15,13 +17,18 @@ draws a map, a tie or a number. They share three kinds of motion:
 | Kind | Example | Trigger |
 |---|---|---|
 | First paint | The atlas draws itself as the page appears | Page load, before any script |
-| Scene | The atlas comes apart into its four layers as the page scrolls | Scroll position |
-| Illustration | A ring draws itself, a tie line runs from one seal to another | Entering view, or new data |
+| Sequence | The atlas comes apart into its four layers and lifts them one at a time | Entering view, played once by time |
+| Illustration | A ring draws itself, a tie line runs from one seal to another | New data, or entering view |
 | Response | A tile lifts when pressed, a number rolls to its new value | Input |
 
 Each kind has one engine. A new section picks its kind and reuses that
 engine's wrapper. It never adds another engine or a second owner for the
 same element.
+
+Scroll position never drives motion. Nothing is scrubbed, pinned or held
+on a tall track. A section that enters view plays by time, the way a
+component animates itself, so a reader who stops scrolling never rests on
+a half-played frame and the page scrolls at the reader's pace.
 
 ## Sources
 
@@ -52,14 +59,10 @@ Two short design references set the spark and the press:
 Library versions were read from the npm registry on 2026-10-28 and are
 pinned exactly:
 
-- `gsap` 3.15.0, published 2026-04-13. All plugins are free since 3.13.
-- `animejs` 4.5.0, published 2026-06-22.
+- `animejs` 4.5.0, published 2026-06-22. It tweens CSS custom properties
+  as well as transforms, which the sequences rely on.
 - `framer-motion` 12, already a dependency. It is the same project as
   `motion`.
-
-`@gsap/react` is not used. `useGSAP` needs a static `gsap` import, while
-`useScene` loads GSAP with `import()` and gets the same scoped revert from
-`gsap.context`.
 
 ## Palette
 
@@ -91,8 +94,8 @@ layers, both coloured by the palette:
   because no star or figure crosses the band's edge. The output is deterministic per catalogue. The tile is a mask
   over `--lab-ink` behind all content (`.lab::before`) at its intrinsic
   size, and more strongly behind a surface with `kit.starfield`, tinted by
-  `--field`. A scene may drift the field for parallax by scrubbing a
-  unitless `--drift` that the surface turns into `--field-y`.
+  `--field`. A sequence may drift the field by tweening a unitless
+  `--drift` that the surface turns into `--field-y`.
 - **Grain.** Fractal noise used as an alpha mask over `--lab-ink` on a fixed
   `::after`, at `--grain` opacity. No blend mode: a fixed layer that blends
   would make the compositor re-blend the whole viewport on every scroll
@@ -106,12 +109,11 @@ Both textures are hidden under increased contrast and forced colours
 | Engine | Owns | Wrapper | Never |
 |---|---|---|---|
 | CSS keyframes | First paint: entrances that must start before any script (the atlas draws itself) | classes in the component's module, keyed off `[data-lab]:not([data-motion='paused'])` inside `prefers-reduced-motion: no-preference` | Waits on JavaScript |
-| GSAP + ScrollTrigger | Scenes: scroll-scrubbed timelines on a CSS track | `useScene` | Animates a component's own state, or layout |
-| anime.js v4 | Illustrations after hydration: rings turning to new data, strokes, staggers, pins following the drawing | `useIllustration`, `useTurn`, `useGlide`, `drawStroke` | Touches HTML layout or scroll |
-| Motion (`framer-motion`, LazyMotion) | Responses: values rolling, presence, press and hover | `MotionRoot`, `Rolling`, `m.*` | Runs a scroll timeline |
+| anime.js v4 | Sequences: a timeline a section plays once as it enters view. Illustrations after hydration: rings turning to new data, strokes, staggers, pins following the drawing | `useSequence`, `useIllustration`, `useTurn`, `useGlide`, `drawStroke` | Touches HTML layout, or reads scroll position |
+| Motion (`framer-motion`, LazyMotion) | Responses: values rolling, presence, press and hover | `MotionRoot`, `Rolling`, `m.*` | Runs a timeline tied to scroll |
 
-One element, one engine, and CSS transitions count as an engine. A scene
-may move the container a drawing sits in. The drawing's strokes belong to
+One element, one engine, and CSS transitions count as an engine. A
+sequence may move the container a drawing sits in. The drawing's strokes belong to
 anime.js or CSS, and a tile inside belongs to Motion. Two engines never
 write the same property of the same element.
 
@@ -119,22 +121,30 @@ Lifecycle rules for every wrapper:
 
 - Engines load with `import()` inside the hook, after the first paint.
   An import that resolves after unmount does nothing.
-- Work runs in a scope that is reverted on cleanup: `gsap.context`, or
-  anime's `createScope` or `animation.revert`. So StrictMode's double
+- Work runs in a scope that is reverted on cleanup: anime's
+  `createScope` or `animation.revert`. So StrictMode's double
   effect, a route change or new data leave no trigger or inline style
-  behind. Scenes never kill global triggers. A hook that sets an inline
+  behind. A hook that sets an inline
   style before paint (`useTurn`, `useGlide`) releases every property it
   set when its animation lands and again on cleanup (`release`,
   `motion/inline-style.ts`).
-- Scenes live in route content, not layouts. `ScrollTrigger.refresh()`
-  runs after fonts are ready.
-- Layout belongs to CSS. A scene's track height and sticky frame are
-  reserved in the stylesheet when motion is on, so GSAP only scrubs what is
-  already in place. It never pins with spacers, so motion causes no layout
-  shift. Scenes scrub unitless progress variables (0 to 1) that the
-  stylesheet turns into `transform`, `opacity` and mask positions, so the
-  geometry for each breakpoint lives in CSS alone; nothing scrubbed feeds
-  `left`, `bottom`, `width` or any other layout property.
+- Sequences live in route content, not layouts.
+- Layout belongs to CSS. A section has the same height with motion on or
+  off, so a sequence moves only what is already in place and causes no
+  layout shift. Sequences tween unitless progress variables (0 to 1) that
+  the stylesheet turns into `transform`, `opacity` and mask positions, so
+  the geometry for each breakpoint lives in CSS alone. Nothing tweened
+  feeds `left`, `bottom`, `width` or any other layout property.
+- A sequence (`useSequence`) arms only when its section is out of view as
+  motion turns on: its first frame is set out of sight, and it plays once,
+  by time, when the section enters view (the same margin as `useReveal`).
+  A section already in view keeps its final frame. It never replays:
+  scrolling back, pausing and resuming all leave the final frame. When it
+  ends it reverts its inline styles, so the stylesheet's final frame takes
+  over and a later state, such as a layer brought forward, belongs to the
+  stylesheet alone.
+- Input supersedes a sequence. A reader acting on its section while it
+  plays (`finish`), or motion turning off, ends it at the final frame.
 - First-paint entrances match only while the lab root carries
   `data-entrance` (`useEntrance`). It comes off once the page's finite CSS
   animations finish, or when motion is paused, and goes back on before
@@ -151,8 +161,7 @@ Lifecycle rules for every wrapper:
 
 `src/lib/design/motion-tokens.ts` holds the values once as data:
 milliseconds and Bézier tuples. Each wrapper converts them where it
-imports its engine: seconds for GSAP and Motion, `cubicBezier(...)` for
-anime.js. LabRoot also writes them as CSS variables (`--dur-*`, `--ease-*`,
+imports its engine: seconds for Motion, `cubicBezier(...)` for anime.js. LabRoot also writes them as CSS variables (`--dur-*`, `--ease-*`,
 `--stagger`, `--press-scale`).
 
 | Token | Value | Use |
@@ -163,6 +172,7 @@ anime.js. LabRoot also writes them as CSS variables (`--dur-*`, `--ease-*`,
 | `turn` | 350 ms | An icon turning in place: the primary action's arrow |
 | `settle` | 480 ms | A component arriving; rings turning |
 | `draw` | 1200 ms | A ring or line drawing itself |
+| `hold` | 800 ms | A sequence resting on one beat before the next: a lifted layer |
 | `standard` | cubic-bezier(0.2, 0, 0, 1) | Most movement |
 | `emphasized` | cubic-bezier(0.05, 0.7, 0.1, 1) | Arrivals that land with weight |
 | `SPRING` | stiffness 260, damping 30, mass 1 | Motion only |
@@ -171,16 +181,16 @@ anime.js. LabRoot also writes them as CSS variables (`--dur-*`, `--ease-*`,
 | `MAGNET` | `pull` 0.18 of the pointer's offset from centre, at most `reach` 6 px | A pointer-following control leaning toward the mouse |
 | `TRAVEL` | 4 px (`--travel`) | How far a small surface moves as it appears or leaves: a card over a drawing |
 
-Scroll scenes scrub linearly. Their distance is the CSS track, not a
-duration.
+Sequences are timed by these tokens alone: a beat moves over `settle`
+and rests for `hold`. Nothing is timed by scroll distance.
 
 A stroke that draws itself is one shape everywhere (`motion/draw-in.ts`):
 every drawn line has `pathLength` 1; `undrawnStroke()` sets it to one dash
 with a gap twice as long, pushed just past the start, so no round cap
 shows; `drawStroke(ease)` draws it over `draw` on `emphasized`; and
 `landsAt(at)` is when its far end, label or the next beat lands (three
-quarters through the draw). Scenes compose these, never their own
-constants.
+quarters through the draw). Sequences and illustrations compose these,
+never their own constants.
 
 ### Policy
 
@@ -188,8 +198,8 @@ constants.
   `useSyncExternalStore` over the lab root that reads the OS
   reduced-motion setting and the lab pause (`lab-state.ts`). The server
   snapshot is `false`, so server markup is the final frame. When the
-  switch is off, scenes keep their CSS layout, illustrations show the drawn
-  state, `MotionConfig` is set to `reducedMotion="always"`, and `Rolling`
+  switch is off, sequences keep their final frame, illustrations show the
+  drawn state, `MotionConfig` is set to `reducedMotion="always"`, and `Rolling`
   renders plain text.
 - Motion never gates content or input. Server markup is complete and
   readable, and no content waits invisible for a script.
@@ -206,14 +216,14 @@ constants.
 - Illustrations run once per new data, not on a loop. The only loops are
   status pulses and the ground artwork.
 - Engines never enter a page's first bundle. `client-bundle.test.ts`
-  forbids static imports of the ephemeris packages, `gsap` and `animejs`
-  from client modules. The wrappers only `import()` them. Motion enters
+  forbids static imports of the ephemeris packages and `animejs` from
+  client modules. The wrappers only `import()` them. Motion enters
   through LazyMotion, with `strict` rejecting full `motion.*` components.
 
 ## Storyboards
 
 Each section gets a storyboard before it is built: three to five frames
-(the scroll or time position, what is on screen, which engine moves what),
+(the time position, what is on screen, which engine moves what),
 greyscale, at `/lab/bento/wireframes` under "Motion storyboards". A section
 is built only against its storyboard.
 
@@ -225,14 +235,14 @@ with its facts in one row under it.
 |---|---|---|---|
 | H | Hero (fits one viewport) | CSS first paint + illustration + response | The rings draw, signs and seals stagger, the bodygraph fills, and the pins drop, all in CSS before script. A new date turns the rings the short way (anime.js), and the digest values roll (Motion) |
 | A | Atlas marks | Response | A mark under the pointer, finger or focus gets an outline ring that draws itself in; related marks stay lit while the rest dim; the card fades in from the mark. A tap or Enter keeps the card, Escape or a tap outside lets it go |
-| 2 | Layers | Scene | The map pins face-on, tilts and parts into four plates in depth. Each scroll step lifts one plate with its digest tile lit, the star field drifts underneath, and the map closes back into one |
-| 3 | Two people | Scene + illustration | Two maps slide together across the full width. Tie lines draw rarest first, and the tie rows settle under the pair with bits rolling |
+| 2 | Layers | Sequence + response | As the section comes into view the map tilts and parts into four plates in depth. It lifts one plate at a time in the lead order with its digest tile lit, the star field drifting underneath, and rests apart. A tile brings its layer forward at any time, which ends the tour |
+| 3 | Two people | Sequence + illustration | As the section comes into view two maps slide together across the full width. Tie lines draw rarest first, and the tie rows settle under the pair with bits rolling |
 | 4 | Circles | Illustration | People settle into the ring heaviest first, the strongest ties draw, and the hub sends one sonar ring |
 | 5 | Every day | Response + illustration | The day's values roll in like an odometer, then the kin ring turns to the day's seal, the Moon fills to its phase and the hexagram builds from the bottom. Next or previous day rolls the values in that direction and plays the drawings again |
-| 6 | Method | Scene | Measured base rates rise as bars, the sample ties drop onto the scale, and the line-or-no-line threshold sweeps in. Pinned on home it scrubs with scroll; inside an article it plays once by time, so it never rests half-swept |
+| 6 | Method | Sequence | Measured base rates rise as bars, the sample ties drop onto the scale, and the line-or-no-line threshold sweeps in, played once by time as the chart comes into view, on home and inside an article alike |
 | 7 | Pricing | Response | Plans lift on hover and the ledger reveals row by row |
 | 8 | FAQ | Response | Answers open with height and fade together, with no bounce |
-| 9 | Close | Scene | The portal artwork pushes in as the page ends, with one action |
+| 9 | Close | Sequence | As the close comes into view the portal artwork pushes in and the closing line rises into place, with one action |
 
 ## Acceptance
 
@@ -240,8 +250,13 @@ with its facts in one row under it.
   storyboard states its layout.
 - With reduced motion on, every section shows its final frame and loses no
   information.
-- No layout shift from motion (CLS 0 from animations); 60 fps on scenes on
-  a 2020 laptop; first-load JS for pages without scenes does not grow.
+- No layout shift from motion (CLS 0 from animations); 60 fps on sequences
+  on a 2020 laptop; first-load JS for pages without sequences does not
+  grow.
+- No motion reads scroll position. `motion-policy.test.ts` fails on a
+  scroll-linked timeline in the lab's CSS (`animation-timeline`,
+  `scroll-timeline`, `view-timeline`) or a scroll-linked API in its
+  scripts (`ScrollTrigger`, `useScroll`, `scrub`).
 - Light and dark: text tiers at 4.5:1 or better (BENTO_COLOR.md).
 - One element, one engine: no component imports two engines for the same
   node.
@@ -251,3 +266,4 @@ with its facts in one row under it.
 | Reviewer | Scope | Date | Status |
 |---|---|---|---|
 | Codex CLI (gpt-6-astra) | Engine split, lifecycle, pin geometry, tokens, reduced-motion switch, palette emission, bundle boundary, accessibility | 2026-10-28 | Incorporated |
+| Codex CLI (gpt-6-astra) | Sequences in place of scroll scenes: one engine, arming after load, revert to the stylesheet's frame, input supersedes the tour, CSS-owned geometry | 2026-11-04 | Incorporated |

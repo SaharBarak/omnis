@@ -32,7 +32,7 @@ export function HomeWireframe() {
         { n: 6, text: `Four layer pins on the atlas, numbered in the lead order: ${LAYER_NAMES}` },
         { n: 7, text: 'Digest: one tile per system in the lead order, its name and pin over a row of facts, each a mark over its value and label; the Maya Long Count is read beside the map' },
         { n: 8, text: 'Add a second person: turns the hero into the pair atlas' },
-        { n: 9, text: 'Layers: the map taken apart in depth, one layer per scroll step, the digest row under it' },
+        { n: 9, text: 'Layers: the map taken apart in depth, one layer lifted at a time as it comes into view, the digest row under it' },
         { n: 10, text: 'Two people: both maps across the full width, the tie rows under them' },
         { n: 11, text: 'Circle: the ring across the full width, the heaviest pairs in a row under it' },
         { n: 12, text: 'Every day: one full-width board of tiles, the brief in one line' },
@@ -131,7 +131,7 @@ export function HomeWireframe() {
         <Rule />
         <Box gap={14} n={9}>
           <Title widths={[40]} />
-          <Ph label="Exploded atlas · four plates in depth · pinned while it scrolls" h={260} />
+          <Ph label="Exploded atlas · four plates in depth · plays once in view" h={260} />
           <Box cols="1fr 1fr 1fr 1fr" gap={10}>
             {LAYERS_BY_PIN.map((layer) => (
               <Ph key={layer} label={LAYER_META[layer].name} h={56} />

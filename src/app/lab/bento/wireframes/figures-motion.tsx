@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Bodygraph, Box, Curve, Line, Marks, Move, Note, Plate, Ring, Storyboard, Turn, Viewport, type Pt } from '@/components/bento-lab/wireframe/storyboard'
 import { DIGEST, LAYER_META, LAYERS_BY_PIN, systemLabel } from '@/lib/atlas/layers'
 import { ATLAS_LAYERS } from '@/lib/atlas/types'
+import { DURATION } from '@/lib/design/motion-tokens'
 
 /*
  * Motion storyboards, one per home section (BENTO_MOTION.md "Storyboards").
@@ -137,12 +138,17 @@ export function HeroStoryboard() {
   )
 }
 
-/** `lit` counts scroll steps, which follow the lead order; the plates stack outside in. */
+/** A storyboard frame's time after its section entered view, from the motion tokens. */
+const after = (ms: number): string => `+ ${ms} ms`
+/** One beat of the layers tour: a layer lifts, then rests. */
+const BEAT = DURATION.settle + DURATION.hold
+
+/** `lit` counts the tour's beats, which follow the lead order; the plates stack outside in. */
 function Exploded({ open, lit }: { open: number; lit: number }) {
   const step = LAYERS_BY_PIN[lit]
   return (
     <g>
-      <Viewport label="pinned" />
+      <Viewport label="in view" />
       {[...ATLAS_LAYERS].reverse().map((layer, k) => {
         const cy = 118 - k * (open > 0 ? 18 : 2) - (layer === step ? 14 : 0)
         return <Plate key={layer} cx={160} cy={cy} rx={64} lit={layer === step} />
@@ -161,18 +167,18 @@ export function LayersStoryboard() {
       layout="Centred: the stack fills the stage, the four digest tiles in one row under it"
       code="2"
       title="Layers"
-      kind="Scene, scroll-bound"
+      kind="Sequence, by time"
       still="The stack stays apart, every layer at full strength; a tile brings its layer forward."
       frames={[
         {
-          at: 'scroll 0%',
-          engine: 'GSAP',
-          caption: 'The section pins on the whole map, face-on: four layers drawn on one another, the digest row under it.',
+          at: 'enters view',
+          engine: 'anime.js',
+          caption: 'The section comes into view on the whole map, face-on: four layers drawn on one another, the digest row under it.',
           draw: <Exploded open={0} lit={-1} />,
         },
         {
-          at: 'scroll 25%',
-          engine: 'GSAP',
+          at: after(DURATION.settle),
+          engine: 'anime.js',
           caption: `The map tilts and parts in depth. ${LAYER_META[LAYERS_BY_PIN[0]].name} lifts first and its tile lights in the row below.`,
           draw: (
             <g>
@@ -182,9 +188,9 @@ export function LayersStoryboard() {
           ),
         },
         {
-          at: 'scroll 50%',
-          engine: 'GSAP',
-          caption: `${LAYER_META[LAYERS_BY_PIN[1]].name} lifts and the others dim. One scroll step, one layer.`,
+          at: after(DURATION.settle + BEAT),
+          engine: 'anime.js',
+          caption: `${LAYER_META[LAYERS_BY_PIN[1]].name} lifts and the others dim. One beat, one layer: it lifts, then rests.`,
           draw: (
             <g>
               <Exploded open={2} lit={1} />
@@ -193,18 +199,18 @@ export function LayersStoryboard() {
           ),
         },
         {
-          at: 'scroll 75%',
-          engine: 'GSAP',
-          caption: `${LAYER_META[LAYERS_BY_PIN[2]].name} lifts, then ${LAYER_META[LAYERS_BY_PIN[3]].name}. Choosing a tile scrolls to its layer; the star field drifts under the stack.`,
+          at: after(DURATION.settle + 2 * BEAT),
+          engine: 'anime.js',
+          caption: `${LAYER_META[LAYERS_BY_PIN[2]].name} lifts, then ${LAYER_META[LAYERS_BY_PIN[3]].name}. The star field drifts in under the stack.`,
           draw: <Exploded open={3} lit={2} />,
         },
         {
-          at: 'scroll 100%',
-          engine: 'GSAP',
-          caption: 'The layers close back into one map and the pin releases. The reader leaves with the whole atlas, not a fragment.',
+          at: after(DURATION.settle * 2 + LAYERS_BY_PIN.length * BEAT),
+          engine: 'still',
+          caption: 'The layers rest apart, every one at full strength. A tile brings its layer forward at any time; pressing one ends the tour.',
           draw: (
             <g>
-              <Exploded open={0} lit={-1} />
+              <Exploded open={1} lit={-1} />
               <Move a={[238, 60]} b={[238, 100]} />
             </g>
           ),
@@ -246,19 +252,19 @@ export function PairStoryboard() {
       layout="Centred: both maps across the full width, the tie rows under them; no side panel"
       code="3"
       title="Two people"
-      kind="Scene + illustration"
+      kind="Sequence + illustration"
       still="The pair atlas with every drawable tie already drawn and the tie table filled, rarest first."
       frames={[
         {
-          at: 'scroll 0%',
-          engine: 'GSAP',
-          caption: 'Two atlases enter far apart, each already drawn: two people, two maps.',
+          at: 'enters view',
+          engine: 'anime.js',
+          caption: 'Two atlases start apart, each already drawn: two people, two maps.',
           draw: <Pair gap={30} />,
         },
         {
-          at: 'scroll 30%',
-          engine: 'GSAP',
-          caption: 'They slide together until their outer rings nearly touch (transform, scrubbed).',
+          at: `0 to ${DURATION.settle} ms`,
+          engine: 'anime.js',
+          caption: 'They slide together until their outer rings nearly touch (one variable the stylesheet turns into their offset).',
           draw: (
             <g>
               <Pair gap={10} />
@@ -268,7 +274,7 @@ export function PairStoryboard() {
           ),
         },
         {
-          at: 'enters view',
+          at: after(DURATION.settle),
           engine: 'anime.js',
           caption: 'Tie lines draw mark to mark, rarest first, 40 ms apart. Only ties that pass the edge rule get a line.',
           draw: <Pair gap={0} ties={2} />,
@@ -476,19 +482,19 @@ export function MethodStoryboard() {
       layout="One full-width chart, the rule in one line under it"
       code="6"
       title="Method"
-      kind="Scene, scroll-bound"
+      kind="Sequence, by time"
       still="The finished chart: measured base rates as bars, the ties on the scale, the line-or-no-line threshold drawn."
       frames={[
         {
-          at: 'scroll 0%',
-          engine: 'GSAP',
+          at: 'enters view',
+          engine: 'anime.js',
           caption: 'An empty rarity scale, common on the left, rare on the right.',
           draw: <Rarity risen={0} />,
         },
         {
-          at: 'scroll 35%',
-          engine: 'GSAP',
-          caption: 'Measured base rates rise as bars, scrubbed to scroll: how often each kind of tie appears across all measured pairs.',
+          at: 'bars rise',
+          engine: 'anime.js',
+          caption: 'Measured base rates rise as bars, one after another: how often each kind of tie appears across all measured pairs.',
           draw: (
             <g>
               <Rarity risen={0.7} />
@@ -497,8 +503,8 @@ export function MethodStoryboard() {
           ),
         },
         {
-          at: 'scroll 65%',
-          engine: 'GSAP',
+          at: 'ties drop',
+          engine: 'anime.js',
           caption: "The sample pair's ties drop onto the scale at their weight.",
           draw: (
             <g>
@@ -508,8 +514,8 @@ export function MethodStoryboard() {
           ),
         },
         {
-          at: 'scroll 100%',
-          engine: 'GSAP',
+          at: after(DURATION.draw + DURATION.settle),
+          engine: 'anime.js',
           caption: 'The threshold sweeps in from the right. Ties past it earn a line on the map; the rest stay in the table.',
           draw: (
             <g>
@@ -696,13 +702,13 @@ export function CloseStoryboard() {
       layout="Centred over the artwork"
       code="9"
       title="Close"
-      kind="Scene, scroll-bound"
-      still="The portal artwork at rest behind one action."
+      kind="Sequence, by time"
+      still="The portal artwork pushed in behind one action."
       frames={[
         {
-          at: 'scroll 0%',
-          engine: 'GSAP',
-          caption: 'The portal artwork sits behind the closing line at its rest scale.',
+          at: 'enters view',
+          engine: 'anime.js',
+          caption: 'The portal artwork sits wide behind the closing line.',
           draw: (
             <g>
               <Ring r={60} faint />
@@ -712,9 +718,9 @@ export function CloseStoryboard() {
           ),
         },
         {
-          at: 'scroll 60%',
-          engine: 'GSAP',
-          caption: 'The artwork pushes in as the page ends (scale, scrubbed); the closing line rises into place.',
+          at: `0 to ${DURATION.draw} ms`,
+          engine: 'anime.js',
+          caption: 'The artwork pushes in to its rest (one variable the stylesheet turns into its scale); the closing line rises into place.',
           draw: (
             <g>
               <Ring r={84} faint />
@@ -725,7 +731,7 @@ export function CloseStoryboard() {
           ),
         },
         {
-          at: 'scroll 100%',
+          at: 'at rest',
           engine: 'Motion',
           caption: 'One action, solid. It responds to press like every button; nothing else moves.',
           draw: (
