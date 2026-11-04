@@ -16,7 +16,7 @@
 }
 
 .figure .digest {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--tiles), minmax(0, 1fr));
 }
 
 @media (max-width: 900px) {
@@ -29,6 +29,10 @@
   }
   .figure .digest {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  /* An odd last tile takes the whole row, so two columns never end on a hole. */
+  .figure .digest > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
   }
 }
 
@@ -43,7 +47,9 @@
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;
   }
-  .figure .digest > * {
+  .figure .digest > *,
+  .figure .digest > :last-child:nth-child(odd) {
+    grid-column: auto;
     scroll-snap-align: start;
   }
 }

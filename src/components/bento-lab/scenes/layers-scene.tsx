@@ -6,11 +6,13 @@ import kit from '../kit.module.css'
 import { LayerPlate } from '@/components/bento-lab/atlas'
 import { AtlasDigest } from '@/components/bento-lab/atlas/digest'
 import { useMotionAllowed, useScene } from '@/components/bento-lab/motion'
-import { LAYER_META } from '@/lib/atlas/layers'
+import { LAYER_META, LAYERS_BY_PIN } from '@/lib/atlas/layers'
 import { ATLAS_LAYERS, type AtlasLayerId, type PersonAtlas } from '@/lib/atlas/types'
 
-/** Read outside in (sky first); the stack draws the last of these at the bottom. */
-const STEPS = ATLAS_LAYERS
+/** One scroll step per layer, in the lead order the digest reads. */
+const STEPS = LAYERS_BY_PIN
+/** The plates stack outside in (sky on top); the stack draws the last of these at the bottom. */
+const PLATES = ATLAS_LAYERS
 /** Track length in units of 70svh: opening, one per layer, closing. */
 const UNITS = STEPS.length + 2
 /** Where in a layer's timeline unit the scroll lands when its tile is chosen: past the lift, inside the hold. */
@@ -92,7 +94,7 @@ export function LayersScene({ atlas }: { readonly atlas: PersonAtlas }) {
       <div className={l.frame}>
         <div className={`${l.stage} ${kit.starfield}`} data-stage="">
           <div className={l.stack} data-stack="" data-focus={allowed ? undefined : (focus ?? undefined)}>
-            {[...STEPS].reverse().map((layer, k) => (
+            {[...PLATES].reverse().map((layer, k) => (
               <div key={layer} className={l.plate} data-plate={layer} data-layer={layer} style={{ '--k': k } as CSSProperties}>
                 <LayerPlate atlas={atlas} layer={layer} />
                 <span className={l.plateName} aria-hidden>
@@ -103,7 +105,7 @@ export function LayersScene({ atlas }: { readonly atlas: PersonAtlas }) {
             ))}
           </div>
         </div>
-        <AtlasDigest atlas={atlas} focus={lit} onFocus={choose} mode={allowed ? 'travel' : 'toggle'} className={l.legend} />
+        <AtlasDigest atlas={atlas} focus={lit} onFocus={choose} mode={allowed ? 'travel' : 'toggle'} beside={false} className={l.legend} />
       </div>
       </div>
       <span id={afterId} />
