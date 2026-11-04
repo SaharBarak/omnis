@@ -165,7 +165,7 @@ export function AtlasStage({
       {background}
       <div className={s.stageTop}>
         <LayerSwitch value={focus} onChange={onFocus} />
-        <StageBadge {...status} idle={`Kin ${atlas.maya.kin} · ${atlas.sky.precision === 'exact' ? 'exact sky' : 'date only'}`} />
+        <StageBadge {...status} idle={atlas.sky.precision === 'exact' ? 'Exact sky' : 'Date only'} />
       </div>
       <div className={s.stageDrawing} data-busy={status.status === 'loading' ? '' : undefined}>
         <div ref={drawingRef} className={s.square} data-inspect={active ? '' : undefined}>

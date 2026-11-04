@@ -1,19 +1,19 @@
 import s from './atlas.module.css'
-import { LAYER_META } from '@/lib/atlas/layers'
-import { ATLAS_LAYERS, type AtlasLayerId, type PersonAtlas } from '@/lib/atlas/types'
+import { LAYER_META, LAYERS_BY_PIN } from '@/lib/atlas/layers'
+import type { AtlasLayerId, PersonAtlas } from '@/lib/atlas/types'
 
 /** Every value the drawing shows, as text, grouped by layer. */
 export function AtlasReadout({
   atlas,
   id,
   focus = null,
-  layers = ATLAS_LAYERS,
+  layers = LAYERS_BY_PIN,
   className,
 }: {
   readonly atlas: PersonAtlas
   readonly id?: string
   readonly focus?: AtlasLayerId | null
-  /** Which layers to list; all four by default. */
+  /** Which layers to list; every layer, in the lead order, by default. */
   readonly layers?: readonly AtlasLayerId[]
   readonly className?: string
 }) {

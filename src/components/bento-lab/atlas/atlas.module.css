@@ -579,9 +579,14 @@
 
 /* ---------- layer switch ---------- */
 
+/* One line that scrolls when the layer names outgrow it, so the pill never folds into a block. */
 .switch {
   display: inline-flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
   gap: 4px;
   padding: 4px;
   border: 1px solid var(--lab-line);
@@ -590,6 +595,7 @@
 }
 
 .switch button {
+  flex: none;
   display: inline-flex;
   align-items: center;
   gap: 6px;
