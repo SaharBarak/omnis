@@ -1,20 +1,18 @@
 /*
  * Atlas digest: one tile per system in the lead order (BENTO_SITE.md "The
- * digest", BENTO_TYPE.md "The digest"). Every tile is one grammar: a figure
- * on the leading side, then a text column (name, strong line, support) whose
- * start edge is shared by every tile.
+ * digest", BENTO_TYPE.md "The digest"). Every tile is one grammar: a head
+ * (the system's name, its pin or note at the far end) over a row of facts.
+ * A fact stands its mark over its value and what it is; the facts share
+ * their rows (subgrid), so marks, values and labels each sit on one line.
  */
 
 .digest {
-  /* The text column's three lines, so the figure stands exactly as tall as the words beside it. */
-  --line-gap: 2px;
-  --figure: calc(
-    (var(--type-caption) + var(--type-lead) + var(--type-small)) * var(--type-ui-lh) + 2 * var(--line-gap)
-  );
+  /* A mark is as tall as the figure role, so a glyph and a number fact weigh alike. */
+  --mark: var(--type-figure);
 
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 6px;
 }
 
 .tile {
@@ -23,8 +21,9 @@
 
   display: grid;
   align-content: center;
+  gap: 4px;
   min-width: 0;
-  padding: 12px 14px;
+  padding: 8px 12px;
   border: var(--edge-w) solid var(--elevation-edge);
   border-radius: var(--radius-card);
   background: var(--lab-surface);
@@ -56,103 +55,14 @@ button.tile:hover {
   background: color-mix(in srgb, var(--tile) 12%, var(--lab-surface));
 }
 
-/*
- * The figure and the words share a line while the words keep their
- * measure, and the figure goes above them when they would not: every tile
- * in a row has the same width and the same measure, so they decide alike.
- */
-.face {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-}
+/* ---------- head ---------- */
 
-/* ---------- figure ---------- */
-
-/* A flex box, not a grid: its children's percentage sizes resolve against its own definite size. */
-.figure {
-  flex: none;
-  position: relative;
+.head {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: var(--figure);
-  height: var(--figure);
-  color: var(--tile);
-}
-
-.drawing {
-  display: block;
-  width: 100%;
-  height: 100%;
-  fill: currentColor;
-}
-
-.mark {
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: currentColor;
-  -webkit-mask: var(--src) center / contain no-repeat;
-  mask: var(--src) center / contain no-repeat;
-}
-
-/* The number layer's own mark: the life path in a ring, the number in ink (BENTO_COLOR.md "Layers"). */
-.ring {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  border: 1.5px solid var(--tile);
-  border-radius: 50%;
-}
-
-.ringValue {
-  font-family: var(--font-display), system-ui, sans-serif;
-  font-size: var(--type-figure);
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: var(--type-figure-ls);
-  font-variant-numeric: tabular-nums;
-  color: var(--lab-ink);
-}
-
-/* The layer's pin number, as on the drawing: a disc on the figure's corner. */
-.pin {
-  --pin: calc(var(--type-micro) * 1.75);
-
-  position: absolute;
-  inset-block-start: calc(var(--pin) / -2);
-  inset-inline-start: calc(var(--pin) / -2);
-  display: grid;
-  place-items: center;
-  width: var(--pin);
-  height: var(--pin);
-  border-radius: 50%;
-  background: var(--tile);
-  color: var(--on-tile);
-  font-size: var(--type-micro);
-  font-weight: 600;
-  line-height: 1;
-  box-shadow: 0 0 0 2px var(--lab-surface);
-}
-
-/* ---------- text column ---------- */
-
-/*
- * The words' measure is the widest strong line a tile carries: a Long Count
- * date of five two-digit places and four dots, in tabular figures at the
- * lead (one figure is 1ch), so 14ch at the lead's size.
- */
-.text {
-  --measure: 14ch;
-
-  flex: 1 1 var(--measure);
-  display: grid;
-  gap: var(--line-gap);
+  justify-content: space-between;
+  gap: 8px;
   min-width: 0;
-  font-size: var(--type-lead);
 }
 
 .name {
@@ -164,42 +74,118 @@ button.tile:hover {
   color: var(--lab-text-2);
 }
 
-.strong {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  column-gap: 0.4em;
-  min-width: 0;
-  font-size: var(--type-lead);
-  line-height: var(--type-ui-lh);
-}
+/* The layer's pin number, as on the drawing. */
+.pin {
+  --pin: calc(var(--type-micro) * 1.75);
 
-.value {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--pin);
+  height: var(--pin);
+  border-radius: 50%;
+  background: var(--tile);
+  color: var(--on-tile);
+  font-size: var(--type-micro);
   font-weight: 600;
-  letter-spacing: var(--type-lead-ls);
-  font-variant-numeric: tabular-nums;
-  color: var(--lab-ink);
+  line-height: 1;
 }
 
-/* What a value is: sentence case, beside it on its line. */
-.unit {
+/* Where a layer shows its pin, a system beside the map shows one more fact in words. */
+.note {
   font-size: var(--type-caption);
+  line-height: var(--type-ui-lh);
   font-weight: 500;
   letter-spacing: var(--type-caption-ls);
   color: var(--lab-text-3);
+  text-align: end;
 }
 
-.support {
+/* ---------- facts ---------- */
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(var(--facts), minmax(0, 1fr));
+  grid-template-rows: var(--mark) auto auto;
+  column-gap: 4px;
+  row-gap: 2px;
+}
+
+.fact {
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+  justify-items: center;
+  min-width: 0;
+  text-align: center;
+}
+
+.mark {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: var(--mark);
+  color: var(--tile);
+}
+
+.glyph {
+  display: block;
+  width: var(--mark);
+  height: var(--mark);
+  background: currentColor;
+  -webkit-mask: var(--src) center / contain no-repeat;
+  mask: var(--src) center / contain no-repeat;
+}
+
+.glyphs {
+  display: flex;
+  gap: 2px;
+}
+
+.drawing {
+  display: block;
+  width: auto;
+  height: 100%;
+  fill: currentColor;
+}
+
+/* A fact with no mark yet: an open circle the size of a mark. */
+.open {
+  display: block;
+  width: var(--mark);
+  height: var(--mark);
+  border: 1px dashed var(--lab-line);
+  border-radius: 50%;
+}
+
+.value {
   font-size: var(--type-small);
   line-height: var(--type-ui-lh);
   font-weight: 500;
   letter-spacing: var(--type-small-ls);
-  color: var(--lab-text-2);
+  color: var(--lab-ink);
+  text-wrap: balance;
 }
 
-/* A phrase holds together and the line breaks after a separator; only a phrase wider than the line wraps inside. */
-.phrase {
-  display: inline-block;
+/* A number is its own mark: it stands in the mark's and the value's rows, on the values' line. */
+.numeral {
+  grid-row: 1 / 3;
+  align-self: end;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-figure);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: var(--type-figure-ls);
+  font-variant-numeric: tabular-nums;
+  color: var(--lab-ink);
+}
+
+.label {
+  font-size: var(--type-caption);
+  line-height: var(--type-ui-lh);
+  font-weight: 500;
+  letter-spacing: var(--type-caption-ls);
+  color: var(--lab-text-3);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -127,7 +127,7 @@ export function Hero({ seed, today, artwork }: { readonly seed: HeroSeed; readon
         </div>
       )}
 
-      <aside className={`${s.side} ${kit.rise}`} style={{ '--i': 2 } as CSSProperties} aria-label="Readout">
+      <aside className={`${s.side} ${kit.rise}`} data-bare={mode === 'one' ? '' : undefined} style={{ '--i': 2 } as CSSProperties} aria-label="Readout">
         {mode === 'one' ? (
           <>
             <AtlasDigest atlas={atlas} focus={focus} onFocus={setFocus} className={s.digest} />

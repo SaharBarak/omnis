@@ -23,31 +23,16 @@ const ROLL: Variants = {
 /**
  * A value that rolls to its next value like an odometer (storyboards H and
  * Every day): up when it grows, down when it shrinks. Text has no order of
- * its own, so it rolls by its `rank` when it has one, else up unless
- * `direction` says which way its source moved (the next day up, the
- * previous day down). Assistive tech reads one plain
+ * its own, so it rolls up unless `direction` says which way its source moved
+ * (the next day up, the previous day down). Assistive tech reads one plain
  * copy; the moving copies are hidden from it.
  */
-export function Rolling({
-  value,
-  direction,
-  rank,
-  className,
-}: {
-  readonly value: string | number
-  readonly direction?: RollDirection
-  /** Where a text value stands in its own order (a date's day count), so it rolls the way its source moved. */
-  readonly rank?: number
-  readonly className?: string
-}) {
+export function Rolling({ value, direction, className }: { readonly value: string | number; readonly direction?: RollDirection; readonly className?: string }) {
   const allowed = useMotionAllowed()
-  const [shown, setShown] = useState({ value, rank, up: true })
+  const [shown, setShown] = useState({ value, up: true })
   if (shown.value !== value) {
-    const order = (v: string | number, r: number | undefined) => r ?? (typeof v === 'number' ? v : null)
-    const next = order(value, rank)
-    const last = order(shown.value, shown.rank)
-    const grew = next !== null && last !== null ? next >= last : direction !== 'down'
-    setShown({ value, rank, up: grew })
+    const grew = typeof value === 'number' && typeof shown.value === 'number' ? value >= shown.value : direction !== 'down'
+    setShown({ value, up: grew })
   }
   const { up } = shown
   if (!allowed) return <span className={className}>{value}</span>

@@ -1,10 +1,10 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { ZODIAC_SIGNS } from '@pleiad/engine/data/zodiac-signs'
 import { SEALS } from '@pleiad/engine/data/seals'
-import { TONES } from '@pleiad/engine/data/tones'
+import type { CenterId } from '@pleiad/engine/types/human-design'
 import s from './atlas.module.css'
 import { arcPath, bodyTransform, C, polar, RING, sealAngle, skyAngle, type Point } from './geometry'
-import { CentredNumeral, numeralHeight } from './maya-numeral'
+import { CentredNumeral } from './maya-numeral'
 import {
   HALO_GAP,
   MARK_SIZE,
@@ -155,26 +155,6 @@ export function ToneMark({ tone, point }: { readonly tone: number; readonly poin
   return <CentredNumeral value={tone} point={point} width={MARK_SIZE.toneWidth} className={s.toneMark} />
 }
 
-/**
- * The person's kin as the drawing sets it at twelve o'clock, cropped: the lit
- * seal on its disc and the tone above it, in drawing units, so a figure that
- * shows the kin alone can never draw it differently from the map.
- */
-export function KinMark({ maya, className }: { readonly maya: MayaLayer; readonly className?: string }) {
-  const seal = sealPoint(maya.seal.n, maya.seal.n)
-  const radius = SEAL_RADIUS.own
-  // Cropped to the tallest tone, so the seal keeps its size when the date changes kin.
-  const top = TONE_POINT[1] - numeralHeight(TONES.length, MARK_SIZE.toneWidth) / 2 - HALO_GAP
-  const box = { x: seal[0] - radius, y: top, width: radius * 2, height: seal[1] + radius - top }
-  return (
-    <svg viewBox={`${box.x} ${box.y} ${box.width} ${box.height}`} className={[s.svg, className].filter(Boolean).join(' ')} aria-hidden>
-      <circle cx={seal[0]} cy={seal[1]} r={radius} className={s.litSeal} />
-      <Glyph href={maya.seal.src} point={seal} size={MARK_SIZE.seal} on />
-      <ToneMark tone={maya.tone.n} point={TONE_POINT} />
-    </svg>
-  )
-}
-
 function Maya({ maya, lit }: { maya: MayaLayer; lit: Lit }) {
   const own = maya.seal.n
   const seats = seatsOf(maya)
@@ -245,6 +225,48 @@ export function BodygraphFigure({ body, className }: { readonly body: BodyLayer 
   return (
     <svg viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`} className={[s.bodyFigure, className].filter(Boolean).join(' ')} aria-hidden>
       <BodyMarks body={body} />
+    </svg>
+  )
+}
+
+/** A centre's box in layout units: its shape's reach on each side of its point. */
+const centreBox = (id: CenterId) => {
+  const { x, y, size } = CENTER_POSITIONS[id]
+  return { x: x - size, y: y - size, width: size * 2, height: size * 2 }
+}
+
+/** The whole bodygraph's box in layout units, every centre's reach included. */
+const CENTRES_BOX = (() => {
+  const boxes = (Object.keys(CENTER_POSITIONS) as CenterId[]).map(centreBox)
+  const x = Math.min(...boxes.map((b) => b.x))
+  const y = Math.min(...boxes.map((b) => b.y))
+  return { x, y, width: Math.max(...boxes.map((b) => b.x + b.width)) - x, height: Math.max(...boxes.map((b) => b.y + b.height)) - y }
+})()
+
+const viewBoxOf = (box: { x: number; y: number; width: number; height: number }) => `${box.x} ${box.y} ${box.width} ${box.height}`
+
+/** A centre as a mark: filled when defined, outlined when open, a hairline at any size. */
+const Centre = ({ id, defined }: { readonly id: CenterId; readonly defined: boolean }) => (
+  <path d={getCenterPath(CENTER_POSITIONS[id])} fill={defined ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+)
+
+/** The bodygraph small: its nine centres only, the defined ones filled, for a mark the size of a glyph. */
+export function BodygraphMark({ body, className }: { readonly body: BodyLayer | null; readonly className?: string }) {
+  const defined = new Set(body?.definedCenters ?? [])
+  return (
+    <svg viewBox={viewBoxOf(CENTRES_BOX)} className={className} aria-hidden>
+      {(Object.keys(CENTER_POSITIONS) as CenterId[]).map((id) => (
+        <Centre key={id} id={id} defined={defined.has(id)} />
+      ))}
+    </svg>
+  )
+}
+
+/** One centre on its own, filled, in its bodygraph shape. */
+export function CentreMark({ centre, className }: { readonly centre: CenterId; readonly className?: string }) {
+  return (
+    <svg viewBox={viewBoxOf(centreBox(centre))} className={className} aria-hidden>
+      <Centre id={centre} defined />
     </svg>
   )
 }

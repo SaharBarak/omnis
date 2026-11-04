@@ -103,6 +103,15 @@
   overflow: auto;
 }
 
+/* The digest's tiles are cards themselves: with one person the column holds them bare, no card around cards. */
+.side[data-bare] {
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
 .personHead {
   display: flex;
   align-items: center;

@@ -1,20 +1,19 @@
 'use client'
 
-import { Fragment, type CSSProperties, type ReactNode } from 'react'
-import { getZodiacSignFromLongitude } from '@pleiad/engine/data/zodiac-signs'
+import type { CSSProperties, ReactNode } from 'react'
+import { TONES } from '@pleiad/engine/data/tones'
 import d from './digest.module.css'
 import s from './atlas.module.css'
-import { MayaNumeral, numeralHeight, numeralStep } from './maya-numeral'
-import { BodygraphFigure, KinMark } from './person-atlas'
 import { MARK_SIZE } from './mark-geometry'
-import kit from '../kit.module.css'
+import { MayaNumeral, numeralHeight } from './maya-numeral'
+import { BodygraphMark, CentreMark } from './person-atlas'
 import { Rolling } from '../motion/rolling'
 import { DIGEST, LAYER_META, systemLabel, type BesideSystem, type DigestEntry } from '@/lib/atlas/layers'
+import { PLACE_NAMES } from '@/lib/atlas/long-count'
 import { LARGEST } from '@/lib/atlas/maya-numeral'
-import { signsOf } from '@/lib/atlas/place'
-import { needsLabel, needsPhrase } from '@/lib/atlas/readout'
-import type { AtlasLayerId, GlyphRef, LongCountReading, PersonAtlas } from '@/lib/atlas/types'
-import { signGlyphSrc } from '@/lib/design/glyph-paths'
+import { signAt, signsOf } from '@/lib/atlas/place'
+import { needsLabel } from '@/lib/atlas/readout'
+import type { AtlasLayerId, GlyphRef, PersonAtlas } from '@/lib/atlas/types'
 
 /**
  * How a tile acts: `toggle` brings its layer forward and a second press lets
@@ -23,149 +22,160 @@ import { signGlyphSrc } from '@/lib/design/glyph-paths'
  */
 export type DigestMode = 'toggle' | 'travel'
 
-/** What every tile shows: a figure, and beside it the reading's strong line and one line of support. */
+/**
+ * One fact in a tile. A `mark` fact stands its mark over its value and what
+ * it is; a `number` fact's numeral takes the mark's and the value's rows, so
+ * every fact's label sits on one line.
+ */
+type Fact =
+  | { readonly kind: 'mark'; readonly mark: ReactNode; readonly value: string; readonly label: string }
+  | { readonly kind: 'number'; readonly value: string | number; readonly label: string }
+
+/** A tile's reading: its facts, and a note beside its name where a layer would show its pin. */
 interface Reading {
-  readonly figure: ReactNode
-  readonly strong: ReactNode
-  /** Short phrases; a narrow tile breaks the line between them, never inside one. */
-  readonly support: readonly string[] | string | null
+  readonly facts: readonly Fact[]
+  readonly note?: string
 }
 
 /** A glyph drawn in the current colour, so it takes its layer's colour in every palette. */
-const Mark = ({ src }: { src: string }) => <span className={d.mark} style={{ '--src': `url("${src}")` } as CSSProperties} aria-hidden />
+const Glyph = ({ src }: { src: string }) => <span className={d.glyph} style={{ '--src': `url("${src}")` } as CSSProperties} aria-hidden />
 
-/** A strong line: the value, then what it is in the label's voice. `rank` orders a text value so it rolls the way it moved. */
-const Strong = ({ value, unit, rank }: { value: string | number; unit?: string; rank?: number }) => (
-  <>
-    <Rolling value={value} rank={rank} className={d.value} />
-    {unit && <span className={d.unit}>{unit}</span>}
-  </>
-)
+/** An empty mark: the fact waits on an input, or has no mark of its own. */
+const Open = () => <span className={d.open} aria-hidden />
 
-/** Either sign of a body whose day's arc crosses into the next, never a guess between them. */
-const OR = ' or '
-
-const signAt = (longitude: number): GlyphRef => {
-  const sign = getZodiacSignFromLongitude(longitude)
-  return { n: sign.number, name: sign.name, src: signGlyphSrc(sign.number, sign.name) }
-}
-
-const sky = (atlas: PersonAtlas): Reading => {
-  const body = (id: string) => atlas.sky.bodies.find((b) => b.id === id) ?? null
-  const sun = body('sun')
-  const moon = body('moon')
-  const rising = atlas.sky.ascendant === null ? null : signAt(atlas.sky.ascendant)
-  return {
-    figure: sun ? <Mark src={sun.sign.src} /> : null,
-    strong: <Strong value={sun ? signsOf(sun).join(OR) : '–'} unit="Sun" />,
-    support: [
-      moon ? `${signsOf(moon).join(OR)} moon` : null,
-      rising ? `${rising.name} rising` : needsPhrase('Rising', atlas.bodyNeeds ?? 'time-and-place'),
-    ].filter((phrase): phrase is string => phrase !== null),
-  }
-}
-
-const maya = (atlas: PersonAtlas): Reading => ({
-  figure: <KinMark maya={atlas.maya} className={d.drawing} />,
-  strong: <Strong value={atlas.maya.kin} unit="Kin" />,
-  support: atlas.maya.title,
-})
-
-const body = (atlas: PersonAtlas): Reading => {
-  const layer = atlas.body
-  const figure = <BodygraphFigure body={layer} className={d.drawing} />
-  if (!layer) return { figure, strong: needsLabel(atlas.bodyNeeds ?? 'time-and-place'), support: null }
-  return { figure, strong: <Strong value={layer.type} />, support: layer.profile }
-}
-
-const number = (atlas: PersonAtlas): Reading => {
-  const n = atlas.number
-  return {
-    figure: (
-      <span className={d.ring} aria-hidden>
-        <Rolling value={n.lifePath} className={d.ringValue} />
-      </span>
-    ),
-    // The ring shows the number; the words name it, and carry it for assistive tech.
-    strong: (
-      <span className={d.value}>
-        Life path<span className={kit.srOnly}> {n.lifePath}</span>
-      </span>
-    ),
-    support: [`Birthday ${n.birthday}`, n.expression === null ? null : `Expression ${n.expression}`].filter((phrase): phrase is string => phrase !== null),
-  }
-}
-
-/** Maya inscriptions read in paired columns, left to right, then down. */
-const COLUMNS = 2
-/** The Long Count's places as bar-and-dot numerals, in the paired columns of an inscription. */
-function LongCountFigure({ reading }: { reading: LongCountReading }) {
+/** A Maya numeral standing on the mark row's floor, in a box as tall as `largest`, so a row of them shares one line. */
+const NumeralMark = ({ value, largest }: { value: number; largest: number }) => {
   const width = MARK_SIZE.toneWidth
-  const step = numeralStep(width)
-  // Every cell is as tall as the tallest numeral's ink, so the numerals in a row stand on one line.
-  const cell = numeralHeight(LARGEST, width)
-  const rows = Math.ceil(reading.places.length / COLUMNS)
-  const box = { width: COLUMNS * width + (COLUMNS - 1) * step, height: rows * cell + (rows - 1) * step }
+  const height = numeralHeight(largest, width)
   return (
-    <svg viewBox={`0 0 ${box.width} ${box.height}`} className={d.drawing} aria-hidden>
-      {reading.places.map((place, i) => {
-        const col = i % COLUMNS
-        const row = Math.floor(i / COLUMNS)
-        const bottom = row * (cell + step) + cell
-        const alone = i === reading.places.length - 1 && col === 0 && reading.places.length % COLUMNS !== 0
-        const x = alone ? box.width / 2 : col * (width + step) + width / 2
-        return <MayaNumeral key={i} value={place} x={x} top={bottom - numeralHeight(place, width)} width={width} />
-      })}
+    <svg viewBox={`0 0 ${width} ${height}`} className={d.drawing} aria-hidden>
+      <MayaNumeral value={value} x={width / 2} top={height - numeralHeight(value, width)} width={width} />
     </svg>
   )
 }
 
+/** Either sign of a body whose day's arc crosses into the next, never a guess between them. */
+const OR = ' or '
+
+/** A sign fact: its glyph, or both glyphs when the body may be in either. */
+const signFact = (signs: readonly GlyphRef[], label: string): Fact => ({
+  kind: 'mark',
+  mark: (
+    <span className={d.glyphs}>
+      {signs.map((sign) => (
+        <Glyph key={sign.n} src={sign.src} />
+      ))}
+    </span>
+  ),
+  value: signs.map((sign) => sign.name).join(OR),
+  label,
+})
+
+const sky = (atlas: PersonAtlas): Reading => {
+  const planet = (id: string, label: string): Fact | null => {
+    const body = atlas.sky.bodies.find((b) => b.id === id)
+    return body ? signFact(signsOf(body), label) : null
+  }
+  const ascendant = atlas.sky.ascendant === null ? null : signAt(atlas.sky.ascendant)
+  const rising: Fact = ascendant
+    ? signFact([ascendant], 'Rising')
+    : { kind: 'mark', mark: <Open />, value: needsLabel(atlas.bodyNeeds ?? 'time-and-place'), label: 'Rising' }
+  return { facts: [planet('sun', 'Sun'), planet('moon', 'Moon'), rising].filter((f): f is Fact => f !== null) }
+}
+
+const maya = ({ maya }: PersonAtlas): Reading => ({
+  facts: [
+    { kind: 'number', value: maya.kin, label: 'Kin' },
+    { kind: 'mark', mark: <NumeralMark value={maya.tone.n} largest={TONES.length} />, value: maya.tone.name, label: 'Tone' },
+    { kind: 'mark', mark: <Glyph src={maya.seal.src} />, value: `${maya.colour} ${maya.seal.name}`, label: 'Seal' },
+  ],
+})
+
+/** The authority's own word: "Splenic" of "Splenic Authority". */
+const AUTHORITY_WORD = /\s*Authority$/
+/** The profile's lines: "1/3" of "1/3 Investigator/Martyr". */
+const PROFILE_LINES = /^\d\/\d/
+
+const body = (atlas: PersonAtlas): Reading => {
+  const layer = atlas.body
+  if (!layer) {
+    return { facts: [{ kind: 'mark', mark: <BodygraphMark body={null} className={d.drawing} />, value: needsLabel(atlas.bodyNeeds ?? 'time-and-place'), label: 'Bodygraph' }] }
+  }
+  return {
+    facts: [
+      { kind: 'mark', mark: <BodygraphMark body={layer} className={d.drawing} />, value: layer.type, label: 'Type' },
+      { kind: 'number', value: layer.profile.match(PROFILE_LINES)?.[0] ?? layer.profile, label: 'Profile' },
+      {
+        kind: 'mark',
+        mark: layer.authorityCentre ? <CentreMark centre={layer.authorityCentre} className={d.drawing} /> : <Open />,
+        value: layer.authority.replace(AUTHORITY_WORD, ''),
+        label: 'Authority',
+      },
+    ],
+  }
+}
+
+const number = ({ number: n }: PersonAtlas): Reading => ({
+  facts: [
+    { kind: 'number', value: n.lifePath, label: 'Life path' },
+    { kind: 'number', value: n.birthday, label: 'Birthday' },
+    { kind: 'number', value: n.expression ?? '–', label: 'Expression' },
+  ],
+})
+
 const BESIDE: Readonly<Record<BesideSystem, (atlas: PersonAtlas) => Reading>> = {
-  longcount: (atlas) => ({
-    figure: <LongCountFigure reading={atlas.longCount} />,
-    strong: <Strong value={atlas.longCount.date} rank={atlas.longCount.days} />,
-    support: atlas.longCount.round,
+  longcount: ({ longCount }) => ({
+    facts: longCount.places.map(
+      (place, i): Fact => ({
+        kind: 'mark',
+        mark: <NumeralMark value={place} largest={LARGEST} />,
+        value: String(place),
+        label: PLACE_NAMES[longCount.places.length - 1 - i],
+      }),
+    ),
+    note: longCount.round,
   }),
 }
 
 const LAYER_READING: Readonly<Record<AtlasLayerId, (atlas: PersonAtlas) => Reading>> = { sky, maya, body, number }
 
-const SEPARATOR = ' ·'
-
-function Support({ phrases }: { phrases: readonly string[] | string }) {
-  const list = typeof phrases === 'string' ? [phrases] : phrases
+function FactCell({ fact }: { fact: Fact }) {
+  if (fact.kind === 'number') {
+    return (
+      <span className={d.fact} data-kind="number">
+        <Rolling value={fact.value} className={d.numeral} />
+        <span className={d.label}>{fact.label}</span>
+      </span>
+    )
+  }
   return (
-    <span className={d.support}>
-      {list.map((phrase, i) => (
-        <Fragment key={phrase}>
-          <span className={d.phrase}>
-            {phrase}
-            {i < list.length - 1 && SEPARATOR}
-          </span>
-          {i < list.length - 1 && ' '}
-        </Fragment>
-      ))}
+    <span className={d.fact}>
+      <span className={d.mark}>{fact.mark}</span>
+      <span className={d.value}>{fact.value}</span>
+      <span className={d.label}>{fact.label}</span>
     </span>
   )
 }
 
 function Face({ name, pin, reading }: { name: string; pin: number | null; reading: Reading }) {
   return (
-    <span className={d.face}>
-      <span className={d.figure}>
-        {reading.figure}
-        {pin !== null && (
+    <>
+      <span className={d.head}>
+        <span className={d.name}>{name}</span>
+        {pin !== null ? (
           <span className={d.pin} aria-hidden>
             {pin}
           </span>
+        ) : (
+          reading.note && <span className={d.note}>{reading.note}</span>
         )}
       </span>
-      <span className={d.text}>
-        <span className={d.name}>{name}</span>
-        <span className={d.strong}>{reading.strong}</span>
-        {reading.support && <Support phrases={reading.support} />}
+      <span className={d.facts} style={{ '--facts': reading.facts.length } as CSSProperties}>
+        {reading.facts.map((fact) => (
+          <FactCell key={fact.label} fact={fact} />
+        ))}
       </span>
-    </span>
+    </>
   )
 }
 
