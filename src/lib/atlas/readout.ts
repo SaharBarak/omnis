@@ -18,6 +18,15 @@ const NEEDS: Readonly<Record<MissingInput, string>> = {
 
 export const needsLabel = (missing: MissingInput): string => NEEDS[missing]
 
+const NEEDED: Readonly<Record<MissingInput, string>> = {
+  time: 'a birth time',
+  place: 'a birth place',
+  'time-and-place': 'a time and place',
+}
+
+/** What waits on the missing input, as a short phrase: `Rising needs a birth time`. */
+export const needsPhrase = (what: string, missing: MissingInput): string => `${what} needs ${NEEDED[missing]}`
+
 /** Sun and Moon lead the sky; the rest follow the rising sign in the engine's order. */
 const HEADLINE = new Set(['sun', 'moon'])
 

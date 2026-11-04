@@ -4,7 +4,7 @@ import type { CircleReading } from './circle'
 import type { PairReading } from '@/lib/relations/pair-ties'
 
 /**
- * The person atlas: one map, four layers read from the outside in
+ * The person atlas: one map, four layers drawn from the outside in
  * (docs/redesign/BENTO_SITE.md, "The Atlas"). Plain serialisable data, so the
  * server can build it and a client component can draw it or rebuild it.
  */
@@ -53,12 +53,14 @@ export interface MayaLayer {
 
 /** The Maya Long Count, a chart system read beside the map: date only. */
 export interface LongCountReading {
-  /** Baktun, katun, tun, winal and kin, most significant first. */
-  readonly places: readonly [number, number, number, number, number]
+  /** Most significant first: baktun, katun, tun, winal and kin, with any places a count past 19 baktuns carries into above them. */
+  readonly places: readonly number[]
   /** The places written with dots, e.g. "12.18.17.16.7". */
   readonly date: string
   /** The day's Tzolkin and Haab together, e.g. "7 Manik' 0 Kumku". */
   readonly round: string
+  /** Days since the count's start, so two readings compare. */
+  readonly days: number
 }
 
 export interface SkyBody {

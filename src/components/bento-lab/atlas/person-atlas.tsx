@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { ZODIAC_SIGNS } from '@pleiad/engine/data/zodiac-signs'
 import { SEALS } from '@pleiad/engine/data/seals'
+import { TONES } from '@pleiad/engine/data/tones'
 import s from './atlas.module.css'
 import { arcPath, bodyTransform, C, polar, RING, sealAngle, skyAngle, type Point } from './geometry'
 import { CentredNumeral, numeralHeight } from './maya-numeral'
@@ -162,7 +163,8 @@ export function ToneMark({ tone, point }: { readonly tone: number; readonly poin
 export function KinMark({ maya, className }: { readonly maya: MayaLayer; readonly className?: string }) {
   const seal = sealPoint(maya.seal.n, maya.seal.n)
   const radius = SEAL_RADIUS.own
-  const top = TONE_POINT[1] - numeralHeight(maya.tone.n, MARK_SIZE.toneWidth) / 2 - HALO_GAP
+  // Cropped to the tallest tone, so the seal keeps its size when the date changes kin.
+  const top = TONE_POINT[1] - numeralHeight(TONES.length, MARK_SIZE.toneWidth) / 2 - HALO_GAP
   const box = { x: seal[0] - radius, y: top, width: radius * 2, height: seal[1] + radius - top }
   return (
     <svg viewBox={`${box.x} ${box.y} ${box.width} ${box.height}`} className={[s.svg, className].filter(Boolean).join(' ')} aria-hidden>

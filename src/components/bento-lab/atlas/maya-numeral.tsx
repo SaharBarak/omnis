@@ -21,8 +21,15 @@ const NUMERAL = Object.freeze({
 /** The pitch between a numeral's rows, for a numeral `width` wide. */
 export const numeralStep = (width: number): number => width * NUMERAL.step
 
-/** The numeral's height in its own units: rows times the step. */
-export const numeralHeight = (value: number, width: number): number => rowsOf(barDot(value)) * numeralStep(width)
+/** How far down its row the last row's ink reaches, in steps: a bar's height, a dot's foot, or the shell's foot. */
+const lastInk = ({ bars, shell }: ReturnType<typeof barDot>): number =>
+  shell ? 0.5 + NUMERAL.shellRy : bars > 0 ? NUMERAL.barHeight : NUMERAL.dotDrop + NUMERAL.dotRadius
+
+/** The numeral's inked height: every row but the last at the full step, then the last row's ink. */
+export const numeralHeight = (value: number, width: number): number => {
+  const numeral = barDot(value)
+  return ((rowsOf(numeral) - 1) + lastInk(numeral)) * numeralStep(width)
+}
 
 /** One Maya numeral, `top` at its first row and centred on `x`; dots above bars, a shell for zero. */
 export function MayaNumeral({ value, x, top, width, className }: { readonly value: number; readonly x: number; readonly top: number; readonly width: number; readonly className?: string }) {

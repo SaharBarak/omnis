@@ -9,7 +9,8 @@ export interface BarDot {
   readonly shell: boolean
 }
 
-const BASE = 20
+/** The count is base twenty: each place holds 0 to 19. */
+export const BASE = 20
 
 /** The largest number one place holds. */
 export const LARGEST = BASE - 1
