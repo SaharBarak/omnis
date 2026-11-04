@@ -197,11 +197,14 @@ so the eye learns it once:
     Marks are aria-hidden: every value they show is in the words.
   - A number is its own mark: it fills the mark's and the value's rows at
     the figure role, so its label stays on the label line.
+  - In the text a fact's label comes before its value, so assistive tech
+    reads what a value is first ("Seal, Yellow Sun"). The rows set the
+    order on the page.
 
 | Tile | Facts: mark, value, label |
 |---|---|
 | Dreamspell | The kin number, "Kin"; the tone as a bar-and-dot numeral, its name, "Tone"; the seal's glyph, its colour and name, "Seal" |
-| Human Design | The bodygraph, the type, "Type"; the profile's lines as a number, "Profile"; the authority's centre (`authorityCentre`), the authority's own word, "Authority" |
+| Human Design | The bodygraph, the type, "Type"; the profile's lines as a number (`profileLines`), "Profile"; the authority's centre (`authorityCentre`), the authority's own word (`authorityWord`), "Authority" |
 | Maya Long Count | One bar-and-dot numeral per place, most significant first, its number, the place's name (Baktun to Kin, with Piktun above when a count carries) |
 | Numerology | Life path, birthday and expression, each a number |
 | Astrology | Sun, Moon and Rising, each its sign's glyph and name |
@@ -220,24 +223,33 @@ Missing input is stated, never guessed:
   is the same arc the readout states in degrees.
 - **No centre.** Mental and lunar authority have no centre of their own,
   so their mark is open.
+- **No name.** Expression needs a name in Latin letters. Without one its
+  number is an open mark over "Needs a name" (`NAME_NEEDED`): a statement,
+  because not every form asks for a name.
 
 A layer tile is a button. It brings its layer forward (or, in `travel`
 mode, scrolls the layers scene to it). A tile beside the map is text, not
 a control, and takes no hover. The layers scene's legend is the legend of
 the four plates, so it lists the layers alone (`beside={false}`).
 
-Columns are set by the context, from the tile count (`--tiles`):
+Tiles wrap by their content. No tile is narrower than its longest word,
+mark or number, and a row holds as many tiles as fit, sharing the width
+left over. A tile alone on its row takes the whole row. No breakpoint
+decides this: a longer type name or a sixth Long Count place moves the
+wrap by itself. Contexts that need something else set their own grid:
 
 - **Hero, one person.** The column has no panel of its own. The tiles
   stand on the page as cards, one per row, and share the column's height
   without being squeezed below their content; past that the column
-  scrolls.
+  scrolls. The cards and the button under them keep the digest's gap
+  (`--tile-gap`).
 - **Tool findings.** One tile per row.
-- **Map figure.** One row on wide screens. Where a row would be too
-  narrow, two columns, with an odd last tile across both.
+- **Phones.** The map figure and the layers scene turn their tiles into
+  a swiped row.
 
-Inside a tile the facts share its width equally (`--facts`). A value
-balances across at most two lines.
+Inside a tile the facts share its width equally (`--facts`) unless a fact's
+content needs more. A value wraps in balanced lines. A number never wraps
+and holds its own width.
 
 ### Marks explain themselves
 
@@ -674,3 +686,4 @@ each wireframe is the slot contract the built page must fill.
 | Codex CLI (gpt-6-astra) | Atlas mark interactions: pointer mapping across browsers, ring turns, keyboard and tooltip model, opacity ownership, text equivalence, hit geometry | 2026-11-03 | Incorporated |
 | Codex CLI (gpt-6-astra) | Digest in the lead order: the Long Count beside the map, two orders (structure and lead), catalog-derived names, tile grammar, hero claim | 2026-11-04 | Incorporated |
 | Solution-architect review (Claude subagent, read-only) | The digest round: Long Count range, date-only fit, moon arcs, button names, kin crop, derived measure, stale names | 2026-11-04 | Incorporated |
+| Solution-architect review (Claude subagent, read-only) | The digest as a head over a row of facts: content-derived wrap, authority and profile from data, missing name, reading order, pin and gap owners | 2026-11-04 | Incorporated |

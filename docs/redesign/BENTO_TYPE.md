@@ -151,7 +151,8 @@ Each tile is a head over a row of facts (BENTO_SITE.md, "The digest").
 - **Name.** The system's name: caption, 600, capitals, ink 2.
 - **Note.** The extra fact at the end of a beside tile's head: caption,
   500, ink 3.
-- **Pin.** The pin digit is micro, on a disc 1.75 times the digit.
+- **Pin.** The pin digit is micro, on a disc 1.75 times the digit
+  (`--pin`), the same disc as the drawing's pins.
 - **Mark.** As tall as the figure role (`--mark`), so a glyph, a drawing
   and a number weigh alike across the tiles.
 - **Number.** Figure role, 600, ink, tabular figures, leading 1. It
