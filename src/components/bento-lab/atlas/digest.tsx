@@ -1,43 +1,79 @@
 'use client'
 
-import type { CSSProperties, ReactNode } from 'react'
+import { useEffect, useId, useReducer, useRef, type CSSProperties, type ReactNode } from 'react'
+import { SEALS } from '@pleiad/engine/data/seals'
 import { TONES } from '@pleiad/engine/data/tones'
+import type { CardHead } from './card-body'
 import d from './digest.module.css'
 import s from './atlas.module.css'
+import { FactCard } from './fact-card'
+import { createInspect, IDLE, type InspectState } from './inspect'
 import { MARK_SIZE } from './mark-geometry'
+import { holds } from './mark-targets'
 import { MayaNumeral, numeralHeight } from './maya-numeral'
 import { BodygraphMark, CentreMark } from './person-atlas'
+import { useExplain } from './use-explain'
+import { useGrace } from './use-grace'
 import { Rolling } from '../motion/rolling'
-import { DIGEST, LAYER_META, systemLabel, type BesideSystem, type DigestEntry } from '@/lib/atlas/layers'
+import { DIGEST_SHAPE, tileOf, type FactShape, type TileId } from '@/lib/atlas/digest-shape'
+import { DIGEST, LAYER_META, systemLabel } from '@/lib/atlas/layers'
 import { PLACE_NAMES } from '@/lib/atlas/long-count'
+import { sealName } from '@/lib/atlas/marks'
 import { LARGEST } from '@/lib/atlas/maya-numeral'
-import { signAt, signsOf } from '@/lib/atlas/place'
+import { bodyValue, placeAt, signAt, signsOf } from '@/lib/atlas/place'
 import { NAME_NEEDED, needsLabel } from '@/lib/atlas/readout'
-import type { AtlasLayerId, GlyphRef, PersonAtlas } from '@/lib/atlas/types'
+import { numberWords, readingKey, type NumberRole, type ReadingRef } from '@/lib/atlas/readings'
+import type { AtlasLayerId, GlyphRef, PersonAtlas, SkyBody } from '@/lib/atlas/types'
 
 /**
- * One fact in a tile. A `mark` fact stands its mark over its value and what
- * it is; a `number` fact's numeral takes the mark's and the value's rows, so
- * every fact's label sits on one line. The label comes first in the text, so
- * assistive tech reads what a value is before the value.
+ * One fact in a tile (BENTO_SITE.md, "The digest"): what it refers to, what
+ * it is and the person's value, its mark, and the head of the card it opens.
+ * In the text the label comes before the value, so assistive tech reads what
+ * a value is first.
  */
-type Fact =
-  | { readonly kind: 'mark'; readonly mark: ReactNode; readonly value: string; readonly label: string }
-  | { readonly kind: 'number'; readonly value: string | number; readonly label: string }
+interface FactView {
+  readonly ref: ReadingRef
+  readonly label: string
+  readonly value: string
+  /** A glyph or drawing, aria-hidden; or a number, which is read. */
+  readonly mark: ReactNode
+  /** The card's head: what the fact is and its full value. */
+  readonly head: Omit<CardHead, 'layer' | 'eyebrow'>
+  readonly weight: number
+}
 
-/** A tile's reading: its facts, and a note beside its name where a layer would show its pin. */
-interface Reading {
-  readonly facts: readonly Fact[]
-  readonly note?: string
+/** The lead's second line: the label shown before a value (`Kin 60`), or a label of its own (`Strategy …`). */
+interface LeadView extends FactView {
+  readonly note: { readonly label: string | null; readonly value: string | null }
+  /** True where the lead's own label opens the second line; else it is spoken only. */
+  readonly labelShown: boolean
+  /** The value is a date or number, set in the display face. */
+  readonly figure: boolean
+}
+
+interface TileView {
+  readonly lead: LeadView
+  readonly supports: readonly FactView[]
 }
 
 /** A glyph drawn in the current colour, so it takes its layer's colour in every palette. */
 const Glyph = ({ src }: { src: string }) => <span className={d.glyph} style={{ '--src': `url("${src}")` } as CSSProperties} aria-hidden />
 
+const Glyphs = ({ signs }: { signs: readonly GlyphRef[] }) => (
+  <span className={d.glyphs} aria-hidden>
+    {signs.map((sign) => (
+      <Glyph key={sign.n} src={sign.src} />
+    ))}
+  </span>
+)
+
 /** An empty mark: the fact waits on an input, or has no mark of its own. */
 const Open = () => <span className={d.open} aria-hidden />
 
-/** A Maya numeral standing on the mark row's floor, in a box as tall as `largest`, so a row of them shares one line. */
+/** A number as a mark: read aloud, set in the display face. */
+const Numeral = ({ value }: { value: string | number }) => <Rolling value={value} className={d.numeral} />
+
+/** A Maya numeral standing on its box's floor, in a box as tall as `largest`, so a row of them shares one line. */
 const NumeralMark = ({ value, largest }: { value: number; largest: number }) => {
   const width = MARK_SIZE.toneWidth
   const height = numeralHeight(largest, width)
@@ -51,168 +87,324 @@ const NumeralMark = ({ value, largest }: { value: number; largest: number }) => 
 /** Either sign of a body whose day's arc crosses into the next, never a guess between them. */
 const OR = ' or '
 
-/** A sign fact: its glyph, or both glyphs when the body may be in either. */
-const signFact = (signs: readonly GlyphRef[], label: string): Fact => ({
-  kind: 'mark',
-  mark: (
-    <span className={d.glyphs}>
-      {signs.map((sign) => (
-        <Glyph key={sign.n} src={sign.src} />
-      ))}
-    </span>
-  ),
-  value: signs.map((sign) => sign.name).join(OR),
-  label,
-})
+const signNames = (signs: readonly GlyphRef[]): string => signs.map((sign) => sign.name).join(OR)
 
-const sky = (atlas: PersonAtlas): Reading => {
-  const planet = (id: string, label: string): Fact | null => {
-    const body = atlas.sky.bodies.find((b) => b.id === id)
-    return body ? signFact(signsOf(body), label) : null
-  }
-  const ascendant = atlas.sky.ascendant === null ? null : signAt(atlas.sky.ascendant)
-  const rising: Fact = ascendant
-    ? signFact([ascendant], 'Rising')
-    : { kind: 'mark', mark: <Open />, value: needsLabel(atlas.bodyNeeds ?? 'time-and-place'), label: 'Rising' }
-  return { facts: [planet('sun', 'Sun'), planet('moon', 'Moon'), rising].filter((f): f is Fact => f !== null) }
+const shapeOf = (tile: TileId, id: FactShape['id']): FactShape => {
+  const { lead, supports } = DIGEST_SHAPE[tile]
+  const found = [lead, ...supports].find((f) => f.id === id)
+  if (!found) throw new Error(`No ${id} fact in the ${tile} tile`)
+  return found
 }
 
-const maya = ({ maya }: PersonAtlas): Reading => ({
-  facts: [
-    { kind: 'number', value: maya.kin, label: 'Kin' },
-    { kind: 'mark', mark: <NumeralMark value={maya.tone.n} largest={TONES.length} />, value: maya.tone.name, label: 'Tone' },
-    { kind: 'mark', mark: <Glyph src={maya.seal.src} />, value: `${maya.colour} ${maya.seal.name}`, label: 'Seal' },
-  ],
+const fact = (shape: FactShape, { ref, value, mark, head }: Omit<FactView, 'label' | 'weight' | 'head'> & { readonly head?: FactView['head'] }): FactView => ({
+  ref,
+  label: shape.label,
+  value,
+  mark,
+  head: head ?? { label: shape.label, value },
+  weight: shape.weight,
 })
 
-const body = (atlas: PersonAtlas): Reading => {
-  const layer = atlas.body
-  if (!layer) {
-    return { facts: [{ kind: 'mark', mark: <BodygraphMark body={null} className={d.drawing} />, value: needsLabel(atlas.bodyNeeds ?? 'time-and-place'), label: 'Bodygraph' }] }
-  }
+const lead = (shape: FactShape, rest: Omit<LeadView, 'label' | 'weight' | 'head' | 'figure'> & { readonly head?: FactView['head']; readonly figure?: boolean }): LeadView => ({
+  ...fact(shape, rest),
+  note: rest.note,
+  labelShown: rest.labelShown,
+  figure: rest.figure ?? false,
+})
+
+const NO_NOTE = { label: null, value: null } as const
+
+/** The degree a body stands at, where its day's arc stays in one sign. */
+const degreeOf = (b: SkyBody): string | null => (signsOf(b).length > 1 ? null : `${Math.floor(((b.longitude % 30) + 30) % 30)}°`)
+
+const maya = ({ maya: m }: PersonAtlas): TileView => {
+  const guide = m.oracle.guide
   return {
-    facts: [
-      { kind: 'mark', mark: <BodygraphMark body={layer} className={d.drawing} />, value: layer.type, label: 'Type' },
-      { kind: 'number', value: layer.profileLines, label: 'Profile' },
-      {
-        kind: 'mark',
-        mark: layer.authorityCentre ? <CentreMark centre={layer.authorityCentre} className={d.drawing} /> : <Open />,
-        value: layer.authorityWord,
-        label: 'Authority',
-      },
+    lead: lead(shapeOf('maya', 'kin'), {
+      ref: { kind: 'kin' },
+      value: m.title,
+      mark: <Glyph src={m.seal.src} />,
+      note: { label: null, value: String(m.kin) },
+      labelShown: true,
+      head: { label: `Kin ${m.kin}`, value: m.title },
+    }),
+    supports: [
+      fact(shapeOf('maya', 'tone'), {
+        ref: { kind: 'tone' },
+        value: m.tone.name,
+        mark: <NumeralMark value={m.tone.n} largest={TONES.length} />,
+        head: { label: 'Tone', value: `${m.tone.name} ${m.tone.n}` },
+      }),
+      fact(shapeOf('maya', 'guide'), {
+        ref: { kind: 'seal', n: guide.n },
+        value: SEALS[guide.n - 1] ? sealName(guide.n) : guide.name,
+        mark: <Glyph src={guide.src} />,
+      }),
     ],
   }
 }
 
-const number = ({ number: n }: PersonAtlas): Reading => ({
-  facts: [
-    { kind: 'number', value: n.lifePath, label: 'Life path' },
-    { kind: 'number', value: n.birthday, label: 'Birthday' },
-    n.expression !== null
-      ? { kind: 'number', value: n.expression, label: 'Expression' }
-      : { kind: 'mark', mark: <Open />, value: NAME_NEEDED, label: 'Expression' },
-  ],
-})
-
-const BESIDE: Readonly<Record<BesideSystem, (atlas: PersonAtlas) => Reading>> = {
-  longcount: ({ longCount }) => ({
-    facts: longCount.places.map(
-      (place, i): Fact => ({
-        kind: 'mark',
-        mark: <NumeralMark value={place} largest={LARGEST} />,
-        value: String(place),
-        label: PLACE_NAMES[longCount.places.length - 1 - i],
+const body = (atlas: PersonAtlas): TileView => {
+  const layer = atlas.body
+  const type = shapeOf('body', 'type')
+  if (!layer) {
+    const needs = needsLabel(atlas.bodyNeeds ?? 'time-and-place')
+    return {
+      lead: lead(type, { ref: { kind: 'type' }, value: needs, mark: <BodygraphMark body={null} className={d.drawing} />, note: NO_NOTE, labelShown: false }),
+      supports: [],
+    }
+  }
+  return {
+    lead: lead(type, {
+      ref: { kind: 'type' },
+      value: layer.type,
+      mark: <BodygraphMark body={layer} className={d.drawing} />,
+      note: { label: 'Strategy', value: layer.strategy },
+      labelShown: false,
+    }),
+    supports: [
+      fact(shapeOf('body', 'profile'), {
+        ref: { kind: 'profile' },
+        value: layer.profileName,
+        mark: <Numeral value={layer.profileLines} />,
+        head: { label: 'Profile', value: layer.profile },
       }),
+      fact(shapeOf('body', 'authority'), {
+        ref: { kind: 'authority' },
+        value: layer.authorityWord,
+        mark: layer.authorityCentre ? <CentreMark centre={layer.authorityCentre} className={d.drawing} /> : <Open />,
+        head: { label: 'Authority', value: layer.authority },
+      }),
+    ],
+  }
+}
+
+const longcount = ({ longCount }: PersonAtlas): TileView => {
+  const place = shapeOf('longcount', 'place')
+  const top = longCount.places.length - 1
+  return {
+    lead: lead(shapeOf('longcount', 'longcount'), {
+      ref: { kind: 'longcount' },
+      value: longCount.date,
+      mark: null,
+      note: { label: null, value: longCount.round },
+      labelShown: false,
+      figure: true,
+    }),
+    supports: longCount.places.map((value, i) =>
+      fact(
+        { ...place, label: PLACE_NAMES[top - i] },
+        { ref: { kind: 'place', unit: top - i }, value: String(value), mark: <NumeralMark value={value} largest={LARGEST} /> },
+      ),
     ),
-    note: longCount.round,
-  }),
-}
-
-const LAYER_READING: Readonly<Record<AtlasLayerId, (atlas: PersonAtlas) => Reading>> = { sky, maya, body, number }
-
-function FactCell({ fact }: { fact: Fact }) {
-  if (fact.kind === 'number') {
-    return (
-      <span className={d.fact} data-kind="number">
-        <span className={d.label}>{fact.label}</span>
-        <Rolling value={fact.value} className={d.numeral} />
-      </span>
-    )
   }
-  return (
-    <span className={d.fact}>
-      <span className={d.label}>{fact.label}</span>
-      <span className={d.mark}>{fact.mark}</span>
-      <span className={d.value}>{fact.value}</span>
-    </span>
-  )
 }
 
-function Face({ name, pin, reading }: { name: string; pin: number | null; reading: Reading }) {
-  return (
-    <>
-      <span className={d.head}>
-        <span className={d.name}>{name}</span>
-        {pin !== null ? (
-          <span className={d.pin} aria-hidden>
-            {pin}
-          </span>
-        ) : (
-          reading.note && <span className={d.note}>{reading.note}</span>
-        )}
-      </span>
-      <span className={d.facts} style={{ '--facts': reading.facts.length } as CSSProperties}>
-        {reading.facts.map((fact) => (
-          <FactCell key={fact.label} fact={fact} />
-        ))}
-      </span>
-    </>
-  )
+const numberFact = (atlas: PersonAtlas, role: Exclude<NumberRole, 'lifePath'>): FactView => {
+  const shape = shapeOf('number', role)
+  const n = atlas.number[role]
+  if (n === null) return fact(shape, { ref: { kind: 'number', role }, value: NAME_NEEDED, mark: <Open /> })
+  const name = numberWords(n)?.name ?? String(n)
+  return fact(shape, { ref: { kind: 'number', role }, value: name, mark: <Numeral value={n} />, head: { label: `${shape.label} ${n}`, value: name } })
 }
 
-interface TileProps {
-  readonly entry: DigestEntry
-  readonly atlas: PersonAtlas
-  readonly focus: AtlasLayerId | null
-  readonly spot: AtlasLayerId | null
-  readonly onFocus: (next: AtlasLayerId | null) => void
-}
-
-function Tile({ entry, atlas, focus, spot, onFocus }: TileProps) {
-  if (entry.kind === 'beside') {
-    return (
-      <div className={d.tile} data-beside={entry.system}>
-        <Face name={systemLabel(entry.system)} pin={null} reading={BESIDE[entry.system](atlas)} />
-      </div>
-    )
+const number = (atlas: PersonAtlas): TileView => {
+  const n = atlas.number.lifePath
+  const shape = shapeOf('number', 'lifePath')
+  const name = numberWords(n)?.name ?? String(n)
+  return {
+    lead: lead(shape, {
+      ref: { kind: 'number', role: 'lifePath' },
+      value: name,
+      mark: <Rolling value={n} className={d.leadNumeral} />,
+      note: NO_NOTE,
+      labelShown: true,
+      head: { label: `${shape.label} ${n}`, value: name },
+    }),
+    supports: [numberFact(atlas, 'birthday'), numberFact(atlas, 'expression')],
   }
-  const { layer } = entry
-  const meta = LAYER_META[layer]
-  const current = focus === layer
+}
+
+const placement = (atlas: PersonAtlas, id: 'sun' | 'moon'): { readonly body: SkyBody; readonly signs: readonly GlyphRef[] } | null => {
+  const found = atlas.sky.bodies.find((b) => b.id === id)
+  return found ? { body: found, signs: signsOf(found) } : null
+}
+
+const sky = (atlas: PersonAtlas): TileView => {
+  const sun = placement(atlas, 'sun')
+  const moon = placement(atlas, 'moon')
+  const sunShape = shapeOf('sky', 'sun')
+  const risingShape = shapeOf('sky', 'rising')
+  const ascendant = atlas.sky.ascendant
+  const rising =
+    ascendant === null
+      ? fact(risingShape, { ref: { kind: 'rising' }, value: needsLabel(atlas.bodyNeeds ?? 'time-and-place'), mark: <Open /> })
+      : fact(risingShape, { ref: { kind: 'rising' }, value: signAt(ascendant).name, mark: <Glyphs signs={[signAt(ascendant)]} />, head: { label: 'Rising', value: placeAt(ascendant) } })
+  return {
+    lead: lead(sunShape, {
+      ref: { kind: 'placement', id: 'sun' },
+      value: sun ? signNames(sun.signs) : '',
+      mark: sun ? <Glyphs signs={sun.signs} /> : <Open />,
+      note: { label: null, value: sun ? degreeOf(sun.body) : null },
+      labelShown: true,
+      head: { label: sunShape.label, value: sun ? bodyValue(sun.body) : '' },
+    }),
+    supports: [
+      ...(moon
+        ? [
+            fact(shapeOf('sky', 'moon'), {
+              ref: { kind: 'placement', id: 'moon' },
+              value: signNames(moon.signs),
+              mark: <Glyphs signs={moon.signs} />,
+              head: { label: 'Moon', value: bodyValue(moon.body) },
+            }),
+          ]
+        : []),
+      rising,
+    ],
+  }
+}
+
+const READ: Readonly<Record<TileId, (atlas: PersonAtlas) => TileView>> = { maya, body, longcount, number, sky }
+
+const tileName = (tile: TileId): string => (tile === 'longcount' ? systemLabel(tile) : LAYER_META[tile].name)
+const tileLayer = (tile: TileId): AtlasLayerId | null => (tile === 'longcount' ? null : tile)
+const eyebrowOf = (tile: TileId): string => (tile === 'longcount' ? tileName(tile) : `${LAYER_META[tile].pin} ${tileName(tile)}`)
+
+/** What a digest's card shows for one reference: the fact's own head, under the tile's eyebrow. */
+interface Shown {
+  readonly ref: ReadingRef
+  readonly head: CardHead
+}
+
+const inspectFacts = createInspect<Shown>((shown) => readingKey(shown.ref))
+
+type Send = (event: Parameters<typeof inspectFacts>[1]) => void
+
+interface FactProps {
+  readonly shown: Shown
+  readonly cardId: string
+  readonly state: InspectState<Shown>
+  readonly send: Send
+  readonly prime: () => void
+  readonly className: string
+  readonly style?: CSSProperties
+  readonly children: ReactNode
+}
+
+const keyOf = (shown: Shown | null): string | null => (shown ? readingKey(shown.ref) : null)
+
+/** A button that opens its fact's card: hover previews it, focus owns it, a press keeps it. */
+function FactButton({ shown, cardId, state, send, prime, className, style, children }: FactProps) {
+  const key = readingKey(shown.ref)
+  const active = keyOf(state.active) === key
   return (
     <button
       type="button"
-      className={d.tile}
-      data-layer={layer}
-      data-current={current ? '' : undefined}
-      data-spot={spot === layer && !current ? '' : undefined}
-      aria-pressed={current}
-      onClick={() => onFocus(current ? null : layer)}
+      className={className}
+      style={style}
+      data-active={active ? '' : undefined}
+      data-anchor={keyOf(state.shown) === key ? '' : undefined}
+      aria-describedby={active ? cardId : undefined}
+      onPointerEnter={(e) => {
+        if (e.pointerType === 'touch') return
+        prime()
+        send({ type: 'point', ref: shown })
+      }}
+      onPointerLeave={(e) => {
+        if (e.pointerType !== 'touch') send({ type: 'point', ref: null })
+      }}
+      onFocus={() => {
+        prime()
+        send({ type: 'focus', ref: shown })
+      }}
+      onBlur={() => send({ type: 'blur' })}
+      onClick={() => send({ type: 'keep', ref: shown })}
     >
-      <Face name={meta.name} pin={meta.pin} reading={LAYER_READING[layer](atlas)} />
+      {children}
     </button>
   )
 }
 
+interface TileProps {
+  readonly tile: TileId
+  readonly atlas: PersonAtlas
+  readonly focus: AtlasLayerId | null
+  readonly spot: AtlasLayerId | null
+  readonly onFocus: (next: AtlasLayerId | null) => void
+  readonly facts: Omit<FactProps, 'shown' | 'className' | 'style' | 'children'>
+}
+
+function Tile({ tile, atlas, focus, spot, onFocus, facts }: TileProps) {
+  const view = READ[tile](atlas)
+  const layer = tileLayer(tile)
+  const name = tileName(tile)
+  const eyebrow = eyebrowOf(tile)
+  const shown = (f: FactView): Shown => ({ ref: f.ref, head: { layer, eyebrow, ...f.head } })
+  const current = layer !== null && focus === layer
+  const { lead: l } = view
+  return (
+    <div
+      className={d.tile}
+      role="group"
+      aria-label={name}
+      data-layer={layer ?? undefined}
+      data-beside={layer === null ? tile : undefined}
+      data-current={current ? '' : undefined}
+      data-spot={layer !== null && spot === layer && !current ? '' : undefined}
+    >
+      <div className={d.head}>
+        <FactButton {...facts} shown={{ ref: { kind: 'system', id: tile }, head: { layer, eyebrow, label: 'System', value: name } }} className={`${d.fact} ${d.name}`}>
+          {name}
+        </FactButton>
+        {layer !== null && (
+          <button type="button" className={d.pin} aria-pressed={current} aria-label={`Bring ${name} forward`} onClick={() => onFocus(current ? null : layer)}>
+            {LAYER_META[layer].pin}
+          </button>
+        )}
+      </div>
+
+      <FactButton {...facts} shown={shown(l)} className={`${d.fact} ${d.lead}`}>
+        <span className={d.leadLabel} data-shown={l.labelShown ? '' : undefined}>
+          {l.label}
+        </span>
+        {l.mark !== null && <span className={d.leadMark}>{l.mark}</span>}
+        <span className={d.leadValue} data-figure={l.figure ? '' : undefined}>
+          {l.figure ? <Rolling value={l.value} /> : l.value}
+        </span>
+        {(l.note.label || l.note.value) && (
+          <span className={d.leadNote}>
+            {l.note.label && <span className={d.noteLabel}>{l.note.label}</span>}
+            {l.note.value}
+          </span>
+        )}
+      </FactButton>
+
+      {view.supports.length > 0 && (
+        <div className={d.supports}>
+          {view.supports.map((f) => (
+            <FactButton key={readingKey(f.ref)} {...facts} shown={shown(f)} className={`${d.fact} ${d.support}`} style={{ '--weight': f.weight } as CSSProperties}>
+              <span className={d.label}>{f.label}</span>
+              <span className={d.mark}>{f.mark}</span>
+              <span className={d.value}>{f.value}</span>
+            </FactButton>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** A name per digest for the shown fact's anchor, from React's id: letters and digits only. */
+const anchorName = (id: string): string => `--fact-${id.replace(/[^a-zA-Z0-9]/g, '')}`
+
 /**
- * The atlas at a glance, one tile per system in the lead order (`DIGEST`):
- * each layer of the map numbered like its pin on the drawing, and the chart
- * systems read beside the map. A layer tile brings its layer forward and a
- * second press lets it go; a tile beside the map has nothing to bring
- * forward, so it is text, not a control. `spot` lights a layer the page is
- * showing on its own (the layers tour) without pressing its tile. The full
- * text readout stays available to assistive tech through the drawing's
- * description.
+ * The atlas at a glance (BENTO_SITE.md, "The digest"): one tile per system in
+ * the lead order, each a head, a lead fact and its supports. A layer tile's
+ * pin toggle brings its layer forward and a second press lets it go; every
+ * other part of a tile is a button that opens a card with what the fact is
+ * and what the tradition reads into it. `spot` lights a layer the page is
+ * showing on its own (the layers tour) without pressing its tile.
  */
 export function AtlasDigest({
   atlas,
@@ -230,16 +422,64 @@ export function AtlasDigest({
   readonly beside?: boolean
   readonly className?: string
 }) {
-  const entries = beside ? DIGEST : DIGEST.filter((entry) => entry.kind === 'layer')
+  const id = useId()
+  const cardId = `${id}-card`
+  const anchor = anchorName(id)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const [state, dispatch] = useReducer(inspectFacts, IDLE)
+  const { send, hold } = useGrace(dispatch)
+  const { explainer, prime } = useExplain()
+  const open = state.active !== null
+  const kept = state.kept
+
+  useEffect(() => {
+    dispatch({ type: 'reset' })
+  }, [atlas])
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      e.stopPropagation()
+      dispatch({ type: 'dismiss' })
+    }
+    const onDown = (e: PointerEvent) => {
+      if (kept && !holds(rootRef.current, e.target) && !holds(cardRef.current, e.target)) dispatch({ type: 'dismiss' })
+    }
+    document.addEventListener('keydown', onKey, true)
+    document.addEventListener('pointerdown', onDown)
+    return () => {
+      document.removeEventListener('keydown', onKey, true)
+      document.removeEventListener('pointerdown', onDown)
+    }
+  }, [open, kept])
+
+  const tiles = DIGEST.filter((entry) => beside || entry.kind === 'layer').map(tileOf)
+  const facts = { cardId, state, send, prime }
+  const shown = state.shown
   return (
     <div
+      ref={rootRef}
       className={[d.digest, s.tokens, className].filter(Boolean).join(' ')}
+      style={{ '--fact-anchor': anchor } as CSSProperties}
       role="group"
-      aria-label="Map at a glance; choose a layer to bring it forward"
+      aria-label="Map at a glance"
     >
-      {entries.map((entry) => (
-        <Tile key={entry.kind === 'layer' ? entry.layer : entry.system} entry={entry} atlas={atlas} focus={focus} spot={spot} onFocus={onFocus} />
+      {tiles.map((tile) => (
+        <Tile key={tile} tile={tile} atlas={atlas} focus={focus} spot={spot} onFocus={onFocus} facts={facts} />
       ))}
+      <FactCard
+        id={cardId}
+        cardRef={cardRef}
+        anchor={anchor}
+        head={shown?.head ?? null}
+        reading={shown && explainer ? explainer.explainReading(atlas, shown.ref) : null}
+        open={open}
+        kept={kept}
+        onPointerEnter={hold}
+        onPointerLeave={() => send({ type: 'point', ref: null })}
+      />
     </div>
   )
 }

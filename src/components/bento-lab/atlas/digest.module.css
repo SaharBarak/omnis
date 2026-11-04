@@ -1,21 +1,35 @@
 /*
  * Atlas digest: one tile per system in the lead order (BENTO_SITE.md "The
- * digest", BENTO_TYPE.md "The digest"). Every tile is one grammar: a head
- * (the system's name, its pin or note at the far end) over a row of facts.
- * A fact stands its mark over its value and what it is; the facts share
- * their rows (subgrid), so marks, values and labels each sit on one line.
- * Tiles wrap by their content: none is narrower than its longest word or
- * mark, and a row holds as many as fit. A context that wants one tile per
- * row sets its own grid.
+ * digest", BENTO_TYPE.md "The digest"). A tile is a head (the system's name,
+ * its pin toggle at the end), a lead (the main fact: a mark beside its value
+ * and a note) and a row of supports (a small mark beside each value, what it
+ * is under them). Every part but the pin is a button that opens a card. Tiles
+ * wrap by their content: none is narrower than its longest word or mark.
  */
 
 .digest {
-  /* A mark is as tall as the figure role, so a glyph and a number fact weigh alike. */
-  --mark: var(--type-figure);
+  /* Marks are as tall as the lines they stand beside, so they scale with the type. */
+  --lead-mark: calc((var(--type-lead) + var(--type-caption)) * var(--type-ui-lh));
+  --support-mark: calc(var(--type-small) * var(--type-ui-lh));
+  --tile-pad-block: 6px;
+  --tile-pad-inline: 12px;
+  /* A fact's fill reaches this far past its words, inside the tile's padding. */
+  --fact-pad: 4px;
+  /* Concentric with the tile: its radius less the space between their edges. */
+  --fact-radius: calc(var(--radius-card) - var(--tile-pad-block) + var(--fact-pad));
+  --support-gap: 12px;
+  /* The least hit area for the pin toggle (WCAG 2.5.8 and platform guidance): 40 px, 44 px under a finger. */
+  --hit: 40px;
 
   display: flex;
   flex-wrap: wrap;
   gap: var(--tile-gap);
+}
+
+@media (pointer: coarse) {
+  .digest {
+    --hit: 44px;
+  }
 }
 
 .tile {
@@ -25,9 +39,9 @@
   flex: 1 1 0;
   display: grid;
   align-content: center;
-  gap: 4px;
+  gap: 3px;
   min-width: min-content;
-  padding: 8px 12px;
+  padding: var(--tile-pad-block) var(--tile-pad-inline);
   border: var(--edge-w) solid var(--elevation-edge);
   border-radius: var(--radius-card);
   background: var(--lab-surface);
@@ -42,30 +56,53 @@
 .tile[data-layer='body'] { --tile: var(--atlas-body); --on-tile: var(--on-layer-body); }
 .tile[data-layer='number'] { --tile: var(--atlas-number); --on-tile: var(--on-layer-number); }
 
-/* Only a control answers the pointer: a tile beside the map is text. */
-button.tile {
-  cursor: pointer;
-  transition:
-    border-color var(--dur-quick) var(--ease-standard),
-    background-color var(--dur-quick) var(--ease-standard),
-    box-shadow var(--dur-quick) var(--ease-standard);
-}
-
-button.tile:hover {
-  border-color: color-mix(in srgb, var(--tile) 55%, var(--lab-line));
-}
-
+/* Its layer brought forward: the layer's colour on the edge and a tint. */
 .tile[data-current] {
   border-color: var(--tile);
   background: color-mix(in srgb, var(--tile) 12%, var(--lab-surface));
 }
 
-/* The layer a tour is showing on its own: outlined in its colour, never tinted like a press. */
+/* The layer a tour is showing on its own: ringed in its colour, never tinted like a press. */
 .tile[data-spot] {
   border-color: var(--tile);
   box-shadow:
     var(--elevation-1),
     0 0 0 3px color-mix(in srgb, var(--tile) 22%, transparent);
+}
+
+/* ---------- facts: every button that opens a card ---------- */
+
+.fact {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  padding: var(--fact-pad);
+  margin: calc(-1 * var(--fact-pad));
+  border-radius: var(--fact-radius);
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.fact:hover,
+.fact[data-active] {
+  background: color-mix(in srgb, var(--tile) 10%, transparent);
+}
+
+/* The ring sits inside the fact's fill, which already stands off the words, so it never crosses the next line. */
+.fact:focus-visible {
+  outline: 2px solid var(--lab-ink);
+  outline-offset: -2px;
+}
+
+.pin:focus-visible {
+  outline: 2px solid var(--lab-ink);
+  outline-offset: 2px;
+}
+
+/* The card hangs from the fact it shows. */
+.fact[data-anchor] {
+  anchor-name: var(--fact-anchor);
 }
 
 /* ---------- head ---------- */
@@ -88,8 +125,9 @@ button.tile:hover {
   color: var(--lab-text-2);
 }
 
-/* The layer's pin number, the same disc as the drawing's pins. */
+/* The layer's pin, the same disc as the drawing's, and the toggle that brings the layer forward. */
 .pin {
+  position: relative;
   flex: none;
   display: grid;
   place-items: center;
@@ -101,50 +139,182 @@ button.tile:hover {
   font-size: var(--type-micro);
   font-weight: 600;
   line-height: 1;
+  cursor: pointer;
+  /* The disc is taller than the name's line; it overhangs into the padding, so the head keeps the name's height. */
+  margin-block: calc((var(--type-caption) * var(--type-ui-lh) - var(--pin)) / 2);
 }
 
-/* Where a layer shows its pin, a system beside the map shows one more fact in words. */
-.note {
+/* The hit area, wider than the disc, so the head keeps its height. */
+.pin::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, var(--hit));
+  height: max(100%, var(--hit));
+  translate: -50% -50%;
+}
+
+.pin[aria-pressed='true'] {
+  box-shadow:
+    0 0 0 2px var(--lab-surface),
+    0 0 0 3.5px var(--tile);
+}
+
+/* ---------- lead ---------- */
+
+.lead {
+  grid-template-columns: auto auto minmax(0, 1fr);
+  grid-template-areas:
+    'mark value value'
+    'mark label note';
+  align-items: center;
+}
+
+.leadMark {
+  --glyph: var(--lead-mark);
+
+  grid-area: mark;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--lead-mark);
+  height: var(--lead-mark);
+  margin-inline-end: 10px;
+  color: var(--tile);
+}
+
+.leadValue {
+  grid-area: value;
+  font-size: var(--type-lead);
+  line-height: var(--type-ui-lh);
+  font-weight: 600;
+  letter-spacing: var(--type-lead-ls);
+  color: var(--lab-ink);
+  text-wrap: balance;
+}
+
+.leadValue[data-figure] {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The lead's own label: spoken first; shown before the note where the note is its value (`Kin 60`). */
+.leadLabel {
+  grid-area: label;
   font-size: var(--type-caption);
   line-height: var(--type-ui-lh);
   font-weight: 500;
   letter-spacing: var(--type-caption-ls);
   color: var(--lab-text-3);
-  text-align: end;
 }
 
-/* ---------- facts ---------- */
-
-.facts {
-  display: grid;
-  grid-template-columns: repeat(var(--facts), minmax(min-content, 1fr));
-  grid-template-rows: var(--mark) auto auto;
-  column-gap: 4px;
-  row-gap: 2px;
+.leadLabel[data-shown] {
+  margin-inline-end: 0.3em;
 }
 
-.fact {
-  display: grid;
-  grid-row: span 3;
-  grid-template-rows: subgrid;
-  justify-items: center;
+.leadLabel:not([data-shown]) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.leadNote {
+  grid-area: note;
   min-width: 0;
-  text-align: center;
+  font-size: var(--type-caption);
+  line-height: var(--type-ui-lh);
+  font-weight: 500;
+  letter-spacing: var(--type-caption-ls);
+  color: var(--lab-text-2);
+}
+
+.noteLabel {
+  margin-inline-end: 0.3em;
+  color: var(--lab-text-3);
+}
+
+/* A number as the lead's mark: the figure role, in ink. */
+.leadNumeral {
+  min-width: max-content;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-figure);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: var(--type-figure-ls);
+  font-variant-numeric: tabular-nums;
+  color: var(--lab-ink);
+}
+
+/* ---------- supports ---------- */
+
+.supports {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px calc(var(--support-gap) + 2 * var(--fact-pad));
+}
+
+.support {
+  flex: var(--weight, 1) 1 0;
+  min-width: min-content;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    'mark value'
+    'label label';
+  column-gap: 5px;
+  align-items: center;
 }
 
 .mark {
-  grid-row: 1;
+  --glyph: var(--support-mark);
+
+  grid-area: mark;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  height: var(--mark);
+  height: var(--support-mark);
   color: var(--tile);
 }
 
+.value {
+  grid-area: value;
+  font-size: var(--type-small);
+  line-height: var(--type-ui-lh);
+  font-weight: 500;
+  letter-spacing: var(--type-small-ls);
+  color: var(--lab-ink);
+  text-wrap: balance;
+}
+
+.label {
+  grid-area: label;
+  font-size: var(--type-caption);
+  line-height: var(--type-ui-lh);
+  font-weight: 500;
+  letter-spacing: var(--type-caption-ls);
+  color: var(--lab-text-3);
+}
+
+/* A number as a support's mark: read aloud, never wrapped; its rolling copies clip, so it holds its width. */
+.numeral {
+  min-width: max-content;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-small);
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--lab-ink);
+}
+
+/* ---------- marks ---------- */
+
 .glyph {
   display: block;
-  width: var(--mark);
-  height: var(--mark);
+  width: var(--glyph);
+  height: var(--glyph);
   background: currentColor;
   -webkit-mask: var(--src) center / contain no-repeat;
   mask: var(--src) center / contain no-repeat;
@@ -165,51 +335,105 @@ button.tile:hover {
 /* A fact with no mark yet: an open circle the size of a mark. */
 .open {
   display: block;
-  width: var(--mark);
-  height: var(--mark);
+  width: var(--glyph);
+  height: var(--glyph);
   border: 1px dashed var(--lab-line);
   border-radius: 50%;
 }
 
-.value {
-  grid-row: 2;
-  font-size: var(--type-small);
-  line-height: var(--type-ui-lh);
-  font-weight: 500;
-  letter-spacing: var(--type-small-ls);
-  color: var(--lab-ink);
-  text-wrap: balance;
-}
+/* ---------- the card a fact opens (BENTO_SITE.md, "Facts explain themselves") ---------- */
 
-/*
- * A number is its own mark: it stands in the mark's and the value's rows, on
- * the values' line. It never wraps, and its rolling copies clip, which would
- * let its column shrink past it, so it holds its own width.
- */
-.numeral {
-  grid-row: 1 / 3;
-  min-width: max-content;
-  align-self: end;
-  font-family: var(--font-display), system-ui, sans-serif;
-  font-size: var(--type-figure);
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: var(--type-figure-ls);
-  font-variant-numeric: tabular-nums;
-  color: var(--lab-ink);
-}
+.card {
+  --card-gap: 8px;
 
-.label {
-  grid-row: 3;
+  position: fixed;
+  inset: auto;
+  margin: 0 var(--card-gap);
+  position-anchor: var(--fact-anchor);
+  position-area: left span-bottom;
+  /* Same side growing up first, then the other side, then below or above the fact. */
+  position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline, --fact-below, --fact-above;
+  width: max-content;
+  max-inline-size: min(34ch, calc(100vw - 2 * var(--card-gap)));
+  max-block-size: calc(100svh - 2 * var(--card-gap));
+  overflow: auto;
+  padding: 10px 12px;
+  border-radius: var(--radius-control);
+  color: var(--lab-ink);
   font-size: var(--type-caption);
-  line-height: var(--type-ui-lh);
-  font-weight: 500;
-  letter-spacing: var(--type-caption-ls);
-  color: var(--lab-text-3);
+  line-height: 1.35;
+  text-align: start;
+  opacity: 0;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  button.tile {
-    transition: none;
+.card:popover-open {
+  display: grid;
+  gap: 2px;
+  opacity: 1;
+}
+
+.card[data-kept][data-layer='sky'] { border-color: var(--atlas-sky); }
+.card[data-kept][data-layer='maya'] { border-color: var(--atlas-maya); }
+.card[data-kept][data-layer='body'] { border-color: var(--atlas-body); }
+.card[data-kept][data-layer='number'] { border-color: var(--atlas-number); }
+
+@position-try --fact-below {
+  position-area: bottom span-right;
+  margin: var(--card-gap) 0 0;
+}
+
+@position-try --fact-above {
+  position-area: top span-right;
+  margin: 0 0 var(--card-gap);
+}
+
+/* Under 720 px, and without anchor positioning, the card docks to the bottom of the viewport. */
+@media (max-width: 720px) {
+  .card {
+    position-area: none;
+    position-try-fallbacks: none;
+    inset: auto 8px 8px;
+    width: auto;
+    max-inline-size: none;
+    max-block-size: 50svh;
+    margin: 0;
+  }
+}
+
+@supports not (anchor-name: --a) {
+  .card {
+    inset: auto 8px 8px;
+    width: auto;
+    max-inline-size: none;
+    max-block-size: 50svh;
+    margin: 0;
+  }
+}
+
+/* ---------- motion: colours and the card's fade, behind the motion switch ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab]:not([data-motion='paused']) .tile {
+    transition:
+      border-color var(--dur-quick) var(--ease-standard),
+      background-color var(--dur-quick) var(--ease-standard),
+      box-shadow var(--dur-quick) var(--ease-standard);
+  }
+  [data-lab]:not([data-motion='paused']) .fact {
+    transition: background-color var(--dur-quick) var(--ease-standard);
+  }
+  [data-lab]:not([data-motion='paused']) .pin {
+    transition: box-shadow var(--dur-quick) var(--ease-standard);
+  }
+  [data-lab]:not([data-motion='paused']) .card {
+    transition:
+      opacity var(--dur-quick) var(--ease-standard),
+      overlay var(--dur-quick) allow-discrete,
+      display var(--dur-quick) allow-discrete;
+  }
+  @starting-style {
+    [data-lab]:not([data-motion='paused']) .card:popover-open {
+      opacity: 0;
+    }
   }
 }
