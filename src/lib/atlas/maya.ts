@@ -25,9 +25,11 @@ export function buildMaya(date: string): MayaLayer {
   const tone = toneRef(kinToTone(kin))
   const oracle = calculateOracle(kin)
   const tzolkin = dateToTzolkin(date)
+  const colour = capital(SEALS[seal.n - 1].color)
   return {
     kin,
-    title: `${capital(SEALS[seal.n - 1].color)} ${tone.name} ${seal.name}`,
+    title: `${colour} ${tone.name} ${seal.name}`,
+    colour,
     seal,
     tone,
     oracle: {

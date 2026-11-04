@@ -1,5 +1,5 @@
 import { calculateBodygraph } from '@pleiad/engine/calculations/human-design'
-import type { Definition } from '@pleiad/engine/types/human-design'
+import type { Authority, CenterId, Definition } from '@pleiad/engine/types/human-design'
 import type { BirthInput, BodyLayer } from './types'
 
 const DEFINITION_LABEL: Readonly<Record<Definition, string>> = {
@@ -8,6 +8,18 @@ const DEFINITION_LABEL: Readonly<Record<Definition, string>> = {
   'triple-split': 'Triple split',
   'quadruple-split': 'Quadruple split',
   none: 'None',
+}
+
+/** The centre each inner authority speaks from; mental and lunar authority have none of their own. */
+const AUTHORITY_CENTRE: Readonly<Record<Authority, CenterId | null>> = {
+  emotional: 'solar',
+  sacral: 'sacral',
+  splenic: 'spleen',
+  'ego-manifested': 'heart',
+  'ego-projected': 'heart',
+  'self-projected': 'g',
+  mental: null,
+  lunar: null,
 }
 
 /** Human Design bodygraph. Null until both birth time and place are known. */
@@ -24,6 +36,7 @@ export function buildBody(input: BirthInput): BodyLayer | null {
     type: graph.typeDefinition.name,
     strategy: graph.typeDefinition.strategy,
     authority: graph.authorityDefinition.name,
+    authorityCentre: AUTHORITY_CENTRE[graph.authority],
     profile: `${graph.profile.id} ${graph.profile.name}`,
     definition: DEFINITION_LABEL[graph.definition],
     cross: graph.incarnationCross.name,

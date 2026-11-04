@@ -39,6 +39,8 @@ export interface MayaLayer {
   readonly kin: number
   /** e.g. "Yellow Galactic Sun". */
   readonly title: string
+  /** The seal's colour, e.g. "Yellow". */
+  readonly colour: string
   readonly seal: GlyphRef
   readonly tone: GlyphRef
   readonly oracle: {
@@ -59,8 +61,6 @@ export interface LongCountReading {
   readonly date: string
   /** The day's Tzolkin and Haab together, e.g. "7 Manik' 0 Kumku". */
   readonly round: string
-  /** Days since the count's start, so two readings compare. */
-  readonly days: number
 }
 
 export interface SkyBody {
@@ -96,6 +96,8 @@ export interface BodyLayer {
   readonly type: string
   readonly strategy: string
   readonly authority: string
+  /** The centre the authority speaks from; null for mental and lunar authority, which have none of their own. */
+  readonly authorityCentre: CenterId | null
   readonly profile: string
   readonly definition: string
   readonly cross: string

@@ -8,9 +8,12 @@ import type { LongCountReading } from './types'
  */
 const carried = (n: number): readonly number[] => (n < BASE ? [n] : [...carried(Math.floor(n / BASE)), n % BASE])
 
+/** The places' names, least significant first, as far as any four-digit year reaches. */
+export const PLACE_NAMES = ['Kin', 'Winal', 'Tun', 'Katun', 'Baktun', 'Piktun'] as const
+
 /** The Maya Long Count of a birth date and its calendar round (GMT correlation). Light: arithmetic only. */
 export function buildLongCount(date: string): LongCountReading {
-  const { longCount, calendarRound, daysSinceCreation } = getLongCountData(date)
+  const { longCount, calendarRound } = getLongCountData(date)
   const places = [...carried(longCount.baktun), longCount.katun, longCount.tun, longCount.winal, longCount.kin]
-  return { places, date: places.join('.'), round: calendarRound.formatted, days: daysSinceCreation }
+  return { places, date: places.join('.'), round: calendarRound.formatted }
 }

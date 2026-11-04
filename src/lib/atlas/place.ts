@@ -1,5 +1,12 @@
 import { getZodiacSignFromLongitude } from '@pleiad/engine/data/zodiac-signs'
-import type { SkyBody } from './types'
+import type { GlyphRef, SkyBody } from './types'
+import { signGlyphSrc } from '@/lib/design/glyph-paths'
+
+/** The sign at a longitude, with its glyph. */
+export const signAt = (longitude: number): GlyphRef => {
+  const sign = getZodiacSignFromLongitude(longitude)
+  return { n: sign.number, name: sign.name, src: signGlyphSrc(sign.number, sign.name) }
+}
 
 /** A longitude as sign and whole degree, e.g. `Leo 12°`. */
 export const placeAt = (longitude: number): string =>
@@ -16,9 +23,9 @@ export const bodyValue = (b: SkyBody): string => {
 }
 
 /** The signs a body may be in: one, or both ends of its day's arc when that arc crosses into the next sign. */
-export const signsOf = (b: SkyBody): readonly string[] => {
+export const signsOf = (b: SkyBody): readonly GlyphRef[] => {
   const arc = dayArc(b)
-  if (!arc) return [b.sign.name]
-  const ends = arc.map((longitude) => getZodiacSignFromLongitude(longitude).name)
-  return [...new Set(ends)]
+  if (!arc) return [b.sign]
+  const [start, end] = arc.map(signAt)
+  return start.n === end.n ? [start] : [start, end]
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildLongCount } from './long-count'
+import { buildLongCount, PLACE_NAMES } from './long-count'
 import { LARGEST } from './maya-numeral'
 
 describe('buildLongCount', () => {
@@ -16,7 +16,7 @@ describe('buildLongCount', () => {
     }
   })
 
-  it('orders readings by day, so a later date rolls up', () => {
-    expect(buildLongCount('1991-03-15').days - buildLongCount('1991-03-14').days).toBe(1)
+  it('names every place any four-digit year reaches', () => {
+    expect(buildLongCount('9999-12-31').places.length).toBeLessThanOrEqual(PLACE_NAMES.length)
   })
 })
