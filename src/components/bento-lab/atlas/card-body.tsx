@@ -1,4 +1,6 @@
-import s from './atlas.module.css'
+import type { CSSProperties } from 'react'
+import c from './card-body.module.css'
+import { TYPE_VOICES, voiceCssVars } from '@/lib/design/type-voice'
 import type { MarkReading } from '@/lib/atlas/explain'
 import type { AtlasLayerId } from '@/lib/atlas/types'
 
@@ -11,6 +13,9 @@ export interface CardHead {
   readonly value: string
 }
 
+/** The card's text levels as custom properties (BENTO_TYPE.md, "The card"), set on its body. */
+const VOICE = voiceCssVars(TYPE_VOICES.card) as CSSProperties
+
 /**
  * A card's words, shared by the drawing's marks and the digest's facts
  * (BENTO_SITE.md, "Marks explain themselves"): the eyebrow, the label, the
@@ -19,15 +24,15 @@ export interface CardHead {
  */
 export function CardBody({ head, reading }: { readonly head: CardHead; readonly reading: MarkReading | null }) {
   return (
-    <>
-      <span className={s.cardEyebrow} data-layer={head.layer ?? undefined}>
+    <div className={c.body} style={VOICE}>
+      <span className={c.eyebrow} data-layer={head.layer ?? undefined}>
         {head.eyebrow}
       </span>
-      <span className={s.cardLabel}>{head.label}</span>
-      <strong className={s.cardValue}>{head.value}</strong>
-      {reading?.meaning && <span className={s.cardMeaning}>{reading.meaning}</span>}
+      <span className={c.label}>{head.label}</span>
+      <strong className={c.value}>{head.value}</strong>
+      {reading?.meaning && <span className={c.meaning}>{reading.meaning}</span>}
       {reading && reading.facts.length > 0 && (
-        <dl className={s.cardFacts}>
+        <dl className={c.facts}>
           {reading.facts.map((f) => (
             <div key={f.label}>
               <dt>{f.label}</dt>
@@ -36,6 +41,6 @@ export function CardBody({ head, reading }: { readonly head: CardHead; readonly 
           ))}
         </dl>
       )}
-    </>
+    </div>
   )
 }

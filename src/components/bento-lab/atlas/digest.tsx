@@ -48,7 +48,7 @@ interface LeadView extends FactView {
   readonly note: { readonly label: string | null; readonly value: string | null }
   /** True where the lead's own label opens the second line; else it is spoken only. */
   readonly labelShown: boolean
-  /** The value is a date or number, set in the display face. */
+  /** The value is a date or number, which rolls as it changes. */
   readonly figure: boolean
 }
 
@@ -381,7 +381,7 @@ function Tile({ tile, atlas, focus, spot, onFocus, facts }: TileProps) {
           {l.label}
         </span>
         {l.mark !== null && <span className={d.leadMark}>{l.mark}</span>}
-        <span className={d.leadValue} data-figure={l.figure ? '' : undefined}>
+        <span className={d.leadValue}>
           {l.figure ? <Rolling value={l.value} /> : l.value}
         </span>
         {(l.note.label || l.note.value) && (

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { declarations, labSheets } from './lab-sheets'
+import { declarations, labSheets, rules } from './lab-sheets'
 import { TYPE_SCALE, TYPE_STEPS, isText, roleSet, sizeAt, stepSize, typeCssVars, type TypeRole } from './type-scale'
 
 const ROLES = (Object.keys(TYPE_STEPS) as TypeRole[]).sort((a, b) => TYPE_STEPS[a] - TYPE_STEPS[b])
@@ -49,6 +49,16 @@ describe('lab CSS takes its sizes from the scale', () => {
 
   it('finds the sheets', () => {
     expect(sheets.length).toBeGreaterThan(5)
+  })
+
+  it('marks a size as drawing only in a rule that paints an SVG', () => {
+    const strays = sheets.flatMap((sheet) =>
+      rules(sheet)
+        .filter(({ drawn }) => drawn.has('font-size'))
+        .filter(({ decls }) => !['fill', 'stroke', 'text-anchor'].some((paint) => paint in decls))
+        .map(({ at, selector }) => `${at} ${selector}`),
+    )
+    expect(strays).toEqual([])
   })
 
   it('has no font size outside the scale', () => {

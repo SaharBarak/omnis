@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
+import postcss, { type Declaration, type Node, type Root } from 'postcss'
 
 /**
  * The lab's CSS modules and scripts, for the tests that hold them to the
@@ -37,42 +38,52 @@ export const labSheets = (root = process.cwd()): readonly Sheet[] => read(root, 
 /** The lab's scripts, tests left out: what reaches the browser. */
 export const labScripts = (root = process.cwd()): readonly Sheet[] => read(root, (name) => /\.tsx?$/.test(name) && !/\.test\.tsx?$/.test(name))
 
-/** Every `property: value;` in the sheets whose property matches, as `path:line value`, skipping lines marked as drawing. */
+const parse = ({ path, lines }: Sheet): Root => postcss.parse(lines.join('\n'), { from: path })
+
+const at = (path: string, node: Node): string => `${path}:${node.source?.start?.line ?? 0}`
+
+/** Whether a declaration carries the drawing mark: the comment right after it, on its own line. */
+const drawn = (decl: Declaration): boolean => {
+  const next = decl.next()
+  return next?.type === 'comment' && `/* ${next.text} */` === DRAWING && next.source?.start?.line === decl.source?.start?.line
+}
+
+/** A property pattern matched against whole property names. */
+const whole = (property: RegExp): RegExp => new RegExp(`^(?:${property.source})$`)
+
+/** Every declaration in the sheets whose property matches, as `path:line` and its value, skipping those marked as drawing. */
 export function declarations(sheets: readonly Sheet[], property: RegExp): readonly { readonly at: string; readonly value: string }[] {
-  const pattern = new RegExp(`(?:^|[\\s;{])(${property.source})\\s*:\\s*([^;]+);`)
-  return sheets.flatMap(({ path, lines }) =>
-    lines.flatMap((line, index) => {
-      if (line.includes(DRAWING)) return []
-      const value = pattern.exec(line)?.[2]?.trim()
-      return value === undefined ? [] : [{ at: `${path}:${index + 1}`, value }]
-    }),
-  )
+  const matches = whole(property)
+  return sheets.flatMap((sheet) => {
+    const found: { at: string; value: string }[] = []
+    parse(sheet).walkDecls((decl) => {
+      if (matches.test(decl.prop) && !drawn(decl)) found.push({ at: at(sheet.path, decl), value: decl.value })
+    })
+    return found
+  })
 }
 
 export interface Rule {
   /** `path:line` of the rule's selector. */
   readonly at: string
   readonly selector: string
-  /** The rule's own declarations, property to value, comments left out. */
+  /** The rule's own declarations, property to value; a nested rule's are its own. */
   readonly decls: Readonly<Record<string, string>>
+  /** The properties among them marked as drawing. */
+  readonly drawn: ReadonlySet<string>
 }
 
-/** Every innermost rule in a sheet (a selector and its declarations), at-rule wrappers looked through. */
-export function rules({ path, lines }: Sheet): readonly Rule[] {
-  const text = lines.join('\n').replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, ' '))
+/** Every rule in a sheet, at-rules and nesting looked through, each with its own declarations. */
+export function rules(sheet: Sheet): readonly Rule[] {
   const found: Rule[] = []
-  for (const match of text.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    const head = match[1]!
-    const selector = head.trim()
-    if (selector.startsWith('@')) continue
-    const line = text.slice(0, match.index! + head.length - head.trimStart().length).split('\n').length
-    const decls = Object.fromEntries(
-      match[2]!
-        .split(';')
-        .map((decl) => decl.split(/:(.*)/s).map((part) => part.trim()))
-        .filter((pair): pair is [string, string] => pair.length >= 2 && pair[0] !== '' && pair[1] !== undefined && pair[1] !== ''),
-    )
-    found.push({ at: `${path}:${line}`, selector, decls })
-  }
+  parse(sheet).walkRules((rule) => {
+    const own = (rule.nodes ?? []).filter((node): node is Declaration => node.type === 'decl')
+    found.push({
+      at: at(sheet.path, rule),
+      selector: rule.selector,
+      decls: Object.fromEntries(own.map((decl) => [decl.prop, decl.value])),
+      drawn: new Set(own.filter(drawn).map((decl) => decl.prop)),
+    })
+  })
   return found
 }

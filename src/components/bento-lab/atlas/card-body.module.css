@@ -1,0 +1,103 @@
+/*
+ * A card's words (BENTO_TYPE.md, "The card"): the eyebrow, what the thing is,
+ * the person's value at it, then the meaning and facts. Shared by the
+ * drawing's mark card and the digest's fact card; the container places and
+ * frames it, this sets its text. Lines are trimmed to their capitals and
+ * spaced by the type, as in the digest's tiles.
+ */
+
+.body {
+  /* The space under a caption line before the next line of its group. */
+  --card-pair: calc(var(--type-room) * var(--voice-label));
+
+  display: grid;
+  row-gap: var(--card-pair);
+  min-width: 0;
+  /* The measure: the meaning keeps at least 45 characters a line (BENTO_TYPE.md, "Measure"). */
+  max-inline-size: 45ch;
+  font-size: var(--voice-meaning);
+  line-height: var(--type-ui-lh);
+  text-align: start;
+}
+
+.eyebrow,
+.label,
+.value,
+.meaning,
+.facts dt,
+.facts dd {
+  text-box: trim-both cap alphabetic;
+}
+
+.eyebrow {
+  font-size: var(--voice-eyebrow);
+  font-weight: 600;
+  letter-spacing: var(--type-caps-ls);
+  text-transform: uppercase;
+  color: var(--lab-text-3);
+}
+
+/* A short stroke of the layer colour keys the card, as a tooltip row keys its series: an em long, two edges thick. */
+.eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 1em;
+  height: calc(2 * var(--edge-w));
+  margin-inline-end: 0.5em;
+  vertical-align: middle;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.eyebrow[data-layer='sky']::before { background: var(--atlas-sky); }
+.eyebrow[data-layer='maya']::before { background: var(--atlas-maya); }
+.eyebrow[data-layer='body']::before { background: var(--atlas-body); }
+.eyebrow[data-layer='number']::before { background: var(--atlas-number); }
+
+.label {
+  font-size: var(--voice-label);
+  font-weight: 400;
+  letter-spacing: var(--voice-label-ls);
+  color: var(--lab-text-2);
+}
+
+.value {
+  font-size: var(--voice-value);
+  font-weight: 600;
+  letter-spacing: var(--voice-value-ls);
+  color: var(--lab-ink);
+  text-wrap: balance;
+}
+
+/* Running text: its role's leading between its own lines, a group below the value. */
+.meaning {
+  margin-block-start: calc(var(--type-group) - var(--card-pair));
+  font-size: var(--voice-meaning);
+  line-height: var(--voice-meaning-lh);
+  color: var(--lab-text-2);
+  text-wrap: pretty;
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--card-pair) var(--type-group);
+  margin: calc(var(--type-group) - var(--card-pair)) 0 0;
+  font-size: var(--voice-facts);
+}
+
+.facts div {
+  display: flex;
+  gap: 0.3em;
+}
+
+.facts dt {
+  font-weight: 400;
+  color: var(--lab-text-3);
+}
+
+.facts dd {
+  margin: 0;
+  font-weight: 500;
+  color: var(--lab-ink);
+}

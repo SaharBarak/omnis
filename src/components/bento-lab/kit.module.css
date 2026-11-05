@@ -9,7 +9,8 @@
 .lab {
   --notch-r: var(--radius-card);
   /* A layer's pin disc, on the drawing and on its digest tile alike: 1.75 times its micro digit. */
-  --pin: calc(var(--type-micro) * 1.75);
+  --pin-ratio: 1.75;
+  --pin: calc(var(--type-micro) * var(--pin-ratio));
   /* The gap between cards that stand together, like the digest's tiles. */
   --tile-gap: 6px;
   /* A control's smallest target (BENTO_POLISH.md "Minimum hit area"): the most the bar's 8 px gaps allow without two targets meeting. */

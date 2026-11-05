@@ -19,22 +19,24 @@
   /* A mark is as tall as the em boxes of the lines it stands beside ("Marks"). */
   --lead-mark: calc(var(--voice-lead) + var(--voice-note));
   --support-mark: var(--voice-value);
-  /* A fact's fill reaches this far past its words, inside the tile's inset. */
-  --fact-pad: 3px;
+  /* A fact's fill reaches past its words by the room its smallest line's descenders take, inside the tile's inset. */
+  --fact-pad: calc(var(--type-room) * var(--voice-label));
   /* Concentric with the tile: its radius less the space between their edges. */
   --fact-radius: calc(var(--radius-card) - var(--group) + var(--fact-pad));
-  /* The least hit area for the pin toggle (WCAG 2.5.8 and platform guidance): 40 px, 44 px under a finger. */
-  --hit: 40px;
+  /* The pin's disc, as the drawing's: its digit times the kit's ratio. */
+  --pin: calc(var(--voice-pin) * var(--pin-ratio));
+  /* The pin toggle's widest target (BENTO_POLISH.md "Minimum hit area"); a finger gets the larger. */
+  --hit: var(--hit-min);
+  /* The head's line: trimmed to its capitals where the browser trims, else its full line. */
+  --head-line: calc(var(--voice-eyebrow) * var(--type-ui-lh));
 
   display: flex;
   flex-wrap: wrap;
   gap: var(--tile-gap);
   /* Every number in a tile changes as the birth data does; tabular figures keep its width. */
   font-variant-numeric: tabular-nums lining-nums;
-  /* The head's line: trimmed to its capitals where the browser trims, else its full line. */
-  --head-line: calc(var(--voice-eyebrow) * var(--type-ui-lh));
-  /* Room above the first row for the pin's hit area, which overhangs its tile; a scrolling column would clip it. */
-  padding-block-start: max(0px, calc(var(--hit) / 2 - var(--edge-w) - var(--group) - var(--head-line) / 2));
+  /* Each row owns half the gap above it, for its pins' targets; the first row is given the same half. */
+  padding-block-start: calc(var(--tile-gap) / 2);
 }
 
 @supports (text-box: trim-both cap alphabetic) {
@@ -61,7 +63,7 @@
 
 @media (pointer: coarse) {
   .digest {
-    --hit: 44px;
+    --hit: var(--hit-target);
   }
 }
 
@@ -123,10 +125,10 @@
   background: color-mix(in srgb, var(--tile) 10%, transparent);
 }
 
-/* The ring sits inside the fact's fill, which already stands off the words, so it never crosses the next line. */
+/* The ring wraps the fact's fill, which already clears the words' descenders; fills stand far enough apart that it meets no other. */
 .fact:focus-visible {
   outline: 2px solid var(--lab-ink);
-  outline-offset: -2px;
+  outline-offset: 0;
 }
 
 .pin:focus-visible {
@@ -146,7 +148,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--group);
   min-width: 0;
 }
 
@@ -181,15 +183,19 @@
   margin-block: calc((var(--head-line) - var(--pin)) / 2);
 }
 
-/* The hit area, wider than the disc, so the head keeps its height. */
+/*
+ * The target: the space the head owns at its end, so it never meets another
+ * target. As wide as --hit, past the disc's end no further than the tile's
+ * inset; from the lead's fill up to the middle of the gap above the tile, at
+ * most --hit tall.
+ */
 .pin::before {
   content: '';
   position: absolute;
-  top: 50%;
-  left: 50%;
+  inset-inline-end: calc(-1 * min(var(--group), (var(--hit) - var(--pin)) / 2));
+  bottom: calc(var(--pin) / 2 - var(--head-line) / 2 - var(--group) + var(--fact-pad));
   width: max(100%, var(--hit));
-  height: max(100%, var(--hit));
-  translate: -50% -50%;
+  height: min(var(--hit), calc(var(--head-line) + 2 * var(--group) + var(--edge-w) + var(--tile-gap) / 2 - var(--fact-pad)));
 }
 
 .pin[aria-pressed='true'] {
@@ -243,10 +249,10 @@
 /* The lead's own label: spoken first; shown before the note where the note is its value (`Kin 60`). */
 .leadLabel {
   grid-area: label;
-  font-size: var(--voice-note);
+  font-size: var(--voice-label);
   line-height: var(--type-ui-lh);
   font-weight: 400;
-  letter-spacing: var(--voice-note-ls);
+  letter-spacing: var(--voice-label-ls);
   color: var(--lab-text-3);
 }
 
@@ -305,7 +311,7 @@
   grid-template-areas:
     'mark value'
     'label label';
-  column-gap: calc(var(--type-room) * var(--voice-value));
+  column-gap: var(--pair-value);
   row-gap: var(--pair-value);
   /* A mark stands on its value's first line, however many the value wraps to. */
   align-items: start;
@@ -356,7 +362,7 @@
 /* A number as a support's mark: a word of the value's line, the same trimmed box, so the two share a baseline. Never wrapped; its rolling copies clip, so it holds its width. */
 .numeral {
   min-width: max-content;
-  font-size: var(--voice-value);
+  font-size: var(--voice-numeral);
   font-weight: 600;
   line-height: var(--type-ui-lh);
   white-space: nowrap;
@@ -374,9 +380,10 @@
   mask: var(--src) center / contain no-repeat;
 }
 
+/* Two signs as one mark (a day crossing into the next): apart by the room under a line their size. */
 .glyphs {
   display: flex;
-  gap: 2px;
+  gap: calc(var(--type-room) * var(--glyph) / 2);
 }
 
 .drawing {
@@ -400,7 +407,8 @@
 /* Beside the tile, top edges aligned (`side`), or above it (`above`); the fallbacks flip either one. */
 
 .card {
-  --card-gap: 8px;
+  /* The card stands off its tile and the window's edges by a group. */
+  --card-gap: var(--group);
 
   position: fixed;
   inset: auto;
@@ -411,14 +419,13 @@
   /* Same side growing up first, then the other side, then below or above the tile. */
   position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline, --fact-below, --fact-above;
   width: max-content;
-  max-inline-size: min(34ch, calc(100vw - 2 * var(--card-gap)));
+  /* The window's width at most; the body sets its own measure inside that. */
+  max-inline-size: calc(100vw - 2 * var(--card-gap));
   max-block-size: calc(100svh - 2 * var(--card-gap));
   overflow: auto;
-  padding: 10px 12px;
+  padding: var(--group);
   border-radius: var(--radius-control);
   color: var(--lab-ink);
-  font-size: var(--voice-card);
-  line-height: 1.35;
   text-align: start;
   opacity: 0;
 }
@@ -431,7 +438,6 @@
 
 .card:popover-open {
   display: grid;
-  gap: 2px;
   opacity: 1;
 }
 
@@ -458,7 +464,7 @@
   .card[data-at] {
     position-area: none;
     position-try-fallbacks: none;
-    inset: auto 8px 8px;
+    inset: auto var(--card-gap) var(--card-gap);
     width: auto;
     max-inline-size: none;
     max-block-size: 50svh;
@@ -470,7 +476,7 @@
 @supports not (position-area: block-end) {
   .card,
   .card[data-at] {
-    inset: auto 8px 8px;
+    inset: auto var(--card-gap) var(--card-gap);
     width: auto;
     max-inline-size: none;
     max-block-size: 50svh;

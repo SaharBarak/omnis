@@ -30,8 +30,9 @@ export const TYPE_VOICES = Object.freeze({
       note: 'caption',
       figure: 'figure',
       value: 'body',
+      /** A number standing as a support's mark: a word of its value's line, at its own weight. */
+      numeral: 'body',
       label: 'caption',
-      card: 'caption',
     },
     pairs: [
       ['lead', 'note'],
@@ -39,6 +40,22 @@ export const TYPE_VOICES = Object.freeze({
       ['value', 'label'],
       ['eyebrow', 'lead'],
       ['note', 'value'],
+    ],
+  }),
+  /** The card a mark or a fact opens (BENTO_TYPE.md, "The card"). */
+  card: voice({
+    sheet: 'src/components/bento-lab/atlas/card-body.module.css',
+    levels: {
+      eyebrow: 'caption',
+      label: 'caption',
+      value: 'body',
+      meaning: 'caption',
+      facts: 'caption',
+    },
+    pairs: [
+      ['eyebrow', 'value'],
+      ['label', 'value'],
+      ['value', 'meaning'],
     ],
   }),
 })
@@ -51,8 +68,13 @@ export function ratioAt(a: TypeRole, b: TypeRole, width: number): number {
   return Math.max(x, y) / Math.min(x, y)
 }
 
-/** Floating point leaves two exact steps a hair under the ratio; this much is no step at all. */
-const EPSILON = 1e-9
+/**
+ * The scale rounds each size to a hundredth of a pixel, which can leave an
+ * exact ratio a hair under itself (title over figure at 1320 px is 1.24993).
+ * A hundredth of a pixel on the smallest size is the most that rounding moves
+ * a ratio; no real step is that small.
+ */
+const EPSILON = 0.01 / 11
 
 /** Whether two roles may read against each other on a window `width` px wide: one size, or the contrast apart. */
 export const holdsContrast = (a: TypeRole, b: TypeRole, width: number): boolean => a === b || ratioAt(a, b, width) >= LEVEL_CONTRAST - EPSILON
@@ -63,7 +85,11 @@ export const contrastFaults = (v: TypeVoice, widths: readonly number[]): readonl
     widths.filter((width) => !holdsContrast(v.levels[a]!, v.levels[b]!, width)).map((width) => `${a}/${b} at ${width}px: ${ratioAt(v.levels[a]!, v.levels[b]!, width).toFixed(3)}`),
   )
 
-/** The custom properties a voiced component's root carries: each level's role's size, leading and tracking. */
+/**
+ * The custom properties a voiced component's root carries: each level's
+ * role's size, leading and tracking. The leading is the role's own, for
+ * running text; a short UI line takes `--type-ui-lh` instead.
+ */
 export const voiceCssVars = (v: TypeVoice): Readonly<Record<string, string>> =>
   Object.fromEntries(
     Object.entries(v.levels).flatMap(([level, role]) => [

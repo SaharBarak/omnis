@@ -113,7 +113,7 @@ export function DigestTileWireframe() {
         { n: 3, text: "Lead: the system's main fact, one button: mark, value at the heading role, note in caption. Opens the lead's card" },
         { n: 4, text: "Lead mark: as tall as the lead's and note's em boxes, overhanging their trimmed lines; a number lead is the figure; the Long Count has none and starts at the edge" },
         { n: 5, text: 'Supports: mark beside value (body), label under it (caption, 400); shares the row by weight (Profile 2); each a button with its own card' },
-        { n: 6, text: 'Card: eyebrow (pin, name, layer stroke), label, value in the display face, meaning, facts. Top layer, anchored to the fact' },
+        { n: 6, text: "Card: eyebrow (pin, name, layer stroke), label, value, meaning, facts, in the card's voice. Top layer, anchored to the fact" },
         { n: 7, text: 'States: rest on elevation 1; hover fills the fact, concentric radius; pressed tints the tile in its layer colour; a tour rings it (spot)' },
         { n: 8, text: 'Missing input: Human Design keeps its lead (empty bodygraph, the input it needs) and drops its supports; Rising and Expression show an open mark' },
       ]}

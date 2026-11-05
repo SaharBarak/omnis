@@ -68,6 +68,14 @@ describe.each(VOICES)('the %s voice', (_, voice) => {
     }
   })
 
+  it('spaces by the type: no gap, padding, margin or token in its sheet is a raw length', () => {
+    if (!sheet) return
+    const raw = declarations([sheet], /(?:row-|column-)?gap|padding(?:-[a-z-]+)?|margin(?:-[a-z-]+)?|inset(?:-[a-z-]+)?|--[a-z0-9-]+/)
+      .filter(({ value }) => /(?<![\w.-])(?:\d*\.)?\d+px\b/.test(value.replace(/(?<![\w.-])0px\b/g, '0')))
+      .map(({ at, value }) => `${at} ${value}`)
+    expect(raw).toEqual([])
+  })
+
   it('leaves its levels to the table: the sheet never defines them', () => {
     if (!sheet) return
     expect(declarations([sheet], /--voice-[a-z-]+/).map(({ at }) => at)).toEqual([])
@@ -77,7 +85,6 @@ describe.each(VOICES)('the %s voice', (_, voice) => {
 /** Rules that set the display face below the figure: each leaves this list as its component takes a voice. */
 const DISPLAY_IN_TEXT = new Set([
   'src/components/bento-lab/app/app.module.css .avatar',
-  'src/components/bento-lab/atlas/atlas.module.css .cardValue',
   'src/components/bento-lab/blocks/blocks.module.css .odds',
   'src/components/bento-lab/blocks/blocks.module.css .plain',
   'src/components/bento-lab/docs/docs.module.css .neighbourTitle',

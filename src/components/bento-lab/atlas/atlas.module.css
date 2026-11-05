@@ -445,13 +445,11 @@
   top: 0;
   z-index: 2;
   display: grid;
-  gap: 2px;
   width: max-content;
-  max-inline-size: min(32ch, calc(50cqi - var(--gap, 0px)));
-  padding: 10px 12px;
+  /* Half the stage at most; the body sets its own measure inside that. */
+  max-inline-size: calc(50cqi - var(--gap, 0px));
+  padding: var(--type-group);
   border-radius: var(--radius-control);
-  font-size: var(--type-caption);
-  line-height: 1.35;
   text-align: start;
   transform: translate(var(--at-x, 0px), var(--at-y, 0px));
   translate: var(--tx) var(--ty);
@@ -474,70 +472,6 @@
 .card[data-kept][data-layer='maya'] { border-color: var(--atlas-maya); }
 .card[data-kept][data-layer='body'] { border-color: var(--atlas-body); }
 
-.cardEyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-block-end: 2px;
-  font-size: var(--type-micro);
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--lab-text-3);
-}
-
-/* A short stroke of the layer colour keys the card, as a tooltip row keys its series. */
-.cardEyebrow::before {
-  content: '';
-  width: 12px;
-  height: 2px;
-  border-radius: 999px;
-  background: currentColor;
-}
-
-.cardEyebrow[data-layer='sky']::before { background: var(--atlas-sky); }
-.cardEyebrow[data-layer='maya']::before { background: var(--atlas-maya); }
-.cardEyebrow[data-layer='body']::before { background: var(--atlas-body); }
-.cardEyebrow[data-layer='number']::before { background: var(--atlas-number); }
-
-.cardLabel {
-  color: var(--lab-text-2);
-}
-
-.cardValue {
-  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
-  font-size: var(--type-small);
-  font-weight: 600;
-  line-height: 1.25;
-  color: var(--lab-ink);
-}
-
-.cardMeaning {
-  margin-block-start: 4px;
-  color: var(--lab-text-2);
-}
-
-.cardFacts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px 12px;
-  margin: 6px 0 0;
-  font-size: var(--type-micro);
-}
-
-.cardFacts div {
-  display: flex;
-  gap: 4px;
-}
-
-.cardFacts dt {
-  color: var(--lab-text-3);
-}
-
-.cardFacts dd {
-  margin: 0;
-  color: var(--lab-ink);
-}
 
 /* Under 720 px, where the pins hide, the card docks to the edge away from its mark. */
 @media (max-width: 720px) {
