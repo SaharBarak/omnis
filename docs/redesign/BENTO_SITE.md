@@ -339,7 +339,8 @@ Investigator/Martyr`).
 
 **Card.** The same body as the drawing's card (`CardBody`): eyebrow (the
 pin and name, keyed by a stroke of the layer colour, or ink 3 beside the
-map), label, value in the display face, meaning, facts. It is a
+map), label, value, meaning, facts, in the card's voice (BENTO_TYPE.md,
+"The card"). It is a
 `popover="manual"` in the top layer, so no column's overflow or entrance
 transform clips it. CSS anchor positioning hangs it from the tile holding
 the active fact, so it never covers that tile (`anchor-name` on the tile, a
@@ -485,8 +486,9 @@ closes the card, because the marks it described moved or stopped
 answering.
 
 **Card.** From the top: the eyebrow (the layer's pin number and name,
-keyed by a short stroke of the layer colour), the label, the value in the
-display face, the meaning, and the facts row. Every string is set as text.
+keyed by a short stroke of the layer colour), the label, the value, the
+meaning, and the facts row, in the card's voice (BENTO_TYPE.md, "The
+card"). Every string is set as text.
 The surface is the pins' glass. The card hangs from its mark toward the
 drawing's centre on both axes, set off by the mark's halo and never closer
 than half the least target, no wider than its measure or half the drawing

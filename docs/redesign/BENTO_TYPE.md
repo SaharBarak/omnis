@@ -174,11 +174,15 @@ read against each other. Voices live in one table, `TYPE_VOICES` in
   width the scale tests.
 - `voiceCssVars(voice)` emits `--voice-<level>`, `-lh` and `-ls` (the
   level's role's size, leading and tracking) on the component's root. The
+  leading is the role's own, for running text (a card's meaning); a short
+  UI line takes `--type-ui-lh`. The
   component's CSS module takes its sizes from those properties and from no
   role directly. The test holds the module to its voice: every font size is
   exactly one of its levels (`var(--voice-<level>)`, or `inherit` and `em`
   for parts that scale with their parent), every level appears in the
-  module, and no other module reads a voice.
+  module, and no other module reads a voice. Its spacing is the type's too:
+  no gap, padding, margin, inset or custom property in the module is a raw
+  length (a zero, an `em` or a derivation from the tokens).
 
 A component joins the table when its text is reworked; the digest is the
 first. Its levels name what the text is to the component (`lead`, `label`),
@@ -220,10 +224,12 @@ spacing is derived:
   groups (`align-content: space-evenly`); the pairs keep their size, so a
   fact's lines stay together as the parts move apart.
 
-Where a browser has no `text-box`, lines keep their leading and the same
-gaps add to it: the component is taller and keeps its order. Every overhang
-below is set inside `@supports (text-box: trim-both cap alphabetic)`, so an
-untrimmed line never has a mark pulled over it.
+Where a browser has no `text-box` (Firefox before 154, its ESR among them),
+lines keep their leading and the same gaps add to it: the component is
+taller and keeps its order, and where it no longer fits its column, the
+column scrolls. Every overhang below is measured from the line the browser
+draws, trimmed where it trims and whole where it does not, so an untrimmed
+line never has a mark pulled over it.
 
 A trimmed box holds text, never a clip. A number that rolls (`Rolling`)
 clips its moving copies to its own line box; it sits inline in a trimmed
@@ -245,10 +251,21 @@ space around them, so it never adds height of its own:
   keeps its mark beside its first word. A number standing as the mark is a
   word of that line, set in the same trimmed box, so the two share a
   baseline.
-- The pin is a disc 1.75 times its digit, centred on the head's line in the
-  same way. Its hit area (40 px, 44 px under a finger) is wider than the
-  head and reaches into the group below; it sits above the lead, so the
-  part of the lead's button under it answers as the pin.
+- The pin is a disc 1.75 times its digit (`--pin-ratio`), centred on the
+  head's line in the same way.
+
+A target takes the space its part owns and never meets another target. The
+pin's is as wide as the kit's least target (`--hit-min`, 40 px; 44 px under
+a finger), past the disc's end no further than the tile's inset, and as tall
+as the head owns: from the lead's fill up to the middle of the gap above
+the tile, at most that width (29 px in the digest). That clears WCAG
+2.5.8's 24 px minimum: the kit's least target sets its width, and the space
+the head owns sets its height. Each row of tiles owns half the gap above
+it, and the digest gives its first row the same half.
+
+A fact's fill reaches past its words by the room under its smallest line
+(`--type-room` of the label, 3.8 px), so it clears every descender; the
+focus ring wraps the fill, outside it.
 
 ## Faces and weights
 
@@ -291,9 +308,9 @@ digest"). Its voice (`TYPE_VOICES.digest`):
 | `lead` | heading | The lead value: 600, ink, balanced wrapping. |
 | `note` | caption | The lead's note: 500, ink 2; a label inside it is 400, ink 3. |
 | `figure` | figure | A number as the lead's mark: 600, display face, ink, tabular figures, leading 1. |
-| `value` | body | A support's value: 500, ink, balanced wrapping. A number as its mark is the same level at 600. |
-| `label` | caption | What a support is: 400, sentence case, ink 3, under its value. |
-| `card` | caption | The card a fact opens. |
+| `value` | body | A support's value: 500, ink, balanced wrapping. |
+| `numeral` | body | A number standing as a support's mark: 600, ink, a word of its value's line. |
+| `label` | caption | What a support is, and the lead's own label where it is shown (`Kin 60`): 400, sentence case, ink 3. |
 
 Pairs that read against each other: the lead and its note, the lead and a
 support's value, a value and its label, the eyebrow and the lead, the note
@@ -303,6 +320,26 @@ The tile is trimmed and spaced as "Trimmed lines" sets out: head, lead and
 supports a group apart, each fact's lines a pair apart, the tile's inset the
 group on every side.
 
+## The card
+
+The card a mark or a fact opens (`CardBody`, shared by the drawing and the
+digest) has its own module and voice (`TYPE_VOICES.card`); its container
+places and frames it, with the group as its inset.
+
+| Level | Role | Set as |
+|---|---|---|
+| `eyebrow` | caption | The pin and the system's name: 600, capitals, ink 3, after an em-long stroke of the layer colour. |
+| `label` | caption | What the thing is: 400, ink 2. |
+| `value` | body | The person's value at it: 600, ink, balanced wrapping. |
+| `meaning` | caption | What the tradition reads into it: running text at the role's leading, ink 2, pretty wrapping. |
+| `facts` | caption | The facts row: a fact's name 400 in ink 3, its value 500 in ink. |
+
+Pairs that read against each other: the eyebrow and the value, the label
+and the value, the value and the meaning. The eyebrow, label and value are
+a pair apart; the meaning and the facts a group below. The body keeps the
+meaning to at least 45 characters a line ("Measure"), within the container's
+own bound (half the stage, or the window less the card's gap).
+
 ## Acceptance
 
 - Every font size in the lab's CSS modules is a role, and in a voiced
@@ -310,10 +347,13 @@ group on every side.
   `type-voice.test.ts`).
 - The scale is monotonic and nothing resolves below 11 px.
 - Every voice's pairs hold the contrast rule at every tested width.
-- Every voice sets its parts further apart than the lines of any fact.
+- Every voice sets its parts further apart than the lines of any fact, and
+  spaces only by the tokens.
+- A size marked as drawing sits in a rule that paints an SVG.
 - Space Grotesk appears only in rules set at figure or larger, outside the
   listed rules.
-- The home hero with the sample person, at 100 % zoom, at 1512×768,
+- The home hero with the sample person, at 100 % zoom, in engines that
+  trim, at 1512×768,
   1440×730, 1440×900, 1280×720, 1100 and 390, dark and light, with motion
   on and reduced: the claim column and the rail fit with nothing cut off
   and no scroll, no tile's content is taller or wider than the tile, every
