@@ -247,26 +247,39 @@ On both platforms the box is `size` tall and the mark's own aspect wide.
 
 The mark beside the name is set the way a system symbol sits in a line of
 text: sized from the word's type and centred on its capitals. `lockup()` in
-`mark.ts` derives the proportions from the drawing, in cap heights of the
-word's font:
+`mark.ts` derives the proportions from the drawing and the face, in cap
+heights of the word's font:
 
-- **Size.** The mark is one cap height wide; its height follows from the
-  drawing, two caps for the table as it stands. Set by the body, brim to
-  foot, at one cap, the mark is narrower than the word's P and reads as a
-  stray letter. At one cap wide it holds its own beside the word, and its
-  wall comes to the word's stem (below).
+- **Size.** The mark takes the room of a letter: it is as wide as the
+  name's initial sets in the display face. That is Space Grotesk's P at
+  weight 500, 0.6026 em, or 0.861 of a cap. The height follows from the
+  drawing, twice the width for the table as it stands. At that width the
+  mark holds its own beside the word without turning into a separate icon.
+  A mark with its body one cap tall is narrower than the P and reads as a
+  stray letter. A mark one cap wide matches a 28 px icon, which reads apart
+  from the word.
 - **Centre.** The mark's middle sits on the middle of the capitals, half a
   cap above the baseline. The ring rises above the cap line by as much as
   the base hangs below the baseline. Apple's SF Symbols are placed the same
   way: the system centres every symbol on San Francisco's cap height, at
   every scale and weight (Apple, WWDC21 session 10097).
-- **Gap.** The space to the word is half the mark's width, half a cap. It is
-  measured from the mark's ink to the word's advance box. The word's own
-  sidebearing then adds to it, as it does between any two letters.
-- **Weight.** At this size the mark's wall is 3/20 of a cap. A Space Grotesk
-  stem at weight 500 is 0.16 of a cap (0.114 em over a 0.7 em cap, measured
-  from the face's `I`). So the word is set at 500, and neither half reads
-  heavier (make-interfaces-feel-better, "Match icon stroke to text weight").
+- **Gap.** The space to the word is half the mark's width. It is measured
+  from the mark's ink to the word's advance box. The word's own sidebearing
+  then adds to it, as it does between any two letters.
+- **Weight.** The word is set at 500. The mark is a filled shape, so it
+  weighs by its area, not by the thickness of its wall. Set beside it, a
+  400 word reads thin and a 600 word heavy; 500 balances it.
+
+The lockup owns its face and weight: its CSS module sets the word in the
+display face at 500, so every caller gets the same word, and the metrics
+the rules read (`DISPLAY_FACE`) are the face it draws in. A caller sets
+only the size.
+
+The advance lives in `FACES` in `type-scale.ts`, beside the face's other
+metrics, and `LOCKUP_WIDTH` in `mark.ts` reads it for the name's initial. A
+renamed brand whose initial the table lacks fails when the module loads.
+The e2e check measures the initial in the live font, so a changed face
+fails too.
 
 `BrandLockup` in `brand-mark.tsx` writes these as `--lockup-*`, and its CSS
 module turns them into lengths with the `cap` unit. The browser reads the
@@ -277,9 +290,11 @@ lockup centres the mark on that band, and the lockup's box is the mark's
 ink. A bar that centres the lockup therefore centres the mark, with no
 offset for the ring or the base.
 
-The lockup's own baseline is the mark's bottom, not the word's, so a caller
-centres it and never sets it on a line of text. The nav and the footer
-centre it.
+The lockup's own baseline is the mark's bottom, not the word's. Set on a
+line of text, it would ride on that line's strut and carry its descent
+below the mark, so a caller places it in a block-level or flex box, never
+inline in text. The bento site's `.brand` link is block-level and only as
+wide as the lockup, in the bar and in the footer.
 
 Two fallbacks keep the mark on the capitals:
 
@@ -337,19 +352,27 @@ capitals.
     from the outputs table;
   - every painted pixel of the mark lies inside each safe circle;
   - each URL has one owner.
-- `lockup()` puts the mark one cap wide and the gap at half its width, for
-  the table and for every fitted table from 12 to 32 px, and the table's
-  mark two caps tall. The display face's capitals sit within a pixel of the
-  middle of its line at the lead role's largest size (`mark.test.ts`).
-- In every rendered lockup, nav and footer both present:
+- `mark.test.ts` checks the lockup's numbers:
+  - `LOCKUP_WIDTH` is the initial's advance over the cap;
+  - for the table and every fitted table from 12 to 32 px, `lockup()`
+    makes the mark that wide and puts the gap at half its width;
+  - the table's mark is twice as tall as it is wide;
+  - the display face's capitals sit within a pixel of the middle of its
+    line at the lead role's largest size.
+- `type-scale.test.ts` holds each face's cap, ascent and descent equal to
+  Next's capsize metrics for its font.
+- In every visible lockup, with one each in the nav and the footer:
   - the mark's middle sits on the middle of the word's capitals;
-  - its width equals the cap height;
-  - the space to the word is half a cap;
+  - its width equals the initial's advance, measured in the live font;
+  - the space to the word is half the mark's width;
+  - the word's box is its cap band;
   - the lockup's top and bottom are the mark's;
-  - in the nav, the mark's middle is the bar's.
+  - in the nav, the mark's middle is the bar's;
+  - no box between the lockup and block flow sits on a line of text.
 
-  All hold within a pixel, at 1440 and 390 px
-  (`scripts/e2e/run-e2e.mjs`, `09-bento`).
+  All hold within a pixel, at 1440 and 390 px. The run repeats with
+  `text-box` turned off, where every check but the cap band and the box
+  must still hold (`scripts/e2e/run-e2e.mjs`, `09-bento`).
 - Every web call site renders with no layout shift and no horizontal
   overflow at 1440 and 390 px. The 16 px favicon reads as a lantern.
 

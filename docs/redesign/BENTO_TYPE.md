@@ -291,7 +291,10 @@ Faces stay as `src/app/layout.tsx` loads them:
   a rule that inherits the face, or names it without a size, is outside
   what the test can see. Rules that set it smaller before this held lab-wide
   are listed in the test (`DISPLAY_IN_TEXT`), and each leaves the list as
-  its component takes a voice.
+  its component takes a voice. The brand lockup's word is the logo, not
+  text: it is always the display face at 500, at whatever size its caller
+  sets, and its sheet names the face with no size (BRAND_MARK.md
+  "Lockup").
 - **Barlow** (`--font-sans`) sets everything else, numbers included, with
   tabular lining figures (`tnum`, `lnum`) wherever a number can change
   while the reader watches, so a digit's width never moves its line.
