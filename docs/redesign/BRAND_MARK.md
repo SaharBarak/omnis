@@ -245,31 +245,66 @@ On both platforms the box is `size` tall and the mark's own aspect wide.
 
 ## Lockup
 
-The mark beside the name is set as type, not as an icon centred on the
-text. `lockup()` in `mark.ts` derives its proportions from the drawing, in
-cap heights of the word's font:
+The mark beside the name is set the way a system symbol sits in a line of
+text: sized from the word's type and centred on its capitals. `lockup()` in
+`mark.ts` derives the proportions from the drawing, in cap heights of the
+word's font:
 
-- The body, from the brim to the foot, is one cap height. Its flat foot
-  stands on the baseline. Its round crown rises a little past the cap line,
-  as round letters overshoot.
-- The ring rises above the body like an ascender, and the base hangs below
-  the baseline like a descender.
-- The gap to the word is half the mark's width.
+- **Size.** The mark is one cap height wide; its height follows from the
+  drawing, two caps for the table as it stands. Set by the body, brim to
+  foot, at one cap, the mark is narrower than the word's P and reads as a
+  stray letter. At one cap wide it holds its own beside the word, and its
+  wall comes to the word's stem (below).
+- **Centre.** The mark's middle sits on the middle of the capitals, half a
+  cap above the baseline. The ring rises above the cap line by as much as
+  the base hangs below the baseline. Apple's SF Symbols are placed the same
+  way: the system centres every symbol on San Francisco's cap height, at
+  every scale and weight (Apple, WWDC21 session 10097).
+- **Gap.** The space to the word is half the mark's width, half a cap. It is
+  measured from the mark's ink to the word's advance box. The word's own
+  sidebearing then adds to it, as it does between any two letters.
+- **Weight.** At this size the mark's wall is 3/20 of a cap. A Space Grotesk
+  stem at weight 500 is 0.16 of a cap (0.114 em over a 0.7 em cap, measured
+  from the face's `I`). So the word is set at 500, and neither half reads
+  heavier (make-interfaces-feel-better, "Match icon stroke to text weight").
 
-`BrandLockup` in `brand-mark.tsx` writes these as `--lockup-*` and its CSS
+`BrandLockup` in `brand-mark.tsx` writes these as `--lockup-*`, and its CSS
 module turns them into lengths with the `cap` unit. The browser reads the
 cap height from the font in use, so the lockup follows any size or face the
-surrounding text sets. A fallback face gives a slightly different lockup
-until the web font loads; nothing else changes. Where a browser lacks the
-`cap` unit, the display face's cap-to-em ratio (`DISPLAY_FACE` in
-`type-scale.ts`, read from the font's OS/2 table) stands in. The thin parts
-are fitted for a lockup set in the lead role unless a caller passes `fit`. The proportions come from
-the fitted table the mark is drawn with (`optical(fit)`), so a small lockup
-whose parts grew still sits on its baseline.
+surrounding text sets. The word is trimmed to its capitals
+(`text-box: trim-both cap alphabetic`), so its box is the cap band. The
+lockup centres the mark on that band, and the lockup's box is the mark's
+ink. A bar that centres the lockup therefore centres the mark, with no
+offset for the ring or the base.
 
-The word is set at weight 500. Its stems are then about as thick as the
-mark's wall, so neither half reads heavier (make-interfaces-feel-better,
-"Match icon stroke to text weight").
+The lockup's own baseline is the mark's bottom, not the word's, so a caller
+centres it and never sets it on a line of text. The nav and the footer
+centre it.
+
+Two fallbacks keep the mark on the capitals:
+
+- **No `text-box`.** The word keeps its whole line, and the mark centres on
+  that line instead. A face whose capitals sit mid-line loses nothing, and
+  Space Grotesk's do: with an ascent of 0.984 em, a descent of 0.292 em and
+  a cap of 0.7 em, the middle of its capitals is 0.004 em from the middle
+  of its line, under a tenth of a pixel at the lead role's largest size.
+  A rendered line snaps its baseline to the pixel grid, so the drawn mark
+  lands within a pixel of the capitals. `capOffset` in `type-scale.ts`
+  computes the offset from `FACES`, and a test holds the display face under
+  a pixel, so a face that breaks it fails before it ships.
+- **No `cap` unit (Safari before 17.2).** The display face's cap-to-em ratio
+  (`DISPLAY_FACE` in `type-scale.ts`, read from the font's OS/2 table)
+  stands in for every length. The fallback only swaps the unit; it moves
+  nothing.
+
+A fallback face gives a slightly different lockup until the web font loads;
+nothing else changes.
+
+The thin parts are fitted for a lockup set at the lead role's smallest size
+unless a caller passes `fit`, so no part falls under a pixel at any width.
+The proportions come from the fitted table the mark is drawn with
+(`optical(fit)`), so a small lockup whose parts grew stays centred on its
+capitals.
 
 ## Acceptance
 
@@ -302,8 +337,18 @@ mark's wall, so neither half reads heavier (make-interfaces-feel-better,
     from the outputs table;
   - every painted pixel of the mark lies inside each safe circle;
   - each URL has one owner.
-- In the lockup, the body's foot sits on the word's baseline and its brim
-  on the cap line, within a pixel, at 1440 and 390 px
+- `lockup()` puts the mark one cap wide and the gap at half its width, for
+  the table and for every fitted table from 12 to 32 px, and the table's
+  mark two caps tall. The display face's capitals sit within a pixel of the
+  middle of its line at the lead role's largest size (`mark.test.ts`).
+- In every rendered lockup, nav and footer both present:
+  - the mark's middle sits on the middle of the word's capitals;
+  - its width equals the cap height;
+  - the space to the word is half a cap;
+  - the lockup's top and bottom are the mark's;
+  - in the nav, the mark's middle is the bar's.
+
+  All hold within a pixel, at 1440 and 390 px
   (`scripts/e2e/run-e2e.mjs`, `09-bento`).
 - Every web call site renders with no layout shift and no horizontal
   overflow at 1440 and 390 px. The 16 px favicon reads as a lantern.
@@ -314,3 +359,4 @@ mark's wall, so neither half reads heavier (make-interfaces-feel-better,
 | --- | --- | --- | --- |
 | Codex (gpt-6-astra) | Spec, module boundaries, platform icon rules, drift coverage | 2026-10-30 | Incorporated |
 | Solution-architect review agent | Implementation against this spec: geometry, optical fit, rasters, tests, conventions | 2026-10-30 | Incorporated |
+| Codex (gpt-6-astra) | Lockup: size rule, centring, CSS placement and fallbacks, tests | 2026-11-05 | Incorporated |
