@@ -8,24 +8,55 @@
  */
 
 .digest {
-  /* Marks are as tall as the lines they stand beside, so they scale with the type. */
-  --lead-mark: calc((var(--type-lead) + var(--type-caption)) * var(--type-ui-lh));
-  --support-mark: calc(var(--type-small) * var(--type-ui-lh));
-  --tile-pad-block: 6px;
-  --tile-pad-inline: 12px;
-  /* A fact's fill reaches this far past its words, inside the tile's padding. */
+  /*
+   * Lines are trimmed to their capitals and spaced by the type (BENTO_TYPE.md,
+   * "Trimmed lines"): a fact's lines a pair apart (the room the upper line's
+   * em box leaves below its caps), a tile's parts and its inset a group apart.
+   */
+  --group: var(--type-group);
+  --pair-lead: calc(var(--type-room) * var(--voice-lead));
+  --pair-value: calc(var(--type-room) * var(--voice-value));
+  /* A mark is as tall as the em boxes of the lines it stands beside ("Marks"). */
+  --lead-mark: calc(var(--voice-lead) + var(--voice-note));
+  --support-mark: var(--voice-value);
+  /* A fact's fill reaches this far past its words, inside the tile's inset. */
   --fact-pad: 3px;
   /* Concentric with the tile: its radius less the space between their edges. */
-  --fact-radius: calc(var(--radius-card) - var(--tile-pad-block) + var(--fact-pad));
-  --support-gap: 12px;
+  --fact-radius: calc(var(--radius-card) - var(--group) + var(--fact-pad));
   /* The least hit area for the pin toggle (WCAG 2.5.8 and platform guidance): 40 px, 44 px under a finger. */
   --hit: 40px;
 
   display: flex;
   flex-wrap: wrap;
   gap: var(--tile-gap);
+  /* Every number in a tile changes as the birth data does; tabular figures keep its width. */
+  font-variant-numeric: tabular-nums lining-nums;
+  /* The head's line: trimmed to its capitals where the browser trims, else its full line. */
+  --head-line: calc(var(--voice-eyebrow) * var(--type-ui-lh));
   /* Room above the first row for the pin's hit area, which overhangs its tile; a scrolling column would clip it. */
-  padding-block-start: max(0px, calc(var(--hit) / 2 - var(--edge-w) - var(--tile-pad-block) - var(--type-caption) * var(--type-ui-lh) / 2));
+  padding-block-start: max(0px, calc(var(--hit) / 2 - var(--edge-w) - var(--group) - var(--head-line) / 2));
+}
+
+@supports (text-box: trim-both cap alphabetic) {
+  .digest {
+    --head-line: calc(var(--voice-eyebrow) * var(--type-cap));
+  }
+}
+
+/*
+ * A trimmed line: its box is its capitals, so the space around it is only
+ * what is set there. Trimmed boxes hold text, never a clip: a rolling number
+ * sits inline in one, so its clip keeps the digits' ink.
+ */
+.nameText,
+.leadValue,
+.leadNote,
+.leadLabel[data-shown],
+.leadNumeral,
+.value,
+.label,
+.numeral {
+  text-box: trim-both cap alphabetic;
 }
 
 @media (pointer: coarse) {
@@ -40,10 +71,11 @@
 
   flex: 1 1 0;
   display: grid;
-  align-content: center;
-  gap: 2px;
+  /* Stretched past its content, a tile shares the extra between its inset and its groups, so its rhythm keeps its proportions. */
+  align-content: space-evenly;
+  gap: var(--group);
   min-width: min-content;
-  padding: var(--tile-pad-block) var(--tile-pad-inline);
+  padding: var(--group);
   border: var(--edge-w) solid var(--elevation-edge);
   border-radius: var(--radius-card);
   background: var(--lab-surface);
@@ -120,7 +152,7 @@
 
 .name {
   white-space: nowrap;
-  font-size: var(--type-caption);
+  font-size: var(--voice-eyebrow);
   line-height: var(--type-ui-lh);
   font-weight: 600;
   letter-spacing: var(--type-caps-ls);
@@ -141,12 +173,12 @@
   border-radius: 50%;
   background: var(--tile);
   color: var(--on-tile);
-  font-size: var(--type-micro);
+  font-size: var(--voice-pin);
   font-weight: 600;
   line-height: 1;
   cursor: pointer;
-  /* The disc is taller than the name's line; it overhangs into the padding, so the head keeps the name's height. */
-  margin-block: calc((var(--type-caption) * var(--type-ui-lh) - var(--pin)) / 2);
+  /* The disc is taller than the name's line; it overhangs into the inset and the group, so the head keeps the name's height. */
+  margin-block: calc((var(--head-line) - var(--pin)) / 2);
 }
 
 /* The hit area, wider than the disc, so the head keeps its height. */
@@ -174,8 +206,17 @@
     'mark value value'
     'mark label note';
   align-items: center;
+  row-gap: var(--pair-lead);
 }
 
+/* Trimmed, the lead's two lines are shorter than its mark; the mark overhangs them into the groups around, so it adds no height. */
+@supports (text-box: trim-both cap alphabetic) {
+  .leadMark {
+    margin-block: min(0px, calc((var(--voice-lead) * var(--type-cap) + var(--pair-lead) + var(--voice-note) * var(--type-cap) - var(--lead-mark)) / 2));
+  }
+}
+
+/* Centred on the lead's lines, however many. */
 .leadMark {
   --glyph: var(--lead-mark);
 
@@ -185,32 +226,27 @@
   justify-content: center;
   min-width: var(--lead-mark);
   height: var(--lead-mark);
-  margin-inline-end: 10px;
+  margin-inline-end: var(--group);
   color: var(--tile);
 }
 
 .leadValue {
   grid-area: value;
-  font-size: var(--type-lead);
+  font-size: var(--voice-lead);
   line-height: var(--type-ui-lh);
   font-weight: 600;
-  letter-spacing: var(--type-lead-ls);
+  letter-spacing: var(--voice-lead-ls);
   color: var(--lab-ink);
   text-wrap: balance;
-}
-
-.leadValue[data-figure] {
-  font-family: var(--font-display), system-ui, sans-serif;
-  font-variant-numeric: tabular-nums;
 }
 
 /* The lead's own label: spoken first; shown before the note where the note is its value (`Kin 60`). */
 .leadLabel {
   grid-area: label;
-  font-size: var(--type-caption);
+  font-size: var(--voice-note);
   line-height: var(--type-ui-lh);
-  font-weight: 500;
-  letter-spacing: var(--type-caption-ls);
+  font-weight: 400;
+  letter-spacing: var(--voice-note-ls);
   color: var(--lab-text-3);
 }
 
@@ -230,27 +266,27 @@
 .leadNote {
   grid-area: note;
   min-width: 0;
-  font-size: var(--type-caption);
+  font-size: var(--voice-note);
   line-height: var(--type-ui-lh);
   font-weight: 500;
-  letter-spacing: var(--type-caption-ls);
+  letter-spacing: var(--voice-note-ls);
   color: var(--lab-text-2);
 }
 
 .noteLabel {
   margin-inline-end: 0.3em;
+  font-weight: 400;
   color: var(--lab-text-3);
 }
 
-/* A number as the lead's mark: the figure role, in ink. */
+/* A number as the lead's mark: the figure, in ink, its line trimmed to its digits so the mark centres on them. */
 .leadNumeral {
   min-width: max-content;
   font-family: var(--font-display), system-ui, sans-serif;
-  font-size: var(--type-figure);
+  font-size: var(--voice-figure);
   font-weight: 600;
   line-height: 1;
-  letter-spacing: var(--type-figure-ls);
-  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--voice-figure-ls);
   color: var(--lab-ink);
 }
 
@@ -259,7 +295,7 @@
 .supports {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px calc(var(--support-gap) + 2 * var(--fact-pad));
+  gap: var(--group) calc(var(--group) + 2 * var(--fact-pad));
 }
 
 .support {
@@ -269,48 +305,61 @@
   grid-template-areas:
     'mark value'
     'label label';
-  column-gap: 5px;
-  align-items: center;
+  column-gap: calc(var(--type-room) * var(--voice-value));
+  row-gap: var(--pair-value);
+  /* A mark stands on its value's first line, however many the value wraps to. */
+  align-items: start;
 }
 
 .mark {
   --glyph: var(--support-mark);
+  /* The value's first line: trimmed to its capitals where the browser trims, else its full line. */
+  --value-line: calc(var(--voice-value) * var(--type-ui-lh));
 
   grid-area: mark;
   display: flex;
   align-items: center;
   justify-content: center;
   height: var(--support-mark);
+  /* Centred on that line; where the mark is taller, it overhangs into the space around, so it adds no height. */
+  margin-block: min(0px, calc((var(--value-line) - var(--support-mark)) / 2));
+  padding-block: max(0px, calc((var(--value-line) - var(--support-mark)) / 2));
+  box-sizing: content-box;
   color: var(--tile);
+}
+
+@supports (text-box: trim-both cap alphabetic) {
+  .mark {
+    --value-line: calc(var(--voice-value) * var(--type-cap));
+  }
 }
 
 .value {
   grid-area: value;
-  font-size: var(--type-small);
+  font-size: var(--voice-value);
   line-height: var(--type-ui-lh);
   font-weight: 500;
-  letter-spacing: var(--type-small-ls);
+  letter-spacing: var(--voice-value-ls);
   color: var(--lab-ink);
   text-wrap: balance;
 }
 
 .label {
   grid-area: label;
-  font-size: var(--type-caption);
+  font-size: var(--voice-label);
   line-height: var(--type-ui-lh);
-  font-weight: 500;
-  letter-spacing: var(--type-caption-ls);
+  font-weight: 400;
+  letter-spacing: var(--voice-label-ls);
   color: var(--lab-text-3);
 }
 
-/* A number as a support's mark: read aloud, never wrapped; its rolling copies clip, so it holds its width. */
+/* A number as a support's mark: a word of the value's line, the same trimmed box, so the two share a baseline. Never wrapped; its rolling copies clip, so it holds its width. */
 .numeral {
   min-width: max-content;
-  font-family: var(--font-display), system-ui, sans-serif;
-  font-size: var(--type-small);
+  font-size: var(--voice-value);
   font-weight: 600;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
+  line-height: var(--type-ui-lh);
+  white-space: nowrap;
   color: var(--lab-ink);
 }
 
@@ -368,7 +417,7 @@
   padding: 10px 12px;
   border-radius: var(--radius-control);
   color: var(--lab-ink);
-  font-size: var(--type-caption);
+  font-size: var(--voice-card);
   line-height: 1.35;
   text-align: start;
   opacity: 0;

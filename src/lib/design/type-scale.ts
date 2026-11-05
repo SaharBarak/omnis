@@ -13,6 +13,8 @@
 
 import { PAGE } from './layout-tokens'
 
+const round = (value: number, places = 4): number => Number(value.toFixed(places))
+
 export const TYPE_SCALE = Object.freeze({
   /** The body, in px: the scale's step 0, and every browser's default rem. */
   base: 16,
@@ -40,11 +42,40 @@ export const TYPE_SCALE = Object.freeze({
 })
 
 /**
- * The display face's metrics, read from its OS/2 table (Space Grotesk:
- * sCapHeight 700 of 1000 units per em). The brand lockup sets its mark in
- * cap heights; where a browser lacks the `cap` unit, this ratio stands in.
+ * Each face's cap height, read from its OS/2 table: `sCapHeight` 700 of 1000
+ * units per em in both Barlow (text) and Space Grotesk (display). The brand
+ * lockup sets its mark in cap heights; a trimmed line is one cap height tall.
  */
-export const DISPLAY_FACE = Object.freeze({ capHeight: 0.7 })
+export const FACES = Object.freeze({
+  text: Object.freeze({ capHeight: 0.7 }),
+  display: Object.freeze({ capHeight: 0.7 }),
+})
+
+/** The display face's metrics; where a browser lacks the `cap` unit, its ratio stands in. */
+export const DISPLAY_FACE = FACES.display
+
+/**
+ * Trimmed lines (BENTO_TYPE.md, "Trimmed lines"). A line trimmed to its cap
+ * height and baseline is `cap` em tall; the lines of one fact stand apart by
+ * the room the upper line's em box leaves below its capitals, `room` em of
+ * that line; the parts of a component stand apart by `group` pairs of the
+ * body, which proximity reads as a new group.
+ */
+export const TRIM = Object.freeze({
+  cap: FACES.text.capHeight,
+  room: round(1 - FACES.text.capHeight, 3),
+  group: 2,
+})
+
+/** The space between a component's parts, and its inset, in px: `group` pairs of the body. */
+export const groupPx = (scale = TYPE_SCALE): number => round(TRIM.group * TRIM.room * scale.base, 2)
+
+/**
+ * Levels that read against each other share a size or differ by at least
+ * the open end's ratio, the step a reader sees as a new level at every width
+ * (BENTO_TYPE.md, "Contrast"). One dense step (1.125) reads as an accident.
+ */
+export const LEVEL_CONTRAST = TYPE_SCALE.wide.ratio
 
 /** Each role's place on the scale. Steps at or below `lead` are running text. */
 export const TYPE_STEPS = Object.freeze({
@@ -67,8 +98,6 @@ export type TypeRole = keyof typeof TYPE_STEPS
 export type TypeSize =
   | { readonly kind: 'fixed'; readonly px: number }
   | { readonly kind: 'fluid'; readonly min: number; readonly max: number; readonly rem: number; readonly vw: number }
-
-const round = (value: number, places = 4): number => Number(value.toFixed(places))
 
 /** The size of a step: fluid above the body, fixed at the dense ratio at and below it. */
 export function stepSize(step: number, scale = TYPE_SCALE): TypeSize {
@@ -148,4 +177,10 @@ export const typeCssVars = (): Readonly<Record<string, string>> => ({
   '--type-caps-ls': `${CAPS_TRACKING}em`,
   /** Short UI strings that may wrap once (a value, a seal's title): the first heading's leading, not prose leading. */
   '--type-ui-lh': String(TYPE_SCALE.set.heading.leading),
+  /** A trimmed line's height, in em of its size. */
+  '--type-cap': String(TRIM.cap),
+  /** The space under a trimmed line before the next line of its fact, in em of the upper line's size. */
+  '--type-room': String(TRIM.room),
+  /** The space between a component's parts, and its inset. */
+  '--type-group': `${round(groupPx() / TYPE_SCALE.base)}rem`,
 })

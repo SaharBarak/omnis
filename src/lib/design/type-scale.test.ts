@@ -41,8 +41,8 @@ describe('the type scale', () => {
   })
 })
 
-/* Every font size in the lab is a role (docs/redesign/BENTO_TYPE.md, "Custom properties"); SVG text in viewBox units is marked as drawing. */
-const ALLOWED = /^(var\(--type-[a-z]+\)|inherit|-?\d*\.?\d+em|calc\(.*var\(--type-[a-z]+\).*\))$/
+/* Every font size in the lab is a role, or a voice's level that names one (docs/redesign/BENTO_TYPE.md, "Custom properties", "Voices"); SVG text in viewBox units is marked as drawing. */
+const ALLOWED = /^(var\(--(type|voice)-[a-z]+\)|inherit|-?\d*\.?\d+em|calc\(.*var\(--(type|voice)-[a-z]+\).*\))$/
 
 describe('lab CSS takes its sizes from the scale', () => {
   const sheets = labSheets()

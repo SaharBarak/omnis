@@ -17,6 +17,7 @@ import { useGrace } from './use-grace'
 import { Rolling } from '../motion/rolling'
 import { DIGEST_SHAPE, tileEyebrow, tileLayer, tileName, tileOf, tilePin, type FactShape, type TileId } from '@/lib/atlas/digest-shape'
 import { DIGEST } from '@/lib/atlas/layers'
+import { TYPE_VOICES, voiceCssVars } from '@/lib/design/type-voice'
 import { PLACE_NAMES } from '@/lib/atlas/long-count'
 import { sealName } from '@/lib/atlas/marks'
 import { LARGEST } from '@/lib/atlas/maya-numeral'
@@ -70,8 +71,12 @@ const Glyphs = ({ signs }: { signs: readonly GlyphRef[] }) => (
 /** An empty mark: the fact waits on an input, or has no mark of its own. */
 const Open = () => <span className={d.open} aria-hidden />
 
-/** A number as a mark: read aloud, set in the display face. */
-const Numeral = ({ value }: { value: string | number }) => <Rolling value={value} className={d.numeral} />
+/** A number as a mark: read aloud, a word of its value's line; it rolls inside a trimmed line, so its clip keeps the digits' ink. */
+const Numeral = ({ value }: { value: string | number }) => (
+  <span className={d.numeral}>
+    <Rolling value={value} />
+  </span>
+)
 
 /** A Maya numeral standing on its box's floor, in a box as tall as `largest`, so a row of them shares one line. */
 const NumeralMark = ({ value, largest }: { value: number; largest: number }) => {
@@ -83,6 +88,9 @@ const NumeralMark = ({ value, largest }: { value: number; largest: number }) => 
     </svg>
   )
 }
+
+/** The digest's text levels as custom properties (BENTO_TYPE.md, "The digest"), set once on its root. */
+const VOICE = voiceCssVars(TYPE_VOICES.digest)
 
 /** Either sign of a body whose day's arc crosses into the next, never a guess between them. */
 const OR = ' or '
@@ -216,7 +224,11 @@ const number = (atlas: PersonAtlas): TileView => {
     lead: lead(shape, {
       ref: { kind: 'number', role: 'lifePath' },
       value: name,
-      mark: <Rolling value={n} className={d.leadNumeral} />,
+      mark: (
+        <span className={d.leadNumeral}>
+          <Rolling value={n} />
+        </span>
+      ),
       note: NO_NOTE,
       labelShown: true,
       head: { label: `${shape.label} ${n}`, value: name },
@@ -355,7 +367,7 @@ function Tile({ tile, atlas, focus, spot, onFocus, facts }: TileProps) {
     >
       <div className={d.head}>
         <FactButton {...facts} shown={{ ref: system, head: { layer, eyebrow, label: 'System', value: name } }} className={`${d.fact} ${d.name}`}>
-          {name}
+          <span className={d.nameText}>{name}</span>
         </FactButton>
         {layer !== null && pin !== null && (
           <button type="button" className={d.pin} aria-pressed={current} aria-label={`Bring ${name} forward`} onClick={() => onFocus(current ? null : layer)}>
@@ -451,7 +463,7 @@ export function AtlasDigest({
     <div
       ref={rootRef}
       className={[d.digest, s.tokens, className].filter(Boolean).join(' ')}
-      style={{ '--fact-anchor': anchor } as CSSProperties}
+      style={{ ...VOICE, '--fact-anchor': anchor } as CSSProperties}
       role="group"
       aria-label="Map at a glance"
     >

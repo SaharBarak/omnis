@@ -48,3 +48,31 @@ export function declarations(sheets: readonly Sheet[], property: RegExp): readon
     }),
   )
 }
+
+export interface Rule {
+  /** `path:line` of the rule's selector. */
+  readonly at: string
+  readonly selector: string
+  /** The rule's own declarations, property to value, comments left out. */
+  readonly decls: Readonly<Record<string, string>>
+}
+
+/** Every innermost rule in a sheet (a selector and its declarations), at-rule wrappers looked through. */
+export function rules({ path, lines }: Sheet): readonly Rule[] {
+  const text = lines.join('\n').replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, ' '))
+  const found: Rule[] = []
+  for (const match of text.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const head = match[1]!
+    const selector = head.trim()
+    if (selector.startsWith('@')) continue
+    const line = text.slice(0, match.index! + head.length - head.trimStart().length).split('\n').length
+    const decls = Object.fromEntries(
+      match[2]!
+        .split(';')
+        .map((decl) => decl.split(/:(.*)/s).map((part) => part.trim()))
+        .filter((pair): pair is [string, string] => pair.length >= 2 && pair[0] !== '' && pair[1] !== undefined && pair[1] !== ''),
+    )
+    found.push({ at: `${path}:${line}`, selector, decls })
+  }
+  return found
+}
