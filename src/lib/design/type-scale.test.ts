@@ -1,6 +1,8 @@
+import { readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { describe, expect, it } from 'vitest'
 import { declarations, labSheets, rules } from './lab-sheets'
-import { TYPE_SCALE, TYPE_STEPS, isText, roleSet, sizeAt, stepSize, typeCssVars, type TypeRole } from './type-scale'
+import { FACES, TYPE_SCALE, TYPE_STEPS, isText, roleSet, sizeAt, stepSize, typeCssVars, type TypeRole } from './type-scale'
 
 const ROLES = (Object.keys(TYPE_STEPS) as TypeRole[]).sort((a, b) => TYPE_STEPS[a] - TYPE_STEPS[b])
 const WIDTHS = [320, TYPE_SCALE.narrow.width, 390, 768, 1100, TYPE_SCALE.wide.width, 1920]
@@ -69,5 +71,29 @@ describe('lab CSS takes its sizes from the scale', () => {
       .filter(({ value }) => value !== 'inherit')
       .map(({ at, value }) => `${at} font: ${value}`)
     expect([...sizes, ...shorthands]).toEqual([])
+  })
+})
+
+/** Each face's family as Next's capsize metrics name it (the faces `src/app/layout.tsx` loads). */
+const CAPSIZE_FAMILY = { text: 'barlow', display: 'spaceGrotesk' } as const satisfies Record<keyof typeof FACES, string>
+
+interface CapsizeMetrics {
+  readonly capHeight: number
+  readonly ascent: number
+  readonly descent: number
+  readonly lineGap: number
+  readonly unitsPerEm: number
+}
+
+describe('the faces', () => {
+  const capsize = JSON.parse(readFileSync(createRequire(import.meta.url).resolve('next/dist/server/capsize-font-metrics.json'), 'utf8')) as Record<string, CapsizeMetrics>
+
+  it.each(Object.entries(CAPSIZE_FAMILY))('%s keeps the metrics its font records', (face, family) => {
+    const font = capsize[family]!
+    const { capHeight, ascent, descent } = FACES[face as keyof typeof FACES]
+    expect(font.lineGap).toBe(0)
+    expect(capHeight).toBeCloseTo(font.capHeight / font.unitsPerEm, 9)
+    expect(ascent).toBeCloseTo(font.ascent / font.unitsPerEm, 9)
+    expect(descent).toBeCloseTo(-font.descent / font.unitsPerEm, 9)
   })
 })

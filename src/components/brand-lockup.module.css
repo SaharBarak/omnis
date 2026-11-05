@@ -4,7 +4,9 @@
  * on it centres the mark on the cap band, and the lockup's box is the mark's
  * ink: a bar that centres the lockup centres the mark. Without text-box the
  * word keeps its whole line and the mark centres on that; the display face
- * centres its capitals on its line, so the mark stays on them.
+ * centres its capitals on its line, so the mark stays on them. The word is
+ * the logo, not text: it is always the display face at 500, at whatever
+ * size the caller sets.
  */
 .lockup {
   --cap: 1cap;
@@ -12,6 +14,8 @@
   display: inline-flex;
   align-items: center;
   gap: calc(var(--cap) * var(--lockup-gap));
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 500;
 }
 
 .lockup > svg {

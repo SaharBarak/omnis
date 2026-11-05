@@ -93,7 +93,6 @@ const DISPLAY_IN_TEXT = new Set([
   'src/components/bento-lab/docs/docs.module.css .tileName',
   'src/components/bento-lab/people/people.module.css .panelTitle',
   'src/components/bento-lab/scenes/circle.module.css .bits',
-  'src/components/bento-lab/site/site.module.css .brand',
   'src/components/bento-lab/site/site.module.css .h3',
   'src/components/bento-lab/site/site.module.css .primary',
   'src/components/bento-lab/systems/systems.module.css .cellBig',

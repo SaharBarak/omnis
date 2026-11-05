@@ -4,6 +4,9 @@
  * no filesystem, so the inline component can import it on the client.
  */
 
+import { BRAND } from './identity'
+import { DISPLAY_FACE } from '@/lib/design/type-scale'
+
 /** The drawing in module units; one unit is a tenth of the body's half-width. */
 export interface Lantern {
   /** Radius of the body's arch, and its half-width. */
@@ -205,6 +208,19 @@ export function optical(px: number, l: Lantern = LANTERN): Lantern {
   return table
 }
 
+/** The name's initial: the mark takes its room in the lockup. */
+const INITIAL = BRAND.name.charAt(0)
+
+/** The mark's width in the lockup, in caps: the set width of the name's initial in the display face. */
+export const LOCKUP_WIDTH = ((): number => {
+  const advance = DISPLAY_FACE.advances[INITIAL]
+  if (advance === undefined) throw new Error(`The display face lists no advance for "${INITIAL}", the name's initial; measure it into FACES (type-scale.ts)`)
+  return advance / DISPLAY_FACE.capHeight
+})()
+
+/** The space between the mark and the word, as a share of the mark's width. */
+export const LOCKUP_GAP = 1 / 2
+
 /** How the mark sets beside its word, in cap heights of the word's font; the lockup centres it on the word's capitals. */
 export interface Lockup {
   /** The whole mark's height. */
@@ -214,17 +230,16 @@ export interface Lockup {
 }
 
 /**
- * The lockup, from the drawing (BRAND_MARK.md "Lockup"). The mark is one cap
- * wide; its height follows from the drawing. Centred on the capitals, as a
- * system symbol sits in a line of text, its ring rises above the cap line by
- * as much as its base hangs below the baseline. The gap to the word is half
- * the mark's width.
+ * The lockup, from the drawing (BRAND_MARK.md "Lockup"). The mark is `width`
+ * caps wide, the room of the name's initial unless a caller says otherwise;
+ * its height follows from the drawing's aspect. Centred on the capitals, as
+ * a system symbol sits in a line of text, its ring rises above the cap line
+ * by as much as its base hangs below the baseline.
  */
-export function lockup(l: Lantern = LANTERN): Lockup {
+export function lockup(l: Lantern = LANTERN, width: number = LOCKUP_WIDTH): Lockup {
   const y = levels(l)
-  const width = 2 * halfWidth(l)
-  const cap = width
-  return { height: (y.bottom - y.top) / cap, gap: width / 2 / cap }
+  const aspect = (y.bottom - y.top) / (2 * halfWidth(l))
+  return { height: width * aspect, gap: LOCKUP_GAP * width }
 }
 
 /** A tile's corner radius as a share of its side: Apple's app-icon corner. */

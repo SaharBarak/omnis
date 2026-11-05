@@ -2,7 +2,8 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import sharp from 'sharp'
 import { describe, expect, it } from 'vitest'
-import { LANTERN, MARK_MIN_PX, MARK_THEMES, OPTICAL_MIN_PX, lanternShape, lockup, markSvg, optical, sagitta } from './mark'
+import { BRAND } from './identity'
+import { LANTERN, LOCKUP_GAP, LOCKUP_WIDTH, MARK_MIN_PX, MARK_THEMES, OPTICAL_MIN_PX, lanternShape, lockup, markSvg, optical, sagitta } from './mark'
 import { MARK_TONES } from './mark-tones.gen'
 import { OG_SIZE } from './og-card'
 import { MARK_ROLES, OUTPUTS, drawingSvg, mobileModule, render, resolveMarkTones, tonesModule, type Output } from './outputs'
@@ -135,21 +136,27 @@ describe('the drawing at small sizes', () => {
   })
 })
 
+/** One CSS pixel: the most a lockup may sit off the place its rule sets. */
+const PIXEL = 1
+
 describe('the lockup', () => {
-  it.each([LANTERN, ...[12, 16, 20, 24, 32].map((px) => optical(px))])('is one cap wide and half its width from the word, at %#', (table) => {
-    const { box } = lanternShape(table)
-    const { height, gap } = lockup(table)
-    const cap = box.height / height
-    expect(box.width).toBeCloseTo(cap, 9)
-    expect(gap * cap).toBeCloseTo(box.width / 2, 9)
+  it('takes the room of the name\'s initial: as wide as the initial sets in the display face', () => {
+    expect(LOCKUP_WIDTH).toBeCloseTo(DISPLAY_FACE.advances[BRAND.name.charAt(0)]! / DISPLAY_FACE.capHeight, 9)
   })
 
-  it('is twice as tall as a cap for the table as it stands', () => {
-    expect(lockup(LANTERN).height).toBeCloseTo(2, 9)
+  it.each([LANTERN, ...[12, 16, 20, 24, 32].map((px) => optical(px))])('draws the mark as the shape it lays out, at %#', (table) => {
+    const { box } = lanternShape(table)
+    const { height, gap } = lockup(table)
+    expect(height).toBeCloseTo((box.height / box.width) * LOCKUP_WIDTH, 9)
+    expect(gap).toBeCloseTo(LOCKUP_GAP * LOCKUP_WIDTH, 9)
+  })
+
+  it('is twice as tall as it is wide for the table as it stands', () => {
+    expect(lockup(LANTERN).height).toBeCloseTo(2 * LOCKUP_WIDTH, 9)
   })
 
   it('stays on the capitals within a pixel where text-box is missing: the display face centres its capitals on its line', () => {
-    expect(Math.abs(capOffset(DISPLAY_FACE)) * largestPx(stepSize(TYPE_STEPS.lead))).toBeLessThan(OPTICAL_MIN_PX)
+    expect(Math.abs(capOffset(DISPLAY_FACE)) * largestPx(stepSize(TYPE_STEPS.lead))).toBeLessThan(PIXEL)
   })
 })
 

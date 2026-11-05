@@ -262,55 +262,92 @@ await check('08-hebrew-calendar', 'today-board-tap-through', async () => {
 })
 
 // ------------------------------------------------- bento lockup and action
-// BRAND_MARK.md "Lockup": the mark is one cap wide, its middle on the middle
-// of the word's capitals and half a cap from the word; the lockup's box is
-// the mark's ink, so the bar centres the mark. All within a pixel.
+// BRAND_MARK.md "Lockup": the mark is as wide as the name's initial sets in
+// the live font, its middle on the middle of the word's capitals and half its
+// width from the word; the word is its cap band and the lockup's box is the
+// mark's ink, so the bar centres the mark; no lockup sits on a line of text.
+// All within a pixel, with text-box and without it.
 // BENTO_SITE.md "Primary action": every primary is an ink pill with a spark
 // disc, at least 44 px tall to the pointer.
+/** Where every visible lockup on the page sits against its word, its bar and its rule; run in the page. */
+const measureLockups = () =>
+  [...document.querySelectorAll('[data-brand-lockup]')]
+    .filter((lockup) => lockup.checkVisibility())
+    .map((lockup) => {
+      const word = lockup.querySelector(':scope > span')
+      const probe = document.createElement('i')
+      probe.style.cssText = 'display:inline-block;width:0;height:0'
+      word.append(probe)
+      const baseline = probe.getBoundingClientRect().bottom
+      probe.remove()
+      const cap = document.createElement('i')
+      cap.style.cssText = 'position:absolute;width:0;height:1cap'
+      word.append(cap)
+      const capPx = cap.getBoundingClientRect().height
+      cap.remove()
+      const font = getComputedStyle(word)
+      const pen = document.createElement('canvas').getContext('2d')
+      pen.font = `${font.fontStyle} ${font.fontWeight} ${font.fontSize} ${font.fontFamily}`
+      const initial = pen.measureText(word.textContent.charAt(0)).width
+      const mark = lockup.querySelector('svg').getBoundingClientRect()
+      const box = lockup.getBoundingClientRect()
+      const text = word.getBoundingClientRect()
+      const bar = lockup.closest('nav')?.getBoundingClientRect()
+      const middle = (mark.top + mark.bottom) / 2
+      // A box sits on a line of text when it stays inline-level (a flex or grid item computes block-level). Walk up through
+      // flex and grid items until a block-level box in block flow, which no line holds.
+      let onLine = false
+      for (let at = lockup; at.parentElement; at = at.parentElement) {
+        if (getComputedStyle(at).display.startsWith('inline')) {
+          onLine = true
+          break
+        }
+        if (!/flex|grid/.test(getComputedStyle(at.parentElement).display)) break
+      }
+      return {
+        where: bar ? 'nav' : lockup.closest('footer') ? 'footer' : 'other',
+        onLine,
+        centre: middle - (baseline - capPx / 2),
+        width: mark.width - initial,
+        gap: (font.direction === 'rtl' ? mark.left - text.right : text.left - mark.right) - mark.width / 2,
+        trim: text.height - capPx,
+        top: box.top - mark.top,
+        bottom: box.bottom - mark.bottom,
+        bar: bar ? middle - (bar.top + bar.bottom) / 2 : 0,
+      }
+    })
+
+/** The faults past a pixel, named, for the measures a run checks. */
+const lockupFaults = (offsets, measures) => {
+  const worst = (pick) => Math.max(...offsets.map(pick).map(Math.abs))
+  const named = {
+    centre: ['mark middle off the capitals by', (o) => o.centre],
+    width: ["mark width off the initial's advance by", (o) => o.width],
+    gap: ["gap off half the mark's width by", (o) => o.gap],
+    trim: ['word off its cap band by', (o) => o.trim],
+    box: ["lockup box off the mark's ink by", (o) => Math.max(Math.abs(o.top), Math.abs(o.bottom))],
+    bar: ["mark middle off the bar's by", (o) => o.bar],
+  }
+  const lines = offsets.filter((o) => o.onLine).map((o) => `the ${o.where} lockup sits on a line of text`)
+  const missing = ['nav', 'footer'].filter((where) => !offsets.some((o) => o.where === where)).map((where) => `no visible lockup in the ${where}`)
+  const off = measures.map((m) => [named[m][0], worst(named[m][1])]).filter(([, px]) => px > 1).map(([name, px]) => `${name} ${px.toFixed(2)} px`)
+  return [...missing, ...lines, ...off]
+}
+
 for (const width of [1440, 390]) {
   await check('09-bento', `lockup-on-capitals-${width}`, async () => {
     await page.setViewportSize({ width, height: 900 })
     await page.goto(`${BASE}/lab/bento`, { waitUntil: 'networkidle', timeout: 90_000 })
     await page.evaluate(() => document.fonts.ready)
-    const offsets = await page.evaluate(() =>
-      [...document.querySelectorAll('span[style*="--lockup-height"]')].map((lockup) => {
-        const word = lockup.querySelector(':scope > span')
-        const probe = document.createElement('i')
-        probe.style.cssText = 'display:inline-block;width:0;height:0'
-        word.append(probe)
-        const baseline = probe.getBoundingClientRect().bottom
-        probe.remove()
-        const cap = document.createElement('i')
-        cap.style.cssText = 'position:absolute;width:0;height:1cap'
-        word.append(cap)
-        const capPx = cap.getBoundingClientRect().height
-        cap.remove()
-        const mark = lockup.querySelector('svg').getBoundingClientRect()
-        const box = lockup.getBoundingClientRect()
-        const bar = lockup.closest('nav')?.getBoundingClientRect()
-        const middle = (mark.top + mark.bottom) / 2
-        return {
-          where: bar ? 'nav' : lockup.closest('footer') ? 'footer' : 'other',
-          centre: middle - (baseline - capPx / 2),
-          width: mark.width - capPx,
-          gap: word.getBoundingClientRect().left - mark.right - capPx / 2,
-          top: box.top - mark.top,
-          bottom: box.bottom - mark.bottom,
-          bar: bar ? middle - (bar.top + bar.bottom) / 2 : 0,
-        }
-      }),
-    )
-    for (const where of ['nav', 'footer']) if (!offsets.some((o) => o.where === where)) throw new Error(`no lockup in the ${where}`)
-    const worst = (pick) => Math.max(...offsets.flatMap(pick).map(Math.abs))
-    for (const [name, off] of Object.entries({
-      'mark middle off the capitals by': worst((o) => [o.centre]),
-      'mark width off the cap height by': worst((o) => [o.width]),
-      'gap off half a cap by': worst((o) => [o.gap]),
-      "lockup box off the mark's ink by": worst((o) => [o.top, o.bottom]),
-      "mark middle off the bar's by": worst((o) => [o.bar]),
-    })) {
-      if (off > 1) throw new Error(`${name} ${off.toFixed(2)} px`)
-    }
+    const faults = lockupFaults(await page.evaluate(measureLockups), ['centre', 'width', 'gap', 'trim', 'box', 'bar'])
+    if (faults.length) throw new Error(faults.join('; '))
+  })
+
+  // Without text-box the word keeps its whole line; the face's metrics keep the mark on the capitals and the bar's middle.
+  await check('09-bento', `lockup-without-text-box-${width}`, async () => {
+    await page.addStyleTag({ content: '[data-brand-lockup] > span { text-box: none !important; }' })
+    const faults = lockupFaults(await page.evaluate(measureLockups), ['centre', 'width', 'gap', 'bar'])
+    if (faults.length) throw new Error(faults.join('; '))
   })
 
   await check('09-bento', `primary-action-${width}`, async () => {

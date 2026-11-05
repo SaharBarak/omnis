@@ -41,19 +41,30 @@ export const TYPE_SCALE = Object.freeze({
   loosest: { tracking: 0.01 },
 })
 
-/**
- * Each face's metrics, in em. The cap height is read from its OS/2 table:
- * `sCapHeight` 700 of 1000 units per em in both Barlow (text) and Space
- * Grotesk (display). The ascent and descent are the line metrics a browser
- * lays a line out by. The brand lockup sets its mark in cap heights; a
- * trimmed line is one cap height tall.
- */
-export const FACES = Object.freeze({
-  text: Object.freeze({ capHeight: 0.7, ascent: 1, descent: 0.2 }),
-  display: Object.freeze({ capHeight: 0.7, ascent: 0.984, descent: 0.292 }),
-})
+/** A face's metrics, in em. */
+export interface Face {
+  /** The cap height, from the OS/2 table's `sCapHeight`. */
+  readonly capHeight: number
+  /** The line metrics a browser lays a line out by. */
+  readonly ascent: number
+  readonly descent: number
+  /** Set widths of the glyphs something is sized from, at the weight they are set in. */
+  readonly advances: Readonly<Record<string, number>>
+}
 
-export type Face = (typeof FACES)[keyof typeof FACES]
+/**
+ * Each face's metrics: Barlow (text) and Space Grotesk (display). The cap,
+ * ascent and descent come from the fonts' OS/2 and hhea tables, as Next's
+ * capsize metrics record them (`next/dist/server/capsize-font-metrics.json`;
+ * a test holds them equal). The P's advance is the display face's at weight
+ * 500, measured from the font; the e2e lockup check measures it again in the
+ * live font. The brand lockup sets its mark in cap heights, as wide as the
+ * name's initial sets; a trimmed line is one cap height tall.
+ */
+export const FACES: Readonly<Record<'text' | 'display', Face>> = Object.freeze({
+  text: Object.freeze({ capHeight: 0.7, ascent: 1, descent: 0.2, advances: Object.freeze({}) }),
+  display: Object.freeze({ capHeight: 0.7, ascent: 0.984, descent: 0.292, advances: Object.freeze({ P: 0.6026 }) }),
+})
 
 /** How far the middle of a face's capitals sits below the middle of its untrimmed line, in em. */
 export const capOffset = (face: Face): number => (face.ascent - face.descent - face.capHeight) / 2
@@ -128,8 +139,7 @@ export function sizeAt(size: TypeSize, width: number, scale = TYPE_SCALE): numbe
 }
 
 /** The size a role reaches on the wide end, where its leading and tracking are set. */
-const widest = (size: TypeSize): number => (size.kind === 'fixed' ? size.px : size.max)
-const widestOf = (role: TypeRole, scale = TYPE_SCALE): number => widest(stepSize(TYPE_STEPS[role], scale))
+const widestOf = (role: TypeRole, scale = TYPE_SCALE): number => largestPx(stepSize(TYPE_STEPS[role], scale))
 
 /** Running text: the lead and every role below it. */
 export const isText = (role: TypeRole): boolean => TYPE_STEPS[role] <= TYPE_STEPS.lead

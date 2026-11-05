@@ -38,7 +38,11 @@ export function BrandMark({ size = 28, ...look }: MarkLook & { size?: number }) 
   return <MarkSvg table={table} width={(size * box.width) / box.height} height={size} {...look} />
 }
 
-/** The mark's height in a lockup set at the lead role's smallest size in the display face: fitted there, no part falls under a pixel at any width. */
+/**
+ * The mark's height, before fitting, in a lockup set at the lead role's
+ * smallest size in the display face. The fitted mark draws a little taller,
+ * so fitted here, no part falls under a pixel at any width.
+ */
 const LEAD_LOCKUP_PX = DISPLAY_FACE.capHeight * smallestPx(stepSize(TYPE_STEPS.lead)) * lockup(LANTERN).height
 
 /**
@@ -54,7 +58,7 @@ export function BrandLockup({ fit = LEAD_LOCKUP_PX, className, ...look }: MarkLo
   const { height, gap } = lockup(table)
   const style = { '--lockup-height': height, '--lockup-gap': gap, '--lockup-cap': DISPLAY_FACE.capHeight } as CSSProperties
   return (
-    <span className={className ? `${s.lockup} ${className}` : s.lockup} style={style}>
+    <span className={className ? `${s.lockup} ${className}` : s.lockup} style={style} data-brand-lockup>
       <MarkSvg table={table} {...look} />
       <span className={s.word}>{BRAND.name}</span>
     </span>
