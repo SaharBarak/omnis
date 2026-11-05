@@ -1,26 +1,32 @@
-/* BRAND_MARK.md "Lockup": every length is in the word's cap height, read from the font in use. */
+/*
+ * BRAND_MARK.md "Lockup": every length is in the word's cap height, read from
+ * the font in use. The word is trimmed to its capitals, so centring the mark
+ * on it centres the mark on the cap band, and the lockup's box is the mark's
+ * ink: a bar that centres the lockup centres the mark. Without text-box the
+ * word keeps its whole line and the mark centres on that; the display face
+ * centres its capitals on its line, so the mark stays on them.
+ */
 .lockup {
+  --cap: 1cap;
+
   display: inline-flex;
-  align-items: baseline;
-  gap: calc(1cap * var(--lockup-gap));
+  align-items: center;
+  gap: calc(var(--cap) * var(--lockup-gap));
 }
 
 .lockup > svg {
   flex-shrink: 0;
-  block-size: calc(1cap * var(--lockup-height));
+  block-size: calc(var(--cap) * var(--lockup-height));
   inline-size: auto;
-  translate: 0 calc(1cap * var(--lockup-drop));
+}
+
+.word {
+  text-box: trim-both cap alphabetic;
 }
 
 /* Without the cap unit (Safari before 17.2), the display face's cap-to-em ratio (--lockup-cap, from the type tokens) stands in, so the mark never falls back to an unsized SVG. */
 @supports not (height: 1cap) {
   .lockup {
     --cap: calc(var(--lockup-cap) * 1em);
-    gap: calc(var(--cap) * var(--lockup-gap));
-  }
-
-  .lockup > svg {
-    block-size: calc(var(--cap) * var(--lockup-height));
-    translate: 0 calc(var(--cap) * var(--lockup-drop));
   }
 }

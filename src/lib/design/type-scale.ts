@@ -42,14 +42,21 @@ export const TYPE_SCALE = Object.freeze({
 })
 
 /**
- * Each face's cap height, read from its OS/2 table: `sCapHeight` 700 of 1000
- * units per em in both Barlow (text) and Space Grotesk (display). The brand
- * lockup sets its mark in cap heights; a trimmed line is one cap height tall.
+ * Each face's metrics, in em. The cap height is read from its OS/2 table:
+ * `sCapHeight` 700 of 1000 units per em in both Barlow (text) and Space
+ * Grotesk (display). The ascent and descent are the line metrics a browser
+ * lays a line out by. The brand lockup sets its mark in cap heights; a
+ * trimmed line is one cap height tall.
  */
 export const FACES = Object.freeze({
-  text: Object.freeze({ capHeight: 0.7 }),
-  display: Object.freeze({ capHeight: 0.7 }),
+  text: Object.freeze({ capHeight: 0.7, ascent: 1, descent: 0.2 }),
+  display: Object.freeze({ capHeight: 0.7, ascent: 0.984, descent: 0.292 }),
 })
+
+export type Face = (typeof FACES)[keyof typeof FACES]
+
+/** How far the middle of a face's capitals sits below the middle of its untrimmed line, in em. */
+export const capOffset = (face: Face): number => (face.ascent - face.descent - face.capHeight) / 2
 
 /** The display face's metrics; where a browser lacks the `cap` unit, its ratio stands in. */
 export const DISPLAY_FACE = FACES.display
@@ -110,6 +117,9 @@ export function stepSize(step: number, scale = TYPE_SCALE): TypeSize {
 
 /** The largest px a size reaches, at the scale's wide end. */
 export const largestPx = (size: TypeSize): number => (size.kind === 'fixed' ? size.px : size.max)
+
+/** The px a size resolves to on the narrowest window. */
+export const smallestPx = (size: TypeSize): number => (size.kind === 'fixed' ? size.px : size.min)
 
 /** The px a size resolves to on a window `width` px wide. */
 export function sizeAt(size: TypeSize, width: number, scale = TYPE_SCALE): number {

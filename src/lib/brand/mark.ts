@@ -119,6 +119,9 @@ const capSegment = (l: Lantern, y: number): string => `M${pt(-l.lid, y)}A${l.bod
 /** The base: the body's circle below a chord at `y`. */
 const baseSegment = (l: Lantern, y: number): string => `M${pt(-l.lid, y)}L${pt(l.lid, y)}A${l.body} ${l.body} 0 0 1 ${pt(-l.lid, y)}Z`
 
+/** Half the mark's width: its widest part, the body, the cap and base, or the ring. */
+const halfWidth = (l: Lantern): number => Math.max(l.body, l.lid, l.ring.outer)
+
 /** The frame (cut, nonzero), the window and the base for a table, with their bounds. */
 export function lanternShape(l: Lantern = LANTERN): MarkShape {
   const y = levels(l)
@@ -131,7 +134,7 @@ export function lanternShape(l: Lantern = LANTERN): MarkShape {
     arch(l.body, y.bodyBottom),
     arch(cut, y.cutBottom, true),
   ].join('')
-  const half = Math.max(l.body, l.lid, l.ring.outer)
+  const half = halfWidth(l)
   return {
     paths: { frame, window: arch(light, y.windowBottom), base: baseSegment(l, y.baseTop) },
     box: { x: -half, y: y.top, width: 2 * half, height: y.bottom - y.top },
@@ -202,28 +205,26 @@ export function optical(px: number, l: Lantern = LANTERN): Lantern {
   return table
 }
 
-/** How the mark sets beside its word, in cap heights of the word's font. */
+/** How the mark sets beside its word, in cap heights of the word's font; the lockup centres it on the word's capitals. */
 export interface Lockup {
   /** The whole mark's height. */
   readonly height: number
-  /** How far the base hangs below the baseline. */
-  readonly drop: number
   /** The space between the mark and the word. */
   readonly gap: number
 }
 
 /**
- * The lockup, from the drawing (BRAND_MARK.md "Lockup"). The body, brim to
- * foot, is the word's cap height: its flat foot stands on the baseline and
- * its round crown overshoots the cap line as round letters do. The ring rises
- * above like an ascender and the base hangs below like a descender. The gap
- * to the word is half the mark's width.
+ * The lockup, from the drawing (BRAND_MARK.md "Lockup"). The mark is one cap
+ * wide; its height follows from the drawing. Centred on the capitals, as a
+ * system symbol sits in a line of text, its ring rises above the cap line by
+ * as much as its base hangs below the baseline. The gap to the word is half
+ * the mark's width.
  */
 export function lockup(l: Lantern = LANTERN): Lockup {
   const y = levels(l)
-  const cap = y.bodyBottom - y.brim
-  const half = Math.max(l.body, l.lid, l.ring.outer)
-  return { height: (y.bottom - y.top) / cap, drop: (y.bottom - y.bodyBottom) / cap, gap: half / cap }
+  const width = 2 * halfWidth(l)
+  const cap = width
+  return { height: (y.bottom - y.top) / cap, gap: width / 2 / cap }
 }
 
 /** A tile's corner radius as a share of its side: Apple's app-icon corner. */

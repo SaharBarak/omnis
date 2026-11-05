@@ -11,6 +11,7 @@ import { resolvePalette } from '@/lib/design/bento-palette'
 import { paletteSpec } from '@/lib/design/palette-spec'
 import { toHex } from '@/lib/design/color'
 import { DEFAULT_PALETTE } from '@/lib/design/palette-ids'
+import { DISPLAY_FACE, TYPE_STEPS, capOffset, largestPx, stepSize } from '@/lib/design/type-scale'
 
 const ROOT = process.cwd()
 const at = (path: string): string => join(ROOT, path)
@@ -135,14 +136,20 @@ describe('the drawing at small sizes', () => {
 })
 
 describe('the lockup', () => {
-  it.each([LANTERN, ...[12, 16, 20, 24, 32].map((px) => optical(px))])('stands the body on the baseline and reaches the cap line, at %#', (table) => {
+  it.each([LANTERN, ...[12, 16, 20, 24, 32].map((px) => optical(px))])('is one cap wide and half its width from the word, at %#', (table) => {
     const { box } = lanternShape(table)
-    const { height, drop, gap } = lockup(table)
+    const { height, gap } = lockup(table)
     const cap = box.height / height
-    const baseline = box.y + box.height - drop * cap
-    expect(baseline).toBeCloseTo(table.length, 9)
-    expect(baseline - cap).toBeCloseTo(-table.body + table.brim, 9)
+    expect(box.width).toBeCloseTo(cap, 9)
     expect(gap * cap).toBeCloseTo(box.width / 2, 9)
+  })
+
+  it('is twice as tall as a cap for the table as it stands', () => {
+    expect(lockup(LANTERN).height).toBeCloseTo(2, 9)
+  })
+
+  it('stays on the capitals within a pixel where text-box is missing: the display face centres its capitals on its line', () => {
+    expect(Math.abs(capOffset(DISPLAY_FACE)) * largestPx(stepSize(TYPE_STEPS.lead))).toBeLessThan(OPTICAL_MIN_PX)
   })
 })
 

@@ -262,33 +262,55 @@ await check('08-hebrew-calendar', 'today-board-tap-through', async () => {
 })
 
 // ------------------------------------------------- bento lockup and action
-// BRAND_MARK.md "Lockup": the body's foot sits on the word's baseline within
-// a pixel. BENTO_SITE.md "Primary action": every primary is an ink pill with
-// a spark disc, at least 44 px tall to the pointer.
+// BRAND_MARK.md "Lockup": the mark is one cap wide, its middle on the middle
+// of the word's capitals and half a cap from the word; the lockup's box is
+// the mark's ink, so the bar centres the mark. All within a pixel.
+// BENTO_SITE.md "Primary action": every primary is an ink pill with a spark
+// disc, at least 44 px tall to the pointer.
 for (const width of [1440, 390]) {
-  await check('09-bento', `lockup-on-baseline-${width}`, async () => {
+  await check('09-bento', `lockup-on-capitals-${width}`, async () => {
     await page.setViewportSize({ width, height: 900 })
     await page.goto(`${BASE}/lab/bento`, { waitUntil: 'networkidle', timeout: 90_000 })
     await page.evaluate(() => document.fonts.ready)
     const offsets = await page.evaluate(() =>
       [...document.querySelectorAll('span[style*="--lockup-height"]')].map((lockup) => {
+        const word = lockup.querySelector(':scope > span')
         const probe = document.createElement('i')
         probe.style.cssText = 'display:inline-block;width:0;height:0'
-        lockup.append(probe)
+        word.append(probe)
         const baseline = probe.getBoundingClientRect().bottom
         probe.remove()
         const cap = document.createElement('i')
         cap.style.cssText = 'position:absolute;width:0;height:1cap'
-        lockup.append(cap)
+        word.append(cap)
         const capPx = cap.getBoundingClientRect().height
         cap.remove()
-        const drop = Number.parseFloat(lockup.style.getPropertyValue('--lockup-drop'))
-        return lockup.querySelector('svg').getBoundingClientRect().bottom - drop * capPx - baseline
+        const mark = lockup.querySelector('svg').getBoundingClientRect()
+        const box = lockup.getBoundingClientRect()
+        const bar = lockup.closest('nav')?.getBoundingClientRect()
+        const middle = (mark.top + mark.bottom) / 2
+        return {
+          where: bar ? 'nav' : lockup.closest('footer') ? 'footer' : 'other',
+          centre: middle - (baseline - capPx / 2),
+          width: mark.width - capPx,
+          gap: word.getBoundingClientRect().left - mark.right - capPx / 2,
+          top: box.top - mark.top,
+          bottom: box.bottom - mark.bottom,
+          bar: bar ? middle - (bar.top + bar.bottom) / 2 : 0,
+        }
       }),
     )
-    if (offsets.length === 0) throw new Error('no lockup on the page')
-    const worst = Math.max(...offsets.map(Math.abs))
-    if (worst > 1) throw new Error(`foot is ${worst.toFixed(2)} px off the baseline`)
+    for (const where of ['nav', 'footer']) if (!offsets.some((o) => o.where === where)) throw new Error(`no lockup in the ${where}`)
+    const worst = (pick) => Math.max(...offsets.flatMap(pick).map(Math.abs))
+    for (const [name, off] of Object.entries({
+      'mark middle off the capitals by': worst((o) => [o.centre]),
+      'mark width off the cap height by': worst((o) => [o.width]),
+      'gap off half a cap by': worst((o) => [o.gap]),
+      "lockup box off the mark's ink by": worst((o) => [o.top, o.bottom]),
+      "mark middle off the bar's by": worst((o) => [o.bar]),
+    })) {
+      if (off > 1) throw new Error(`${name} ${off.toFixed(2)} px`)
+    }
   })
 
   await check('09-bento', `primary-action-${width}`, async () => {
