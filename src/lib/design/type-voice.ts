@@ -24,15 +24,15 @@ export const TYPE_VOICES = Object.freeze({
   digest: voice({
     sheet: 'src/components/bento-lab/atlas/digest.module.css',
     levels: {
-      eyebrow: 'caption',
+      eyebrow: 'micro',
       pin: 'micro',
-      lead: 'heading',
-      note: 'caption',
+      lead: 'lead',
+      note: 'micro',
       figure: 'figure',
-      value: 'body',
+      value: 'small',
       /** A number standing as a support's mark: a word of its value's line, at its own weight. */
-      numeral: 'body',
-      label: 'caption',
+      numeral: 'small',
+      label: 'micro',
     },
     pairs: [
       ['lead', 'note'],

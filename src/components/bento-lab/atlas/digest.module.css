@@ -19,12 +19,19 @@
   /* A mark is as tall as the em boxes of the lines it stands beside ("Marks"). */
   --lead-mark: calc(var(--voice-lead) + var(--voice-note));
   --support-mark: var(--voice-value);
-  /* A fact's fill reaches past its words by the room its smallest line's descenders take, inside the tile's inset. */
-  --fact-pad: calc(var(--type-room) * var(--voice-label));
-  /* Concentric with the tile: its radius less the space between their edges. */
-  --fact-radius: calc(var(--radius-card) - var(--group) + var(--fact-pad));
   /* The pin's disc, as the drawing's: its digit times the kit's ratio. */
   --pin: calc(var(--voice-pin) * var(--pin-ratio));
+  /*
+   * The tile's inset makes its pin concentric with its corner (BENTO_TYPE.md,
+   * "Marks"): the corner's radius less the pin's and the edge, on every side.
+   * The head's line centres on the pin, so the top adds the pin's overhang.
+   */
+  --inset: calc(var(--radius-card) - var(--pin) / 2 - var(--edge-w));
+  --inset-top: calc(var(--inset) + (var(--pin) - var(--head-line)) / 2);
+  /* A fact's fill reaches past its words by the room its smallest line's descenders take, inside the tile's inset. */
+  --fact-pad: calc(var(--type-room) * var(--voice-label));
+  /* Concentric with the tile's corner: its radius less the distance between their edges. */
+  --fact-radius: calc(var(--radius-card) - var(--edge-w) - var(--inset) + var(--fact-pad));
   /* The pin toggle's widest target (BENTO_POLISH.md "Minimum hit area"); a finger gets the larger. */
   --hit: var(--hit-min);
   /* The head's line: trimmed to its capitals where the browser trims, else its full line. */
@@ -73,11 +80,11 @@
 
   flex: 1 1 0;
   display: grid;
-  /* Stretched past its content, a tile shares the extra between its inset and its groups, so its rhythm keeps its proportions. */
-  align-content: space-evenly;
+  /* Stretched past its content, a tile shares the extra between its parts; its insets hold, and with them its pin's place in its corner. */
+  align-content: space-between;
   gap: var(--group);
   min-width: min-content;
-  padding: var(--group);
+  padding: var(--inset-top) var(--inset) var(--inset);
   border: var(--edge-w) solid var(--elevation-edge);
   border-radius: var(--radius-card);
   background: var(--lab-surface);
@@ -192,10 +199,10 @@
 .pin::before {
   content: '';
   position: absolute;
-  inset-inline-end: calc(-1 * min(var(--group), (var(--hit) - var(--pin)) / 2));
+  inset-inline-end: calc(-1 * min(var(--inset), (var(--hit) - var(--pin)) / 2));
   bottom: calc(var(--pin) / 2 - var(--head-line) / 2 - var(--group) + var(--fact-pad));
   width: max(100%, var(--hit));
-  height: min(var(--hit), calc(var(--head-line) + 2 * var(--group) + var(--edge-w) + var(--tile-gap) / 2 - var(--fact-pad)));
+  height: min(var(--hit), calc(var(--tile-gap) / 2 + var(--edge-w) + var(--inset-top) + var(--head-line) + var(--group) - var(--fact-pad)));
 }
 
 .pin[aria-pressed='true'] {
