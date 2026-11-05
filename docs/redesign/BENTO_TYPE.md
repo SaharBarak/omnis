@@ -210,19 +210,22 @@ spacing is derived:
   capitals: `(1 − cap) × size` of the upper line, emitted as the factor
   `--type-room`. It is an optical choice, not a metric: the room is about
   what the face's descenders reach, so it grows with the line that has
-  them: 4.8 px under a 16 px value, 7.5 px under a 25 px lead.
+  them: 4.3 px under a 14.2 px value, 6 px under a 20 px lead.
 - **Group.** Parts of a component (a tile's head, lead and supports) stand
   apart by twice the body's pair, `--type-group` (9.6 px), which is wider
   than the pair under any level a voice sets, its lead included. Proximity
   reads parts as separate only when the space between them is wider than the
   space inside them; `type-voice.test.ts` holds every voice to that at every
   width.
-- **Inset.** A surface holding trimmed lines insets them by the group on
-  every side, so the space from a card's edge to its caps matches the space
-  from its edge to its words' sides. Where a surface is stretched past its
-  content, the extra space is shared evenly between the insets and the
-  groups (`align-content: space-evenly`); the pairs keep their size, so a
-  fact's lines stay together as the parts move apart.
+- **Inset.** A surface holding trimmed lines insets them by at least the
+  group on every side, so the space from its edge to its caps matches the
+  space from its edge to its words' sides. A surface with a round mark in
+  its corner (the digest's pin) takes the inset that makes the mark
+  concentric with the corner: the corner's radius less the mark's radius
+  and the edge ("Marks"). Where a surface is stretched past its content,
+  the extra space goes between its parts (`align-content: space-between`);
+  the insets hold, and the pairs keep their size, so a fact's lines stay
+  together as the parts move apart.
 
 Where a browser has no `text-box` (Firefox before 154, its ESR among them),
 lines keep their leading and the same gaps add to it: the component is
@@ -252,19 +255,29 @@ space around them, so it never adds height of its own:
   word of that line, set in the same trimmed box, so the two share a
   baseline.
 - The pin is a disc 1.75 times its digit (`--pin-ratio`), centred on the
-  head's line in the same way.
+  head's line in the same way, and concentric with the tile's corner: the
+  tile's inset is the corner's radius less the pin's radius and the edge
+  (11.2 px), so the pin's centre sits the corner's radius in from both
+  edges. The head's line centres on the pin, so the inset above the head
+  adds the pin's overhang.
+
+Every rounded surface inside another is concentric with it: its radius is
+the outer radius less the distance between their edges. A fact's fill takes
+the tile's radius less the edge, the inset and back its own reach (13.2 px
+in the digest); the focus ring and the pin's pressed rings follow the
+shapes they wrap.
 
 A target takes the space its part owns and never meets another target. The
 pin's is as wide as the kit's least target (`--hit-min`, 40 px; 44 px under
 a finger), past the disc's end no further than the tile's inset, and as tall
 as the head owns: from the lead's fill up to the middle of the gap above
-the tile, at most that width (29 px in the digest). That clears WCAG
+the tile, at most that width (36 px in the digest). That clears WCAG
 2.5.8's 24 px minimum: the kit's least target sets its width, and the space
 the head owns sets its height. Each row of tiles owns half the gap above
 it, and the digest gives its first row the same half.
 
 A fact's fill reaches past its words by the room under its smallest line
-(`--type-room` of the label, 3.8 px), so it clears every descender; the
+(`--type-room` of the label, 3.4 px), so it clears every descender; the
 focus ring wraps the fill, outside it.
 
 ## Faces and weights
@@ -303,22 +316,26 @@ digest"). Its voice (`TYPE_VOICES.digest`):
 
 | Level | Role | Set as |
 |---|---|---|
-| `eyebrow` | caption | The system's name: 600, capitals, ink 2. |
+| `eyebrow` | micro | The system's name: 600, capitals, ink 2. |
 | `pin` | micro | The pin digit, on a disc 1.75 times the digit (`--pin`), the same disc as the drawing's pins. |
-| `lead` | heading | The lead value: 600, ink, balanced wrapping. |
-| `note` | caption | The lead's note: 500, ink 2; a label inside it is 400, ink 3. |
+| `lead` | lead | The lead value: 600, ink, balanced wrapping. |
+| `note` | micro | The lead's note: 500, ink 2; a label inside it is 400, ink 3. |
 | `figure` | figure | A number as the lead's mark: 600, display face, ink, tabular figures, leading 1. |
-| `value` | body | A support's value: 500, ink, balanced wrapping. |
-| `numeral` | body | A number standing as a support's mark: 600, ink, a word of its value's line. |
-| `label` | caption | What a support is, and the lead's own label where it is shown (`Kin 60`): 400, sentence case, ink 3. |
+| `value` | small | A support's value: 500, ink, balanced wrapping. |
+| `numeral` | small | A number standing as a support's mark: 600, ink, a word of its value's line. |
+| `label` | micro | What a support is, and the lead's own label where it is shown (`Kin 60`): 400, sentence case, ink 3. |
 
 Pairs that read against each other: the lead and its note, the lead and a
 support's value, a value and its label, the eyebrow and the lead, the note
 and a value.
 
-The tile is trimmed and spaced as "Trimmed lines" sets out: head, lead and
-supports a group apart, each fact's lines a pair apart, the tile's inset the
-group on every side.
+A tile is a compact surface, a column 312 px wide beside the drawing, so
+its voice sits one notch down the scale from a panel's: the lead at `lead`,
+values at `small`, the eyebrow, note and labels at the floor (`micro`), each
+pair still the contrast apart. The tile is trimmed and spaced as "Trimmed
+lines" sets out: head, lead and supports a group apart, each fact's lines a
+pair apart, its inset the one that makes its pin concentric with its
+corner.
 
 ## The card
 
