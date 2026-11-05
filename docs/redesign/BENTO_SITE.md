@@ -185,23 +185,26 @@ the pins, and the digest values roll.
 layer and one per system read beside the map. Each tile shows its facts in
 three levels, so the eye finds the most important fact first:
 
-1. **Head.** The system's name (caption, capitals) at the start. A layer
-   tile has its pin toggle at the end: the same disc and number as the
-   drawing's pin. A tile beside the map has no pin.
-2. **Lead.** The system's main fact: its mark, then the value at the lead
-   role over a note in the caption role. A lead whose system has no mark of
-   its own starts its words at the tile's edge.
+1. **Head.** The system's name (the `eyebrow` level, capitals) at the
+   start. A layer tile has its pin toggle at the end: the same disc and
+   number as the drawing's pin. A tile beside the map has no pin.
+2. **Lead.** The system's main fact: its mark, then the value (the `lead`
+   level) over a note (the `note` level). A lead whose system has no mark
+   of its own starts its words at the tile's edge.
 3. **Supports.** A row of the system's other facts. Each has a small mark
-   beside its value, with what the value is beneath, lined up with the
-   value. Supports share the row's width by weight (`weight`, default 1),
+   beside its value, with what the value is beneath it, from the mark's
+   edge. Supports share the row's width by weight (`weight`, default 1),
    and none is narrower than its longest word.
+
+The levels, their roles and how the tile is spaced are BENTO_TYPE.md's
+("The digest").
 
 | Tile | Lead: mark, value, note | Supports: mark, value, label |
 |---|---|---|
 | Dreamspell | Seal glyph; the kin's title (`Yellow Galactic Sun`); `Kin 60` | Tone numeral, tone name, "Tone"; guide seal's glyph, colour and name, "Guide" |
 | Human Design | Bodygraph; type; `Strategy` and the type's strategy | Profile lines (`1/3`), profile name (`Investigator/Martyr`), "Profile", weight 2; authority's centre, authority's word, "Authority" |
-| Maya Long Count | None; the date (`13.0.12.3.15`, display face); the calendar round | One bar-and-dot numeral per place, most significant first, its number, the place's name |
-| Numerology | Life path number (display face); its name in the number table (`The seeker`); "Life path" | Birthday and expression: the number, its name, the label |
+| Maya Long Count | None; the date (`13.0.12.3.15`, tabular figures); the calendar round | One bar-and-dot numeral per place, most significant first, its number, the place's name |
+| Numerology | Life path number (the figure, display face); its name in the number table (`The seeker`); "Life path" | Birthday and expression: the number, its name, the label |
 | Astrology | Sun sign glyph; sign name; `Sun` and the degree | Moon and Rising: the sign glyph, sign name, the label |
 
 The names of numbers come from `NUMBER_MEANINGS`: the words before the
@@ -249,11 +252,12 @@ their hit area and pulled back by the same margin, so the words sit on the
 tile's edges. Only colours and shadows transition, each named (never
 `all`), behind the motion switch.
 
-**Sizes.** All derived from the type roles: the lead mark is as tall as the
-lead line and the note line together (`--lead-mark`), and a support's mark
-as tall as its value line (`--support-mark`). Tone numerals and Long Count
-places stand on their line's floor, in a box as tall as the largest value
-they can take (13 for a tone, 19 for a place, `LARGEST`).
+**Sizes.** All derived from the type (BENTO_TYPE.md, "Trimmed lines" and
+"Marks"): the lead mark is as tall as the em boxes of the lead and note
+lines together (`--lead-mark`), and a support's mark as tall as its value's
+(`--support-mark`). Tone numerals and Long Count places stand on their
+line's floor, in a box as tall as the largest value they can take (13 for a
+tone, 19 for a place, `LARGEST`).
 
 **Container.** Tiles wrap by their content. No tile is narrower than its
 longest word, mark or number, and a row holds as many tiles as fit, sharing
