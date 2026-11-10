@@ -61,3 +61,8 @@ __pycache__/
 # Figma print build output (docs/redesign/FIGMA_PRINT.md)
 .figma-print/
 scripts/design/figma-print/plugin/dist/
+
+# Untracked local-only working areas (never committed)
+.security-fix-worktree/
+design/zeus-rebrand-live/
+.claude/agent-memory/
