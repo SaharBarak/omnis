@@ -3,15 +3,15 @@ import { StyleSheet, View } from 'react-native'
 
 import { Text } from './text'
 import { Touchable } from './touchable'
-import { SHAPE, SPACE, useTheme } from '@/theme/m3'
+import { SPACE } from '@/theme/m3'
+import { useLantern } from '@/theme/lantern'
 
 /**
- * M3 chips — assist, filter, and suggestion.
- *
- * The filter chip is the one with real behaviour: when selected it fills with
- * `secondaryContainer`, drops its outline, and grows a leading checkmark. The
- * checkmark matters — colour alone fails for the users who can't see the
- * difference between a selected and unselected chip.
+ * Chips — assist, filter, and suggestion — in the bento / Lantern language
+ * (docs/redesign/MOBILE_V2_MATCH.md). A resting chip is a hairline-walled pill
+ * on the page; a selected filter chip fills with the chip surface and carries
+ * the cyan accent, plus the leading checkmark (colour alone fails for users who
+ * can't tell selected from unselected).
  */
 export type ChipVariant = 'assist' | 'filter' | 'suggestion'
 
@@ -33,19 +33,17 @@ export function Chip({
   icon,
   disabled = false,
 }: ChipProps) {
-  const theme = useTheme()
+  const { colors, radius } = useLantern()
   const isSelected = variant === 'filter' && selected
 
-  const container = isSelected ? theme.colors.secondaryContainer : 'transparent'
-  const content = isSelected
-    ? theme.colors.onSecondaryContainer
-    : theme.colors.onSurfaceVariant
+  const container = isSelected ? colors.chip : 'transparent'
+  const content = isSelected ? colors.accent : colors.ink2
 
   return (
     <Touchable
       onPress={onPress}
       disabled={disabled}
-      radius={SHAPE.small}
+      radius={radius.control}
       stateLayerColor={content}
       accessibilityRole={variant === 'filter' ? 'checkbox' : 'button'}
       accessibilityState={{ checked: isSelected, disabled }}
@@ -54,8 +52,8 @@ export function Chip({
       hitSlop={{ top: 8, bottom: 8 }}
       style={[
         styles.root,
-        { backgroundColor: container },
-        !isSelected && { borderWidth: 1, borderColor: theme.colors.outlineVariant },
+        { backgroundColor: container, borderRadius: radius.control },
+        !isSelected && { borderWidth: 1, borderColor: colors.line },
         disabled && styles.disabled,
       ]}
     >
@@ -74,7 +72,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SPACE.sm,
     paddingHorizontal: SPACE.md,
-    borderRadius: SHAPE.small,
   },
   icon: {
     width: 18,

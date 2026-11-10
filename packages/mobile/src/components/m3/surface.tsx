@@ -1,24 +1,25 @@
 import type { PropsWithChildren } from 'react'
 import { View, type StyleProp, type ViewStyle } from 'react-native'
 
-import { SHADOW, SHAPE, useTheme, type ElevationLevel } from '@/theme/m3'
+import { SHADOW, SHAPE, type ElevationLevel } from '@/theme/m3'
+import { useLantern } from '@/theme/lantern'
 
 /**
- * A surface at an elevation.
+ * A surface at an elevation, in the bento / Lantern language
+ * (docs/redesign/MOBILE_V2_MATCH.md). Depth is a discrete tier, not an M3
+ * tint: a surface rises ground → surface1 → surface2 → chip as its level
+ * climbs, rather than compositing `surfaceTint` over itself. `outlined` draws
+ * the hairline wall that gives the bento edge.
  *
- * In M3 elevation is expressed as colour: level 3 is not "level 0 with a
- * shadow", it is `surfaceTint` composited over `surface` at 11%. `surfaceAt()`
- * does that blend, so raising a Surface makes it *lighter*, not shadowed.
- *
- * `shadow` is opt-in and belongs only to the components M3 says truly float
+ * `shadow` stays opt-in and belongs only to the components that truly float
  * above the page — the FAB, menus, the snackbar.
  */
 export interface SurfaceProps extends PropsWithChildren {
   level?: ElevationLevel
   radius?: number
-  /** Draw the M3 outline. Outlined cards and outlined text fields use this. */
+  /** Draw the hairline wall. Outlined cards and outlined text fields use this. */
   outlined?: boolean
-  /** Cast a real shadow in addition to the tint. Floating components only. */
+  /** Cast a real shadow. Floating components only. */
   shadow?: boolean
   style?: StyleProp<ViewStyle>
 }
@@ -31,19 +32,15 @@ export function Surface({
   shadow = false,
   style,
 }: SurfaceProps) {
-  const theme = useTheme()
+  const { colors } = useLantern()
+  const tiers = [colors.surface1, colors.surface2, colors.chip] as const
+  const background = tiers[Math.min(level, tiers.length - 1)]
 
   return (
     <View
       style={[
-        {
-          backgroundColor: theme.surfaceAt(level),
-          borderRadius: radius,
-        },
-        outlined && {
-          borderWidth: 1,
-          borderColor: theme.colors.outlineVariant,
-        },
+        { backgroundColor: background, borderRadius: radius },
+        outlined && { borderWidth: 1, borderColor: colors.line },
         shadow && SHADOW[`level${level}`],
         style,
       ]}
