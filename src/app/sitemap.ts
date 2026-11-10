@@ -1,46 +1,50 @@
 import { MetadataRoute } from 'next'
 import { SITE_URL } from '@/components/seo/json-ld'
+import { ARTICLES } from '@/components/bento-lab/docs/library'
+import { SITE_ROUTES } from '@/lib/site/routes'
 
-type Route = {
-  readonly path: string
-  readonly changeFrequency: NonNullable<
-    MetadataRoute.Sitemap[number]['changeFrequency']
-  >
+type Weight = {
+  readonly changeFrequency: NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>
   readonly priority: number
 }
 
 /**
- * Public, indexable marketing routes only.
- * Excluded on purpose: /login (no search value), /app/** (authed, noindex),
- * /share/** (private tokens), /onboarding, /unsubscribe.
+ * Editorial weight by path (docs/redesign/V2_PROMOTION.md). The set of URLs is
+ * derived from the route table's `indexed` rows, so a new public page appears
+ * in the sitemap without touching this file; a path listed here only tunes its
+ * frequency and priority. Rows not listed take the default.
  */
-const PUBLIC_ROUTES: readonly Route[] = [
-  { path: '', changeFrequency: 'weekly', priority: 1 },
-  { path: '/today', changeFrequency: 'daily', priority: 0.9 },
-  { path: '/calculate', changeFrequency: 'monthly', priority: 0.8 },
-  { path: '/compatibility', changeFrequency: 'monthly', priority: 0.8 },
-  { path: '/learn', changeFrequency: 'monthly', priority: 0.8 },
-  { path: '/learn/dreamspell', changeFrequency: 'monthly', priority: 0.7 },
-  { path: '/learn/tzolkin', changeFrequency: 'monthly', priority: 0.7 },
-  { path: '/learn/human-design', changeFrequency: 'monthly', priority: 0.7 },
-  { path: '/learn/astrology', changeFrequency: 'monthly', priority: 0.7 },
-  { path: '/learn/gematria', changeFrequency: 'monthly', priority: 0.7 },
-  { path: '/learn/integration', changeFrequency: 'monthly', priority: 0.7 },
-  { path: '/pricing', changeFrequency: 'monthly', priority: 0.7 },
-  { path: '/about', changeFrequency: 'monthly', priority: 0.6 },
-  { path: '/contact', changeFrequency: 'monthly', priority: 0.5 },
-  { path: '/privacy', changeFrequency: 'yearly', priority: 0.3 },
-  { path: '/terms', changeFrequency: 'yearly', priority: 0.3 },
-  { path: '/refund', changeFrequency: 'yearly', priority: 0.3 },
-]
+const WEIGHT: Readonly<Record<string, Weight>> = {
+  '/': { changeFrequency: 'weekly', priority: 1 },
+  '/today': { changeFrequency: 'daily', priority: 0.9 },
+  '/map': { changeFrequency: 'monthly', priority: 0.8 },
+  '/pair': { changeFrequency: 'monthly', priority: 0.8 },
+  '/circle': { changeFrequency: 'monthly', priority: 0.8 },
+  '/learn': { changeFrequency: 'monthly', priority: 0.8 },
+  '/pricing': { changeFrequency: 'monthly', priority: 0.7 },
+  '/about': { changeFrequency: 'monthly', priority: 0.6 },
+  '/contact': { changeFrequency: 'monthly', priority: 0.5 },
+}
+
+const DEFAULT: Weight = { changeFrequency: 'monthly', priority: 0.6 }
+
+const ARTICLE: Weight = { changeFrequency: 'monthly', priority: 0.7 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date()
+  const toUrl = (path: string) => `${SITE_URL}${path === '/' ? '' : path}`
 
-  return PUBLIC_ROUTES.map(({ path, changeFrequency, priority }) => ({
-    url: `${SITE_URL}${path}`,
+  const pages = SITE_ROUTES.filter((route) => route.indexed && !route.pattern).map((route) => ({
+    url: toUrl(route.path),
     lastModified,
-    changeFrequency,
-    priority,
+    ...(WEIGHT[route.path] ?? DEFAULT),
   }))
+
+  const articles = ARTICLES.map((article) => ({
+    url: toUrl(`/learn/${article.slug}`),
+    lastModified,
+    ...ARTICLE,
+  }))
+
+  return [...pages, ...articles]
 }

@@ -29,6 +29,30 @@ const nextConfig = {
     ],
   },
 
+  // Old → new routes after the v2 promotion (docs/redesign/V2_PROMOTION.md).
+  // Data table, seeded from the route table's `live` column and completed for
+  // retired routes absent from it. Temporary (307) through the rollback bake
+  // window — a cached permanent redirect would outlive a rollback whose Worker
+  // has no new destination — then promoted to permanent once stable.
+  async redirects() {
+    const temporary = (source, destination) => ({ source, destination, permanent: false });
+    return [
+      // Public tools: from the `live` column (/compatibility is ambiguous → /pair).
+      temporary('/calculate', '/map'),
+      temporary('/compatibility', '/pair'),
+      temporary('/onboarding', '/map'),
+      // Retired signed-in routes (authed, noindex): nearest rebuilt page.
+      temporary('/app/dashboard', '/app'),
+      temporary('/app/boards', '/app'),
+      temporary('/app/cards', '/app'),
+      temporary('/app/predictions', '/app'),
+      temporary('/app/calendars', '/app/calendar'),
+      temporary('/app/graph', '/app/groups'),
+      temporary('/app/relationships', '/app/groups'),
+      temporary('/app/profile', '/app/settings'),
+    ];
+  },
+
   // Custom headers for caching and security
   async headers() {
     return [

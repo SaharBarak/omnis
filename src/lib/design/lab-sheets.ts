@@ -8,10 +8,15 @@ import postcss, { list, type AtRule, type Declaration, type Node, type Root, typ
  * only: tests import it, the app never does.
  */
 
-/** The lab's trees: the bento site and bento v2 (docs/redesign/BENTO_V2.md). Token rules hold both; the motion policy holds the bento site alone. */
+/**
+ * The two trees (docs/redesign/BENTO_V2.md, V2_PROMOTION.md). Token rules hold
+ * both; the motion policy holds the no-scroll tree alone. Since promotion the
+ * route files live at the root: the marketing pages are the no-scroll `bento`
+ * tree, the home and the app join the scroll-allowed `v2` tree.
+ */
 export const LAB_TREES = Object.freeze({
-  bento: ['src/components/bento-lab', 'src/app/lab/bento'],
-  v2: ['src/components/bento-v2', 'src/app/lab/bento-v2'],
+  bento: ['src/components/bento-lab', 'src/app/(marketing)'],
+  v2: ['src/components/bento-v2', 'src/app/(home)', 'src/app/app'],
 } as const)
 
 export type LabTree = keyof typeof LAB_TREES

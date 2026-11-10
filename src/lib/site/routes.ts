@@ -1,11 +1,11 @@
 /**
- * The bento site map as data (docs/redesign/BENTO_SITE.md). Navigation,
- * footer, wireframe index and the sitemap read this table; components never
- * spell an internal URL themselves. `SITE_BASE` is the lab prefix today and
- * becomes '' when the tree is promoted to the root.
+ * The bento site map as data (docs/redesign/BENTO_SITE.md,
+ * docs/redesign/V2_PROMOTION.md). Navigation, footer, wireframe index and the
+ * sitemap read this table; components never spell an internal URL themselves.
+ * `SITE_BASE` is '' since the tree was promoted to the root.
  */
 
-export const SITE_BASE = '/lab/bento'
+export const SITE_BASE = ''
 
 export type TemplateId =
   | 'home'
@@ -147,7 +147,7 @@ export const findRoute = (path: string): SiteRoute | undefined => SITE_ROUTES.fi
  */
 export type SiteTree = 'v1' | 'v2'
 
-export const V2_BASE = '/lab/bento-v2'
+export const V2_BASE = ''
 
 /** The public pages v2 has built of its own; the signed-in rows it serves all of. */
 export const V2_PAGES: readonly string[] = ['/', '/map']

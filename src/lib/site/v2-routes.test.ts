@@ -5,7 +5,7 @@ import { findRoute, siteHref } from './routes'
 import { V2_BASE, V2_GATE, V2_PATHS, v2Href, v2Owns } from './v2-routes'
 import { loginHref } from '@/lib/auth/gates'
 
-const TREE = join(process.cwd(), 'src/app', V2_BASE)
+const TREE = join(process.cwd(), 'src/app')
 
 const walk = (dir: string): readonly string[] =>
   readdirSync(dir).flatMap((name) => {
@@ -13,12 +13,19 @@ const walk = (dir: string): readonly string[] =>
     return statSync(path).isDirectory() ? walk(path) : [path]
   })
 
+/**
+ * The pages v2 serves. Since promotion the files sit at the root alongside the
+ * marketing pages and standalone flows (docs/redesign/V2_PROMOTION.md), so the
+ * tree is read from the whole app dir and filtered to what v2 owns rather than
+ * by directory.
+ */
 const pages = (): readonly string[] =>
   walk(TREE)
     .filter((file) => file.endsWith(`${sep}page.tsx`))
     .map((file) => relative(TREE, file).split(sep).slice(0, -1))
     .filter((segments) => !segments.some((s) => s.startsWith('_')))
     .map((segments) => `/${segments.filter((s) => !/^\(.+\)$/.test(s)).join('/')}`)
+    .filter(v2Owns)
 
 describe('the v2 overlay', () => {
   it('has a row for every page and a page for every row', () => {
@@ -30,7 +37,7 @@ describe('the v2 overlay', () => {
   })
 
   it('serves what it owns and hands the rest to the bento site', () => {
-    expect(v2Href('/')).toBe(V2_BASE)
+    expect(v2Href('/')).toBe(V2_BASE || '/')
     expect(v2Href('/app')).toBe(`${V2_BASE}/app`)
     expect(v2Href('/pricing')).toBe(siteHref('/pricing'))
   })
@@ -44,7 +51,7 @@ describe('the v2 overlay', () => {
   })
 
   it('keeps query and hash', () => {
-    expect(v2Href('/#pair')).toBe(`${V2_BASE}#pair`)
+    expect(v2Href('/#pair')).toBe(`${V2_BASE || '/'}#pair`)
     expect(v2Href('/app?add=1')).toBe(`${V2_BASE}/app?add=1`)
     expect(v2Href('/map?x=1#y')).toBe(`${V2_BASE}/map?x=1#y`)
     expect(v2Href('/pair?x=1#y')).toBe(siteHref('/pair?x=1#y'))

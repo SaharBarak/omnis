@@ -1,30 +1,31 @@
 import type { Metadata } from 'next'
-import AppShell from './app-shell'
+import { redirect } from 'next/navigation'
+import type { ReactNode } from 'react'
+import { peopleOnce } from './_data'
+import { V2Shell } from './_dash/v2-shell'
+import { SiteTreeProvider } from '@/components/bento-lab/site/site-tree'
+import { getSession } from '@/lib/auth-server'
+import { loginHref } from '@/lib/auth/gates'
+import { V2_GATE, v2Href } from '@/lib/site/v2-routes'
 
-/**
- * Server layout for the authed app surface (`/app/**`).
- *
- * Exists so the entire authed tree carries `noindex` at the metadata level —
- * robots.txt disallow alone does not prevent URL-only indexing. The
- * interactive shell lives in `app-shell.tsx` (client component, which cannot
- * export metadata).
- */
 export const metadata: Metadata = {
-  robots: {
-    index: false,
-    follow: false,
-    noarchive: true,
-    googleBot: {
-      index: false,
-      follow: false,
-    },
-  },
+  title: { default: 'Pleiad v2', template: '%s · Pleiad v2' },
+  robots: { index: false, follow: false, noarchive: true },
 }
 
-export default function AppLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  return <AppShell>{children}</AppShell>
+/**
+ * Signed-in pages of v2 (BENTO_V2.md "Dashboard"). The middleware gate sends
+ * visitors to the bento login first; this server check is the guard itself.
+ */
+export default async function V2AppLayout({ children }: { readonly children: ReactNode }) {
+  const session = await getSession()
+  if (!session) redirect(loginHref(V2_GATE.prefix, v2Href('/app')))
+  const people = await peopleOnce(session.user.id)
+  return (
+    <SiteTreeProvider tree="v2">
+      <V2Shell user={{ email: session.user.email, name: session.user.name }} people={people.length}>
+        {children}
+      </V2Shell>
+    </SiteTreeProvider>
+  )
 }

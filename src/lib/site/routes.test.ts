@@ -9,10 +9,15 @@ import { APP_GROUPS, SITE_BASE, SITE_ROUTES, V2_BASE, V2_PAGES, findRoute, match
  * spells through `siteHref` or `signInHref` lands on a row.
  */
 
-const TREE = join(process.cwd(), 'src/app', SITE_BASE)
+const TREE = join(process.cwd(), 'src/app')
 const SOURCES = [TREE, join(process.cwd(), 'src/components/bento-lab')]
-/** Lab tooling inside the tree that the site itself never links to. */
-const LAB_ONLY = new Set(['/wireframes'])
+/**
+ * The route groups the table owns since promotion (docs/redesign/V2_PROMOTION.md):
+ * the home, the marketing pages and the app. Standalone flows at the root
+ * (newsletter, offline, share, unsubscribe, auth) and the experiments under
+ * `/lab` are outside the table by design and are not scanned.
+ */
+const CONTRACT_DIRS = ['(home)', '(marketing)', 'app'].map((dir) => join(TREE, dir))
 
 const walk = (dir: string): readonly string[] =>
   readdirSync(dir).flatMap((name) => {
@@ -30,10 +35,10 @@ const routeOf = (file: string): string | null => {
 
 const pageRoutes = (): ReadonlySet<string> =>
   new Set(
-    walk(TREE)
+    CONTRACT_DIRS.flatMap(walk)
       .filter((f) => f.endsWith(`${sep}page.tsx`))
       .map(routeOf)
-      .filter((r): r is string => r !== null && !LAB_ONLY.has(r)),
+      .filter((r): r is string => r !== null),
   )
 
 const PATTERN_SEGMENT = /^\[.+\]$/
@@ -103,7 +108,7 @@ describe('the trees (BENTO_V2.md "The app in v2", "Links")', () => {
     for (const route of SITE_ROUTES) {
       const path = filled(route.path)
       const inV2 = APP_GROUPS.includes(route.group) || V2_PAGES.includes(route.path)
-      const v2Path = path === '/' ? V2_BASE : `${V2_BASE}${path}`
+      const v2Path = path === '/' ? V2_BASE || '/' : `${V2_BASE}${path}`
       expect(resolveSiteHref('v2', path), route.path).toBe(inV2 ? v2Path : siteHref(path))
       expect(resolveSiteHref('v1', path), route.path).toBe(siteHref(path))
     }

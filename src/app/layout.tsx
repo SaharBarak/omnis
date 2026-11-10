@@ -5,6 +5,7 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { PostHogAnalytics } from "@/lib/analytics/posthog-provider";
 import { ServiceWorkerRegistrar } from "@/lib/pwa/service-worker-registrar";
 import { QueryProvider } from "@/lib/query-provider";
+import { LabRoot } from "@/components/bento-lab";
 import { BRAND, BRAND_TITLE } from "@/lib/brand/identity";
 import "./globals.css";
 
@@ -136,7 +137,9 @@ export default function RootLayout({
         className={`${barlow.variable} ${rubik.variable} ${ibmPlexMono.variable} ${spaceGrotesk.variable} font-sans antialiased`}
       >
         <script defer src="https://clever-swan-577.convex.site/beacon.js" data-slug="omnis" />
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <LabRoot>{children}</LabRoot>
+        </QueryProvider>
         <PostHogAnalytics />
         <ServiceWorkerRegistrar />
         <GoogleAnalytics gaId="G-KY20RW9LY7" />

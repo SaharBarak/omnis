@@ -1,5 +1,0 @@
-export { LayersSection } from './layers-section'
-export { PairSection } from './pair-section'
-export { CircleSection } from './circle-section'
-export { DailySection } from './daily-section'
-export { MethodSection } from './method-section'

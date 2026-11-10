@@ -1,5 +1,5 @@
 import { safeRedirect } from './safe-redirect'
-import { AUTH_RETURN_PARAM, SITE_GATE } from '@/lib/site/routes'
+import { AUTH_RETURN_PARAM } from '@/lib/site/routes'
 import { V2_GATE } from '@/lib/site/v2-routes'
 
 /**
@@ -16,30 +16,20 @@ export interface Gate {
   readonly authPaths: readonly string[]
 }
 
-/** The live site's gate; its login is the fallback for any path no gate owns. */
-const LIVE_GATE: Gate = {
-  prefixes: ['/app', '/dashboard', '/people', '/profile', '/onboarding'],
-  login: '/login',
-  home: '/app',
+/**
+ * The one app gate after promotion (docs/redesign/V2_PROMOTION.md): `/app`
+ * needs a session, `/login` is where a signed-out visitor goes and the
+ * fallback for any path no gate owns, and a signed-in visitor on a login page
+ * is sent to `/app`. Derived from `V2_GATE` so the base is the single source.
+ */
+const APP_GATE: Gate = {
+  prefixes: [V2_GATE.prefix],
+  login: V2_GATE.login,
+  home: V2_GATE.home,
   authPaths: ['/login', '/signup'],
 }
 
-export const GATES: readonly Gate[] = [
-  LIVE_GATE,
-  {
-    prefixes: [SITE_GATE.prefix],
-    login: SITE_GATE.login,
-    home: SITE_GATE.home,
-    authPaths: [SITE_GATE.login],
-  },
-  /** Bento v2 signs in on the bento site's login, which owns that page (BENTO_V2.md "Routes"). */
-  {
-    prefixes: [V2_GATE.prefix],
-    login: V2_GATE.login,
-    home: V2_GATE.home,
-    authPaths: [],
-  },
-]
+export const GATES: readonly Gate[] = [APP_GATE]
 
 /**
  * The path a router would serve: percent-decoded, lower-cased, without a
@@ -74,8 +64,8 @@ export const signedInGate = (pathname: string): Gate | undefined => {
   return GATES.find((g) => g.authPaths.includes(path))
 }
 
-/** The login page of the gate that owns this path, or the live login when no gate does. */
-export const loginFor = (pathname: string): string => (gateFor(pathname) ?? LIVE_GATE).login
+/** The login page of the gate that owns this path, or the app gate's login when no gate does. */
+export const loginFor = (pathname: string): string => (gateFor(pathname) ?? APP_GATE).login
 
 /**
  * The login that owns `pathname`, sending the visitor back to `returnTo`

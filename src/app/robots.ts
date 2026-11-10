@@ -10,6 +10,7 @@ const PRIVATE_PATHS = [
   '/api/',
   '/auth/',
   '/share/',
+  '/lab/',
   '/onboarding',
   '/unsubscribe',
 ] as const
