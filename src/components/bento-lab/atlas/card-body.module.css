@@ -1,9 +1,10 @@
 /*
- * A card's words (BENTO_TYPE.md, "The card"): the eyebrow, what the thing is,
- * the person's value at it, then the meaning and facts. Shared by the
- * drawing's mark card and the digest's fact card; the container places and
- * frames it, this sets its text. Lines are trimmed to their capitals and
- * spaced by the type, as in the digest's tiles.
+ * A card's words (BENTO_TYPE.md, "The card"): four parts a group apart, the
+ * eyebrow, the title (what the thing is over the person's value at it), the
+ * meaning, and the facts. Shared by the drawing's mark card and the digest's
+ * fact card; the container places, frames and insets it, this sets its text.
+ * Lines are trimmed to their capitals and spaced by the type, as in the
+ * digest's tiles.
  */
 
 .body {
@@ -13,8 +14,8 @@
   display: grid;
   row-gap: var(--card-pair);
   min-width: 0;
-  /* The measure: the meaning keeps at least 45 characters a line (BENTO_TYPE.md, "Measure"). */
-  max-inline-size: 45ch;
+  /* The measure: the meaning keeps at least its characters a line (BENTO_TYPE.md, "Measure"). */
+  max-inline-size: var(--type-measure);
   font-size: var(--voice-meaning);
   line-height: var(--type-ui-lh);
   text-align: start;
@@ -29,7 +30,9 @@
   text-box: trim-both cap alphabetic;
 }
 
+/* The head is its own part: a group above the title. */
 .eyebrow {
+  margin-block-end: calc(var(--type-group) - var(--card-pair));
   font-size: var(--voice-eyebrow);
   font-weight: 600;
   letter-spacing: var(--type-caps-ls);
@@ -78,17 +81,26 @@
   text-wrap: pretty;
 }
 
+/*
+ * A definition list in two columns, one fact a row: the names on the card's
+ * start edge, the values on a second edge a group past the longest name.
+ * Rows stand a short UI line's leading apart, less the trimmed capitals:
+ * past the pair, so descenders clear the row below, and short of the group,
+ * so the list stays one part.
+ */
 .facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--card-pair) var(--type-group);
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: calc((var(--type-ui-lh) - var(--type-cap)) * 1em) var(--type-group);
   margin: calc(var(--type-group) - var(--card-pair)) 0 0;
   font-size: var(--voice-facts);
 }
 
 .facts div {
-  display: flex;
-  gap: 0.3em;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: baseline;
 }
 
 .facts dt {
@@ -97,7 +109,9 @@
 }
 
 .facts dd {
+  min-width: 0;
   margin: 0;
   font-weight: 500;
   color: var(--lab-ink);
+  text-wrap: pretty;
 }

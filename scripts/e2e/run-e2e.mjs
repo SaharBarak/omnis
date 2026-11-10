@@ -6,6 +6,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
+import { inkStarts, inkStyle, MEASURE_PX } from '../design/ink-scan.mjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const BASE = process.env.E2E_BASE ?? 'http://localhost:3100'
@@ -366,6 +367,104 @@ for (const width of [1440, 390]) {
     await shot('09-bento', `primary-${width}`)
   })
 }
+// ------------------------------------------------------ hung display bearings
+// Display text that starts on an edge hangs its first glyph's bearing, so its
+// ink, not its box, meets the edge (BENTO_TYPE.md, "Hung bearings"). Ink is
+// read from pixels, magenta on black, as `npm run type:bearings` reads the
+// table; motion is reduced so every scene stands at its final frame.
+
+/** Helpers run in the page: whether an element is set in the display face, and the edge its box starts on, in screen px. */
+const HUNG_PAGE = () => {
+  const px = (v) => Number.parseFloat(v) || 0
+  const family = (list) => list.split(',')[0].trim().replace(/['"]/g, '')
+  const face = family(getComputedStyle(document.body).getPropertyValue('--font-display'))
+  const display = (el) => family(getComputedStyle(el).fontFamily) === face
+  const edgeOf = (el) => {
+    const parent = el.parentElement
+    const outer = getComputedStyle(parent)
+    const box = parent.getBoundingClientRect()
+    const scale = parent.offsetWidth ? box.width / parent.offsetWidth : 1
+    return { edge: box.left + (px(outer.paddingLeft) + px(outer.borderLeftWidth)) * scale, scale }
+  }
+  const firstText = (el) =>
+    document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: (n) => (n.textContent.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT) }).nextNode()
+  return { px, display, edgeOf, firstText }
+}
+
+/** Every hung text, and every display text that starts on an edge without hanging; run in the page. */
+const findHung = (page) => {
+  const { px, display, edgeOf, firstText } = page()
+  const shown = (el) => el.checkVisibility() && getComputedStyle(el).direction === 'ltr' && firstText(el)
+  const hung = [...document.querySelectorAll('[data-hang]')].filter(shown)
+  const unhung = [...document.querySelectorAll('main *')]
+    .filter((el) => display(el) && !display(el.parentElement) && !el.closest('svg, [data-brand-lockup], [data-hang]') && !el.querySelector('[data-hang]') && shown(el))
+    .filter((el) => {
+      const style = getComputedStyle(el)
+      const { edge, scale } = edgeOf(el)
+      const start = (el.getBoundingClientRect().left - edge) / scale - px(style.marginLeft)
+      return Math.abs(start) < 0.5 && px(style.paddingLeft) === 0 && px(style.borderLeftWidth) === 0 && ['start', 'left'].includes(style.textAlign)
+    })
+    .map((el) => firstText(el).textContent.trim().slice(0, 24))
+  return { count: hung.length, unhung }
+}
+
+/** How far the black under hung text reaches past its box while ink is read, in px. */
+const INK_SPREAD = 16
+
+/** The n-th hung text, scrolled to the middle: its edge, scale and size, and the band its first glyph's row inks in, from inside the black; run in the page. */
+const hungBand = ([page, n, spread]) => {
+  const { px, edgeOf, firstText } = page()
+  const el = [...document.querySelectorAll('[data-hang]')].filter((e) => e.checkVisibility() && getComputedStyle(e).direction === 'ltr' && firstText(e))[n]
+  el.scrollIntoView({ block: 'center', behavior: 'instant' })
+  const node = firstText(el)
+  const at = node.textContent.search(/\S/)
+  const range = document.createRange()
+  range.setStart(node, at)
+  range.setEnd(node, at + 1)
+  const glyph = range.getBoundingClientRect()
+  const { edge, scale } = edgeOf(el)
+  return {
+    text: node.textContent.trim().slice(0, 24),
+    edge,
+    scale,
+    size: px(getComputedStyle(node.parentElement).fontSize),
+    band: { x: Math.floor(edge - spread / 2), y: Math.floor(glyph.top), width: Math.ceil(glyph.right - edge + spread / 2), height: Math.ceil(glyph.height) },
+  }
+}
+
+for (const route of ['/lab/bento-v2', '/lab/bento-v2/app']) {
+  for (const width of [1440, 390]) {
+    await check('09-bento', `display-ink-on-edge-${route.split('/').pop()}-${width}`, async () => {
+      await page.emulateMedia({ reducedMotion: 'reduce' })
+      await page.setViewportSize({ width, height: 900 })
+      await page.goto(`${BASE}${route}`, { waitUntil: 'networkidle', timeout: 90_000 })
+      await page.evaluate(() => document.fonts.ready)
+      const page_ = `(${HUNG_PAGE})`
+      const { count, unhung } = await page.evaluate(`(${findHung})(${page_})`)
+      if (count === 0) throw new Error(`no hung text on ${route}`)
+      const dpr = await page.evaluate(() => window.devicePixelRatio)
+      await page.addStyleTag({ content: inkStyle('[data-hang]', INK_SPREAD) })
+      const faults = unhung.map((text) => `"${text}" starts on an edge without hanging`)
+      for (let n = 0; n < count; n++) {
+        await page.evaluate(`(${hungBand})([${page_}, ${n}, ${INK_SPREAD}])`)
+        await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
+        const { text, edge, scale, size, band } = await page.evaluate(`(${hungBand})([${page_}, ${n}, ${INK_SPREAD}])`)
+        const png = (await page.screenshot({ clip: band })).toString('base64')
+        const [start] = await page.evaluate(inkStarts, { png, bands: [{ x: 0, y: 0, width: Math.round(band.width * dpr), height: Math.round(band.height * dpr) }] })
+        if (start === null) {
+          faults.push(`"${text}" shows no ink`)
+          continue
+        }
+        const off = (band.x + start / dpr - edge) / scale
+        const budget = 1 / dpr + size / MEASURE_PX
+        if (Math.abs(off) > budget) faults.push(`"${text}" inks ${off.toFixed(2)} px off its edge, past ${budget.toFixed(2)}`)
+      }
+      await page.emulateMedia({ reducedMotion: null })
+      if (faults.length) throw new Error(faults.join('; '))
+    })
+  }
+}
+
 await page.setViewportSize({ width: 1440, height: 900 })
 
 // -------------------------------------------------------------------- report

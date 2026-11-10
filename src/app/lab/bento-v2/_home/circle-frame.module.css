@@ -1,0 +1,25 @@
+/* v2 "A circle" frame (docs/redesign/BENTO_V2.md "Home" 5); the stage, slot and lists are the frame kit's. */
+
+/* The stage leads the source, so a stacked frame reads title, drawing, then the list; side by side, the list takes the flipped frame's first column. */
+@media (min-width: 900px) {
+  .side {
+    order: -1;
+  }
+}
+
+.lead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-gap);
+}
+
+.hub {
+  margin: 0;
+  font-size: var(--type-lead);
+  line-height: var(--type-lead-lh);
+}
+
+.hub strong {
+  color: var(--lab-bright);
+  font-weight: 600;
+}

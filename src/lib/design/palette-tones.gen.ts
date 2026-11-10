@@ -3,7 +3,7 @@ import type { PaletteTones } from './palette-spec'
 
 export const PALETTE_TONES: PaletteTones = {
   lantern: {
-    dark: { sky: 0.66, kin: 0.6, body: 0.6, number: 0.66 },
-    light: { sky: 0.55, kin: 0.43, body: 0.43, number: 0.59 },
+    dark: { sky: 0.66, kin: 0.6, body: 0.6, number: 0.66, red: 0.6, yellow: 0.66, green: 0.56, blue: 0.6 },
+    light: { sky: 0.55, kin: 0.43, body: 0.43, number: 0.59, red: 0.43, yellow: 0.51, green: 0.59, blue: 0.43 },
   },
 }

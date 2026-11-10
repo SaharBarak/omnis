@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
-import { routeTitle } from '@/lib/site/routes'
-import { requestedPersonId, type PersonParam } from '@/components/bento-lab/systems/requested-person'
 import { BaziView } from '@/components/bento-lab/systems/bazi-view'
+import { requestedPersonId, type PersonParam } from '@/components/bento-lab/systems/requested-person'
+import { routeTitle } from '@/lib/site/routes'
 
 export const metadata: Metadata = { title: routeTitle('/app/bazi') }
 

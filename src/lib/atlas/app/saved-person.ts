@@ -85,6 +85,12 @@ export function missingOf(p: SavedPersonLike): readonly MissingField[] {
   ].filter((m): m is MissingField => m !== null)
 }
 
+/** The fields the map's own layers need. A Hebrew name only adds gematria, so it never leaves a map incomplete. */
+const MAP_FIELDS: ReadonlySet<MissingField> = new Set<MissingField>(['time', 'place'])
+
+/** What a saved person still lacks for a full map, first gap first; empty when the map is whole. */
+export const mapGapsOf = (p: SavedPersonLike): readonly MissingField[] => missingOf(p).filter((field) => MAP_FIELDS.has(field))
+
 export const MISSING_LABEL: Readonly<Record<MissingField, string>> = {
   time: 'No birth time',
   place: 'No birth place',
@@ -99,5 +105,30 @@ export function personInsertOf(input: BirthInput & { readonly name: string }): O
     birth_date: input.date,
     birth_time: input.time,
     birth_place: input.place ? { lat: input.place.lat, lng: input.place.lng, ...(input.place.label ? { name: input.place.label } : {}) } : null,
+  }
+}
+
+type PersonRow = ReturnType<typeof personInsertOf>
+
+/**
+ * The fields an edit changed: each of `after` that differs from `before`,
+ * where both are what the same form writes (`personInsertOf`). A field the
+ * form left as it was is not sent, so what the record stores beyond the
+ * form (a place's city, country and zone, a time's seconds) is kept.
+ */
+export function changedPersonFields(before: PersonRow, after: PersonRow): Partial<PersonRow> {
+  const keys = Object.keys(after) as (keyof PersonRow)[]
+  return Object.fromEntries(keys.filter((key) => JSON.stringify(after[key] ?? null) !== JSON.stringify(before[key] ?? null)).map((key) => [key, after[key]]))
+}
+
+/** The profile fields a map writes: its birth, and the display name only when the map carries a name. One conversion with `personInsertOf`. */
+export function profileBirthOf(input: BirthInput) {
+  const row = personInsertOf({ ...input, name: input.name ?? '' })
+  return {
+    birth_date: row.birth_date,
+    birth_time: row.birth_time ?? null,
+    birth_place: row.birth_place ?? null,
+    hebrew_name: row.hebrew_name ?? null,
+    ...(row.name ? { display_name: row.name } : {}),
   }
 }

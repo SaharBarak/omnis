@@ -1,13 +1,25 @@
 'use client'
 
+import b from './birth-fields.module.css'
 import { PlaceField } from './place-field'
 import { Field } from '../site/field'
+import type { BirthField } from '@/lib/atlas/birth-input'
 import type { AtlasDraft } from '@/lib/atlas/use-atlas-draft'
+
+/** The element id of one field, from the id the caller gives the set: a caller that moves focus to a field asks for it here. */
+export const birthFieldId = (id: string, field: BirthField): string => `${id}-${field === 'hebrewName' ? 'hebrew' : field}`
+
+type Layout = 'pair' | 'stack' | 'dense' | 'row'
+
+const layoutOf = (compact: boolean, dense: boolean, row: boolean): Layout => (row ? 'row' : dense ? 'dense' : compact ? 'stack' : 'pair')
 
 /**
  * Date, time, place and optional name for one person. Labels sit above their
  * inputs. `compact` stacks every field; `dense` pairs date and time and drops
- * the time hint, for a slot where the drawing already shows what is missing.
+ * the time hint, for a slot where the drawing already shows what is missing;
+ * `row` sets date, time and place on one line, as a map's search bar, and
+ * stacks them where the line is too narrow (with `dense`, it drops the hint
+ * too, for a page whose steps already say the hour is optional).
  */
 export function BirthFields({
   id,
@@ -15,19 +27,20 @@ export function BirthFields({
   withName = false,
   compact = false,
   dense = false,
+  row = false,
 }: {
   readonly id: string
   readonly form: AtlasDraft
   readonly withName?: boolean
   readonly compact?: boolean
   readonly dense?: boolean
+  readonly row?: boolean
 }) {
   const { draft, errors, set } = form
-  const columns = compact && !dense ? 'minmax(0, 1fr)' : dense ? 'minmax(0, 1fr) minmax(0, 0.8fr)' : 'minmax(0, 1.2fr) minmax(0, 1fr)'
   return (
-    <div style={{ display: 'grid', gap: dense ? 10 : 12, gridTemplateColumns: columns }}>
+    <div className={b.fields} data-layout={layoutOf(compact, dense, row)}>
       <Field
-        id={`${id}-date`}
+        id={birthFieldId(id, 'date')}
         label="Birth date"
         type="date"
         required
@@ -36,7 +49,7 @@ export function BirthFields({
         error={errors.date}
       />
       <Field
-        id={`${id}-time`}
+        id={birthFieldId(id, 'time')}
         label="Birth time"
         type="time"
         value={draft.time}
@@ -44,13 +57,13 @@ export function BirthFields({
         hint={dense ? undefined : 'Optional. Without it the Moon is a range and there is no bodygraph.'}
         error={errors.time}
       />
-      <div style={{ gridColumn: '1 / -1' }}>
-        <PlaceField id={`${id}-place`} value={draft.place} onChange={(place) => set('place', place)} error={errors.place} />
+      <div className={b.place}>
+        <PlaceField id={birthFieldId(id, 'place')} value={draft.place} onChange={(place) => set('place', place)} error={errors.place} />
       </div>
       {withName && (
-        <div style={{ gridColumn: '1 / -1' }}>
+        <div className={b.wide}>
           <Field
-            id={`${id}-name`}
+            id={birthFieldId(id, 'name')}
             label="Full name"
             value={draft.name}
             onChange={(e) => set('name', e.target.value)}

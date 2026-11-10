@@ -1,0 +1,556 @@
+/*
+ * A calendar's board (docs/redesign/BENTO_BOARDS.md "The board"; BENTO_TYPE.md
+ * "The board"): one skeleton for every calendar. The mast, washed in the
+ * row's colour (`--tile`) to the card's edges; the bar of controls, held in
+ * view as the board scrolls; then the stage and the side as a sidebar
+ * layout, sized by their content. Regions are set apart by rules; the
+ * inspector alone is an inset.
+ */
+
+.board {
+  /* The card's measure (BENTO_TYPE.md, "Measure"), set in the board's text: the side keeps it at most, and the board is one at least. */
+  --board-measure: var(--type-measure);
+  /* The side's basis: a Next line (its mark, its name, when) at the board's text size, in the board's own ems. */
+  --board-side: 22em;
+  /* The sheet (BENTO_BOARDS.md "Wireframe"): two measures for the stage, the side's basis beside them, and the gap between. */
+  --board-wide: calc(2 * var(--board-measure) + var(--board-side) + 2 * var(--type-group));
+
+  /* A column down the sheet: the facts follow the stage and the side, and what room is left stays at the sheet's foot. */
+  display: flex;
+  flex-direction: column;
+  gap: var(--type-group);
+  /*
+   * One width for every calendar. Its width is the board's least, so a card
+   * with less room beside its row flips rather than squeezes; the card's own
+   * bound (the window less its margins) is the most it takes.
+   */
+  inline-size: var(--board-wide);
+  max-inline-size: 100%;
+  font-size: var(--voice-text);
+  line-height: var(--type-ui-lh);
+}
+
+/* No region gives up its height to the sheet: a board taller than its sheet scrolls in it whole. */
+.board > * {
+  flex-shrink: 0;
+}
+
+/* ---------- the mast ---------- */
+
+.mast {
+  display: grid;
+  gap: calc(var(--type-group) / 2);
+  min-width: 0;
+  /* Washed in the row's colour to the card's edges, over the opaque surface, as v2's art panels are. */
+  margin: calc(-1 * var(--card-pad, 0px)) calc(-1 * var(--card-pad, 0px)) 0;
+  padding: var(--card-pad, 0px) var(--card-pad, 0px) var(--type-group);
+  border-block-end: var(--edge-w) solid var(--panel-edge);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--tile) 18%, var(--lab-surface)) 0%, var(--lab-surface) 100%);
+}
+
+.mastTop {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--type-group);
+}
+
+/* The board's close: a round control at the mast's end. */
+.close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: calc(2 * var(--voice-text) * var(--type-ui-lh));
+  aspect-ratio: 1;
+  border: var(--edge-w) solid var(--panel-edge);
+  border-radius: 50%;
+  background: var(--lab-surface);
+  color: var(--lab-text-2);
+  cursor: pointer;
+}
+
+.close:hover {
+  border-color: var(--tile);
+  color: var(--lab-ink);
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--type-group);
+  margin: 0;
+  font-size: var(--voice-name);
+  font-weight: 600;
+  letter-spacing: var(--type-caps-ls);
+  text-transform: uppercase;
+  color: var(--lab-text-3);
+}
+
+/* The calendar's own script beside its name: not capitals, in the board's colour. */
+.script {
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--tile);
+}
+
+.main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--type-group);
+  min-width: 0;
+}
+
+/* The row's figure, as tall as the numeral's line: set at the numeral's size, so the leading's ems are the numeral's; the engine's drawings size from `--day-art`. */
+.figure {
+  --day-art: var(--voice-numeral-lh);
+
+  display: grid;
+  font-size: var(--voice-numeral);
+  flex: none;
+  place-items: center;
+  min-inline-size: var(--day-art);
+  min-block-size: var(--day-art);
+  color: var(--tile);
+}
+
+.figure[data-art='bars'] svg {
+  inline-size: calc(var(--day-art) / 2);
+  block-size: var(--day-art);
+}
+
+.figureMark {
+  --mark: var(--day-art);
+}
+
+.dot {
+  inline-size: calc(var(--day-art) / 4);
+  block-size: calc(var(--day-art) / 4);
+  border-radius: 50%;
+  background: var(--tile);
+}
+
+.numeral {
+  flex: none;
+  margin: 0;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--voice-numeral);
+  font-weight: 600;
+  line-height: var(--voice-numeral-lh);
+  letter-spacing: var(--voice-numeral-ls);
+  font-variant-numeric: tabular-nums;
+  color: var(--lab-ink);
+}
+
+.named {
+  display: grid;
+  gap: calc(var(--type-group) / 4);
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--voice-title);
+  font-weight: 600;
+  line-height: var(--voice-title-lh);
+  letter-spacing: var(--voice-title-ls);
+  color: var(--lab-ink);
+}
+
+.words {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--type-group);
+  margin: 0;
+  font-size: var(--voice-words);
+  font-weight: 600;
+  color: var(--lab-text-2);
+}
+
+/* Each word led by its glyph, the words set apart by a middle dot. */
+.word {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--type-group) / 4);
+}
+
+.word + .word::before {
+  content: '·';
+  margin-inline-end: calc(var(--type-group) / 2);
+  color: var(--lab-text-3);
+}
+
+.wordMark {
+  --mark: calc(var(--voice-words) * var(--type-ui-lh));
+
+  color: var(--tile);
+}
+
+.meaning {
+  display: -webkit-box;
+  margin: 0;
+  max-inline-size: var(--board-measure);
+  overflow: hidden;
+  font-size: var(--voice-words);
+  color: var(--lab-text-2);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+/* ---------- the bar ---------- */
+
+/* The controls on one line, wrapping where narrow, held at the card's top as the board scrolls. */
+.bar {
+  position: sticky;
+  top: calc(-1 * var(--card-pad, 0px));
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--type-group) / 2);
+  margin-inline: calc(-1 * var(--card-pad, 0px));
+  padding: calc(var(--type-group) / 2) var(--card-pad, 0px);
+  border-block-end: var(--edge-w) solid var(--panel-edge);
+  background: var(--lab-surface);
+}
+
+/* The views as a segmented control: one track, the selected segment raised in the board's colour. */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--type-group) / 8);
+  padding: calc(var(--type-group) / 8);
+  border: var(--edge-w) solid var(--panel-edge);
+  border-radius: var(--radius-control);
+  background: var(--lab-chip);
+}
+
+.tab,
+.single {
+  padding: calc(var(--type-group) / 4) calc(var(--type-group) * 0.75);
+  border: 0;
+  border-radius: calc(var(--radius-control) - var(--type-group) / 8);
+  background: none;
+  color: var(--lab-text-2);
+  font: inherit;
+  font-size: var(--voice-text);
+  font-weight: 600;
+  line-height: var(--type-ui-lh);
+}
+
+.tab {
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--lab-ink);
+}
+
+.tab[aria-selected='true'] {
+  background: color-mix(in srgb, var(--tile) 22%, var(--lab-surface));
+  box-shadow: inset 0 0 0 var(--edge-w) var(--tile);
+  color: var(--lab-ink);
+}
+
+.tab:focus-visible,
+.today:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* A board of one view names it where the control would be. */
+.single {
+  padding-inline: 0;
+  color: var(--lab-ink);
+}
+
+.today {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--type-group) / 4);
+  padding: calc(var(--type-group) / 4) calc(var(--type-group) * 0.75);
+  border: var(--edge-w) solid var(--panel-edge);
+  border-radius: var(--radius-control);
+  background: var(--lab-chip);
+  color: var(--lab-ink);
+  font: inherit;
+  font-size: var(--voice-text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.today:hover:not([aria-disabled='true']) {
+  border-color: var(--tile);
+}
+
+/* A view with no today keeps Today focusable, so its title says why to every reader. */
+.today[aria-disabled='true'] {
+  color: var(--lab-text-3);
+  cursor: not-allowed;
+}
+
+/* ---------- the stage and the side ---------- */
+
+/*
+ * A sidebar layout (BENTO_BOARDS.md "Wireframe"): the side keeps its basis,
+ * the stage takes the rest, and where the stage would fall under half the
+ * board the side drops under it. No breakpoint: the content decides.
+ */
+.body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  gap: calc(2 * var(--type-group));
+  min-width: 0;
+}
+
+/* The stage is the room its view measures itself against (BENTO_BOARDS.md "Stage"): its width comes from the sheet, never from the view. */
+.stage {
+  container-type: inline-size;
+  display: grid;
+  flex: 999 1 0;
+  gap: var(--type-group);
+  min-inline-size: 50%;
+}
+
+.stageHead {
+  contain: inline-size;
+  justify-self: stretch;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--type-group);
+}
+
+.side {
+  display: grid;
+  flex: 1 1 var(--board-side);
+  gap: var(--type-group);
+  min-width: 0;
+  max-inline-size: var(--board-measure);
+}
+
+.part {
+  display: grid;
+  gap: calc(var(--type-group) / 2);
+  min-width: 0;
+  padding-block-start: var(--type-group);
+  border-block-start: var(--edge-w) solid var(--panel-edge);
+}
+
+.partName {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--type-group) / 2);
+  margin: 0;
+  font-size: var(--voice-part);
+  font-weight: 600;
+  line-height: var(--type-ui-lh);
+  letter-spacing: var(--type-caps-ls);
+  text-transform: uppercase;
+  color: var(--lab-text-3);
+}
+
+.caption {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: var(--voice-text);
+  color: var(--lab-text-2);
+}
+
+/* The inspector: the one inset, since it is the one part that changes as focus moves. */
+.inspector {
+  display: grid;
+  gap: calc(var(--type-group) / 2);
+  min-width: 0;
+  padding: var(--type-group);
+  border: var(--edge-w) solid var(--panel-edge);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--tile) 7%, var(--lab-surface));
+}
+
+.todayChip {
+  padding: 0 calc(var(--type-group) / 2);
+  border-radius: var(--radius-control);
+  background: var(--tile);
+  color: var(--lab-surface);
+  letter-spacing: var(--type-caps-ls);
+}
+
+/* ---------- next, as a timeline ---------- */
+
+/* Each event's sign on a rail that runs down the list, its name, then when, the date over how far off. */
+.next {
+  position: relative;
+  display: grid;
+  gap: calc(var(--type-group) / 2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.next::before {
+  content: '';
+  position: absolute;
+  inset-block: calc(var(--voice-text) * var(--type-ui-lh) / 2);
+  inset-inline-start: calc(var(--voice-text) * var(--type-ui-lh) / 2 - var(--edge-w) / 2);
+  /* An edge, not a fill, so forced colours keep the rail. */
+  border-inline-start: var(--edge-w) solid var(--panel-edge);
+}
+
+.event {
+  min-width: 0;
+}
+
+.eventRow,
+.eventButton {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: calc(var(--type-group) / 2);
+  inline-size: 100%;
+}
+
+/* An event on a cell is a button that lights the cell and shows it; it reads as its row, never as a control's pill. */
+.eventButton {
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-cell);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.eventButton:hover .eventName {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.eventButton:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* The sign sits on the rail, the surface behind it masking the line. */
+.eventSign {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--voice-text) * var(--type-ui-lh));
+  block-size: calc(var(--voice-text) * var(--type-ui-lh));
+  border-radius: 50%;
+  background: var(--lab-surface);
+}
+
+.eventMark {
+  --mark: calc(var(--voice-text) * var(--type-ui-lh) * 0.85);
+
+  color: var(--tile);
+}
+
+.eventDot {
+  inline-size: calc(var(--voice-text) / 2);
+  block-size: calc(var(--voice-text) / 2);
+  border-radius: 50%;
+  background: var(--tile);
+}
+
+.eventName {
+  font-weight: 500;
+  color: var(--lab-ink);
+}
+
+.when {
+  display: grid;
+  justify-items: end;
+  font-variant-numeric: tabular-nums;
+  color: var(--lab-text-2);
+  white-space: nowrap;
+}
+
+.away {
+  font-size: var(--voice-part);
+  color: var(--lab-text-3);
+}
+
+/* ---------- facts ---------- */
+
+/*
+ * The band (BENTO_BOARDS.md "Facts"): under the stage and the side, in as
+ * many columns of the side's basis as the sheet holds, read down each.
+ */
+.band .facts {
+  columns: var(--board-side);
+  column-gap: calc(2 * var(--type-group));
+  column-rule: var(--edge-w) solid color-mix(in srgb, var(--panel-edge) 60%, transparent);
+}
+
+/* Label, then value led by its glyph, each pair a ruled row; the label column is the longest label wide, so values align down every column. */
+.facts {
+  margin: 0;
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: minmax(0, calc(var(--label-ch) * 1ch)) minmax(0, 1fr);
+  column-gap: var(--type-group);
+  padding-block: calc(var(--type-group) / 4);
+  border-block-end: var(--edge-w) solid color-mix(in srgb, var(--panel-edge) 60%, transparent);
+  break-inside: avoid;
+}
+
+.fact:last-child {
+  border-block-end: 0;
+}
+
+.fact dt {
+  color: var(--lab-text-3);
+}
+
+.fact dd {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--type-group) / 4);
+  margin: 0;
+  color: var(--lab-ink);
+}
+
+.factMark {
+  --mark: calc(var(--voice-text) * var(--type-ui-lh));
+
+  color: var(--tile);
+}
+
+@media (forced-colors: active) {
+  .dot,
+  .eventDot,
+  .todayChip {
+    forced-color-adjust: none;
+    background: CanvasText;
+    color: Canvas;
+  }
+
+  .wordMark,
+  .eventMark,
+  .factMark,
+  .script {
+    color: CanvasText;
+  }
+
+  .tab[aria-selected='true'] {
+    outline: var(--edge-w) solid Highlight;
+    outline-offset: calc(-1 * var(--edge-w));
+  }
+}

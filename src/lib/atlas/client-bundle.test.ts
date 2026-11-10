@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { labRoots } from '@/lib/design/lab-sheets'
 
 /**
  * Packages that must reach the browser only through a dynamic `import()`:
@@ -13,7 +14,8 @@ import { describe, expect, it } from 'vitest'
  */
 
 const ROOT = process.cwd()
-const HEAVY = new Set(['circular-natal-horoscope-js', 'astronomy-engine', 'animejs'])
+/** Bento v2's scroll engines load the same way, through ScrollEngine (docs/redesign/BENTO_V2.md "Motion engines"). */
+const HEAVY = new Set(['circular-natal-horoscope-js', 'astronomy-engine', 'animejs', 'gsap', 'lenis'])
 /**
  * Local modules that reach the browser only after first paint: the atlas mark
  * meanings and the long tables only they read (BENTO_SITE.md, "Marks explain themselves",
@@ -29,7 +31,7 @@ const LAZY_FILES = new Set(
     'packages/engine/src/data/human-design.ts',
   ].map((f) => join(ROOT, f)),
 )
-const CLIENT_ROOTS = ['src/components/bento-lab', 'src/app/lab/bento'].map((d) => join(ROOT, d))
+const CLIENT_ROOTS = labRoots().map((d) => join(ROOT, d))
 const EXTENSIONS = ['.ts', '.tsx', '/index.ts', '/index.tsx']
 
 const walk = (dir: string): readonly string[] =>

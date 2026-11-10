@@ -10,6 +10,7 @@ import {
 } from "@/lib/relations/pair-ties";
 import {
   SYSTEM_LABEL,
+  TIE_FACT,
   tieBetween,
   tieBits,
   tieName,
@@ -127,7 +128,7 @@ function Table({
               <th scope="col">System</th>
               <th scope="col">Tie</th>
               <th scope="col">How often</th>
-              <th scope="col">Weight</th>
+              <th scope="col">{TIE_FACT.weight}</th>
             </tr>
           </thead>
           <tbody>

@@ -91,6 +91,7 @@ export function AtlasStage({
   className,
   style,
   fit = false,
+  currents = false,
 }: {
   readonly atlas: PersonAtlas
   readonly status: StageStatus
@@ -101,6 +102,8 @@ export function AtlasStage({
   readonly className?: string
   readonly style?: CSSProperties
   readonly fit?: boolean
+  /** Whether the defined channels carry their currents (BENTO_SITE.md "The Atlas", Currents). */
+  readonly currents?: boolean
 }) {
   const drawingRef = useRef<HTMLDivElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
@@ -123,7 +126,7 @@ export function AtlasStage({
       </div>
       <div className={s.stageDrawing} data-busy={status.status === 'loading' ? '' : undefined}>
         <div ref={drawingRef} className={s.square} data-inspect={active ? '' : undefined}>
-          <PersonAtlasDrawing atlas={atlas} focus={focus} highlight={highlight} describedBy={readoutId}>
+          <PersonAtlasDrawing atlas={atlas} focus={focus} highlight={highlight} describedBy={readoutId} currents={currents}>
             <MarkTargets
               marks={marks}
               titleOf={(ref) => markTitle(atlas, ref)}

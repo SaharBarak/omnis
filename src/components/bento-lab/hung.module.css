@@ -1,0 +1,11 @@
+/*
+ * A display text's ink meets the edge its box starts on (BENTO_TYPE.md,
+ * "Hung bearings"): the block hangs the face's median bearing, so a line the
+ * browser wraps lands within the face's spread, and its first line is moved
+ * by the difference to hang its own first glyph's bearing exactly. The
+ * bearings are left side bearings, so only left-to-right text hangs.
+ */
+.hung:dir(ltr) {
+  margin-inline-start: calc(var(--hang-median) * -1em);
+  text-indent: calc((var(--hang-median) - var(--hang)) * 1em);
+}

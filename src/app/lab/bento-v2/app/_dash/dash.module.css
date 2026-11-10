@@ -1,0 +1,519 @@
+/* v2 dashboard (docs/redesign/BENTO_V2.md "Dashboard"): the reference portal's rail and grid. */
+
+.app {
+  display: grid;
+  grid-template-columns: minmax(15rem, 17rem) minmax(0, 1fr);
+  gap: var(--v2-gap);
+  align-items: start;
+}
+
+/* ---------- rail ---------- */
+
+.rail {
+  position: sticky;
+  top: var(--v2-gap);
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-gap);
+  height: calc(100svh - 2 * var(--v2-gap));
+  padding: var(--v2-gap);
+}
+
+.railHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--v2-gap);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  padding: calc(var(--v2-gap) * 0.75) var(--v2-gap);
+  border-radius: 999px;
+  background: var(--lab-ink);
+  color: var(--lab-page);
+  font-size: var(--type-lead);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.railTools {
+  display: inline-flex;
+  gap: calc(var(--v2-gap) / 2);
+}
+
+.railIcon {
+  width: var(--hit-min);
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.railNav {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: calc(var(--v2-gap) / 3);
+  min-height: 0;
+  overflow: auto;
+}
+
+.railGroup {
+  margin: var(--v2-gap) var(--v2-gap) calc(var(--v2-gap) / 3);
+}
+
+.railLink {
+  display: flex;
+  align-items: center;
+  gap: var(--v2-gap);
+  min-height: var(--hit-min);
+  padding-inline: var(--v2-gap);
+  border-radius: 999px;
+  color: var(--lab-text-2);
+  font-size: var(--type-small);
+  line-height: var(--type-ui-lh);
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background-color var(--dur-quick) var(--ease-standard),
+    color var(--dur-quick) var(--ease-standard);
+}
+
+.railLink:hover {
+  color: var(--lab-ink);
+  background: var(--inset-fill);
+}
+
+.railLink[aria-current='page'] {
+  background: var(--lab-ink);
+  color: var(--lab-page);
+}
+
+.railLink:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.badge {
+  margin-inline-start: auto;
+  min-width: 1.5rem;
+  padding: 0 calc(var(--v2-gap) / 2);
+  border-radius: 999px;
+  background: var(--action);
+  color: var(--on-action);
+  font-size: var(--type-micro);
+  line-height: 1.6;
+  font-weight: 600;
+  text-align: center;
+}
+
+.account {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--v2-gap);
+  padding: var(--v2-gap);
+}
+
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  width: var(--hit-min);
+  height: var(--hit-min);
+  border-radius: 50%;
+  background: var(--lab-bright);
+  color: var(--lab-page);
+  font-weight: 600;
+}
+
+.accountText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.accountName {
+  overflow: hidden;
+  font-size: var(--type-small);
+  line-height: var(--type-ui-lh);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The app's sets (tiles, identity chips) start at their panel's edge, as v2's words do; the bento site centres them. */
+.main {
+  --set-justify: start;
+
+  min-width: 0;
+}
+
+/* ---------- grid ---------- */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--v2-gap);
+}
+
+.greet {
+  grid-column: span 2;
+  display: flex;
+  min-height: calc(var(--hit-target) * 7);
+}
+
+.greetText {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-gap);
+  padding: var(--v2-pad);
+}
+
+.greetNotch {
+  z-index: 2;
+}
+
+.kin {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-gap);
+}
+
+/* The feed beside it sets the row; the pair's drawing takes what the head, tiers and link leave. */
+.path {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-gap);
+}
+
+.cardHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--v2-gap);
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-figure);
+  line-height: var(--type-figure-lh);
+  letter-spacing: var(--type-figure-ls);
+  font-weight: 600;
+}
+
+/* The pair's drawing takes the room the feed beside it gives the row (frame.drawingSlot), never less than a drawing that reads. */
+.pairSlot {
+  min-height: calc(var(--hit-target) * 7);
+}
+
+.tiers {
+  display: grid;
+  gap: calc(var(--v2-gap) * 0.75);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tier {
+  --tier: var(--lab-text-3);
+  display: grid;
+  grid-template-columns: minmax(6rem, auto) minmax(0, 1fr) 2rem;
+  align-items: center;
+  gap: var(--v2-gap);
+}
+
+.tier[data-tier='T3'] {
+  --tier: var(--action);
+}
+
+.tier[data-tier='T2'] {
+  --tier: var(--lab-bright);
+}
+
+.tier[data-tier='T1'] {
+  --tier: var(--brand-soft);
+}
+
+.tierBar {
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--lab-line);
+  overflow: hidden;
+}
+
+.tierBar > i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--tier);
+  transform-origin: 0 50%;
+  transition: transform var(--dur-settle) var(--ease-emphasized);
+}
+
+.tierCount {
+  font-size: var(--type-small);
+  line-height: var(--type-ui-lh);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.pathAction {
+  align-self: flex-start;
+}
+
+/* Your circle: the drawing beside its heaviest pairs, the row's full width. */
+.circle {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-gap);
+}
+
+.circleBody {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--v2-gap);
+  min-height: calc(var(--hit-target) * 11);
+}
+
+.circleSlot {
+  min-height: calc(var(--hit-target) * 9);
+}
+
+.circleSide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--v2-gap);
+}
+
+.circleEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--v2-gap);
+}
+
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-gap);
+}
+
+.people {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--v2-gap);
+}
+
+.person {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--v2-gap) / 2);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color var(--dur-quick) var(--ease-standard);
+}
+
+.person:hover {
+  border-color: var(--lab-ink);
+}
+
+.person:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.personHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--v2-gap);
+  margin-bottom: var(--v2-gap);
+}
+
+.personName {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-figure);
+  line-height: var(--type-figure-lh);
+  letter-spacing: var(--type-figure-ls);
+  font-weight: 600;
+}
+
+.status {
+  padding: calc(var(--v2-gap) / 4) calc(var(--v2-gap) * 0.75);
+  border-radius: 999px;
+  border: var(--edge-w) solid var(--lab-line);
+  font-size: var(--type-micro);
+  line-height: var(--type-ui-lh);
+  font-weight: 600;
+  color: var(--lab-text-2);
+  white-space: nowrap;
+}
+
+.statusFull {
+  border-color: transparent;
+  background: var(--action);
+  color: var(--on-action);
+}
+
+.addPerson {
+  justify-content: flex-end;
+  border-style: dashed;
+}
+
+.map {
+  grid-column: 1 / -1;
+  height: calc(100svh - 2 * var(--v2-gap));
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .greet,
+  .path {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 899.98px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Stacked, each drawing is its own shape (frame.drawingSlot) and the circle's pairs follow it. */
+  .pairSlot,
+  .circleSlot {
+    min-height: 0;
+  }
+
+  .circleBody {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .rail {
+    position: relative;
+    top: auto;
+    height: auto;
+  }
+
+  /* One scrolling row of destinations, as a phone's tab strip. */
+  .railNav {
+    flex: 0 0 auto;
+    flex-direction: row;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .railNav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .railGroup {
+    display: none;
+  }
+
+  .railLink {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .map {
+    height: auto;
+  }
+}
+
+/* ---------- a map kept before sign-in, and changing your own (BENTO_V2.md "The hand-off", "Changing it later") ---------- */
+
+.keepCard {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 0.42fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--v2-pad);
+}
+
+.keepHead {
+  display: grid;
+  gap: calc(var(--v2-gap) / 2);
+}
+
+.keepHead > p {
+  margin: 0;
+}
+
+.keepTitle {
+  margin: 0;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-title);
+  line-height: var(--type-title-lh);
+  letter-spacing: var(--type-title-ls);
+  font-weight: 600;
+}
+
+.editor {
+  display: grid;
+  gap: var(--v2-gap);
+  min-width: 0;
+}
+
+.editor > p {
+  margin: 0;
+}
+
+.editorRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--v2-gap);
+}
+
+.editorActions,
+.editorAside {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--v2-gap);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.dialog {
+  inline-size: min(100% - 2 * var(--v2-gap), var(--page-max));
+  padding: var(--v2-pad);
+  color: var(--lab-ink);
+}
+
+.dialog[open] {
+  display: grid;
+  gap: var(--v2-pad);
+}
+
+.dialog::backdrop {
+  background: color-mix(in oklab, var(--lab-page) calc(var(--busy-alpha) * 100%), transparent);
+}
+
+@media (max-width: 899.98px) {
+  .keepCard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

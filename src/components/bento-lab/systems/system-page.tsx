@@ -5,11 +5,12 @@ import s from './systems.module.css'
 import type { SavedPerson, SystemStatus } from './use-system-people'
 import kit from '../kit.module.css'
 import { EmptyState, ErrorState, Loading, PrimaryAction, Skeleton } from '../site'
+import { useAppearance, useAppHrefs, useSiteHref } from '../site/site-tree'
 import site from '../site/site.module.css'
+import f from '@/components/bento-v2/frame/frame.module.css'
 import { MISSING_LABEL, type MissingField } from '@/lib/atlas/app/saved-person'
 import { PLANS } from '@/lib/services/billing'
 import type { PlanId } from '@/lib/site/plans'
-import { siteHref } from '@/lib/site/routes'
 
 /** What a system page is: copy, art and links, bound once per route. */
 export interface SystemPageSpec {
@@ -36,15 +37,40 @@ export interface ReadoutRow {
   readonly detail?: ReactNode
 }
 
-/** Slot 1: the mural as a band, then the centred head (BENTO_SITE.md "Heads"): eyebrow, title, lead, the picker. */
+/** The mural as a band, shaded toward the system's accent. */
+const Banner = ({ spec }: { readonly spec: SystemPageSpec }) => (
+  <div className={s.banner}>
+    <img src={spec.mural} alt="" className={s.bannerArt} loading="eager" fetchPriority="high" decoding="async" />
+    <div className={s.bannerShade} aria-hidden />
+  </div>
+)
+
+/**
+ * Slot 1: the mural as a band, then the head: centred on the bento site
+ * (BENTO_SITE.md "Heads"), or, in v2, a head panel with its words from the
+ * panel's start (BENTO_V2.md "The app in v2", "Appearance"). The tree's
+ * layout picks which.
+ */
 export function SystemPage({ spec, picker, children }: { readonly spec: SystemPageSpec; readonly picker?: ReactNode; readonly children: ReactNode }) {
+  const appearance = useAppearance()
+  const accent = { '--accent': spec.accent } as CSSProperties
+  if (appearance === 'frame')
+    return (
+      <article className={`${site.frameStack} ${s.framePage}`} style={accent}>
+        <header className={`${f.panel} ${f.art} ${f.pad} ${site.frameHead}`}>
+          <Banner spec={spec} />
+          <p className={`${f.eyebrow} ${s.eyebrow}`}>{spec.eyebrow}</p>
+          <h1 className={f.title}>{spec.title}</h1>
+          <p className={f.lead}>{spec.lead}</p>
+          {picker && <div className={site.frameActions}>{picker}</div>}
+        </header>
+        {children}
+      </article>
+    )
   return (
-    <article className={`${site.page} ${s.page}`} style={{ '--accent': spec.accent } as CSSProperties}>
+    <article className={`${site.page} ${s.page}`} style={accent}>
       <header className={s.head}>
-        <div className={s.banner}>
-          <img src={spec.mural} alt="" className={s.bannerArt} loading="eager" fetchPriority="high" decoding="async" />
-          <div className={s.bannerShade} aria-hidden />
-        </div>
+        <Banner spec={spec} />
         <div className={site.sectionHead}>
           <div className={site.sectionTitle}>
             <span className={`${kit.eyebrow} ${s.eyebrow}`}>{spec.eyebrow}</span>
@@ -103,6 +129,7 @@ export function Readout({ title, rows, head, columns = false }: { readonly title
 
 /** Slot 5: what the layer reads, and where to read more. */
 export function LayerNote({ spec }: { readonly spec: SystemPageSpec }) {
+  const href = useSiteHref()
   return (
     <aside className={s.note} aria-label="What this layer reads">
       <span className={kit.eyebrow}>What this layer reads</span>
@@ -110,13 +137,13 @@ export function LayerNote({ spec }: { readonly spec: SystemPageSpec }) {
       {(spec.article || spec.guide) && (
         <div className={s.links}>
           {spec.article && (
-            <Link href={siteHref(`/app/library/${spec.article}`)} className={kit.pill}>
+            <Link href={href(`/app/library/${spec.article}`)} className={kit.pill}>
               <BookOpen size={14} aria-hidden />
               Library article
             </Link>
           )}
           {spec.guide && (
-            <Link href={siteHref(`/learn/${spec.guide.slug}`)} className={kit.pill}>
+            <Link href={href(`/learn/${spec.guide.slug}`)} className={kit.pill}>
               {spec.guide.label}
               <ArrowUpRight size={14} aria-hidden />
             </Link>
@@ -130,7 +157,7 @@ export function LayerNote({ spec }: { readonly spec: SystemPageSpec }) {
 /** A titled block under the grid. */
 export function SystemSection({ id, title, lead, actions, children }: { readonly id: string; readonly title: string; readonly lead?: ReactNode; readonly actions?: ReactNode; readonly children: ReactNode }) {
   return (
-    <section className={s.section} aria-labelledby={`${id}-title`}>
+    <section id={id} className={s.section} aria-labelledby={`${id}-title`}>
       <div className={s.sectionHead}>
         <div>
           <h2 id={`${id}-title`} className={site.h3}>
@@ -216,6 +243,7 @@ export function GridSkeleton({ spec, rows = 6 }: { readonly spec: SystemPageSpec
 
 /** Slot 4: the locked state names the plan that opens the system. */
 export function PlanGate({ spec, opensOn, planName }: { readonly spec: SystemPageSpec; readonly opensOn: PlanId | null; readonly planName: string }) {
+  const href = useSiteHref()
   const opens = opensOn ? PLANS[opensOn].name : null
   return (
     <div className={s.gate}>
@@ -224,27 +252,30 @@ export function PlanGate({ spec, opensOn, planName }: { readonly spec: SystemPag
       <p className={site.body}>
         Your account is on {planName}. Saved people stay as they are; the reading appears here once the plan includes it.
       </p>
-      <PrimaryAction href={`${siteHref('/app/settings')}#plan`} size="small">
+      <PrimaryAction href={href('/app/settings#plan')} size="small">
         See plans
       </PrimaryAction>
     </div>
   )
 }
 
-const addPeopleLink = () => (
-  <PrimaryAction href={siteHref('/app/people')} intent="add" size="small">
-    Add a person
-  </PrimaryAction>
-)
+function AddPeopleLink() {
+  return (
+    <PrimaryAction href={useAppHrefs().addPerson} intent="add" size="small">
+      Add a person
+    </PrimaryAction>
+  )
+}
 
 /** Shown when the person on screen lacks the birth data the system needs. */
 export function MissingBirthData({ spec, person, missing }: { readonly spec: SystemPageSpec; readonly person: SavedPerson; readonly missing: readonly MissingField[] }) {
   const { id, name } = person.person
+  const hrefs = useAppHrefs()
   return (
     <EmptyState
       title={`${spec.title} needs more of ${name}'s birth data`}
       action={
-        <Link href={siteHref(`/app/people/${id}`)} className={`${site.btn} ${site.btnSmall}`}>
+        <Link href={hrefs.person(id)} className={`${site.btn} ${site.btnSmall}`}>
           Open {name}
         </Link>
       }
@@ -287,7 +318,7 @@ export function SystemState({ spec, status, rows, ready }: { readonly spec: Syst
         <SystemGrid
           spec={spec}
           figure={
-            <EmptyState title="No saved people yet" action={addPeopleLink()}>
+            <EmptyState title="No saved people yet" action={<AddPeopleLink />}>
               {spec.title} reads a saved person&rsquo;s birth data. Add yourself or someone close, then come back.
             </EmptyState>
           }

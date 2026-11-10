@@ -4,7 +4,7 @@ import { LARGEST } from './maya-numeral'
 
 describe('buildLongCount', () => {
   it('reads the sample and the end of the thirteenth baktun', () => {
-    expect(buildLongCount('1991-03-14')).toMatchObject({ places: [12, 18, 17, 16, 7], date: '12.18.17.16.7', round: "7 Manik' 0 Kumku" })
+    expect(buildLongCount('1991-03-14')).toMatchObject({ places: [12, 18, 17, 16, 7], date: '12.18.17.16.7', round: "7 Manik' 0 Kumk'u" })
     expect(buildLongCount('2012-12-21').date).toBe('13.0.0.0.0')
   })
 

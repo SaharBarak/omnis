@@ -3,10 +3,10 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowLeftRight } from 'lucide-react'
-import { pairHref } from './hrefs'
 import p from './people.module.css'
 import kit from '../kit.module.css'
 import site from '../site/site.module.css'
+import { useAppHrefs } from '@/components/bento-lab/site/site-tree'
 import type { AtlasPersonRef } from '@/lib/atlas/types'
 
 function PersonSelect({
@@ -45,6 +45,7 @@ function PersonSelect({
 /** Switch either side of a pair, or swap them. Each choice opens that pair's page. */
 export function PairPicker({ people, a, b }: { readonly people: readonly AtlasPersonRef[]; readonly a: string; readonly b: string }) {
   const router = useRouter()
+  const { pair: pairHref } = useAppHrefs()
   return (
     <div className={p.pickers}>
       <PersonSelect id="pair-a" label="First person" value={a} people={people} exclude={b} onPick={(next) => router.push(pairHref(next, b))} />

@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { dailyHexagram, dailyRune, dailyTarotCard } from '@pleiad/engine/calculations/oracles'
-import { HEXAGRAMS, TRIGRAMS, type Hexagram } from '@pleiad/engine/data/iching'
+import { HEXAGRAMS, TRIGRAMS, hexagramLines, type Hexagram } from '@pleiad/engine/data/iching'
 import { ELDER_FUTHARK } from '@pleiad/engine/data/runes'
 import { TAROT_DECK } from '@pleiad/engine/data/tarot'
 import { systemArt } from './art'
@@ -29,18 +29,14 @@ const AETTIR = ["Freyr's aett", "Hagal's aett", "Tyr's aett"] as const
 /** Major arcana carry Roman numerals on the card face; minors their rank. */
 const cardFace = (card: { readonly arcana: string; readonly number: number }): string => (card.arcana === 'major' ? roman(card.number) : String(card.number))
 
-/** Six lines, top first: the upper trigram over the lower, each stored bottom-up. */
-function hexagramLines(h: Hexagram): readonly number[] {
-  const lines = (name: string) => TRIGRAMS.find((t) => t.name === name)?.lines ?? [1, 1, 1]
-  const [lower, upper] = h.trigrams
-  return [...lines(lower), ...lines(upper)].reverse()
-}
+/** Six lines, top first, as a hexagram is drawn. */
+const topFirst = (h: Hexagram): readonly boolean[] => [...hexagramLines(h.number)].reverse()
 
 function HexagramFigure({ hexagram }: { readonly hexagram: Hexagram }) {
   return (
     <div className={s.hexagram} role="img" aria-label={`Hexagram ${hexagram.number}, ${hexagram.trigrams[1]} over ${hexagram.trigrams[0]}`}>
-      {hexagramLines(hexagram).map((line, i) => (
-        <span key={i} className={line === 1 ? s.yang : s.yin} />
+      {topFirst(hexagram).map((yang, i) => (
+        <span key={i} className={yang ? s.yang : s.yin} />
       ))}
     </div>
   )

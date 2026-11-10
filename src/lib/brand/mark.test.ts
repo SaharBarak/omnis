@@ -6,7 +6,7 @@ import { BRAND } from './identity'
 import { LANTERN, LOCKUP_GAP, LOCKUP_WIDTH, MARK_MIN_PX, MARK_THEMES, OPTICAL_MIN_PX, lanternShape, lockup, markSvg, optical, sagitta } from './mark'
 import { MARK_TONES } from './mark-tones.gen'
 import { OG_SIZE } from './og-card'
-import { MARK_ROLES, OUTPUTS, drawingSvg, mobileModule, render, resolveMarkTones, tonesModule, type Output } from './outputs'
+import { MARK_ROLES, OUTPUTS, drawingSvg, mobileModule, pixelModule, render, resolveMarkTones, tonesModule, type Output } from './outputs'
 import manifest from '@/app/manifest'
 import { resolvePalette } from '@/lib/design/bento-palette'
 import { paletteSpec } from '@/lib/design/palette-spec'
@@ -180,6 +180,7 @@ describe('the generated files: a changed mark without `npm run brand:icons` fail
   it('match the modules they are written from', () => {
     expect(readFileSync(at('src/lib/brand/mark-tones.gen.ts'), 'utf8')).toBe(tonesModule(tones))
     expect(readFileSync(at('packages/mobile/src/components/brand-mark.gen.ts'), 'utf8')).toBe(mobileModule(tones))
+    expect(readFileSync(at('src/lib/brand/pixel-lantern.gen.ts'), 'utf8')).toBe(pixelModule())
   })
 
   it.each(OUTPUTS.map((output) => [output.path, output] as const))('%s is what the mark draws today', async (_, output: Output) => {

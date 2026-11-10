@@ -2,6 +2,8 @@ import { HOUSES } from '@pleiad/engine/data/houses'
 import { CENTERS } from '@pleiad/engine/data/human-design-centers'
 import { CHANNELS } from '@pleiad/engine/data/human-design-channels'
 import { GATES } from '@pleiad/engine/data/human-design-gates'
+import { getGeneKey } from '@pleiad/engine/data/gene-keys'
+import { HEXAGRAMS } from '@pleiad/engine/data/iching'
 import { PLANETS } from '@pleiad/engine/data/planets'
 import { ZODIAC_SIGNS } from '@pleiad/engine/data/zodiac-signs'
 import { getCastleByKin } from '@pleiad/engine/data/castles'
@@ -12,10 +14,10 @@ import { PLACE_NAMES, placeDays } from './long-count'
 import { andList, capital, centreName, MARK_LAYER, markTitle, rolesOf, type AtlasMarkKind, type AtlasMarkRef, type MarkSource, type MarkTitle } from './marks'
 import { signsOf } from './place'
 import { isMarkRef, numberWords, type NumberRole, type ReadingRef, type ReadingSource } from './readings'
-import type { AtlasLayerId } from './types'
+import type { AtlasLayerId, LongCountReading } from './types'
 import { getSealMeaning, getToneMeaning } from '@/lib/dreamspell-meanings'
 import { ORACLE_ROLES } from '@/lib/dreamspell-oracle'
-import { SYSTEM_CATALOG } from '@/lib/system-preferences'
+import { systemLine } from '@/lib/system-preferences'
 
 /**
  * What the tradition reads into a mark on the atlas (docs/redesign/BENTO_SITE.md,
@@ -47,9 +49,44 @@ const sentence = (words: readonly string[]): string | null => (words.length === 
 /** Sentences joined, the empty ones left out. */
 const prose = (...parts: readonly (string | null)[]): string | null => parts.filter(Boolean).join(' ') || null
 
-const fact = (label: string, value: string): MarkFact => ({ label, value })
+export const fact = (label: string, value: string): MarkFact => ({ label, value })
 
 const NOTHING: MarkReading = { meaning: null, facts: [] }
+
+/** A sign's own reading, wherever a body stands in it: its keywords, element, modality and ruler. */
+export function signReading(id: string): MarkReading {
+  const sign = ZODIAC_SIGNS.find((z) => z.id === id)
+  if (!sign) return NOTHING
+  const ruler = PLANETS.find((p) => p.id === sign.ruler)?.name ?? capital(sign.ruler)
+  return {
+    meaning: sentence(sign.keywords),
+    facts: [fact('Element', capital(sign.element)), fact('Modality', capital(sign.modality)), fact('Ruler', ruler)],
+  }
+}
+
+/**
+ * A gate with the Sun on one of its lines: the gate's keywords, then the
+ * line, the centre the gate sits in, the channels it opens half of, its
+ * hexagram's trigrams and its Gene Key from shadow to siddhi.
+ */
+export function gateLineReading(n: number, line: number): MarkReading {
+  const gate = GATES.find((g) => g.number === n)
+  if (!gate) return NOTHING
+  const theme = Object.hasOwn(LINE_THEMES, line) ? LINE_THEMES[line as keyof typeof LINE_THEMES] : undefined
+  const channels = CHANNELS.filter((c) => c.gates.includes(n)).map((c) => `${c.id} ${c.name}`)
+  const trigrams = HEXAGRAMS.find((h) => h.number === n)?.trigrams
+  const key = getGeneKey(n)
+  return {
+    meaning: sentence(gate.keywords),
+    facts: [
+      ...(theme ? [fact('Line', theme.name)] : []),
+      fact('Centre', centreName(gate.centerId)),
+      ...(channels.length > 0 ? [fact(channels.length === 1 ? 'Channel' : 'Channels', channels.join(', '))] : []),
+      ...(trigrams ? [fact('Trigrams', `${trigrams[1]} over ${trigrams[0]}`)] : []),
+      fact('Gene Key', [key.shadow, key.gift, key.siddhi].join(' → ')),
+    ],
+  }
+}
 
 function reading(atlas: MarkSource, ref: AtlasMarkRef): MarkReading {
   switch (ref.kind) {
@@ -57,15 +94,8 @@ function reading(atlas: MarkSource, ref: AtlasMarkRef): MarkReading {
       const planet = PLANETS.find((p) => p.id === ref.id)
       return planet ? { meaning: sentence(planet.keywords), facts: [fact('Kind', capital(planet.type))] } : NOTHING
     }
-    case 'sign': {
-      const sign = ZODIAC_SIGNS.find((z) => z.id === ref.id)
-      if (!sign) return NOTHING
-      const ruler = PLANETS.find((p) => p.id === sign.ruler)?.name ?? capital(sign.ruler)
-      return {
-        meaning: sentence(sign.keywords),
-        facts: [fact('Element', capital(sign.element)), fact('Modality', capital(sign.modality)), fact('Ruler', ruler)],
-      }
-    }
+    case 'sign':
+      return signReading(ref.id)
     case 'rising': {
       const first = HOUSES[0]
       return { meaning: prose(`${first.theme}.`, sentence(first.keywords)), facts: [fact('House', first.name)] }
@@ -105,13 +135,9 @@ export function explain(atlas: MarkSource, ref: AtlasMarkRef): MarkExplanation |
 
 const count = new Intl.NumberFormat('en-US')
 
-const days = (n: number): string => `${count.format(n)} ${n === 1 ? 'day' : 'days'}`
+export const days = (n: number): string => `${count.format(n)} ${n === 1 ? 'day' : 'days'}`
 
-const description = (tile: TileId): string | null => {
-  const key = tileSystem(tile)
-  const found = SYSTEM_CATALOG.find((system) => system.key === key)
-  return found ? `${found.description}.` : null
-}
+const description = (tile: TileId): string | null => systemLine(tileSystem(tile))
 
 const NUMBER_FROM: Readonly<Record<NumberRole, string>> = {
   lifePath: 'Birth date',
@@ -138,13 +164,15 @@ function placementReading(atlas: ReadingSource, id: string): MarkReading {
   if (!body || !planet) return NOTHING
   const signs = signsOf(body)
   if (signs.length > 1) return { meaning: sentence(planet.keywords), facts: [fact('Sign', signs.map((s) => s.name).join(' or '))] }
-  const sign = ZODIAC_SIGNS[signs[0].n - 1]
-  const ruler = PLANETS.find((p) => p.id === sign.ruler)?.name ?? capital(sign.ruler)
-  return {
-    meaning: prose(sentence(planet.keywords), sentence(sign.keywords)),
-    facts: [fact('Element', capital(sign.element)), fact('Modality', capital(sign.modality)), fact('Ruler', ruler)],
-  }
+  const sign = signReading(ZODIAC_SIGNS[signs[0].n - 1].id)
+  return { meaning: prose(sentence(planet.keywords), sign.meaning), facts: sign.facts }
 }
+
+/** A Long Count's reading: what the count is, the days since its creation, and the day's Tzolk'in and Haab. */
+export const longCountReading = (longCount: LongCountReading): MarkReading => ({
+  meaning: description('longcount'),
+  facts: [fact('Since creation', days(longCount.days)), fact("Tzolk'in", longCount.tzolkin), fact('Haab', longCount.haab)],
+})
 
 /** What explain adds to a digest fact: its meaning and facts. The fact's own label and value head the card. */
 export function explainReading(atlas: ReadingSource, ref: ReadingRef): MarkReading {
@@ -196,10 +224,7 @@ export function explainReading(atlas: ReadingSource, ref: ReadingRef): MarkReadi
       return { meaning: words?.reads ? `${capital(words.reads)}.` : null, facts: [fact('From', NUMBER_FROM[ref.role])] }
     }
     case 'longcount':
-      return {
-        meaning: description('longcount'),
-        facts: [fact('Since creation', days(longCount.days)), fact("Tzolk'in", longCount.tzolkin), fact('Haab', longCount.haab)],
-      }
+      return longCountReading(longCount)
     case 'place': {
       const name = PLACE_NAMES[ref.unit]
       const value = longCount.places[longCount.places.length - 1 - ref.unit]

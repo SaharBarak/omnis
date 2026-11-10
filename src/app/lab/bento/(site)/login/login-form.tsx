@@ -8,7 +8,7 @@ import { Field, PrimaryAction, site } from '@/components/bento-lab/site'
 import { safeRedirect } from '@/lib/auth/safe-redirect'
 import { PORTAL_LOOP } from '@/lib/data/lab-media'
 import { useAuth } from '@/lib/hooks/use-auth'
-import { AUTH_RETURN_PARAM, siteHref } from '@/lib/site/routes'
+import { AUTH_MODE_PARAM, AUTH_RETURN_PARAM, siteHref } from '@/lib/site/routes'
 
 type Mode = 'signin' | 'signup'
 
@@ -19,7 +19,13 @@ export function LoginForm() {
   const router = useRouter()
   const returnTo = safeRedirect(params.get(AUTH_RETURN_PARAM), siteHref('/app'))
   const { signInWithGoogle, signInWithPassword, signUp, resetPassword } = useAuth()
-  const [mode, setMode] = useState<Mode>('signin')
+  const asked: Mode = params.get(AUTH_MODE_PARAM) === 'signup' ? 'signup' : 'signin'
+  const [mode, setMode] = useState<Mode>(asked)
+  const [askedBefore, setAskedBefore] = useState<Mode>(asked)
+  if (askedBefore !== asked) {
+    setAskedBefore(asked)
+    setMode(asked)
+  }
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)

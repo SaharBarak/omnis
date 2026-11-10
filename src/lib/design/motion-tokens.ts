@@ -4,7 +4,12 @@
  * them where it imports that engine; this module imports none.
  */
 
+import { LEVEL_CONTRAST } from './type-scale'
+
 export type Curve = readonly [number, number, number, number]
+
+/** A ring or line drawing itself; a tie's current runs twice as long. */
+const DRAW_MS = 1200
 
 export const DURATION = Object.freeze({
   none: 0,
@@ -17,9 +22,11 @@ export const DURATION = Object.freeze({
   /** A component arriving; exits use `quick`. */
   settle: 480,
   /** A ring or line drawing itself. */
-  draw: 1200,
+  draw: DRAW_MS,
   /** A sequence resting on one beat before the next, e.g. a lifted layer. */
   hold: 800,
+  /** A tie's current running its line once: twice a draw, so it reads as flow along a line already drawn. */
+  current: 2 * DRAW_MS,
 })
 
 export const CURVE = Object.freeze({
@@ -29,6 +36,9 @@ export const CURVE = Object.freeze({
 
 /** Anything pressable scales to this while pressed: tactile, never below 0.95. */
 export const PRESS_SCALE = 0.97
+
+/** A figure stepping forward under the pointer, focus or its open card grows one level of the type scale: the step a reader sees as a new level. */
+export const LIFT_SCALE = LEVEL_CONTRAST
 
 /**
  * A pointer-following control: it leans toward the pointer by `pull` of the
@@ -68,5 +78,6 @@ export const motionCssVars = (): Readonly<Record<string, string>> => ({
   ...Object.fromEntries(Object.entries(CURVE).map(([k, v]) => [`--ease-${k}`, cssCurve(v)])),
   '--stagger': `${STAGGER.step}ms`,
   '--press-scale': String(PRESS_SCALE),
+  '--lift-scale': String(LIFT_SCALE),
   '--travel': `${TRAVEL}px`,
 })

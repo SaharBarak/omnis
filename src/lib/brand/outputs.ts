@@ -1,5 +1,6 @@
 import sharp from 'sharp'
 import { LANTERN, MARK_PARTS, MARK_THEMES, lanternShape, markSvg, type MarkGround, type MarkPart, type MarkTheme, type MarkTones } from './mark'
+import { rasterLantern, type PixelMark } from './pixel-mark'
 import { resolvePalette } from '@/lib/design/bento-palette'
 import { paletteSpec, type Role } from '@/lib/design/palette-spec'
 import { toHex } from '@/lib/design/color'
@@ -141,6 +142,12 @@ const toneLiteral = (tones: MarkTones): string =>
 /** `src/lib/brand/mark-tones.gen.ts`: the resolved colours, so client code never imports the solver. */
 export const tonesModule = (tones: MarkTones): string =>
   `${HEADER}import type { MarkTones } from './mark'\n\nexport const MARK_TONES: MarkTones = ${toneLiteral(tones)}\n`
+
+/** `src/lib/brand/pixel-lantern.gen.ts`: the pixel Lantern as a table, so no page pays for sampling the paths. */
+export function pixelModule(mark: PixelMark = rasterLantern()): string {
+  const cells = mark.cells.map(({ col, row, part, cover }) => `    { col: ${col}, row: ${row}, part: '${part}', cover: ${cover} },`).join('\n')
+  return `${HEADER}import type { PixelMark } from './pixel-mark'\n\nexport const PIXEL_LANTERN: PixelMark = {\n  cols: ${mark.cols},\n  rows: ${mark.rows},\n  cells: [\n${cells}\n  ],\n}\n`
+}
 
 /** `packages/mobile/src/components/brand-mark.gen.ts`: the app's copy of the drawing, which cannot import the web tree. */
 export function mobileModule(tones: MarkTones): string {

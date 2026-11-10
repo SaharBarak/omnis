@@ -91,24 +91,15 @@
 }
 
 .seal {
-  position: relative;
-  flex: none;
-  width: 32px;
-  height: 32px;
-  border: var(--edge-w) solid var(--elevation-edge);
-  border-radius: 50%;
+  --disc: 32px;
+  --disc-ring: var(--elevation-edge);
+  /* The glyph sits 6px inside the ring on every side. */
+  --disc-mark: calc(100% - 12px);
+
+  color: var(--layer-kin);
   background: var(--lab-chip);
   background-clip: padding-box;
   box-shadow: var(--elevation-1);
-}
-
-.seal::after {
-  content: '';
-  position: absolute;
-  inset: 6px;
-  background: var(--layer-kin);
-  -webkit-mask: var(--src) center / contain no-repeat;
-  mask: var(--src) center / contain no-repeat;
 }
 
 .link {

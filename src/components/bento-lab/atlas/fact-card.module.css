@@ -1,0 +1,177 @@
+/*
+ * The card a fact opens (BENTO_SITE.md, "Facts explain themselves"), for
+ * every list of facts: the digest's tiles and the day rows' boards
+ * (BENTO_V2.md, "Rows open their calendar's board"). It sits in the top layer and reads only the
+ * anchor name its list sets (`--fact-anchor`) and the kit's tokens, so it
+ * looks the same whichever list opened it.
+ *
+ * Beside the anchor, top edges aligned (`side`), or above it (`above`); the
+ * fallbacks flip either one.
+ */
+
+.card {
+  /* The card stands off its anchor and the window's edges by a group (BENTO_TYPE.md, "Trimmed lines"). */
+  --card-gap: var(--type-group);
+  /* Concentric with the corner: the lines are a square block, so they sit the corner's radius in, and never less than the group (BENTO_TYPE.md, "The card"). What a body reads to reach the card's edges. */
+  --card-pad: max(var(--card-gap), var(--radius-control));
+
+  position: fixed;
+  inset: auto;
+  margin-block: 0;
+  margin-inline: var(--card-gap);
+  position-anchor: var(--fact-anchor);
+  position-area: inline-start span-block-end;
+  /*
+   * Same side growing up first, then the other side, then beside the tile
+   * centred in the window's height, then below or above it. Chromium tries
+   * no more than five fallbacks, so each kind of card lists five at most.
+   */
+  position-try-fallbacks: flip-block, flip-inline, --fact-beside, --fact-below, --fact-above;
+  width: max-content;
+  /* The window's width at most; the body sets its own measure inside that. */
+  max-inline-size: calc(100vw - 2 * var(--card-gap));
+  max-block-size: calc(100svh - 2 * var(--card-gap));
+  overflow: auto;
+  padding: var(--card-pad);
+  border-radius: var(--radius-control);
+  color: var(--lab-ink);
+  text-align: start;
+  opacity: 0;
+}
+
+/*
+ * A board a disclosure controls (a group, BENTO_V2.md "Rows open their
+ * calendar's board") takes the room beside its anchor, wrapping its parts
+ * to fit, down to the least width its body sets; a body wider than the room
+ * still flips. A fact's words keep their own width. A board tries either
+ * side, growing down or up or centred in the window's height, and where
+ * neither side has room it stands centred in the window, over the page.
+ */
+.card[role='group'] {
+  position-try-fallbacks: flip-block, flip-inline, --fact-beside, --fact-beside flip-inline, --fact-window;
+  width: fit-content;
+}
+
+.card[data-at='above'] {
+  position-area: block-start span-inline-end;
+  margin-block: var(--card-gap);
+  margin-inline: 0;
+}
+
+/* One track as wide as the card, never its content: a body's percentages resolve against the card's own bound. */
+.card:popover-open {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  opacity: 1;
+}
+
+.card[data-kept][data-layer='sky'] { border-color: var(--atlas-sky); }
+.card[data-kept][data-layer='maya'] { border-color: var(--atlas-maya); }
+.card[data-kept][data-layer='body'] { border-color: var(--atlas-body); }
+.card[data-kept][data-layer='number'] { border-color: var(--atlas-number); }
+
+@position-try --fact-below {
+  position-area: block-end span-inline-end;
+  margin-block: var(--card-gap) 0;
+  margin-inline: 0;
+}
+
+@position-try --fact-above {
+  position-area: block-start span-inline-end;
+  margin-block: 0 var(--card-gap);
+  margin-inline: 0;
+}
+
+/* A card taller than either side of its tile stands beside it, centred in the window's height. */
+@position-try --fact-beside {
+  position-area: inline-start span-all;
+  align-self: center;
+  margin-block: 0;
+  margin-inline: var(--card-gap);
+}
+
+/* A board with room on neither side of its row stands centred in the window. */
+@position-try --fact-window {
+  position-area: span-all;
+  justify-self: center;
+  align-self: center;
+  margin: 0;
+}
+
+/*
+ * A board's card (BENTO_BOARDS.md "Surface"): the page's opaque surface,
+ * its edge and the glass's lift kept, no blur, so nothing behind it reads
+ * through its cells. It is a sheet the window's height: a view or the
+ * inspector changes what it holds, never where it stands, so its controls
+ * never move under the pointer.
+ */
+.board {
+  block-size: calc(100svh - 2 * var(--card-gap));
+  background: var(--lab-surface);
+  background-clip: padding-box;
+  border: var(--edge-w) solid var(--elevation-edge);
+  box-shadow: var(--elevation-3);
+}
+
+/* Under 720 px, and without anchor positioning, the card docks to the bottom of the viewport. */
+@media (max-width: 720px) {
+  .card,
+  .card[data-at] {
+    position-area: none;
+    position-try-fallbacks: none;
+    inset: auto var(--card-gap) var(--card-gap);
+    width: auto;
+    max-inline-size: none;
+    max-block-size: 50svh;
+    margin: 0;
+  }
+
+  /* A board is worked in, not glanced at: docked, it takes the window less a gap above for the page it came from. */
+  .card.board {
+    block-size: calc(100svh - 4 * var(--card-gap));
+    max-block-size: none;
+  }
+}
+
+/* Anchor positioning as shipped (position-area); browsers with only the older inset-area dock too. */
+@supports not (position-area: block-end) {
+  .card,
+  .card[data-at] {
+    inset: auto var(--card-gap) var(--card-gap);
+    width: auto;
+    max-inline-size: none;
+    max-block-size: 50svh;
+    margin: 0;
+  }
+
+  /* Docked here too, a board keeps its sheet: the window less a gap above for the page it came from. */
+  .card.board {
+    block-size: calc(100svh - 4 * var(--card-gap));
+    max-block-size: none;
+  }
+}
+
+/* ---------- motion: the card's fade, behind the motion switch ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab]:not([data-motion='paused']) .card {
+    transition: opacity var(--dur-quick) var(--ease-standard);
+  }
+  @starting-style {
+    [data-lab]:not([data-motion='paused']) .card:popover-open {
+      opacity: 0;
+    }
+  }
+}
+
+/* The fade out keeps the card in the top layer only where `overlay` transitions; elsewhere it leaves at once rather than fall back into its column. */
+@supports (overlay: auto) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-lab]:not([data-motion='paused']) .card {
+      transition:
+        opacity var(--dur-quick) var(--ease-standard),
+        overlay var(--dur-quick) allow-discrete,
+        display var(--dur-quick) allow-discrete;
+    }
+  }
+}

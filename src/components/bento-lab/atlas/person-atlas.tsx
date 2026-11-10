@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react'
+import { Fragment, type CSSProperties, type ReactNode } from 'react'
 import { ZODIAC_SIGNS } from '@pleiad/engine/data/zodiac-signs'
 import { SEALS } from '@pleiad/engine/data/seals'
 import type { CenterId } from '@pleiad/engine/types/human-design'
@@ -6,7 +6,7 @@ import s from './atlas.module.css'
 import { arcPath, bodyTransform, C, polar, RING, sealAngle, skyAngle, type Point } from './geometry'
 import { CentredNumeral } from './maya-numeral'
 import {
-  HALO_GAP,
+  haloOf,
   MARK_SIZE,
   planetPlacements,
   planetPoint,
@@ -19,10 +19,11 @@ import {
   TONE_POINT,
   type PlacedMark,
 } from './mark-geometry'
+import { loop } from '../motion/loops'
 import {
   CENTER_POSITIONS,
   CHANNEL_PATHS,
-  GATE_MOUTHS,
+  GATE_HALVES,
   VIEW_HEIGHT,
   VIEW_WIDTH,
   getCenterPath,
@@ -77,15 +78,24 @@ const Glyph = ({ href, point, size, on }: { href: string; point: Point; size: nu
   />
 )
 
+/** A mark's halo (`haloOf`) drawn in its layer's colour; none for a line mark. Shared by every drawing that lights marks. */
+export function MarkHalo({ mark }: { readonly mark: PlacedMark<unknown> }) {
+  const halo = haloOf(mark)
+  if (!halo) return null
+  return 'path' in halo ? (
+    <path d={halo.path} className={s.halo} data-layer={mark.layer} pathLength={1} />
+  ) : (
+    <circle cx={mark.anchor[0]} cy={mark.anchor[1]} r={halo.circle} className={s.halo} data-layer={mark.layer} pathLength={1} />
+  )
+}
+
 /**
- * The outline ring round the active point mark, standing off it by the
- * surface gap. It sits inside its layer's group, so a ring still turning to a
- * new date carries it with the mark. A line mark lights its stroke instead.
+ * The ring round the active mark. It sits inside its layer's group, so a
+ * ring still turning to a new date carries it with the mark.
  */
 function Halo({ lit, layer }: { readonly lit: Lit; readonly layer: AtlasLayerId }) {
   const mark = lit?.active
-  if (!mark || mark.layer !== layer || mark.path) return null
-  return <circle key={mark.key} cx={mark.anchor[0]} cy={mark.anchor[1]} r={mark.r + HALO_GAP} className={s.halo} data-layer={layer} pathLength={1} />
+  return mark && mark.layer === layer ? <MarkHalo key={mark.key} mark={mark} /> : null
 }
 
 function Sky({ sky, lit }: { sky: SkyLayer; lit: Lit }) {
@@ -185,10 +195,17 @@ function Maya({ maya, lit }: { maya: MayaLayer; lit: Lit }) {
   )
 }
 
-/** Channels, centres and lone gates in bodygraph-layout coordinates; defined parts filled. */
+/**
+ * Channels, gate halves and centres in bodygraph-layout coordinates; defined
+ * parts filled. An active gate lights its half of each of its channels that
+ * is not defined, as a hanging gate prints, and like every lane it runs under
+ * the centres. Only a lone gate is a mark: a gate in a defined channel is
+ * that channel's.
+ */
 function BodyMarks({ body, lit = null }: { readonly body: BodyLayer | null; readonly lit?: Lit }) {
   const active = new Set(body?.channels.map((c) => c.id) ?? [])
   const defined = new Set(body?.definedCenters ?? [])
+  const lone = new Set(body ? loneGates(body) : [])
   return (
     <>
       {Object.entries(CHANNEL_PATHS).map(([id, points]) =>
@@ -200,23 +217,62 @@ function BodyMarks({ body, lit = null }: { readonly body: BodyLayer | null; read
           <path key={id} d={pointsToPath(points)} className={s.channel} strokeWidth={MARK_SIZE.channelStroke} />
         ),
       )}
+      {(body?.gates ?? []).map((g) => {
+        const halves = (GATE_HALVES[g] ?? []).filter((half) => !active.has(half.channel))
+        if (halves.length === 0) return null
+        const drawn = halves.map((half) => (
+          <path key={half.channel} d={pointsToPath(half.points)} className={`${s.gateHalf} ${s.drawLate}`} strokeWidth={MARK_SIZE.channelStroke} pathLength={1} />
+        ))
+        return lone.has(g) ? (
+          <Mark key={g} id={markKey({ kind: 'gate', n: g })} lit={lit}>
+            {drawn}
+          </Mark>
+        ) : (
+          <Fragment key={g}>{drawn}</Fragment>
+        )
+      })}
       {Object.entries(CENTER_POSITIONS).map(([id, pos], i) => (
         <Mark key={id} id={markKey({ kind: 'centre', id: id as keyof typeof CENTER_POSITIONS })} lit={lit}>
           <path
             d={getCenterPath(pos)}
             className={`${defined.has(id as keyof typeof CENTER_POSITIONS) ? s.centerOn : s.center} ${s.enterCenter}`}
+            strokeWidth={MARK_SIZE.centreStroke}
+            strokeLinejoin="round"
             style={order(i)}
           />
         </Mark>
       ))}
-      {(body ? loneGates(body) : [])
-        .filter((g) => GATE_MOUTHS[g])
-        .map((g) => (
-          <Mark key={g} id={markKey({ kind: 'gate', n: g })} lit={lit}>
-            <circle cx={GATE_MOUTHS[g][0]} cy={GATE_MOUTHS[g][1]} r={MARK_SIZE.gateDot} className={s.gate} />
-          </Mark>
-        ))}
     </>
+  )
+}
+
+/** The lanes a defined channel's current runs: each gate's half, from its mouth where it leaves its centre to the channel's middle. */
+export const currentLanes = (body: BodyLayer): readonly { readonly key: string; readonly points: readonly Point[] }[] =>
+  body.channels.flatMap((channel) =>
+    channel.gates.flatMap((gate) => (GATE_HALVES[gate] ?? []).filter((half) => half.channel === channel.id).map((half) => ({ key: `${channel.id}:${gate}`, points: half.shown }))),
+  )
+
+/**
+ * Each defined channel's current (BENTO_SITE.md "The Atlas", Currents): a
+ * dash run from each gate's mouth to the channel's middle, so the two gates
+ * read as meeting in one channel. Its own layer over the drawing, paint
+ * contained and hidden from assistive tech, under the same zoom; the
+ * stylesheet runs it only while it is on screen and motion is allowed
+ * (BENTO_MOTION.md "Loops").
+ */
+function ChannelCurrents({ body }: { readonly body: BodyLayer }) {
+  const lanes = currentLanes(body)
+  if (lanes.length === 0) return null
+  return (
+    <svg viewBox={`0 0 ${C * 2} ${C * 2}`} className={s.channelCurrents} aria-hidden="true" focusable="false" {...loop}>
+      <g className={s.zoom}>
+        <g transform={bodyTransform}>
+          {lanes.map((lane) => (
+            <path key={lane.key} d={pointsToPath(lane.points)} pathLength={1} className={s.channelCurrent} strokeWidth={MARK_SIZE.channelStroke} />
+          ))}
+        </g>
+      </g>
+    </svg>
   )
 }
 
@@ -359,10 +415,12 @@ export interface PersonAtlasProps {
   readonly className?: string
   /** Laid over the drawing, inside its box: the mark targets. */
   readonly children?: ReactNode
+  /** Whether the defined channels carry their currents: a map shown as the product at rest, once its entrance has landed. */
+  readonly currents?: boolean
 }
 
 /** One person's map: sky, Maya ring, bodygraph. The number layer is drawn by NumberStrip. */
-export function PersonAtlasDrawing({ atlas, focus = null, highlight = null, describedBy, className, children }: PersonAtlasProps) {
+export function PersonAtlasDrawing({ atlas, focus = null, highlight = null, describedBy, className, children, currents = false }: PersonAtlasProps) {
   const who = atlas.input.name ?? atlas.input.date
   const label = `Atlas for ${who}: kin ${atlas.maya.kin} ${atlas.maya.title}${atlas.body ? `, ${atlas.body.type} ${atlas.body.profile}` : ''}`
   return (
@@ -377,6 +435,7 @@ export function PersonAtlasDrawing({ atlas, focus = null, highlight = null, desc
           <AtlasLayers atlas={atlas} lit={highlight} />
         </g>
       </svg>
+      {currents && atlas.body && <ChannelCurrents body={atlas.body} />}
       {children}
     </div>
   )

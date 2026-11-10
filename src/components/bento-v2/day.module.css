@@ -1,0 +1,322 @@
+/*
+ * Day rows (docs/redesign/BENTO_V2.md "Day rows", "Cycle tracks", "Rows open
+ * their calendar's board"): a ruled list. A figure in one square slot, the
+ * calendar's name over the value and what it is, and the row's rule drawn as
+ * the value's place in its cycle. Each row is a button that opens its board.
+ */
+
+/* The list and its board: a box only for the board's anchor name and for what counts as inside the list; it lays out nothing. */
+.list {
+  display: contents;
+}
+
+/* One grid for every row: one square slot for every figure, so every row's words start on one edge. */
+.rows {
+  /* The bento board's drawings, at a small figure's size. */
+  --day-art: var(--v2-figure);
+  /* The rule: an edge thick, and twice that where it is inked. */
+  --day-track: calc(2 * var(--edge-w));
+  /* The day's dot on its track. */
+  --day-dot: calc(var(--v2-gap) / 2);
+  /* What the dot reaches past its track when its row steps forward, either side. */
+  --day-lift-room: calc((var(--day-dot) * var(--lift-scale) - var(--day-track)) / 2);
+  /* The words' block: the calendar's name and the value's line. */
+  --day-words: calc((var(--type-micro) + var(--type-lead)) * var(--type-ui-lh));
+  /* A row's height from what it holds: the gap above its words, its words, the gap to its rule, its rule, and room under it for the lifted dot. */
+  --day-row: calc(var(--v2-gap) + var(--day-words) + var(--day-track) + var(--day-lift-room));
+  /* Every row's two columns: the figure's square slot, then its words. */
+  --day-columns: var(--day-art) minmax(0, 1fr);
+
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: var(--day-columns);
+  grid-auto-rows: minmax(var(--day-row), 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * Rows that fill the room they are given and never size it: the panel holds as
+ * many whole rows as fit and the rows share what is left over. Rows past the
+ * last that fits flow into empty columns past the inline end, which the box clips.
+ */
+.fit {
+  contain: size;
+  flex: 1 1 0;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(auto-fit, minmax(var(--day-row), 1fr));
+  grid-auto-columns: 0;
+  overflow: clip;
+}
+
+/* Stacked, the panel is as tall as its rows, and a row's meaning wraps under its value instead of being cut. */
+@media (max-width: 899.98px) {
+  .line {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+
+  .meaning {
+    white-space: normal;
+  }
+
+  .fit {
+    contain: none;
+    flex: none;
+    grid-auto-flow: row;
+    grid-template-rows: none;
+    grid-auto-rows: minmax(var(--day-row), auto);
+    overflow: visible;
+  }
+}
+
+/*
+ * A row's slot in the list: both columns, sized by the list. It is a size
+ * container, so a row the fitted list has no room for, which sits in a
+ * zero-width column, hides its list item from focus and assistive technology
+ * as it does from the eye.
+ */
+.slot {
+  display: grid;
+  grid-column: span 2;
+  container-type: inline-size;
+}
+
+/* The board hangs from the row it shows. */
+.slot[data-anchor] {
+  anchor-name: var(--fact-anchor);
+}
+
+@container (inline-size: 0) {
+  .item {
+    visibility: hidden;
+  }
+}
+
+.item {
+  display: grid;
+  min-inline-size: 0;
+}
+
+/*
+ * The row, a button, on the list's two columns: the words and the figure sit
+ * on the rule; a stretched row adds its room above them, and keeps room under
+ * the rule for the lifted dot.
+ */
+.row {
+  display: grid;
+  grid-template-columns: var(--day-columns);
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-content: end;
+  column-gap: var(--v2-gap);
+  row-gap: calc(var(--v2-gap) / 2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: calc(var(--v2-gap) / 2) 0 var(--day-lift-room);
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+/* The ring sits inside the row, so the fitted list's clip never cuts it; it is the rule's thickness. */
+.row:focus-visible {
+  outline: var(--day-track) solid var(--lab-ink);
+  outline-offset: calc(-1 * var(--day-track));
+}
+
+.art {
+  display: grid;
+  place-items: center;
+  align-self: end;
+  block-size: var(--day-words);
+  color: var(--tile);
+}
+
+/* The Long Count's kin place, one numeral: it fills the slot. */
+.row[data-art='bars'] .art svg {
+  inline-size: var(--day-art);
+  block-size: var(--day-art);
+}
+
+/* A month in its own script sets at the calendar name's size, so it keeps to its slot. */
+.row .art [lang] {
+  font-size: var(--type-micro);
+  white-space: nowrap;
+}
+
+.dot {
+  width: calc(var(--day-art) / 4);
+  height: calc(var(--day-art) / 4);
+  border-radius: 50%;
+  background: var(--tile);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  align-self: end;
+  min-width: 0;
+}
+
+.label {
+  overflow: hidden;
+  font-size: var(--type-micro);
+  line-height: var(--type-ui-lh);
+  letter-spacing: var(--type-caps-ls);
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--lab-text-3);
+}
+
+/* The value and what it is share one baseline; the value keeps its width, the meaning gives way. */
+.line {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--v2-gap) / 2);
+  min-width: 0;
+}
+
+.value {
+  flex: none;
+  max-width: 100%;
+  overflow: hidden;
+  font-size: var(--type-lead);
+  line-height: var(--type-ui-lh);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meaning {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--type-small);
+  line-height: var(--type-ui-lh);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--lab-text-2);
+}
+
+/*
+ * The rule under the words, in the words' column: a hairline, inked in the
+ * row's colour from its cycle's start to the day, with the day a dot. Every
+ * track starts on one edge and has one length, so the dots stand in one
+ * column; it stops short of the row's end by half the lifted dot, so a dot at
+ * the cycle's end stays inside the row.
+ */
+.track {
+  position: relative;
+  grid-column: 2;
+  grid-row: 2;
+  block-size: var(--day-track);
+  margin-inline-end: calc(var(--day-dot) * var(--lift-scale) / 2);
+  background: linear-gradient(var(--panel-edge), var(--panel-edge)) center / 100% var(--edge-w) no-repeat;
+}
+
+.ink {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: calc(var(--at) * 100%);
+  border-radius: var(--day-track);
+  background: var(--tile);
+  transform-origin: 0 50%;
+}
+
+/* The ink draws from the cycle's start, which is the inline start. */
+.ink:dir(rtl) {
+  transform-origin: 100% 50%;
+}
+
+.now {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: calc(var(--at) * 100%);
+  inline-size: var(--day-dot);
+  block-size: var(--day-dot);
+  border-radius: 50%;
+  background: var(--tile);
+  translate: -50% -50%;
+}
+
+.now:dir(rtl) {
+  translate: 50% -50%;
+}
+
+/*
+ * A row steps forward (BENTO_V2.md "A row steps forward") under the pointer,
+ * under focus and while its board is open: its calendar's name brightens to
+ * ink, and its figure and the day's dot grow one level of the type scale
+ * (`--lift-scale`). The figure grows from its inline-start edge, the edge the
+ * fitted list clips at, read from the row; the dot from its middle, on its track.
+ */
+.art > * {
+  transform-origin: 0 50%;
+}
+
+.row:dir(rtl) .art > * {
+  transform-origin: 100% 50%;
+}
+
+.row:is([data-active], :focus-visible) .label {
+  color: var(--lab-ink);
+}
+
+@media (hover: hover) {
+  .row:hover .label {
+    color: var(--lab-ink);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab]:not([data-motion='paused']) .row:is([data-active], :focus-visible) :is(.art > *, .now) {
+    scale: var(--lift-scale);
+  }
+
+  [data-lab]:not([data-motion='paused']) .label {
+    transition: color var(--dur-quick) var(--ease-standard);
+  }
+
+  [data-lab]:not([data-motion='paused']) :is(.art > *, .now) {
+    transition: scale var(--dur-quick) var(--ease-standard);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  [data-lab]:not([data-motion='paused']) .row:hover :is(.art > *, .now) {
+    scale: var(--lift-scale);
+  }
+}
+
+/* The ink draws to the day with the page's first paint; the dot is already there, waiting for it. */
+@keyframes track-draw {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab][data-entrance]:not([data-motion='paused']) .ink {
+    animation: track-draw var(--dur-draw) var(--ease-emphasized) both;
+  }
+}
+
+/* Forced colours: the system draws the track and the dot, and the row that steps forward shows it in the highlight. */
+@media (forced-colors: active) {
+  .ink,
+  .now,
+  .dot {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+
+  .row:is([data-active], :focus-visible) .label {
+    color: Highlight;
+  }
+}

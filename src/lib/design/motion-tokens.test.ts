@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { MAGNET, PRESS_SCALE, STAGGER, motionCssVars, shortestTurn, staggerStep } from './motion-tokens'
+import { LIFT_SCALE, MAGNET, PRESS_SCALE, STAGGER, motionCssVars, shortestTurn, staggerStep } from './motion-tokens'
+import { LEVEL_CONTRAST } from './type-scale'
 
 describe('staggerStep', () => {
   it('uses the step for small sets and compresses long ones under the cap', () => {
@@ -23,6 +24,11 @@ describe('press and pull', () => {
     expect(PRESS_SCALE).toBeGreaterThanOrEqual(0.95)
     expect(PRESS_SCALE).toBeLessThan(1)
     expect(motionCssVars()['--press-scale']).toBe(String(PRESS_SCALE))
+  })
+
+  it('lifts a figure one level of the type scale and emits the scale for CSS', () => {
+    expect(LIFT_SCALE).toBe(LEVEL_CONTRAST)
+    expect(motionCssVars()['--lift-scale']).toBe(String(LIFT_SCALE))
   })
 
   it('leans a magnetic control less than the pointer moves', () => {

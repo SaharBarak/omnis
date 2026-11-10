@@ -7,26 +7,27 @@ import type { TodayAcrossSystems } from '@/lib/today-board'
  * can render rows without loading the engine that computes them.
  */
 
-/** One board row: the value it shows, its label and the system preference that turns it on. */
+/** One board row: the value it shows, its label, what its value is (a card's head), and the system preference that turns it on. */
 export interface TodayRow {
   readonly field: keyof TodayAcrossSystems
   readonly label: string
+  readonly valueIs: string
   readonly system: SystemKey
 }
 
 /** Board rows in display order. Every surface that lists the day reads this table. */
 export const TODAY_ROWS: readonly TodayRow[] = [
-  { field: 'kin', label: 'Dreamspell kin', system: 'dreamspell' },
-  { field: 'moon', label: 'Moon', system: 'moon' },
-  { field: 'sun', label: 'Sun', system: 'astrology' },
-  { field: 'gate', label: 'Human Design gate', system: 'humandesign' },
-  { field: 'hebrewDate', label: 'Hebrew date', system: 'hebrew' },
-  { field: 'longCount', label: 'Long Count', system: 'longcount' },
-  { field: 'sidereal', label: 'Sidereal Sun', system: 'sidereal' },
-  { field: 'chineseYear', label: 'Chinese year', system: 'chinese' },
-  { field: 'hijri', label: 'Hijri date', system: 'hijri' },
-  { field: 'persian', label: 'Persian date', system: 'persian' },
-  { field: 'panchang', label: 'Panchang', system: 'panchang' },
+  { field: 'kin', label: 'Dreamspell kin', valueIs: 'Kin', system: 'dreamspell' },
+  { field: 'moon', label: 'Moon', valueIs: 'Phase', system: 'moon' },
+  { field: 'sun', label: 'Sun', valueIs: 'Sign', system: 'astrology' },
+  { field: 'gate', label: 'Human Design gate', valueIs: 'Gate', system: 'humandesign' },
+  { field: 'hebrewDate', label: 'Hebrew date', valueIs: 'Date', system: 'hebrew' },
+  { field: 'longCount', label: 'Long Count', valueIs: 'Count', system: 'longcount' },
+  { field: 'sidereal', label: 'Sidereal Sun', valueIs: 'Sign', system: 'sidereal' },
+  { field: 'chineseYear', label: 'Chinese year', valueIs: 'Year', system: 'chinese' },
+  { field: 'hijri', label: 'Hijri date', valueIs: 'Date', system: 'hijri' },
+  { field: 'persian', label: 'Persian date', valueIs: 'Date', system: 'persian' },
+  { field: 'panchang', label: 'Panchang', valueIs: 'Tithi', system: 'panchang' },
 ]
 
 export interface TodayRowValue {

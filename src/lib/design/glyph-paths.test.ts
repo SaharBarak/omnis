@@ -5,7 +5,7 @@ import { PLANETS } from '@pleiad/engine/data/planets'
 import { SEALS } from '@pleiad/engine/data/seals'
 import { TONES } from '@pleiad/engine/data/tones'
 import { ZODIAC_SIGNS } from '@pleiad/engine/data/zodiac-signs'
-import { planetGlyphSrc, sealGlyphSrc, signGlyphSrc, toneGlyphSrc } from './glyph-paths'
+import { elementGlyphSrc, planetGlyphSrc, sealGlyphSrc, signGlyphSrc, toneGlyphSrc } from './glyph-paths'
 
 const onDisk = (src: string): boolean => existsSync(join(process.cwd(), 'public', src))
 
@@ -14,6 +14,7 @@ describe('glyph paths', () => {
     for (const s of SEALS) expect(onDisk(sealGlyphSrc(s.number, s.english)), s.english).toBe(true)
     for (const t of TONES) expect(onDisk(toneGlyphSrc(t.number, t.name)), t.name).toBe(true)
     for (const z of ZODIAC_SIGNS) expect(onDisk(signGlyphSrc(z.number, z.name)), z.name).toBe(true)
+    for (const z of ZODIAC_SIGNS) expect(onDisk(elementGlyphSrc(z.element)), z.element).toBe(true)
   })
 
   it('resolves every drawn planet and returns null for the rest', () => {

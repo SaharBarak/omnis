@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { YourBoard } from '@/components/bento-lab/app'
-import { DashboardPeople, personHref, TiesSections } from '@/components/bento-lab/people'
+import { appHrefs, DashboardPeople, TiesSections } from '@/components/bento-lab/people'
 import { MapFigure } from '@/components/bento-lab/scenes'
 import { EmptyState, ErrorState, PageHead, PrimaryAction, Section, site } from '@/components/bento-lab/site'
 import { ownedPeople } from '@/lib/atlas/app/owned'
@@ -48,7 +48,7 @@ export default async function AppTodayPage() {
         lead={self ? `${self.name}, ${birthLine(self)}. ${todayLine}` : `${todayLine} Save a birth date and its map, its ties and its circle are drawn here.`}
       >
         {self ? (
-          <Link href={personHref(self.id)} className={`${site.btn} ${site.btnSmall}`}>
+          <Link href={appHrefs('v1').person(self.id)} className={`${site.btn} ${site.btnSmall}`}>
             Open the full map
             <ArrowRight size={15} aria-hidden />
           </Link>

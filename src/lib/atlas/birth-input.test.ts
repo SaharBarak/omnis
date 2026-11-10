@@ -7,6 +7,8 @@ const hit = { label: 'Somewhere', city: null, country: null, lat: 31.77, lng: 35
 describe('plainText', () => {
   it('turns control characters into spaces, trims, and returns null when nothing is left', () => {
     expect(plainText(' Tel\u0000Aviv \n', 40)).toBe('Tel Aviv')
+    expect(plainText('No\ud800a \ud83c\udf1f', 40)).toBe('No\ufffda \ud83c\udf1f')
+    expect(parseBirthInput({ date: '2000-01-01', name: 'No\udc00a' }).success).toBe(false)
     expect(plainText('\u0001\u0002', 40)).toBeNull()
     expect(plainText(null, 40)).toBeNull()
   })

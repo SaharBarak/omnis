@@ -1,12 +1,14 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { C, polar, RING, SIZE } from './geometry'
-import { hitMark, inView, MARK_SIZE, placeMarks, reachFor, toDrawing, undo, type Linear, type PlacedMark } from './mark-geometry'
+import { BODY_SCALE, bodyPoint, C, concentricPath, percent, polar, RING, SIZE } from './geometry'
+import { focusRingOf, HALO_GAP, haloOf, hitMark, inView, MARK_SIZE, placeMarks, reachFor, toDrawing, undo, type Linear, type PlacedMark } from './mark-geometry'
 import { linearOf } from './mark-targets'
-import { PersonAtlasDrawing } from './person-atlas'
+import { BodygraphFigure, PersonAtlasDrawing } from './person-atlas'
+import { CENTER_POSITIONS, CHANNEL_PATHS, GATE_HALVES, GATE_MOUTHS, midpointOf } from '@/components/human-design/bodygraph-layout'
 import { buildPersonAtlas } from '@/lib/atlas/build'
 import { demoPerson } from '@/lib/atlas/demo'
+import { loneGates } from '@/lib/atlas/marks'
 
 const TODAY = '2026-10-11'
 const atlas = buildPersonAtlas(demoPerson('maya').input, TODAY)
@@ -72,9 +74,47 @@ describe('placeMarks', () => {
   it('makes each defined channel a line mark anchored on its own path', () => {
     for (const c of atlas.body!.channels) {
       const mark = byKey(`channel:${c.id}`)
-      expect(mark.path!.length).toBeGreaterThan(1)
+      expect(mark.lines).toHaveLength(1)
+      expect(mark.lines![0].length).toBeGreaterThan(1)
       expect(hitMark([mark], { point: mark.anchor, reach: 1 })).toBe(mark)
     }
+  })
+
+  it('makes each lone gate a line mark: its channel halves from its mouth, anchored on the first', () => {
+    const gates = loneGates(atlas.body!)
+    expect(gates.length).toBeGreaterThan(0)
+    for (const g of gates) {
+      const mark = byKey(`gate:${g}`)
+      expect(mark.lines).toHaveLength(GATE_HALVES[g].length)
+      for (const line of mark.lines!) expect(line[0]).toEqual(bodyPoint(...GATE_MOUTHS[g]))
+      expect(mark.anchor).toEqual(bodyPoint(...midpointOf(GATE_HALVES[g][0].shown)))
+      expect(hitMark(marks, { point: mark.anchor, reach: 1 })).toBe(mark)
+      const drawn = markGroups().find((group) => group[1] === mark.key)
+      expect(drawn?.[2].match(/<path/g)).toHaveLength(GATE_HALVES[g].length)
+    }
+  })
+
+  it('answers on every gate\'s own anchor, never on the centre its mouth leaves', () => {
+    const everyGate = { ...atlas, body: { ...atlas.body!, channels: [], gates: Array.from({ length: 64 }, (_, i) => i + 1) } }
+    const all = placeMarks(everyGate)
+    for (const mark of all.filter((m) => m.ref.kind === 'gate')) expect(hitMark(all, { point: mark.anchor, reach: 1 })?.key).toBe(mark.key)
+  })
+
+  it('takes a pointer inside a centre\'s outline for the centre, and none beside it within its circle', () => {
+    const ajna = byKey('centre:ajna')
+    expect(hitMark(marks, { point: ajna.anchor, reach: 1 })?.key).toBe('centre:ajna')
+    const pos = CENTER_POSITIONS.ajna
+    const besideApex = bodyPoint(pos.x + pos.size * 0.7, pos.y + pos.size * 0.5)
+    expect(hitMark([ajna], { point: besideApex, reach: 1 })).toBeNull()
+  })
+
+  it('lights a defined channel\'s gates on their other channels, without making them marks', () => {
+    const charisma = { ...atlas.body!, channels: [{ id: '34-20', name: 'Charisma', gates: [34, 20] as const }], gates: [34, 20] }
+    const figure = renderToStaticMarkup(createElement(BodygraphFigure, { body: charisma }))
+    const halves = [34, 20].flatMap((g) => GATE_HALVES[g].filter((h) => h.channel !== '34-20'))
+    expect(halves).toHaveLength(4)
+    expect(figure.match(/<path/g)).toHaveLength(Object.keys(CHANNEL_PATHS).length + halves.length + Object.keys(CENTER_POSITIONS).length)
+    expect(placeMarks({ ...atlas, body: charisma }).some((m) => m.ref.kind === 'gate')).toBe(false)
   })
 })
 
@@ -99,12 +139,12 @@ describe('hitMark', () => {
   })
 
   it('lets a point mark win a tie with a line mark', () => {
-    const line: PlacedMark = { ...sun, key: 'line', path: [[sun.anchor[0] - 10, sun.anchor[1]], [sun.anchor[0] + 10, sun.anchor[1]]] }
+    const line: PlacedMark = { ...sun, key: 'line', lines: [[[sun.anchor[0] - 10, sun.anchor[1]], [sun.anchor[0] + 10, sun.anchor[1]]]] }
     expect(hitMark([line, sun], { point: sun.anchor, reach: 12 })?.key).toBe('planet:sun')
   })
 
   it('lets a glyph under the pointer win over a line passing closer to it', () => {
-    const line: PlacedMark = { ...sun, key: 'line', path: [[sun.anchor[0] - 20, sun.anchor[1] + 1], [sun.anchor[0] + 20, sun.anchor[1] + 1]] }
+    const line: PlacedMark = { ...sun, key: 'line', lines: [[[sun.anchor[0] - 20, sun.anchor[1] + 1], [sun.anchor[0] + 20, sun.anchor[1] + 1]]] }
     const alongTheLine: [number, number] = [sun.anchor[0] + sun.r * 0.6, sun.anchor[1] + 1]
     expect(hitMark([line, sun], { point: alongTheLine, reach: 12 })?.key).toBe('planet:sun')
     const beyondTheGlyph: [number, number] = [sun.anchor[0] + sun.r + 4, sun.anchor[1] + 1]
@@ -149,6 +189,72 @@ describe('the pointer in drawing units', () => {
   })
 
   it('places the rising mark on the ascendant line', () => {
-    expect(byKey('rising').path).toEqual([polar(RING.skyOuter, 180), polar(RING.mayaOuter, 180)])
+    expect(byKey('rising').lines).toEqual([[polar(RING.skyOuter, 180), polar(RING.mayaOuter, 180)]])
   })
 })
+
+describe('haloOf', () => {
+  const centres = marks.filter((m) => m.ref.kind === 'centre')
+  const drawing = renderToStaticMarkup(createElement(PersonAtlasDrawing, { atlas }))
+  const stroke = Number(drawing.match(/<path d="[^"]*Z" class="[^"]*center[^"]*" stroke-width="([\d.]+)" stroke-linejoin="round"/)![1])
+
+  it('rings a point mark with a circle, and leaves a line mark to light its stroke', () => {
+    const sign = marks.find((m) => m.ref.kind === 'sign')!
+    expect(haloOf(sign)).toEqual({ circle: sign.r + HALO_GAP })
+    expect(haloOf(byKey('rising'))).toBeNull()
+  })
+
+  it('stands a centre\'s halo the gap off the edge it paints: its outline grown by half the stroke drawn, at round joins', () => {
+    expect(stroke).toBe(MARK_SIZE.centreStroke)
+    for (const centre of centres) {
+      expect(centre.area!.paint).toBeCloseTo((stroke / 2) * BODY_SCALE, 2)
+      expect(haloOf(centre)).toEqual({ path: concentricPath(centre.area!.outline, centre.area!.paint + HALO_GAP) })
+    }
+  })
+
+  it('gives every centre a focus ring a surface gap off its halo, and no point or line mark one', () => {
+    for (const centre of centres) expect(focusRingOf(centre)).toBe(concentricPath(centre.area!.outline, centre.area!.paint + 2 * HALO_GAP))
+    expect(marks.filter((m) => !m.area).every((m) => focusRingOf(m) === null)).toBe(true)
+  })
+
+  it('sets the card off a centre at its halo: the radius is how far its paint reaches across', () => {
+    for (const centre of centres) {
+      const across = Math.max(...centre.area!.outline.map(([x]) => Math.abs(x - centre.anchor[0])))
+      expect(centre.r).toBeCloseTo(across + centre.area!.paint, 2)
+    }
+  })
+
+  it('draws the active centre\'s halo along its outline, not round its anchor', () => {
+    const heart = byKey('centre:heart')
+    const markup = renderToStaticMarkup(createElement(PersonAtlasDrawing, { atlas, highlight: { active: heart, related: new Set<string>() } }))
+    expect(markup).toContain(`d="${(haloOf(heart) as { path: string }).path}"`)
+    expect(markup).not.toContain(`r="${heart.r + HALO_GAP}"`)
+  })
+})
+
+describe('a view that is not the square', () => {
+  const view = { width: 1420, height: 900 }
+  const at = (x: number, y: number): PlacedMark => ({ ...byKey('planet:sun'), anchor: [x, y] })
+
+  it('maps the box onto the view and undoes the zoom about the view\'s centre', () => {
+    const box = { left: 10, top: 20, width: 710 }
+    expect(toDrawing([10 + 355, 20 + 225], box, 1, view)).toEqual([710, 450])
+    expect(toDrawing([10 + 355, 20 + 225], box, 2, view)).toEqual([710, 450])
+    expect(toDrawing([10, 20], box, 2, view)).toEqual([355, 225])
+  })
+
+  it('reaches half the least target across the view\'s width', () => {
+    expect(reachFor(710, 1, view)).toBe(24)
+  })
+
+  it('keeps a mark in view by both of the view\'s sides, not the square\'s', () => {
+    expect(inView(at(1400, 880), 1, view)).toBe(true)
+    expect(inView(at(1400, 880), 1)).toBe(false)
+    expect(inView(at(1400, 450), 1.2, view)).toBe(false)
+  })
+
+  it('places HTML over it by its own sides', () => {
+    expect(percent([710, 450], view)).toEqual({ left: '50.000%', top: '50.000%' })
+  })
+})
+

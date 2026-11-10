@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { placeMarks } from './mark-geometry'
+import { focusRingOf, placeMarks, type PlacedMark } from './mark-geometry'
 import { holds, MarkTargets } from './mark-targets'
 import { buildPersonAtlas } from '@/lib/atlas/build'
 import { demoPerson } from '@/lib/atlas/demo'
@@ -9,11 +9,11 @@ import { markTitle } from '@/lib/atlas/marks'
 const atlas = buildPersonAtlas(demoPerson('maya').input, '2026-10-11')
 const marks = placeMarks(atlas).filter((m) => m.layer === 'maya').slice(0, 3)
 
-const mount = (activeKey: string | null = null) => {
+const mount = (activeKey: string | null = null, shown: readonly PlacedMark[] = marks) => {
   const onEvent = vi.fn()
-  render(
+  const view = render(
     <MarkTargets
-      marks={marks}
+      marks={shown}
       titleOf={(ref) => markTitle(atlas, ref)}
       activeKey={activeKey}
       cardId="card"
@@ -22,7 +22,7 @@ const mount = (activeKey: string | null = null) => {
       onIntent={() => undefined}
     />,
   )
-  return { onEvent, buttons: screen.getAllByRole('button') }
+  return { onEvent, buttons: screen.getAllByRole('button'), container: view.container }
 }
 
 describe('MarkTargets', () => {
@@ -61,6 +61,25 @@ describe('MarkTargets', () => {
     buttons[0].focus()
     buttons[0].blur()
     expect(onEvent).toHaveBeenLastCalledWith({ type: 'blur' })
+  })
+
+  it('follows each centre with its own focus ring along its outline, and gives a point mark none', () => {
+    const shown = placeMarks(atlas).filter((m) => m.ref.kind === 'centre' || m.ref.kind === 'sign')
+    const { container } = mount(null, shown)
+    const targets = [...container.querySelectorAll<HTMLButtonElement>('button[data-target]')]
+    expect(targets.some((b) => b.hasAttribute('data-area'))).toBe(true)
+    expect(targets.some((b) => !b.hasAttribute('data-area'))).toBe(true)
+    for (const button of targets) {
+      const mark = shown.find((m) => m.key === button.dataset.target)!
+      const ring = button.nextElementSibling
+      expect(button.hasAttribute('data-area')).toBe(Boolean(mark.area))
+      if (mark.area) {
+        expect(ring?.getAttribute('aria-hidden')).toBe('true')
+        expect(ring?.querySelector('path')?.getAttribute('d')).toBe(focusRingOf(mark))
+      } else {
+        expect(ring?.tagName.toLowerCase()).not.toBe('svg')
+      }
+    }
   })
 })
 

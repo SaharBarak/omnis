@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { gateFor, gateRedirect, loginFor, loginHref, signedInGate } from './gates'
 import { SITE_GATE } from '@/lib/site/routes'
+import { V2_GATE } from '@/lib/site/v2-routes'
 
 describe('auth gates', () => {
   it('guards the lab app on segment boundaries, however it is spelled', () => {
@@ -10,6 +11,16 @@ describe('auth gates', () => {
     }
     expect(gateFor(`${app}le`)).toBeUndefined()
     expect(gateFor(SITE_GATE.login)).toBeUndefined()
+  })
+
+  it('guards the v2 app and sends it to the bento login, returning to v2', () => {
+    for (const path of [V2_GATE.prefix, `${V2_GATE.prefix}/`, V2_GATE.prefix.toUpperCase()]) {
+      expect(gateFor(path)?.login, path).toBe(SITE_GATE.login)
+    }
+    expect(gateFor(V2_GATE.prefix.replace(/\/app$/, ''))).toBeUndefined()
+    expect(gateRedirect(V2_GATE.prefix, '', false)).toBe(loginHref(V2_GATE.prefix, V2_GATE.prefix))
+    expect(gateRedirect(V2_GATE.prefix, '', true)).toBeNull()
+    expect(signedInGate(SITE_GATE.login)?.home).toBe(SITE_GATE.home)
   })
 
   it('guards the live app without catching neighbours', () => {
@@ -41,7 +52,15 @@ describe('gate redirects', () => {
   it('lets ungated and signed-in requests through, and sends a signed-in visitor off the login page', () => {
     expect(gateRedirect('/learn', '?q=1', false)).toBeNull()
     expect(gateRedirect('/app/people', '?q=1', true)).toBeNull()
-    expect(gateRedirect(SITE_GATE.login, '?redirectTo=%2Fx', true)).toBe(SITE_GATE.home)
+    expect(gateRedirect(SITE_GATE.login, '', true)).toBe(SITE_GATE.home)
+  })
+
+  it('sends a signed-in visitor on a login page where the login would have, never off-site or back to a login', () => {
+    expect(gateRedirect(SITE_GATE.login, `?redirectTo=${encodeURIComponent(V2_GATE.home)}`, true)).toBe(V2_GATE.home)
+    expect(gateRedirect(SITE_GATE.login, '?redirectTo=%2Fx%3Fa%3D1', true)).toBe('/x?a=1')
+    expect(gateRedirect(SITE_GATE.login, '?redirectTo=%2F%2Fevil.example', true)).toBe(SITE_GATE.home)
+    expect(gateRedirect(SITE_GATE.login, '?redirectTo=https%3A%2F%2Fevil.example', true)).toBe(SITE_GATE.home)
+    expect(gateRedirect(SITE_GATE.login, `?redirectTo=${encodeURIComponent(`${SITE_GATE.login}?redirectTo=%2Fx`)}`, true)).toBe(SITE_GATE.home)
   })
 
   it('finds the login that owns a path, falling back to the live login', () => {

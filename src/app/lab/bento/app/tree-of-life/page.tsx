@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import { routeTitle } from '@/lib/site/routes'
 import { TreeView } from '@/components/bento-lab/systems/tree-view'
+import { routeTitle } from '@/lib/site/routes'
 
 export const metadata: Metadata = { title: routeTitle('/app/tree-of-life') }
 

@@ -1,0 +1,34 @@
+/* v2 "The map" frame (docs/redesign/BENTO_V2.md "Home" 2). */
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-gap);
+}
+
+/* The counts sit at the wall's foot, two to a row, each a numeral over its caption. */
+.counts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--v2-pad);
+  margin-block-start: auto;
+}
+
+.count {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--v2-gap) / 2);
+}
+
+/* Two to a row, the last row shares the closing rule. */
+.counts > .count:nth-last-child(2) {
+  border-block-end: var(--edge-w) solid var(--panel-edge);
+}
+
+.slot {
+  display: grid;
+  min-height: 0;
+}
+
+.window {
+  min-height: 0;
+}

@@ -3,12 +3,12 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, type FormEvent } from 'react'
-import { groupHref } from './hrefs'
 import p from './people.module.css'
 import { PrimaryAction } from '../site/action'
 import { Field } from '../site/field'
 import site from '../site/site.module.css'
 import { EmptyState, ErrorState, Loading, Skeleton } from '../site/states'
+import { useAppHrefs } from '@/components/bento-lab/site/site-tree'
 import { useGroups } from '@/lib/hooks/use-groups'
 import { usePeople } from '@/lib/hooks/use-people'
 
@@ -17,6 +17,7 @@ type SaveState = { readonly kind: 'idle' } | { readonly kind: 'saving' } | { rea
 /** Name, a line of description, and who is in it. Opens the new circle once saved. */
 function NewCircleForm({ preselect, onCancel }: { readonly preselect: readonly string[]; readonly onCancel?: () => void }) {
   const router = useRouter()
+  const { group: groupHref } = useAppHrefs()
   const { createGroup } = useGroups()
   const { people, loading } = usePeople()
   const [name, setName] = useState('')
@@ -100,6 +101,7 @@ function NewCirclePanel({ preselect, onCancel }: { readonly preselect: readonly 
 /** T9 circles list, with the new-circle form open when people arrive preselected. */
 export function GroupsBrowser({ preselect }: { readonly preselect: readonly string[] }) {
   const { groups, loading, error, fetchGroups } = useGroups()
+  const { group: groupHref } = useAppHrefs()
   const [creating, setCreating] = useState(preselect.length > 0)
 
   if (loading)

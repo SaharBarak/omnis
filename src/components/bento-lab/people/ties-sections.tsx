@@ -1,24 +1,16 @@
 'use client'
 
-import { useMemo } from 'react'
-import { newCircleHref, pairHref } from './hrefs'
 import p from './people.module.css'
 import { TieRows } from './ties-with-others'
-import { useRankedTies, type Tied } from './use-ranked-ties'
-import { circleSeats } from '../atlas/circle-drawing'
+import { CIRCLE_MIN, useTiesAtlases } from './use-ties-atlases'
 import { CircleScene } from '../scenes/circle-scene'
 import { PairScene } from '../scenes/pair-scene'
 import { PrimaryAction } from '../site/action'
 import { Section } from '../site/section'
 import { EmptyState, ErrorState, Loading, Skeleton } from '../site/states'
-import { loadCircleAtlasInTurn, loadPairAtlasFrom } from '@/lib/atlas/load'
-import { buildMaya } from '@/lib/atlas/maya'
 import type { AtlasPerson } from '@/lib/atlas/pair'
-import { useDeferredCompute } from '@/lib/hooks/use-deferred-compute'
 import { tieBits } from '@/lib/relations/tie-text'
-import { siteHref } from '@/lib/site/routes'
-
-const ADD_PERSON = `${siteHref('/app/people')}?add=1`
+import { useAppearance, useAppHrefs } from '@/components/bento-lab/site/site-tree'
 
 /** A figure still being read: its shape, so the page does not jump when it lands. */
 function FigureSkeleton({ label }: { readonly label: string }) {
@@ -31,22 +23,13 @@ function FigureSkeleton({ label }: { readonly label: string }) {
   )
 }
 
-const addAction = (
-  <PrimaryAction href={ADD_PERSON} intent="add">
-    Add a person
-  </PrimaryAction>
-)
-
-/**
- * Who sits in `self`'s circle: `self`, then the people most tied to them in
- * rank order, while the ring sized by the widest label seated so far still
- * holds them. Someone who would not be seated never shrinks the ring.
- */
-const seated = (self: AtlasPerson, ranked: readonly Tied[]): readonly AtlasPerson[] => {
-  const people = [self, ...ranked.map((t) => t.other)]
-  const labels = people.map((person) => ({ name: person.name, sub: buildMaya(person.input.date).title }))
-  const firstLeftOut = people.findIndex((_, i) => i + 1 > circleSeats(labels.slice(0, i + 1)))
-  return firstLeftOut === -1 ? people : people.slice(0, firstLeftOut)
+function AddAction() {
+  const { addPerson } = useAppHrefs()
+  return (
+    <PrimaryAction href={addPerson} intent="add">
+      Add a person
+    </PrimaryAction>
+  )
 }
 
 export interface TiesSectionsProps {
@@ -65,25 +48,15 @@ export interface TiesSectionsProps {
  * pair at a time, and only the winning pair is drawn in full.
  */
 export function TiesSections({ self, others, today, show }: TiesSectionsProps) {
-  const ranked = useRankedTies(self, others)
-  const best = ranked.value?.[0] ?? null
-  const pair = useDeferredCompute(
-    best ? { self, other: best.other, reading: best.reading } : null,
-    (ask) => loadPairAtlasFrom(ask.self, ask.other, ask.reading, today),
-    null,
-    0,
-    [today],
-  )
-  const members = useMemo(() => (ranked.value ? seated(self, ranked.value) : []), [self, ranked.value])
-  const circle = useDeferredCompute(show === 'dashboard' && members.length >= 3 ? members : null, loadCircleAtlasInTurn, null, 0)
-
   const dashboard = show === 'dashboard'
-  const failed = ranked.status === 'error' ? ranked.error : pair.status === 'error' ? pair.error : null
-  const circleFailed = ranked.status === 'error' ? ranked.error : circle.status === 'error' ? circle.error : null
+  const hrefs = useAppHrefs()
+  const appearance = useAppearance()
+  const { ranked, best, pair, members, circle, circleNeeds, failed, circleFailed } = useTiesAtlases(self, others, today, { circle: dashboard })
 
   return (
     <>
       <Section
+        appearance={appearance}
         id="tie"
         eyebrow={dashboard ? 'Two people' : 'Ties'}
         title={dashboard ? 'Your strongest tie' : `${self.name} and the people you saved`}
@@ -94,13 +67,13 @@ export function TiesSections({ self, others, today, show }: TiesSectionsProps) {
         }
       >
         {others.length === 0 ? (
-          <EmptyState title="Save a second person" action={addAction}>
+          <EmptyState title="Save a second person" action=<AddAction />>
             A tie needs two people. Add someone&apos;s birth date and the heaviest tie is drawn here.
           </EmptyState>
         ) : failed ? (
           <ErrorState title="Could not read the ties">{failed}</ErrorState>
         ) : pair.value && best ? (
-          <PairScene pair={pair.value} action={{ href: pairHref(self.id, best.other.id), label: 'Open this pair' }} />
+          <PairScene pair={pair.value} action={{ href: hrefs.pair(self.id, best.other.id), label: 'Open this pair' }} />
         ) : (
           <FigureSkeleton label={`Reading ties with ${others.length} ${others.length === 1 ? 'person' : 'people'}`} />
         )}
@@ -109,19 +82,20 @@ export function TiesSections({ self, others, today, show }: TiesSectionsProps) {
 
       {dashboard && (
         <Section
+          appearance={appearance}
           id="circle"
           eyebrow="A circle"
           title="Your circle"
           lead={`${self.name} and the people most tied to them, as many as the ring seats. The person whose ties carry the most sits in the middle.`}
         >
-          {others.length < 2 ? (
-            <EmptyState title="A circle needs three people" action={addAction}>
-              Save {others.length === 0 ? 'two more people' : 'one more person'} and the circle draws itself here.
+          {circleNeeds > 0 ? (
+            <EmptyState title={`A circle needs ${CIRCLE_MIN} people`} action=<AddAction />>
+              Save {circleNeeds === 1 ? 'one more person' : `${circleNeeds} more people`} and the circle draws itself here.
             </EmptyState>
           ) : circleFailed ? (
             <ErrorState title="Could not draw the circle">{circleFailed}</ErrorState>
           ) : circle.value ? (
-            <CircleScene circle={circle.value} action={{ href: newCircleHref(members.map((m) => m.id)), label: 'Save as a circle' }} />
+            <CircleScene circle={circle.value} action={{ href: hrefs.newCircle(members.map((m) => m.id)), label: 'Save as a circle' }} />
           ) : (
             <FigureSkeleton label="Drawing your circle" />
           )}

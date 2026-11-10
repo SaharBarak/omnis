@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { declarations, labSheets } from './lab-sheets'
+import { declarations, labRoots, labSheets } from './lab-sheets'
 import { EDGE_WIDTH, FRAME_RIM, RADII, RADIUS, concentric, radiusCssVars } from './radius'
 
 describe('the radius roles', () => {
@@ -65,7 +65,7 @@ describe('lab CSS takes its radii from the roles', () => {
   })
 
   it('sets no inline radius in the kit or the pages', () => {
-    const roots = ['src/components/bento-lab', 'src/app/lab/bento']
+    const roots = labRoots()
     const walk = (dir: string): string[] =>
       readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
         const path = join(dir, entry.name)

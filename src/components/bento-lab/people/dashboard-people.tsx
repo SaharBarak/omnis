@@ -2,22 +2,22 @@
 
 import Link from 'next/link'
 import { ArrowRight, Plus } from 'lucide-react'
-import { pairHref } from './hrefs'
 import p from './people.module.css'
 import { PersonTile, TileSkeletons } from './person-tile'
 import { PrimaryAction } from '../site/action'
 import site from '../site/site.module.css'
 import { EmptyState, ErrorState, Loading } from '../site/states'
 import { usePeople } from '@/lib/hooks/use-people'
-import { siteHref } from '@/lib/site/routes'
+import { useAppHrefs, useSiteTree } from '@/components/bento-lab/site/site-tree'
 
 const SHOWN = 8
 
-const addHref = `${siteHref('/app/people')}?add=1`
 
 /** T3 slot: saved people as a compact grid with their kin seals, and the two quick actions. */
 export function DashboardPeople() {
   const { people, loading, error, fetchPeople } = usePeople()
+  const tree = useSiteTree()
+  const { addPerson: addHref, pair: pairHref, people: peopleHref } = useAppHrefs()
 
   if (loading)
     return (
@@ -58,7 +58,7 @@ export function DashboardPeople() {
     <div className={p.stack}>
       <ul className={p.tiles} aria-label="Saved people">
         {people.slice(0, SHOWN).map((person) => (
-          <PersonTile key={person.id} person={person} compact />
+          <PersonTile key={person.id} person={person} tree={tree} compact />
         ))}
       </ul>
       <div className={site.actionsCentred}>
@@ -73,7 +73,7 @@ export function DashboardPeople() {
           </Link>
         )}
         {people.length > SHOWN && (
-          <Link href={siteHref('/app/people')} className={site.textLink}>
+          <Link href={peopleHref} className={site.textLink}>
             All {people.length} people
           </Link>
         )}

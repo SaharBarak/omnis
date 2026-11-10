@@ -285,9 +285,6 @@ export const MARK_VARS: Readonly<Record<MarkPart, string>> = Object.freeze({
   base: '--mark-base',
 })
 
-/** Both themes' part colours on each root carrying `data-theme`. */
-export const markCss = (roots: readonly string[], tones: MarkTones): string =>
-  MARK_THEMES.map(
-    (theme) =>
-      `${roots.map((root) => `${root}[data-theme="${theme}"]`).join(',')}{${MARK_PARTS.map((part) => `${MARK_VARS[part]}:${tones[theme][part]}`).join(';')}}`,
-  ).join('')
+/** One theme's part colours, as the declarations an element carrying that theme's scheme writes. */
+export const markDecls = (tones: MarkTones, theme: MarkTheme): readonly (readonly [string, string])[] =>
+  MARK_PARTS.map((part) => [MARK_VARS[part], tones[theme][part]] as const)

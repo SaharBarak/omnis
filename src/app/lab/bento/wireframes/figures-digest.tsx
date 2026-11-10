@@ -29,7 +29,7 @@ const SKETCH: Readonly<Record<FactId, { readonly mark: string; readonly value: s
 const NOTE: Readonly<Record<TileId, string>> = {
   maya: 'Kin 60',
   body: 'Strategy  Wait for Invitation',
-  longcount: "7 Manik' 0 Kumku",
+  longcount: "7 Manik' 0 Kumk'u",
   number: 'Life path',
   sky: 'Sun  12°',
 }

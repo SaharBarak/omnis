@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import c from './card-body.module.css'
 import { TYPE_VOICES, voiceCssVars } from '@/lib/design/type-voice'
-import type { MarkReading } from '@/lib/atlas/explain'
+import type { MarkFact, MarkReading } from '@/lib/atlas/explain'
 import type { AtlasLayerId } from '@/lib/atlas/types'
 
 /** What heads a card: the eyebrow naming its system, what the thing is, and the person's value at it. */
@@ -31,16 +31,21 @@ export function CardBody({ head, reading }: { readonly head: CardHead; readonly 
       <span className={c.label}>{head.label}</span>
       <strong className={c.value}>{head.value}</strong>
       {reading?.meaning && <span className={c.meaning}>{reading.meaning}</span>}
-      {reading && reading.facts.length > 0 && (
-        <dl className={c.facts}>
-          {reading.facts.map((f) => (
-            <div key={f.label}>
-              <dt>{f.label}</dt>
-              <dd>{f.value}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
+      {reading && reading.facts.length > 0 && <CardFacts facts={reading.facts} />}
     </div>
+  )
+}
+
+/** A card's facts: label and value in two columns, in the card's voice wherever they stand (BENTO_TYPE.md, "The card"). */
+export function CardFacts({ facts }: { readonly facts: readonly MarkFact[] }) {
+  return (
+    <dl className={c.facts} style={VOICE}>
+      {facts.map((f) => (
+        <div key={f.label}>
+          <dt>{f.label}</dt>
+          <dd>{f.value}</dd>
+        </div>
+      ))}
+    </dl>
   )
 }

@@ -7,6 +7,14 @@ import { CENTER_POSITIONS, VIEW_HEIGHT, VIEW_WIDTH } from '@/components/human-de
 
 export const SIZE = 640
 export const C = SIZE / 2
+
+/** A drawing's view box, in drawing units: a person's atlas is the square, a pair its frame. */
+export interface View {
+  readonly width: number
+  readonly height: number
+}
+
+export const SQUARE: View = Object.freeze({ width: SIZE, height: SIZE })
 const R = C - 8
 
 export const RING = {
@@ -70,6 +78,25 @@ export interface Box {
   readonly y1: number
 }
 
+/** How far a sampled outline may stray from the curve it follows, in drawing units: under a quarter of a pixel at the design size. */
+const OUTLINE_TOLERANCE = 0.25
+
+/**
+ * The outline of a pill set in `box`: its long sides joined by half circles
+ * as wide as the box is short, each sampled finely enough to stray from its
+ * arc by no more than OUTLINE_TOLERANCE, clockwise from the top left.
+ */
+export function stadiumOutline({ x0, y0, x1, y1 }: Box): readonly Point[] {
+  const r = Math.min(x1 - x0, y1 - y0) / 2
+  const steps = Math.max(2, Math.ceil(Math.PI / (2 * Math.acos(Math.max(-1, 1 - OUTLINE_TOLERANCE / r)))))
+  const cap = ([cx, cy]: Point, from: number): readonly Point[] =>
+    Array.from({ length: steps + 1 }, (_, i): Point => {
+      const angle = from + (Math.PI * i) / steps
+      return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)]
+    })
+  return [...cap([x1 - r, y0 + r], -Math.PI / 2), ...cap([x0 + r, y0 + r], Math.PI / 2)]
+}
+
 /** A w×h box centred on a point. */
 export const boxAround = ([x, y]: Point, w: number, h: number): Box => ({ x0: x - w / 2, y0: y - h / 2, x1: x + w / 2, y1: y + h / 2 })
 
@@ -108,6 +135,35 @@ export const arcPath = (r: number, a: number, b: number): string => {
   const [x1, y1] = polar(r, a)
   const [x2, y2] = polar(r, a + sweep)
   return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 0 ${sweep > 0 ? 0 : 1} ${x2.toFixed(2)} ${y2.toFixed(2)}`
+}
+
+/** Twice the signed area `a`, `b`, `c` turn through: its sign is the way the path turns at `b`. */
+const turn = ([ax, ay]: Point, [bx, by]: Point, [cx, cy]: Point): number => (bx - ax) * (cy - by) - (by - ay) * (cx - bx)
+
+/**
+ * The closed path `gap` outside a convex outline, in either winding: each
+ * edge moved out along its normal, each corner rounded about its vertex at
+ * radius `gap`. Every point of it stands `gap` off the outline, so it is
+ * concentric with the shape it wraps (BENTO_TYPE.md: a ring follows the
+ * shape it wraps), as a circle `gap` wider is with a disc. A repeated point
+ * is one corner; an outline with no area, or one that turns both ways, has
+ * no such path, and gives null.
+ */
+export function concentricPath(outline: readonly Point[], gap: number): string | null {
+  const corners = outline.filter((p, i) => p[0] !== outline.at(i - 1)![0] || p[1] !== outline.at(i - 1)![1])
+  const next = (i: number): Point => corners[(i + 1) % corners.length]
+  const turns = corners.map((p, i) => turn(p, next(i), next(i + 1)))
+  const winding = Math.sign(turns.reduce((sum, t) => sum + t, 0))
+  if (corners.length < 3 || winding === 0 || turns.some((t) => t * winding < 0)) return null
+  const normals = corners.map(([x0, y0], i): Point => {
+    const [x1, y1] = next(i)
+    const length = Math.hypot(x1 - x0, y1 - y0)
+    return [(winding * (y1 - y0)) / length, (winding * (x0 - x1)) / length]
+  })
+  const off = ([x, y]: Point, [nx, ny]: Point): string => `${px(x + nx * gap)} ${px(y + ny * gap)}`
+  const sweep = winding > 0 ? 1 : 0
+  const sides = corners.map((vertex, i) => `A ${gap} ${gap} 0 0 ${sweep} ${off(vertex, normals[i])} L ${off(next(i), normals[i])}`)
+  return `M ${off(corners[0], normals.at(-1)!)} ${sides.join(' ')} Z`
 }
 
 interface Cluster {
@@ -181,8 +237,8 @@ export const bodyPoint = (x: number, y: number): Point => [
   px(C + (y - VIEW_HEIGHT / 2) * BODY_SCALE),
 ]
 
-/** A point as percentages of the atlas box, for HTML laid over the SVG. */
-export const percent = ([x, y]: Point): { readonly left: string; readonly top: string } => ({
-  left: `${((x / SIZE) * 100).toFixed(3)}%`,
-  top: `${((y / SIZE) * 100).toFixed(3)}%`,
+/** A point as percentages of the drawing's box, for HTML laid over the SVG. */
+export const percent = ([x, y]: Point, view: View = SQUARE): { readonly left: string; readonly top: string } => ({
+  left: `${((x / view.width) * 100).toFixed(3)}%`,
+  top: `${((y / view.height) * 100).toFixed(3)}%`,
 })

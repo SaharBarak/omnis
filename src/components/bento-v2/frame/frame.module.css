@@ -1,0 +1,678 @@
+/*
+ * Bento v2 frames (docs/redesign/BENTO_V2.md): viewport-high bento grids of
+ * panels with cut-in corners, one gold accent tile, pills and chips. Every
+ * size is a token or derived from one; the token tests hold this sheet.
+ */
+
+/* ---------- page ---------- */
+
+.page {
+  --v2-gap: calc(var(--page-gutter) / 2);
+  --v2-pad: calc(var(--page-gutter) * 0.9);
+  /* Between sections: the page's gutter, twice any gap inside a frame, so each section reads as one unit. */
+  --v2-section: var(--page-gutter);
+  /* A plate's inset: the panel's own padding, so a plate's content sits as far from its edge as a panel's. */
+  --v2-plate: var(--v2-pad);
+  --v2-wide: calc(var(--page-max) * 4 / 3);
+  /* A small figure (a day row's drawing, the kin's tone): three quarters of a touch target. */
+  --v2-figure: calc(var(--hit-min) * 3 / 4);
+  /* A notch that holds one row of controls: a touch target inside the notch's own padding. */
+  --v2-notch: calc(var(--hit-target) + var(--v2-gap) * 2);
+  /* One viewport per frame, as the reference sets them, and a floor the content fits in; more content grows a frame instead of clipping. */
+  --v2-frame-h: max(calc(100svh - 2 * var(--v2-gap)), calc(var(--hit-target) * 15));
+  --notch-r: var(--radius-stage);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-section);
+  width: 100%;
+  max-width: var(--v2-wide);
+  margin-inline: auto;
+  padding: var(--v2-gap);
+  background: var(--lab-page);
+  color: var(--lab-ink);
+}
+
+/*
+ * Aliases over palette variables. A custom property resolves where it is
+ * declared, so every inverse section (BENTO_COLOR.md "Inverse sections"),
+ * which is always a plate (groundProps), declares them again over its own
+ * palette. A notch paints what lies outside its panel: the page, or the
+ * plate the panel sits on.
+ */
+.page,
+.plate {
+  --panel-edge: color-mix(in oklab, var(--lab-line) 70%, transparent);
+  --art-top: color-mix(in oklab, var(--brand) 16%, var(--lab-surface));
+  --inset-fill: color-mix(in oklab, var(--lab-page) 55%, var(--lab-surface));
+  --notch-bg: var(--lab-page);
+}
+
+/* A landmark that holds frames keeps the page's rhythm between them. */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-section);
+}
+
+/*
+ * A plate (BENTO_V2.md "Layout rules"): a frame on its chapter's ground,
+ * inset by --v2-plate and rounded concentric with the panels in it. Words
+ * sit on the plate itself; inside it, everything keeps more room than the
+ * page's frames do.
+ */
+.plate {
+  gap: var(--v2-pad);
+  padding: var(--v2-plate);
+  border-radius: calc(var(--radius-stage) + var(--v2-plate));
+  background: var(--lab-page);
+  color: var(--lab-ink);
+  /* It opens from its top edge (plateIn), so its top, and every trigger measured from it, stays put. */
+  transform-origin: 50% 0;
+}
+
+/*
+ * A band (BENTO_V2.md "Layout rules"): a section one viewport high on the
+ * page's ground, holding its frame centred at --band-zoom of its size. Zoom
+ * scales the frame's layout, type and spacing together, so it reflows as one
+ * piece and a plate's scroll-in transform stays its own; zoom leaves a
+ * percentage as it is, so the frame's width and height take the same share
+ * of the band.
+ */
+.band {
+  --band-zoom: 0.77;
+
+  display: grid;
+  grid-template-rows: minmax(100svh, auto);
+  place-items: center;
+}
+
+.band > .banded {
+  zoom: var(--band-zoom);
+  inline-size: calc(var(--band-zoom) * 100%);
+  min-block-size: calc(var(--band-zoom) * 100%);
+}
+
+/* A plate's side column: its words, a list and the action, held apart by the plate's gap. */
+.wall {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-pad);
+  min-width: 0;
+  min-height: 0;
+}
+
+/* A list set on a plate: rows parted by a hairline, no box round each. */
+.wallList {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* An item keeps whatever surface class carries its layer's tone, without that surface's box. */
+.wallList > li {
+  padding: calc(var(--v2-pad) / 2) 0;
+  border: 0;
+  border-block-start: var(--edge-w) solid var(--panel-edge);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.wallList > li:last-child {
+  border-block-end: var(--edge-w) solid var(--panel-edge);
+}
+
+@media (forced-colors: active) {
+  /* Backgrounds give way to the system's; the plate keeps its edge so sections still part. */
+  .plate {
+    /* An outline drawn inside the edge, so the forced frame takes no more room than the plain one. */
+    outline: var(--edge-w) solid CanvasText;
+    outline-offset: calc(-1 * var(--edge-w));
+  }
+}
+
+/* ---------- frames ---------- */
+
+.frame {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.42fr);
+  gap: var(--v2-gap);
+  min-height: var(--v2-frame-h);
+  scroll-margin-top: var(--v2-gap);
+}
+
+.frameFlip {
+  grid-template-columns: minmax(320px, 0.42fr) minmax(0, 1fr);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-gap);
+  min-width: 0;
+  min-height: 0;
+}
+
+.grow {
+  flex: 1 1 auto;
+}
+
+/*
+ * A drawing that takes the room it is given and never sizes its frame
+ * (BENTO_V2.md "Layout rules"): an empty flexible box, the drawing absolute in
+ * it, its SVG fitted to the box by its viewBox. Stacked, the box is the
+ * drawing's own shape.
+ */
+.drawingSlot {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.drawingSlot > :first-child {
+  position: absolute;
+  inset: 0;
+}
+
+.drawingSlot > :first-child > [data-orient],
+.drawingSlot > :first-child svg {
+  height: 100%;
+}
+
+/*
+ * A live pair stage (BENTO_SITE.md, "Ties explain themselves") sets its
+ * drawing in a box of the drawing's own shape, as large as the slot holds
+ * and centred in it, so its targets and its card read the drawing's box.
+ */
+.drawingSlot > [data-pair-stage] {
+  container-type: size;
+}
+
+.drawingSlot > [data-pair-stage] [data-pair-view] {
+  top: 50%;
+  width: min(100cqw, 100cqh * var(--pair-w) / var(--pair-h));
+  margin-inline: auto;
+  translate: 0 -50%;
+}
+
+/* A drawing being read again for new data stays in place, dimmed, until the new one lands. */
+.drawingSlot[aria-busy='true'] > :first-child {
+  opacity: var(--busy-alpha);
+  transition: opacity var(--dur-quick) var(--ease-standard);
+}
+
+/* A frame's figure stage: the title notched in the flow, the drawing in the room under it, inset by the panel's padding. */
+.figureStage {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.figureStage > .figureTitle {
+  position: relative;
+  z-index: 3;
+  align-self: flex-start;
+  padding: var(--v2-pad) var(--v2-pad) var(--v2-gap);
+}
+
+.figureStage > .drawingSlot {
+  margin: 0 var(--v2-pad) var(--v2-pad);
+}
+
+/*
+ * A bento list (a pair's facts, a circle's pairs) in v2's skin: each item
+ * keeps the bento surface class, which carries its tie's layer tone, and
+ * wears a v2 panel's edge, fill and flatness. Inside a panel, the inset's.
+ */
+.skinnedList {
+  display: grid;
+  gap: var(--v2-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skinnedList > li {
+  padding: var(--v2-gap) calc(var(--v2-gap) * 1.5);
+  border-color: var(--panel-edge);
+  border-radius: var(--radius-stage);
+  background: var(--lab-surface);
+  box-shadow: none;
+}
+
+.skinnedInset > li {
+  border-radius: var(--radius-card);
+  background: var(--inset-fill);
+}
+
+/* A column's last item sits at its foot. */
+.columnEnd {
+  display: flex;
+  margin-block-start: auto;
+}
+
+/* ---------- panels ---------- */
+
+.panel {
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  border-radius: var(--radius-stage);
+  border: var(--edge-w) solid var(--panel-edge);
+  background: var(--lab-surface);
+}
+
+.art {
+  background: linear-gradient(180deg, var(--art-top) 0%, var(--lab-surface) 45%, var(--lab-art) 100%);
+}
+
+.accent {
+  border-color: transparent;
+  background: var(--action);
+  color: var(--on-action);
+}
+
+.pad {
+  padding: var(--v2-pad);
+}
+
+.inset {
+  position: relative;
+  border-radius: var(--radius-card);
+  border: var(--edge-w) solid var(--panel-edge);
+  background: var(--inset-fill);
+}
+
+/* ---------- notches ----------
+ * The kit's Notch is positioned; its content pads itself by the notch radius
+ * so nothing sits under the inverse corners, and returns to the flow below
+ * the desktop width. */
+
+.notchContent {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--v2-gap) / 2);
+  padding: var(--v2-gap);
+}
+
+.notchTitle {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--v2-gap);
+  max-width: min(36rem, 72%);
+  /* Inset from every edge it shares with the panel as the panel's own content is, so no line runs against the text. */
+  padding: var(--v2-pad);
+}
+
+/* ---------- type ---------- */
+
+.eyebrow {
+  margin: 0;
+  font-size: var(--type-micro);
+  line-height: var(--type-ui-lh);
+  letter-spacing: var(--type-caps-ls);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--lab-text-3);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-poster);
+  line-height: var(--type-poster-lh);
+  letter-spacing: var(--type-poster-ls);
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+.titleDisplay {
+  font-size: var(--type-display);
+  line-height: var(--type-display-lh);
+  letter-spacing: var(--type-display-ls);
+}
+
+.line {
+  display: block;
+}
+
+.bright {
+  display: block;
+  color: var(--lab-bright);
+}
+
+.lead {
+  margin: 0;
+  max-width: 34rem;
+  font-size: var(--type-body);
+  line-height: var(--type-body-lh);
+  color: var(--lab-text-2);
+}
+
+/* A numeral the size of a tile: the poster role, scaled for a figure that is the tile. */
+.numeral {
+  margin: 0;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: calc(var(--type-poster) * 1.75);
+  line-height: 0.9;
+  letter-spacing: var(--type-poster-ls);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.figure {
+  margin: 0;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-title);
+  line-height: var(--type-title-lh);
+  letter-spacing: var(--type-title-ls);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.small {
+  margin: 0;
+  font-size: var(--type-small);
+  line-height: var(--type-small-lh);
+  color: var(--lab-text-2);
+}
+
+.caption {
+  margin: 0;
+  font-size: var(--type-caption);
+  line-height: var(--type-caption-lh);
+  color: var(--lab-text-3);
+}
+
+.accent .caption,
+.accent .small,
+.accent .eyebrow {
+  color: inherit;
+}
+
+/* ---------- pills, chips, buttons ---------- */
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--v2-gap) / 2);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--v2-gap) / 2);
+  min-height: var(--hit-min);
+  padding-inline: var(--v2-gap);
+  border-radius: 999px;
+  border: var(--edge-w) solid var(--lab-line);
+  background: transparent;
+  color: var(--lab-ink);
+  font-size: var(--type-caption);
+  line-height: var(--type-ui-lh);
+  font-weight: 600;
+  letter-spacing: var(--type-caps-ls);
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-quick) var(--ease-standard),
+    border-color var(--dur-quick) var(--ease-standard),
+    scale var(--dur-press) var(--ease-standard);
+}
+
+.pill:hover {
+  border-color: var(--lab-ink);
+}
+
+.pill:active {
+  scale: var(--press-scale);
+}
+
+.pill:focus-visible,
+.chip:focus-visible,
+.round:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.pillQuiet {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* A pill holding only an icon: as wide as the kit's least target. */
+.pillIcon {
+  flex: none;
+  width: var(--hit-min);
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.accent .pill {
+  border-color: currentColor;
+  color: inherit;
+}
+
+.live::before {
+  content: '';
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/*
+ * The status pulse (BENTO_MOTION.md "Loops"): what is now beats, by opacity
+ * alone, while it is on screen (`data-loop`, given `data-in-view`) and motion
+ * is allowed. A live pill's dot and every `beat` (the ring round today's
+ * cell in a cycle's cells, today's dot on a cycle track) share the one beat.
+ */
+@keyframes pulse {
+  to {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (forced-colors: none) {
+  [data-lab]:not([data-motion='paused']) .live[data-in-view]::before,
+  [data-lab]:not([data-motion='paused']) .beat[data-in-view] {
+    animation: pulse var(--dur-draw) var(--ease-standard) infinite alternate;
+  }
+}
+
+.round {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--hit-target);
+  height: var(--hit-target);
+  border-radius: 50%;
+  border: var(--edge-w) solid var(--lab-line);
+  background: var(--lab-ink);
+  color: var(--lab-page);
+  cursor: pointer;
+  transition: scale var(--dur-press) var(--ease-standard);
+}
+
+.round:active {
+  scale: var(--press-scale);
+}
+
+.chips {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--v2-gap) / 2);
+}
+
+.chip {
+  position: relative;
+  isolation: isolate;
+  flex: none;
+  min-height: var(--hit-min);
+  white-space: nowrap;
+  padding-inline: var(--v2-gap);
+  border-radius: 999px;
+  border: var(--edge-w) solid var(--lab-line);
+  background: transparent;
+  color: var(--lab-text-2);
+  font-size: var(--type-small);
+  line-height: var(--type-ui-lh);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--dur-quick) var(--ease-standard);
+}
+
+.chip[aria-pressed='true'] {
+  color: var(--lab-page);
+  border-color: transparent;
+}
+
+.chipHighlight {
+  position: absolute;
+  inset: calc(var(--edge-w) * -1);
+  z-index: -1;
+  border-radius: 999px;
+  background: var(--lab-ink);
+}
+
+.chipSolid[aria-pressed='true'] .chipHighlight {
+  background: var(--action);
+}
+
+.chipSolid[aria-pressed='true'] {
+  color: var(--on-action);
+}
+
+.track {
+  flex: 1 1 4rem;
+  height: var(--edge-w);
+  min-width: 3rem;
+  background: var(--lab-line);
+  overflow: hidden;
+}
+
+.trackFill {
+  display: block;
+  height: 100%;
+  background: var(--lab-ink);
+  transform-origin: 0 50%;
+}
+
+/* The fill counts down to the next step only where motion is allowed; `useCycle` runs no steps elsewhere. */
+@media (prefers-reduced-motion: no-preference) and (forced-colors: none) {
+  [data-lab]:not([data-motion='paused']) .trackFill {
+    animation: fill var(--cycle) linear both;
+  }
+}
+
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* ---------- window chrome: an app inside a frame ---------- */
+
+.windowBar {
+  display: flex;
+  align-items: center;
+  gap: var(--v2-gap);
+  padding: var(--v2-gap) var(--v2-pad);
+  border-bottom: var(--edge-w) solid var(--panel-edge);
+}
+
+.windowDots {
+  display: inline-flex;
+  gap: calc(var(--v2-gap) / 2);
+}
+
+.windowDots > i {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--lab-line);
+}
+
+.windowTitle {
+  margin: 0;
+  margin-inline-end: auto;
+  font-size: var(--type-small);
+  line-height: var(--type-ui-lh);
+  font-weight: 600;
+}
+
+/* ---------- compact ---------- */
+
+@media (max-width: 899.98px) {
+  /* Narrow, a plate gives up inset before its content gives up width. */
+  .page {
+    --v2-plate: var(--v2-gap);
+  }
+
+  .frame,
+  .frameFlip {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  /* Stacked, a band's frame keeps its full size and its own height: on a narrow screen its words are already at their smallest. */
+  .band {
+    --band-zoom: 1;
+
+    grid-template-rows: auto;
+  }
+
+  .drawingSlot {
+    flex: none;
+  }
+
+  .drawingSlot > :first-child {
+    position: relative;
+    inset: auto;
+  }
+
+  .drawingSlot > :first-child > [data-orient],
+  .drawingSlot > :first-child svg {
+    height: auto;
+  }
+
+  .drawingSlot > [data-pair-stage] {
+    container-type: normal;
+  }
+
+  .drawingSlot > [data-pair-stage] [data-pair-view] {
+    top: auto;
+    width: 100%;
+    translate: none;
+  }
+
+  .notchTitle {
+    max-width: none;
+  }
+
+  /* A stacked panel has no corner to cut: a notch that stacks sits in flow, unfilled, without its corner pieces. */
+  .page .notchStack {
+    position: relative;
+    inset: auto;
+    width: auto;
+    background: none;
+  }
+
+  .page .notchStack::before,
+  .page .notchStack::after {
+    display: none;
+  }
+
+  /* A stacked notch's controls wrap onto a second line before any of them narrows. */
+  .page .notchStack > .notchContent {
+    flex-wrap: wrap;
+  }
+}

@@ -1,6 +1,6 @@
-import { readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
-import postcss, { type Declaration, type Node, type Root } from 'postcss'
+import postcss, { list, type AtRule, type Declaration, type Node, type Root, type Rule as PostcssRule } from 'postcss'
 
 /**
  * The lab's CSS modules and scripts, for the tests that hold them to the
@@ -8,7 +8,18 @@ import postcss, { type Declaration, type Node, type Root } from 'postcss'
  * only: tests import it, the app never does.
  */
 
-const ROOTS = ['src/components/bento-lab', 'src/app/lab/bento']
+/** The lab's trees: the bento site and bento v2 (docs/redesign/BENTO_V2.md). Token rules hold both; the motion policy holds the bento site alone. */
+export const LAB_TREES = Object.freeze({
+  bento: ['src/components/bento-lab', 'src/app/lab/bento'],
+  v2: ['src/components/bento-v2', 'src/app/lab/bento-v2'],
+} as const)
+
+export type LabTree = keyof typeof LAB_TREES
+
+const ALL_TREES: readonly LabTree[] = ['bento', 'v2']
+
+/** The source roots of the given trees, relative to the repo. */
+export const labRoots = (trees: readonly LabTree[] = ALL_TREES): readonly string[] => trees.flatMap((tree) => LAB_TREES[tree])
 
 /** Page miniatures: their sizes and radii are drawing units, not the page's. */
 const EXEMPT = new Set(['src/components/bento-lab/wireframe/wireframe.module.css'])
@@ -27,16 +38,26 @@ const walk = (dir: string, keep: (name: string) => boolean): string[] =>
     return entry.isDirectory() ? walk(path, keep) : keep(entry.name) ? [path] : []
   })
 
-const read = (root: string, keep: (name: string) => boolean): readonly Sheet[] =>
-  ROOTS.flatMap((dir) => walk(join(root, dir), keep))
+/** A tree root that is gone would make every policy over it pass with nothing checked, so it fails instead. */
+const present = (root: string, dir: string): string => {
+  if (!existsSync(join(root, dir))) throw new Error(`Lab tree root is missing: ${dir} (update LAB_TREES)`)
+  return dir
+}
+
+const read = (root: string, keep: (name: string) => boolean, trees: readonly LabTree[]): readonly Sheet[] =>
+  labRoots(trees)
+    .map((dir) => present(root, dir))
+    .flatMap((dir) => walk(join(root, dir), keep))
     .map((path) => relative(root, path))
     .filter((path) => !EXEMPT.has(path))
     .map((path) => ({ path, lines: readFileSync(join(root, path), 'utf8').split('\n') }))
 
-export const labSheets = (root = process.cwd()): readonly Sheet[] => read(root, (name) => name.endsWith('.module.css'))
+export const labSheets = (root = process.cwd(), trees: readonly LabTree[] = ALL_TREES): readonly Sheet[] =>
+  read(root, (name) => name.endsWith('.module.css'), trees)
 
 /** The lab's scripts, tests left out: what reaches the browser. */
-export const labScripts = (root = process.cwd()): readonly Sheet[] => read(root, (name) => /\.tsx?$/.test(name) && !/\.test\.tsx?$/.test(name))
+export const labScripts = (root = process.cwd(), trees: readonly LabTree[] = ALL_TREES): readonly Sheet[] =>
+  read(root, (name) => /\.tsx?$/.test(name) && !/\.test\.tsx?$/.test(name), trees)
 
 const parse = ({ path, lines }: Sheet): Root => postcss.parse(lines.join('\n'), { from: path })
 
@@ -86,4 +107,57 @@ export function rules(sheet: Sheet): readonly Rule[] {
     })
   })
   return found
+}
+
+/** An animation that runs on (`infinite`): the keyframes it names, the media queries around it and each selector of its rule. */
+export interface Loop {
+  readonly at: string
+  readonly keyframes: string
+  readonly media: readonly string[]
+  readonly selectors: readonly string[]
+}
+
+const mediaAround = (node: Node): readonly string[] => {
+  const found: string[] = []
+  for (let parent = node.parent; parent; parent = parent.parent) {
+    if (parent.type === 'atrule' && (parent as AtRule).name === 'media') found.push((parent as AtRule).params)
+  }
+  return found
+}
+
+const INFINITE = /\binfinite\b/
+
+/** The keyframes an animation item names, or '' where it names none of the sheet's. */
+const named = (item: string, keyframes: ReadonlySet<string>): string => list.space(item).find((token) => keyframes.has(token)) ?? ''
+
+/**
+ * The keyframes a declaration runs on: each `infinite` item of an `animation`
+ * list, or, for an `animation-iteration-count` list, each of the rule's
+ * animation names whose count is `infinite` (the counts repeat to cover the names).
+ */
+const runsOn = (decl: Declaration, rule: PostcssRule | null, keyframes: ReadonlySet<string>): readonly string[] => {
+  const items = list.comma(decl.value)
+  if (decl.prop === 'animation') return items.filter((item) => INFINITE.test(item)).map((item) => named(item, keyframes))
+  const naming = (rule?.nodes ?? []).filter((node): node is Declaration => node.type === 'decl' && /^animation(?:-name)?$/.test(node.prop)).at(-1)
+  const names = naming ? list.comma(naming.value).map((item) => named(item, keyframes)) : ['']
+  return names.filter((_, i) => INFINITE.test(items[i % items.length] ?? ''))
+}
+
+/** Every loop in the sheets (BENTO_MOTION.md "Loops"), one per keyframes run on, for the motion policy to hold to its kinds and gates. */
+export function loops(sheets: readonly Sheet[]): readonly Loop[] {
+  return sheets.flatMap((sheet) => {
+    const root = parse(sheet)
+    const keyframes = new Set<string>()
+    root.walkAtRules('keyframes', (rule) => {
+      keyframes.add(rule.params)
+    })
+    const found: Loop[] = []
+    root.walkDecls(/^animation(?:-iteration-count)?$/, (decl) => {
+      const rule = decl.parent?.type === 'rule' ? (decl.parent as PostcssRule) : null
+      for (const name of runsOn(decl, rule, keyframes)) {
+        found.push({ at: at(sheet.path, decl), keyframes: name, media: mediaAround(decl), selectors: rule?.selectors ?? [] })
+      }
+    })
+    return found
+  })
 }

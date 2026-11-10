@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import b from './blocks.module.css'
+import { GlyphMark } from '../glyph-mark'
 import type { DayArt } from '@/lib/today-figures'
 
 /** Drawings for the day board (TodayBoard). Pure markup: the final frame; board.tsx animates it. */
@@ -50,10 +51,6 @@ export function BarDot({ n, className }: { readonly n: number; readonly classNam
   )
 }
 
-const Mark = ({ src, className }: { src: string; className?: string }) => (
-  <span className={[b.mark, className].filter(Boolean).join(' ')} style={{ '--src': `url("${src}")` } as CSSProperties} />
-)
-
 function Seal({ art }: { art: Extract<DayArt, { kind: 'seal' }> }) {
   const step = 360 / art.seats
   return (
@@ -74,7 +71,7 @@ function Seal({ art }: { art: Extract<DayArt, { kind: 'seal' }> }) {
           ))}
         </svg>
       </span>
-      <Mark src={art.src} className={b.sealMark} />
+      <GlyphMark src={art.src} className={b.sealMark} />
       <BarDot n={art.tone} className={b.sealTone} />
     </span>
   )
@@ -138,7 +135,7 @@ export function DayArtwork({ art }: { readonly art: DayArt }) {
     case 'seal':
       return <Seal art={art} />
     case 'glyph':
-      return <Mark src={art.src} className={b.signMark} />
+      return <GlyphMark src={art.src} className={b.signMark} />
     case 'moon':
       return <Moon angle={art.angle} />
     case 'hexagram':

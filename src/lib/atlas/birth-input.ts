@@ -18,7 +18,11 @@ const TIME = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use HH:MM, 24-hour')
 export const TEXT_MAX = Object.freeze({ name: 80, place: 160 })
 
 const CONTROL = /[\u0000-\u001f\u007f]/
+/** Half of a surrogate pair standing alone: no character, and JSON writes it as a six-byte escape that no length cap foresees. */
+const LONE_SURROGATE = /[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/
 const CONTROLS = new RegExp(`${CONTROL.source}+`, 'g')
+const LONE_SURROGATES = new RegExp(LONE_SURROGATE.source, 'g')
+const REPLACEMENT = '\ufffd'
 const TRAILING_HIGH_SURROGATE = /[\ud800-\udbff]$/
 
 const ELLIPSIS = '\u2026'
@@ -32,11 +36,12 @@ const clip = (text: string, max: number): string => {
 
 /**
  * Text from outside the form (a geocoder, a stored row) made fit for the
- * schema: control characters become spaces, the ends are trimmed and the
- * rest is clipped to `max`. Null when nothing readable is left.
+ * schema: control characters become spaces, half a surrogate pair becomes
+ * the replacement character, the ends are trimmed and the rest is clipped to
+ * `max`. Null when nothing readable is left.
  */
 export const plainText = (raw: string | null | undefined, max: number): string | null => {
-  const text = clip((raw ?? '').replace(CONTROLS, ' ').trim(), max)
+  const text = clip((raw ?? '').replace(CONTROLS, ' ').replace(LONE_SURROGATES, REPLACEMENT).trim(), max)
   return text.length > 0 ? text : null
 }
 
@@ -45,7 +50,7 @@ const text = (max: number) =>
     .string()
     .trim()
     .max(max)
-    .refine((s) => !CONTROL.test(s), 'Plain text only')
+    .refine((s) => !CONTROL.test(s) && !LONE_SURROGATE.test(s), 'Plain text only')
 
 const PLACE = z.object({
   lat: z.number().min(-90).max(90),

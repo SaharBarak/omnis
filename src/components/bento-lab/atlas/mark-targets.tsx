@@ -1,9 +1,9 @@
 'use client'
 
-import { useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react'
+import { Fragment, useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react'
 import s from './atlas.module.css'
-import { percent, SIZE } from './geometry'
-import { HALO_GAP, hitMark, inView, reachFor, TARGET_MIN_PX, toDrawing, type Linear, type PlacedMark } from './mark-geometry'
+import { percent, SQUARE, type View } from './geometry'
+import { focusRingOf, HALO_GAP, hitMark, inView, reachFor, TARGET_MIN_PX, toDrawing, type Linear, type PlacedMark } from './mark-geometry'
 import type { InspectEvent } from './inspect'
 import kit from '../kit.module.css'
 import type { AtlasMarkRef, MarkTitle } from '@/lib/atlas/marks'
@@ -47,12 +47,12 @@ const liveTurns = (svg: SVGSVGElement): Partial<Record<AtlasLayerId, Linear>> =>
     }),
   )
 
-/** The mark under a pointer event, read through the drawing's live zoom and ring turns. */
-function markAt(svg: SVGSVGElement, marks: readonly PlacedMark[], clientX: number, clientY: number): PlacedMark | null {
+/** The mark under a pointer event, read through the drawing's live zoom and, where its rings turn, their live turns. */
+function markAt<Ref>(svg: SVGSVGElement, marks: readonly PlacedMark<Ref>[], at: { readonly x: number; readonly y: number }, view: View, turns: boolean): PlacedMark<Ref> | null {
   const box = svg.getBoundingClientRect()
   if (box.width === 0) return null
   const zoom = liveZoom(svg)
-  return hitMark(marks, { point: toDrawing([clientX, clientY], box, zoom), reach: reachFor(box.width, zoom), turns: liveTurns(svg) })
+  return hitMark(marks, { point: toDrawing([at.x, at.y], box, zoom, view), reach: reachFor(box.width, zoom, view), turns: turns ? liveTurns(svg) : undefined })
 }
 
 const KEYS: Readonly<Record<string, (index: number, last: number) => number>> = {
@@ -64,18 +64,24 @@ const KEYS: Readonly<Record<string, (index: number, last: number) => number>> = 
   End: (_, last) => last,
 }
 
-export interface MarkTargetsProps {
+export interface MarkTargetsProps<Ref = AtlasMarkRef> {
   /** The marks that answer, in reading order. */
-  readonly marks: readonly PlacedMark[]
-  readonly titleOf: (ref: AtlasMarkRef) => MarkTitle | null
+  readonly marks: readonly PlacedMark<Ref>[]
+  readonly titleOf: (ref: Ref) => MarkTitle | null
   readonly activeKey: string | null
   /** id of the open card, the active button's description. */
   readonly cardId: string
   /** Whether a related target is the card: the pointer moving onto it keeps it open. */
   readonly isInCard: (target: EventTarget | null) => boolean
-  readonly onEvent: (event: InspectEvent) => void
+  readonly onEvent: (event: InspectEvent<Ref>) => void
   /** The pointer or focus arrived: start loading the meanings. */
   readonly onIntent: () => void
+  /** The drawing's view box: a person's atlas is the square. */
+  readonly view?: View
+  /** Whether the drawing's rings turn, so the pointer is read through their live turns. */
+  readonly turns?: boolean
+  /** The toolbar's name. */
+  readonly label?: string
 }
 
 /**
@@ -84,12 +90,23 @@ export interface MarkTargetsProps {
  * mark as a button in a toolbar with a roving tab stop. The buttons only
  * carry focus and names: the pointer passes through them.
  */
-export function MarkTargets({ marks, titleOf, activeKey, cardId, isInCard, onEvent, onIntent }: MarkTargetsProps) {
+export function MarkTargets<Ref = AtlasMarkRef>({
+  marks,
+  titleOf,
+  activeKey,
+  cardId,
+  isInCard,
+  onEvent,
+  onIntent,
+  view = SQUARE,
+  turns = true,
+  label = 'Marks on the map',
+}: MarkTargetsProps<Ref>) {
   const rootRef = useRef<HTMLDivElement>(null)
   const [stop, setStop] = useState<string | null>(null)
   const [zoom, setZoom] = useState(1)
   const hintId = useId()
-  const reachable = marks.filter((m) => inView(m, zoom))
+  const reachable = marks.filter((m) => inView(m, zoom, view))
   const tabStop = reachable.some((m) => m.key === stop) ? stop : (reachable[0]?.key ?? null)
 
   useLayoutEffect(() => {
@@ -103,9 +120,9 @@ export function MarkTargets({ marks, titleOf, activeKey, cardId, isInCard, onEve
     return () => observer.disconnect()
   }, [marks])
 
-  const under = (e: PointerEvent | MouseEvent): PlacedMark | null => {
+  const under = (e: PointerEvent | MouseEvent): PlacedMark<Ref> | null => {
     const svg = rootRef.current?.parentElement?.querySelector('svg')
-    return svg ? markAt(svg, marks, e.clientX, e.clientY) : null
+    return svg ? markAt(svg, marks, { x: e.clientX, y: e.clientY }, view, turns) : null
   }
 
   const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
@@ -150,7 +167,7 @@ export function MarkTargets({ marks, titleOf, activeKey, cardId, isInCard, onEve
         <div
           className={s.targetRing}
           role="toolbar"
-          aria-label="Marks on the map"
+          aria-label={label}
           aria-describedby={hintId}
           onKeyDown={move}
           onFocus={onIntent}
@@ -164,26 +181,34 @@ export function MarkTargets({ marks, titleOf, activeKey, cardId, isInCard, onEve
           {reachable.map((m) => {
             const title = titleOf(m.ref)
             if (!title) return null
+            const ring = focusRingOf(m)
             return (
-              <button
-                key={m.key}
-                type="button"
-                className={s.target}
-                data-target={m.key}
-                data-layer={m.layer}
-                style={{ ...percent(m.anchor), '--ring': `${((2 * (m.r + HALO_GAP)) / SIZE) * 100}%` } as CSSProperties}
-                tabIndex={m.key === tabStop ? 0 : -1}
-                aria-label={`${title.label}: ${title.value}`}
-                aria-describedby={activeKey === m.key ? cardId : undefined}
-                onFocus={() => {
-                  setStop(m.key)
-                  onEvent({ type: 'focus', ref: m.ref })
-                }}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onEvent({ type: 'keep', ref: m.ref })
-                }}
-              />
+              <Fragment key={m.key}>
+                <button
+                  type="button"
+                  className={s.target}
+                  data-target={m.key}
+                  data-layer={m.layer}
+                  data-area={m.area ? '' : undefined}
+                  style={{ ...percent(m.anchor, view), '--ring': `${((2 * (m.r + HALO_GAP)) / view.width) * 100}%` } as CSSProperties}
+                  tabIndex={m.key === tabStop ? 0 : -1}
+                  aria-label={`${title.label}: ${title.value}`}
+                  aria-describedby={activeKey === m.key ? cardId : undefined}
+                  onFocus={() => {
+                    setStop(m.key)
+                    onEvent({ type: 'focus', ref: m.ref })
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onEvent({ type: 'keep', ref: m.ref })
+                  }}
+                />
+                {ring && (
+                  <svg className={s.areaRing} viewBox={`0 0 ${view.width} ${view.height}`} preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                    <path d={ring} />
+                  </svg>
+                )}
+              </Fragment>
             )
           })}
         </div>

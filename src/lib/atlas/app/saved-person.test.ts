@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { atlasPeopleOf, birthInputOf, issueLine, missingOf, personInsertOf, type SavedPersonLike } from './saved-person'
+import { atlasPeopleOf, birthInputOf, changedPersonFields, issueLine, mapGapsOf, missingOf, personInsertOf, profileBirthOf, type SavedPersonLike } from './saved-person'
 import { TEXT_MAX } from '../birth-input'
 
 const readInput = (p: SavedPersonLike) => {
@@ -41,6 +41,11 @@ describe('saved person adapter', () => {
   it('names what is missing', () => {
     expect(missingOf(maya)).toEqual([])
     expect(missingOf({ ...maya, birth_time: null, birth_place: null, hebrew_name: null })).toEqual(['time', 'place', 'hebrewName'])
+  })
+
+  it('leaves a map whole without a Hebrew name, and names its first gap otherwise', () => {
+    expect(mapGapsOf({ ...maya, hebrew_name: null })).toEqual([])
+    expect(mapGapsOf({ ...maya, birth_time: null, hebrew_name: null })).toEqual(['time'])
   })
 
   it('keeps people whose stored date is not a calendar date apart, naming the field', () => {
@@ -86,5 +91,40 @@ describe('saved person adapter', () => {
     const row = personInsertOf({ date: '2000-01-01', time: null, place: { lat: 1, lng: 2, label: null }, name: 'Noa', hebrewName: null })
     expect(row.birth_place).toEqual({ lat: 1, lng: 2 })
     expect(row.hebrew_name).toBeNull()
+  })
+
+  it('writes a map to the profile with the same conversion, keeping the display name unless the map names one', () => {
+    const input = readInput(maya)
+    expect(profileBirthOf({ ...input, name: null })).toEqual({
+      birth_date: '1991-03-14',
+      birth_time: '08:20',
+      birth_place: { lat: 32.08, lng: 34.78, name: 'Tel Aviv' },
+      hebrew_name: 'מאיה',
+    })
+    expect(profileBirthOf(input)).toMatchObject({ display_name: 'Maya' })
+    expect(profileBirthOf({ date: '2000-01-01', time: null, place: null, name: null, hebrewName: null })).toEqual({
+      birth_date: '2000-01-01',
+      birth_time: null,
+      birth_place: null,
+      hebrew_name: null,
+    })
+  })
+})
+
+describe('changedPersonFields', () => {
+  const before = personInsertOf({ name: 'Maya', date: '1991-03-14', time: '08:20', place: { lat: 32.08, lng: 34.78, label: 'Tel Aviv' }, hebrewName: null })
+
+  it('sends nothing for an edit that changed nothing, so the stored place and time stay whole', () => {
+    expect(changedPersonFields(before, { ...before })).toEqual({})
+  })
+
+  it('sends only the fields the edit changed', () => {
+    expect(changedPersonFields(before, { ...before, name: 'Maya Cohen' })).toEqual({ name: 'Maya Cohen' })
+    const moved = { ...before, birth_place: { lat: 32.79, lng: 34.99, name: 'Haifa' } }
+    expect(changedPersonFields(before, moved)).toEqual({ birth_place: moved.birth_place })
+  })
+
+  it('sends a field cleared by the edit as null', () => {
+    expect(changedPersonFields(before, { ...before, birth_time: null })).toEqual({ birth_time: null })
   })
 })

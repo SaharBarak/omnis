@@ -28,6 +28,12 @@ export const THEME_BOOT_SCRIPT = `(function(){try{var r=document.currentScript.p
 
 export const labRoot = (from: Element | null): Element => from?.closest(THEME_ROOT) ?? document.documentElement
 
+/** Where a chapter (BENTO_COLOR.md "Inverse sections") or the root writes the palette an element is painted in. */
+export const CHAPTER_SCOPE = '[data-chapter]'
+
+/** The element whose palette variables paint `from`: its nearest chapter, else the lab root. State (theme, palette, motion) is always read and written on `labRoot`. */
+export const paintRoot = (from: Element | null): Element => from?.closest(CHAPTER_SCOPE) ?? labRoot(from)
+
 export const readTheme = (): LabTheme => {
   try {
     return window.localStorage.getItem(THEME_STORAGE_KEY) === 'light' ? 'light' : DEFAULT_THEME
@@ -88,15 +94,18 @@ export const subscribeMotion = (onChange: () => void): (() => void) => {
   return () => window.removeEventListener(MOTION_EVENT, onChange)
 }
 
-/** Watches the root's theme, palette and motion attributes plus the OS reduced-motion setting. */
+/** The OS setting that swaps the palette's quieter tiers for ink (BENTO_COLOR.md "Contrast modes"). */
+export const MORE_CONTRAST = '(prefers-contrast: more)'
+
+/** Watches the root's theme, palette and motion attributes plus the OS reduced-motion and contrast settings, so painted colours are read again when any of them changes. */
 export function watchLabRoot(root: Element, onChange: () => void): () => void {
-  const motion = window.matchMedia(REDUCED_MOTION)
+  const media = [window.matchMedia(REDUCED_MOTION), window.matchMedia(MORE_CONTRAST)]
   const attributes = new MutationObserver(onChange)
   attributes.observe(root, { attributes: true, attributeFilter: ['data-theme', 'data-palette', 'data-motion'] })
-  motion.addEventListener('change', onChange)
+  for (const query of media) query.addEventListener('change', onChange)
   return () => {
     attributes.disconnect()
-    motion.removeEventListener('change', onChange)
+    for (const query of media) query.removeEventListener('change', onChange)
   }
 }
 

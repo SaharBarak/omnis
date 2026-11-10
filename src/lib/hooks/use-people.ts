@@ -135,6 +135,20 @@ const ERASE = cacheMutation<PeopleData, string, unknown>({
 
 const reportReadings = (error: unknown) => console.error('Storing readings failed; the person page computes them on its first visit:', error)
 
+/** The account's people list, one request the people query shares. */
+const fetchPeopleList = ({ signal }: { readonly signal: AbortSignal }): Promise<PeopleData> => fetchJson<PeopleData>('/api/people', { signal })
+
+/**
+ * How many people the account keeps: this client's people list once it
+ * holds one (every add, edit and removal writes it), else the count the
+ * server last gave. It reads the list and never fetches it; a page that
+ * shows people does.
+ */
+export function usePeopleCount(fromServer: number): number {
+  const { data } = useQuery({ queryKey: QUERY_KEYS.people, queryFn: fetchPeopleList, enabled: false, select: (list: PeopleData) => list.people.length })
+  return data ?? fromServer
+}
+
 export function usePeople() {
   const queryClient = useQueryClient()
 
@@ -143,7 +157,7 @@ export function usePeople() {
   // immediately while a background refetch runs.
   const query = useQuery({
     queryKey: QUERY_KEYS.people,
-    queryFn: ({ signal }) => fetchJson<PeopleData>('/api/people', { signal }),
+    queryFn: fetchPeopleList,
     select: showPeople,
   })
 

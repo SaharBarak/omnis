@@ -27,3 +27,6 @@ const PLANET_GLYPHS = new Set([
 /** Null for points without a drawn glyph (nodes, Lilith); callers use the engine's symbol. */
 export const planetGlyphSrc = (id: string): string | null =>
   PLANET_GLYPHS.has(id) ? `/images/astrology/planets/${id}.svg` : null
+
+/** The four classical elements the signs belong to, each drawn once. */
+export const elementGlyphSrc = (element: string): string => `/images/astrology/elements/${letters(element)}.svg`

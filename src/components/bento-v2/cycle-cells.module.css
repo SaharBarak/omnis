@@ -1,0 +1,99 @@
+/*
+ * Cycle cells (docs/redesign/BENTO_V2.md "Kin tile", "Rows open their
+ * calendar's board"): a cycle's units as square cells in the host's colour
+ * (`currentColor`), the past filled at half strength, today filled full with
+ * a ring round it that beats. A host sizes a cell with `--cell`; without it
+ * the cells share the row.
+ */
+
+.cells {
+  /* What the cycle has passed: the host's colour at half strength, for the past cells' fill and every cell's edge. */
+  --cell-passed: color-mix(in srgb, currentColor 45%, transparent);
+
+  display: grid;
+  grid-template-columns: repeat(var(--columns), var(--cell, minmax(0, 1fr)));
+  gap: calc(var(--v2-gap) / 4);
+}
+
+.cells > i {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 2px; /* drawing */
+  border: var(--edge-w) solid var(--cell-passed);
+}
+
+.cells > i[data-day='none'] {
+  visibility: hidden;
+}
+
+.cells > i[data-day='past'] {
+  background: var(--cell-passed);
+}
+
+.cells > i[data-day='today'] {
+  border-color: currentColor;
+}
+
+/* Today's fill, solid, so its number keeps one contrast. */
+.fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+}
+
+/* Today's ring, outside the cell in the gap round it: the status pulse runs on it alone, never on the fill under the number. */
+.ring {
+  position: absolute;
+  inset: calc(-2 * var(--edge-w));
+  border: var(--edge-w) solid currentColor;
+  border-radius: inherit;
+}
+
+/* A cell's number, where the cycle is counted by numbered days: ink on an empty cell, the page's ground on today's fill. */
+.n {
+  position: relative;
+  font-size: var(--type-micro);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--lab-text-2);
+}
+
+.cells > i[data-day='past'] > .n {
+  color: var(--lab-ink);
+}
+
+.cells > i[data-day='today'] > .n {
+  font-weight: 600;
+  color: var(--lab-page);
+}
+
+@media (forced-colors: active) {
+  .cells > i[data-day='past'] {
+    forced-color-adjust: none;
+    border-color: CanvasText;
+    background: CanvasText;
+  }
+
+  .cells > i[data-day='past'] > .n {
+    color: Canvas;
+  }
+
+  .cells > i[data-day='today'] {
+    border-color: Highlight;
+  }
+
+  .ring {
+    border-color: Highlight;
+  }
+
+  .fill {
+    background: Highlight;
+  }
+
+  .cells > i[data-day='today'] > .n {
+    color: HighlightText;
+  }
+}

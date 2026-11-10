@@ -58,6 +58,49 @@ export const TYPE_VOICES = Object.freeze({
       ['value', 'meaning'],
     ],
   }),
+  /** A calendar's board: its mast, set as the kin tile sets a kin, and what comes next and its facts (BENTO_TYPE.md, "The board"). */
+  board: voice({
+    sheet: 'src/components/bento-v2/day-board.module.css',
+    levels: {
+      /** The calendar's name in capitals, and its own script beside it. */
+      name: 'caption',
+      /** The day's number in the calendar, a figure as the digest's is: set beside the title, never read as a line of it. */
+      numeral: 'display',
+      /** The value's name beside the numeral, as the kin tile sets a kin's. */
+      title: 'figure',
+      /** The line under the title, each word led by its glyph; what the tradition reads into the value. */
+      words: 'small',
+      /** A part's name in capitals: the calendar's view, Next, Facts. */
+      part: 'caption',
+      /** The view's caption, what comes next and when, the facts. */
+      text: 'caption',
+    },
+    pairs: [
+      ['title', 'words'],
+      ['name', 'title'],
+      ['part', 'text'],
+    ],
+  }),
+  /** A board's calendar: its cells, their notes and heads, the readout and the legend (BENTO_TYPE.md, "The board"). */
+  calendar: voice({
+    sheet: 'src/components/bento-v2/board-calendar.module.css',
+    levels: {
+      /** A cell's numeral and its mark's line. */
+      cell: 'small',
+      /** A cell's civil date or name under its numeral. */
+      note: 'micro',
+      /** The weekdays over the columns, a section's name. */
+      head: 'micro',
+      /** The words of the cell under the pointer or focus. */
+      readout: 'small',
+      /** What each mark and band means. */
+      legend: 'micro',
+    },
+    pairs: [
+      ['cell', 'note'],
+      ['readout', 'legend'],
+    ],
+  }),
 })
 
 export type VoiceId = keyof typeof TYPE_VOICES

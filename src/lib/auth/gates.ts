@@ -1,4 +1,6 @@
-import { SITE_GATE } from '@/lib/site/routes'
+import { safeRedirect } from './safe-redirect'
+import { AUTH_RETURN_PARAM, SITE_GATE } from '@/lib/site/routes'
+import { V2_GATE } from '@/lib/site/v2-routes'
 
 /**
  * Which paths need a session, where a signed-out visitor goes, and where a
@@ -29,6 +31,13 @@ export const GATES: readonly Gate[] = [
     login: SITE_GATE.login,
     home: SITE_GATE.home,
     authPaths: [SITE_GATE.login],
+  },
+  /** Bento v2 signs in on the bento site's login, which owns that page (BENTO_V2.md "Routes"). */
+  {
+    prefixes: [V2_GATE.prefix],
+    login: V2_GATE.login,
+    home: V2_GATE.home,
+    authPaths: [],
   },
 ]
 
@@ -74,15 +83,23 @@ export const loginFor = (pathname: string): string => (gateFor(pathname) ?? LIVE
  * `safeRedirect`.
  */
 export const loginHref = (pathname: string, returnTo: string, extra: Readonly<Record<string, string>> = {}): string =>
-  `${loginFor(pathname)}?${new URLSearchParams({ ...extra, redirectTo: returnTo })}`
+  `${loginFor(pathname)}?${new URLSearchParams({ ...extra, [AUTH_RETURN_PARAM]: returnTo })}`
+
+/** Where a signed-in visitor on a login page was headed: a safe same-origin `redirectTo` that is not itself a login page, else the tree's home. */
+const headedTo = (search: string, home: string): string => {
+  const to = safeRedirect(new URLSearchParams(search).get(AUTH_RETURN_PARAM), home)
+  return signedInGate(to.split(/[?#]/)[0]) ? home : to
+}
 
 /**
  * Where middleware sends a request, as a path with its query, or null to let
  * it through: a signed-out visitor on a gated path goes to that gate's login
  * and keeps the full path and query to come back to; a signed-in visitor on a
- * login page goes to that tree's home.
+ * login page goes where the page would have sent them after signing in (a
+ * safe `redirectTo`), or to that tree's home.
  */
 export function gateRedirect(pathname: string, search: string, signedIn: boolean): string | null {
   if (!signedIn) return gateFor(pathname) ? loginHref(pathname, `${pathname}${search}`) : null
-  return signedInGate(pathname)?.home ?? null
+  const gate = signedInGate(pathname)
+  return gate ? headedTo(search, gate.home) : null
 }

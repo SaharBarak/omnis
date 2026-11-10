@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { paletteCss, paletteSelector, resolvePalette } from './bento-palette'
+import { chapterSelector, paletteCss, paletteSelector, resolvePalette } from './bento-palette'
 import { CATEGORICAL_GATES as GATES, emitted } from './categorical'
 import { contrast, hexToOklch, hueDistance, toHex, type Oklch } from './color'
 import { apart, apartDichromat, seen } from './color-vision'
-import { FLOORS, LAYERS, PALETTES, TEXT_SURFACES, THEMES, layerHue, onLayer, type Role, type Swatch } from './palette-spec'
+import { CHAPTERS } from './palette-ids'
+import { FLOORS, LAYERS, PALETTES, SOURCE_HUES, TEXT_SURFACES, THEMES, layerHue, onLayer, onTintRole, schemeOf, tintRole, type Role, type Swatch } from './palette-spec'
 
 const TEXT_BACKDROPS: readonly Role[] = TEXT_SURFACES
 const BAND = { dark: [0.48, 0.67], light: [0.43, 0.77] } as const
@@ -84,6 +85,26 @@ describe.each(PALETTES.flatMap((spec) => THEMES.map((theme) => [spec.id, theme, 
         }
       })
 
+      it.each(SOURCE_HUES)('source colour %s sits in the band, keeps its chroma, reads on every surface and carries a legible label (BENTO_COLOR.md "Source colours")', (hue) => {
+        const colour = out(tintRole(hue))
+        expect(colour.l).toBeGreaterThanOrEqual(BAND[theme][0])
+        expect(colour.l).toBeLessThanOrEqual(BAND[theme][1])
+        expect(colour.c).toBeGreaterThanOrEqual(GATES.chroma)
+        for (const backdrop of TEXT_BACKDROPS) expect(contrast(colour, out(backdrop))).toBeGreaterThanOrEqual(GATES.mark)
+        expect(contrast(out(onTintRole(hue)), colour)).toBeGreaterThanOrEqual(GATES.label)
+      })
+
+      it('keeps every pair of source colours as far apart as the role gate under full colour vision', () => {
+        const tints = SOURCE_HUES.map((hue) => [hue, out(tintRole(hue))] as const)
+        for (const [i, [a, x]] of tints.entries()) {
+          for (const [b, y] of tints.slice(i + 1)) expect(apart(seen(x), seen(y), 'normal'), `${a} vs ${b}`).toBeGreaterThanOrEqual(GATES.role)
+        }
+      })
+
+      it('labels white and black, the neutral extremes, legibly', () => {
+        for (const tint of ['white', 'black'] as const) expect(contrast(out(onTintRole(tint)), out(tintRole(tint)))).toBeGreaterThanOrEqual(GATES.label)
+      })
+
       it('keeps every layer apart from the accent, the spark and danger', () => {
         for (const [layer, colour] of layers) {
           for (const role of ['accent', 'spark', 'danger'] as const) {
@@ -120,5 +141,28 @@ describe('paletteCss', () => {
         expect(more).toContain(`${paletteSelector(roots, spec.id, theme)}{--lab-text-2:${ink};--lab-text-3:${ink}`)
       }
     }
+  })
+})
+
+describe('paletteCss chapters (BENTO_COLOR.md "Inverse sections")', () => {
+  const css = paletteCss(['[data-lab]'], '[data-lab]')
+  const [base = '', more = ''] = css.split('@media (prefers-contrast:more)')
+
+  it('resolves every chapter in its own scheme, in the base rules and under increased contrast', () => {
+    for (const spec of PALETTES) {
+      for (const theme of THEMES) {
+        for (const chapter of CHAPTERS) {
+          const scheme = resolvePalette(spec, schemeOf(theme, chapter))
+          const selector = chapterSelector('[data-lab]', spec.id, theme, chapter)
+          expect(base).toContain(`${selector}{`)
+          expect(base).toContain(`--lab-page:${toHex(scheme.ground.oklch)}`)
+          expect(more).toContain(`${selector}{--lab-text-2:${toHex(scheme.ink.oklch)}`)
+        }
+      }
+    }
+  })
+
+  it('writes no chapter rule without a chapter root', () => {
+    expect(paletteCss(['[data-lab]'])).not.toContain('[data-chapter')
   })
 })

@@ -1,0 +1,86 @@
+/* A person's map in window chrome (docs/redesign/BENTO_V2.md). */
+
+.window {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/*
+ * The body fills the room the window is given; its own content never sizes the
+ * window (the digest scrolls instead). The digest's column is never narrower
+ * than its widest tile's longest word or mark, so a smaller window takes its
+ * room from the drawing, which scales, and never cuts a fact.
+ */
+.body {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(min-content, 0.48fr);
+  gap: var(--v2-gap);
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--v2-gap);
+  contain: size;
+}
+
+/* The map's own parts take the body's grid as if unwrapped; the wrapper only carries `inert` while a veil covers them. */
+.covered {
+  display: contents;
+}
+
+/*
+ * A veil covers the map alone and dims it toward the window's ground by the
+ * kit's busy share, with the
+ * one control that lifts it at its centre. The bar and any head stay open, so
+ * the keyboard path never meets it.
+ */
+.veil {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: color-mix(in oklab, var(--lab-surface) calc(var(--busy-alpha) * 100%), transparent);
+}
+
+/* A map that is not the current input's stays readable at the kit's busy share. */
+.body[data-stale] > .covered > * {
+  opacity: var(--busy-alpha);
+}
+
+.stage {
+  min-height: 0;
+  border-radius: var(--radius-card);
+}
+
+/* The digest's own scroller; smooth scroll leaves its wheel alone. */
+.digestBox {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+/* One tile per row, sharing the window's height, as the bento site's hero column sets them; the column is as wide as its widest tile needs at least. */
+.body .digest {
+  display: grid;
+  grid-template-columns: minmax(min-content, 1fr);
+  grid-auto-rows: minmax(min-content, 1fr);
+  min-height: 100%;
+}
+
+@media (max-width: 899.98px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+    contain: none;
+  }
+
+  .digestBox {
+    overflow: visible;
+  }
+
+  /* Stacked, the window's height is its content's: the stage takes the square its drawing is. */
+  .body .stage {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 1;
+  }
+}

@@ -174,6 +174,9 @@ export function roleSet(role: TypeRole, size = widestOf(role), scale = TYPE_SCAL
 /** Tracking for words set in capitals at small sizes (labels, the eyebrow), on top of the role's own. */
 export const CAPS_TRACKING = 0.08
 
+/** The shortest line, in characters, at which a paragraph keeps its role (BENTO_TYPE.md, "Measure"); a card's text column holds it. */
+export const MEASURE_CH = 45
+
 export const cssSize = (size: TypeSize): string =>
   size.kind === 'fixed' ? `${round(size.px / TYPE_SCALE.base)}rem` : `clamp(${round(size.min / TYPE_SCALE.base)}rem, ${size.rem}rem + ${size.vw}vw, ${round(size.max / TYPE_SCALE.base)}rem)`
 
@@ -203,4 +206,6 @@ export const typeCssVars = (): Readonly<Record<string, string>> => ({
   '--type-room': String(TRIM.room),
   /** The space between a component's parts, and its inset. */
   '--type-group': `${round(groupPx() / TYPE_SCALE.base)}rem`,
+  /** The measure, in characters of the element's own face and size. */
+  '--type-measure': `${MEASURE_CH}ch`,
 })

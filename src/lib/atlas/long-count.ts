@@ -8,8 +8,8 @@ import type { LongCountReading } from './types'
  */
 const carried = (n: number): readonly number[] => (n < BASE ? [n] : [...carried(Math.floor(n / BASE)), n % BASE])
 
-/** The places' names, least significant first, as far as any four-digit year reaches. */
-export const PLACE_NAMES = ['Kin', 'Winal', 'Tun', 'Katun', 'Baktun', 'Piktun'] as const
+/** The places' names, least significant first, as far as any four-digit year reaches, in the ALMG orthography the day signs keep (Piktun a modern name). */
+export const PLACE_NAMES = ["K'in", 'Winal', 'Tun', "K'atun", "B'ak'tun", 'Piktun'] as const
 
 const UNIT_DAYS: readonly number[] = [PLACE_DAYS.kin, PLACE_DAYS.winal, PLACE_DAYS.tun, PLACE_DAYS.katun, PLACE_DAYS.baktun]
 

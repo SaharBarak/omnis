@@ -1,0 +1,33 @@
+/* The pixel Lantern (docs/redesign/BENTO_V2.md "Pixel mark"). */
+
+.box {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Where the mark sits; the caller's class positions it. The canvas reads this box. */
+.spot {
+  position: absolute;
+}
+
+.fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* A mark that assembles on mount waits for its canvas wherever that canvas will run it; anywhere else it is whole. */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  .introFallback {
+    visibility: hidden;
+  }
+}

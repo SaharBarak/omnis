@@ -1,0 +1,83 @@
+/* v2 "Two people" frame (docs/redesign/BENTO_V2.md "Home" 4). */
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-gap);
+}
+
+/* Each row is its tie's button (BENTO_SITE.md, "Ties explain themselves"): the whole row reads and keeps the tie. */
+.tie {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr) minmax(var(--hit-target), 1fr) auto;
+  align-items: center;
+  gap: var(--v2-gap);
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.tie:focus-visible {
+  outline: 2px solid var(--lab-ink);
+  outline-offset: 2px;
+}
+
+/* The row of the tie lit on the drawing, read or rested on: its name takes the bright ink. */
+.tie[data-lit] .tieName {
+  color: var(--lab-bright);
+}
+
+.tieName {
+  overflow: hidden;
+  font-size: var(--type-small);
+  line-height: var(--type-ui-lh);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bar {
+  height: calc(var(--v2-gap) / 2);
+  border-radius: 999px;
+  background: var(--lab-line);
+  overflow: hidden;
+}
+
+.bar > i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--lab-bright), var(--action));
+  transform-origin: 0 50%;
+}
+
+.odds {
+  font-size: var(--type-small);
+  line-height: var(--type-ui-lh);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.verified {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--v2-gap) / 3);
+  color: var(--lab-bright);
+}
+
+@media (max-width: 899.98px) {
+  .tie {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .tie > :nth-child(2),
+  .bar {
+    display: none;
+  }
+}

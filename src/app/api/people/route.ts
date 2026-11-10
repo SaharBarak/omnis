@@ -3,9 +3,8 @@ import { z } from 'zod'
 import { requireUserId } from '@/lib/auth-server'
 import { handleApiError } from '@/lib/api/respond'
 import { rateLimiters, rateLimitResponse } from '@/lib/rate-limit'
-import { listPeopleWithTags, createPerson } from '@/lib/db/repositories/people-repo'
-import { getUserPlan, getPersistentUsage } from '@/lib/services/usage'
-import { getPlanLimits, PLANS } from '@/lib/services/billing'
+import { listPeopleWithTags } from '@/lib/db/repositories/people-repo'
+import { createPersonWithinPlan } from '@/lib/services/people'
 
 const birthPlaceSchema = z
   .object({
@@ -49,27 +48,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { person, tagIds } = createSchema.parse(body)
 
-    // Plan entitlement: cap saved profiles per the user's tier. getPersistentUsage
-    // is the same count the subscription API reports, so what we enforce here and
-    // what the app shows the user cannot drift apart. Both reads are one round
-    // trip each, so they run together.
-    const [plan, usage] = await Promise.all([getUserPlan(userId), getPersistentUsage(userId)])
-    const profileLimit = getPlanLimits(plan).profiles
-    if (profileLimit !== Infinity) {
-      const tracked = usage.profiles
-      if (tracked >= profileLimit) {
-        return NextResponse.json(
-          {
-            error: `You've reached your plan's limit of ${profileLimit} ${profileLimit === 1 ? 'person' : 'people'} on ${PLANS[plan].name}. Upgrade to add more.`,
-            code: 'limit_exceeded',
-          },
-          { status: 403 }
-        )
-      }
-    }
-
-    const created = await createPerson(userId, person, tagIds ?? [])
-    return NextResponse.json({ person: created }, { status: 201 })
+    const created = await createPersonWithinPlan(userId, person, tagIds ?? [])
+    if (!created.ok) return NextResponse.json({ error: created.message, code: created.code }, { status: 403 })
+    return NextResponse.json({ person: created.person }, { status: 201 })
   } catch (error) {
     return handleApiError(error, 'POST /api/people')
   }

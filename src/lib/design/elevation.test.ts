@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { THEMES } from './palette-spec'
-import { EDGE, IMAGE_OUTLINE, LEVELS, RAISED, elevationCss, elevationCssVars, elevationLayers, heightOf, riseLayer, riseShare, type Level } from './elevation'
+import { EDGE, IMAGE_OUTLINE, LEVELS, RAISED, elevationCssVars, elevationLayers, heightOf, riseLayer, riseShare, type Level } from './elevation'
 import { labSheets } from './lab-sheets'
 
 describe('the elevation scale', () => {
@@ -66,8 +66,6 @@ describe('the elevation scale', () => {
       for (const level of LEVELS) expect(vars[`--elevation-${level}`]).toBeTruthy()
       for (const level of RAISED) expect(vars[`--elevation-rise-${level}`]).toBeTruthy()
     }
-    const css = elevationCss(['[data-lab]'])
-    for (const theme of THEMES) expect(css).toContain(`[data-lab][data-theme="${theme}"]{`)
   })
 })
 

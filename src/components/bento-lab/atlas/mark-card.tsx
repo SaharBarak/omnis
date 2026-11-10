@@ -3,7 +3,7 @@
 import { useLayoutEffect, type PointerEventHandler, type RefObject } from 'react'
 import s from './atlas.module.css'
 import { CardBody } from './card-body'
-import { C, SIZE, type Point } from './geometry'
+import { SQUARE, type Point, type View } from './geometry'
 import { HALO_GAP, TARGET_MIN_PX, type PlacedMark } from './mark-geometry'
 import kit from '../kit.module.css'
 import type { MarkReading } from '@/lib/atlas/explain'
@@ -14,7 +14,7 @@ export interface MarkCardProps {
   readonly id: string
   readonly cardRef: RefObject<HTMLDivElement | null>
   /** The mark the card is about: the open one, or the last one while the card leaves. */
-  readonly mark: PlacedMark | null
+  readonly mark: PlacedMark<unknown> | null
   readonly title: MarkTitle | null
   /** The meaning and facts, once explain.ts has loaded. */
   readonly reading: MarkReading | null
@@ -22,6 +22,10 @@ export interface MarkCardProps {
   readonly kept: boolean
   readonly onPointerEnter: PointerEventHandler<HTMLDivElement>
   readonly onPointerLeave: PointerEventHandler<HTMLDivElement>
+  /** The drawing's view box: a person's atlas is the square. */
+  readonly view?: View
+  /** The line over the label: the mark's layer pin and name unless given. */
+  readonly eyebrow?: string
 }
 
 export interface Size {
@@ -43,14 +47,15 @@ export function placeCard(anchor: Point, card: Size, square: Size, gap: number):
 }
 
 /** The card's gap from its mark, in px at the square's width: off the mark's halo, never closer than half the least target. */
-export const cardGap = (mark: PlacedMark, width: number): number => Math.max(((mark.r + HALO_GAP) / SIZE) * width, TARGET_MIN_PX / 2)
+export const cardGap = (mark: PlacedMark<unknown>, width: number, view: View = SQUARE): number =>
+  Math.max(((mark.r + HALO_GAP) / view.width) * width, TARGET_MIN_PX / 2)
 
 /**
  * Places the card from layout sizes, which ignore the travel transition, and
  * places it again whenever the card or the square changes size: when the
  * meanings arrive, or the page resizes.
  */
-function usePlacement(cardRef: RefObject<HTMLDivElement | null>, mark: PlacedMark | null, open: boolean): void {
+function usePlacement(cardRef: RefObject<HTMLDivElement | null>, mark: PlacedMark<unknown> | null, open: boolean, view: View): void {
   useLayoutEffect(() => {
     const card = cardRef.current
     const square = card?.parentElement
@@ -58,9 +63,9 @@ function usePlacement(cardRef: RefObject<HTMLDivElement | null>, mark: PlacedMar
     const place = () => {
       const width = square.clientWidth
       const height = square.clientHeight
-      const gap = cardGap(mark, width)
+      const gap = cardGap(mark, width, view)
       card.style.setProperty('--gap', `${gap}px`)
-      const anchor: Point = [(mark.anchor[0] / SIZE) * width, (mark.anchor[1] / SIZE) * height]
+      const anchor: Point = [(mark.anchor[0] / view.width) * width, (mark.anchor[1] / view.height) * height]
       const [x, y] = placeCard(anchor, { width: card.offsetWidth, height: card.offsetHeight }, { width, height }, gap)
       card.style.setProperty('--at-x', `${x}px`)
       card.style.setProperty('--at-y', `${y}px`)
@@ -71,7 +76,7 @@ function usePlacement(cardRef: RefObject<HTMLDivElement | null>, mark: PlacedMar
     observer.observe(card)
     observer.observe(square)
     return () => observer.disconnect()
-  }, [cardRef, mark, open])
+  }, [cardRef, mark, open, view])
 }
 
 /**
@@ -81,8 +86,8 @@ function usePlacement(cardRef: RefObject<HTMLDivElement | null>, mark: PlacedMar
  * and under 720 px docks to the edge away from the mark. Every string is set
  * as text.
  */
-export function MarkCard({ id, cardRef, mark, title, reading, open, kept, onPointerEnter, onPointerLeave }: MarkCardProps) {
-  usePlacement(cardRef, mark, open)
+export function MarkCard({ id, cardRef, mark, title, reading, open, kept, onPointerEnter, onPointerLeave, view = SQUARE, eyebrow }: MarkCardProps) {
+  usePlacement(cardRef, mark, open, view)
   if (!mark || !title) return <div ref={cardRef} id={id} role="tooltip" className={`${s.card} ${s.tokens} ${kit.glass}`} hidden />
   const meta = LAYER_META[mark.layer]
   return (
@@ -92,14 +97,14 @@ export function MarkCard({ id, cardRef, mark, title, reading, open, kept, onPoin
       role="tooltip"
       className={`${s.card} ${s.tokens} ${kit.glass}`}
       data-layer={mark.layer}
-      data-side={mark.anchor[0] < C ? 'right' : 'left'}
-      data-dock={mark.anchor[1] < C ? 'bottom' : 'top'}
+      data-side={mark.anchor[0] < view.width / 2 ? 'right' : 'left'}
+      data-dock={mark.anchor[1] < view.height / 2 ? 'bottom' : 'top'}
       data-open={open ? '' : undefined}
       data-kept={kept ? '' : undefined}
       onPointerEnter={onPointerEnter}
       onPointerLeave={onPointerLeave}
     >
-      <CardBody head={{ layer: mark.layer, eyebrow: `${meta.pin} ${meta.name}`, label: title.label, value: title.value }} reading={reading} />
+      <CardBody head={{ layer: mark.layer, eyebrow: eyebrow ?? `${meta.pin} ${meta.name}`, label: title.label, value: title.value }} reading={reading} />
     </div>
   )
 }

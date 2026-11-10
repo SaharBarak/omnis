@@ -1,0 +1,679 @@
+/*
+ * A board's calendar (docs/redesign/BENTO_V2.md "Rows open their calendar's
+ * board"; BENTO_TYPE.md "The board"): cells set as type, never boxed, in the
+ * board's colour (`--tile`). A cell is three lines tall, its mark, its
+ * numeral and its note, and as wide as tall; days gone fall back to ink 3,
+ * today is ringed and its ring beats. Bands tint their cells, each a step
+ * of a passed cell's tint.
+ */
+
+.calendar {
+  /* A cell's lines: its mark and numeral at the cell's size, its note at the note's. */
+  --line: calc(var(--voice-cell) * var(--type-ui-lh));
+  --note-line: calc(var(--voice-note) * var(--type-ui-lh));
+  --cell: calc(2 * var(--line) + var(--note-line));
+  --cell-gap: calc(var(--v2-gap) / 4);
+  --mark: var(--line);
+  /* What a cycle has passed, as the kin tile's cells tint it. */
+  --cell-passed: color-mix(in srgb, var(--tile) 45%, transparent);
+
+  display: grid;
+  /* The cells centred in the room they are given; the key stretches across it (BENTO_BOARDS.md "Stage"). */
+  justify-items: center;
+  gap: var(--type-group);
+  min-width: 0;
+  font-size: var(--voice-cell);
+  line-height: var(--type-ui-lh);
+}
+
+/*
+ * Sections (two months, two pakshas) side by side where they fit, one under
+ * the other where not. A section wider than the room scrolls across in the
+ * grid's own scroller, never the board's.
+ */
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--type-group) calc(2 * var(--type-group));
+  align-items: start;
+  /* The scroller holds a cell gap round the cells, so today's ring and a focused cell's outline are never cut at its edge. */
+  max-inline-size: calc(100% + 2 * var(--cell-gap));
+  margin: calc(-1 * var(--cell-gap));
+  padding: var(--cell-gap);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+}
+
+/*
+ * A grid that scrolls says so: its edges fade where more cells lie past
+ * them, half a cell deep, tied to its own scroll (an inactive timeline, a
+ * grid that fits, leaves both edges whole). Logical: the fade follows the
+ * grid's direction.
+ */
+@property --fade-start {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --fade-end {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@keyframes edges {
+  from {
+    --fade-start: 0px;
+    --fade-end: calc(var(--cell) / 2);
+  }
+  to {
+    --fade-start: calc(var(--cell) / 2);
+    --fade-end: 0px;
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  .grid {
+    --fade-to: right;
+
+    mask-image: linear-gradient(to var(--fade-to), transparent, #000 var(--fade-start), #000 calc(100% - var(--fade-end)), transparent);
+    animation: edges linear both;
+    animation-timeline: scroll(self inline);
+  }
+
+  .grid[dir='rtl'] {
+    --fade-to: left;
+  }
+}
+
+.section {
+  display: grid;
+  grid-template-columns: repeat(var(--columns), minmax(var(--cell), auto));
+  justify-content: start;
+  gap: var(--cell-gap);
+}
+
+.sectionName {
+  grid-column: 1 / -1;
+  font-size: var(--voice-head);
+  font-weight: 600;
+  letter-spacing: var(--type-caps-ls);
+  text-transform: uppercase;
+  color: var(--lab-text-3);
+}
+
+.heads,
+.row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+}
+
+.head {
+  font-size: var(--voice-head);
+  font-weight: 600;
+  text-align: center;
+  color: var(--lab-text-3);
+}
+
+/* The calendar's weekend, as its own locale keeps it. */
+.head[data-weekend] {
+  color: var(--tile);
+}
+
+/*
+ * Numerals alone (the Tzolk'in's 260): a cell is its numeral's figures at
+ * the note's size and a gap, one line tall, so a module of thirteen columns
+ * keeps to a phone's card; the numerals are tabular, a figure each a `ch`.
+ */
+.section[data-numerals] {
+  --cell: calc(var(--label-ch) * 1ch + var(--cell-gap));
+
+  gap: calc(var(--cell-gap) / 2);
+  font-size: var(--voice-note);
+}
+
+.section[data-numerals] .cell {
+  padding-block: calc(var(--cell-gap) / 2);
+}
+
+/* A numeral fills its cell: an event's dot sits on the cell's corner, off the figures. */
+.section[data-numerals] .events {
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  translate: 50% -50%;
+}
+
+.section[data-numerals] .events:dir(rtl) {
+  translate: -50% -50%;
+}
+
+/* A row's head (a Tzolk'in row's seal): its mark, then its words, at the row's start. */
+.section[data-headed] {
+  grid-template-columns: auto repeat(var(--columns), minmax(var(--cell), auto));
+}
+
+.rowHead,
+.corner {
+  display: flex;
+  align-items: center;
+  gap: var(--cell-gap);
+  padding-inline-end: var(--cell-gap);
+  font-size: var(--voice-head);
+  font-weight: 600;
+  color: var(--lab-text-3);
+  white-space: nowrap;
+}
+
+.headMark {
+  --mark: var(--line);
+
+  color: var(--tile);
+}
+
+.head .headMark {
+  --mark: var(--note-line);
+}
+
+/* A head's source colour reaches its mark, never its words. */
+.head[data-tint] .headMark,
+.rowHead[data-tint] .headMark {
+  color: var(--cell-tint);
+}
+
+/*
+ * Source colours (BENTO_BOARDS.md "Source colours"): a tinted cell takes its
+ * colour as its ground and the colour's label ink for its words; white is
+ * an outlined ground, black a filled one, in either theme. Scoped to the
+ * module's own tinted parts: a CSS module selector needs a local class.
+ */
+:is(.head, .rowHead, .swatch, .readout, .cell)[data-tint='red'] {
+  --cell-tint: var(--tint-red);
+  --cell-on-tint: var(--on-tint-red);
+}
+
+:is(.head, .rowHead, .swatch, .readout, .cell)[data-tint='yellow'] {
+  --cell-tint: var(--tint-yellow);
+  --cell-on-tint: var(--on-tint-yellow);
+}
+
+:is(.head, .rowHead, .swatch, .readout, .cell)[data-tint='green'] {
+  --cell-tint: var(--tint-green);
+  --cell-on-tint: var(--on-tint-green);
+}
+
+:is(.head, .rowHead, .swatch, .readout, .cell)[data-tint='blue'] {
+  --cell-tint: var(--tint-blue);
+  --cell-on-tint: var(--on-tint-blue);
+}
+
+:is(.head, .rowHead, .swatch, .readout, .cell)[data-tint='white'] {
+  --cell-tint: var(--tint-white);
+  --cell-on-tint: var(--on-tint-white);
+}
+
+:is(.head, .rowHead, .swatch, .readout, .cell)[data-tint='black'] {
+  --cell-tint: var(--tint-black);
+  --cell-on-tint: var(--on-tint-black);
+}
+
+.cell[data-tint] {
+  background: var(--cell-tint);
+  color: var(--cell-on-tint);
+}
+
+.cell[data-tint] .mark,
+.cell[data-tint] .title,
+.cell[data-tint] .note,
+.cell[data-tint] .eventMark,
+.cell[data-tint] .eventText {
+  color: inherit;
+}
+
+.cell[data-tint] .eventDot {
+  background: currentColor;
+}
+
+.cell[data-tint='white'],
+.cell[data-tint='black'],
+.swatch[data-tint='white'],
+.swatch[data-tint='black'] {
+  box-shadow: inset 0 0 0 var(--edge-w) var(--lab-line);
+}
+
+/*
+ * A tinted day gone keeps its colour as an edge round the page's ground:
+ * its words stay in ink 2 on that ground, so they keep their contrast,
+ * and its mark keeps the colour (the tints are solved to stand on the page).
+ */
+.cell[data-tint][data-state='past'] {
+  background: none;
+  box-shadow: inset 0 0 0 var(--edge-w) var(--cell-tint);
+  color: var(--lab-text-2);
+}
+
+.cell[data-tint][data-state='past'] .mark {
+  color: var(--cell-tint);
+}
+
+.cell:is([data-tint='white'], [data-tint='black'])[data-state='past'] {
+  box-shadow: inset 0 0 0 var(--edge-w) var(--lab-line);
+}
+
+.cell:is([data-tint='white'], [data-tint='black'])[data-state='past'] .mark {
+  color: var(--lab-text-2);
+}
+
+.cell[data-tint][data-state='today'] {
+  box-shadow: inset 0 0 0 var(--edge-w) var(--lab-ink);
+}
+
+.cell {
+  position: relative;
+  display: grid;
+  align-content: start;
+  padding-block: var(--cell-gap);
+  border-radius: var(--radius-cell);
+  color: var(--lab-ink);
+  outline: none;
+}
+
+/* A band steps its cells' ground; a tint, where a cell has one, is its ground instead. */
+.cell[data-band]:not([data-tint]) {
+  background: color-mix(in srgb, var(--cell-passed) calc(100% * var(--band) / (var(--bands) + 1)), transparent);
+}
+
+.cell:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.blank {
+  pointer-events: none;
+}
+
+.face {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  min-width: 0;
+}
+
+.mark {
+  color: var(--tile);
+}
+
+.label {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.title,
+.note {
+  font-size: var(--voice-note);
+  color: var(--lab-text-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.title {
+  color: var(--lab-text-2);
+}
+
+/* Days gone fall back; their marks keep a passed cell's tint. */
+.cell[data-state='past'] {
+  color: var(--lab-text-3);
+}
+
+.cell[data-state='past'] .mark {
+  color: var(--cell-passed);
+}
+
+/* Today: ringed in the board's colour; the ring round it beats (BENTO_MOTION.md "Loops"), never its numeral. */
+.cell[data-state='today'] {
+  box-shadow: inset 0 0 0 var(--edge-w) var(--tile);
+}
+
+.ring {
+  position: absolute;
+  inset: calc(-2 * var(--edge-w));
+  border: var(--edge-w) solid var(--tile);
+  border-radius: calc(var(--radius-cell) + 2 * var(--edge-w));
+  pointer-events: none;
+}
+
+/*
+ * Lit and quiet (BENTO_BOARDS.md "Keys"): the cells a pointed legend entry
+ * or Next event names stand forward; the rest keep their place and name and
+ * fall to ink 3, never less.
+ */
+.cell[data-light='lit'] {
+  box-shadow: inset 0 0 0 var(--edge-w) var(--lab-ink);
+}
+
+.cell[data-light='quiet'] {
+  color: var(--lab-text-3);
+}
+
+.cell[data-light='quiet'] .mark,
+.cell[data-light='quiet'] .eventMark {
+  color: var(--lab-text-3);
+}
+
+.cell[data-light='quiet'][data-tint] {
+  background: color-mix(in srgb, var(--cell-tint) 25%, transparent);
+  color: var(--lab-text-3);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cell {
+    transition:
+      color var(--dur-quick) var(--ease-standard),
+      background-color var(--dur-quick) var(--ease-standard);
+  }
+}
+
+/* What happens on a day: its marks in the cell's inline-end corner, or a dot where it has none, and then the day's numeral takes the board's colour. */
+.events {
+  position: absolute;
+  inset-block-start: var(--cell-gap);
+  inset-inline-end: var(--cell-gap);
+  display: flex;
+  gap: var(--edge-w);
+}
+
+/* A tinted cell keeps its ink on its colour; its dot says the event. */
+.cell:has(.eventDot):not([data-tint]) .label {
+  color: var(--tile);
+}
+
+.eventMark {
+  --mark: var(--note-line);
+
+  color: var(--tile);
+  font-size: var(--voice-note);
+}
+
+.eventDot {
+  inline-size: calc(var(--note-line) / 3);
+  block-size: calc(var(--note-line) / 3);
+  border-radius: 50%;
+  background: var(--tile);
+}
+
+/* A ladder: one cell to a row, its mark, numeral, name, note and events side by side. */
+.calendar[data-layout='ladder'] .section {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.calendar[data-layout='ladder'] .cell {
+  min-block-size: var(--line);
+  padding-inline: var(--cell-gap);
+}
+
+.calendar[data-layout='ladder'] .face {
+  grid-template-columns: var(--line) minmax(var(--line), auto) minmax(0, 1fr) auto;
+  align-items: center;
+  justify-items: start;
+  column-gap: var(--type-group);
+}
+
+.calendar[data-layout='ladder'] .title {
+  font-size: var(--voice-cell);
+}
+
+/* A ladder cell's events, on a line of their own under its numeral and name. */
+.eventText {
+  grid-column: 2 / -1;
+  font-size: var(--voice-note);
+  color: var(--tile);
+}
+
+/*
+ * A ring: the cells round a circle whose circumference holds them, first at
+ * the top, clockwise. A ring's cell carries a name under its mark, so it is
+ * as wide as its longest name (`--longest` characters of the cell's text,
+ * which its notes fit within), a cell at least. The readout, set at the
+ * cell's size, stands in the circle, in the square it holds.
+ */
+.calendar[data-layout='ring'] {
+  /*
+   * The cell the room allows: the circle's width is 2r plus a cell, r being
+   * n cells and gaps over 2π, so solving 2r + c = the room for c. A ring
+   * keeps its longest name's width where the room holds it.
+   */
+  --room-cell: calc((100cqi - var(--n) * var(--cell-gap) / pi) / (1 + var(--n) / pi));
+  --ring-cell: min(max(var(--cell), calc(var(--longest) * 1ch)), var(--room-cell));
+  --r: calc(var(--n) * (var(--ring-cell) + var(--cell-gap)) / (2 * pi));
+  --inner: calc(var(--r) - var(--cell) / 2 - var(--cell-gap));
+
+  grid-template-areas: 'ring' 'legend';
+}
+
+.calendar[data-layout='ring'] > .grid,
+.calendar[data-layout='ring'] > .hub {
+  grid-area: ring;
+}
+
+.calendar[data-layout='ring'] > .legend {
+  grid-area: legend;
+}
+
+.calendar[data-layout='ring'] .section {
+  grid-template-columns: auto;
+}
+
+.circle {
+  position: relative;
+  inline-size: calc(2 * var(--r) + var(--ring-cell));
+  aspect-ratio: 1;
+}
+
+/* The circle within the cells, a gap inside them. */
+.circle::before {
+  content: '';
+  position: absolute;
+  inset: calc(var(--r) + var(--ring-cell) / 2 - var(--inner));
+  border: var(--edge-w) solid var(--panel-edge);
+  border-radius: 50%;
+}
+
+/* The ring is geometry, not flow: placed from the circle's centre in physical terms, clockwise in either direction. */
+.calendar[data-layout='ring'] .cell {
+  --turn: calc(var(--i) / var(--n) * 1turn);
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  inline-size: var(--ring-cell);
+  transform: translate(-50%, -50%) rotate(var(--turn)) translateY(calc(-1 * var(--r))) rotate(calc(-1 * var(--turn)));
+}
+
+/* A ring cell the room has narrowed keeps its words on their line, cut at its edge; the inspector says them whole. */
+.calendar[data-layout='ring'] :is(.title, .note) {
+  max-inline-size: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The hub: the inspected cell's mark and title in the square the circle holds. */
+.calendar[data-layout='ring'] > .hub {
+  place-self: center;
+  flex-direction: column;
+  align-items: center;
+  inline-size: calc(var(--inner) * sqrt(2));
+  text-align: center;
+  pointer-events: none;
+}
+
+.hub .readoutText {
+  justify-content: center;
+}
+
+/* The readout wraps to its column's width, never widens it. */
+.readout {
+  contain: inline-size;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--type-group);
+  min-block-size: calc(2 * var(--voice-readout) * var(--type-ui-lh));
+  font-size: var(--voice-readout);
+  color: var(--lab-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.readoutMark {
+  --mark: calc(2 * var(--voice-readout) * var(--type-ui-lh));
+
+  flex: none;
+  color: var(--tile);
+}
+
+.readout[data-tint] .readoutMark {
+  color: var(--cell-tint);
+}
+
+.readoutText {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--type-group);
+  margin: 0;
+  min-width: 0;
+}
+
+.readoutTitle {
+  flex-basis: 100%;
+  font-weight: 600;
+}
+
+.readoutLine {
+  color: var(--lab-text-2);
+}
+
+.readoutLine + .readoutLine::before {
+  content: '·';
+  margin-inline-end: var(--type-group);
+  color: var(--lab-text-3);
+}
+
+/* The key (BENTO_BOARDS.md "Stage"): chips that wrap across the stage, at its width, never widening it. */
+.legend {
+  contain: inline-size;
+  justify-self: stretch;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cell-gap);
+  font-size: var(--voice-legend);
+  color: var(--lab-text-2);
+}
+
+/* A key's chip is a toggle: its sign, then its words, a line or two; pointing lights its cells, pressing holds them. */
+.legendEntry {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cell-gap);
+  max-inline-size: 100%;
+  padding: calc(var(--cell-gap) / 1.5) calc(var(--cell-gap) * 1.5);
+  border: var(--edge-w) solid var(--panel-edge);
+  border-radius: var(--radius-control);
+  background: var(--lab-chip);
+  color: inherit;
+  font: inherit;
+  line-height: var(--type-ui-lh);
+  text-align: start;
+  cursor: pointer;
+}
+
+.legendEntry:hover,
+.legendEntry[aria-pressed='true'] {
+  border-color: var(--tile);
+  color: var(--lab-ink);
+}
+
+.legendEntry[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--tile) 16%, var(--lab-chip));
+}
+
+.legendEntry:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.legendMark {
+  --mark: var(--note-line);
+
+  color: var(--tile);
+}
+
+.swatch {
+  flex: none;
+  inline-size: var(--note-line);
+  block-size: var(--note-line);
+  border-radius: var(--radius-cell);
+  background: color-mix(in srgb, var(--cell-passed) calc(100% * var(--band) / (var(--bands) + 1)), transparent);
+}
+
+.swatch[data-tint] {
+  background: var(--cell-tint);
+}
+
+@media (forced-colors: active) {
+  .cell[data-state='today'] {
+    outline: var(--edge-w) solid Highlight;
+    outline-offset: calc(-1 * var(--edge-w));
+  }
+
+  .ring {
+    border-color: Highlight;
+  }
+
+  .mark,
+  .eventMark,
+  .legendMark {
+    color: CanvasText;
+  }
+
+  .eventDot {
+    background: CanvasText;
+  }
+
+  .cell[data-tint],
+  .swatch[data-tint] {
+    background: Canvas;
+    color: CanvasText;
+    border: var(--edge-w) solid CanvasText;
+  }
+
+  /* A band's ground drops in forced colours; its form stays as a dashed edge, on its cells and its key's swatch. */
+  .cell[data-band]:not([data-tint]),
+  .swatch[data-band] {
+    border: var(--edge-w) dashed CanvasText;
+  }
+
+  .cell[data-light='lit'] {
+    outline: var(--edge-w) solid Highlight;
+  }
+
+  .legendEntry[aria-pressed='true'] {
+    outline: var(--edge-w) solid Highlight;
+  }
+}
+
+/* The oracle's cross: five cells round a centre; a kin's name may take two lines under its role. */
+.calendar[data-layout='cross'] .section {
+  grid-template-columns: repeat(var(--columns), minmax(var(--cell), 1fr));
+  justify-content: stretch;
+}
+
+.calendar[data-layout='cross'] .cell {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.calendar[data-layout='cross'] .note {
+  white-space: normal;
+  text-wrap: balance;
+  text-align: center;
+}

@@ -59,9 +59,9 @@ export interface LongCountReading {
   readonly places: readonly number[]
   /** The places written with dots, e.g. "12.18.17.16.7". */
   readonly date: string
-  /** The day's Tzolkin and Haab together, e.g. "7 Manik' 0 Kumku". */
+  /** The day's Tzolkin and Haab together, e.g. "7 Manik' 0 Kumk'u". */
   readonly round: string
-  /** The round's two counts apart: "7 Manik'" and "0 Kumku". */
+  /** The round's two counts apart: "7 Manik'" and "0 Kumk'u". */
   readonly tzolkin: string
   readonly haab: string
   /** Days since the count's creation date. */

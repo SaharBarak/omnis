@@ -1,0 +1,142 @@
+/* v2 hero (docs/redesign/BENTO_V2.md "Home" 1). */
+
+/*
+ * The art panel is two rows: the mark's room, then the title's notch at its
+ * foot. The room is whatever the title leaves, so the Lantern sits at the
+ * centre of the free panel at any size, and no box is measured or tuned.
+ */
+.main {
+  display: grid;
+  grid-template: minmax(0, 1fr) auto / minmax(0, 1fr);
+  min-height: 0;
+}
+
+/* The mark's layers join the panel's grid: its canvas still covers the panel (dust everywhere), its spot takes the first row. */
+.markRoom,
+.markBox {
+  display: contents;
+}
+
+/* Below the band the nav's notch takes, and inset from the other edges as the panel's content is. */
+.main .markSpot {
+  position: relative;
+  grid-area: 1 / 1;
+  min-height: 0;
+  margin: calc(var(--v2-notch) + var(--v2-gap)) var(--v2-pad) var(--v2-pad);
+}
+
+.brand {
+  position: absolute;
+  z-index: 3;
+  top: var(--v2-pad);
+  left: var(--v2-pad);
+  display: inline-flex;
+  align-items: center;
+  padding: var(--v2-gap) calc(var(--v2-gap) * 1.5);
+  border-radius: 999px;
+  background: var(--lab-ink);
+  color: var(--lab-page);
+  font-size: var(--type-lead);
+  font-weight: 600;
+  text-decoration: none;
+  --mark-frame: var(--lab-page);
+}
+
+.navNotch {
+  z-index: 3;
+}
+
+/* In flow at the panel's foot, so the mark's room ends where the title begins; its corner pieces still round the cut. */
+.main > .titleNotch {
+  position: relative;
+  grid-area: 2 / 1;
+  justify-self: start;
+  z-index: 3;
+  width: min(38rem, 58%);
+}
+
+.titleNotch > div {
+  max-width: none;
+}
+
+.actionRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--v2-pad);
+}
+
+/* ---------- side column ---------- */
+
+.today {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-gap);
+  min-height: calc(var(--hit-target) * 6);
+  /* The words end a gap above the corner's notch; the rounded piece over it paints only where it meets the tile's edge, which words never reach. */
+  padding-block-end: calc(var(--v2-notch) + var(--v2-gap));
+}
+
+.todayNotch {
+  --notch-bg: var(--lab-page);
+}
+
+.feedPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-gap);
+}
+
+@media (max-width: 899.98px) {
+  .main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--v2-gap);
+    padding: var(--v2-pad);
+    min-height: 0;
+  }
+
+  .brand {
+    position: relative;
+    top: auto;
+    left: auto;
+  }
+
+  /* The lockup leads the stack at its own width, as the app bar's does. */
+  .brand {
+    order: -2;
+    align-self: flex-start;
+  }
+
+  .markRoom {
+    display: block;
+    position: relative;
+    height: 40svh;
+  }
+
+  .markBox {
+    display: block;
+  }
+
+  .main .markSpot {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+  }
+
+  .main > .titleNotch {
+    width: auto;
+  }
+
+  .navNotch {
+    order: -1;
+  }
+
+  .titleNotch > div {
+    padding: 0;
+  }
+
+  .actionRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

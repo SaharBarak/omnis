@@ -16,7 +16,7 @@
 
 .stage {
   --field: var(--brand);
-  --field-strength: 1.6;
+  --field-strength: var(--layers-field-strength);
   /* How far the star field drifts under the stack across the whole scene. */
   --drift-distance: -240px;
   --drift: 0;
@@ -63,7 +63,7 @@
   inset: 0;
   display: grid;
   place-items: center;
-  border: 1px solid color-mix(in srgb, var(--plate) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--plate) var(--layers-plate-edge), transparent);
   border-radius: 50%;
   background: radial-gradient(circle, color-mix(in srgb, var(--lab-art) 30%, transparent) 0 58%, color-mix(in srgb, var(--plate) 10%, color-mix(in srgb, var(--lab-art) 72%, transparent)) 100%);
   box-shadow:
@@ -164,10 +164,3 @@
   }
 }
 
-[data-lab][data-theme='light'] .stage {
-  --field-strength: 0.8;
-}
-
-[data-lab][data-theme='light'] .plate {
-  border-color: color-mix(in srgb, var(--plate) 85%, transparent);
-}

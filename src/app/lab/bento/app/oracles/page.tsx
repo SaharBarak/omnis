@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import { routeTitle } from '@/lib/site/routes'
 import { OraclesView } from '@/components/bento-lab/systems/oracles-view'
+import { routeTitle } from '@/lib/site/routes'
 
 export const metadata: Metadata = { title: routeTitle('/app/oracles') }
 

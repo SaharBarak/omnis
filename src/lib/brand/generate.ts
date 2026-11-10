@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { ImageResponse } from 'next/og'
 import { OG_FONT, OG_SIZE, ogCard } from './og-card'
-import { OUTPUTS, mobileModule, render, resolveMarkTones, tonesModule } from './outputs'
+import { OUTPUTS, mobileModule, pixelModule, render, resolveMarkTones, tonesModule } from './outputs'
 
 /**
  * Writes every file the Lantern is drawn into (docs/redesign/BRAND_MARK.md
@@ -30,6 +30,7 @@ async function derive(): Promise<readonly (readonly [string, Buffer | string])[]
   const card = new ImageResponse(ogCard(tones.dark), { ...OG_SIZE, fonts })
   return [
     ['src/lib/brand/mark-tones.gen.ts', tonesModule(tones)],
+    ['src/lib/brand/pixel-lantern.gen.ts', pixelModule()],
     ['packages/mobile/src/components/brand-mark.gen.ts', mobileModule(tones)],
     ...(await Promise.all(OUTPUTS.map(async (output) => [output.path, await render(output, tones)] as const))),
     ['public/og-image.png', Buffer.from(await card.arrayBuffer())],

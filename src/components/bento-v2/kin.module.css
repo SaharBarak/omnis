@@ -1,0 +1,105 @@
+/* The kin tile (docs/redesign/BENTO_V2.md "Kin tile"), drawn in the tile's own ink. */
+
+/* The tile's parts sit in its panel's column; the root only holds the board's anchor name and its dismissal. */
+.tile {
+  display: contents;
+}
+
+/* The kin and its wavespell: the tile's body, and, where the kin carries its board, the button that opens it. */
+.open {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--v2-gap);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+}
+
+button.open {
+  cursor: pointer;
+}
+
+.open[data-anchor] {
+  anchor-name: var(--fact-anchor);
+}
+
+.open:focus-visible {
+  outline: var(--edge-w) solid currentColor;
+  outline-offset: calc(var(--v2-gap) / 2);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--v2-gap);
+}
+
+.main {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--v2-pad);
+  margin-block: auto;
+}
+
+.numeral {
+  flex: none;
+}
+
+.name {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--v2-gap) / 3);
+  min-width: 0;
+  padding-block-end: var(--v2-gap);
+}
+
+.tone {
+  width: var(--v2-figure);
+  height: auto;
+  fill: currentColor;
+}
+
+.title {
+  display: block;
+  margin: 0;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--type-figure);
+  line-height: var(--type-figure-lh);
+  letter-spacing: var(--type-figure-ls);
+  font-weight: 600;
+}
+
+.words {
+  display: block;
+  margin: 0;
+  font-size: var(--type-small);
+  line-height: var(--type-ui-lh);
+  font-weight: 600;
+}
+
+.wave {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--v2-gap) / 2);
+}
+
+/* The wavespell's thirteen cells (`CycleCells`), no wider than seven targets. */
+.cells {
+  max-width: calc(var(--hit-target) * 7);
+}
+
+.waveText {
+  display: block;
+  margin: 0;
+  font-size: var(--type-caption);
+  line-height: var(--type-ui-lh);
+}
+

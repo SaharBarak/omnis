@@ -2,27 +2,28 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { pairHref, personHref } from './hrefs'
 import p from './people.module.css'
 import site from '../site/site.module.css'
 import type { Tied } from './use-ranked-ties'
+import { useAppHrefs } from '@/components/bento-lab/site/site-tree'
 import type { AtlasPerson } from '@/lib/atlas/pair'
 import { tieBits, tieHeadline } from '@/lib/relations/tie-text'
 
 const SHOWN = 8
 
 function Row({ self, tied }: { readonly self: AtlasPerson; readonly tied: Tied }) {
+  const hrefs = useAppHrefs()
   return (
     <li className={p.row}>
       <span className={p.rowMain}>
-        <Link href={personHref(tied.other.id)} className={site.textLink}>
+        <Link href={hrefs.person(tied.other.id)} className={site.textLink}>
           <strong>{tied.other.name}</strong>
         </Link>
         <span>
           {tieHeadline(tied.reading.ties)} · {tieBits(tied.reading.bits)}
         </span>
       </span>
-      <Link href={pairHref(self.id, tied.other.id)} className={`${site.btn} ${site.btnSmall}`}>
+      <Link href={hrefs.pair(self.id, tied.other.id)} className={`${site.btn} ${site.btnSmall}`}>
         Map the pair
       </Link>
     </li>

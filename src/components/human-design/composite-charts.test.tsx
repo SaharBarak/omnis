@@ -13,7 +13,19 @@ import { buildCompositePair, buildPenta } from '@pleiad/engine/services/composit
 import type { Bodygraph } from '@pleiad/engine/types/human-design'
 import { CompositeBodygraphChart } from './CompositeBodygraphChart'
 import { PentaChart } from './PentaChart'
-import { CHANNEL_PATHS, GATE_LABELS, splitPolyline } from './bodygraph-layout'
+import {
+  CENTER_POSITIONS,
+  centerOutline,
+  CHANNEL_HALVES,
+  CHANNEL_PATHS,
+  GATE_HALVES,
+  GATE_LABELS,
+  GATE_MOUTHS,
+  getCenterPath,
+  midpointOf,
+  pointsToPath,
+  splitPolyline,
+} from './bodygraph-layout'
 
 function chart(birthDate: string, birthTime: string, lat: number, lng: number): Bodygraph {
   const result = calculateBodygraph({ birthDate, birthTime, latitude: lat, longitude: lng })
@@ -135,6 +147,40 @@ describe('bodygraph-layout', () => {
       expect(h0[0]).toEqual(points[0])
       expect(h1[h1.length - 1]).toEqual(points[points.length - 1])
       expect(h0[h0.length - 1]).toEqual(h1[0])
+    }
+  })
+
+  it('halves each channel at its midpoint, each half starting at its own gate\'s mouth', () => {
+    for (const channel of CHANNELS) {
+      const halves = CHANNEL_HALVES[channel.id]
+      const middle = midpointOf(CHANNEL_PATHS[channel.id])
+      channel.gates.forEach((gate, i) => {
+        expect(halves[i][0]).toEqual(GATE_MOUTHS[gate])
+        expect(halves[i].at(-1)).toEqual(middle)
+      })
+    }
+  })
+
+  it('gives every gate its half of each of its channels, in the engine\'s channel order', () => {
+    for (let gate = 1; gate <= 64; gate++) {
+      const channels = CHANNELS.filter((c) => c.gates.includes(gate))
+      expect(GATE_HALVES[gate].map((h) => h.channel), `gate ${gate}`).toEqual(channels.map((c) => c.id))
+      for (const half of GATE_HALVES[gate]) expect(half.points[0]).toEqual(GATE_MOUTHS[gate])
+    }
+    for (const gate of [10, 20, 34, 57]) expect(GATE_HALVES[gate]).toHaveLength(3)
+  })
+
+  it('shows each half from where it leaves its centre: 37-40 leaves the solar plexus under its own shape', () => {
+    for (const half of Object.values(GATE_HALVES).flat()) expect(half.shown.at(-1)).toEqual(half.points.at(-1))
+    const half = GATE_HALVES[37].find((h) => h.channel === '37-40')!
+    expect(half.shown[0]).not.toEqual(GATE_MOUTHS[37])
+    expect(half.shown.length).toBeLessThanOrEqual(half.points.length)
+  })
+
+  it('draws each centre from its outline', () => {
+    for (const pos of Object.values(CENTER_POSITIONS)) {
+      expect(getCenterPath(pos)).toBe(`${pointsToPath(centerOutline(pos))} Z`)
+      expect(centerOutline(pos).length).toBeGreaterThanOrEqual(3)
     }
   })
 })

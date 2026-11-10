@@ -1,5 +1,5 @@
 import { PLANETS } from '@pleiad/engine/data/planets'
-import { mayDrawEdge } from '@pleiad/engine/services/rarity'
+import { mayDrawEdge, type Tier } from '@pleiad/engine/services/rarity'
 import { tieOdds } from './odds'
 import { centerName, type Tie, type TieSystem } from './pair-ties'
 
@@ -11,6 +11,17 @@ export const SYSTEM_LABEL: Readonly<Record<TieSystem, string>> = {
   tzolkin: 'Tzolkin',
   humanDesign: 'Human Design',
   gematria: 'Gematria',
+}
+
+/** The names of a tie's facts, wherever a card or a table lists them. */
+export const TIE_FACT = Object.freeze({ between: 'Between', rarity: 'Rarity', weight: 'Weight' })
+
+/** A rarity tier in words; where each tier ends is the engine's `TIER_CEILING`. */
+export const TIER_LABEL: Readonly<Record<Tier, string>> = {
+  T3: 'Rare',
+  T2: 'Uncommon',
+  T1: 'Common',
+  T0: 'Shared by most',
 }
 
 const planetName = (id: string): string => PLANETS.find((p) => p.id === id)?.name ?? id
@@ -42,6 +53,31 @@ export const tieBits = (bits: number): string => `${bits.toFixed(1)} bits`
 
 /** The rarest tie a map may draw. Ties arrive rarest first from `pairTies`; null when every tie is common. */
 export const headlineTie = (ties: readonly Tie[]): Tie | null => ties.find((t) => mayDrawEdge(t.baseRate)) ?? null
+
+/** A tie in plain words for a view: serialisable, so a server builder can hand it to a client. */
+export interface TieView {
+  readonly name: string
+  readonly system: string
+  readonly meaning: string
+  /** "1 in 263". */
+  readonly odds: string
+  /** Measured share of random pairs with this tie, 0 to 1. */
+  readonly share: number
+  /** Its rarity tier in words. */
+  readonly tier: string
+  /** What it tells you, in bits (`tieBits` writes it). */
+  readonly bits: number
+}
+
+export const tieView = (tie: Tie): TieView => ({
+  name: tieName(tie, centerName),
+  system: SYSTEM_LABEL[tie.system],
+  meaning: tie.meaning,
+  odds: tieOdds(tie.baseRate),
+  share: tie.baseRate,
+  tier: TIER_LABEL[tie.tier],
+  bits: tie.bits,
+})
 
 /** "Guide, 1 in 263", or "Common ties only" when no tie may be drawn. */
 export function tieHeadline(ties: readonly Tie[]): string {

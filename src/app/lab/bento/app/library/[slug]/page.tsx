@@ -1,21 +1,8 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
-import { LibraryArticle } from '@/components/bento-lab/systems/library-view'
-import { ARTICLE_BY_SLUG } from '@/lib/library/articles'
+import { LibraryArticleBody, libraryArticleMetadata, type SlugParams } from '@/components/bento-lab/app/pages'
 
-interface Props {
-  readonly params: Promise<{ readonly slug: string }>
-}
+export const generateMetadata = ({ params }: { readonly params: SlugParams }): Promise<Metadata> => libraryArticleMetadata(params)
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params
-  const article = ARTICLE_BY_SLUG[slug]
-  return { title: article ? article.title : 'Library' }
-}
-
-export default async function LibraryArticlePage({ params }: Props) {
-  const { slug } = await params
-  const article = ARTICLE_BY_SLUG[slug]
-  if (!article) notFound()
-  return <LibraryArticle article={article} />
+export default function Page({ params }: { readonly params: SlugParams }) {
+  return <LibraryArticleBody tree="v1" params={params} />
 }

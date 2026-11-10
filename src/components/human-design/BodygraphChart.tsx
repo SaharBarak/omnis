@@ -11,13 +11,13 @@ import { CHANNELS } from '@pleiad/engine/data/human-design-channels'
 import {
   CENTER_COLORS,
   CENTER_POSITIONS,
+  CHANNEL_HALVES,
   CHANNEL_PATHS,
   GATE_LABELS,
   VIEW_HEIGHT,
   VIEW_WIDTH,
   getCenterPath,
   pointsToPath,
-  splitPolyline,
 } from './bodygraph-layout'
 
 // =============================================================================
@@ -162,7 +162,7 @@ export function BodygraphChart({
         const [g0, g1] = channel.gates
         const a0 = gateActivation(g0, personalityGates, designGates)
         const a1 = gateActivation(g1, personalityGates, designGates)
-        const [half0, half1] = splitPolyline(points)
+        const [half0, half1] = CHANNEL_HALVES[channel.id]
         const stroke0 = halfStroke(a0)
         const stroke1 = halfStroke(a1)
         const isDefined = definedChannelIds.has(channel.id)

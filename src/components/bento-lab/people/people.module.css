@@ -44,7 +44,7 @@
 
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: var(--set-justify, center);
   gap: 10px;
   margin: 0;
   padding: 0;
@@ -211,7 +211,7 @@
 .identity {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: var(--set-justify, center);
   align-items: center;
   gap: 8px 14px;
   color: var(--lab-text-2);

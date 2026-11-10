@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { BirthInputSchema, TEXT_MAX } from './birth-input'
 import type { AtlasPerson } from './pair'
 import { personLabel } from './person-label'
+import type { BirthInput } from './types'
 
 /**
  * People in a share link: `?p=` carries their birth data as base64url JSON.
@@ -34,14 +35,16 @@ export const SharedSchema = z
 
 type SharedPerson = Pick<AtlasPerson, 'id' | 'input'>
 
-const toBase64Url = (text: string): string => {
+/** UTF-8 text as base64url, the alphabet that travels in a link or a cookie unescaped. */
+export const toBase64Url = (text: string): string => {
   const bytes = new TextEncoder().encode(text)
   let binary = ''
   for (const b of bytes) binary += String.fromCharCode(b)
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
-const fromBase64Url = (code: string): string => {
+/** The text `toBase64Url` encoded; throws on a code that is not one. */
+export const fromBase64Url = (code: string): string => {
   const padded = code.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(code.length / 4) * 4, '=')
   const binary = atob(padded)
   return new TextDecoder().decode(Uint8Array.from(binary, (c) => c.charCodeAt(0)))
@@ -57,17 +60,16 @@ const LONGEST_NUMBER = -2.2250738585072014e-308
 
 const widest = (n: number): string => WIDEST.repeat(n)
 
-/** The largest payload the schema can accept, so the cap follows the schema instead of a guess. */
-const LARGEST: readonly SharedPerson[] = Array.from({ length: MAX_PEOPLE }, () => ({
-  id: 'x'.repeat(ID_MAX),
-  input: {
-    date: '2000-01-01',
-    time: '00:00',
-    place: { lat: LONGEST_NUMBER, lng: LONGEST_NUMBER, label: widest(TEXT_MAX.place) },
-    name: widest(TEXT_MAX.name),
-    hebrewName: widest(TEXT_MAX.name),
-  },
-}))
+/** The birth input that encodes longest of all the schema accepts, so a cap on an encoding follows the schema instead of a guess. */
+export const LARGEST_INPUT: BirthInput = Object.freeze({
+  date: '2000-01-01',
+  time: '00:00',
+  place: Object.freeze({ lat: LONGEST_NUMBER, lng: LONGEST_NUMBER, label: widest(TEXT_MAX.place) }),
+  name: widest(TEXT_MAX.name),
+  hebrewName: widest(TEXT_MAX.name),
+})
+
+const LARGEST: readonly SharedPerson[] = Array.from({ length: MAX_PEOPLE }, () => ({ id: 'x'.repeat(ID_MAX), input: LARGEST_INPUT }))
 
 /** Longer than any valid link: refused before it is decoded or parsed. */
 export const MAX_SHARE_LENGTH = encodePeople(LARGEST).length

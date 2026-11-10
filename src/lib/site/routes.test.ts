@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { SITE_BASE, SITE_ROUTES, findRoute, primaryNav, siteHref, siteHrefForLive, signInHref } from './routes'
+import { APP_GROUPS, SITE_BASE, SITE_ROUTES, V2_BASE, V2_PAGES, findRoute, matchRoute, primaryNav, resolveSiteHref, siteHref, siteHrefForLive, signInHref, sitePageForLive } from './routes'
 
 /**
  * The route table is the site's contract (BENTO_SITE.md): every page under the
@@ -92,5 +92,41 @@ describe('siteHrefForLive', () => {
 
   it('leaves a path with no bento page as it is', () => {
     expect(siteHrefForLive('/blog')).toBe('/blog')
+  })
+})
+
+/** A concrete path for a row: each `[param]` filled with a word of its own. */
+const filled = (path: string): string => path.replace(/\[(\w+)\]/g, (_, name: string) => `x-${name}`)
+
+describe('the trees (BENTO_V2.md "The app in v2", "Links")', () => {
+  it('links every signed-in row into v2 and every other row into the bento site, but for the pages v2 has built', () => {
+    for (const route of SITE_ROUTES) {
+      const path = filled(route.path)
+      const inV2 = APP_GROUPS.includes(route.group) || V2_PAGES.includes(route.path)
+      const v2Path = path === '/' ? V2_BASE : `${V2_BASE}${path}`
+      expect(resolveSiteHref('v2', path), route.path).toBe(inV2 ? v2Path : siteHref(path))
+      expect(resolveSiteHref('v1', path), route.path).toBe(siteHref(path))
+    }
+  })
+
+  it('matches a dynamic row segment by segment and never a path one segment short or long', () => {
+    expect(matchRoute('/app/pair/a1/b2')?.path).toBe('/app/pair/[a]/[b]')
+    expect(matchRoute('/app/people/a1')?.path).toBe('/app/people/[id]')
+    expect(matchRoute('/app/people')?.path).toBe('/app/people')
+    expect(matchRoute('/app/pair/a1')).toBeUndefined()
+    expect(matchRoute('/app/people/a1/more')).toBeUndefined()
+  })
+
+  it('keeps query and hash, and refuses what is not a site path', () => {
+    expect(resolveSiteHref('v2', '/app/people?add=1')).toBe(`${V2_BASE}/app/people?add=1`)
+    expect(resolveSiteHref('v2', '/app/settings#plan')).toBe(`${V2_BASE}/app/settings#plan`)
+    expect(() => resolveSiteHref('v2', '//evil.example/app')).toThrow(RangeError)
+    expect(() => resolveSiteHref('v2', 'https://example.com')).toThrow(RangeError)
+  })
+
+  it('places live content in the tree that renders it', () => {
+    const library = SITE_ROUTES.find((r) => r.path === '/app/library')!
+    expect(sitePageForLive(library.live, {}, 'v2')).toBe(`${V2_BASE}/app/library`)
+    expect(sitePageForLive(library.live)).toBe(siteHref('/app/library'))
   })
 })

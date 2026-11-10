@@ -1,0 +1,127 @@
+/* v2 close (docs/redesign/BENTO_V2.md "Home" 5). */
+
+.close {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-gap);
+}
+
+.main {
+  min-height: 0;
+}
+
+.markRoom {
+  position: absolute;
+  inset: 0;
+}
+
+.markSpot {
+  top: 8%;
+  right: 10%;
+  width: 40%;
+  height: 58%;
+}
+
+.titleNotch {
+  z-index: 2;
+  width: min(42rem, 66%);
+}
+
+.titleNotch > div {
+  max-width: none;
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-pad);
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: var(--v2-pad);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-gap);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--v2-gap) / 2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  color: var(--lab-ink);
+  font-size: var(--type-small);
+  line-height: var(--type-ui-lh);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link:hover {
+  color: var(--lab-bright);
+}
+
+/* The footer rule draws as the page ends; at rest it is whole. */
+.bottom {
+  --line: 1;
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--v2-gap);
+  padding: var(--v2-gap) 0;
+}
+
+.bottom::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--edge-w);
+  background: var(--lab-ink);
+  transform: scaleX(var(--line));
+  transform-origin: 0 50%;
+}
+
+.bottom > :last-child {
+  justify-self: end;
+}
+
+.lockup {
+  justify-self: start;
+  font-size: var(--type-lead);
+  font-weight: 600;
+}
+
+@media (max-width: 899.98px) {
+  .main {
+    display: flex;
+    flex-direction: column;
+    padding: var(--v2-pad);
+    min-height: 0;
+  }
+
+  .markRoom {
+    position: relative;
+    inset: auto;
+    height: 36svh;
+  }
+
+  .markSpot {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .titleNotch > div {
+    padding: 0;
+  }
+}

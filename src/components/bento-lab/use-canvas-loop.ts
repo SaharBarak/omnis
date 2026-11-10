@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, type RefObject } from 'react'
-import { labRoot, motionAllowed, watchLabRoot } from './lab-state'
+import { labRoot, motionAllowed, paintRoot, watchLabRoot } from './lab-state'
 import { readPalette, type LabPalette } from './palette'
 
 export type DrawFrame = (
@@ -10,22 +10,26 @@ export type DrawFrame = (
   height: number,
   seconds: number,
   palette: LabPalette,
+  /** True when the canvas was just cleared (sized) or the palette changed: a draw that skips unchanged frames must paint this one. */
+  fresh: boolean,
 ) => void
 
 interface LoopOptions {
   readonly fps?: number
   readonly dprCap?: number
+  /** An element whose box the drawing depends on (a spot it fits into): when it resizes, the next frame is fresh. */
+  readonly follow?: RefObject<Element | null>
 }
 
 /**
  * Drives one canvas: sizes it to its box at a capped device pixel ratio (and
- * again when that ratio changes), animates only while on screen and while the
+ * again when that ratio changes, or when the element it follows resizes), animates only while on screen and while the
  * lab's motion is allowed, and re-reads the palette when the theme flips.
  */
 export function useCanvasLoop(
   ref: RefObject<HTMLCanvasElement | null>,
   draw: DrawFrame,
-  { fps = 24, dprCap = 2 }: LoopOptions = {},
+  { fps = 24, dprCap = 2, follow }: LoopOptions = {},
 ): void {
   useEffect(() => {
     const canvas = ref.current
@@ -33,8 +37,9 @@ export function useCanvasLoop(
     if (!canvas || !ctx) return
 
     const root = labRoot(canvas)
+    const scope = paintRoot(canvas)
     const frameGap = 1000 / fps
-    let palette = readPalette(root)
+    let palette = readPalette(scope)
     let width = 0
     let height = 0
     let visible = false
@@ -43,6 +48,7 @@ export function useCanvasLoop(
     let clock = 0
     let clockAt = performance.now()
     let dprQuery: MediaQueryList | null = null
+    let fresh = true
 
     const advance = (now: number): void => {
       if (motionAllowed(root)) clock += (now - clockAt) / 1000
@@ -50,7 +56,9 @@ export function useCanvasLoop(
     }
 
     const paint = (): void => {
-      if (width > 0 && height > 0) draw(ctx, width, height, clock, palette)
+      if (width <= 0 || height <= 0) return
+      draw(ctx, width, height, clock, palette, fresh)
+      fresh = false
     }
 
     const loop = (now: number): void => {
@@ -70,13 +78,14 @@ export function useCanvasLoop(
     }
 
     const resize = (): void => {
-      const box = canvas.getBoundingClientRect()
       const dpr = Math.min(window.devicePixelRatio || 1, dprCap)
-      width = box.width
-      height = box.height
+      /* The layout box, not the painted one: a scale on an ancestor (a plate opening) must not shrink the bitmap. */
+      width = canvas.clientWidth
+      height = canvas.clientHeight
       canvas.width = Math.max(1, Math.round(width * dpr))
       canvas.height = Math.max(1, Math.round(height * dpr))
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      fresh = true
       paint()
     }
 
@@ -96,11 +105,13 @@ export function useCanvasLoop(
       sync()
     })
     const stopWatching = watchLabRoot(root, () => {
-      palette = readPalette(root)
+      palette = readPalette(scope)
+      fresh = true
       sync()
     })
 
     sizeObserver.observe(canvas)
+    if (follow?.current) sizeObserver.observe(follow.current)
     viewObserver.observe(canvas)
     watchDpr()
 
@@ -111,5 +122,5 @@ export function useCanvasLoop(
       stopWatching()
       dprQuery?.removeEventListener('change', onDprChange)
     }
-  }, [ref, draw, fps, dprCap])
+  }, [ref, draw, fps, dprCap, follow])
 }

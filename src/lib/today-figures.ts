@@ -1,11 +1,16 @@
-import { chineseYear, siderealSun } from '@pleiad/engine/calculations/calendars'
-import { dateToLongCount, daysSinceCreation } from '@pleiad/engine/calculations/long-count'
-import { getMoonReading } from '@pleiad/engine/calculations/moon'
+import { SIDEREAL_AYANAMSA, YEARS_IN_CYCLE, calendarMonth, chineseYearOf, siderealSun } from '@pleiad/engine/calculations/calendars'
+import { noonOf } from '@pleiad/engine/calculations/day-search'
+import { chineseYearOn } from '@pleiad/engine/calculations/chinese-calendar'
+import { lunationOn } from '@pleiad/engine/calculations/sky-dates'
+import { PLACE_DAYS, dateToLongCount, daysSinceCreation } from '@pleiad/engine/calculations/long-count'
+import { getLunation } from '@pleiad/engine/calculations/moon'
 import { SEALS } from '@pleiad/engine/data/seals'
 import { GATES } from '@pleiad/engine/data/human-design-gates'
-import { HEXAGRAMS, TRIGRAMS } from '@pleiad/engine/data/iching'
+import { hexagramLines } from '@pleiad/engine/data/iching'
 import { ZODIAC_SIGNS } from '@pleiad/engine/data/zodiac-signs'
 import { sunNow } from '@pleiad/engine/services/today'
+import { FULL_TURN, SIGN_DEGREES } from '@/lib/boards/parts'
+import { skyOf } from '@/lib/boards/sky'
 import { buildMaya } from '@/lib/atlas/maya'
 import { BAZI_ELEMENT_COLORS } from '@/lib/design/bazi-elements'
 import { signGlyphSrc } from '@/lib/design/glyph-paths'
@@ -28,12 +33,21 @@ export type DayArt =
   /** The five elements in generating order, one lit. */
   | { readonly kind: 'elements'; readonly order: readonly string[]; readonly lit: string }
 
-/** One tile's face: the drawing, the value set large, and the words under it. */
+/** A value's place in its cycle: `at` of `of` units gone, today counted to its middle (BENTO_V2.md "Cycle tracks"), and that place as read aloud. */
+export interface DayCycle {
+  readonly at: number
+  readonly of: number
+  /** Today's place in words, for assistive tech where the track is only seen: "day 28 of 30". */
+  readonly said: string
+}
+
+/** One tile's face: the drawing, the value set large, the words under it, and where the value stands in its cycle. */
 export interface DayFace {
   readonly art: DayArt
   readonly big: string
   readonly small: string
   readonly note?: string
+  readonly cycle?: DayCycle
 }
 
 export type TodayFigures = Partial<Readonly<Record<keyof TodayAcrossSystems, DayFace>>>
@@ -44,8 +58,6 @@ export type TodayFigures = Partial<Readonly<Record<keyof TodayAcrossSystems, Day
  * Sun and Moon read the ephemeris); clients receive the plain data. A row
  * whose figure cannot be computed keeps its text tile.
  */
-
-const noonOf = (day: string): Date => new Date(`${day}T12:00:00Z`)
 
 const attempt = <T>(build: () => T): T | undefined => {
   try {
@@ -61,21 +73,23 @@ const signArt = (name: string): DayArt => {
   return { kind: 'glyph', src: signGlyphSrc(sign.number, sign.name) }
 }
 
-/** Six lines, bottom first, solid where the line is yang: the lower trigram, then the upper. */
-const hexagramLines = (gate: number): readonly boolean[] => {
-  const hexagram = HEXAGRAMS.find((h) => h.number === gate)
-  if (!hexagram) throw new RangeError(`No hexagram ${gate}`)
-  const trigram = (name: string) => TRIGRAMS.find((t) => t.name === name)?.lines ?? []
-  const [lower, upper] = hexagram.trigrams
-  return [...trigram(lower), ...trigram(upper)].map((line) => line === 1)
+/** Today is the `n`th unit (1 first) of a cycle of `of`: part way through it, so counted to its middle; `said` reads that place aloud. */
+export const inUnit = (n: number, of: number, said: string): DayCycle => ({ at: n - 0.5, of, said })
+
+
+/** The month's name in Hebrew script, for the figure. */
+const hebrewMonthScript = (day: string): string =>
+  new Intl.DateTimeFormat('he-u-ca-hebrew', { month: 'long', timeZone: 'UTC' }).formatToParts(noonOf(day)).find((part) => part.type === 'month')?.value ?? ''
+
+/** The Hebrew month `day` falls in, as the engine counts it. */
+const hebrewMonth = (day: string) => {
+  const month = calendarMonth(day, 'hebrew')
+  if (!month) throw new RangeError(`No Hebrew month for ${day}`)
+  return month
 }
 
-const hebrewParts = (day: string, locale: string): Readonly<Record<string, string>> =>
-  Object.fromEntries(
-    new Intl.DateTimeFormat(`${locale}-u-ca-hebrew`, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
-      .formatToParts(noonOf(day))
-      .map((part) => [part.type, part.value]),
-  )
+/** A Hebrew month runs 29 days or 30. */
+export const hebrewMonthLength = (day: string): number => hebrewMonth(day).length
 
 const kinFace = (day: string): DayFace => {
   const maya = buildMaya(day)
@@ -87,25 +101,45 @@ const kinFace = (day: string): DayFace => {
   }
 }
 
-const moonFace = (day: string, board: TodayAcrossSystems): DayFace => {
-  const reading = getMoonReading(day)
-  return { art: { kind: 'moon', angle: reading.angle }, big: `${Math.round(reading.illumination * 100)}%`, small: `lit · ${board.moon}` }
+const moonFace = (day: string): DayFace => {
+  const lunation = getLunation(day)
+  /* The lunation's days counted at noon, as the Moon's board lays them out (`lunationOn`). */
+  const age = lunationOn(day, skyOf(day)).at
+  return {
+    art: { kind: 'moon', angle: lunation.angle },
+    big: `${Math.round(lunation.illumination * 100)}%`,
+    small: `lit · ${lunation.phase}`,
+    cycle: { at: lunation.angle, of: FULL_TURN, said: `day ${age} of the lunation` },
+  }
 }
 
 type Sun = ReturnType<typeof sunNow>
 
-const sunFace = (sun: Sun): DayFace => ({ art: signArt(sun.sign), big: `${sun.degree}°`, small: sun.sign })
+const KIN_IN_WINAL = PLACE_DAYS.winal / PLACE_DAYS.kin
 
-const gateFace = ({ gate, line }: Sun): DayFace => ({
-  art: { kind: 'hexagram', lines: hexagramLines(gate), active: line },
-  big: `${gate}.${line}`,
-  small: GATES.find((g) => g.number === gate)?.name ?? `Gate ${gate}`,
-})
+/** The Sun's degree in its sign, as said: whole degrees gone of the sign's thirty. */
+const inSign = (degree: number): DayCycle => inUnit(degree + 1, SIGN_DEGREES, `${degree} of ${SIGN_DEGREES} degrees`)
+
+const sunFace = (sun: Sun): DayFace => ({ art: signArt(sun.sign), big: `${sun.degree}°`, small: sun.sign, cycle: inSign(sun.degree) })
+
+const gateFace = ({ gate, line }: Sun): DayFace => {
+  const lines = hexagramLines(gate)
+  return {
+    art: { kind: 'hexagram', lines, active: line },
+    big: `${gate}.${line}`,
+    small: GATES.find((g) => g.number === gate)?.name ?? `Gate ${gate}`,
+    cycle: inUnit(line, lines.length, `line ${line} of ${lines.length}`),
+  }
+}
 
 const hebrewFace = (day: string): DayFace => {
-  const en = hebrewParts(day, 'en')
-  const he = hebrewParts(day, 'he')
-  return { art: { kind: 'script', text: he.month, lang: 'he' }, big: en.day, small: `${en.month} ${en.year}` }
+  const month = hebrewMonth(day)
+  return {
+    art: { kind: 'script', text: hebrewMonthScript(day), lang: 'he' },
+    big: String(month.day),
+    small: `${month.month} ${month.year}`,
+    cycle: inUnit(month.day, month.length, `day ${month.day} of ${month.length}`),
+  }
 }
 
 const longCountFace = (day: string, board: TodayAcrossSystems): DayFace => {
@@ -114,21 +148,25 @@ const longCountFace = (day: string, board: TodayAcrossSystems): DayFace => {
     art: { kind: 'bars', places: [lc.baktun, lc.katun, lc.tun, lc.winal, lc.kin] },
     big: board.longCount,
     small: `Day ${daysSinceCreation(day).toLocaleString('en-US')} of the count`,
+    cycle: inUnit(lc.kin + 1, KIN_IN_WINAL, `day ${lc.kin + 1} of the winal's ${KIN_IN_WINAL}`),
   }
 }
 
 const siderealFace = (day: string): DayFace => {
   const sun = siderealSun(day)
-  return { art: signArt(sun.sign), big: `${sun.degree}°`, small: `${sun.sign}, Lahiri` }
+  return { art: signArt(sun.sign), big: `${sun.degree}°`, small: `${sun.sign}, ${SIDEREAL_AYANAMSA}`, cycle: inSign(sun.degree) }
 }
 
+/** The Chinese year in force on `day`, by the engine's reading of the calendar's new Moons. */
 const chineseFace = (day: string): DayFace | undefined => {
-  const year = chineseYear(noonOf(day))
-  if (!year) return undefined
+  const began = chineseYearOn(day)
+  if (began === null) return undefined
+  const year = chineseYearOf(began)
   return {
     art: { kind: 'elements', order: Object.keys(BAZI_ELEMENT_COLORS), lit: year.element },
     big: year.animal,
     small: `${year.polarity} ${year.element}`,
+    cycle: inUnit(year.cycle, YEARS_IN_CYCLE, `year ${year.cycle} of ${YEARS_IN_CYCLE}`),
   }
 }
 
@@ -137,7 +175,7 @@ export function todayFigures(day: string, board: TodayAcrossSystems): TodayFigur
   const sun = attempt(() => sunNow(day))
   const faces: readonly (readonly [keyof TodayAcrossSystems, DayFace | undefined])[] = [
     ['kin', attempt(() => kinFace(day))],
-    ['moon', attempt(() => moonFace(day, board))],
+    ['moon', attempt(() => moonFace(day))],
     ['sun', sun && attempt(() => sunFace(sun))],
     ['gate', sun && attempt(() => gateFace(sun))],
     ['hebrewDate', attempt(() => hebrewFace(day))],

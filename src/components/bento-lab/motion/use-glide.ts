@@ -30,7 +30,9 @@ export function useGlide(rootRef: RefObject<HTMLElement | null>, points: readonl
     previous.current = new Map(points.map((p) => [p.id, p]))
     const root = rootRef.current
     if (!allowed || !root) return
-    const { width, height } = root.getBoundingClientRect()
+    // Layout size, not the drawn rect: the offsets are set in the root's own pixels, which a zoom or a transform on an ancestor rescales.
+    const width = root.clientWidth
+    const height = root.clientHeight
     const moves = points.flatMap((p) => {
       const from = before.get(p.id)
       const el = root.querySelector<HTMLElement>(`[data-glide="${p.id}"]`)

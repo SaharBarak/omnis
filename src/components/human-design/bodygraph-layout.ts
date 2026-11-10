@@ -67,23 +67,26 @@ export const CENTER_GLOW: Record<CenterId, string> = {
   root:   '#C9822B80',
 }
 
-export function getCenterPath(pos: CenterPosition): string {
+/** A centre's outline, its corners in drawing order: the one shape its path and its hit area read. */
+export function centerOutline(pos: CenterPosition): readonly Point[] {
   const { x, y, shape, size } = pos
   switch (shape) {
     case 'triangle':
-      return `M ${x} ${y - size} L ${x + size} ${y + size * 0.6} L ${x - size} ${y + size * 0.6} Z`
+      return [[x, y - size], [x + size, y + size * 0.6], [x - size, y + size * 0.6]]
     case 'triangle-inv':
-      return `M ${x} ${y + size} L ${x + size} ${y - size * 0.6} L ${x - size} ${y - size * 0.6} Z`
+      return [[x, y + size], [x + size, y - size * 0.6], [x - size, y - size * 0.6]]
     case 'square':
-      return `M ${x - size} ${y - size} L ${x + size} ${y - size} L ${x + size} ${y + size} L ${x - size} ${y + size} Z`
+      return [[x - size, y - size], [x + size, y - size], [x + size, y + size], [x - size, y + size]]
     case 'diamond':
-      return `M ${x} ${y - size} L ${x + size} ${y} L ${x} ${y + size} L ${x - size} ${y} Z`
+      return [[x, y - size], [x + size, y], [x, y + size], [x - size, y]]
     case 'triangle-right':
-      return `M ${x - size} ${y - size} L ${x + size} ${y} L ${x - size} ${y + size} Z`
+      return [[x - size, y - size], [x + size, y], [x - size, y + size]]
     case 'triangle-left':
-      return `M ${x + size} ${y - size} L ${x - size} ${y} L ${x + size} ${y + size} Z`
+      return [[x + size, y - size], [x - size, y], [x + size, y + size]]
   }
 }
+
+export const getCenterPath = (pos: CenterPosition): string => `${pointsToPath(centerOutline(pos))} Z`
 
 // =============================================================================
 // GATE MOUTHS — one fixed slot per gate, ON its center's edge.
@@ -299,6 +302,70 @@ export function splitPolyline(points: readonly Point[]): [Point[], Point[]] {
   // Degenerate (zero length) — both halves collapse to the endpoints.
   return [first, [points[points.length - 1]]]
 }
+
+/**
+ * Each channel's two halves, keyed by channel id: the half of `gates[0]` and
+ * the half of `gates[1]`, each running from its gate's mouth to the
+ * channel's length midpoint. A gate colours its own half.
+ */
+export const CHANNEL_HALVES: Readonly<Record<string, readonly [readonly Point[], readonly Point[]]>> = Object.fromEntries(
+  Object.entries(CHANNEL_PATHS).map(([id, points]) => {
+    const [toward, from] = splitPolyline(points)
+    return [id, [toward, [...from].reverse()]]
+  }),
+)
+
+/** A polyline's point at half its length. */
+export const midpointOf = (points: readonly Point[]): Point => splitPolyline(points)[0].at(-1) ?? points[0]
+
+/** Where segment a→b meets segment c→d, as a fraction of a→b past its start; null when they do not meet. */
+function meeting(a: Point, b: Point, c: Point, d: Point): number | null {
+  const [rx, ry] = [b[0] - a[0], b[1] - a[1]]
+  const [sx, sy] = [d[0] - c[0], d[1] - c[1]]
+  const den = rx * sy - ry * sx
+  if (den === 0) return null
+  const t = ((c[0] - a[0]) * sy - (c[1] - a[1]) * sx) / den
+  const u = ((c[0] - a[0]) * ry - (c[1] - a[1]) * rx) / den
+  return t > 1e-9 && t <= 1 && u >= 0 && u <= 1 ? t : null
+}
+
+/**
+ * The part of a polyline that starts on an outline's edge and lies past its
+ * last crossing of that outline: what shows of a lane that leaves its centre
+ * under the centre's own shape.
+ */
+export function pastOutline(points: readonly Point[], outline: readonly Point[]): readonly Point[] {
+  const edges = outline.map((corner, i) => [outline.at(i - 1)!, corner] as const)
+  for (let i = points.length - 2; i >= 0; i--) {
+    const [a, b] = [points[i], points[i + 1]]
+    const t = Math.max(...edges.map(([c, d]) => meeting(a, b, c, d) ?? -1))
+    if (t >= 0) return [[a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t], ...points.slice(i + 1)]
+  }
+  return points
+}
+
+/** One gate's half of one channel. */
+export interface GateHalf {
+  readonly channel: string
+  /** From the gate's mouth to the channel's midpoint. */
+  readonly points: readonly Point[]
+  /** The part that shows: past the half's last crossing of its gate's centre. */
+  readonly shown: readonly Point[]
+}
+
+/**
+ * Each gate's halves of its channels, in the engine's channel order: one per
+ * channel the gate opens, three for the integration gates 10, 20, 34 and 57.
+ */
+export const GATE_HALVES: Readonly<Record<number, readonly GateHalf[]>> = CHANNELS.reduce<Record<number, GateHalf[]>>((halves, channel) => {
+  const pair = CHANNEL_HALVES[channel.id]
+  if (!pair) return halves
+  channel.gates.forEach((gate, i) => {
+    const shown = pastOutline(pair[i], centerOutline(CENTER_POSITIONS[channel.centers[i]]))
+    ;(halves[gate] ??= []).push({ channel: channel.id, points: pair[i], shown })
+  })
+  return halves
+}, {})
 
 // =============================================================================
 // GATE ANCHORS + LABELS

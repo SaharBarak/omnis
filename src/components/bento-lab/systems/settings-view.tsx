@@ -9,7 +9,8 @@ import { SelectField, SystemSection } from './system-page'
 import kit from '../kit.module.css'
 import { PrimaryAction, Skeleton } from '../site'
 import site from '../site/site.module.css'
-import { PageHead } from '../site/page-head'
+import { PageBlock, PageHead, PageStack } from '../site/page-head'
+import { useAppearance } from '../site/site-tree'
 import { routeTitle } from '@/lib/site/routes'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { DEFAULT_SYSTEM_PREFERENCES, SYSTEM_CATALOG, resolveSystemPreferences, type SystemGroup, type SystemInfo, type SystemKey } from '@/lib/system-preferences'
@@ -178,13 +179,19 @@ function DisplaySettings() {
 /** Template T12 for settings: systems, language and time, the daily brief, the plan. */
 export function SettingsView() {
   const { loading } = useAuth()
+  const appearance = useAppearance()
   useEffect(() => {
     if (loading || !window.location.hash) return
     document.getElementById(window.location.hash.slice(1))?.scrollIntoView({ block: 'start' })
   }, [loading])
   return (
-    <>
-      <PageHead eyebrow="Account" title={routeTitle('/app/settings')} lead="What the map reads, when the brief arrives and which plan the account is on.">
+    <PageStack appearance={appearance}>
+      <PageHead
+        appearance={appearance}
+        eyebrow="Account"
+        title={routeTitle('/app/settings')}
+        lead="What the map reads, when the brief arrives and which plan the account is on."
+      >
         <nav aria-label="Settings sections" className={site.chipRow}>
           {SECTIONS.map((x) => (
             <a key={x.id} href={`#${x.id}`} className={kit.pill}>
@@ -193,12 +200,12 @@ export function SettingsView() {
           ))}
         </nav>
       </PageHead>
-      <div className={`${site.page} ${s.page}`}>
+      <PageBlock appearance={appearance} className={s.page}>
         <SystemsSettings />
         <DisplaySettings />
         <NotificationSettings />
         <PlanSettings />
-      </div>
-    </>
+      </PageBlock>
+    </PageStack>
   )
 }

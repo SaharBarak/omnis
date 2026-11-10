@@ -4,17 +4,24 @@
  * both themes, so no theme override is needed here.
  */
 
-.atlas {
+.atlas,
+.tokens {
   --atlas-sky: var(--layer-sky);
   --atlas-maya: var(--layer-kin);
   --atlas-body: var(--layer-body);
   --atlas-number: var(--layer-number);
-  --atlas-line: color-mix(in srgb, var(--lab-ink) 20%, transparent);
+  /* The rings' ink: the drawing's structure, the faintest line that carries meaning. */
+  --atlas-line-ink: 0.2;
+  --atlas-line: color-mix(in srgb, var(--lab-ink) calc(var(--atlas-line-ink) * 100%), transparent);
   --atlas-faint: color-mix(in srgb, var(--lab-ink) 8%, transparent);
   --atlas-text: var(--lab-text-2);
   /* What the drawing keeps of a mark or layer set aside: by the layer switch, or while another mark is read. */
   --atlas-dim: 0.24;
+  /* A star field behind a drawing reads under its structure: at most half the rings' ink (BENTO_MOTION.md "Texture", Sky). */
+  --field-cap: calc(var(--atlas-line-ink) / 2);
+}
 
+.atlas {
   position: relative;
   width: 100%;
   aspect-ratio: 1;
@@ -54,7 +61,7 @@
   opacity: 1;
 }
 
-.mark[data-state] .channelOn {
+.mark[data-state] :is(.channelOn, .gateHalf) {
   stroke: var(--lab-ink);
 }
 
@@ -85,13 +92,8 @@
 }
 
 .glyph {
-  filter: invert(1);
-  opacity: 0.86;
-}
-
-[data-lab][data-theme='light'] .glyph {
-  filter: none;
-  opacity: 0.72;
+  filter: var(--glyph-filter);
+  opacity: var(--atlas-glyph-alpha);
 }
 
 .glyphOn {
@@ -156,26 +158,30 @@
   stroke-linecap: round;
 }
 
-.channelOn {
+.channelOn,
+.gateHalf {
   fill: none;
   stroke: var(--atlas-body);
+}
+
+.channelOn {
   stroke-linecap: round;
 }
 
+/* A gate's half ends square at its channel's midpoint: a round cap would carry it past half. */
+.gateHalf {
+  stroke-linecap: butt;
+}
+
+/* A centre's stroke width and round joins come with its geometry (MARK_SIZE.centreStroke), which its rings stand off. */
 .center {
   fill: color-mix(in srgb, var(--lab-ink) 7%, var(--lab-art));
   stroke: color-mix(in srgb, var(--lab-ink) 34%, transparent);
-  stroke-width: 2;
 }
 
 .centerOn {
   fill: var(--atlas-body);
   stroke: var(--atlas-body);
-  stroke-width: 2;
-}
-
-.gate {
-  fill: var(--atlas-body);
 }
 
 .empty {
@@ -196,8 +202,14 @@
 /* Transitions run only while motion is allowed: the OS setting and the lab pause (BENTO_MOTION.md "Policy"). */
 @media (prefers-reduced-motion: no-preference) {
   [data-lab]:not([data-motion='paused']) .layer,
-  [data-lab]:not([data-motion='paused']) .mark {
+  [data-lab]:not([data-motion='paused']) .mark,
+  [data-lab]:not([data-motion='paused']) .relation [data-tie-key],
+  [data-lab]:not([data-motion='paused']) .relation [data-tie-key] > g {
     transition: opacity var(--dur-quick) var(--ease-standard);
+  }
+
+  [data-lab]:not([data-motion='paused']) .tie {
+    transition: stroke-width var(--dur-quick) var(--ease-standard);
   }
 
   [data-lab]:not([data-motion='paused']) .halo {
@@ -279,12 +291,6 @@
 }
 
 /* The readout and strip sit outside the drawing; they read the same tokens. */
-.tokens {
-  --atlas-sky: var(--layer-sky);
-  --atlas-maya: var(--layer-kin);
-  --atlas-body: var(--layer-body);
-  --atlas-number: var(--layer-number);
-}
 
 
 /* ---------- number strip ---------- */
@@ -426,6 +432,43 @@
   outline-offset: 2px;
 }
 
+/*
+ * An area mark's target draws its focus ring along the mark's outline
+ * (focusRingOf) in place of its own round outline: the ring shows on the
+ * target's own focus, apart from the card, and sits outside the drawing's
+ * layers, so no dimming reaches it.
+ */
+.target[data-area]:focus-visible {
+  outline: none;
+}
+
+.areaRing {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  visibility: hidden;
+  fill: none;
+  stroke: var(--lab-ink);
+  stroke-width: 2px;
+}
+
+.areaRing path {
+  vector-effect: non-scaling-stroke;
+}
+
+.target[data-area]:focus-visible + .areaRing {
+  visibility: visible;
+}
+
+@media (forced-colors: active) {
+  .areaRing {
+    stroke: Highlight;
+  }
+}
+
 /* The drawing's square holds the card and measures it. */
 .square {
   container-type: inline-size;
@@ -448,7 +491,8 @@
   width: max-content;
   /* Half the stage at most; the body sets its own measure inside that. */
   max-inline-size: calc(50cqi - var(--gap, 0px));
-  padding: var(--type-group);
+  /* Concentric with the corner: the lines are a square block, so they sit the corner's radius in, and never less than the group (BENTO_TYPE.md, "The card"). */
+  padding: max(var(--type-group), var(--radius-control));
   border-radius: var(--radius-control);
   text-align: start;
   transform: translate(var(--at-x, 0px), var(--at-y, 0px));
@@ -471,6 +515,7 @@
 .card[data-kept][data-layer='sky'] { border-color: var(--atlas-sky); }
 .card[data-kept][data-layer='maya'] { border-color: var(--atlas-maya); }
 .card[data-kept][data-layer='body'] { border-color: var(--atlas-body); }
+.card[data-kept][data-layer='number'] { border-color: var(--atlas-number); }
 
 
 /* Under 720 px, where the pins hide, the card docks to the edge away from its mark. */
@@ -562,6 +607,126 @@
 
 .landscape {
   display: block;
+}
+
+/* A pair stage's view: the drawing's own shape, which its targets and card read. */
+.pairView {
+  aspect-ratio: var(--pair-w) / var(--pair-h);
+}
+
+/* A pair stage's overlays (BENTO_SITE.md, "Ties explain themselves") fill their view, over the art. */
+.relation :is(.areaRing, .pairHalos, .currents) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.pairHalos {
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* Reading a mark or a tie dims every mark and tie it does not light; a lit tie draws at full ink, the one read wider. */
+.relation[data-inspect] .mark:not([data-state]),
+.relation[data-inspect] [data-tie-art] [data-tie-key]:not([data-state]) {
+  opacity: var(--atlas-dim);
+}
+
+.relation [data-tie-key][data-state] > g {
+  opacity: 1;
+}
+
+.relation [data-tie-key][data-state='active'] .tie {
+  stroke-width: calc(var(--tie-lit) * 1px);
+}
+
+/*
+ * A tie's current: a dash a twelfth of its line, run from the end it leaves
+ * once per --dur-current; the pattern repeats once per line, so the next
+ * dash enters as one leaves. At rest, and wherever motion is off, it is not
+ * drawn and the line stands as drawn.
+ */
+.currents {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  contain: paint;
+}
+
+.current {
+  --current-dash: calc(1 / 12);
+
+  fill: none;
+  stroke: var(--lab-ink);
+  stroke-width: calc(var(--current-width) * 1px);
+  stroke-linecap: round;
+  stroke-dasharray: var(--current-dash) calc(1 - var(--current-dash));
+  opacity: 0;
+}
+
+@keyframes atlas-current {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -1; }
+}
+
+@media (prefers-reduced-motion: no-preference) and (forced-colors: none) {
+  [data-lab]:not([data-motion='paused']) .relation[data-currents][data-in-view] .current {
+    opacity: var(--current-ink);
+    animation: atlas-current var(--dur-current) linear infinite;
+  }
+
+  /* While a mark or tie is read, the current of a tie it lights runs at full ink; the rest pause with their dim. */
+  [data-lab]:not([data-motion='paused']) .relation[data-currents][data-in-view][data-inspect] .current[data-state] {
+    opacity: 1;
+  }
+
+  [data-lab]:not([data-motion='paused']) .relation[data-currents][data-in-view][data-inspect] .current:not([data-state]) {
+    opacity: calc(var(--current-ink) * var(--atlas-dim));
+    animation-play-state: paused;
+  }
+}
+
+/*
+ * A defined channel's current (BENTO_SITE.md "The Atlas", Currents): a dash a
+ * quarter of a gate's half of the lane, run from the gate's mouth to the
+ * channel's middle once every two --dur-current, in the lane's own colour
+ * lifted halfway to white, so the lane glints. It runs the lane's own width
+ * and is not drawn at rest. Reading a mark or bringing another
+ * layer forward takes it away and pauses it, with the body layer's dim.
+ */
+.channelCurrents {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  contain: paint;
+}
+
+.channelCurrent {
+  --current-dash: calc(1 / 4);
+
+  fill: none;
+  stroke: color-mix(in oklab, var(--atlas-body), white 50%);
+  stroke-linecap: round;
+  stroke-dasharray: var(--current-dash) calc(1 - var(--current-dash));
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) and (forced-colors: none) {
+  [data-lab]:not([data-motion='paused']) .channelCurrents[data-in-view] .channelCurrent {
+    opacity: 1;
+    animation: atlas-current calc(2 * var(--dur-current)) linear infinite;
+  }
+
+  /* While a mark is read or another layer is forward, the currents dim with the body layer and hold still. */
+  [data-lab]:not([data-motion='paused']) .atlas:is([data-inspect], [data-focus]:not([data-focus='body'])) .channelCurrents[data-in-view] .channelCurrent {
+    opacity: var(--atlas-dim);
+    animation-play-state: paused;
+  }
 }
 
 .portrait {
@@ -657,6 +822,8 @@
 .stage {
   position: relative;
   display: grid;
+  /* One column as wide as the stage: the layer switch scrolls inside it rather than widening it. */
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr) auto;
   min-height: 680px;
   overflow: hidden;
@@ -686,7 +853,7 @@
 }
 
 .stageDrawing[data-busy] {
-  opacity: 0.6;
+  opacity: var(--busy-alpha);
 }
 
 .square {
@@ -740,9 +907,9 @@
   height: 7px;
   border-radius: 50%;
   background: var(--sys-human-design);
-  animation: badge-pulse 1.2s ease-in-out infinite;
 }
 
+/* A loading loop (BENTO_MOTION.md "Loops"): the busy badge's dot breathes until the map lands. */
 @keyframes badge-pulse {
   50% {
     opacity: 0.3;
@@ -772,9 +939,9 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .badgeDot {
-    animation: none;
+@media (prefers-reduced-motion: no-preference) and (forced-colors: none) {
+  [data-lab]:not([data-motion='paused']) .badgeDot {
+    animation: badge-pulse var(--dur-draw) ease-in-out infinite;
   }
 }
 

@@ -110,11 +110,14 @@
   grid-template-rows: minmax(0, 1fr) auto;
 }
 
+/* The drawings size from one unit, so another surface can draw them at its own scale by setting it. */
 .art {
+  --day-art: 60px;
+
   display: grid;
   align-content: start;
   justify-items: start;
-  min-height: 60px;
+  min-height: var(--day-art);
   color: var(--tile);
 }
 
@@ -190,20 +193,13 @@
 
 /* drawings */
 
-.mark {
-  display: block;
-  background: currentColor;
-  -webkit-mask: var(--src) center / contain no-repeat;
-  mask: var(--src) center / contain no-repeat;
-}
-
 .signMark {
-  width: 54px;
-  height: 54px;
+  width: calc(var(--day-art) * 0.9);
+  height: calc(var(--day-art) * 0.9);
 }
 
 .seal {
-  --seal: 76px;
+  --seal: calc(var(--day-art) * 76 / 60);
 
   position: relative;
   display: grid;
@@ -264,8 +260,8 @@
 }
 
 .moon {
-  width: 58px;
-  height: 58px;
+  width: calc(var(--day-art) * 58 / 60);
+  height: calc(var(--day-art) * 58 / 60);
   overflow: visible;
 }
 
@@ -286,14 +282,14 @@
 
 .hexagram {
   display: grid;
-  gap: 5px;
-  width: 60px;
+  gap: calc(var(--day-art) / 12);
+  width: var(--day-art);
 }
 
 .hexLine {
   display: flex;
-  gap: 8px;
-  height: 5px;
+  gap: calc(var(--day-art) * 8 / 60);
+  height: calc(var(--day-art) / 12);
   transform-origin: 50% 50%;
 }
 
@@ -317,12 +313,12 @@
 .places {
   display: flex;
   align-items: flex-end;
-  gap: 10px;
+  gap: calc(var(--day-art) / 6);
 }
 
 .place {
-  width: 24px;
-  height: 26px;
+  width: calc(var(--day-art) * 0.4);
+  height: calc(var(--day-art) * 26 / 60);
   fill: currentColor;
 }
 
@@ -333,8 +329,8 @@
 }
 
 .elements {
-  width: 60px;
-  height: 60px;
+  width: var(--day-art);
+  height: var(--day-art);
 }
 
 .elementPath {
@@ -1020,12 +1016,8 @@
 }
 
 .seatGlyph {
-  filter: invert(1);
+  filter: var(--glyph-filter);
   opacity: 0.9;
-}
-
-[data-lab][data-theme='light'] .seatGlyph {
-  filter: none;
 }
 
 .seat figcaption {

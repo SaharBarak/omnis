@@ -3,10 +3,10 @@
 import { useId, useReducer, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { SEALS } from '@pleiad/engine/data/seals'
 import { TONES } from '@pleiad/engine/data/tones'
-import type { CardHead } from './card-body'
+import { CardBody, type CardHead } from './card-body'
 import d from './digest.module.css'
 import s from './atlas.module.css'
-import { FactCard, type CardAt } from './fact-card'
+import { anchorName, FactCard, factTarget, type CardAt } from './fact-card'
 import { createInspect, IDLE, type InspectState } from './inspect'
 import { MARK_SIZE } from './mark-geometry'
 import { MayaNumeral, numeralHeight } from './maya-numeral'
@@ -14,6 +14,7 @@ import { BodygraphMark, CentreMark } from './person-atlas'
 import { useDismiss } from './use-dismiss'
 import { useExplain } from './use-explain'
 import { useGrace } from './use-grace'
+import { GlyphMark } from '../glyph-mark'
 import { Rolling } from '../motion/rolling'
 import { DIGEST_SHAPE, tileEyebrow, tileLayer, tileName, tileOf, tilePin, type FactShape, type TileId } from '@/lib/atlas/digest-shape'
 import { DIGEST } from '@/lib/atlas/layers'
@@ -58,7 +59,7 @@ interface TileView {
 }
 
 /** A glyph drawn in the current colour, so it takes its layer's colour in every palette. */
-const Glyph = ({ src }: { src: string }) => <span className={d.glyph} style={{ '--src': `url("${src}")` } as CSSProperties} aria-hidden />
+const Glyph = ({ src }: { src: string }) => <GlyphMark src={src} className={d.glyph} />
 
 const Glyphs = ({ signs }: { signs: readonly GlyphRef[] }) => (
   <span className={d.glyphs} aria-hidden>
@@ -304,30 +305,8 @@ const keyOf = (shown: Shown | null): string | null => (shown ? readingKey(shown.
 
 /** A button that opens its fact's card: hover previews it, focus owns it, a press keeps it. */
 function FactButton({ shown, cardId, state, send, prime, className, style, children }: FactProps) {
-  const key = readingKey(shown.ref)
-  const active = keyOf(state.active) === key
   return (
-    <button
-      type="button"
-      className={className}
-      style={style}
-      data-active={active ? '' : undefined}
-      aria-describedby={active ? cardId : undefined}
-      onPointerEnter={(e) => {
-        if (e.pointerType === 'touch') return
-        prime()
-        send({ type: 'point', ref: shown })
-      }}
-      onPointerLeave={(e) => {
-        if (e.pointerType !== 'touch') send({ type: 'point', ref: null })
-      }}
-      onFocus={() => {
-        prime()
-        send({ type: 'focus', ref: shown })
-      }}
-      onBlur={() => send({ type: 'blur' })}
-      onClick={() => send({ type: 'keep', ref: shown })}
-    >
+    <button type="button" className={className} style={style} {...factTarget(shown, keyOf(state.active) === readingKey(shown.ref), cardId, send, prime)}>
       {children}
     </button>
   )
@@ -408,9 +387,6 @@ function Tile({ tile, atlas, focus, spot, onFocus, facts }: TileProps) {
   )
 }
 
-/** A name per digest for the shown fact's anchor, from React's id: letters and digits only. */
-const anchorName = (id: string): string => `--fact-${id.replace(/[^a-zA-Z0-9]/g, '')}`
-
 /**
  * The atlas at a glance (BENTO_SITE.md, "The digest"): one tile per system in
  * the lead order, each a head, a lead fact and its supports. A layer tile's
@@ -474,13 +450,14 @@ export function AtlasDigest({
         id={cardId}
         cardRef={cardRef}
         at={cardAt}
-        head={shown?.head ?? null}
-        reading={shown && explainer ? explainer.explainReading(atlas, shown.ref) : null}
-        open={open}
+        layer={shown?.head.layer ?? null}
+        open={open && shown !== null}
         kept={kept}
         onPointerEnter={hold}
         onPointerLeave={() => send({ type: 'point', ref: null })}
-      />
+      >
+        {shown && <CardBody head={shown.head} reading={explainer ? explainer.explainReading(atlas, shown.ref) : null} />}
+      </FactCard>
     </div>
   )
 }

@@ -1,30 +1,26 @@
 'use client'
 
-import { useId, useRef, type CSSProperties } from 'react'
+import { useId, useRef } from 'react'
 import type { AnimationParams } from 'animejs'
 import type { SceneAction } from './action'
 import c from './circle.module.css'
+import { CirclePairs, SHOWN_PAIRS } from './circle-pairs'
 import f from './figure.module.css'
 import kit from '../kit.module.css'
 import { PrimaryAction } from '../site/action'
 import { CircleDrawing } from '@/components/bento-lab/atlas'
-import { TIE_LAYER, tieStroke } from '@/components/bento-lab/atlas/tie-geometry'
+import { TIE_LAYER } from '@/components/bento-lab/atlas/tie-geometry'
 import { drawStroke, landsAt, undrawnStroke, useIllustration } from '@/components/bento-lab/motion'
 import type { CircleAtlas } from '@/lib/atlas/types'
 import { CURVE, DURATION, staggerStep } from '@/lib/design/motion-tokens'
-import { centerName } from '@/lib/relations/pair-ties'
-import { headlineTie, tieBits, tieName, tieOdds } from '@/lib/relations/tie-text'
+import { headlineTie } from '@/lib/relations/tie-text'
 
-/** Heaviest pairs listed under the ring. */
-const SHOWN_PAIRS = 3
 /** How far beyond their seat people wait, as a share of their distance from the hub. */
 const OUTSIDE = 0.4
 /** The hub arrives from this scale. */
 const HUB_FROM = 0.7
 /** Share of the figure on screen that counts as having entered view. */
 const ENTERED = 0.35
-/** The pair chip's link is the line at this share of its drawn width. */
-const LINK_SCALE = 0.5
 
 type Point = readonly [number, number]
 
@@ -42,7 +38,6 @@ const centreOf = (node: Element): Point => {
 export function CircleScene({ circle, action }: { readonly circle: CircleAtlas; readonly action?: SceneAction }) {
   const listId = useId()
   const figureRef = useRef<HTMLDivElement>(null)
-  const person = (id: string) => circle.people.find((x) => x.id === id)
   const weight = (id: string) => circle.circle.pairs.reduce((sum, pair) => (pair.a === id || pair.b === id ? sum + pair.bits : sum), 0)
   const pairs = [...circle.circle.pairs].sort((x, y) => y.bits - x.bits).slice(0, SHOWN_PAIRS)
   const lead = pairs.map((pair) => headlineTie(pair.ties)).find((t) => t !== null) ?? null
@@ -122,29 +117,7 @@ export function CircleScene({ circle, action }: { readonly circle: CircleAtlas; 
         </div>
       </div>
       <div className={c.facts} data-action={action ? '' : undefined}>
-        <ol id={listId} className={c.pairs} aria-label="Heaviest pairs">
-          {pairs.map((pair) => {
-            const a = person(pair.a)
-            const b = person(pair.b)
-            const top = headlineTie(pair.ties)
-            return (
-              <li key={`${pair.a}-${pair.b}`} className={`${f.surface} ${c.pair}`} data-layer={top ? TIE_LAYER[top.system] : undefined}>
-                <span className={c.duo} aria-hidden>
-                  <span className={c.seal} style={{ '--src': `url("${a?.maya.seal.src ?? ''}")` } as CSSProperties} />
-                  <span className={c.link} style={{ '--w': `${top ? tieStroke(top.bits).width * LINK_SCALE : 1}px` } as CSSProperties} />
-                  <span className={c.seal} style={{ '--src': `url("${b?.maya.seal.src ?? ''}")` } as CSSProperties} />
-                </span>
-                <span className={c.pairText}>
-                  <span className={c.names}>
-                    {a?.name ?? pair.a} and {b?.name ?? pair.b}
-                  </span>
-                  <span className={c.tie}>{top ? `${tieName(top, centerName)}, ${tieOdds(top.baseRate)}` : 'Common ties only'}</span>
-                </span>
-                <span className={c.bits}>{tieBits(pair.bits)}</span>
-              </li>
-            )
-          })}
-        </ol>
+        <CirclePairs circle={circle} id={listId} />
         {action && (
           <div className={f.action}>
             <PrimaryAction href={action.href}>{action.label}</PrimaryAction>

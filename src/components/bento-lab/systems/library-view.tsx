@@ -4,8 +4,9 @@ import s from './systems.module.css'
 import { undashProse } from './model'
 import kit from '../kit.module.css'
 import site from '../site/site.module.css'
-import { PageHead } from '../site/page-head'
-import { routeTitle, siteHref, sitePageForLive, type PatternValues } from '@/lib/site/routes'
+import { APPEARANCE } from '../site/appearance'
+import { PageBlock, PageHead, PageStack } from '../site/page-head'
+import { createSiteHref, routeTitle, sitePageForLive, type PatternValues, type SiteTree } from '@/lib/site/routes'
 import { docStructure } from '@/lib/docs/content'
 import { ARTICLES, TOPIC_LABELS, type Article } from '@/lib/library/articles'
 
@@ -23,14 +24,22 @@ const TOPICS: readonly Topic[] = (Object.keys(TOPIC_LABELS) as Topic[]).filter((
 
 export const isTopic = (value: string | null | undefined): value is Topic => TOPICS.some((t) => t === value)
 
-const topicHref = (topic: Topic | null): string => (topic ? `${siteHref(LIBRARY)}?topic=${topic}` : siteHref(LIBRARY))
+const topicPath = (topic: Topic | null): string => (topic ? `${LIBRARY}?topic=${topic}` : LIBRARY)
 
-/** Template T5 inside the app: every library article, filtered by topic through the URL. */
-export function LibraryIndex({ topic }: { readonly topic: Topic | null }) {
+/** Template T5 inside the app: every library article, filtered by topic through the URL, in the tree that rendered it. */
+export function LibraryIndex({ tree, topic }: { readonly tree: SiteTree; readonly topic: Topic | null }) {
+  const href = createSiteHref(tree)
+  const appearance = APPEARANCE[tree]
+  const topicHref = (t: Topic | null) => href(topicPath(t))
   const shown = topic ? ARTICLES.filter((a) => a.topic === topic) : ARTICLES
   return (
-    <>
-      <PageHead eyebrow="Library" title={routeTitle(LIBRARY)} lead={`${ARTICLES.length} short answers to the questions people ask about the systems, each a few minutes long.`}>
+    <PageStack appearance={appearance}>
+      <PageHead
+        appearance={appearance}
+        eyebrow="Library"
+        title={routeTitle(LIBRARY)}
+        lead={`${ARTICLES.length} short answers to the questions people ask about the systems, each a few minutes long.`}
+      >
         <nav aria-label="Topics" className={site.chipRow}>
           <Link href={topicHref(null)} className={`${kit.pill} ${s.chipLink}`} aria-current={topic === null ? 'page' : undefined}>
             All
@@ -42,11 +51,11 @@ export function LibraryIndex({ topic }: { readonly topic: Topic | null }) {
           ))}
         </nav>
       </PageHead>
-      <div className={`${site.page} ${s.page}`}>
+      <PageBlock appearance={appearance} className={s.page}>
       <ul className={s.articles} style={{ margin: 0, padding: 0, listStyle: 'none' }}>
         {shown.map((a) => (
           <li key={a.slug} style={{ display: 'grid' }}>
-            <Link href={siteHref(`${LIBRARY}/${a.slug}`)} className={`${site.card} ${s.articleCard}`}>
+            <Link href={href(`${LIBRARY}/${a.slug}`)} className={`${site.card} ${s.articleCard}`}>
               <span className={kit.eyebrow}>
                 {TOPIC_LABELS[a.topic]}, {a.minutes} min
               </span>
@@ -56,27 +65,33 @@ export function LibraryIndex({ topic }: { readonly topic: Topic | null }) {
           </li>
         ))}
       </ul>
-      </div>
-    </>
+      </PageBlock>
+    </PageStack>
   )
 }
 
-/** Template T6 inside the app: one article, its sections, then related reading that exists in this site. */
-export function LibraryArticle({ article }: { readonly article: Article }) {
+/** Template T6 inside the app: one article, its sections, then related reading that exists in this site, in the tree that rendered it. */
+export function LibraryArticle({ tree, article }: { readonly tree: SiteTree; readonly article: Article }) {
+  const appearance = APPEARANCE[tree]
   const related = article.related.flatMap((r) => {
-    const href = sitePageForLive(r.href, LINKABLE)
+    const href = sitePageForLive(r.href, LINKABLE, tree)
     return href ? [{ href, label: r.label }] : []
   })
   return (
-    <article>
-      <PageHead eyebrow={`${TOPIC_LABELS[article.topic]}, ${article.minutes} min`} title={undashProse(article.question)} lead={undashProse(article.title)}>
-        <Link href={siteHref(LIBRARY)} className={kit.pill}>
+    <PageStack appearance={appearance}>
+      <PageHead
+        appearance={appearance}
+        eyebrow={`${TOPIC_LABELS[article.topic]}, ${article.minutes} min`}
+        title={undashProse(article.question)}
+        lead={undashProse(article.title)}
+      >
+        <Link href={createSiteHref(tree)(LIBRARY)} className={kit.pill}>
           <ArrowLeft size={14} aria-hidden />
           Library
         </Link>
       </PageHead>
-      <div className={`${site.page} ${s.page}`}>
-      <div className={s.prose}>
+      <PageBlock appearance={appearance} className={s.page}>
+      <article className={s.prose}>
         {article.sections.map((section, i) => (
           <section key={section.heading ?? i} style={{ display: 'grid', gap: 12 }}>
             {section.heading && <h2 className={site.h3}>{undashProse(section.heading)}</h2>}
@@ -85,7 +100,7 @@ export function LibraryArticle({ article }: { readonly article: Article }) {
             ))}
           </section>
         ))}
-      </div>
+      </article>
       {related.length > 0 && (
         <nav aria-label="Keep reading" className={s.section}>
           <span className={kit.eyebrow}>Keep reading</span>
@@ -98,7 +113,7 @@ export function LibraryArticle({ article }: { readonly article: Article }) {
           </div>
         </nav>
       )}
-      </div>
-    </article>
+      </PageBlock>
+    </PageStack>
   )
 }

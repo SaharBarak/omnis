@@ -43,6 +43,9 @@ export interface SiteRoute {
 /** Query parameter the auth flow reads to return a user to where they started (matches middleware). */
 export const AUTH_RETURN_PARAM = 'redirectTo'
 
+/** Which form a login page opens on: `signup` opens account creation, anything else signs in. */
+export const AUTH_MODE_PARAM = 'mode'
+
 const route = (
   path: string,
   label: string,
@@ -113,25 +116,95 @@ const fillsPattern = (pattern: string, path: string, allowed: readonly string[])
 }
 
 /**
- * The page in this tree that replaces a live href (with any query or hash),
- * or null when there is none. Static rows match on the table's `live`
- * column; a dynamic row matches when its parameter is one of the values
- * given for its pattern.
+ * The page in a tree (the bento site unless named) that replaces a live
+ * href (with any query or hash), or null when there is none. Static rows
+ * match on the table's `live` column; a dynamic row matches when its
+ * parameter is one of the values given for its pattern.
  */
-export function sitePageForLive(href: string, values: PatternValues = {}): string | null {
+export function sitePageForLive(href: string, values: PatternValues = {}, tree: SiteTree = 'v1'): string | null {
   const cut = href.search(/[?#]/)
   const path = cut < 0 ? href : href.slice(0, cut)
   const rest = cut < 0 ? '' : href.slice(cut)
   const row = SITE_ROUTES.find((r) => !r.pattern && r.live === path)
-  if (row) return siteHref(`${row.path}${rest}`)
+  if (row) return resolveSiteHref(tree, `${row.path}${rest}`)
   const dynamic = SITE_ROUTES.some((r) => r.pattern && fillsPattern(r.path, path, values[r.path] ?? []))
-  return dynamic ? siteHref(`${path}${rest}`) : null
+  return dynamic ? resolveSiteHref(tree, `${path}${rest}`) : null
 }
 
 /** Content written against live paths: the page here when there is one, the live path otherwise. */
 export const siteHrefForLive = (href: string): string => sitePageForLive(href) ?? href
 
 export const findRoute = (path: string): SiteRoute | undefined => SITE_ROUTES.find((r) => r.path === path)
+
+/* ---------- trees ---------- */
+
+/**
+ * The trees that serve the table (docs/redesign/BENTO_V2.md "The app in
+ * v2", "Links"): the bento site, which serves every row, and v2, which
+ * serves its own pages and the signed-in app. A component links into the
+ * tree that rendered it; the tree is plain data, passed as a prop on the
+ * server and read from `SiteTreeProvider` in the browser.
+ */
+export type SiteTree = 'v1' | 'v2'
+
+export const V2_BASE = '/lab/bento-v2'
+
+/** The public pages v2 has built of its own; the signed-in rows it serves all of. */
+export const V2_PAGES: readonly string[] = ['/', '/map']
+
+const TREES: Readonly<Record<SiteTree, { readonly base: string; readonly serves: (route: SiteRoute) => boolean }>> = {
+  v1: { base: SITE_BASE, serves: () => true },
+  v2: { base: V2_BASE, serves: (route) => V2_PAGES.includes(route.path) || route.auth },
+}
+
+const segments = (path: string): readonly string[] => path.split('/').filter(Boolean)
+
+/** A row's segment matched by a path's: the same word, or any one non-empty segment where the row has a `[param]`. */
+const segmentMatches = (row: string, part: string | undefined): boolean => part !== undefined && part !== '' && (row.startsWith('[') || row === part)
+
+/** The table's row for a path: its own row, else the dynamic row whose segments it fills one for one (`/app/pair/x/y` is `/app/pair/[a]/[b]`). */
+export function matchRoute(path: string): SiteRoute | undefined {
+  const exact = SITE_ROUTES.find((r) => !r.pattern && r.path === path)
+  if (exact) return exact
+  const parts = segments(path)
+  return SITE_ROUTES.find((r) => {
+    const rows = segments(r.path)
+    return r.pattern && rows.length === parts.length && rows.every((row, i) => segmentMatches(row, parts[i]))
+  })
+}
+
+/** Whether `tree` serves the page at `path`. */
+export const treeServes = (tree: SiteTree, path: string): boolean => {
+  const route = matchRoute(path)
+  return route !== undefined && TREES[tree].serves(route)
+}
+
+/** The paths of the table a tree serves, patterns as written. */
+export const servedPaths = (tree: SiteTree): readonly string[] => SITE_ROUTES.filter((r) => TREES[tree].serves(r)).map((r) => r.path)
+
+const splitHref = (href: string): readonly [path: string, rest: string] => {
+  const at = href.search(/[?#]/)
+  return at < 0 ? [href, ''] : [href.slice(0, at), href.slice(at)]
+}
+
+/**
+ * A link from a page of `tree`: that tree's page where it serves the path,
+ * the bento site's otherwise, query and hash kept. Only site paths: an
+ * absolute, single-slash path.
+ */
+export function resolveSiteHref(tree: SiteTree, href: string): string {
+  if (!href.startsWith('/') || href.startsWith('//')) throw new RangeError(`A site link needs an absolute path, got "${href}"`)
+  const [path, rest] = splitHref(href)
+  if (!treeServes(tree, path)) return siteHref(href)
+  const { base } = TREES[tree]
+  return `${path === '/' ? base || '/' : `${base}${path}`}${rest}`
+}
+
+/** `resolveSiteHref` bound to one tree. */
+export const createSiteHref =
+  (tree: SiteTree) =>
+  (href: string): string =>
+    resolveSiteHref(tree, href)
 
 /** A page's title is its row's label, so nav, footer and the page head agree. */
 export function routeTitle(path: string): string {

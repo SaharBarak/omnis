@@ -311,10 +311,11 @@
   gap: var(--group) calc(var(--group) + 2 * var(--fact-pad));
 }
 
+/* A support is never narrower than its mark and its value's longest word, so where the row cannot hold them all it wraps. */
 .support {
   flex: var(--weight, 1) 1 0;
   min-width: min-content;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(min-content, 1fr);
   grid-template-areas:
     'mark value'
     'label label';
@@ -379,12 +380,8 @@
 /* ---------- marks ---------- */
 
 .glyph {
-  display: block;
   width: var(--glyph);
   height: var(--glyph);
-  background: currentColor;
-  -webkit-mask: var(--src) center / contain no-repeat;
-  mask: var(--src) center / contain no-repeat;
 }
 
 /* Two signs as one mark (a day crossing into the next): apart by the room under a line their size. */
@@ -409,89 +406,7 @@
   border-radius: 50%;
 }
 
-/* ---------- the card a fact opens (BENTO_SITE.md, "Facts explain themselves") ---------- */
-
-/* Beside the tile, top edges aligned (`side`), or above it (`above`); the fallbacks flip either one. */
-
-.card {
-  /* The card stands off its tile and the window's edges by a group. */
-  --card-gap: var(--group);
-
-  position: fixed;
-  inset: auto;
-  margin-block: 0;
-  margin-inline: var(--card-gap);
-  position-anchor: var(--fact-anchor);
-  position-area: inline-start span-block-end;
-  /* Same side growing up first, then the other side, then below or above the tile. */
-  position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline, --fact-below, --fact-above;
-  width: max-content;
-  /* The window's width at most; the body sets its own measure inside that. */
-  max-inline-size: calc(100vw - 2 * var(--card-gap));
-  max-block-size: calc(100svh - 2 * var(--card-gap));
-  overflow: auto;
-  padding: var(--group);
-  border-radius: var(--radius-control);
-  color: var(--lab-ink);
-  text-align: start;
-  opacity: 0;
-}
-
-.card[data-at='above'] {
-  position-area: block-start span-inline-end;
-  margin-block: var(--card-gap);
-  margin-inline: 0;
-}
-
-.card:popover-open {
-  display: grid;
-  opacity: 1;
-}
-
-.card[data-kept][data-layer='sky'] { border-color: var(--atlas-sky); }
-.card[data-kept][data-layer='maya'] { border-color: var(--atlas-maya); }
-.card[data-kept][data-layer='body'] { border-color: var(--atlas-body); }
-.card[data-kept][data-layer='number'] { border-color: var(--atlas-number); }
-
-@position-try --fact-below {
-  position-area: block-end span-inline-end;
-  margin-block: var(--card-gap) 0;
-  margin-inline: 0;
-}
-
-@position-try --fact-above {
-  position-area: block-start span-inline-end;
-  margin-block: 0 var(--card-gap);
-  margin-inline: 0;
-}
-
-/* Under 720 px, and without anchor positioning, the card docks to the bottom of the viewport. */
-@media (max-width: 720px) {
-  .card,
-  .card[data-at] {
-    position-area: none;
-    position-try-fallbacks: none;
-    inset: auto var(--card-gap) var(--card-gap);
-    width: auto;
-    max-inline-size: none;
-    max-block-size: 50svh;
-    margin: 0;
-  }
-}
-
-/* Anchor positioning as shipped (position-area); browsers with only the older inset-area dock too. */
-@supports not (position-area: block-end) {
-  .card,
-  .card[data-at] {
-    inset: auto var(--card-gap) var(--card-gap);
-    width: auto;
-    max-inline-size: none;
-    max-block-size: 50svh;
-    margin: 0;
-  }
-}
-
-/* ---------- motion: colours and the card's fade, behind the motion switch ---------- */
+/* ---------- motion: colours, behind the motion switch ---------- */
 
 @media (prefers-reduced-motion: no-preference) {
   [data-lab]:not([data-motion='paused']) .tile {
@@ -505,25 +420,5 @@
   }
   [data-lab]:not([data-motion='paused']) .pin {
     transition: box-shadow var(--dur-quick) var(--ease-standard);
-  }
-  [data-lab]:not([data-motion='paused']) .card {
-    transition: opacity var(--dur-quick) var(--ease-standard);
-  }
-  @starting-style {
-    [data-lab]:not([data-motion='paused']) .card:popover-open {
-      opacity: 0;
-    }
-  }
-}
-
-/* The fade out keeps the card in the top layer only where `overlay` transitions; elsewhere it leaves at once rather than fall back into its column. */
-@supports (overlay: auto) {
-  @media (prefers-reduced-motion: no-preference) {
-    [data-lab]:not([data-motion='paused']) .card {
-      transition:
-        opacity var(--dur-quick) var(--ease-standard),
-        overlay var(--dur-quick) allow-discrete,
-        display var(--dur-quick) allow-discrete;
-    }
   }
 }

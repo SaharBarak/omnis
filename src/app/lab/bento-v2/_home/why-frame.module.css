@@ -1,0 +1,177 @@
+/* v2 "Why" frame (docs/redesign/BENTO_V2.md "Home" 6). */
+
+/* The proof fills its column, its words at the foot under the eyebrow's line. */
+.proof {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--v2-gap);
+  min-height: 0;
+}
+
+.proof > :first-child {
+  margin-block-end: auto;
+}
+
+/* The proof's figure: the hero's numeral, the column's one figure. */
+.number {
+  font-size: calc(var(--type-poster) * 1.75);
+}
+
+/* The commonest tie, the proof's other side, parted from its share by a rule in the tile's ink. */
+.against {
+  padding-block-start: var(--v2-gap);
+  border-block-start: var(--edge-w) solid currentColor;
+}
+
+/* The mark sits on the answer's first line, centred in its line box, however many lines the answer runs to. */
+.cell {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: calc(var(--v2-gap) / 2);
+}
+
+.cell > svg {
+  flex: none;
+  margin-block-start: calc((1lh - 1em) / 2);
+  width: 1em;
+  height: 1em;
+}
+
+.proof > p {
+  max-width: 24rem;
+}
+
+/* The title's notch stands in the flow, so the table starts below it whatever its height. */
+.compare {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-gap);
+}
+
+.compare > .titleNotch {
+  position: relative;
+  align-self: flex-start;
+  padding: var(--v2-pad) var(--v2-pad) var(--v2-gap);
+}
+
+.tableWrap {
+  flex: 1 1 auto;
+  padding-inline: var(--v2-pad);
+}
+
+.toggleNotch {
+  z-index: 3;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--type-small);
+  line-height: var(--type-small-lh);
+}
+
+.table th,
+.table td {
+  padding: calc(var(--v2-gap) * 1.6) var(--v2-gap);
+  border-bottom: var(--edge-w) solid var(--lab-line);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table thead th {
+  font-size: var(--type-micro);
+  line-height: var(--type-ui-lh);
+  letter-spacing: var(--type-caps-ls);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--lab-text-3);
+}
+
+.table tbody th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ours {
+  font-weight: 600;
+}
+
+.ours svg {
+  color: var(--lab-bright);
+}
+
+.theirs {
+  color: var(--lab-text-2);
+}
+
+.theirs svg {
+  color: var(--lab-text-3);
+}
+
+.note {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--v2-gap) / 3);
+  margin: auto var(--v2-pad) var(--v2-pad);
+  padding: var(--v2-gap) calc(var(--v2-gap) * 1.5);
+}
+
+.noteTitle {
+  margin: 0;
+  font-size: var(--type-small);
+  line-height: var(--type-ui-lh);
+  font-weight: 600;
+}
+
+@media (max-width: 899.98px) {
+  /* Stacked, the proof is as tall as what it holds. */
+  .proof > :first-child {
+    margin-block-end: 0;
+  }
+
+  .titleNotch,
+  .toggleNotch {
+    padding: 0;
+  }
+
+  /* Stacked, a row is its question over the two answers side by side, so no column is squeezed to a word a line. */
+  .table,
+  .table thead,
+  .table tbody {
+    display: block;
+  }
+
+  .table tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--v2-gap);
+    border-bottom: var(--edge-w) solid var(--lab-line);
+  }
+
+  .table th,
+  .table td {
+    padding-inline: 0;
+    border-bottom: 0;
+  }
+
+  .table tbody th {
+    grid-column: 1 / -1;
+    padding-block-end: 0;
+    white-space: normal;
+  }
+
+  .table tbody td {
+    padding-block-start: calc(var(--v2-gap) / 2);
+  }
+
+  /* The question column's header has no column left to head; it stays for assistive tech. */
+  .table thead th:first-child {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

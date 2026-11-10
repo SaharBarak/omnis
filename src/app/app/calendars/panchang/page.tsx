@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from 'react'
 import { panchang, siderealSun, type Panchang } from '@pleiad/engine/calculations'
+import { daysFrom } from '@pleiad/engine/calculations/day-search'
+import { nextObservances, type Observance } from '@pleiad/engine/calculations/panchang'
 import {
   CalendarDetail,
   type CalendarSpec,
@@ -33,7 +35,7 @@ const SPEC: CalendarSpec = {
   calculation: [
     'Everything reduces to two numbers: the ecliptic longitudes of the sun and moon. Tithi and karana come from their difference, yoga from their sum, nakshatra from the moon’s sidereal position.',
     'Sidereal positions subtract the ayanamsa — the accumulated precession offset, about 24° today — from tropical longitudes. Pleiad uses the Lahiri ayanamsa, the Indian government standard.',
-    'Pleiad computes the limbs from its ephemeris at noon UTC for the picked date. Traditional almanacs anchor the day at local sunrise instead, so a limb that changes mid-morning can differ between this page and a printed panchang — sign-level agreement, not observatory minutes.',
+    'Pleiad reads every limb at the picked date’s sunrise in Ujjain, the prime meridian of the Surya Siddhanta, as the almanacs do: the limb in force at sunrise is the day’s. A tithi no sunrise falls in is lost to the count, one that holds two sunrises is kept twice. Tithi times agree with a printed panchang to a minute or two; only the sunrise moves elsewhere in India.',
   ],
   concepts: [
     { term: 'Tithi', meaning: 'A lunar day — 12° of moon-sun separation; the unit festivals are set by' },
@@ -83,7 +85,7 @@ function TodayHero() {
       </div>
       <p className="mt-1 text-sm text-white/50">
         {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-        {' · '}computed at noon UTC — printed almanacs anchor at sunrise
+        {' · '}read at sunrise in Ujjain, as the almanacs read it
       </p>
       <div className="mt-4">
         {limbs(p, sun).map((row, i, all) => (
@@ -121,37 +123,31 @@ function Explorer() {
         </div>
       )}
       <p className="mt-3 text-xs text-white/35">
-        Noon-UTC longitudes with the Lahiri ayanamsa — sign-level accuracy, not observatory minutes.
+        Each limb at sunrise in Ujjain, the Surya Siddhanta’s meridian, by the Lahiri ayanamsa — tithi times within a minute or two of the printed almanacs.
       </p>
     </div>
   )
 }
 
-/** Next Ekadashi, Purnima, and Amavasya, scanned day by day. */
+const OBSERVANCE_WORDS: Readonly<Record<Observance, { label: string; note: string }>> = {
+  ekadashi: { label: 'Next Ekadashi', note: 'The eleventh tithi — the traditional fasting day of each paksha' },
+  purnima: { label: 'Next Purnima', note: 'Full moon — the bright half completes' },
+  amavasya: { label: 'Next Amavasya', note: 'New moon — the dark half completes; the month turns' },
+}
+
+/** Next Ekadashi, Purnima, and Amavasya, each on its first sunrise, or the day it begins where none falls in it. */
 function Observances() {
   const rows = useMemo(() => {
-    const wanted = new Map<string, { label: string; note: string }>([
-      ['Ekadashi', { label: 'Next Ekadashi', note: 'The eleventh tithi — the traditional fasting day of each paksha' }],
-      ['Purnima', { label: 'Next Purnima', note: 'Full moon — the bright half completes' }],
-      ['Amavasya', { label: 'Next Amavasya', note: 'New moon — the dark half completes; the month turns' }],
-    ])
-    const found: { label: string; value: string; note: string }[] = []
-    const seen = new Set<string>()
-    const start = Date.now()
-    for (let i = 0; i <= 35 && seen.size < wanted.size; i++) {
-      const dateStr = toDateStr(new Date(start + i * 86_400_000))
-      const p = panchang(dateStr)
-      for (const [key, meta] of wanted) {
-        if (seen.has(key) || !p.tithi.includes(key)) continue
-        seen.add(key)
-        found.push({
-          label: meta.label,
-          value: `${p.tithi} · ${new Date(`${dateStr}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} · ${i === 0 ? 'today' : `in ${i} days`}`,
-          note: meta.note,
-        })
+    const today = toDateStr(new Date())
+    const spans = nextObservances(today)
+    return (Object.keys(OBSERVANCE_WORDS) as Observance[]).map((key) => {
+      const { tithi, day } = spans[key]
+      const inDays = daysFrom(today, day)
+      return {
+        ...OBSERVANCE_WORDS[key],
+        value: `${tithi.paksha} ${tithi.name} · ${new Date(`${day}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} · ${inDays === 0 ? 'today' : `in ${inDays} days`}`,
       }
-    }
-    return found
+    })
   }, [])
 
   return (

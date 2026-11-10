@@ -1,0 +1,202 @@
+/*
+ * Draw your map (docs/redesign/BENTO_V2.md "Draw your map"): a head, three
+ * numbered steps, one live plate and the keep row. Every size is a v2 token
+ * or derived from one.
+ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-pad);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--v2-gap);
+  min-height: var(--hit-target);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  padding: calc(var(--v2-gap) * 0.75) var(--v2-gap);
+  border-radius: 999px;
+  background: var(--lab-ink);
+  color: var(--lab-page);
+  text-decoration: none;
+}
+
+.brand:focus-visible,
+.step:focus-visible,
+.plate:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* The head, the steps' discs, the plate's fields and the keep row share one edge: the panel's gap inside the page's. */
+.head {
+  display: grid;
+  gap: var(--v2-gap);
+  padding-inline: var(--v2-gap);
+}
+
+/* ---------- steps ---------- */
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--v2-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A step is a button: the disc beside its title, the line under the title, all on the page's ground. */
+.step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--v2-gap);
+  row-gap: calc(var(--v2-gap) / 2);
+  width: 100%;
+  min-height: var(--hit-target);
+  padding: var(--v2-gap);
+  border: 0;
+  border-radius: var(--radius-card);
+  background: transparent;
+  color: var(--lab-text-2);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color var(--dur-quick) var(--ease-standard);
+}
+
+@media (hover: hover) {
+  .step:hover {
+    background: var(--inset-fill);
+  }
+}
+
+/* The disc: the kit's least target, outlined; the current step takes the action's fill, a done step the ink's edge. */
+.disc {
+  display: grid;
+  place-items: center;
+  inline-size: var(--hit-min);
+  aspect-ratio: 1;
+  border: var(--edge-w) solid var(--lab-line);
+  border-radius: 50%;
+  color: var(--lab-text-3);
+  font-size: var(--type-caption);
+  line-height: 1;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.step[data-state='done'] .disc {
+  border-color: var(--lab-ink);
+  color: var(--lab-ink);
+}
+
+.step[data-state='current'] .disc {
+  border-color: var(--action);
+  background: var(--action);
+  color: var(--on-action);
+}
+
+.stepTitle {
+  color: var(--lab-ink);
+  font-size: var(--type-body);
+  line-height: var(--type-ui-lh);
+  font-weight: 600;
+}
+
+.step[data-state='todo'] .stepTitle {
+  color: var(--lab-text-2);
+}
+
+.stepLine {
+  grid-column: 2;
+  font-size: var(--type-small);
+  line-height: var(--type-small-lh);
+}
+
+/* ---------- plate ---------- */
+
+/* One viewport, as every v2 frame: the window fills it, so the map takes whatever the fields leave. */
+.plate {
+  display: flex;
+  min-height: var(--v2-frame-h);
+  border-radius: var(--radius-stage);
+  scroll-margin-top: var(--v2-gap);
+}
+
+.window {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.fields {
+  padding: var(--v2-gap) var(--v2-gap) 0;
+}
+
+/* The one control on the veil: the ink's own pill, as the reference's "take the wheel". */
+.take {
+  min-height: var(--hit-target);
+  padding-inline: var(--v2-pad);
+  border-color: var(--lab-ink);
+  background: var(--lab-ink);
+  color: var(--lab-page);
+}
+
+.take:hover {
+  border-color: var(--lab-ink);
+}
+
+/* The plate's live line: always in the page, so its words are announced when they change; empty, it takes no room. */
+.waiting {
+  margin: 0;
+  color: var(--lab-text-2);
+  font-size: var(--type-small);
+  line-height: var(--type-small-lh);
+}
+
+.waiting:not(:empty) {
+  padding-block-start: var(--v2-gap);
+}
+
+/* ---------- keep ---------- */
+
+.keep {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--v2-gap);
+  padding-inline: var(--v2-gap);
+}
+
+.keep > p {
+  flex: 1 1 auto;
+  margin: 0;
+}
+
+.error {
+  color: var(--danger);
+}
+
+@media (max-width: 899.98px) {
+  .steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .plate {
+    min-height: 0;
+  }
+
+  /* Stacked, only the current step keeps its line, so the plate starts within the first screen. */
+  .step:not([data-state='current']) .stepLine {
+    display: none;
+  }
+}

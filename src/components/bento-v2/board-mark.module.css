@@ -1,0 +1,92 @@
+/*
+ * A board's marks (docs/redesign/BENTO_V2.md "Rows open their calendar's
+ * board"): each a square `--mark` on a side (an em where the host sets
+ * none), drawn in the current colour, so a mark takes its cell's ink.
+ */
+
+.mark {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  inline-size: var(--mark, 1em);
+  block-size: var(--mark, 1em);
+  line-height: 1;
+}
+
+.moon {
+  inline-size: 100%;
+  block-size: 100%;
+  overflow: visible;
+}
+
+/* The dark side keeps a little of the Moon's colour, so a new Moon still reads as a Moon. */
+.dark {
+  fill: color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.lit {
+  fill: currentColor;
+}
+
+.limb {
+  fill: none;
+  stroke: color-mix(in srgb, currentColor 60%, transparent);
+  stroke-width: var(--edge-w);
+  vector-effect: non-scaling-stroke;
+}
+
+.bars {
+  inline-size: 100%;
+  block-size: 100%;
+  fill: currentColor;
+}
+
+/* A hexagram's line across the mark: one bar where yang, two with a gap where yin. */
+.line {
+  display: flex;
+  align-items: center;
+  gap: 25%; /* drawing */
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.line > i {
+  flex: 1;
+  block-size: 20%; /* drawing */
+  min-block-size: calc(2 * var(--edge-w));
+  border-radius: 1px; /* drawing */
+  background: currentColor;
+}
+
+/* A hexagram: its lines one over another, sharing the mark's height, each line's bars most of its share. */
+.hexagram {
+  display: grid;
+  grid-auto-rows: 1fr;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.hexagram > .line > i {
+  block-size: 60%; /* drawing */
+  min-block-size: var(--edge-w);
+}
+
+/* A character mark (two trigrams, a stem and branch) is as wide as its characters, a square at least. */
+.mark[data-mark='text'] {
+  inline-size: auto;
+  min-inline-size: var(--mark, 1em);
+  font-weight: 600;
+}
+
+@media (forced-colors: active) {
+  .dark {
+    fill: Canvas;
+  }
+
+  .lit,
+  .bars,
+  .line > i {
+    fill: CanvasText;
+    background: CanvasText;
+  }
+}

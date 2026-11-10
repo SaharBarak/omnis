@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import { AddPersonForm } from './add-person-form'
-import { newCircleHref, pairHref, personHref } from './hrefs'
 import p from './people.module.css'
 import { PersonTile, TileSkeletons } from './person-tile'
 import kit from '../kit.module.css'
@@ -12,6 +11,7 @@ import { PrimaryAction } from '../site/action'
 import { Field } from '../site/field'
 import site from '../site/site.module.css'
 import { EmptyState, ErrorState, Loading } from '../site/states'
+import { useAppHrefs, useSiteTree } from '@/components/bento-lab/site/site-tree'
 import { usePeople, type PersonWithTags, type Tag } from '@/lib/hooks/use-people'
 
 const matches = (person: PersonWithTags, query: string, tag: string | null): boolean => {
@@ -28,17 +28,22 @@ const usedTags = (tags: readonly Tag[], people: readonly PersonWithTags[]): read
 
 function AddPanel({ onCancel }: { readonly onCancel?: () => void }) {
   const router = useRouter()
+  const hrefs = useAppHrefs()
   return (
     <section className={p.panel} aria-labelledby="add-person-title">
       <h2 id="add-person-title" className={p.panelTitle}>
         Add a person
       </h2>
-      <AddPersonForm onSaved={(id) => router.push(personHref(id))} onCancel={onCancel} />
+      <AddPersonForm
+        onSaved={(id) => router.push(hrefs.person(id))}
+        onCancel={onCancel}
+      />
     </section>
   )
 }
 
 function CompareBar({ ids, onClear }: { readonly ids: readonly string[]; readonly onClear: () => void }) {
+  const hrefs = useAppHrefs()
   return (
     <div className={`${p.compare} ${kit.glass}`} role="region" aria-label="Selected people">
       <span className={site.body}>{ids.length} selected</span>
@@ -48,11 +53,11 @@ function CompareBar({ ids, onClear }: { readonly ids: readonly string[]; readonl
           Clear
         </button>
         {ids.length === 2 ? (
-          <PrimaryAction href={pairHref(ids[0], ids[1])} size="small">
+          <PrimaryAction href={hrefs.pair(ids[0], ids[1])} size="small">
             Map these two
           </PrimaryAction>
         ) : (
-          <PrimaryAction href={newCircleHref(ids)} size="small">
+          <PrimaryAction href={hrefs.newCircle(ids)} size="small">
             Make a circle
           </PrimaryAction>
         )}
@@ -63,6 +68,7 @@ function CompareBar({ ids, onClear }: { readonly ids: readonly string[]; readonl
 
 /** T9 people list: search, tag filter, tiles, a compare bar once two are picked, and the add form. */
 export function PeopleBrowser({ startAdding = false }: { readonly startAdding?: boolean }) {
+  const tree = useSiteTree()
   const { people, tags, loading, error, fetchPeople } = usePeople()
   const [query, setQuery] = useState('')
   const [tag, setTag] = useState<string | null>(null)
@@ -150,7 +156,7 @@ export function PeopleBrowser({ startAdding = false }: { readonly startAdding?: 
       ) : (
         <ul className={p.tiles} aria-label="Saved people">
           {shown.map((person) => (
-            <PersonTile key={person.id} person={person} selected={selected.includes(person.id)} onToggle={toggle} />
+            <PersonTile key={person.id} person={person} tree={tree} selected={selected.includes(person.id)} onToggle={toggle} />
           ))}
         </ul>
       )}

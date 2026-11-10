@@ -1,4 +1,4 @@
-import { THEMES, type Theme } from './palette-spec'
+import type { Theme } from './palette-spec'
 
 /**
  * Elevation (docs/redesign/BENTO_POLISH.md "Elevation"). One scale of height
@@ -97,12 +97,3 @@ export const elevationCssVars = (theme: Theme): Readonly<Record<string, string>>
   ...Object.fromEntries(RAISED.map((level) => [`--elevation-rise-${level}`, cssShadow([riseLayer(level)])])),
   '--image-outline': outline(IMAGE_OUTLINE[theme]),
 })
-
-/** The stylesheet for every theme on each of `roots` (an element carrying `data-theme`). */
-export const elevationCss = (roots: readonly string[]): string =>
-  THEMES.map(
-    (theme) =>
-      `${roots.map((root) => `${root}[data-theme="${theme}"]`).join(',')}{${Object.entries(elevationCssVars(theme))
-        .map(([name, value]) => `${name}:${value}`)
-        .join(';')}}`,
-  ).join('')

@@ -8,21 +8,17 @@ import type { SceneAction } from './action'
 import f from './figure.module.css'
 import p from './pair.module.css'
 import kit from '../kit.module.css'
+import { PairFacts, Shown } from './pair-facts'
 import { PrimaryAction } from '../site/action'
 import { PairDrawing, TieTable } from '@/components/bento-lab/atlas'
-import { TIE_LAYER, tieStroke } from '@/components/bento-lab/atlas/tie-geometry'
-import { drawStroke, ENTER_MARGIN, landsAt, Rolling, undrawnStroke, useMotionAllowed, useSequence } from '@/components/bento-lab/motion'
+import { TIE_LAYER } from '@/components/bento-lab/atlas/tie-geometry'
+import { drawStroke, ENTER_MARGIN, landsAt, undrawnStroke, useMotionAllowed, useSequence } from '@/components/bento-lab/motion'
 import type { PairAtlas } from '@/lib/atlas/types'
 import { CURVE, DURATION, seconds, staggerStep } from '@/lib/design/motion-tokens'
-import { centerName, type Tie } from '@/lib/relations/pair-ties'
-import { tieBits, tieName, tieOdds } from '@/lib/relations/tie-text'
+import { tieBits } from '@/lib/relations/tie-text'
 
 /** The maps sit side by side, outer rings nearly touching (the drawing's own margin). */
 const GAP = 0
-/** The rarity gauge's path length: rarity is out of 100. */
-const GAUGE = 100
-/** The rarest tie's mark is a half-size copy of its line. */
-const MARK_SCALE = 0.5
 
 /** True once a row has settled, so its weight rolls after it arrives. */
 const Arrived = createContext(true)
@@ -41,46 +37,11 @@ function SettlingRow({ shown, delay, children }: { shown: boolean; delay: number
   )
 }
 
-/** `shown` rolls to each new value; assistive tech reads only `final`. */
-function Shown({ shown, final }: { shown: string | number; final: string | number }) {
-  return (
-    <>
-      <span aria-hidden>
-        <Rolling value={shown} />
-      </span>
-      <span className={kit.srOnly}>{final}</span>
-    </>
-  )
-}
-
 /** A tie's weight, rolling up to its value once its row has arrived. */
 function RowBits({ bits }: { bits: number }) {
   const arrived = useContext(Arrived)
   const allowed = useMotionAllowed()
   return <Shown shown={!allowed || arrived ? tieBits(bits) : tieBits(0)} final={tieBits(bits)} />
-}
-
-function TieMark({ tie }: { tie: Tie }) {
-  return (
-    <svg viewBox="0 0 64 40" className={p.mark} data-layer={TIE_LAYER[tie.system]} aria-hidden>
-      <path d="M 8 32 C 16 6, 48 6, 56 32" className={p.markLine} strokeWidth={tieStroke(tie.bits).width * MARK_SCALE} pathLength={1} data-mark-line="" />
-      <circle cx={8} cy={32} r={4} className={p.markEnd} />
-      <circle cx={56} cy={32} r={4} className={p.markEnd} />
-    </svg>
-  )
-}
-
-function Fact({ visual, label, value, meta, layer }: { visual: ReactNode; label: string; value: ReactNode; meta: string; layer?: string }) {
-  return (
-    <li className={`${f.surface} ${p.fact}`} data-layer={layer}>
-      {visual}
-      <span className={p.factText}>
-        <span className={p.factLabel}>{label}</span>
-        <span className={p.factValue}>{value}</span>
-        <span className={p.factMeta}>{meta}</span>
-      </span>
-    </li>
-  )
 }
 
 /**
@@ -154,59 +115,13 @@ export function PairScene({ pair, action }: { readonly pair: PairAtlas; readonly
               <PairDrawing pair={pair} describedBy={tableId} gap={GAP} layered className={p.drawing} />
             </div>
           </div>
-          <ul className={p.facts} data-action={action ? '' : undefined}>
-            {top ? (
-              <Fact visual={<TieMark tie={top} />} label="Rarest tie" value={tieName(top, centerName)} meta={tieOdds(top.baseRate)} layer={TIE_LAYER[top.system]} />
-            ) : (
-              <Fact visual={<span className={p.markEmpty} aria-hidden />} label="Rarest tie" value="None drawn" meta="Common ties only" />
-            )}
-            <Fact
-              visual={
-                <span className={p.dots} aria-hidden>
-                  {ties.map((t, i) => (
-                    <span
-                      key={`${t.system}-${t.type}-${i}`}
-                      className={p.dot}
-                      data-layer={mayDrawEdge(t.baseRate) ? TIE_LAYER[t.system] : undefined}
-                      data-lit={i < lit ? '' : undefined}
-                    />
-                  ))}
-                </span>
-              }
-              label="Lines drawn"
-              value={
-                <>
-                  <Shown shown={lit} final={drawn.length} /> of {ties.length}
-                </>
-              }
-              meta="ties checked"
-            />
-            <Fact
-              visual={
-                <svg viewBox="0 0 44 44" className={p.gauge} aria-hidden>
-                  <circle cx={22} cy={22} r={18} className={p.gaugeTrack} />
-                  <circle
-                    cx={22}
-                    cy={22}
-                    r={18}
-                    className={p.gaugeArc}
-                    pathLength={GAUGE}
-                    strokeDasharray={`${pair.reading.rarity} ${2 * GAUGE}`}
-                    transform="rotate(-90 22 22)"
-                    data-gauge=""
-                  />
-                </svg>
-              }
-              label="Rarity"
-              value={pair.reading.rarity}
-              meta="of 100, against random pairs"
-            />
+          <PairFacts reading={pair.reading} lit={lit}>
             {action && (
               <li className={f.action}>
                 <PrimaryAction href={action.href}>{action.label}</PrimaryAction>
               </li>
             )}
-          </ul>
+          </PairFacts>
         </div>
       </div>
       <div ref={rowsRef} className={`${f.surface} ${p.rows}`}>

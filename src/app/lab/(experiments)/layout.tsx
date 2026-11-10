@@ -5,7 +5,7 @@ import { siteHref } from '@/lib/site/routes'
 
 const LAB_ROUTES = [
   { href: '/lab/bento-a', label: 'A · three columns' },
-  { href: '/lab/bento-v2', label: 'B · notched media' },
+  { href: '/lab/bento-v2', label: 'Bento v2 · scrolled' },
   { href: siteHref('/'), label: 'Full site' },
   { href: '/', label: 'Live homepage' },
 ] as const

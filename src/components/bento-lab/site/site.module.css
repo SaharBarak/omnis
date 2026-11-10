@@ -719,9 +719,9 @@
     var(--lab-chip) 70%
   );
   background-size: 300% 100%;
-  animation: shimmer 1.6s linear infinite;
 }
 
+/* A loading loop (BENTO_MOTION.md "Loops"): the skeleton's sheen sweeps until its content lands. */
 @keyframes shimmer {
   from {
     background-position: 100% 0;
@@ -745,9 +745,9 @@
   border-color: color-mix(in srgb, var(--danger) 45%, var(--lab-line));
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .skeleton {
-    animation: none;
+@media (prefers-reduced-motion: no-preference) and (forced-colors: none) {
+  [data-lab]:not([data-motion='paused']) .skeleton {
+    animation: shimmer 1.6s linear infinite;
   }
 }
 
@@ -787,4 +787,70 @@
   position: relative;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* ---------- framed (BENTO_V2.md "The app in v2", "Appearance") ---------- */
+
+/* A framed page: its panels a gap apart, down the main column. */
+.frameStack {
+  display: grid;
+  gap: var(--v2-gap);
+  min-width: 0;
+}
+
+/* A framed head: its words from the panel's start, a gap apart, the actions in a row under them. */
+.frameHead,
+.frameSectionHead {
+  display: grid;
+  justify-items: start;
+  gap: var(--v2-gap);
+}
+
+.frameSection {
+  display: grid;
+  gap: calc(var(--v2-gap) * 2);
+}
+
+.frameActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--v2-gap) / 2);
+}
+
+/* ---------- dialogs (`DialogButton`) ---------- */
+
+.dialog {
+  inline-size: min(36rem, calc(100vw - 2 * var(--type-group, 16px)));
+  max-block-size: calc(100svh - 2 * var(--type-group, 16px));
+  margin: auto;
+  padding: var(--v2-pad, 24px);
+  border-radius: var(--radius-card);
+  color: var(--lab-ink);
+  overflow: auto;
+}
+
+.dialog::backdrop {
+  background: color-mix(in srgb, var(--lab-page) 70%, transparent);
+}
+
+.dialogHead {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--type-group, 16px);
+  margin-block-end: var(--type-group, 16px);
+}
+
+.dialogTitle {
+  composes: h3;
+}
+
+.btn[data-tone='danger'] {
+  border-color: color-mix(in srgb, var(--danger) 55%, var(--lab-line));
+  color: var(--danger);
+}
+
+.btn[data-tone='danger']:hover {
+  border-color: var(--danger);
 }

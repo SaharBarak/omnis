@@ -1,0 +1,48 @@
+/*
+ * `BirthFields` layouts, one grid with one gap (the kit's field rhythm). Pair:
+ * date beside time, place and name across. Stack: every field on its own
+ * line. Dense: pair, tighter, for a slot the drawing already explains. Row:
+ * date, time and place on one line, as a map's search bar, stacked where the
+ * line is too narrow (docs/redesign/BENTO_V2.md "Draw your map").
+ */
+
+.fields {
+  --field-gap: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: var(--field-gap);
+}
+
+.fields[data-layout='stack'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.fields[data-layout='dense'] {
+  --field-gap: 10px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+}
+
+.place,
+.wide {
+  grid-column: 1 / -1;
+}
+
+/* Row: the place takes the widest share, as a search bar's query does; the name goes under. */
+.fields[data-layout='row'] {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 2fr);
+  align-items: start;
+}
+
+.fields[data-layout='row'] > .place {
+  grid-column: auto;
+}
+
+@media (max-width: 899.98px) {
+  .fields[data-layout='row'] {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .fields[data-layout='row'] > .place {
+    grid-column: 1 / -1;
+  }
+}

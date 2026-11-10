@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
-import { routeTitle } from '@/lib/site/routes'
-import { requestedPersonId, type PersonParam } from '@/components/bento-lab/systems/requested-person'
 import { GeneKeysView } from '@/components/bento-lab/systems/gene-keys-view'
+import { requestedPersonId, type PersonParam } from '@/components/bento-lab/systems/requested-person'
+import { routeTitle } from '@/lib/site/routes'
 
 export const metadata: Metadata = { title: routeTitle('/app/gene-keys') }
 

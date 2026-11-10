@@ -101,7 +101,7 @@ describe('explainReading', () => {
     expect(placeDays(5)).toBe(PLACE_DAYS.baktun * 20)
     const baktun = explainReading(maya, { kind: 'place', unit: 4 })
     expect(baktun.meaning).toBe(`One ${PLACE_NAMES[4].toLowerCase()} holds 144,000 days.`)
-    expect(explainReading(maya, { kind: 'place', unit: 0 }).meaning).toBe('One kin holds 1 day.')
+    expect(explainReading(maya, { kind: 'place', unit: 0 }).meaning).toBe("One k'in holds 1 day.")
   })
 
   it('reads a placement through its sign, and both signs on a crossing day', () => {

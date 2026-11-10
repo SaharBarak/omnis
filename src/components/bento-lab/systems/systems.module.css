@@ -871,7 +871,13 @@
   min-width: 0;
 }
 
-.toggleText label,
+.toggleText label {
+  color: var(--lab-ink);
+  font-size: var(--type-body);
+  font-weight: 500;
+  cursor: pointer;
+}
+
 .switch {
   position: relative;
   width: 44px;
@@ -1068,4 +1074,11 @@
 .systemTileArrow {
   margin-inline-start: auto;
   color: var(--lab-text-3);
+}
+
+/* ---------- framed (v2) ---------- */
+
+/* The head panel spans the stack; the banner runs the panel's width inside its padding. */
+.framePage > header > .banner {
+  justify-self: stretch;
 }

@@ -3,14 +3,12 @@ import { DEFAULT_THEME, THEME_BOOT_SCRIPT } from './lab-state'
 import styles from './kit.module.css'
 import { MotionRoot } from './motion/motion-root'
 import { BAZI_ELEMENT_COLORS } from '@/lib/design/bazi-elements'
-import { markCss } from '@/lib/brand/mark'
-import { MARK_TONES } from '@/lib/brand/mark-tones.gen'
 import { paletteCss } from '@/lib/design/bento-palette'
 import { DEFAULT_PALETTE } from '@/lib/design/palette-ids'
-import { elevationCss } from '@/lib/design/elevation'
 import { motionCssVars } from '@/lib/design/motion-tokens'
 import { layoutCssVars } from '@/lib/design/layout-tokens'
 import { radiusCssVars } from '@/lib/design/radius'
+import { schemeCss } from '@/lib/design/scheme'
 import { typeCssVars } from '@/lib/design/type-scale'
 
 /** BaZi element colours, motion, type, layout and radius tokens; none varies by palette. */
@@ -22,8 +20,8 @@ const ROOT_TOKENS = {
   ...radiusCssVars(),
 } as CSSProperties
 
-/** Every palette and theme, for the lab root and for palette swatches; their attributes pick one. The mark and the elevation scale follow the theme only. */
-const PALETTE_CSS = paletteCss(['[data-lab]', '[data-swatch]']) + markCss(['[data-lab]'], MARK_TONES) + elevationCss(['[data-lab]'])
+/** Every palette and theme, for the lab root and for palette swatches; their attributes pick one. Chapters inside the root take their own palette and scheme (BENTO_COLOR.md "Inverse sections"); the mark and the elevation scale follow the scheme. */
+const PALETTE_CSS = paletteCss(['[data-lab]', '[data-swatch]'], '[data-lab]') + schemeCss('[data-lab]')
 
 /**
  * Theme root for the lab: the palette stylesheet from bento-palette.ts, dark

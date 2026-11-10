@@ -10,9 +10,10 @@ import { useComputed, useToday } from './use-computed'
 import { useSystemPeople, type SavedPerson, type SystemStatus } from './use-system-people'
 import kit from '../kit.module.css'
 import { EmptyState, ErrorState, PrimaryAction, Skeleton } from '../site'
+import { useAppHrefs } from '../site/site-tree'
 import site from '../site/site.module.css'
 import { MOON_PHASE_HINTS } from '@/lib/data/moon-phases'
-import { routeTitle, siteHref  } from '@/lib/site/routes'
+import { routeTitle } from '@/lib/site/routes'
 import { MoonGlyph } from '@/components/moon/moon-glyph'
 
 export const MOON_SPEC: SystemPageSpec = {
@@ -45,6 +46,7 @@ const lit = (r: MoonReading): string => `${Math.round(r.illumination * 100)}% li
 const days = (n: number): string => `${Math.round(n)} days`
 
 function BornUnder({ status, people, data, births }: { readonly status: SystemStatus; readonly people: readonly SavedPerson[]; readonly data: Tonight; readonly births: Births | null }) {
+  const hrefs = useAppHrefs()
   if (status.kind === 'loading' || (status.kind === 'ready' && !births)) {
     return (
       <div className={s.buckets}>
@@ -73,7 +75,7 @@ function BornUnder({ status, people, data, births }: { readonly status: SystemSt
       <EmptyState
         title="No saved people yet"
         action={
-          <PrimaryAction href={siteHref('/app/people')} intent="add" size="small">
+          <PrimaryAction href={hrefs.addPerson} intent="add" size="small">
             Add a person
           </PrimaryAction>
         }
@@ -103,7 +105,7 @@ function BornUnder({ status, people, data, births }: { readonly status: SystemSt
                   const birth = births?.get(m.person.id)
                   return (
                     <li key={m.person.id}>
-                      <Link href={siteHref(`/app/people/${m.person.id}`)} className={kit.pill} title={birth ? lit(birth) : undefined}>
+                      <Link href={hrefs.person(m.person.id)} className={kit.pill} title={birth ? lit(birth) : undefined}>
                         {m.person.is_self ? `${m.person.name} (you)` : m.person.name}
                       </Link>
                     </li>

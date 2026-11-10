@@ -38,6 +38,12 @@ export interface CategoricalProblem<K extends string> {
   readonly labels: readonly Oklch[]
   /** Roles every colour must stay apart from. */
   readonly roles: readonly Oklch[]
+  /**
+   * Pair floors this set holds instead of the method's, where its colours
+   * always travel with a form that tells them apart (a glyph, a name), as
+   * WCAG 1.4.1 asks: the score still ranks every set by both distances.
+   */
+  readonly floors?: Readonly<Partial<Record<'normal' | 'dichromat', number>>>
 }
 
 interface Candidate {
@@ -88,6 +94,7 @@ interface Best {
  */
 export function solveCategorical<K extends string>(problem: CategoricalProblem<K>): Readonly<Record<K, number>> {
   const g = CATEGORICAL_GATES
+  const floor = { normal: problem.floors?.normal ?? g.normal, dichromat: problem.floors?.dichromat ?? g.dichromat }
   const pools = problem.slots.map(({ hue }) => candidates(problem, hue))
   let best: Best | undefined
 
@@ -105,7 +112,7 @@ export function solveCategorical<K extends string>(problem: CategoricalProblem<K
         n = Math.min(n, apart(pick.seen, next.seen, 'normal'))
         d = Math.min(d, apartDichromat(pick.seen, next.seen))
       }
-      if (n >= g.normal && d >= g.dichromat) walk([...picks, next], n, d)
+      if (n >= floor.normal && d >= floor.dichromat) walk([...picks, next], n, d)
     }
   }
   walk([], Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY)
