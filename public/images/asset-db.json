@@ -35,10 +35,11 @@
     },
     {
       "files": "dreamspell/seals/*",
-      "source": "Wikimedia Commons",
-      "author": "Various contributors",
-      "license": "CC-BY-SA 3.0",
-      "url": "https://commons.wikimedia.org/wiki/Category:SVG_Maya_glyphs"
+      "source": "Wikimedia Commons, MAYA-g-log-cal-DNN-<Name>.svg (standard inscription form)",
+      "author": "Bluebalam, after CJLL Wright",
+      "license": "CC BY-SA 4.0",
+      "url": "https://commons.wikimedia.org/wiki/Category:Maya_glyphs_of_days",
+      "notes": "Per-file sources in src/lib/design/day-signs.sources.json (npm run glyphs:seals); fill set to currentColor, title added"
     },
     {
       "files": "gematria/letters/*",

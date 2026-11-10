@@ -94,7 +94,11 @@ layers, both coloured by the palette:
   because no star or figure crosses the band's edge. The output is deterministic per catalogue. The tile is a mask
   over `--lab-ink` behind all content (`.lab::before`) at its intrinsic
   size, and more strongly behind a surface with `kit.starfield`, tinted by
-  `--field`. A sequence may drift the field by tweening a unitless
+  `--field`. A surface that holds a drawing declares the drawing's tokens
+  (`.tokens` in `atlas.module.css`), and its field reads under the drawing's
+  structure: never stronger than half the rings' ink (`--field-cap`, half of
+  `--atlas-line-ink`), so no constellation line competes with a ring or a
+  tie. A sequence may drift the field by tweening a unitless
   `--drift` that the surface turns into `--field-y`.
 - **Grain.** Fractal noise used as an alpha mask over `--lab-ink` on a fixed
   `::after`, at `--grain` opacity. No blend mode: a fixed layer that blends
@@ -108,7 +112,7 @@ Both textures are hidden under increased contrast and forced colours
 
 | Engine | Owns | Wrapper | Never |
 |---|---|---|---|
-| CSS keyframes | First paint: entrances that must start before any script (the atlas draws itself) | classes in the component's module, keyed off `[data-lab]:not([data-motion='paused'])` inside `prefers-reduced-motion: no-preference` | Waits on JavaScript |
+| CSS keyframes | First paint: entrances that must start before any script (the atlas draws itself). Loops ("Loops") | classes in the component's module, keyed off `[data-lab]:not([data-motion='paused'])` inside `prefers-reduced-motion: no-preference` | Waits on JavaScript |
 | anime.js v4 | Sequences: a timeline a section plays once as it enters view. Illustrations after hydration: rings turning to new data, strokes, staggers, pins following the drawing | `useSequence`, `useIllustration`, `useTurn`, `useGlide`, `drawStroke` | Touches HTML layout, or reads scroll position |
 | Motion (`framer-motion`, LazyMotion) | Responses: values rolling, presence, press and hover | `MotionRoot`, `Rolling`, `m.*` | Runs a timeline tied to scroll |
 
@@ -166,7 +170,7 @@ Lifecycle rules for every wrapper:
 `src/lib/design/motion-tokens.ts` holds the values once as data:
 milliseconds and Bézier tuples. Each wrapper converts them where it
 imports its engine: seconds for Motion, `cubicBezier(...)` for anime.js. LabRoot also writes them as CSS variables (`--dur-*`, `--ease-*`,
-`--stagger`, `--press-scale`).
+`--stagger`, `--press-scale`, `--lift-scale`).
 
 | Token | Value | Use |
 |---|---|---|
@@ -177,11 +181,13 @@ imports its engine: seconds for Motion, `cubicBezier(...)` for anime.js. LabRoot
 | `settle` | 480 ms | A component arriving; rings turning |
 | `draw` | 1200 ms | A ring or line drawing itself |
 | `hold` | 800 ms | A sequence resting on one beat before the next: a lifted layer |
+| `current` | 2400 ms | A tie's current running its line once, twice a draw, so it reads as flow along a line already drawn (BENTO_SITE.md, "Ties explain themselves") |
 | `standard` | cubic-bezier(0.2, 0, 0, 1) | Most movement |
 | `emphasized` | cubic-bezier(0.05, 0.7, 0.1, 1) | Arrivals that land with weight |
 | `SPRING` | stiffness 260, damping 30, mass 1 | Motion only |
 | `STAGGER` | 40 ms step, whole set within 600 ms (`staggerStep`) | Siblings in a set |
 | `PRESS_SCALE` | 0.97 (`--press-scale`) | Anything pressable while pressed; never below 0.95 |
+| `LIFT_SCALE` | `LEVEL_CONTRAST`, 1.25 (`--lift-scale`) | A figure stepping forward under the pointer, focus or its open card: one level of the type scale, the step a reader sees as a new level (BENTO_TYPE.md, "Contrast") |
 | `MAGNET` | `pull` 0.18 of the pointer's offset from centre, at most `reach` 6 px | A pointer-following control leaning toward the mouse |
 | `TRAVEL` | 4 px (`--travel`) | How far a small surface moves as it appears or leaves: a card over a drawing |
 
@@ -217,12 +223,61 @@ never their own constants.
   colour on hover, the focus ring, the label.
 - Animated duplicates are hidden from assistive tech, and the final value
   stays readable (`Rolling` keeps an `srOnly` copy).
-- Illustrations run once per new data, not on a loop. The only loops are
-  status pulses and the ground artwork.
+- Illustrations run once per new data. What runs on is a loop, and a loop
+  says something true for as long as it runs ("Loops").
 - Engines never enter a page's first bundle. `client-bundle.test.ts`
   forbids static imports of the ephemeris packages and `animejs` from
   client modules. The wrappers only `import()` them. Motion enters
   through LazyMotion, with `strict` rejecting full `motion.*` components.
+
+### Loops
+
+A page that only moves when touched reads as a picture of a product. Loops
+keep it alive, and each kind says one true thing about what it moves:
+
+| Kind | Says | Moves | Where |
+|---|---|---|---|
+| Status pulse | This is now | Opacity, alternating over `--dur-draw` (`beat`, `live` in the v2 frame kit) | A live pill's dot; the ring round today's cell in a cycle's cells (the wavespell, a board); today's dot on a day row's cycle track |
+| Current | These two are joined | A dash's offset along the line, once per `--dur-current` or a multiple, in its own `aria-hidden`, paint-contained overlay over the drawing | A tie between two people (BENTO_SITE.md, "Ties explain themselves"); a defined Human Design channel, from each gate's mouth to the channel's middle ("The Atlas") |
+| Loading | This is still loading | Opacity or a sweep of the fill | A busy badge, a skeleton; it ends when the data lands |
+| Ground | The page's ground | The ground artwork's canvas (`useCanvasLoop`) | The star field and pixel grounds |
+
+What no loop does:
+
+- Scale, rotate or travel. Each would move the reader's eye or body, not the data.
+- Run on a node a sequence, a scene or Motion writes, or on text being read.
+- Repeat a fixed fact. A birth's numbers never change, so the digest's tiles
+  and the drawing's marks hold still: a mark that counted or shimmered on a
+  loop would say it had just changed.
+- Light one thing, then the next. A loop that changes what is lit would
+  compete with the reader's own reading; the layers tour plays once and stops
+  for good on input.
+
+Gates, all in CSS, so a loop's server markup is its final frame:
+
+- Motion allowed: inside `@media (prefers-reduced-motion: no-preference)
+  and (forced-colors: none)`, and outside the lab pause
+  (`[data-lab]:not([data-motion='paused'])`).
+- On screen: the looping element carries `data-loop` (spread from
+  `motion/loops.ts`: `loop`, or `beat` for a status pulse), and `useLoops`
+  (in `MotionRoot`, one `IntersectionObserver` for the page, new elements
+  watched as they mount) sets `data-in-view` on it while any part of it
+  shows. A loading loop is exempt: it ends with its load.
+- One beat: a status pulse that starts is set back to the page's clock, so
+  every pulse on the page beats in one phase, however late it came into view.
+- Landed: a current starts once its drawing's entrance has landed (the
+  drawing's `data-currents`, set from the scene's `onLanded`, or at once
+  where nothing enters), and dims and pauses while a mark or a tie is read or
+  another layer is brought forward.
+- A tab out of view costs a CSS loop nothing; a scripted loop stops on
+  `visibilitychange`.
+- Every loop sits under a pause within reach (WCAG 2.2.2): the hero's bar
+  and the map window's bar each carry `MotionToggle`, the lab's one pause.
+
+`motion-policy.test.ts` holds every `infinite` animation in the lab's
+sheets, item by item of an animation list, to a kind in this table and to
+its gates, reading each selector and media query as parsed (a gate inside
+`:not()`, or in one branch of a media list only, does not count).
 
 ## Storyboards
 
@@ -273,3 +328,4 @@ with its facts in one row under it.
 |---|---|---|---|
 | Codex CLI (gpt-6-astra) | Engine split, lifecycle, pin geometry, tokens, reduced-motion switch, palette emission, bundle boundary, accessibility | 2026-10-28 | Incorporated |
 | Codex CLI (gpt-6-astra) | Sequences in place of scroll scenes: one engine, arming after load, revert to the stylesheet's frame, input supersedes the tour, CSS-owned geometry | 2026-11-04 | Incorporated |
+| Plan agent (independent review; Codex CLI out of quota) | Loops: kinds, gates, currents on defined channels, no conductor, day rows as cycle tracks, CSS-only engine, policy test | 2026-11-08 | Incorporated |

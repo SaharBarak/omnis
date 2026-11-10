@@ -140,7 +140,9 @@ the other tiles' figures.
 A paragraph's role holds only where its line keeps at least 45 characters.
 An intro paragraph is `lead` across a page; in a column narrower than 45ch
 at the lead's size it is `body`. The home hero's claim column is one such
-column.
+column. The measure is `MEASURE_CH` (`--type-measure`, in `ch` of the
+element's own face and size); a card's text column and each of a board's
+columns hold it.
 
 ## Contrast
 
@@ -238,6 +240,49 @@ A trimmed box holds text, never a clip. A number that rolls (`Rolling`)
 clips its moving copies to its own line box; it sits inline in a trimmed
 line rather than being trimmed itself, so the clip keeps the digits' ink
 (a slash, a degree sign) whole.
+
+## Hung bearings
+
+A glyph's ink starts in from its origin by its left side bearing, a share
+of the em, so a line's ink stands in from its box by more the larger it is
+set. Where texts of different sizes share an edge, their boxes align and
+their ink does not: a 49 px headline starting with O inks 2.6 px inside the
+column its 11 px eyebrow inks on. CSS has no inline counterpart to
+`text-box` trimming (`hanging-punctuation` moves only punctuation, in
+Safari alone), so the type hangs the bearing itself, as InDesign's optical
+margin alignment and microtype's protrusion do: per glyph, from a table.
+
+- **Table.** `npm run type:bearings` sets every glyph a display text may
+  start with (A–Z, a–z, 0–9, and the digits again as tabular figures,
+  which pad each digit to one width) in the live display face at its set
+  weight, 600, at 400 px, magenta on black, and reads where its ink starts
+  (`scripts/design/ink-scan.mjs`). It writes `face-bearings.gen.ts`; a test
+  holds the file to the table and every glyph to it. The bearings run from
+  −0.02 em (j) to 0.073 em (b, p), and a tabular 1 sits 0.053 em further in
+  than a proportional one.
+- **Who hangs.** Display text that starts on its column's edge is set
+  through `Hung` (bento-lab kit), which hangs its first glyph's bearing as
+  its start margin (`hangOf`), from the tabular table where its figures are
+  tabular, and marks it `data-hang`. A title hangs each of its lines; the
+  frame's figures and numerals, the kin tile's numeral and name, and the
+  dashboard's card titles and people's names hang too. A first glyph the
+  table does not hold hangs the face's median. The block hangs the median
+  as its start margin and its first line takes the difference as its
+  indent, so a line the browser wraps inside it lands within the face's
+  spread of the median, under 1.3 px at display sizes.
+  Running text keeps its box on the edge: its bearing is about a pixel at
+  its sizes, and a margin would move a surface it sits on or pull a quiet
+  run inline into the word before it.
+- **Direction.** The bearings are left side bearings, so only
+  left-to-right text hangs (`:dir(ltr)`).
+- **Not on an edge.** Centred text, a label inside a pill's padding, and
+  the brand lockup's word (placed by BRAND_MARK.md) do not hang.
+
+The e2e checks `display-ink-on-edge-<route>-<width>` run the home and the
+dashboard at 1440 and 390 with motion reduced. Each hung text is read from
+pixels the way the table was, and its ink must meet its edge within one
+device pixel plus the table's precision at its size (`size / 400`). Any
+display text that starts on an edge without `data-hang` fails as well.
 
 ## Marks
 
@@ -344,21 +389,75 @@ corner.
 
 The card a mark or a fact opens (`CardBody`, shared by the drawing and the
 digest) has its own module and voice (`TYPE_VOICES.card`); its container
-places and frames it, with the group as its inset.
+places and frames it.
 
 | Level | Role | Set as |
 |---|---|---|
-| `eyebrow` | caption | The pin and the system's name: 600, capitals, ink 3, after an em-long stroke of the layer colour. |
+| `eyebrow` | caption | Where the thing sits: the layer's pin and the system's name (on the pair, the person or "Tie" and the system; the pair draws no pins, so its eyebrows name none). 600, capitals, ink 3, after an em-long stroke of the layer colour. |
 | `label` | caption | What the thing is: 400, ink 2. |
 | `value` | body | The person's value at it: 600, ink, balanced wrapping. |
 | `meaning` | caption | What the tradition reads into it: running text at the role's leading, ink 2, pretty wrapping. |
-| `facts` | caption | The facts row: a fact's name 400 in ink 3, its value 500 in ink. |
+| `facts` | caption | The facts: each name 400 in ink 3, each value 500 in ink. |
 
 Pairs that read against each other: the eyebrow and the value, the label
-and the value, the value and the meaning. The eyebrow, label and value are
-a pair apart; the meaning and the facts a group below. The body keeps the
-meaning to at least 45 characters a line ("Measure"), within the container's
-own bound (half the stage, or the window less the card's gap).
+and the value, the value and the meaning.
+
+The card is four parts a group apart, as a tile is ("Trimmed lines"): the
+head (the eyebrow), the title (the label over the value, one fact, its
+lines a pair apart), the meaning, and the facts.
+
+The facts are a definition list in two columns, one fact a row: the names
+share the start edge of the card's other lines, and the values share a
+second edge a group past the longest name, so the eye reads down either
+column and across a row without a name ever running into the next value.
+A value that wraps stays in its column. Rows stand apart by a short UI
+line's leading less its trimmed capitals (`(--type-ui-lh − --type-cap)` em
+of the facts' size, 7 px at caption): wider than the pair, so a row's
+descenders clear the capitals below, and narrower than the group, so the
+list stays one part.
+
+The container insets the lines by the larger of the group and its corner's
+radius. The lines form a square-cornered block, and a block is concentric
+with the corner around it only when its own radius is the corner's less
+the distance between them ("Inset"); for a square block that distance is
+the radius. Under a 12 px corner the inset is 12 px, so no line starts
+inside the corner's curve.
+
+The body keeps the meaning to at least 45 characters a line ("Measure"),
+within the container's own bound (half the stage, or the window less the
+card's gap).
+
+## The board
+
+A day row's board (`DayBoardBody`, BENTO_V2.md "Rows open their calendar's
+board") sets its mast and parts in the board's voice (`TYPE_VOICES.board`,
+`day-board.module.css`) and its calendar in the calendar's
+(`TYPE_VOICES.calendar`, `board-calendar.module.css`).
+
+| Voice | Level | Role | Set as |
+|---|---|---|---|
+| board | `name` | caption | The calendar's name: 600, capitals, ink 3; its own script beside it in the board's colour, not capitals. |
+| board | `numeral` | display | The day's number in the calendar, in its own numerals: 600, Space Grotesk, tabular figures, ink. |
+| board | `title` | figure | The value's name beside the numeral: 600, Space Grotesk, as the kin tile sets a kin's. |
+| board | `words` | small | The line under the title, 600, ink 2, each word led by its glyph in the board's colour, the words set apart by a middle dot; what the tradition reads into the value. |
+| board | `part` | caption | A part's name, the calendar's view, Next or Facts: 600, capitals, ink 3, as the card's eyebrow is set. |
+| board | `text` | caption | The view's caption, what comes next and when, the facts: the event's name 500 in ink, its date and the days to it in ink 3, tabular figures. |
+| calendar | `cell` | small | A cell's numeral, 600, tabular figures; its mark a line of it tall. |
+| calendar | `note` | micro | A cell's civil date or name under its numeral, ink 3. |
+| calendar | `head` | micro | The weekdays over the columns, the calendar's weekend in the board's colour; a section's name in capitals. |
+| calendar | `readout` | small | The words of the cell under the pointer or focus, ink. |
+| calendar | `legend` | micro | What each mark and band means, ink 3, each led by its mark or swatch. |
+
+The numeral is a figure, as the digest's is: set beside the title, never
+read as a line of it, so it pairs with nothing. The pairs a reader compares
+are the title and its words, the name and the title, a part's name and its
+text, a cell's numeral and its note, and the readout and the legend. A
+calendar's cell is its two lines at the cell's size and one at the note's,
+tall and wide; a ring's cell is as wide as its longest name, a cell at
+least, and the ring's radius holds them all round its circumference. The
+figure in the mast is as tall as the numeral's line. Each column (Next,
+Facts) keeps the measure (`--type-measure`) at most; the calendar is as
+wide as its cells, and its head, readout and legend wrap to it.
 
 ## Acceptance
 
@@ -383,6 +482,10 @@ own bound (half the stage, or the window less the card's gap).
 - Labels in ink 3 hold 4.5:1 on a selected tile's tint in both themes.
 - Every route in the route table renders at 1440 and 390 with no horizontal
   scroll.
+- Every display text that starts on an edge hangs its first glyph's
+  bearing, and its ink meets the edge within a device pixel plus the
+  table's precision, on the home and the dashboard at 1440 and 390
+  (`display-ink-on-edge`).
 
 ## Second opinion
 
@@ -390,3 +493,5 @@ own bound (half the stage, or the window less the card's gap).
 |---|---|---|---|
 | Independent Claude agent (read-only) | Scale model, roles, leading and tracking derivation, floors, CSS API, enforcement, the readout rail at 1512×768 | 2026-10-30 | Incorporated: wide end from the page width, exact leading and tracking lengths, hero headline at `title`, sign marks at the figure size, tile overflow and tint contrast checks. Moving the rail's button and restyling tiles as rows stay layout questions outside this scale. |
 | Codex (gpt-6-astra, read-only) | Contrast, voices, trimmed lines, marks, faces, the digest's voice and fit | 2026-11-05 | Incorporated. Container-relative (`cqi`) roles stay a separate decision until fit testing asks for another axis. |
+| Codex (gpt-6-astra, read-only) | The day rows' boards: parts, data flow, the board's voice | 2026-11-09 | Incorporated. |
+| Codex (gpt-6-astra, read-only) | The boards' calendars: mast, cells, views, numerals, the calendar's voice | 2026-11-09 | Incorporated. |

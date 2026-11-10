@@ -98,6 +98,19 @@ A birth date alone draws the sky at noon with each body's arc for that day
 rising sign wait for a birth time and place. The atlas states what it lacks
 instead of guessing.
 
+**Currents.** Where a map is shown as the product at rest (the v2 home's
+map and the dashboard's, `MapWindow`), each channel the person has defined
+carries a current, one from each of its gates' mouths to the channel's
+middle (`GATE_HALVES`), so the two gates read as meeting in one channel. The
+currents are their own layer over the drawing (`aria-hidden`, paint
+contained), following the drawing's zoom: a dash a quarter of each gate's
+half, the lane's width, in the lane's colour lifted halfway to white, once
+every two `--dur-current`. They start when the map's entrance has landed,
+run only while the map is on screen and motion is allowed, and pause with
+the body layer's dim when a mark is read or another layer is brought
+forward (BENTO_MOTION.md, "Loops"). A drawing of two people or a circle
+carries no channel currents: there the ties are the subject.
+
 Every atlas ships with a text model beside it: the readout table states each
 layer's values, so the SVG carries no meaning a screen reader would miss.
 Below 720px the atlas drops to two rings at a time, chosen by the layer
@@ -350,7 +363,13 @@ toward the inline start, top edges aligned; where they sit in a row (the
 map figure, the layers legend) it sits above the tile (`cardAt="above"`).
 Both are in logical terms, so a right-to-left page mirrors them. Where that would leave the viewport it
 tries, in order, the same side flipped along the block axis, the other
-side, then below and above the tile (`position-try-fallbacks`). Under
+side, beside the tile centred in the window's height (a card taller than
+the room above or below its tile), then below and above the tile
+(`position-try-fallbacks`). A board (BENTO_V2.md, "Rows open their
+calendar's board") takes the room beside its row, wrapping its parts down
+to a measure, tries either side growing down, up or centred, and where
+neither side has room stands centred in the window over the page. Chromium
+tries no more than five fallbacks, so each kind of card lists five. Under
 720 px, and in a browser without `position-area` (which includes the
 releases that shipped only `inset-area`), it docks to the bottom of the
 viewport and scrolls within half its height. It fades in; it fades out in
@@ -359,6 +378,18 @@ elsewhere rather than fall back into its column. No script measures or
 places it and nothing listens to scroll. The active fact is described by
 the card (`role="tooltip"`, `aria-describedby`); the card holds no
 controls.
+
+The card is one component for every list of facts (`FactCard`, its styles
+in `fact-card.module.css`), and a button opens it through one wiring
+(`factTarget`). It reads only the anchor name its list sets and the kit's
+tokens, so it looks the same under the digest and under the v2 day rows
+(BENTO_V2.md, "Rows open their calendar's board"). What it holds is its
+list's: the digest's card body, or a calendar's board. The wiring takes the
+relation between button and card: a card that `describes` its fact is a
+tooltip, as above; a board a row `controls` is a disclosure
+(`aria-expanded`, `aria-controls`), a group named by the row, which a
+keyboard enters and leaves with Escape, focus handed back to the row
+(`useDismiss`'s `returnFocus`).
 
 **Loading.** The meanings load with `useExplain`, after first paint or on
 the first pointer or focus in the digest. Until then a card shows its head.
@@ -395,10 +426,21 @@ drawing writes each key on the mark's own group as `data-mark`.
 | tone | Kin | the bar-and-dot mark | always |
 | centre | Body | the centre's layout position and size | a bodygraph is drawn, 9 |
 | channel | Body | the channel's polyline, anchored at its length midpoint | the channel is defined |
-| gate | Body | the gate mouth | the gate is active outside a defined channel |
+| gate | Body | its half of each of its channels, from its mouth to the channel's midpoint, anchored at the middle of what shows of its first half in the engine's channel order | the gate is active outside a defined channel |
 
 A channel draws its own two gates, so gates inside a defined channel are
-not marks. Without a bodygraph the layer draws its outline and has no
+not marks. Every active gate lights its half of each of its channels that
+is not defined, as a hanging gate prints: an integration gate inside a
+defined channel still lights its halves of the other two. Like every lane a
+half runs under the centres, so it leaves its centre's edge as a channel
+does and never sits behind it. Halves end square at the midpoint, so a half
+reads as half. `CHANNEL_HALVES` and `GATE_HALVES` (`bodygraph-layout.ts`)
+hold the halves for every bodygraph renderer, and each gate half carries
+what shows of it past its own centre, where its mark anchors. A line mark
+holds one polyline or several, and the pointer measures to the nearest. A
+centre is an area mark: the pointer inside its drawn outline
+(`centerOutline`) is on it, so a lane leaving its edge answers for its gate
+right up to the shape. Without a bodygraph the layer draws its outline and has no
 marks. The Numerology layer is drawn by the strip and the digest, not inside
 the drawing, so it has none either.
 
@@ -487,8 +529,8 @@ answering.
 
 **Card.** From the top: the eyebrow (the layer's pin number and name,
 keyed by a short stroke of the layer colour), the label, the value, the
-meaning, and the facts row, in the card's voice (BENTO_TYPE.md, "The
-card"). Every string is set as text.
+meaning, and the facts in two aligned columns, in the card's voice
+(BENTO_TYPE.md, "The card"). Every string is set as text.
 The surface is the pins' glass. The card hangs from its mark toward the
 drawing's centre on both axes, set off by the mark's halo and never closer
 than half the least target, no wider than its measure or half the drawing
@@ -500,11 +542,25 @@ and placed again whenever the card or the drawing resizes. Under 720 px, where t
 hidden, it docks to the drawing's edge away from its mark, so it never
 covers what it describes.
 
-**Micro-interactions.** The active point mark gets an outline ring in its
-layer colour, off the mark by the 2 px surface gap (`HALO_GAP`), which
-draws itself in (`quick`, `emphasized`); it is drawn inside the mark's
-layer group, so it turns with its ring. Its related marks keep full
-strength while every other mark dims to the opacity the layer switch uses
+**Micro-interactions.** The active point or area mark gets an outline
+ring in its layer colour, off what the mark paints by the surface gap
+(`HALO_GAP`, 2 units at the drawing's 640-unit design size) and following
+its shape (`haloOf`): a circle round a point mark, and round a centre its
+outline's concentric path (`concentricPath`: each edge moved out, each
+corner rounded about its vertex, so every point stands the same distance
+off the outline). A centre is stroked at `MARK_SIZE.centreStroke` with
+round joins, so it paints half that stroke past its outline all round; its
+halo stands the gap off that paint, and its radius, which the card stands
+off, is how far that paint reaches across. The ring draws itself in
+(`quick`, `emphasized`); it is drawn inside the mark's layer group, so it
+turns with its ring. A line mark lights its stroke instead. A point or
+line mark's target shows keyboard focus with its own outline; a centre's
+target draws its focus ring along the centre's outline, a surface gap off
+its halo (`focusRingOf`), in ink at 2 px (the system highlight under forced
+colours). It shows on the target's own focus, apart from the card, so it
+stays when Escape closes the card, and it sits outside the drawing's
+layers, so no layer dimming reaches it. The active mark's related marks
+keep full strength while every other mark dims to the opacity the layer switch uses
 (`--atlas-dim`), over `quick`. While the switch holds a layer forward, only
 that layer's marks dim; the layers it already dims stay at one dim, never
 dimmed twice. A defined channel that is active or related
@@ -525,6 +581,130 @@ which is already in the first bundle with the marks, their geometry and
 their relations. `client-bundle.test.ts` keeps `explain.ts`, and the long
 tables only it reads (`dreamspell-meanings.ts`, the engine's gate table),
 out of every static client import graph.
+
+### Ties explain themselves
+
+Where two people are drawn to be read (`PairStage`: the v2 home's Two
+people), the pair drawing answers like a person's atlas:
+every mark of both maps and every tie drawn between them answers the
+pointer, a tap and the keyboard with a card, and the tie list beside the
+drawing answers with it. The ties are the drawing's subject, so a tie leads:
+it lights its line, its two ends and its row, and its card says what it
+is, how rare it is, and what it joins. The public tools and the dashboard
+draw the same art with `PairDrawing`, which does not answer.
+
+**One view, any drawing.** The nearest-mark layer, its keyboard toolbar
+and the card read a view (`{ width, height }`, drawing units) instead of
+the person atlas's 640-unit square: placing a target, mapping the pointer,
+the least target's reach, the in-view test, the card's gap, side and dock.
+The narrow-screen zoom scales about the view's centre. Reading a ring's
+live turn is the person stage's own: the pair's rings stand still, so it
+reads none. The reference a mark carries is generic, so the pair adds no
+second targets layer, card or reducer. The pair draws a landscape and a
+portrait frame and shows one; each frame holds its own targets, halos and
+card, so only the frame on screen has buttons. Each frame sets its drawing
+in a box of the view's own shape (`data-pair-view`), as large as its slot
+holds and centred in it, so the targets and the card read the drawing's
+box, never a letterboxed one.
+
+**Frame.** `pairLayout(pair, orientation)` is the pair's geometry, pure:
+the maps' origins, the bow, the arcs' lifts, the names, and each drawn
+tie's ends, curve and label pill. The drawing and the marks both read it,
+so a tie answers where it is drawn.
+
+**Ends.** `tieEnds(tie, pair)` names the mark a tie touches in each map:
+the planets an astrology tie names; for Dreamspell, the tone for a tone
+tie, and for an oracle tie (guide, analog, antipode, occult, of the kin or
+of the seal) the one person's own seal and the seat it takes in the
+other's oracle, which holds the same seal (the person acted on holds the
+seat, else the second person, as long as their oracle does; a relation
+neither oracle holds joins the two own seals); the own seal for any other
+Dreamspell tie and for a Tzolkin tie; the centre a Human Design tie names,
+or the lane that carries the gate it names: the channel the person holds
+whole, else the lone gate, else the first of the person's channels through
+it. The line ends at that mark's placed anchor, so it meets the glyph
+where the glyph is drawn, spread or not, held off it along the curve by
+`standoff` (the mark's radius and the halo's gap, or for a centre where
+the ray leaves its outline by its paint and the gap) and by the end mark
+it carries there (the dot it leaves from; an arrow's tip touches the
+halo). A tie that names no mark (a split bridge, an electromagnetic tie
+without its channel, a number tie, whose strip sits outside the drawing)
+ends where `tieAnchor` puts it and lights no end mark.
+
+**Pair marks.** `placePairMarks(pair, layout)` places both people's marks with
+`placeMarks`, moved to each map's origin (anchor, lines and outline
+alike), keyed by side (`a:planet:sun`, `b:centre:g`), and adds a mark per
+drawn tie keyed by its place in the reading (`tie:3`): its label pill's
+stadium outline as its area, so the pointer anywhere on the pill is on the
+tie, and its curve
+as its line, sampled and clipped to outside both maps' outer rings, so
+inside a map the marks answer and a tie answers through its end mark.
+Labels draw after every line, so the pill that answers is on top.
+
+**Lighting.** An active tie draws at full ink and its stroke widens by a
+halo gap each side; its two end marks take their halos; every other tie
+(its art, `data-tie-art`; the currents keep their own rule, "Motion") and
+every mark it does not touch dims to `--atlas-dim`. An active mark
+lights as on one atlas (its halo, its relations) and lights every tie it
+ends, with that tie's other end, haloed. `pairLighting` says what is lit;
+the art renders once per pair, and the stage writes `data-state` on the
+few marks and ties lit (`keySelector` finds them: a tie's groups carry
+its key, a mark is its map's `data-mark` inside its person's
+`data-person`) and `data-inspect` on its root, which owns the dim. Each
+tie's keyed group owns the opacity reading dims; the group inside it
+carries the tie's own ink. The halos sit in a small layer above the art.
+So a pointer moving over the drawing re-renders no glyph, and the nodes
+the entrance animates stay the nodes on screen. The drawing's tokens
+(`--atlas-*`) are one block shared by the person atlas and every drawing
+that sets `.tokens`. The row of an active tie is marked current
+(`aria-current`). The pointer resting on a row lights its tie on the
+drawing and opens no card, since a card away from the pointer would be
+content it did not ask for (WCAG 1.4.13); focus on a row reads its tie
+and opens its card, a press keeps it, and a press anywhere in the list
+does not close it, so the list and the drawing are one control. A row whose tie is too
+common to draw has no line to light: it lights the marks the tie ends on,
+and its card hangs from the first of them, or from the drawing's centre
+when the tie names none.
+
+**Tie card.** The same body as a mark's card (`CardBody`): the eyebrow
+("Tie" and the system: "Tie · Dreamspell"; the pair draws no pins, so
+its eyebrows name none), the label
+(the tie's name), the value (its odds, "1 in 263"), the meaning, and the
+facts, named by `TIE_FACT`: who it is between (`tieBetween`, "Ari is
+Maya's guide"), its tier, its weight in bits, and each end in the person's own words ("Maya: Yellow
+Seed, Guide") from `markTitle` of the end mark. Every line comes from
+`tieView` (`tie-text.ts`) and `markTitle`; no copy is written
+(`pair-card.ts`). A mark's card on the pair names its person in the
+eyebrow ("Maya · Sky"), and each target names its person or its tie to
+assistive technology ("Maya, Sun: Pisces 23°", "Tie, Guide: 1 in 263").
+
+**Keyboard.** One toolbar holds the drawn ties first, rarest first, then
+the first person's marks, then the second's, each in its atlas's reading
+order, with one roving tab stop. Each row of the list is its tie's button,
+described by the tie's card: focus reads the tie, Enter or a press keeps
+it. So every listed tie, drawn or too common to draw, is reachable from
+the keyboard, and the list is the drawing's description.
+
+**Motion.** As the drawing enters, the ties draw rarest first and each
+tie's ends and label land after its line (BENTO_V2.md, "Home" 4). Once the
+draw-in has landed, while the drawing is in view and motion is allowed
+(BENTO_MOTION.md, "Policy"), each drawn tie carries a current: a bright
+dash a twelfth of its line running its length from the person who acts to
+the one acted on, or from the first person to the second when the tie has
+no direction, once per `--dur-current` (`DURATION.current`, twice a draw),
+with rarer ties brighter; the pattern repeats once per line, so the next
+dash enters as one leaves. The draw-in reports its landing (`drawLines`'
+`onLanded`, at once when it does not arm), and the stage marks itself in
+view (`data-in-view`). The currents are their own layer (`aria-hidden`,
+paint contained, masked out of the labels), so their repaint stays off the
+maps. A lit tie's current runs at full ink and the others pause with their
+dim. With motion off the lines stand still at their final state and lose
+nothing.
+
+**Data.** The pair's atlas reaches the browser whole (about 14 KB of
+JSON for the example pair), because every mark and tie on it answers, and
+the browser draws it; the meanings load as a person's do (`useExplain`).
+The circle drawing, whose lines carry no card, stays drawn on the server.
 
 ## Public tools (T2)
 

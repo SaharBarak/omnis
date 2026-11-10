@@ -51,12 +51,13 @@ This file lists all images that require attribution under their respective licen
 ### Dreamspell
 
 **Mayan Day Signs / Seals** (`/dreamspell/seals/`)
-- Source: Wikimedia Commons
-- License: CC-BY-SA 3.0
-- Authors: Various contributors
-- Files: 01-dragon.svg (Imix) through 20-sun.svg (Ahau)
-- URL: https://commons.wikimedia.org/wiki/Category:SVG_Maya_glyphs
-- Note: Original Mayan names: Imix, Ik, Akbal, Kan, Chicchan, Cimi, Manik, Lamat, Muluc, Oc, Chuen, Eb, Ben, Ix, Men, Cib, Caban, Etznab, Cauac, Ahau
+- Source: Wikimedia Commons, the `MAYA-g-log-cal-DNN-<Name>.svg` series (standard inscription form), day NN for seal NN
+- Author: Bluebalam, traced (ImageMagick and Potrace) after the drawings by CJLL Wright
+- License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
+- Changes: fill set to `currentColor` and a `<title>` added naming the seal and its source; the paths are unchanged
+- Files: 01-dragon.svg (Imix) through 20-sun.svg (Ahau); the same files ship in the app (`packages/mobile/assets/glyphs/dreamspell/seals/`)
+- Per-file source, author and licence: `src/lib/design/day-signs.sources.json`, written by `npm run glyphs:seals`, which checks each licence on Commons before it writes a file
+- URL: https://commons.wikimedia.org/wiki/Category:Maya_glyphs_of_days
 
 **Dreamspell Tones** (`/dreamspell/tones/`)
 - Source: Created for Pleiad Project

@@ -46,7 +46,9 @@ were extracted frame by frame and re-rendered in greyscale; see
 | 12 | Chart | "What a tie is worth": bits for five tie types | `surprisal()` |
 | 13 | Orbit | ASCII sky sphere, three live labels | `getTodayAcrossSystems()` |
 
-## Composition B — `/lab/bento-v2` (notched media)
+## Composition B — notched media
+
+Composition B's notched panels became the kit's `Notch`. The path `/lab/bento-v2` now serves Bento v2, the scrolled composition (BENTO_V2.md).
 
 | # | Slot | Pleiad content | Data source |
 |---|---|---|---|
@@ -105,7 +107,7 @@ composition B is that primitive at a different corner.
 | Glyph path rule | `src/lib/design/glyph-paths.ts` |
 | Kit (shared primitives) | `src/components/bento-lab/` — `LabRoot`, `ArtCanvas`, `PixelVideo`, `Notch`, `ThemeToggle`, `MotionToggle`, `lab-state`, `useCanvasLoop`, renderers |
 | Composition A | `src/app/lab/bento/` |
-| Composition B | `src/app/lab/bento-v2/` |
+| Bento v2 (successor to B) | `src/app/lab/bento-v2/`, kit in `src/components/bento-v2/` (BENTO_V2.md) |
 | Lab shell | `src/app/lab/layout.tsx` (noindex, route strip) |
 | Wireframe pipeline | `scripts/wireframe-extract/`, output in `docs/redesign/bento-lab/wireframes/` |
 

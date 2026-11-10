@@ -77,6 +77,7 @@ the convention for an error.
 | `action`, `onAction`, `actionHover`, `actionGlow` | `--action`, `--on-action`, `--action-hover`, `--action-glow` | spark and night | "The primary action" |
 | `sparkMark` | mark only | the window solved to 3:1 on the tile | dark: the window; light: deeper gold |
 | Layers | `--layer-*`, `--sys-*`; `--on-layer-*` | the rectangle | "Layers" |
+| Source colours | `--tint-*`; `--on-tint-*` | the named sRGB colours, danger's chroma | "Source colours" |
 | `danger` | `--danger` | red, h 28 | solved for 4.5:1 |
 
 **Warm signals, cool structure.** The accent, cool, carries structure:
@@ -166,6 +167,34 @@ form is the cue, as WCAG 1.4.1 asks.
 **Text never wears a layer colour.** A layer colours its mark, glyph, pin,
 tile border and tint. Numbers and words beside it are ink.
 
+## Source colours
+
+A tradition's own colours, for the boards (BENTO_BOARDS.md "Source
+colours"): Dreamspell's red, white, blue and yellow, the elements, the
+Chinese five phases, the bright and dark halves of the Hindu month. One
+closed set, `red`, `yellow`, `green`, `blue`, `white`, `black`, emitted as
+`--tint-*` with `--on-tint-*` for a label on each.
+
+- **Chromatic four.** Each hue is its named sRGB colour's hue in OKLCH
+  (`PaletteSpec.sourceColours`: `#ff0000`, `#ffff00`, `#008000`,
+  `#0000ff`), at the palette's signal chroma (danger's, 0.19), so a source
+  colour is as saturated as the page's strongest signal. Lightness is solved
+  per theme by `solveCategorical` (`tintProblem`) into the same generated
+  table as the layers, under the layers' band, mark and label gates.
+- **Pair floor.** Every pair is held at the role gate (ΔE 12) under full
+  colour vision. Four saturated primaries cannot also clear the
+  colour-deficient floor inside the dark theme's band (red and green meet
+  for deutan vision at equal lightness), so a source colour always travels
+  with a form that names it, its glyph or its words, as WCAG 1.4.1 asks;
+  the solver's score still ranks every set by its colour-deficient
+  distance (`CategoricalProblem.floors`).
+- **Neutral extremes.** `white` is the light theme's paper and `black` the
+  dark theme's night, the same in both themes, told apart by form: white an
+  outlined ground, black a filled one.
+- **No role gate.** A source colour is drawn only as a board's cell ground,
+  swatch or mark, a form no brand role takes. Text never wears one; a label
+  on one takes `--on-tint-*`.
+
 ## The mark
 
 The dark theme reproduces the anchors exactly. In the light theme, on a
@@ -203,6 +232,59 @@ with what holds each value:
 | Action hover step, 0.12, and glow strength, 0.45 | `PaletteSpec.action` | the action's label gates |
 | Gate values | `CATEGORICAL_GATES`, `FLOORS` | the data-visualisation method and WCAG |
 
+## Inverse sections
+
+A page built as a run of sections reads as one block when every section
+sits on the same ground. Sections are told apart by light and dark, not by
+hue: **an inverse section is the other theme's palette, whole**. In the dark
+theme it is a paper section; in the light theme, a night one. Its surfaces,
+ink tiers, accent, action, layers, mark and shadows are the other theme's,
+already held to every gate below, so a section changes ground without a
+single colour authored for it. Gold stays the one warm call to action
+("Proportion"); no section is tinted.
+
+**Scope.** An inverse section is an element carrying
+`data-chapter="inverse"` inside the lab root (`CHAPTERS` in
+`palette-ids.ts`; `schemeOf(theme, chapter)` names the theme it resolves
+in). LabRoot writes, per palette and theme, one rule on
+`[data-lab][data-palette][data-theme] [data-chapter="inverse"]` with every
+palette variable of the other theme, and its increased-contrast overrides
+inside `@media (prefers-contrast: more)`.
+
+**Scheme.** What follows a theme rather than a palette's colours is the
+scheme (`scheme.ts`): the mark's tones, the elevation scale,
+`color-scheme`, and the theme-dependent values components read
+(`SCHEME_VARS`: glyph inversion, the glass mix, the starfield's strength,
+the layers stage's field and plate edge). Components read these variables,
+never a `[data-theme]` selector, so an inverse section's glyphs, glass and
+starfield follow it. The grain is one fixed layer over the whole page, so it
+stays in the page's scheme (`PAGE_VARS`, written on the root only). Every alias that mixes palette variables (`--lab-glass`,
+`--lab-highlight`, and a consumer's own, such as the v2 frame's
+`--inset-fill`) is declared again on the section: a custom property
+resolves where it is declared and inherits as a value.
+
+**Canvas.** Renderers read paint from `paintRoot`, the nearest
+`[data-chapter]` or else the lab root, and repaint when the theme or
+`prefers-contrast` changes. Theme, palette and motion are still read from
+and written to the lab root. A canvas sizes its bitmap from its layout box,
+not its painted one, so a scale on an ancestor (a plate opening) never
+under-resolves it.
+
+**Static, never nested.** A section's chapter is set in the server markup
+and does not change after it renders, so paint scopes are found once. A
+chapter never holds another: the inverse of an inverse would need a third
+rule, and nothing calls for one.
+
+**Glare.** A paper section beside night is held in check by rarity, not by
+a dimmer paper (BENTO_V2.md keeps at most two). The light layer set sits at
+the edge of its gates: a layer takes a label in the ground's own colour at
+4.5:1 and must stay 3:1 on the darkest text surface, so any lower ground or
+uniform dim of the light surfaces leaves no lightness set that clears the
+categorical gates. A dimmer paper needs a new layer set first.
+
+**Forced colours.** The system palette replaces both grounds, so an inverse
+section draws a `CanvasText` edge to stay a section.
+
 ## One palette
 
 The site has one palette, `lantern`. The module keeps its shape (a list of
@@ -236,3 +318,4 @@ generator and the tests.
 | Reviewer | Scope | Date | Status |
 |---|---|---|---|
 | Codex CLI (gpt-6-astra) | Harmony and roles, solver architecture, action rule, contrast modes, P3, focus, chart text | 2026-11-02 | Incorporated |
+| Codex CLI (gpt-6-astra) | Inverse sections: scope, scheme variables, canvas paint root | 2026-11-07 | Incorporated |
