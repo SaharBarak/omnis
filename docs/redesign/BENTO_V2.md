@@ -1,7 +1,10 @@
 # Bento v2: the scrolled site
 
-Bento v2 is a second composition of the Pleiad site, built beside the bento
-site (`/lab/bento`, BENTO_SITE.md) at `/lab/bento-v2`. It takes the grammar
+Bento v2 is the production composition of the Pleiad site: the home and
+Draw your map at the root (`src/app/(home)`) and the signed-in app at `/app`,
+beside the bento site's pages it links to for everything it does not build
+(`src/app/(marketing)`, BENTO_SITE.md); V2_PROMOTION.md records how the tree
+took the root. It takes the grammar
 of the Zeus "bento-v2" landing (reference copied verbatim to
 `design/zeus-rebrand-live/`; serve that folder and open
 `live/landing/index.html` and `live/portals/index.html`) and speaks it in
@@ -233,7 +236,7 @@ becomes "GSAP is imported only inside the v2 roots".
 | Close in | section top at bottom → top at 15 %, scrub | mark 0 → 1 |
 | Close line | section top at 60 % → bottom at bottom, scrub | footer rule draws (`--line` 0 → 1) |
 
-## Home (`/lab/bento-v2`)
+## Home (`/`)
 
 Seven frames, sized and stacked by the layout rules below, fitted at
 1440 × 860 and 1280 × 720, stacked below 900 px.
@@ -510,7 +513,7 @@ and the dashboard (`src/components/bento-v2`).
   a ring is `GlyphDisc`: the ring is the disc's own border, outside the mask,
   sized by `--disc` and tinted by `--disc-ring`.
 
-## Dashboard (`/lab/bento-v2/app`)
+## Dashboard (`/app`)
 
 The reference's portal grammar with the account's own data. Gated like v1
 (`GATES` row for the v2 prefix; login is the bento site's, returning here),
@@ -556,7 +559,7 @@ other people than the ones asked for reads as not ready, so an old drawing
 never sits under a new name. The dashboard has no scroll engine: its
 drawings show at rest.
 
-## Draw your map (`/lab/bento-v2/map`)
+## Draw your map (`/map`)
 
 ### Problem class
 
@@ -700,7 +703,7 @@ editor (`MapEditor`).
 
 ### Acceptance
 
-- `/lab/bento-v2/map` renders the sample on the server; typing a date draws
+- `/map` renders the sample on the server; typing a date draws
   the visitor's map; the steps follow `sketchSteps` (unit tests for every
   combination of date, hour and drawn).
 - The cookie holds only what the share schema accepts, is `HttpOnly` and
@@ -728,10 +731,10 @@ editor (`MapEditor`).
 
 ### Problem class
 
-Every signed-in interface of the bento app (`/lab/bento/app/*`: people,
-a person, a pair, circles and a circle, the calendar, the library and its
-articles, settings, the six system pages) lives in v2 as well, in v2's
-language, and every link inside it stays in v2. The population is fifteen
+Every signed-in interface of the app (`/app/*`: people, a person, a pair,
+circles and a circle, the calendar, the library and its articles, settings,
+the six system pages) speaks v2's language, and every link inside it stays
+in v2. The population is fifteen
 routes over one set of components (`src/components/bento-lab/{app,people,
 systems,docs,site}`) whose links were spelled for the bento site alone.
 
