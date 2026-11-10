@@ -30,6 +30,7 @@
     "palette:tones": "tsx scripts/design/palette-tones.ts",
     "type:bearings": "tsx scripts/design/face-bearings.ts",
     "glyphs:seals": "tsx scripts/design/day-signs.ts",
+    "gen:mobile-theme": "tsx scripts/design/gen-mobile-theme.ts",
     "texture:sky": "tsx scripts/textures/sky.ts",
     "ingest:knowledge": "npx tsx packages/scraper/src/ingest.ts",
     "ingest:knowledge:dry-run": "npx tsx packages/scraper/src/ingest.ts --dry-run",
