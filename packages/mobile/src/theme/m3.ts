@@ -144,9 +144,6 @@ export const TOUCH_TARGET = 48
 // Elevation — in M3, a raised surface is a *tinted* surface, not a shadowed one.
 // ---------------------------------------------------------------------------
 
-/** Surface-tint opacity per elevation level (M3 dark + light both use these). */
-const TINT_OPACITY = [0, 0.05, 0.08, 0.11, 0.12, 0.14] as const
-
 export type ElevationLevel = 0 | 1 | 2 | 3 | 4 | 5
 
 /**
@@ -276,21 +273,30 @@ export interface M3Theme {
   readonly dark: boolean
   readonly colors: M3ColorScheme
   /**
-   * The colour of a surface at an elevation level — `surfaceTint` composited
-   * over `surface` at the level's opacity. This is what "raised" means in M3.
+   * The colour of a surface at an elevation level. Bento depth
+   * (docs/redesign/MOBILE_V2_MATCH.md): a discrete tier, not an M3 surfaceTint
+   * composite — the surface climbs ground → surface1 → surface2 → chip as the
+   * level rises, so a raised surface is a distinct paper, not a tinted one.
    */
   readonly surfaceAt: (level: ElevationLevel) => string
 }
 
 function buildTheme(colors: M3ColorScheme, dark: boolean): M3Theme {
-  // Precomputed: six blends per theme, resolved once, not on every render.
-  const surfaces = TINT_OPACITY.map((opacity) =>
-    blend(colors.surface, colors.surfaceTint, opacity)
-  )
+  // The Lantern surface tiers, addressed by elevation level. These are the
+  // bento-mapped M3 container roles, so every surfaceAt() consumer across the
+  // app gets bento depth from this one place.
+  const tiers = [
+    colors.surface,
+    colors.surfaceContainerLow,
+    colors.surfaceContainer,
+    colors.surfaceContainerHigh,
+    colors.surfaceContainerHighest,
+    colors.surfaceContainerHighest,
+  ] as const
   return {
     dark,
     colors,
-    surfaceAt: (level) => surfaces[level] ?? colors.surface,
+    surfaceAt: (level) => tiers[level] ?? colors.surface,
   }
 }
 
