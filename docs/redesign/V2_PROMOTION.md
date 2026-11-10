@@ -147,9 +147,12 @@ The fix is verified under `next start` but not yet on workerd. Before pleiad.io:
    is run once more with those vars exported, or the tested artifact is uploaded rather
    than rebuilt, so what ships is what was proven.
 
-Stay on OpenNext 1.19.11 and Wrangler 4.100: OpenNext 1.20.x needs Wrangler ^4.148.
-`package-lock.json` is the CI lockfile; `pnpm-lock.yaml` is stale and is regenerated or
-removed in this change so the two do not disagree on Next's version.
+Next 16.4, OpenNext Cloudflare ≥1.20.16 (which pins @opennextjs/aws 4.1.15) and
+Wrangler ^4.148 move as one change: OpenNext 1.19 inlines only the manifests it knows
+and throws `Unexpected loadManifest(server/preview-props.json)` on every SSR route
+under Next 16.4, and 1.20 is the line that globs that manifest ("Next 16.4+") and in
+turn requires Wrangler ^4.148. `package-lock.json` is the CI lockfile; `pnpm-lock.yaml`
+is removed in this change so the two do not disagree on Next's version.
 
 ## Indexing
 

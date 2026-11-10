@@ -781,11 +781,14 @@ systems,docs,site}`) whose links were spelled for the bento site alone.
   leave that transition suspended with no ping, so an edit saves but the
   page keeps its old render until the next interaction, intermittently
   and only in production builds (vercel/next.js#86055, fixed by
-  react#36134). OpenNext Cloudflare's own floor moves with Next's. Open:
-  the adapter moves separately (OpenNext Cloudflare 1.19 to 1.20 with
-  Wrangler 4.148), after a Worker preview of repeated edits, prefetched
-  navigation and back and forward; `pnpm-lock.yaml`, beside the npm
-  lockfile CI installs from, still records an older Next.
+  react#36134). The adapter moves with it: Next 16.4 reads
+  `server/preview-props.json`, which OpenNext Cloudflare inlines from
+  1.20 (with `@opennextjs/aws` 4.1.15 and Wrangler 4.148); an older
+  adapter throws on that read and every server-rendered route answers
+  500 on the Worker. Next, OpenNext Cloudflare and Wrangler therefore
+  move as one change, proven on a Worker preview by repeated edits,
+  prefetched navigation and back and forward. Open: `pnpm-lock.yaml`,
+  beside the npm lockfile CI installs from, still records an older Next.
 
 ### Appearance
 
@@ -947,4 +950,4 @@ is owner-scoped, as in v1.
 | Codex (`gpt-6-astra`) | the boards' calendars: mast, cells, overview switch, noon rule, crossings, numerals, grid keyboard | 2026-11-09 | incorporated |
 | Codex (`gpt-6-astra`) | the app in v2: tree-aware links, shared page bodies, appearance variants, flow list | 2026-11-09 | incorporated |
 | Codex (`gpt-6-astra`) | the app in v2, implementation review: record edits, dialogs, rail count, framed sections | 2026-11-09 | incorporated |
-| Codex (`gpt-6-astra`) | the framework floor: a refresh left suspended under `loading.tsx`, Next 16.4 against an app-level workaround, adapter versions | 2026-11-10 | incorporated; the OpenNext/Wrangler bump and a Worker-preview check left open |
+| Codex (`gpt-6-astra`) | the framework floor: a refresh left suspended under `loading.tsx`, Next 16.4 against an app-level workaround, adapter versions | 2026-11-10 | incorporated |
