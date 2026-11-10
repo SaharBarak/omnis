@@ -7,6 +7,7 @@
  * Elongation is accurate to a degree or two — far inside the 45° width of
  * a phase octant.
  */
+import { Body, Illumination } from 'astronomy-engine'
 import { getCurrentPlanetaryPositions } from './astrology'
 
 export const MOON_PHASES = [
@@ -32,7 +33,8 @@ export interface MoonReading {
   readonly illumination: number
 }
 
-const SYNODIC_MONTH = 29.530588853
+/** The mean synodic month, in days. */
+export const SYNODIC_MONTH = 29.530588853
 
 /** Sun→Moon elongation for a calendar date (degrees, 0-360). */
 export function getMoonPhaseAngle(date: string): number {
@@ -48,15 +50,24 @@ export function angleToPhaseIndex(angle: number): number {
   return Math.floor((((angle + 22.5) % 360) + 360) / 45) % 8
 }
 
-export function getMoonReading(date: string): MoonReading {
-  const angle = getMoonPhaseAngle(date)
+/**
+ * The Moon's lit fraction at an instant, as seen from the Earth's centre:
+ * astronomy-engine's `Illumination` phase fraction, from the phase angle
+ * between the Sun and the Earth as seen from the Moon in three dimensions
+ * (the Moon's latitude and both distances counted), not from the ecliptic
+ * elongation alone.
+ */
+export const moonIllumination = (at: Date): number => Illumination(Body.Moon, at).phase_fraction
+
+/** The Moon's phase at a Sun–Moon elongation, in degrees, and its lit fraction (`moonIllumination` at the same instant). */
+export function moonReadingAt(angle: number, illumination: number): MoonReading {
   const phaseIndex = angleToPhaseIndex(angle)
-  return {
-    angle,
-    phase: MOON_PHASES[phaseIndex],
-    phaseIndex,
-    illumination: (1 - Math.cos((angle * Math.PI) / 180)) / 2,
-  }
+  return { angle, phase: MOON_PHASES[phaseIndex], phaseIndex, illumination }
+}
+
+/** The Moon's reading for a date, at noon UTC, as every daily value is read. */
+export function getMoonReading(date: string): MoonReading {
+  return moonReadingAt(getMoonPhaseAngle(date), moonIllumination(new Date(`${date}T12:00:00Z`)))
 }
 
 export interface Lunation extends MoonReading {

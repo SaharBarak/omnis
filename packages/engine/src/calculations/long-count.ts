@@ -1,10 +1,8 @@
 import { asJulianDay, type JulianDay } from '../core/types'
+import { HAAB_DAYS, HAAB_MONTH_DAYS, HAAB_MONTH_TABLE, haabMonth } from '../data/haab-months'
 import { gregorianToJDN, parseDate } from './julian'
-import { dateToTzolkin } from './tzolkin'
+import { GMT_CORRELATION, daysSinceEraBase, dateToTzolkin, tzolkinOfDays } from './tzolkin'
 import type { TzolkinDay } from '../types/tzolkin'
-
-// GMT correlation constant (same as used in tzolkin.ts)
-const GMT_CORRELATION = 584283
 
 /** Days in one unit of each Long Count place. */
 export const PLACE_DAYS = Object.freeze({ kin: 1, winal: 20, tun: 360, katun: 7200, baktun: 144000 })
@@ -18,26 +16,15 @@ const DAYS_PER_BAKTUN = PLACE_DAYS.baktun
 // Calendar Round cycle length (52 Haab years = 18,980 days)
 const CALENDAR_ROUND_DAYS = 18980
 
-// Haab epoch offset: on 0.0.0.0.0, the Haab was 8 Kumku
-// 8 Kumku = month 17 (Kumku is index 17), day 8
-// Position in Haab cycle: 17 * 20 + 8 = 348
-const HAAB_EPOCH_OFFSET = 348
+/** The era base's Haab' day, 8 Kumk'u: its place in the Haab' year, from 0 Pop. */
+const BASE_HAAB = { month: HAAB_MONTH_TABLE.findIndex((m) => m.name === "Kumk'u"), day: 8 }
+const HAAB_EPOCH_OFFSET = BASE_HAAB.month * HAAB_MONTH_DAYS + BASE_HAAB.day
 
-// Haab month names in order (0-17 regular months, 18 = Wayeb)
-export const HAAB_MONTHS: readonly string[] = Object.freeze([
-  'Pop', 'Wo', 'Sip', 'Sotz\'', 'Sek',
-  'Xul', 'Yaxkin', 'Mol', 'Chen', 'Yax',
-  'Sak', 'Keh', 'Mak', 'Kankin', 'Muwan',
-  'Pax', 'Kayab', 'Kumku', 'Wayeb\''
-])
+/** Haab' month names in order, 0 Pop to 18 Wayeb' (`data/haab-months.ts`). */
+export const HAAB_MONTHS: readonly string[] = Object.freeze(HAAB_MONTH_TABLE.map((m) => m.name))
 
-// Hebrew translations for Haab months
-export const HAAB_MONTHS_HEBREW: readonly string[] = Object.freeze([
-  'פופ', 'וו', 'סיפ', 'סוץ', 'סק',
-  'שול', 'יאשקין', 'מול', 'צ\'ן', 'יאש',
-  'סאק', 'קה', 'מאק', 'קנקין', 'מואן',
-  'פאש', 'קאיב', 'קומקו', 'ואייב'
-])
+/** Hebrew transliterations of the Haab' months, in the same order. */
+export const HAAB_MONTHS_HEBREW: readonly string[] = Object.freeze(HAAB_MONTH_TABLE.map((m) => m.hebrew))
 
 // Long Count interface
 export interface LongCount {
@@ -168,34 +155,24 @@ export function dateToLongCount(dateStr: string): LongCount {
   return jdnToLongCount(jdn)
 }
 
+/** A day's place in the Haab' year, 0 (0 Pop) to 364 (4 Wayeb'). */
+export const haabDayOfYear = ({ month, day }: Pick<Haab, 'month' | 'day'>): number => month * HAAB_MONTH_DAYS + day
+
+/** The Haab' day `days` after the era base (before it, where negative): the year counted on from 8 Kumk'u. */
+export function haabOfDays(days: number): Haab {
+  const position = (((days + HAAB_EPOCH_OFFSET) % HAAB_DAYS) + HAAB_DAYS) % HAAB_DAYS
+  const month = haabMonth(Math.floor(position / HAAB_MONTH_DAYS))
+  return Object.freeze({
+    month: month.index,
+    day: position - month.index * HAAB_MONTH_DAYS,
+    monthName: month.name,
+    monthNameHebrew: month.hebrew,
+  })
+}
+
 // Convert JDN to Haab date
 export function jdnToHaab(jdn: JulianDay | number): Haab {
-  const daysSinceEpoch = jdn - GMT_CORRELATION
-
-  // Calculate position in Haab cycle (0-364)
-  let haabPosition = (daysSinceEpoch + HAAB_EPOCH_OFFSET) % 365
-  if (haabPosition < 0) haabPosition += 365
-
-  // Wayeb (5-day period at end of year)
-  if (haabPosition >= 360) {
-    return Object.freeze({
-      month: 18,
-      day: haabPosition - 360,
-      monthName: HAAB_MONTHS[18],
-      monthNameHebrew: HAAB_MONTHS_HEBREW[18],
-    })
-  }
-
-  // Regular months (20 days each)
-  const month = Math.floor(haabPosition / 20)
-  const day = haabPosition % 20
-
-  return Object.freeze({
-    month,
-    day,
-    monthName: HAAB_MONTHS[month],
-    monthNameHebrew: HAAB_MONTHS_HEBREW[month],
-  })
+  return haabOfDays(jdn - GMT_CORRELATION)
 }
 
 // Convert date string to Haab
@@ -213,7 +190,7 @@ export function getCalendarRound(dateStr: string): CalendarRound {
   const tzolkin = dateToTzolkin(dateStr)
   const haab = jdnToHaab(jdn)
 
-  // Format: "4 Ajaw 3 Kankin"
+  // Format: "4 Ajaw 3 K'ank'in"
   const formatted = `${tzolkin.tone} ${tzolkin.daySign.yucatec} ${haab.day} ${haab.monthName}`
   const formattedHebrew = `${tzolkin.tone} ${tzolkin.daySign.hebrew} ${haab.day} ${haab.monthNameHebrew}`
 
@@ -243,6 +220,34 @@ export function getLongCountData(dateStr: string): LongCountData {
     haab,
     calendarRound,
   })
+}
+
+/** A Haab' year: its 0 Pop and its year bearer, the Tzolk'in day that falls on it, in days from the era base. */
+export interface HaabYear {
+  readonly start: number
+  readonly bearer: TzolkinDay
+}
+
+/**
+ * The Haab' year a day `days` after the era base falls in: it opens on 0 Pop,
+ * whose Tzolk'in day bears it. 365 being 5 more than eighteen twenties and 1
+ * more than twenty-eight thirteens, each year's bearer is five day signs and
+ * one number on from the last, so only four signs bear years: Ik', Manik',
+ * Eb' and Kab'an in the Classic reckoning of Tikal and the Dresden Codex
+ * (https://en.wikipedia.org/wiki/Maya_calendar, Year Bearer, after Thompson
+ * 1966 and Tedlock 1992); Kettunen and Helmke's table of the Haab' numbers
+ * each day sign can take (2020, p. 51) holds the same four on 0.
+ */
+export function haabYearOf(days: number): HaabYear {
+  const start = days - haabDayOfYear(haabOfDays(days))
+  return { start, bearer: tzolkinOfDays(start) }
+}
+
+/** The places that turn on a day `days` after the era base, from the tun up: the period it ends (a tun, a k'atun, a b'ak'tun), or none. */
+export function periodEnding(days: number): 'tun' | 'katun' | 'baktun' | undefined {
+  if (days % PLACE_DAYS.tun !== 0) return undefined
+  if (days % PLACE_DAYS.baktun === 0) return 'baktun'
+  return days % PLACE_DAYS.katun === 0 ? 'katun' : 'tun'
 }
 
 // Format Long Count as string (e.g., "13.0.11.5.12")
@@ -293,9 +298,7 @@ export function isValidLongCount(lc: LongCount): boolean {
 
 // Calculate days since creation (epoch)
 export function daysSinceCreation(dateStr: string): number {
-  const { year, month, day } = parseDate(dateStr)
-  const jdn = gregorianToJDN(year, month, day)
-  return jdn - GMT_CORRELATION
+  return daysSinceEraBase(dateStr)
 }
 
 // Get today's date for reference
@@ -386,31 +389,25 @@ export interface HistoricalDate {
   readonly significanceHebrew: string
 }
 
+/** An anchor date with its count and Calendar Round read from the date, so the words never drift from the engine. */
+const historical = (gregorian: string, significance: string, significanceHebrew: string): HistoricalDate => {
+  const { longCount, calendarRound } = getLongCountData(gregorian)
+  const { tzolkin, haab } = calendarRound
+  return Object.freeze({
+    gregorian,
+    longCount: formatLongCount(longCount),
+    tzolkin: `${tzolkin.tone} ${tzolkin.daySign.yucatec}`,
+    haab: `${haab.day} ${haab.monthName}`,
+    significance,
+    significanceHebrew,
+  })
+}
+
+/** 13.0.0.0.0 4 Ajaw 3 K'ank'in; 12.18.14.5.1 1 Imix 9 Yaxk'in; 12.18.14.4.0 6 Ajaw 8 Xul. */
 export const HISTORICAL_DATES: readonly HistoricalDate[] = Object.freeze([
-  {
-    gregorian: '2012-12-21',
-    longCount: '13.0.0.0.0',
-    tzolkin: '4 Ajaw',
-    haab: '3 Kankin',
-    significance: 'End of 13th B\'ak\'tun cycle',
-    significanceHebrew: 'סיום מחזור הבאקטון ה-13',
-  },
-  {
-    gregorian: '1987-08-16',
-    longCount: '12.18.14.5.1',
-    tzolkin: '1 Imix',
-    haab: '9 Mol',
-    significance: 'Harmonic Convergence',
-    significanceHebrew: 'ההתכנסות ההרמונית',
-  },
-  {
-    gregorian: '1987-07-26',
-    longCount: '12.18.14.4.0',
-    tzolkin: '8 Ix',
-    haab: '18 Xul',
-    significance: 'Dreamspell Epoch (Galactic Synchronization)',
-    significanceHebrew: 'תאריך התחלת הדרימספל',
-  },
+  historical('2012-12-21', "End of 13th B'ak'tun cycle", 'סיום מחזור הבאקטון ה-13'),
+  historical('1987-08-16', 'Harmonic Convergence', 'ההתכנסות ההרמונית'),
+  historical('1987-07-26', 'Dreamspell Epoch (Galactic Synchronization)', 'תאריך התחלת הדרימספל'),
 ])
 
 // Add a Long Count to another (for calculating future dates)

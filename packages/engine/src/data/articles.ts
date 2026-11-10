@@ -291,7 +291,7 @@ export const ARTICLES: readonly Article[] = [
       {
         heading: 'Why almanacs disagree by a day',
         paragraphs: [
-          'Traditional pancangas anchor the day at local sunrise; Pleiad computes at noon UTC. A tithi that changes mid-morning lands on different civil days under the two conventions — sign-level agreement, not minute-level, and the page says so.',
+          'Pancangas anchor the day at sunrise, and so does Pleiad, at Ujjain, the Surya Siddhanta’s prime meridian. A tithi that ends before one sunrise and begins after the last is lost to the count (kshaya); one that spans two sunrises is kept twice (vriddhi). Almanacs reckoned for another city can still name a different tithi on a morning when it turns near sunrise.',
         ],
       },
     ],

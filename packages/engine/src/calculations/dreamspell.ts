@@ -1,4 +1,5 @@
 import { asKin, asSeal, asTone, type Kin, type SealNumber, type ToneNumber } from '../core/types'
+import { shiftDay } from './day-search'
 import { isLeapYear, gregorianToJDN, parseDate } from './julian'
 
 // Epoch: July 26, 1987 = Kin 34 (White Galactic Wizard)
@@ -59,4 +60,28 @@ export function kinToSeal(kin: Kin): SealNumber {
 
 export function kinToTone(kin: Kin): ToneNumber {
   return asTone(((kin - 1) % 13) + 1)
+}
+
+/**
+ * Whether the Dreamspell counts a civil date: every day but 29 February,
+ * 0.0 Hunab Ku, which stands outside the count and keeps the 28th's kin.
+ */
+export const isCounted = (date: string): boolean => !date.endsWith('-02-29')
+
+/** The civil date `n` counted days from `date` (before it where `n` is negative), 29 February passed over. */
+export function countedShift(date: string, n: number): string {
+  const step = Math.sign(n)
+  let at = date
+  for (let left = Math.abs(n); left > 0; ) {
+    at = shiftDay(at, step)
+    if (isCounted(at)) left -= 1
+  }
+  return at
+}
+
+/** The spin (the 260-day count) that holds `date`: its civil dates in count order, kin 1's first. */
+export function spinDates(date: string): readonly string[] {
+  const from = isCounted(date) ? date : shiftDay(date, -1)
+  const first = countedShift(from, 1 - dateToKin(from))
+  return Array.from({ length: 260 }, (_, i) => countedShift(first, i))
 }

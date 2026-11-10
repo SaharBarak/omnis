@@ -9,6 +9,8 @@ import {
   getAllCastles,
   getEarthFamily,
   getAllEarthFamilies,
+  getClan,
+  getAllClans,
   getColorFamily,
   getAllColorFamilies,
   getHarmonic,
@@ -108,40 +110,47 @@ describe('Castle calculations', () => {
   })
 })
 
+/** The Earth families and clans as Dreamspell publishes them (https://www.oocities.org/dreamingbones/dreamspell2.html). */
 describe('Earth Family calculations', () => {
-  describe('getEarthFamily', () => {
-    it('should return Polar family for seal 1 (Dragon)', () => {
-      const family = getEarthFamily(asSeal(1))
-      expect(family.name).toBe('Polar')
-      expect(family.seals).toContain(1)
-    })
+  const families = {
+    Polar: ['Sun', 20, 'Serpent', 5, 'Dog', 10, 'Eagle', 15],
+    Cardinal: ['Dragon', 1, 'World-Bridger', 6, 'Monkey', 11, 'Warrior', 16],
+    Core: ['Wind', 2, 'Hand', 7, 'Human', 12, 'Earth', 17],
+    Signal: ['Night', 3, 'Star', 8, 'Skywalker', 13, 'Mirror', 18],
+    Gateway: ['Seed', 4, 'Moon', 9, 'Wizard', 14, 'Storm', 19],
+  } as const
 
-    it('should return Cardinal family for seal 2 (Wind)', () => {
-      const family = getEarthFamily(asSeal(2))
-      expect(family.name).toBe('Cardinal')
-    })
-
-    it('should return Gateway family for seal 5 (Serpent)', () => {
-      const family = getEarthFamily(asSeal(5))
-      expect(family.name).toBe('Gateway')
-    })
-
-    it('should cycle through families correctly', () => {
-      // Seals 1, 6, 11, 16 are all Polar
-      expect(getEarthFamily(asSeal(1)).name).toBe('Polar')
-      expect(getEarthFamily(asSeal(6)).name).toBe('Polar')
-      expect(getEarthFamily(asSeal(11)).name).toBe('Polar')
-      expect(getEarthFamily(asSeal(16)).name).toBe('Polar')
-    })
+  it.each(Object.entries(families))('puts %s family seals in it, with its centre', (name, seals: readonly (string | number)[]) => {
+    const numbers = seals.filter((s): s is number => typeof s === 'number')
+    for (const n of numbers) expect(getEarthFamily(asSeal(n)).name, `seal ${n}`).toBe(name)
+    expect([...getEarthFamily(asSeal(numbers[0]!)).seals].sort((a, b) => a - b)).toEqual([...numbers].sort((a, b) => a - b))
   })
 
-  describe('getAllEarthFamilies', () => {
-    it('should return 5 families', () => {
-      const families = getAllEarthFamilies()
-      expect(families.length).toBe(5)
-      expect(families[0].name).toBe('Polar')
-      expect(families[4].name).toBe('Gateway')
-    })
+  it('gives each family its centre: crown, throat, heart, solar plexus, root', () => {
+    expect(getAllEarthFamilies().map((f) => [f.name, f.chakra])).toEqual([
+      ['Polar', 'Crown'],
+      ['Cardinal', 'Throat'],
+      ['Core', 'Heart'],
+      ['Signal', 'Solar Plexus'],
+      ['Gateway', 'Root'],
+    ])
+  })
+
+  it('makes the Gateway family the year bearers: Seed, Moon, Wizard, Storm', () => {
+    expect(getEarthFamily(asSeal(4)).seals).toEqual([4, 9, 14, 19])
+  })
+})
+
+describe('Clans', () => {
+  it('runs four clans of five from the Sun: Fire, Blood, Truth, Sky', () => {
+    expect(getAllClans().map((c) => [c.name, c.color, [...c.seals]])).toEqual([
+      ['Fire', 'yellow', [20, 1, 2, 3, 4]],
+      ['Blood', 'red', [5, 6, 7, 8, 9]],
+      ['Truth', 'white', [10, 11, 12, 13, 14]],
+      ['Sky', 'blue', [15, 16, 17, 18, 19]],
+    ])
+    expect(getClan(asSeal(20)).name).toBe('Fire')
+    expect(getClan(asSeal(15)).name).toBe('Sky')
   })
 })
 
@@ -231,7 +240,7 @@ describe('Comprehensive cycle info', () => {
       expect(info.wavespellPosition).toBe(1)
       expect(info.harmonic.number).toBe(1)
       expect(info.harmonicPosition).toBe(1)
-      expect(info.earthFamily.name).toBe('Polar')
+      expect(info.earthFamily.name).toBe('Cardinal')
       expect(info.colorFamily.color).toBe('red')
     })
 

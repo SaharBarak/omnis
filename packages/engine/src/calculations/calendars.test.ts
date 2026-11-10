@@ -1,12 +1,15 @@
 import { describe, it, expect } from 'vitest'
 
 import {
+  calendarMonth,
+  calendarYear,
   hijriDate,
   persianDate,
   chineseYear,
   siderealSun,
   lahiriAyanamsa,
   panchang,
+  chineseYearOf,
 } from './calendars'
 
 // The PRD's example Today screen (24 July 2026) supplies the test vectors.
@@ -31,6 +34,9 @@ describe('chineseYear', () => {
       animal: 'Horse',
       polarity: 'Yang',
       name: 'Fire Horse',
+      cycle: 43,
+      characters: '丙午',
+      pinyin: 'Bing Wu',
     })
   })
 
@@ -41,6 +47,24 @@ describe('chineseYear', () => {
 
   it('handles a classic reference year (1984 = Wood Rat)', () => {
     expect(chineseYear(new Date('1984-06-01T12:00:00Z'))?.name).toBe('Wood Rat')
+  })
+
+  it('opens the sixty-year cycle at Wood Rat and closes it at Water Pig', () => {
+    expect(chineseYear(new Date('1984-06-01T12:00:00Z'))?.cycle).toBe(1)
+    expect(chineseYear(new Date('2043-06-01T12:00:00Z'))).toMatchObject({ name: 'Water Pig', cycle: 60 })
+    expect(chineseYear(new Date('2044-06-01T12:00:00Z'))).toMatchObject({ name: 'Wood Rat', cycle: 1 })
+  })
+
+  it('names each year of the sixty by the stem and branch its place in the cycle gives', () => {
+    const named = new Set<string>()
+    for (let year = 1984; year < 2044; year++) {
+      const read = chineseYear(new Date(`${year}-06-01T12:00:00Z`))!
+      const again = chineseYear(new Date(`${year + 60}-06-01T12:00:00Z`))!
+      expect(again, String(year)).toMatchObject({ name: read.name, cycle: read.cycle })
+      expect(read.cycle, String(year)).toBe(year - 1983)
+      named.add(read.name)
+    }
+    expect(named.size).toBe(60)
   })
 })
 
@@ -77,5 +101,55 @@ describe('panchang', () => {
     expect(p.nakshatra).toBeTruthy()
     expect(p.yoga).toBeTruthy()
     expect(p.karana).toBeTruthy()
+  })
+})
+
+describe('calendarMonth', () => {
+  it('places 28 Heshvan 5787 in its 30-day month, which began on a Monday, three days before Kislev', () => {
+    expect(calendarMonth('2026-11-08', 'hebrew')).toEqual({ day: 28, month: 'Heshvan', year: 5787, length: 30, firstWeekday: 1, next: { month: 'Kislev', inDays: 3 } })
+  })
+
+  it('places 17 Aban 1405 in its 30-day month, begun on Friday 23 October, fourteen days before Azar', () => {
+    expect(calendarMonth('2026-11-08', 'persian')).toEqual({ day: 17, month: 'Aban', year: 1405, length: 30, firstWeekday: 5, next: { month: 'Azar', inDays: 14 } })
+  })
+
+  it('gives a Hijri month of 29 or 30 days that holds the day', () => {
+    const month = calendarMonth('2026-11-08', 'islamic-umalqura')
+    expect([29, 30]).toContain(month?.length)
+    expect(month!.day).toBeLessThanOrEqual(month!.length)
+    expect(month!.next.inDays).toBe(month!.length - month!.day + 1)
+  })
+})
+
+describe('chineseYearOf', () => {
+  it('names the year from the Gregorian year it begins in', () => {
+    expect(chineseYearOf(2026)).toEqual({ element: 'Fire', animal: 'Horse', polarity: 'Yang', name: 'Fire Horse', cycle: 43, characters: '丙午', pinyin: 'Bing Wu' })
+    expect(chineseYearOf(2027)).toMatchObject({ name: 'Fire Goat', polarity: 'Yin', cycle: 44 })
+    expect(chineseYearOf(1984)).toMatchObject({ name: 'Wood Rat', cycle: 1 })
+  })
+})
+
+describe('chineseYearOf characters', () => {
+  it('writes the stem and branch, and says them', () => {
+    expect(chineseYearOf(2026)).toMatchObject({ characters: '丙午', pinyin: 'Bing Wu' })
+    expect(chineseYearOf(1984)).toMatchObject({ characters: '甲子', pinyin: 'Jia Zi' })
+    expect(chineseYearOf(2043)).toMatchObject({ characters: '癸亥', pinyin: 'Gui Hai', cycle: 60 })
+  })
+})
+
+describe('calendarYear', () => {
+  it("lays out the year's months, a leap year's thirteen, from its first", () => {
+    const hebrew = calendarYear('2026-11-08', 'hebrew')
+    /* 5787 is the eleventh year of its nineteen, a leap year: Adar I and Adar II. */
+    expect(hebrew?.map((m) => m.month)).toEqual(['Tishri', 'Heshvan', 'Kislev', 'Tevet', 'Shevat', 'Adar I', 'Adar II', 'Nisan', 'Iyar', 'Sivan', 'Tamuz', 'Av', 'Elul'])
+    expect(hebrew?.[0]).toEqual({ month: 'Tishri', first: '2026-09-12', length: 30 })
+    expect(hebrew?.[2]).toEqual({ month: 'Kislev', first: '2026-11-11', length: 30 })
+    expect(calendarYear('2027-11-08', 'hebrew')).toHaveLength(12)
+  })
+
+  it('counts the Persian and Hijri years the same way', () => {
+    expect(calendarYear('2026-11-08', 'persian')).toHaveLength(12)
+    expect(calendarYear('2026-11-08', 'islamic-umalqura')).toHaveLength(12)
+    expect(calendarYear('2026-11-08', 'persian')?.[0]).toMatchObject({ month: 'Farvardin', first: '2026-03-21' })
   })
 })

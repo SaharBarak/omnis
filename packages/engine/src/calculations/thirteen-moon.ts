@@ -25,6 +25,16 @@ export const PLASMA_NAMES = [
   'Dali', 'Seli', 'Gamma', 'Kali', 'Alpha', 'Limi', 'Silio',
 ] as const
 
+/**
+ * The centre each radial plasma is held in, as *Synchrogalactic Yoga*
+ * (Argüelles) sets them, Dali to Silio:
+ * https://www.13lunas.net/meditaciones/Yoga_Sincrogalactico.pdf
+ */
+export const PLASMA_CENTRES = ['crown', 'root', 'third eye', 'secret centre', 'throat', 'solar plexus', 'heart'] as const satisfies readonly string[] & { length: typeof PLASMA_NAMES.length }
+
+/** The four weeks of a moon, its heptads, in the seals' colour order: red, white, blue, yellow. */
+export const HEPTAD_COLOURS = ['red', 'white', 'blue', 'yellow'] as const
+
 export type ThirteenMoonKind = 'day' | 'dayOutOfTime' | 'hunabKu'
 
 export interface ThirteenMoonDate {

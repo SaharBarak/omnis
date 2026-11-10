@@ -12,6 +12,7 @@ export interface Castle {
   number: number          // 1-5
   color: CastleColor      // red, white, blue, yellow, green
   name: string            // Descriptive name
+  direction: string       // Where the Dreamspell sets it: Eastern, Northern, Western, Southern, Central
   startKin: Kin           // First kin (1, 53, 105, 157, 209)
   endKin: Kin             // Last kin (52, 104, 156, 208, 260)
   wavespells: readonly number[] // 4 wavespell numbers
@@ -22,6 +23,7 @@ const CASTLE_DATA: readonly Omit<Castle, 'wavespells'>[] = Object.freeze([
   {
     number: 1,
     color: 'red' as CastleColor,
+    direction: 'Eastern',
     name: 'Castle of Turning',
     startKin: asKin(1),
     endKin: asKin(52),
@@ -30,6 +32,7 @@ const CASTLE_DATA: readonly Omit<Castle, 'wavespells'>[] = Object.freeze([
   {
     number: 2,
     color: 'white' as CastleColor,
+    direction: 'Northern',
     name: 'Castle of Crossing',
     startKin: asKin(53),
     endKin: asKin(104),
@@ -38,6 +41,7 @@ const CASTLE_DATA: readonly Omit<Castle, 'wavespells'>[] = Object.freeze([
   {
     number: 3,
     color: 'blue' as CastleColor,
+    direction: 'Western',
     name: 'Castle of Burning',
     startKin: asKin(105),
     endKin: asKin(156),
@@ -46,6 +50,7 @@ const CASTLE_DATA: readonly Omit<Castle, 'wavespells'>[] = Object.freeze([
   {
     number: 4,
     color: 'yellow' as CastleColor,
+    direction: 'Southern',
     name: 'Castle of Giving',
     startKin: asKin(157),
     endKin: asKin(208),
@@ -54,6 +59,7 @@ const CASTLE_DATA: readonly Omit<Castle, 'wavespells'>[] = Object.freeze([
   {
     number: 5,
     color: 'green' as CastleColor,
+    direction: 'Central',
     name: 'Castle of Enchantment',
     startKin: asKin(209),
     endKin: asKin(260),
@@ -112,56 +118,72 @@ export function getAllCastles(): readonly Castle[] {
   )
 }
 
-// Earth Families - groups of 4 seals that share a common purpose
+/**
+ * Earth families (Argüelles, *Dreamspell*, 1990; table as in
+ * https://www.oocities.org/dreamingbones/dreamspell2.html): the twenty seals
+ * in five families of four, one of each colour, seals a fifth of the count
+ * apart: the Polar family holds the Sun (20) and the seals five apart from
+ * it, the Cardinal the Dragon (1), and so on. Each family is a centre of the
+ * body and a digit of the hand, and receives, transmits or transduces.
+ */
 export interface EarthFamily {
   name: string
   seals: readonly SealNumber[]
   chakra: string
-  direction: string
+  digit: string
   function: string
 }
 
 const EARTH_FAMILIES: readonly EarthFamily[] = Object.freeze([
-  {
-    name: 'Polar',
-    seals: Object.freeze([1, 6, 11, 16] as SealNumber[]), // Dragon, World-Bridger, Monkey, Warrior
-    chakra: 'Crown',
-    direction: 'North',
-    function: 'Receives - Information receivers',
-  },
-  {
-    name: 'Cardinal',
-    seals: Object.freeze([2, 7, 12, 17] as SealNumber[]), // Wind, Hand, Human, Earth
-    chakra: 'Throat',
-    direction: 'East',
-    function: 'Transmits - Information transmitters',
-  },
-  {
-    name: 'Core',
-    seals: Object.freeze([3, 8, 13, 18] as SealNumber[]), // Night, Star, Skywalker, Mirror
-    chakra: 'Heart',
-    direction: 'Center',
-    function: 'Transduces - Information processors',
-  },
-  {
-    name: 'Signal',
-    seals: Object.freeze([4, 9, 14, 19] as SealNumber[]), // Seed, Moon, Wizard, Storm
-    chakra: 'Solar Plexus',
-    direction: 'South',
-    function: 'Signals - Provides timing frequency',
-  },
-  {
-    name: 'Gateway',
-    seals: Object.freeze([5, 10, 15, 20] as SealNumber[]), // Serpent, Dog, Eagle, Sun
-    chakra: 'Root',
-    direction: 'West',
-    function: 'Opens - Galactic portal activators',
-  },
+  { name: 'Polar', seals: Object.freeze([20, 5, 10, 15] as SealNumber[]), chakra: 'Crown', digit: 'Thumb', function: 'Receives' },
+  { name: 'Cardinal', seals: Object.freeze([1, 6, 11, 16] as SealNumber[]), chakra: 'Throat', digit: 'Index finger', function: 'Transmits' },
+  { name: 'Core', seals: Object.freeze([2, 7, 12, 17] as SealNumber[]), chakra: 'Heart', digit: 'Middle finger', function: 'Transduces' },
+  { name: 'Signal', seals: Object.freeze([3, 8, 13, 18] as SealNumber[]), chakra: 'Solar Plexus', digit: 'Ring finger', function: 'Receives' },
+  { name: 'Gateway', seals: Object.freeze([4, 9, 14, 19] as SealNumber[]), chakra: 'Root', digit: 'Little finger', function: 'Transmits' },
 ])
 
+/** A seal's earth family: its seal number's remainder by five, from the Polar family's Sun (20, a remainder of 0). */
 export function getEarthFamily(sealNumber: SealNumber): EarthFamily {
-  const familyIndex = (sealNumber - 1) % 5
-  return EARTH_FAMILIES[familyIndex]
+  const family = EARTH_FAMILIES[sealNumber % EARTH_FAMILIES.length]
+  if (!family) throw new RangeError(`Invalid seal number: ${sealNumber}`)
+  return family
+}
+
+/**
+ * Clans (same source): the twenty seals in four clans of five consecutive
+ * seals from the Sun, each of one colour: Fire (yellow) from the Sun, Blood
+ * (red) from the Serpent, Truth (white) from the Dog, Sky (blue) from the
+ * Eagle.
+ */
+export interface Clan {
+  name: string
+  color: ColorFamily
+  seals: readonly SealNumber[]
+}
+
+const SEALS_IN_CLAN = 5
+const CLANS: readonly Clan[] = Object.freeze(
+  ([
+    ['Fire', 'yellow'],
+    ['Blood', 'red'],
+    ['Truth', 'white'],
+    ['Sky', 'blue'],
+  ] as const).map(([name, color], i) => ({
+    name,
+    color,
+    seals: Object.freeze(Array.from({ length: SEALS_IN_CLAN }, (_, k) => ((i * SEALS_IN_CLAN + k) % 20 || 20) as SealNumber)),
+  })),
+)
+
+/** A seal's clan: the Sun opens the Fire clan, so the clans run from seal 20. */
+export function getClan(sealNumber: SealNumber): Clan {
+  const clan = CLANS[Math.floor((sealNumber % 20) / SEALS_IN_CLAN)]
+  if (!clan) throw new RangeError(`Invalid seal number: ${sealNumber}`)
+  return clan
+}
+
+export function getAllClans(): readonly Clan[] {
+  return CLANS
 }
 
 export function getAllEarthFamilies(): readonly EarthFamily[] {

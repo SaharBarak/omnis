@@ -173,6 +173,9 @@ export const TIER_CEILING: readonly (readonly [Tier, number])[] = Object.freeze(
   Object.freeze(['T1', 0.75] as const),
 ])
 
+/** Every tier, rarest first: the ceilings' order, then T0. */
+export const TIERS: readonly Tier[] = Object.freeze([...TIER_CEILING.map(([tier]) => tier), 'T0' as const])
+
 export function tierOf(baseRate: number): Tier {
   return TIER_CEILING.find(([, ceiling]) => baseRate < ceiling)?.[0] ?? 'T0'
 }

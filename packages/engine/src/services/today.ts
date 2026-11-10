@@ -1,13 +1,14 @@
 import { dateToKin, kinToSeal, kinToTone } from '../calculations/dreamspell'
 import { getCurrentPlanetaryPositions } from '../calculations/astrology'
 import {
-  chineseYear,
+  chineseYearOf,
   hijriDate,
   panchang,
   persianDate,
   siderealSun,
 } from '../calculations/calendars'
 import { dateToLongCount, formatLongCount } from '../calculations/long-count'
+import { chineseYearOn } from '../calculations/chinese-calendar'
 import { longitudeToGate } from '../data/human-design-gates'
 import { SEALS } from '../data/seals'
 import { TONES } from '../data/tones'
@@ -96,6 +97,12 @@ export function sunNow(dateStr: string): SunNow {
   }
 }
 
+/** The Chinese year's name at `day`, by the calendar's own rule dated in Beijing (`chineseYearOn`), as the row's figure and board read it. */
+const chineseYearName = (day: string): string | null => {
+  const year = chineseYearOn(day)
+  return year === null ? null : chineseYearOf(year).name
+}
+
 export function getTodayAcrossSystems(now: Date = new Date()): TodayAcrossSystems {
   const dateStr = now.toISOString().split('T')[0]
   const kin = dateToKin(dateStr)
@@ -113,7 +120,7 @@ export function getTodayAcrossSystems(now: Date = new Date()): TodayAcrossSystem
     sidereal: `Sun ${sidereal.degree}° ${sidereal.sign}`,
     hijri: hijriDate(now),
     persian: persianDate(now),
-    chineseYear: chineseYear(now)?.name ?? null,
+    chineseYear: chineseYearName(dateStr),
     panchang: panchang(dateStr).tithi,
     longCount: formatLongCount(dateToLongCount(dateStr)),
   }

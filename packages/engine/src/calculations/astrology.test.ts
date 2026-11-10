@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { SunPosition } from 'astronomy-engine'
 import {
   calculateNatalChart,
   calculateSunSignChart,
@@ -6,6 +7,7 @@ import {
   getApproximateSunSign,
   getCurrentPlanetaryPositions,
   getPlanetaryDayArcs,
+  planetLongitudes,
   formatPlanetPosition,
   getChartSummary,
 } from './astrology'
@@ -587,5 +589,31 @@ describe('getPlanetaryDayArcs', () => {
   it('keeps the Sun within its daily motion of about one degree', () => {
     const sun = getPlanetaryDayArcs('2012-12-21').get('sun')
     expect(Math.abs(span(sun!))).toBeLessThan(1.1)
+  })
+})
+
+describe('planetLongitudes reads its time as UTC in every season', () => {
+  it('places the Sun at noon UTC in British Summer Time as in winter (astronomy-engine, apparent longitude of date)', () => {
+    const at = (iso: string) => SunPosition(new Date(iso)).elon
+    for (const day of ['2026-01-15', '2026-07-15']) {
+      const sun = planetLongitudes(day, '12:00').get('sun') ?? Number.NaN
+      expect(Math.abs(sun - at(`${day}T12:00:00Z`)), day).toBeLessThan(0.01)
+    }
+  })
+})
+
+describe('essential dignity (Ptolemy, Tetrabiblos I.17 and I.19, via zodiac-signs.ts)', () => {
+  const chart = calculateNatalChart({ date: '2026-11-09', time: '12:00', latitude: 0, longitude: 0 })
+  const dignityOf = (id: string) => chart.planets.find((p) => p.planet.id === id)?.dignity
+
+  it('gives the outer planets and the points no essential dignity', () => {
+    for (const id of ['uranus', 'neptune', 'pluto', 'northNode', 'southNode']) expect(dignityOf(id) ?? 'neutral').toBe('neutral')
+  })
+
+  it("reads the Sun's dignity off its traditional sign tables", () => {
+    const sun = chart.planets.find((p) => p.planet.id === 'sun')!
+    const SUN: Readonly<Record<string, string>> = { leo: 'domicile', aries: 'exaltation', aquarius: 'detriment', libra: 'fall' }
+    const expected = SUN[sun.position.sign.id] ?? 'neutral'
+    expect(sun.dignity).toBe(expected)
   })
 })

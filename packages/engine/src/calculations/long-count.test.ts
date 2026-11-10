@@ -16,9 +16,18 @@ import {
   addToLongCount,
   longCountDifference,
   HAAB_MONTHS,
+  HISTORICAL_DATES,
+  haabOfDays,
+  haabYearOf,
+  periodEnding,
   type LongCount,
 } from './long-count'
 import { gregorianToJDN } from './julian'
+import { lordOfTheNight } from './lords-of-night'
+import { daysSinceEraBase, tzolkinOfDays } from './tzolkin'
+
+/** Days from the era base of a Long Count read in the current era. */
+const daysOf = (lc: string): number => longCountToJDN(parseLongCount(lc)) - longCountToJDN(parseLongCount('0.0.0.0.0'))
 
 describe('Long Count Calculations', () => {
   describe('jdnToLongCount', () => {
@@ -104,19 +113,19 @@ describe('Long Count Calculations', () => {
   })
 
   describe('jdnToHaab', () => {
-    it('should return 3 Kankin for 2012-12-21', () => {
+    it("should return 3 K'ank'in for 2012-12-21", () => {
       const jdn = gregorianToJDN(2012, 12, 21)
       const haab = jdnToHaab(jdn)
       expect(haab.day).toBe(3)
-      expect(haab.monthName).toBe('Kankin')
-      expect(haab.month).toBe(13) // Kankin is month 13 (0-indexed)
+      expect(haab.monthName).toBe("K'ank'in")
+      expect(haab.month).toBe(13) // K'ank'in is month 13 (0-indexed)
     })
 
     it('should return Wayeb for the 5-day nameless period', () => {
       // Find a date during Wayeb
       // Wayeb is days 360-364 in the Haab cycle
       const jdn = gregorianToJDN(2012, 12, 21)
-      // Haab on 2012-12-21 is 3 Kankin
+      // Haab on 2012-12-21 is 3 K'ank'in
       // We need to find when Wayeb occurs relative to this
       // For now, verify Wayeb exists in the month array
       expect(HAAB_MONTHS[18]).toBe("Wayeb'")
@@ -125,7 +134,7 @@ describe('Long Count Calculations', () => {
     it('should handle regular months correctly', () => {
       // Pop is the first month (index 0)
       expect(HAAB_MONTHS[0]).toBe('Pop')
-      expect(HAAB_MONTHS[17]).toBe('Kumku')
+      expect(HAAB_MONTHS[17]).toBe("Kumk'u")
     })
   })
 
@@ -133,7 +142,7 @@ describe('Long Count Calculations', () => {
     it('should convert date string to Haab', () => {
       const haab = dateToHaab('2012-12-21')
       expect(haab.day).toBe(3)
-      expect(haab.monthName).toBe('Kankin')
+      expect(haab.monthName).toBe("K'ank'in")
     })
   })
 
@@ -145,12 +154,12 @@ describe('Long Count Calculations', () => {
       expect(cr.tzolkin.tone).toBe(4)
       expect(cr.tzolkin.daySign.yucatec).toBe('Ajaw')
 
-      // Haab: 3 Kankin
+      // Haab: 3 K'ank'in
       expect(cr.haab.day).toBe(3)
-      expect(cr.haab.monthName).toBe('Kankin')
+      expect(cr.haab.monthName).toBe("K'ank'in")
 
       // Formatted string
-      expect(cr.formatted).toBe('4 Ajaw 3 Kankin')
+      expect(cr.formatted).toBe("4 Ajaw 3 K'ank'in")
     })
 
     it('should include Hebrew format', () => {
@@ -166,7 +175,7 @@ describe('Long Count Calculations', () => {
       expect(formatLongCount(data.longCount)).toBe('13.0.0.0.0')
       expect(data.daysSinceCreation).toBe(1872000)
       expect(data.tzolkin.tone).toBe(4)
-      expect(data.haab.monthName).toBe('Kankin')
+      expect(data.haab.monthName).toBe("K'ank'in")
     })
   })
 
@@ -352,5 +361,83 @@ describe('Long Count Calculations', () => {
         expect(resultDate).toBe(dateStr)
       })
     })
+  })
+
+  /**
+   * Kettunen and Helmke, Introduction to Maya Hieroglyphs (Wayeb, 2020),
+   * p. 52: "An example of the correlation of the Long Count, Tzolk'in, Haab,
+   * and the Lords of the Night", their spellings in the ALMG orthography.
+   */
+  describe("Kettunen and Helmke's correlation table", () => {
+    const TABLE: readonly (readonly [string, string, string, string])[] = [
+      ['9.8.19.17.14', '10 Ix', "17 Sip", 'G3'],
+      ['9.8.19.17.17', "13 Kab'an", "0 Sotz'", 'G6'],
+      ['9.9.0.0.0', '3 Ajaw', "3 Sotz'", 'G9'],
+      ['9.9.0.0.1', '4 Imix', "4 Sotz'", 'G1'],
+      ['9.9.0.0.9', '12 Muluk', "12 Sotz'", 'G9'],
+      ['9.9.0.0.16', "6 Kib'", "19 Sotz'", 'G7'],
+      ['9.9.0.0.17', "7 Kab'an", '0 Sek', 'G8'],
+      ['9.9.0.0.18', "8 Etz'nab'", '1 Sek', 'G9'],
+      ['9.9.0.1.0', '10 Ajaw', '3 Sek', 'G2'],
+      ['9.9.0.1.4', "1 K'an", '7 Sek', 'G6'],
+    ]
+
+    it.each(TABLE)('%s is %s %s, %s', (lc, tzolkin, haab, lord) => {
+      const days = daysOf(lc)
+      const t = tzolkinOfDays(days)
+      const h = haabOfDays(days)
+      expect(`${t.tone} ${t.daySign.yucatec}`).toBe(tzolkin)
+      expect(`${h.day} ${h.monthName}`).toBe(haab)
+      expect(lordOfTheNight(days).glyph).toBe(lord)
+    })
+
+  })
+
+  /** Kettunen and Helmke (2020), p. 51: the Haab' numbers each day sign can stand on. */
+  it("puts each day sign only on the Haab' numbers Kettunen and Helmke list for it", () => {
+    const CAN_TAKE: Readonly<Record<string, readonly number[]>> = {
+      Ajaw: [8, 13, 18, 3], Imix: [4, 9, 14, 19], "Ik'": [5, 10, 15, 0], "Ak'b'al": [6, 11, 16, 1], "K'an": [7, 12, 17, 2],
+      Chikchan: [8, 13, 18, 3], Kimi: [4, 9, 14, 19], "Manik'": [5, 10, 15, 0], Lamat: [6, 11, 16, 1], Muluk: [7, 12, 17, 2],
+      Ok: [8, 13, 18, 3], Chuwen: [4, 9, 14, 19], "Eb'": [5, 10, 15, 0], "B'en": [6, 11, 16, 1], Ix: [7, 12, 17, 2],
+      Men: [8, 13, 18, 3], "Kib'": [4, 9, 14, 19], "Kab'an": [5, 10, 15, 0], "Etz'nab'": [6, 11, 16, 1], Kawak: [7, 12, 17, 2],
+    }
+    const start = daysSinceEraBase('2026-01-01')
+    for (let days = start; days < start + 365 * 4; days += 1) {
+      expect(CAN_TAKE[tzolkinOfDays(days).daySign.yucatec], String(days)).toContain(haabOfDays(days).day)
+    }
+  })
+
+  describe('Year bearers', () => {
+    it("opens 2026's Haab' year on 0 Pop, 30 March, borne by one of the Classic four", () => {
+      const year = haabYearOf(daysSinceEraBase('2026-11-08'))
+      expect(jdnToGregorian(year.start + 584283)).toBe('2026-03-30')
+      expect(haabOfDays(year.start)).toMatchObject({ day: 0, monthName: 'Pop' })
+      expect(["Ik'", "Manik'", "Eb'", "Kab'an"]).toContain(year.bearer.daySign.yucatec)
+    })
+
+    it('steps each year five day signs and one number on, so only Ik\', Manik\', Eb\' and Kab\'an bear years', () => {
+      const first = haabYearOf(daysSinceEraBase('2012-12-21'))
+      for (let n = 1; n <= 52; n += 1) {
+        const year = haabYearOf(first.start + n * 365)
+        expect(year.start).toBe(first.start + n * 365)
+        expect(["Ik'", "Manik'", "Eb'", "Kab'an"]).toContain(year.bearer.daySign.yucatec)
+        expect(year.bearer.tone).toBe(((first.bearer.tone - 1 + n) % 13) + 1)
+      }
+    })
+  })
+
+  it('names the period a day ends: the tun, the k\'atun or the b\'ak\'tun', () => {
+    expect(periodEnding(daysOf('13.0.0.0.0'))).toBe('baktun')
+    expect(periodEnding(daysOf('9.9.0.0.0'))).toBe('katun')
+    expect(periodEnding(daysOf('13.0.14.0.0'))).toBe('tun')
+    expect(periodEnding(daysOf('9.15.6.14.6'))).toBeUndefined()
+  })
+
+  it('dates the anchor dates as the count reads them back from 13.0.0.0.0 4 Ajaw 3 K\'ank\'in', () => {
+    expect(HISTORICAL_DATES.map(({ gregorian, longCount, tzolkin, haab }) => [gregorian, longCount, tzolkin, haab])).toEqual([
+      ['2012-12-21', '13.0.0.0.0', '4 Ajaw', "3 K'ank'in"],
+      ['1987-08-16', '12.18.14.5.1', '1 Imix', "9 Yaxk'in"],
+      ['1987-07-26', '12.18.14.4.0', '6 Ajaw', '8 Xul'],
+    ])
   })
 })

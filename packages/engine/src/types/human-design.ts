@@ -80,7 +80,7 @@ export type Quarter =
   | 'initiation' // Gates 13-24: Purpose through Mind
   | 'civilization' // Gates 2-33: Purpose through Form
   | 'duality' // Gates 7-44: Purpose through Bonding
-  | 'mutation' // Gates 1-20: Purpose through Transformation
+  | 'mutation' // Gates 1-19: Purpose through Transformation
 
 /**
  * Planets used in Human Design calculations

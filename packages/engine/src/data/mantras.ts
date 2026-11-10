@@ -52,6 +52,19 @@ const WAVESPELL_TYPE: Record<string, string> = {
   yellow: 'Matrix',
 }
 
+/** A kin's affirmation words: its seal's power, action and essence, and its tone's action and power (Dreamspell). */
+export interface KinWords {
+  readonly seal: { readonly power: string; readonly action: string; readonly essence: string }
+  readonly tone: { readonly action: string; readonly essence: string; readonly power: string }
+}
+
+export function kinWords(sealNumber: number, toneNumber: number): KinWords {
+  const seal = SEAL_DATA[sealNumber]
+  const tone = TONE_DATA[toneNumber]
+  if (!seal || !tone) throw new RangeError(`No affirmation words for seal ${sealNumber}, tone ${toneNumber}`)
+  return { seal, tone }
+}
+
 export function generateMantra(seal: Seal, tone: Tone): string {
   const sealData = SEAL_DATA[seal.number]
   const toneData = TONE_DATA[tone.number]

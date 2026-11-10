@@ -1,4 +1,4 @@
-import { getCurrentPlanetaryPositions, calculateNatalChart } from '../calculations/astrology'
+import { NEUTRAL_SITE, getCurrentPlanetaryPositions, calculateNatalChart } from '../calculations/astrology'
 import { getLunation, type MoonPhaseName } from '../calculations/moon'
 import { getPlanetById } from '../data/planets'
 import type { PlanetId } from '../types/astrology'
@@ -26,9 +26,7 @@ const RETROGRADE_BODIES: readonly PlanetId[] = [
   'pluto',
 ]
 
-/** Greenwich noon — the mundane reference for same-day planetary aspects. */
-const MUNDANE_LAT = 51.4772
-const MUNDANE_LON = -0.0005
+/** Noon UTC at the engine's neutral site (`NEUTRAL_SITE`), the mundane reference for same-day planetary aspects. */
 const MUNDANE_TIME = '12:00'
 
 /** Only surface tight, major aspects — the ones worth a sentence. */
@@ -158,8 +156,7 @@ export function getDailyAstroPhenomena(date: string): AstroPhenomena {
 
   const chart = calculateNatalChart({
     date,
-    latitude: MUNDANE_LAT,
-    longitude: MUNDANE_LON,
+    ...NEUTRAL_SITE,
     time: MUNDANE_TIME,
   })
   const aspects: AstroAspect[] = chart.aspects

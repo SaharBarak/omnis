@@ -1,51 +1,36 @@
 /**
  * BaZi — the Four Pillars of Destiny (#73).
  *
- * Every pillar is a stem-branch pair from the sexagenary cycle:
+ * Every pillar is a stem-branch pair from the sexagenary cycle
+ * (data/sexagenary.ts, the engine's one table of stems and branches):
  * - Day: pure JDN arithmetic — stem = 1+(JDN−1) mod 10, branch =
  *   1+(JDN+1) mod 12 (ytliu0.github.io/ChineseCalendar; anchor verified:
  *   27 Jan 2019 = jiǎzǐ at JDN 2458511, which gregorianToJDN reproduces).
  * - Year: the SOLAR year of Chinese astrology, changing at Li Chun (sun at
  *   315°, ~4 Feb) — not the lunisolar new year the civil calendar uses.
- * - Month: the solar month by sun-longitude sector from Li Chun (Tiger
- *   month at 315°), stem from the year stem by the Five Tigers rule.
+ * - Month: the solar month opened by each sectional term from Li Chun
+ *   (Tiger month at 315°), stem from the year stem by the Five Tigers rule.
  * - Hour: two-hour branches from 23:00, stem from the day stem by the Five
  *   Rats rule. Late-zi (23:00-24:00) keeps the civil day's stem here —
  *   schools differ; this is the simpler convention, documented.
  *
- * Solar terms are read from the ephemeris at Greenwich noon, so a birth
- * within hours of a term boundary can sit on either side — sign-level
- * accuracy, same bar as calendars.ts.
+ * The terms are the Chinese calendar's (`chinese-calendar.ts`), each dated
+ * on its day in Beijing: a date takes the solar month and year whose term
+ * falls on or before it. A date carries no birth instant or zone, so a
+ * birth on a term's own day is read as past it — a date-level reading.
  */
 
-import { getCurrentPlanetaryPositions } from './astrology'
+import { BRANCHES, STEMS, pairAt, positionOf } from '../data/sexagenary'
+import type { PhaseName } from '../data/wuxing'
+import { nextSolarTerms, solarTermOn, solarYearOn } from './chinese-calendar'
+import { daysFrom } from './day-search'
 import { gregorianToJDN, parseDate } from './julian'
 
-export const STEM_NAMES = [
-  'Jia', 'Yi', 'Bing', 'Ding', 'Wu', 'Ji', 'Geng', 'Xin', 'Ren', 'Gui',
-] as const
+export const STEM_NAMES: readonly string[] = Object.freeze(STEMS.map((s) => s.pinyin))
 
-export const BRANCH_NAMES = [
-  'Zi', 'Chou', 'Yin', 'Mao', 'Chen', 'Si',
-  'Wu', 'Wei', 'Shen', 'You', 'Xu', 'Hai',
-] as const
+export const BRANCH_NAMES: readonly string[] = Object.freeze(BRANCHES.map((b) => b.pinyin))
 
-const STEM_ELEMENTS = [
-  'Wood', 'Wood', 'Fire', 'Fire', 'Earth',
-  'Earth', 'Metal', 'Metal', 'Water', 'Water',
-] as const
-
-const BRANCH_ANIMALS = [
-  'Rat', 'Ox', 'Tiger', 'Rabbit', 'Dragon', 'Snake',
-  'Horse', 'Goat', 'Monkey', 'Rooster', 'Dog', 'Pig',
-] as const
-
-const BRANCH_ELEMENTS = [
-  'Water', 'Earth', 'Wood', 'Wood', 'Earth', 'Fire',
-  'Fire', 'Earth', 'Metal', 'Metal', 'Earth', 'Water',
-] as const
-
-export type BaziElement = 'Wood' | 'Fire' | 'Earth' | 'Metal' | 'Water'
+export type BaziElement = PhaseName
 
 export interface StemBranch {
   /** 0-9 into STEM_NAMES. */
@@ -64,48 +49,30 @@ export interface StemBranch {
   readonly name: string
 }
 
-function stemBranch(stem: number, branch: number): StemBranch {
-  const s = ((stem % 10) + 10) % 10
-  const b = ((branch % 12) + 12) % 12
+/** The pillar at a place in the sixty (0 Jia Zi). */
+function fromCyclePosition(position: number): StemBranch {
+  const { stem, branch } = pairAt(position)
   return {
-    stem: s,
-    branch: b,
-    stemName: STEM_NAMES[s],
-    branchName: BRANCH_NAMES[b],
-    element: STEM_ELEMENTS[s],
-    branchElement: BRANCH_ELEMENTS[b],
-    polarity: s % 2 === 0 ? 'Yang' : 'Yin',
-    animal: BRANCH_ANIMALS[b],
-    name: `${STEM_NAMES[s]} ${BRANCH_NAMES[b]} — ${s % 2 === 0 ? 'Yang' : 'Yin'} ${STEM_ELEMENTS[s]} ${BRANCH_ANIMALS[b]}`,
+    stem: stem.index,
+    branch: branch.index,
+    stemName: stem.pinyin,
+    branchName: branch.pinyin,
+    element: stem.phase,
+    branchElement: branch.phase,
+    polarity: stem.polarity,
+    animal: branch.animal,
+    name: `${stem.pinyin} ${branch.pinyin} — ${stem.polarity} ${stem.phase} ${branch.animal}`,
   }
 }
+
+const stemBranch = (stem: number, branch: number): StemBranch => fromCyclePosition(positionOf(stem, branch))
 
 /** Position 0-59 in the sexagenary cycle (0 = Jia Zi). */
-function cyclePosition(sb: StemBranch): number {
-  for (let i = 0; i < 60; i++) {
-    if (i % 10 === sb.stem && i % 12 === sb.branch) return i
-  }
-  return 0
-}
-
-function fromCyclePosition(position: number): StemBranch {
-  const p = ((position % 60) + 60) % 60
-  return stemBranch(p % 10, p % 12)
-}
-
-/** Tropical sun longitude at Greenwich noon of the civil date. */
-function sunLongitude(dateStr: string): number {
-  const sun = getCurrentPlanetaryPositions(dateStr).find((p) => p.planet.id === 'sun')
-  if (!sun) throw new Error('ephemeris returned no sun')
-  return ((sun.position.longitude % 360) + 360) % 360
-}
+const cyclePosition = (sb: StemBranch): number => positionOf(sb.stem, sb.branch)
 
 /** The BaZi (solar) year of a date — changes at Li Chun, not the new moon. */
 export function baziYear(dateStr: string): number {
-  const { year, month } = parseDate(dateStr)
-  if (month === 1) return year - 1
-  if (month === 2) return sunLongitude(dateStr) >= 315 ? year : year - 1
-  return year
+  return solarYearOn(dateStr)
 }
 
 export function yearPillar(dateStr: string): StemBranch {
@@ -113,9 +80,12 @@ export function yearPillar(dateStr: string): StemBranch {
   return stemBranch((y - 4) % 10, (y - 4) % 12)
 }
 
+/** Terms to a solar month: its sectional term and its principal one. */
+const TERMS_IN_MONTH = 2
+
 /** 0 = Tiger month (from Li Chun), … 11 = Ox month. */
 function solarMonthIndex(dateStr: string): number {
-  return Math.floor((((sunLongitude(dateStr) - 315) % 360) + 360) % 360 / 30)
+  return Math.floor(solarTermOn(dateStr).term.index / TERMS_IN_MONTH)
 }
 
 export function monthPillar(dateStr: string): StemBranch {
@@ -196,16 +166,11 @@ export interface LuckPillar extends StemBranch {
   readonly endAge: number
 }
 
-/** Days from birth to the nearest month-boundary solar term, signed search. */
+/** Days from birth to the sectional term that opens the next solar month (forward), or from the one that opened its own (backward). */
 function daysToJie(dateStr: string, direction: 1 | -1): number {
-  const startMonth = solarMonthIndex(dateStr)
-  const base = new Date(`${dateStr}T12:00:00Z`)
-  for (let i = 1; i <= 35; i++) {
-    const d = new Date(base.getTime() + direction * i * 86_400_000)
-    const iso = d.toISOString().split('T')[0]
-    if (solarMonthIndex(iso) !== startMonth) return i
-  }
-  return 15
+  if (direction < 0) return daysFrom(solarTermOn(dateStr).date, dateStr) + 1
+  const next = nextSolarTerms(dateStr, TERMS_IN_MONTH).find((t) => !t.term.principal)
+  return next ? daysFrom(dateStr, next.date) : 0
 }
 
 /**

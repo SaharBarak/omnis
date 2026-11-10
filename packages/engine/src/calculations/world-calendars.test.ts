@@ -41,10 +41,9 @@ describe('holiday anchors (real-world dates)', () => {
     expect(cny.date).toBe('2026-02-17')
   })
 
-  it('Nowruz 1406 falls on 21 March 2027', () => {
-    const list = upcomingPersianHolidays(new Date('2027-03-01T12:00:00Z'), 1)
-    expect(list[0].holiday.name).toBe('Nowruz')
-    expect(list[0].date).toBe('2027-03-21')
+  it('Nowruz 1406 falls on 21 March 2027, the day after Oil Nationalization Day', () => {
+    const list = upcomingPersianHolidays(new Date('2027-03-01T12:00:00Z'), 2)
+    expect(list.map((h) => [h.holiday.name, h.date])).toEqual([['Oil Nationalization Day', '2027-03-20'], ['Nowruz', '2027-03-21']])
   })
 
   it('Eid al-Fitr 1447 falls on 20 March 2026 (umm al-Qura)', () => {

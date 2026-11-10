@@ -7,10 +7,55 @@
 
 import type { Channel, CenterId, Circuitry } from '../types/human-design'
 
+/** A circuit of the bodygraph: its name, the circuit group it belongs to, and its channels by id. */
+export interface ChannelCircuit {
+  readonly id: 'knowing' | 'centering' | 'integration' | 'understanding' | 'sensing' | 'ego' | 'defense'
+  readonly name: string
+  readonly group: Circuitry
+  readonly channels: readonly string[]
+}
+
 /**
- * All 36 channels with their gate pairs, centers, and circuitry
+ * The seven circuits the 36 channels run in, as Ra Uru Hu grouped them: the
+ * Individual group's Knowing and Centering circuits, the Collective group's
+ * Understanding (logic) and Sensing (abstract) circuits, the Tribal group's
+ * Ego and Defense circuits, and the Integration channel, set apart from the
+ * three groups. Two published listings agree channel for channel ("HD101:
+ * The Human Design Circuits", Chrysalis; freehumandesignchart.com's circuitry
+ * guide): the Brainwave (57-20) runs in Knowing and Exploration (34-10) in
+ * Centering, so Integration holds four channels.
  */
-export const CHANNELS: readonly Channel[] = Object.freeze([
+export const CIRCUITS: readonly ChannelCircuit[] = Object.freeze([
+  { id: 'knowing', name: 'Knowing', group: 'individual', channels: ['3-60', '14-2', '1-8', '61-24', '43-23', '28-38', '57-20', '39-55', '12-22'] },
+  { id: 'centering', name: 'Centering', group: 'individual', channels: ['34-10', '25-51'] },
+  { id: 'integration', name: 'Integration', group: 'integration', channels: ['34-57', '34-20', '57-10', '10-20'] },
+  { id: 'understanding', name: 'Understanding', group: 'collective', channels: ['9-52', '5-15', '7-31', '58-18', '48-16', '63-4', '17-62'] },
+  { id: 'sensing', name: 'Sensing', group: 'collective', channels: ['42-53', '29-46', '13-33', '41-30', '35-36', '64-47', '11-56'] },
+  { id: 'ego', name: 'Ego', group: 'tribal', channels: ['54-32', '26-44', '49-19', '37-40', '21-45'] },
+  { id: 'defense', name: 'Defense', group: 'tribal', channels: ['59-6', '27-50'] },
+] satisfies ChannelCircuit[])
+
+/** A channel's id as its gate pair, smaller gate first: "38-28" and "28-38" name one channel. */
+const pairOf = (id: string): string =>
+  id
+    .split('-')
+    .map(Number)
+    .sort((a, b) => a - b)
+    .join('-')
+
+/** The circuit a channel runs in, by the channel's id (its gates in either order). */
+export function circuitOfChannel(id: string): ChannelCircuit {
+  const pair = pairOf(id)
+  const circuit = CIRCUITS.find((c) => c.channels.some((channel) => pairOf(channel) === pair))
+  if (!circuit) throw new RangeError(`No circuit holds channel ${id}`)
+  return circuit
+}
+
+/**
+ * All 36 channels with their gate pairs and centers; their circuitry is
+ * their circuit's group (`CIRCUITS`).
+ */
+const CHANNEL_ROWS: readonly Omit<Channel, 'circuitry'>[] = Object.freeze([
   // === HEAD TO AJNA (3 channels) ===
   {
     id: '64-47',
@@ -18,7 +63,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'הפשטה',
     gates: Object.freeze([64, 47] as [number, number]),
     centers: Object.freeze(['head', 'ajna'] as [CenterId, CenterId]),
-    circuitry: 'collective',
     keywords: Object.freeze(['mental activity', 'confusion to clarity', 'abstract thinking']),
   },
   {
@@ -27,7 +71,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'מודעות',
     gates: Object.freeze([61, 24] as [number, number]),
     centers: Object.freeze(['head', 'ajna'] as [CenterId, CenterId]),
-    circuitry: 'individual',
     keywords: Object.freeze(['knowing', 'inspiration', 'inner truth']),
   },
   {
@@ -36,7 +79,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'לוגיקה',
     gates: Object.freeze([63, 4] as [number, number]),
     centers: Object.freeze(['head', 'ajna'] as [CenterId, CenterId]),
-    circuitry: 'collective',
     keywords: Object.freeze(['logical mind', 'doubt to answers', 'questioning']),
   },
 
@@ -47,7 +89,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'קבלה',
     gates: Object.freeze([17, 62] as [number, number]),
     centers: Object.freeze(['ajna', 'throat'] as [CenterId, CenterId]),
-    circuitry: 'collective',
     keywords: Object.freeze(['logical opinion', 'detail', 'organizational skills']),
   },
   {
@@ -56,7 +97,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'מבנה',
     gates: Object.freeze([43, 23] as [number, number]),
     centers: Object.freeze(['ajna', 'throat'] as [CenterId, CenterId]),
-    circuitry: 'individual',
     keywords: Object.freeze(['insight', 'genius', 'individual knowing']),
   },
   {
@@ -65,7 +105,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'סקרנות',
     gates: Object.freeze([11, 56] as [number, number]),
     centers: Object.freeze(['ajna', 'throat'] as [CenterId, CenterId]),
-    circuitry: 'collective',
     keywords: Object.freeze(['ideas', 'stimulation', 'storytelling']),
   },
 
@@ -76,7 +115,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'האלפא',
     gates: Object.freeze([7, 31] as [number, number]),
     centers: Object.freeze(['g', 'throat'] as [CenterId, CenterId]),
-    circuitry: 'collective',
     keywords: Object.freeze(['leadership', 'influence', 'democratic']),
   },
   {
@@ -85,7 +123,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'השראה',
     gates: Object.freeze([1, 8] as [number, number]),
     centers: Object.freeze(['g', 'throat'] as [CenterId, CenterId]),
-    circuitry: 'individual',
     keywords: Object.freeze(['creative expression', 'contribution', 'role model']),
   },
   {
@@ -94,7 +131,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'הבן האובד',
     gates: Object.freeze([13, 33] as [number, number]),
     centers: Object.freeze(['g', 'throat'] as [CenterId, CenterId]),
-    circuitry: 'collective',
     keywords: Object.freeze(['witness', 'remembering', 'sharing experience']),
   },
   {
@@ -103,7 +139,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'התעוררות',
     gates: Object.freeze([10, 20] as [number, number]),
     centers: Object.freeze(['g', 'throat'] as [CenterId, CenterId]),
-    circuitry: 'integration',
     keywords: Object.freeze(['commitment to self', 'being in the now', 'awakening']),
   },
 
@@ -114,7 +149,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'כסף',
     gates: Object.freeze([21, 45] as [number, number]),
     centers: Object.freeze(['heart', 'throat'] as [CenterId, CenterId]),
-    circuitry: 'tribal',
     keywords: Object.freeze(['material world', 'control', 'willpower']),
   },
   {
@@ -123,7 +157,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'כניעה',
     gates: Object.freeze([26, 44] as [number, number]),
     centers: Object.freeze(['heart', 'spleen'] as [CenterId, CenterId]),
-    circuitry: 'tribal',
     keywords: Object.freeze(['transmission', 'memory', 'alertness']),
   },
 
@@ -134,7 +167,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'יזום',
     gates: Object.freeze([25, 51] as [number, number]),
     centers: Object.freeze(['g', 'heart'] as [CenterId, CenterId]),
-    circuitry: 'individual',
     keywords: Object.freeze(['spirit', 'shock', 'competitive']),
   },
 
@@ -145,7 +177,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'גל המוח',
     gates: Object.freeze([57, 20] as [number, number]),
     centers: Object.freeze(['spleen', 'throat'] as [CenterId, CenterId]),
-    circuitry: 'integration',
     keywords: Object.freeze(['intuitive clarity', 'survival', 'the now']),
   },
 
@@ -156,7 +187,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'צורה מושלמת',
     gates: Object.freeze([57, 10] as [number, number]),
     centers: Object.freeze(['spleen', 'g'] as [CenterId, CenterId]),
-    circuitry: 'integration',
     keywords: Object.freeze(['intuition', 'behavior', 'survival instinct']),
   },
 
@@ -167,7 +197,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'כריזמה',
     gates: Object.freeze([34, 20] as [number, number]),
     centers: Object.freeze(['sacral', 'throat'] as [CenterId, CenterId]),
-    circuitry: 'integration',
     keywords: Object.freeze(['power', 'transformation', 'manifesting']),
   },
   {
@@ -176,7 +205,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'חקירה',
     gates: Object.freeze([34, 10] as [number, number]),
     centers: Object.freeze(['sacral', 'g'] as [CenterId, CenterId]),
-    circuitry: 'integration',
     keywords: Object.freeze(['following conviction', 'behavior', 'power']),
   },
 
@@ -187,7 +215,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'שימור',
     gates: Object.freeze([27, 50] as [number, number]),
     centers: Object.freeze(['sacral', 'spleen'] as [CenterId, CenterId]),
-    circuitry: 'tribal',
     keywords: Object.freeze(['custodianship', 'values', 'responsibility']),
   },
   {
@@ -196,7 +223,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'מוטציה',
     gates: Object.freeze([3, 60] as [number, number]),
     centers: Object.freeze(['sacral', 'root'] as [CenterId, CenterId]),
-    circuitry: 'individual',
     keywords: Object.freeze(['energy to begin', 'limitation', 'mutation']),
   },
   {
@@ -205,7 +231,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'הפעימה',
     gates: Object.freeze([14, 2] as [number, number]),
     centers: Object.freeze(['sacral', 'g'] as [CenterId, CenterId]),
-    circuitry: 'individual',
     keywords: Object.freeze(['direction', 'power skills', 'wealth']),
   },
   {
@@ -214,7 +239,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'גילוי',
     gates: Object.freeze([29, 46] as [number, number]),
     centers: Object.freeze(['sacral', 'g'] as [CenterId, CenterId]),
-    circuitry: 'collective',
     keywords: Object.freeze(['perseverance', 'determination', 'body']),
   },
 
@@ -225,7 +249,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'אינטימיות',
     gates: Object.freeze([59, 6] as [number, number]),
     centers: Object.freeze(['sacral', 'solar'] as [CenterId, CenterId]),
-    circuitry: 'tribal',
     keywords: Object.freeze(['sexuality', 'fertility', 'emotional bonding']),
   },
   {
@@ -234,7 +257,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'הבשלה',
     gates: Object.freeze([42, 53] as [number, number]),
     centers: Object.freeze(['sacral', 'root'] as [CenterId, CenterId]),
-    circuitry: 'collective',
     keywords: Object.freeze(['growth', 'cycles', 'development']),
   },
 
@@ -245,7 +267,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'קצב',
     gates: Object.freeze([5, 15] as [number, number]),
     centers: Object.freeze(['sacral', 'g'] as [CenterId, CenterId]),
-    circuitry: 'collective',
     keywords: Object.freeze(['fixed patterns', 'flow', 'humanity']),
   },
   {
@@ -254,7 +275,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'ריכוז',
     gates: Object.freeze([9, 52] as [number, number]),
     centers: Object.freeze(['sacral', 'root'] as [CenterId, CenterId]),
-    circuitry: 'collective',
     keywords: Object.freeze(['focus', 'stillness', 'determination']),
   },
 
@@ -265,7 +285,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'חולף',
     gates: Object.freeze([35, 36] as [number, number]),
     centers: Object.freeze(['throat', 'solar'] as [CenterId, CenterId]),
-    circuitry: 'collective',
     keywords: Object.freeze(['change', 'experience', 'emotional depth']),
   },
   {
@@ -274,7 +293,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'פתיחות',
     gates: Object.freeze([12, 22] as [number, number]),
     centers: Object.freeze(['throat', 'solar'] as [CenterId, CenterId]),
-    circuitry: 'individual',
     keywords: Object.freeze(['social expression', 'grace', 'emotional']),
   },
 
@@ -285,7 +303,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'קהילה',
     gates: Object.freeze([37, 40] as [number, number]),
     centers: Object.freeze(['solar', 'heart'] as [CenterId, CenterId]),
-    circuitry: 'tribal',
     keywords: Object.freeze(['friendship', 'will', 'bargain']),
   },
   {
@@ -297,7 +314,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'כוח',
     gates: Object.freeze([34, 57] as [number, number]),
     centers: Object.freeze(['sacral', 'spleen'] as [CenterId, CenterId]),
-    circuitry: 'integration',
     keywords: Object.freeze(['archetype', 'instinctive power', 'survival']),
   },
   {
@@ -306,7 +322,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'סינתזה',
     gates: Object.freeze([49, 19] as [number, number]),
     centers: Object.freeze(['solar', 'root'] as [CenterId, CenterId]),
-    circuitry: 'tribal',
     keywords: Object.freeze(['principles', 'wanting', 'revolution']),
   },
 
@@ -317,7 +332,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'טרנספורמציה',
     gates: Object.freeze([54, 32] as [number, number]),
     centers: Object.freeze(['root', 'spleen'] as [CenterId, CenterId]),
-    circuitry: 'tribal',
     keywords: Object.freeze(['ambition', 'continuity', 'drive']),
   },
   {
@@ -326,7 +340,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'מאבק',
     gates: Object.freeze([38, 28] as [number, number]),
     centers: Object.freeze(['root', 'spleen'] as [CenterId, CenterId]),
-    circuitry: 'individual',
     keywords: Object.freeze(['fighter', 'game player', 'purpose']),
   },
   {
@@ -335,7 +348,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'שיפוט',
     gates: Object.freeze([58, 18] as [number, number]),
     centers: Object.freeze(['root', 'spleen'] as [CenterId, CenterId]),
-    circuitry: 'collective',
     keywords: Object.freeze(['vitality', 'correction', 'challenge']),
   },
 
@@ -346,7 +358,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'רגש',
     gates: Object.freeze([39, 55] as [number, number]),
     centers: Object.freeze(['root', 'solar'] as [CenterId, CenterId]),
-    circuitry: 'individual',
     keywords: Object.freeze(['provocation', 'spirit', 'moodiness']),
   },
 
@@ -357,7 +368,6 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'הכרה',
     gates: Object.freeze([41, 30] as [number, number]),
     centers: Object.freeze(['root', 'solar'] as [CenterId, CenterId]),
-    circuitry: 'collective',
     keywords: Object.freeze(['fantasy', 'feelings', 'desire']),
   },
 
@@ -371,10 +381,14 @@ export const CHANNELS: readonly Channel[] = Object.freeze([
     nameHebrew: 'אורך הגל',
     gates: Object.freeze([48, 16] as [number, number]),
     centers: Object.freeze(['spleen', 'throat'] as [CenterId, CenterId]),
-    circuitry: 'collective',
     keywords: Object.freeze(['depth', 'skills', 'talent']),
   },
 ])
+
+/**
+ * All 36 channels with their gate pairs, centers, and circuitry
+ */
+export const CHANNELS: readonly Channel[] = Object.freeze(CHANNEL_ROWS.map((row) => Object.freeze({ ...row, circuitry: circuitOfChannel(row.id).group })))
 
 /**
  * Get channel by ID (e.g., "1-8" or "64-47")
@@ -483,3 +497,7 @@ export const GATE_CONNECTIONS: Readonly<Record<number, readonly number[]>> = Obj
 export function areGatesConnected(gate1: number, gate2: number): boolean {
   return getChannelByGates(gate1, gate2) !== undefined
 }
+
+/** The gates harmonic to `gate`: each across one of its channels, with the channel the two complete. */
+export const harmonicsOf = (gate: number): readonly { readonly gate: number; readonly channel: Channel }[] =>
+  getChannelsForGate(gate).map((channel) => ({ gate: channel.gates[0] === gate ? channel.gates[1] : channel.gates[0], channel }))

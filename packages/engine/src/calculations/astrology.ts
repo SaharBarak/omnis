@@ -25,11 +25,17 @@ import type {
   HouseSystem,
 } from '../types/astrology'
 import {
+  CHALDEAN_ORDER,
+  EXALTATIONS,
+  TRADITIONAL_RULERS,
   ZODIAC_SIGNS,
+  detrimentIn,
+  fallIn,
   getZodiacSignFromLongitude,
   getDegreeInSign,
   getMinuteInDegree,
   formatZodiacPosition,
+  type ClassicalPlanet,
 } from '../data/zodiac-signs'
 import { PLANETS, getPlanetById, PLANET_TO_LIBRARY_KEY } from '../data/planets'
 import { HOUSES, getHouseByNumber } from '../data/houses'
@@ -88,91 +94,21 @@ function libraryKeyToPlanetId(key: string): PlanetId | null {
   return mapping[key.toLowerCase()] ?? null
 }
 
+const isClassical = (id: PlanetId): id is ClassicalPlanet => (CHALDEAN_ORDER as readonly string[]).includes(id)
+
 /**
- * Calculate planetary dignity based on sign placement
+ * A planet's essential dignity in a sign, read off the sourced tables in
+ * `zodiac-signs.ts`: domicile by its traditional rulership (Ptolemy,
+ * Tetrabiblos I.17), exaltation by Ptolemy's I.19, detriment and fall as
+ * the opposite signs'. The doctrine is defined for the seven classical
+ * planets; the outer planets and the points have none in it.
  */
 function calculateDignity(planetId: PlanetId, sign: ZodiacSign): Dignity {
-  // Domicile: planet rules the sign
-  const domicileMap: Record<PlanetId, ZodiacSign['id'][]> = {
-    sun: ['leo'],
-    moon: ['cancer'],
-    mercury: ['gemini', 'virgo'],
-    venus: ['taurus', 'libra'],
-    mars: ['aries', 'scorpio'],
-    jupiter: ['sagittarius', 'pisces'],
-    saturn: ['capricorn', 'aquarius'],
-    uranus: ['aquarius'],
-    neptune: ['pisces'],
-    pluto: ['scorpio'],
-    northNode: [],
-    southNode: [],
-    lilith: [],
-  }
-
-  // Exaltation signs
-  const exaltationMap: Record<PlanetId, ZodiacSign['id'] | null> = {
-    sun: 'aries',
-    moon: 'taurus',
-    mercury: 'virgo',
-    venus: 'pisces',
-    mars: 'capricorn',
-    jupiter: 'cancer',
-    saturn: 'libra',
-    uranus: 'scorpio',
-    neptune: 'cancer',
-    pluto: 'leo',
-    northNode: null,
-    southNode: null,
-    lilith: null,
-  }
-
-  // Detriment: opposite of domicile signs
-  const detrimentMap: Record<PlanetId, ZodiacSign['id'][]> = {
-    sun: ['aquarius'],
-    moon: ['capricorn'],
-    mercury: ['sagittarius', 'pisces'],
-    venus: ['aries', 'scorpio'],
-    mars: ['taurus', 'libra'],
-    jupiter: ['gemini', 'virgo'],
-    saturn: ['cancer', 'leo'],
-    uranus: ['leo'],
-    neptune: ['virgo'],
-    pluto: ['taurus'],
-    northNode: [],
-    southNode: [],
-    lilith: [],
-  }
-
-  // Fall: opposite of exaltation signs
-  const fallMap: Record<PlanetId, ZodiacSign['id'] | null> = {
-    sun: 'libra',
-    moon: 'scorpio',
-    mercury: 'pisces',
-    venus: 'virgo',
-    mars: 'cancer',
-    jupiter: 'capricorn',
-    saturn: 'aries',
-    uranus: 'taurus',
-    neptune: 'capricorn',
-    pluto: 'aquarius',
-    northNode: null,
-    southNode: null,
-    lilith: null,
-  }
-
-  if (domicileMap[planetId]?.includes(sign.id)) {
-    return 'domicile'
-  }
-  if (exaltationMap[planetId] === sign.id) {
-    return 'exaltation'
-  }
-  if (detrimentMap[planetId]?.includes(sign.id)) {
-    return 'detriment'
-  }
-  if (fallMap[planetId] === sign.id) {
-    return 'fall'
-  }
-
+  if (!isClassical(planetId)) return 'neutral'
+  if (TRADITIONAL_RULERS[sign.id] === planetId) return 'domicile'
+  if (EXALTATIONS[sign.id]?.planet === planetId) return 'exaltation'
+  if (detrimentIn(sign) === planetId) return 'detriment'
+  if (fallIn(sign) === planetId) return 'fall'
   return 'neutral'
 }
 
@@ -823,8 +759,16 @@ export function getApproximateSunSign(month: number, day: number): ZodiacSign {
 /**
  * Get the current planetary positions (for transit calculations)
  */
-/** Greenwich, the engine's neutral site for positions read from a date alone. */
-const NEUTRAL_SITE = { latitude: 51.4772, longitude: -0.0005 } as const
+/**
+ * The engine's neutral site for positions read from a date alone: the prime
+ * meridian at the equator. The chart library reads a time as the site's
+ * civil time, from the zone its coordinates fall in; this point lies in the
+ * nautical zone of the prime meridian (Etc/GMT), UTC all year, so "12:00"
+ * is noon UTC in every season. Greenwich keeps British Summer Time, which
+ * would read it an hour early from late March to late October. The bodies'
+ * longitudes are geocentric, so the site's latitude does not move them.
+ */
+export const NEUTRAL_SITE = { latitude: 0, longitude: 0 } as const
 
 export function getCurrentPlanetaryPositions(date: string = new Date().toISOString().split('T')[0]): PlanetPosition[] {
   const chart = calculateNatalChart({ date, time: '12:00', ...NEUTRAL_SITE })
@@ -836,16 +780,19 @@ export function getCurrentPlanetaryPositions(date: string = new Date().toISOStri
   }))
 }
 
+/** Each body's tropical longitude at a UTC time (HH:MM) of a date, at the neutral site. */
+export function planetLongitudes(date: string, time: string): ReadonlyMap<PlanetId, number> {
+  return new Map(calculateNatalChart({ date, time, ...NEUTRAL_SITE }).planets.map(p => [p.planet.id, p.position.longitude]))
+}
+
 /**
  * Where each body stands at the first and last minute of a date at the
  * neutral site. A chart read from a date alone can only place a body within
  * this arc: about 13° for the Moon, under 2° for everything else.
  */
 export function getPlanetaryDayArcs(date: string): ReadonlyMap<PlanetId, readonly [number, number]> {
-  const at = (time: string) =>
-    new Map(calculateNatalChart({ date, time, ...NEUTRAL_SITE }).planets.map(p => [p.planet.id, p.position.longitude]))
-  const start = at('00:00')
-  const end = at('23:59')
+  const start = planetLongitudes(date, '00:00')
+  const end = planetLongitudes(date, '23:59')
   return new Map(
     [...start].flatMap(([id, from]) => {
       const to = end.get(id)

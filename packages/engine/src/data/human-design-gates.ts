@@ -6,6 +6,7 @@
  */
 
 import type { Gate, CenterId } from '../types/human-design'
+import { CENTERS } from './human-design-centers'
 
 /**
  * All 64 gates with their center assignments and I Ching correlations
@@ -671,19 +672,12 @@ export function getGatesByCenter(centerId: CenterId): readonly Gate[] {
 }
 
 /**
- * Gates organized by center (for quick lookup)
+ * Gates organized by center (for quick lookup), as the centres' own table
+ * (`CENTERS`) lists them.
  */
-export const GATES_BY_CENTER: Readonly<Record<CenterId, readonly number[]>> = Object.freeze({
-  head: Object.freeze([64, 61, 63]),
-  ajna: Object.freeze([47, 24, 4, 17, 43, 11]),
-  throat: Object.freeze([62, 23, 56, 35, 12, 45, 33, 8, 31, 20, 16]),
-  g: Object.freeze([7, 1, 13, 25, 46, 2, 15, 10]),
-  heart: Object.freeze([21, 40, 26, 51]),
-  spleen: Object.freeze([48, 57, 44, 50, 32, 28, 18]),
-  sacral: Object.freeze([5, 14, 29, 59, 9, 3, 42, 27, 34]),
-  solar: Object.freeze([36, 22, 37, 6, 49, 55, 30]),
-  root: Object.freeze([53, 60, 52, 19, 39, 41, 58, 38, 54]),
-})
+export const GATES_BY_CENTER: Readonly<Record<CenterId, readonly number[]>> = Object.freeze(
+  Object.fromEntries(CENTERS.map((center) => [center.id, center.gates])) as Record<CenterId, readonly number[]>,
+)
 
 /**
  * Reverse lookup: gate number -> center
@@ -734,12 +728,67 @@ export const MANDALA_START_DEGREE = 302
 /** Each gate occupies 5.625° (360/64) */
 export const GATE_SIZE_DEGREES = 360 / 64
 
+/** Lines in a gate: the six lines of its hexagram. */
+export const LINES_IN_GATE = 6
+
 /** Each line occupies 0.9375° (5.625/6) */
-export const LINE_SIZE_DEGREES = GATE_SIZE_DEGREES / 6
+export const LINE_SIZE_DEGREES = GATE_SIZE_DEGREES / LINES_IN_GATE
+
+/**
+ * A line's substructure, as Ra Uru Hu set it: six colours in a line, six
+ * tones in a colour, five bases in a tone ("six lines, six colours, six
+ * tones, five bases": Jovian Archive, "The Basics of Substructure in Human
+ * Design"). A colour spans 0.15625°, a tone 0.026°, a base 0.0052°: the Sun
+ * crosses a tone in about 37 minutes.
+ */
+export const COLOURS_IN_LINE = 6
+export const TONES_IN_COLOUR = 6
+export const BASES_IN_TONE = 5
+export const COLOUR_SIZE_DEGREES = LINE_SIZE_DEGREES / COLOURS_IN_LINE
+export const TONE_SIZE_DEGREES = COLOUR_SIZE_DEGREES / TONES_IN_COLOUR
+export const BASE_SIZE_DEGREES = TONE_SIZE_DEGREES / BASES_IN_TONE
 
 /** Normalize any angle into [0, 360) */
 function normalizeDegrees(degrees: number): number {
   return ((degrees % 360) + 360) % 360
+}
+
+/** A tropical longitude as degrees round the Human Design wheel, from the start of the mandala (Gate 41.1). */
+export const wheelDegrees = (longitude: number): number => normalizeDegrees(longitude - MANDALA_START_DEGREE)
+
+/** `n` held to 0 … `count` − 1: a division's index, safe from rounding at its edges. */
+const indexIn = (n: number, count: number): number => Math.min(Math.max(n, 0), count - 1)
+
+/** The 0-based division `degrees` falls in, of `count` divisions each `size` wide. */
+const divisionOf = (degrees: number, size: number, count: number): number => indexIn(Math.floor(degrees / size), count)
+
+/** Where a longitude falls on the wheel: the gate's and line's indices round it, the gate and line they name, and the line's colour, tone and base (each from 1). */
+export interface WheelPlace {
+  readonly gateIndex: number
+  readonly lineIndex: number
+  readonly gate: number
+  readonly line: 1 | 2 | 3 | 4 | 5 | 6
+  readonly colour: number
+  readonly tone: number
+  readonly base: number
+}
+
+/**
+ * Where a longitude falls on the Human Design wheel, measured from the start
+ * of the mandala (Gate 41.1), not from 0° Aries: the gate and line, and the
+ * line's substructure down to the base.
+ */
+export function wheelPlace(longitude: number): WheelPlace {
+  const wheelPosition = wheelDegrees(longitude)
+  const gateIndex = Math.floor(wheelPosition / GATE_SIZE_DEGREES)
+  const lineIndex = Math.floor(wheelPosition / LINE_SIZE_DEGREES)
+  const line = (indexIn(lineIndex - gateIndex * LINES_IN_GATE, LINES_IN_GATE) + 1) as WheelPlace['line']
+  const inLine = wheelPosition - lineIndex * LINE_SIZE_DEGREES
+  const colour = divisionOf(inLine, COLOUR_SIZE_DEGREES, COLOURS_IN_LINE)
+  const inColour = inLine - colour * COLOUR_SIZE_DEGREES
+  const tone = divisionOf(inColour, TONE_SIZE_DEGREES, TONES_IN_COLOUR)
+  const base = divisionOf(inColour - tone * TONE_SIZE_DEGREES, BASE_SIZE_DEGREES, BASES_IN_TONE)
+  return { gateIndex, lineIndex, gate: MANDALA_SEQUENCE_FULL[gateIndex], line, colour: colour + 1, tone: tone + 1, base: base + 1 }
 }
 
 /**
@@ -749,16 +798,20 @@ function normalizeDegrees(degrees: number): number {
  * @returns Gate number (1-64) and line (1-6)
  */
 export function longitudeToGate(longitude: number): { gate: number; line: number } {
-  // Position measured from the start of the mandala (Gate 41.1), not from 0° Aries
-  const wheelPosition = normalizeDegrees(longitude - MANDALA_START_DEGREE)
+  const { gate, line } = wheelPlace(longitude)
+  return { gate, line }
+}
 
-  const gateIndex = Math.floor(wheelPosition / GATE_SIZE_DEGREES)
-  const gate = MANDALA_SEQUENCE_FULL[gateIndex]
-
-  const positionInGate = wheelPosition % GATE_SIZE_DEGREES
-  const line = Math.floor(positionInGate / LINE_SIZE_DEGREES) + 1
-
-  return { gate, line: Math.min(line, 6) as 1 | 2 | 3 | 4 | 5 | 6 }
+/**
+ * The gate across the wheel from `gate`, half a turn on: the Earth's gate to
+ * the Sun's, the South Node's to the North Node's. The two share their line,
+ * colour, tone and base, the wheel's half turn being a whole number of gates.
+ */
+export function oppositeGate(gate: number): number {
+  const index = MANDALA_SEQUENCE_FULL.indexOf(gate)
+  if (index === -1) throw new RangeError(`Invalid gate number: ${gate}. Must be 1-64.`)
+  const half = MANDALA_SEQUENCE_FULL.length / 2
+  return MANDALA_SEQUENCE_FULL[(index + half) % MANDALA_SEQUENCE_FULL.length]
 }
 
 /**

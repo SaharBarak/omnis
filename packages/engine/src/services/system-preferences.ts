@@ -220,6 +220,12 @@ export const SYSTEM_CATALOG: readonly SystemInfo[] = [
   },
 ] as const
 
+/** A system's own line from the catalog, as a sentence; null for a key the catalog lacks. */
+export const systemLine = (key: SystemKey): string | null => {
+  const line = SYSTEM_CATALOG.find((system) => system.key === key)?.description
+  return line ? `${line}.` : null
+}
+
 /**
  * Merge stored preferences over the all-true defaults; anything unknown
  * stays visible. Accepts the raw `profile.preferences` jsonb value.

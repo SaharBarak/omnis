@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { dateToKin, kinToSeal, kinToTone } from './dreamspell'
+import { countedShift, dateToKin, kinToSeal, kinToTone, spinDates } from './dreamspell'
 import { asKin } from '../core/types'
 
 describe('Dreamspell Calculations', () => {
@@ -123,5 +123,27 @@ describe('Dreamspell Calculations', () => {
       expect(kinToSeal(kin)).toBe(7)  // Hand
       expect(kinToTone(kin)).toBe(12) // Crystal
     })
+  })
+})
+
+describe('spinDates (the 260 counted days, 0.0 Hunab Ku outside the count)', () => {
+  it('lays the spin from kin 1, each date carrying its own kin', () => {
+    const spin = spinDates('2012-12-21')
+    expect(spin).toHaveLength(260)
+    spin.forEach((date, i) => expect(dateToKin(date)).toBe(i + 1))
+    expect(spin[206]).toBe('2012-12-21')
+  })
+
+  it('passes over 29 February, which keeps the 28th\'s kin', () => {
+    const spin = spinDates('2024-03-01')
+    expect(spin).not.toContain('2024-02-29')
+    expect(spin.indexOf('2024-03-01') - spin.indexOf('2024-02-28')).toBe(1)
+    expect(spinDates('2024-02-29')).toEqual(spinDates('2024-02-28'))
+  })
+
+  it('counts back across a leap day', () => {
+    expect(countedShift('2024-03-01', -1)).toBe('2024-02-28')
+    expect(countedShift('2024-02-28', 1)).toBe('2024-03-01')
+    expect(countedShift('2024-02-28', 0)).toBe('2024-02-28')
   })
 })

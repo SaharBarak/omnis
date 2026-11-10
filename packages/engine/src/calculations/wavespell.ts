@@ -128,3 +128,28 @@ export function getCurrentWavespellInfo(kin: Kin): {
     isAtEnd: position.position === 13,
   }
 }
+
+/**
+ * The wavespell's four pulsars (Argüelles, *Dreamspell* Journey Book): the
+ * thirteen tones grouped four apart, each a dimension of the wavespell: the
+ * time pulsar (tones 1, 5, 9, 13, fourth-dimensional), the life pulsar
+ * (2, 6, 10, first), the sense pulsar (3, 7, 11, second) and the mind pulsar
+ * (4, 8, 12, third). A tone's pulsar is its remainder by four.
+ */
+export interface Pulsar {
+  readonly name: 'Time' | 'Life' | 'Sense' | 'Mind'
+  readonly dimension: 1 | 2 | 3 | 4
+}
+
+const PULSARS: readonly Pulsar[] = Object.freeze([
+  { name: 'Mind', dimension: 3 },
+  { name: 'Time', dimension: 4 },
+  { name: 'Life', dimension: 1 },
+  { name: 'Sense', dimension: 2 },
+])
+
+export function tonePulsar(tone: number): Pulsar {
+  const pulsar = PULSARS[tone % PULSARS.length]
+  if (!pulsar) throw new RangeError(`Invalid tone: ${tone}`)
+  return pulsar
+}

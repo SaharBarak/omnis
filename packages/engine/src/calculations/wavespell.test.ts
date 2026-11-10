@@ -12,6 +12,7 @@ import {
   getWavespellRole,
   getAllWavespells,
   getCurrentWavespellInfo,
+  tonePulsar,
 } from './wavespell'
 
 describe('Wavespell calculations', () => {
@@ -175,5 +176,16 @@ describe('Wavespell calculations', () => {
       expect(info.isAtEnd).toBe(true)
       expect(info.kinsRemaining).toBe(0)
     })
+  })
+})
+
+describe('tonePulsar (Dreamspell Journey Book: the wavespell pulsars)', () => {
+  it('groups the thirteen tones four apart: time 1 5 9 13, life 2 6 10, sense 3 7 11, mind 4 8 12', () => {
+    const of = (name: string) => Array.from({ length: 13 }, (_, i) => i + 1).filter((t) => tonePulsar(t).name === name)
+    expect(of('Time')).toEqual([1, 5, 9, 13])
+    expect(of('Life')).toEqual([2, 6, 10])
+    expect(of('Sense')).toEqual([3, 7, 11])
+    expect(of('Mind')).toEqual([4, 8, 12])
+    expect(tonePulsar(9).dimension).toBe(4)
   })
 })

@@ -99,3 +99,12 @@ export const HEXAGRAMS: readonly Hexagram[] = Object.freeze([
   { number: 63, pinyin: 'Ji Ji', english: 'After Completion', trigrams: ['Fire', 'Water'], judgment: 'Order achieved — success in small matters; at the end, keep watch for disorder.' },
   { number: 64, pinyin: 'Wei Ji', english: 'Before Completion', trigrams: ['Water', 'Fire'], judgment: 'The fox nearly across — everything ready but the last step; place each foot with care.' },
 ])
+
+/** A hexagram's six lines by its King Wen number (a Human Design gate's number too), bottom first, true where the line is yang: its lower trigram's, then its upper's. */
+export function hexagramLines(n: number): readonly boolean[] {
+  const hexagram = HEXAGRAMS.find((h) => h.number === n)
+  if (!hexagram) throw new RangeError(`No hexagram ${n}`)
+  const trigram = (name: string) => TRIGRAMS.find((t) => t.name === name)?.lines ?? []
+  const [lower, upper] = hexagram.trigrams
+  return [...trigram(lower), ...trigram(upper)].map((line) => line === 1)
+}

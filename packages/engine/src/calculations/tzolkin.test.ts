@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { dateToTzolkin, getTzolkinSealNumber, getTzolkinTone } from './tzolkin'
+import { dateToTzolkin, daysSinceEraBase, getTzolkinSealNumber, getTzolkinTone, trecenaStart, tzolkinOfDays, tzolkinPosition } from './tzolkin'
 
 describe('Tzolkin Calculations', () => {
   describe('dateToTzolkin', () => {
@@ -76,6 +76,25 @@ describe('Tzolkin Calculations', () => {
       // Tone advances by 1 (mod 13)
       const expectedTone = day1.tone === 13 ? 1 : day1.tone + 1
       expect(day2.tone).toBe(expectedTone)
+    })
+  })
+
+  describe("the Tzolk'in's 260 and its trecenas", () => {
+    it('numbers the 260 from 1 Imix to 13 Ajaw, the era base 4 Ajaw the 160th', () => {
+      expect(tzolkinPosition({ daySign: tzolkinOfDays(0).daySign, tone: 4 })).toBe(160)
+      expect(tzolkinPosition(dateToTzolkin('1987-08-16'))).toBe(1)
+      expect(tzolkinPosition({ daySign: tzolkinOfDays(0).daySign, tone: 13 })).toBe(260)
+    })
+
+    it("opens a trecena on its 1: 4 Ok on 8 November 2026 is the fourth day of 1 Manik'", () => {
+      const days = daysSinceEraBase('2026-11-08')
+      const first = tzolkinOfDays(trecenaStart(days))
+      expect(`${first.tone} ${first.daySign.yucatec}`).toBe("1 Manik'")
+      expect(days - trecenaStart(days)).toBe(3)
+    })
+
+    it('counts back past the era base: three days before 4 Ajaw is 1 Kab\'an', () => {
+      expect(tzolkinOfDays(-3)).toMatchObject({ tone: 1, daySign: { yucatec: "Kab'an" } })
     })
   })
 })

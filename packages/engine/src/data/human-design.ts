@@ -5,6 +5,7 @@
  */
 
 import type {
+  Quarter,
   TypeDefinition,
   HumanDesignType,
   AuthorityDefinition,
@@ -337,15 +338,136 @@ export function getLineTheme(line: ProfileLine): { name: string; nameHebrew: str
 // INCARNATION CROSS DATA
 // =============================================================================
 
+/** A godhead of the Rave Mandala: its name and the four gates it holds, in wheel order. */
+export interface Godhead {
+  readonly name: string
+  readonly gates: readonly number[]
+}
+
+/** A quarter of the Rave Mandala: sixteen gates under four godheads, and what its purpose is fulfilled through. */
+export interface MandalaQuarter {
+  readonly id: Quarter
+  readonly name: string
+  readonly theme: string
+  readonly godheads: readonly Godhead[]
+}
+
+/**
+ * The four quarters of the Rave Mandala, in the order the Sun reaches them
+ * from the Quarter of Initiation, each opening at its Sphinx gate (13, 2, 7
+ * and 1, at 13°15′ of Aquarius, Taurus, Leo and Scorpio) and holding four
+ * godheads of four gates in wheel order: Initiation, purpose fulfilled
+ * through Mind; Civilization, through Form; Duality, through Bonding;
+ * Mutation, through Transformation; each closes at its gate of the Four
+ * Ways (24, 33, 44 and 19). Ra Uru Hu's Rave Mandala, as two listings give
+ * it, agreeing godhead for godhead and gate for gate: "Human Design Quarters
+ * & Godheads of the Rave Mandala"
+ * (thehumandesignsystem.com/blog/human-design-quarters-and-godheads) and
+ * "Incarnation Cross Godheads" (barneyandflow.com/new-blog/incarnation-cross-godheads).
+ * Gate 1 stands under Hades, gate 41 under the Keepers of the Wheel.
+ */
+export const MANDALA_QUARTERS: readonly MandalaQuarter[] = Object.freeze([
+  {
+    id: 'initiation',
+    name: 'Initiation',
+    theme: 'Mind',
+    godheads: [
+      { name: 'Kali', gates: [13, 49, 30, 55] },
+      { name: 'Mitra', gates: [37, 63, 22, 36] },
+      { name: 'Michael', gates: [25, 17, 21, 51] },
+      { name: 'Janus', gates: [42, 3, 27, 24] },
+    ],
+  },
+  {
+    id: 'civilization',
+    name: 'Civilization',
+    theme: 'Form',
+    godheads: [
+      { name: 'Maia', gates: [2, 23, 8, 20] },
+      { name: 'Lakshmi', gates: [16, 35, 45, 12] },
+      { name: 'Parvati', gates: [15, 52, 39, 53] },
+      { name: "Ma'at", gates: [62, 56, 31, 33] },
+    ],
+  },
+  {
+    id: 'duality',
+    name: 'Duality',
+    theme: 'Bonding',
+    godheads: [
+      { name: 'Thoth', gates: [7, 4, 29, 59] },
+      { name: 'Harmonia', gates: [40, 64, 47, 6] },
+      { name: 'Christ Consciousness', gates: [46, 18, 48, 57] },
+      { name: 'Minerva', gates: [32, 50, 28, 44] },
+    ],
+  },
+  {
+    id: 'mutation',
+    name: 'Mutation',
+    theme: 'Transformation',
+    godheads: [
+      { name: 'Hades', gates: [1, 43, 14, 34] },
+      { name: 'Prometheus', gates: [9, 5, 26, 11] },
+      { name: 'Vishnu', gates: [10, 58, 38, 54] },
+      { name: 'Keepers of the Wheel', gates: [61, 60, 41, 19] },
+    ],
+  },
+] satisfies MandalaQuarter[])
+
+/** A quarter's sixteen gates in wheel order, from its Sphinx gate. */
+export const quarterGates = (quarter: MandalaQuarter): readonly number[] => quarter.godheads.flatMap((g) => g.gates)
+
 /**
  * Quarter positions for incarnation crosses
  */
-export const QUARTER_GATES: Readonly<Record<string, readonly number[]>> = Object.freeze({
-  initiation: Object.freeze([13, 49, 30, 55, 37, 63, 22, 36, 25, 17, 21, 51, 42, 3, 27, 24]),
-  civilization: Object.freeze([2, 23, 8, 20, 16, 35, 45, 12, 15, 52, 39, 53, 62, 56, 31, 33]),
-  duality: Object.freeze([7, 4, 29, 59, 40, 64, 47, 6, 46, 18, 48, 57, 32, 50, 28, 44]),
-  mutation: Object.freeze([1, 43, 14, 34, 9, 5, 26, 11, 10, 58, 38, 54, 61, 60, 41, 19]),
-})
+export const QUARTER_GATES: Readonly<Record<string, readonly number[]>> = Object.freeze(
+  Object.fromEntries(MANDALA_QUARTERS.map((quarter) => [quarter.id, Object.freeze(quarterGates(quarter))])),
+)
+
+/** The quarter of the Rave Mandala `gate` stands in. */
+export const quarterOfGate = (gate: number): MandalaQuarter | undefined => MANDALA_QUARTERS.find((q) => quarterGates(q).includes(gate))
+
+/** The godhead of the Rave Mandala `gate` stands under. */
+export const godheadOfGate = (gate: number): Godhead | undefined => MANDALA_QUARTERS.flatMap((q) => q.godheads).find((g) => g.gates.includes(gate))
+
+// =============================================================================
+// LINE SUBSTRUCTURE: COLOUR AND TONE
+// =============================================================================
+
+/**
+ * The six colours of a line, as Ra Uru Hu named them: each read as a
+ * motivation where it is the Personality Sun's colour (Fear, Hope, Desire,
+ * Need, Guilt, Innocence) and as a determination, the diet of the Primary
+ * Health System, where it is the Design Sun's (Appetite, Taste, Thirst,
+ * Touch, Sound, Light). Jovian Archive, "The Six Motivations of the
+ * Not-Self"; "The Basics of Substructure in Human Design".
+ */
+export const LINE_COLOURS: readonly { readonly motivation: string; readonly determination: string }[] = Object.freeze([
+  { motivation: 'Fear', determination: 'Appetite' },
+  { motivation: 'Hope', determination: 'Taste' },
+  { motivation: 'Desire', determination: 'Thirst' },
+  { motivation: 'Need', determination: 'Touch' },
+  { motivation: 'Guilt', determination: 'Sound' },
+  { motivation: 'Innocence', determination: 'Light' },
+])
+
+/**
+ * The six tones of a colour, as Ra Uru Hu named them: each read as a
+ * cognition, the sense the Design Sun's tone sets (Smell, Taste, Outer
+ * Vision, Inner Vision, Feeling, Touch). Tones 1 to 3 are left (active,
+ * strategic), 4 to 6 right (passive, receptive): the arrows of the
+ * variables. Jovian Archive, "The Basics of Substructure in Human Design".
+ */
+export const COLOUR_TONES: readonly { readonly cognition: string }[] = Object.freeze([
+  { cognition: 'Smell' },
+  { cognition: 'Taste' },
+  { cognition: 'Outer Vision' },
+  { cognition: 'Inner Vision' },
+  { cognition: 'Feeling' },
+  { cognition: 'Touch' },
+])
+
+/** A tone's side: the first half of a colour's tones left, the second right. */
+export const toneSide = (tone: number): 'left' | 'right' => (tone <= COLOUR_TONES.length / 2 ? 'left' : 'right')
 
 /**
  * The geometry of an Incarnation Cross.
@@ -377,8 +499,5 @@ export function getCrossAngle(conscious: number, unconscious: number): CrossAngl
  * Get quarter from gate number
  */
 export function getQuarterFromGate(gate: number): string | undefined {
-  for (const [quarter, gates] of Object.entries(QUARTER_GATES)) {
-    if (gates.includes(gate)) return quarter
-  }
-  return undefined
+  return quarterOfGate(gate)?.id
 }
