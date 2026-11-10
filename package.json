@@ -2,6 +2,9 @@
   "name": "omnis",
   "version": "1.0.0",
   "private": true,
+  "overrides": {
+    "dompurify": "^3.4.17"
+  },
   "workspaces": [
     "packages/api-client",
     "packages/engine",
@@ -94,7 +97,7 @@
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.182.0",
-    "zod": "^4.3.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260612.1",
