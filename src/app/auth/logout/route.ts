@@ -9,5 +9,7 @@ async function signOut(request: NextRequest) {
   return NextResponse.redirect(`${request.nextUrl.origin}/`)
 }
 
-export const GET = signOut
+// POST-only: a state-changing sign-out must not be triggerable by a GET (an
+// <img>/link on a third-party page would force-log-out the visitor). The app's
+// own sign-out clears the session client-side via supabase.auth.signOut().
 export const POST = signOut

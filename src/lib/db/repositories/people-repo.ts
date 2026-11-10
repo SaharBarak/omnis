@@ -133,9 +133,23 @@ export async function createPerson(
   tagIds: string[] = []
 ) {
   const db = getDb()
+  // Explicit column allowlist, not a spread: the only writable columns are
+  // these, so a caller that ever forwards a raw request body cannot mass-assign
+  // a column it shouldn't (owner_id is set here, never taken from input).
   const [person] = await db
     .insert(people)
-    .values({ ...input, owner_id: userId })
+    .values({
+      owner_id: userId,
+      name: input.name,
+      hebrew_name: input.hebrew_name,
+      birth_date: input.birth_date,
+      birth_time: input.birth_time,
+      birth_place: input.birth_place,
+      avatar_url: input.avatar_url,
+      notes: input.notes,
+      is_self: input.is_self,
+      personality: input.personality,
+    })
     .returning()
   if (tagIds.length) {
     await setPersonTags(userId, person.id, tagIds)

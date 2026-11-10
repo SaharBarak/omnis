@@ -70,8 +70,10 @@ export const patchSchema = z.object({
       birth_place: birthPlaceSchema.optional(),
       avatar_url: z.string().nullable().optional(),
       notes: z.string().nullable().optional(),
-      is_self: z.boolean().optional(),
-      deleted_at: z.string().nullable().optional(),
+      // is_self and deleted_at are server-managed, never client-set: is_self is
+      // fixed at creation (it gates the plan-cap count) and the soft-delete flag
+      // is driven by the DELETE verb and `action: 'restore'` below. Accepting
+      // them here let a client flip is_self to dodge the people cap.
       personality: personalitySchema.optional(),
     })
     .default({}),
