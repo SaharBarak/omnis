@@ -6,6 +6,8 @@ import {
   siderealSun,
   type Panchang,
 } from '@pleiad/engine/calculations/calendars'
+import { daysFrom } from '@pleiad/engine/calculations/day-search'
+import { nextObservances, type Observance } from '@pleiad/engine/calculations/panchang'
 import {
   hebrewDateParts,
   upcomingHebrewHolidays,
@@ -124,41 +126,35 @@ function panchangLimbs(p: Panchang, sun: { sign: string; degree: number }): List
   ]
 }
 
+const OBSERVANCE_WORDS: Readonly<Record<Observance, { label: string; note: string }>> = {
+  ekadashi: {
+    label: 'Next Ekadashi',
+    note: 'The eleventh tithi — the traditional fasting day of each paksha',
+  },
+  purnima: { label: 'Next Purnima', note: 'Full moon — the bright half completes' },
+  amavasya: {
+    label: 'Next Amavasya',
+    note: 'New moon — the dark half completes; the month turns',
+  },
+}
+
 /**
- * The three lunar observances every panchang marks, found by scanning
- * forward — they move against the civil calendar, so there is no table to
- * look them up in.
+ * The three lunar observances every panchang marks, each on its first
+ * sunrise in Ujjain, or the day it begins where no sunrise falls in it
+ * (`nextObservances`) — they move against the civil calendar, so there is
+ * no table to look them up in.
  */
 function upcomingObservances(from: Date): ListEntry[] {
-  const wanted: ReadonlyArray<{ tithi: string; label: string; note: string }> = [
-    {
-      tithi: 'Ekadashi',
-      label: 'Next Ekadashi',
-      note: 'The eleventh tithi — the traditional fasting day of each paksha',
-    },
-    { tithi: 'Purnima', label: 'Next Purnima', note: 'Full moon — the bright half completes' },
-    {
-      tithi: 'Amavasya',
-      label: 'Next Amavasya',
-      note: 'New moon — the dark half completes; the month turns',
-    },
-  ]
-  const found: ListEntry[] = []
-  const seen = new Set<string>()
-  for (let i = 0; i <= 35 && seen.size < wanted.length; i++) {
-    const iso = toDateStr(new Date(from.getTime() + i * 86_400_000))
-    const p = panchang(iso)
-    for (const entry of wanted) {
-      if (seen.has(entry.tithi) || !p.tithi.includes(entry.tithi)) continue
-      seen.add(entry.tithi)
-      found.push({
-        label: entry.label,
-        value: `${p.tithi} · ${whenLine(iso, i)}`,
-        detail: entry.note,
-      })
+  const iso = toDateStr(from)
+  const spans = nextObservances(iso)
+  return (Object.keys(OBSERVANCE_WORDS) as Observance[]).map((key) => {
+    const { tithi, day } = spans[key]
+    return {
+      label: OBSERVANCE_WORDS[key].label,
+      value: `${tithi.paksha} ${tithi.name} · ${whenLine(day, daysFrom(iso, day))}`,
+      detail: OBSERVANCE_WORDS[key].note,
     }
-  }
-  return found
+  })
 }
 
 function buildSpec(key: CalendarLiveKey, today: Date): LiveSpec {
@@ -236,11 +232,11 @@ function buildSpec(key: CalendarLiveKey, today: Date): LiveSpec {
       const p = panchang(iso)
       return {
         heading: p.tithi,
-        note: `${civilDate(today)} · computed at noon UTC — printed almanacs anchor at sunrise`,
+        note: `${civilDate(today)} · read at sunrise in Ujjain, as the almanacs read it`,
         heroRows: panchangLimbs(p, siderealSun(iso)),
         convert: (date) => panchang(toDateStr(date)).tithi,
         footnote:
-          'Noon-UTC longitudes with the Lahiri ayanamsa — sign-level accuracy, not observatory minutes.',
+          'Each limb at sunrise in Ujjain, the Surya Siddhanta’s meridian, by the Lahiri ayanamsa — tithi times within a minute or two of the printed almanacs.',
         listEyebrow: 'Observances',
         list: upcomingObservances(today),
       }
