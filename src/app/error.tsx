@@ -41,6 +41,9 @@ export default function Error({
         >
           Try again
         </button>
+        {/* A full document load, not a client transition: it discards the
+            client state that led to the error. */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a
           href="/"
           className="rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-white/80 transition hover:bg-white/5"
