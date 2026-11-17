@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ConsentPreference } from '@/components/analytics/consent-preference'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy | Pleiad',
@@ -69,8 +70,19 @@ export default function PrivacyPage() {
               <li><strong>RevenueCat:</strong> Purchase and subscription status, so your plan unlocks on every device</li>
               <li><strong>Resend:</strong> Transactional and newsletter email delivery</li>
               <li><strong>PostHog:</strong> Privacy-respecting product analytics</li>
+              <li><strong>Google Analytics:</strong> Aggregate traffic and acquisition measurement</li>
               <li><strong>Cloudflare:</strong> Hosting, content delivery, and bot protection</li>
             </ul>
+            <p>
+              PostHog and Google Analytics set identifiers in your browser only if you
+              allow analytics cookies. In the European Economic Area, the United Kingdom
+              and Switzerland we ask first and load nothing until you answer; a Global
+              Privacy Control or Do Not Track signal from your browser counts as a
+              refusal everywhere. If you decline, Google Analytics is not loaded and
+              PostHog counts visits without cookies or any identifier stored on your
+              device.
+            </p>
+            <ConsentPreference />
 
             <h2 className="text-lg font-semibold mt-6 mb-3">6. Your Rights</h2>
             <p>You have the right to:</p>

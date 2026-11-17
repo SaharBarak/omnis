@@ -38,6 +38,19 @@ export interface NormalizedEvent {
   userIds: string[]
   /** Vendor event id, for logging/dedupe. */
   eventId?: string
+  /** Present only when the event confirms the first payment for a product. */
+  purchase?: NormalizedPurchase
+}
+
+/** A confirmed payment, as the provider reported it. Analytics only: never written as state. */
+export interface NormalizedPurchase {
+  userId: string
+  plan: PlanTier
+  productId: string | null
+  /** Amount in `currency`, as charged. */
+  value: number
+  /** ISO 4217. */
+  currency: string
 }
 
 export interface BillingProvider {

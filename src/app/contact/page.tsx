@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { track } from '@/lib/analytics/posthog'
 import { NavV2, FooterV2, StarParallax, MuralBackdrop, AmbientVideo } from '@/components/landing-v2'
 import { TYPE } from '@/lib/design/landing-tokens'
 import { MURAL_GROUND } from '@/lib/design/system-flavors'
@@ -52,6 +53,7 @@ export default function ContactPage() {
         const data = (await res.json().catch(() => null)) as { error?: string } | null
         throw new Error(data?.error ?? 'Sending failed. Email us directly instead.')
       }
+      track('lead_submitted', { channel: 'contact_form', placement: 'contact_page' })
       setSubmitted(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Sending failed. Email us directly instead.')

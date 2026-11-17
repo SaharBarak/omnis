@@ -42,7 +42,7 @@ export function DownloadCta() {
           <GetTheApp className="justify-center" />
         </div>
 
-        <NewsletterSignup />
+        <NewsletterSignup placement="landing_download_cta" />
       </motion.div>
     </section>
   )

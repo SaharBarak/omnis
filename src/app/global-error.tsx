@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { captureException } from '@/lib/analytics/posthog'
 
 /**
  * Last-resort boundary for errors thrown in the root layout itself. It must
@@ -16,6 +17,7 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     console.error('Global error', error.digest ?? error.message)
+    captureException(error, { digest: error.digest })
   }, [error])
 
   return (

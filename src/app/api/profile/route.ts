@@ -8,6 +8,10 @@ import { serialize } from '@/lib/db/serialize'
 import { notifyNewSignup } from '@/lib/alerts'
 import { getSession, UnauthorizedError, type SessionUser } from '@/lib/auth-server'
 import { upsertSelfPerson } from '@/lib/db/repositories/people-repo'
+import { trackServer } from '@/lib/analytics/server'
+
+/** `method` when the session token names no auth provider. */
+const UNKNOWN_AUTH_METHOD = 'unknown'
 
 /**
  * Identity bootstrap — upserts the Auth0 user into the local `users` mirror
@@ -15,7 +19,7 @@ import { upsertSelfPerson } from '@/lib/db/repositories/people-repo'
  * databaseHooks.user.create.after hook; called by both GET and PATCH so a
  * profile is guaranteed before the first write, with no ordering dependency.
  */
-async function ensureUserAndProfile(user: SessionUser) {
+async function ensureUserAndProfile(user: SessionUser, request: Request) {
   const db = getDb()
   const now = new Date().toISOString()
 
@@ -39,8 +43,15 @@ async function ensureUserAndProfile(user: SessionUser) {
     .onConflictDoNothing()
     .returning({ id: profiles.id })
 
-  if (inserted.length > 0 && user.email) {
-    void notifyNewSignup({ kind: 'app_user', email: user.email, name: user.name })
+  if (inserted.length > 0) {
+    trackServer('user_signed_up', {
+      actor: { userId: user.id },
+      properties: { method: user.provider ?? UNKNOWN_AUTH_METHOD },
+      request,
+    })
+    if (user.email) {
+      void notifyNewSignup({ kind: 'app_user', email: user.email, name: user.name })
+    }
   }
 
   const [profile] = await db
@@ -51,11 +62,11 @@ async function ensureUserAndProfile(user: SessionUser) {
   return profile
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getSession()
     if (!session) throw new UnauthorizedError()
-    const profile = await ensureUserAndProfile(session.user)
+    const profile = await ensureUserAndProfile(session.user, request)
     return NextResponse.json({ profile: serialize(profile) ?? null })
   } catch (error) {
     if (error instanceof UnauthorizedError) {
@@ -76,7 +87,7 @@ export async function PATCH(request: Request) {
     // Guarantee the identity mirror + profile row exist before updating, so a
     // PATCH that lands before any GET (e.g. onboarding on a fresh session)
     // never 404s.
-    await ensureUserAndProfile(session.user)
+    await ensureUserAndProfile(session.user, request)
 
     const db = getDb()
     const [profile] = await db

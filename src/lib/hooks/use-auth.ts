@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { identifyUser, resetIdentity } from '@/lib/analytics/posthog'
+import { identify, reset, track } from '@/lib/analytics/posthog'
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import type { profiles } from '@/lib/db/schema'
 
@@ -74,9 +74,9 @@ export function useAuth() {
   const [profileLoading, setProfileLoading] = useState(false)
 
   // Product analytics: tie the anonymous device to the signed-in user.
-  // No-op when PostHog is off; identifyUser dedupes repeat calls itself.
+  // No-op when PostHog is off; identify dedupes repeat calls itself.
   useEffect(() => {
-    if (user) identifyUser(user.id, user.email || undefined)
+    if (user) identify(user.id, { email: user.email || undefined, name: user.name ?? undefined })
   }, [user])
 
   // Load the app profile from the server (browser cannot query the DB directly).
@@ -118,6 +118,7 @@ export function useAuth() {
     async (email: string, password: string) => {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw new Error(error.message)
+      track('user_logged_in', { method: 'email' })
     },
     [supabase]
   )
@@ -153,7 +154,7 @@ export function useAuth() {
   )
 
   const signOut = useCallback(async () => {
-    resetIdentity()
+    reset()
     await supabase.auth.signOut()
     window.location.href = '/'
   }, [supabase])

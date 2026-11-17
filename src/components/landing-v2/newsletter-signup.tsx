@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react'
 
 import { TurnstileWidget } from '@/components/security/turnstile-widget'
+import type { NewsletterPlacement } from '@/lib/analytics/events'
 
 /**
  * Newsletter / waitlist signup. Posts to /api/newsletter/subscribe, which
@@ -16,7 +17,7 @@ import { TurnstileWidget } from '@/components/security/turnstile-widget'
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
-export function NewsletterSignup() {
+export function NewsletterSignup({ placement }: { placement: NewsletterPlacement }) {
   const [email, setEmail] = useState('')
   const [token, setToken] = useState('')
   const [status, setStatus] = useState<Status>('idle')
@@ -31,7 +32,7 @@ export function NewsletterSignup() {
       const res = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, turnstileToken: token }),
+        body: JSON.stringify({ email, turnstileToken: token, placement }),
       })
       const data: { message?: string; error?: string } = await res.json().catch(() => ({}))
       if (res.ok) {

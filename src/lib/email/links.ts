@@ -1,4 +1,5 @@
 import { signConfirmToken, signUnsubscribeToken } from '@/lib/api/email-token'
+import type { NewsletterPlacement } from '@/lib/analytics/events'
 
 /**
  * Signed links that appear inside emails. Single source of truth: the
@@ -45,14 +46,22 @@ export async function buildUnsubscribeLink(email: string): Promise<UnsubscribeLi
  * unset: without a signature there is no way to prove the recipient controls
  * the address, so the caller must abort the signup rather than fall back to an
  * unsigned link that would confirm anyone.
+ *
+ * `placement` names the form the address was entered in. It rides outside the
+ * signature because it is analytics only: it grants nothing, and the confirm
+ * route accepts it only if it is a known placement.
  */
-export async function buildConfirmUrl(email: string): Promise<string | null> {
+export async function buildConfirmUrl(
+  email: string,
+  placement?: NewsletterPlacement | null
+): Promise<string | null> {
   const token = await signConfirmToken(email)
   if (!token) return null
   const params = new URLSearchParams({
     email,
     exp: String(token.expiresAt),
     sig: token.sig,
+    ...(placement ? { placement } : {}),
   })
   return `${emailBaseUrl()}/api/newsletter/confirm?${params.toString()}`
 }

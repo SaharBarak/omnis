@@ -5,6 +5,8 @@ import { verifyConfirmToken } from '@/lib/api/email-token'
 import { confirmSubscriber } from '@/lib/db/repositories/newsletter-repo'
 import { addAudienceContact, sendMarketingEmail } from '@/lib/email'
 import { buildUnsubscribeLink } from '@/lib/email/links'
+import { asNewsletterPlacement } from '@/lib/analytics/events'
+import { trackServer } from '@/lib/analytics/server'
 
 export const dynamic = 'force-dynamic'
 
@@ -68,6 +70,16 @@ export async function GET(request: NextRequest) {
     })
 
     void notifyNewSignup({ kind: 'newsletter', email: normalizedEmail })
+
+    // The address is never the id: a confirmed reader is counted, not profiled.
+    const placement = asNewsletterPlacement(searchParams.get('placement'))
+    if (placement) {
+      trackServer('newsletter_subscribed', {
+        actor: { anonymous: true },
+        properties: { placement },
+        request,
+      })
+    }
   }
 
   return NextResponse.redirect(new URL('/newsletter/confirmed?success=true', request.url))

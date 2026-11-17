@@ -20,6 +20,8 @@ export interface SessionUser {
   email: string
   name: string | null
   image: string | null
+  /** The Supabase auth provider the account signed in with (`email`, `google`). */
+  provider: string | null
 }
 
 export interface AppSession {
@@ -30,6 +32,7 @@ type Claims = {
   sub: string
   email?: string | null
   user_metadata?: Record<string, unknown> | null
+  app_metadata?: { provider?: string | null } | null
 }
 
 /**
@@ -52,6 +55,7 @@ function toSessionUser(claims: Claims): SessionUser {
     email: claims.email ?? pick('email') ?? '',
     name: pick('name', 'full_name', 'preferred_username'),
     image: pick('avatar_url', 'picture'),
+    provider: claims.app_metadata?.provider ?? null,
   }
 }
 

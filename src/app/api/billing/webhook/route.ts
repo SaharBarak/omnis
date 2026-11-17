@@ -20,6 +20,7 @@
 import { NextResponse } from 'next/server'
 import { getBillingProvider } from '@/lib/services/billing-provider'
 import { syncSubscription } from '@/lib/services/subscription-sync'
+import { captureServerException, trackServer } from '@/lib/analytics/server'
 
 export async function POST(request: Request) {
   try {
@@ -53,12 +54,25 @@ export async function POST(request: Request) {
       )
     }
 
+    // Counted only after the sync succeeded, and keyed on the provider's event
+    // id so a redelivered webhook is the same analytics event, not a second one.
+    const purchase = event.purchase
+    if (purchase && results.some((r) => r.userId === purchase.userId && r.result === 'synced')) {
+      const { userId, plan, productId, value, currency } = purchase
+      trackServer('checkout_completed', {
+        actor: { userId },
+        properties: { plan, product_id: productId, value, currency },
+        dedupeKey: event.eventId && `${provider.name}:${event.eventId}`,
+      })
+    }
+
     console.log(
       `[billing] ${event.type} (${event.eventId ?? 'no id'}): synced ${results.length - unresolved.length}/${results.length} user(s)`
     )
     return NextResponse.json({ received: true })
   } catch (error) {
     console.error('[billing] webhook error:', error)
+    captureServerException(error, { context: { route: 'billing_webhook' } })
     return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 })
   }
 }

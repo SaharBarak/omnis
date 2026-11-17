@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Barlow, Rubik, IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
-import { GoogleAnalytics } from "@next/third-parties/google";
-import { PostHogAnalytics } from "@/lib/analytics/posthog-provider";
+import { ConsentedTrackers } from "@/components/analytics/trackers";
 import "./globals.css";
 
 const barlow = Barlow({
@@ -128,12 +127,8 @@ export default function RootLayout({
       <body
         className={`${barlow.variable} ${rubik.variable} ${ibmPlexMono.variable} ${spaceGrotesk.variable} font-sans antialiased`}
       >
-        <script defer src="https://clever-swan-577.convex.site/beacon.js" data-slug="omnis" />
         {children}
-        <PostHogAnalytics />
-        {process.env.NODE_ENV === "production" && (
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA4_ID ?? "G-TLTK4LHGW3"} />
-        )}
+        <ConsentedTrackers />
         {process.env.NEXT_PUBLIC_CF_BEACON_TOKEN && (
           <Script
             defer

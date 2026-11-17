@@ -63,6 +63,32 @@ export default [
     },
   },
   {
+    // Analytics boundary: the PostHog SDKs are imported only by the layer in
+    // src/lib/analytics, which owns init, consent, the typed event map and the
+    // reserved `site`/`env` properties. See docs/analytics/north-star.md.
+    files: SOURCE_FILES,
+    ignores: ["src/lib/analytics/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: ["posthog-js", "posthog-node"].map((name) => ({
+            name,
+            message:
+              "Import '@/lib/analytics/posthog' (browser) or '@/lib/analytics/server' (route handlers) instead.",
+          })),
+          patterns: [
+            {
+              group: ["posthog-js/*", "posthog-node/*", "@posthog/*"],
+              message:
+                "Import '@/lib/analytics/posthog' (browser) or '@/lib/analytics/server' (route handlers) instead.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: SOURCE_FILES,
     rules: {
       "@next/next/no-img-element": "off",

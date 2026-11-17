@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { captureException } from '@/lib/analytics/posthog'
 
 /**
  * Route-level error boundary. Catches render/data errors in the app tree and
@@ -16,6 +17,7 @@ export default function Error({
   useEffect(() => {
     // The digest is safe to surface; the message/stack are not shown to users.
     console.error('App error', error.digest ?? error.message)
+    captureException(error, { digest: error.digest })
   }, [error])
 
   return (

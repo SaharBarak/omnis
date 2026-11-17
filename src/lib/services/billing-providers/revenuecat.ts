@@ -22,6 +22,7 @@ import {
 import type {
   BillingProvider,
   NormalizedEvent,
+  NormalizedPurchase,
   NormalizedSubscription,
 } from '@/lib/services/billing-provider'
 import type { SubscriptionStatus } from '@/lib/db/repositories/subscriptions-repo'
@@ -154,6 +155,49 @@ interface RCWebhookBody {
     original_app_user_id?: string
     transferred_from?: string[]
     transferred_to?: string[]
+    product_id?: string | null
+    entitlement_ids?: string[] | null
+    period_type?: string | null
+    is_trial_conversion?: boolean | null
+    currency?: string | null
+    price_in_purchased_currency?: number | null
+  }
+}
+
+type RCEvent = NonNullable<RCWebhookBody['event']>
+
+/** Event types that start a product. They are a payment unless they start a free trial. */
+const PURCHASE_EVENT_TYPES: ReadonlySet<string> = new Set([
+  'INITIAL_PURCHASE',
+  'NON_RENEWING_PURCHASE',
+])
+
+const RENEWAL_EVENT_TYPE = 'RENEWAL'
+const TRIAL_PERIOD_TYPE = 'TRIAL'
+
+/**
+ * The first money for a product: a purchase that is not a free-trial start, or
+ * the renewal that converts a trial. Later renewals are not a checkout.
+ */
+function confirmsFirstPayment(event: RCEvent): boolean {
+  if (event.type === RENEWAL_EVENT_TYPE) return event.is_trial_conversion === true
+  return (
+    PURCHASE_EVENT_TYPES.has(event.type ?? '') && event.period_type !== TRIAL_PERIOD_TYPE
+  )
+}
+
+/** Null unless the event is a first payment that states who paid, how much and in what currency. */
+function toPurchase(event: RCEvent): NormalizedPurchase | null {
+  const { app_user_id, currency, price_in_purchased_currency: value } = event
+  if (!confirmsFirstPayment(event)) return null
+  if (!app_user_id || !currency || typeof value !== 'number') return null
+
+  return {
+    userId: app_user_id,
+    plan: highestPlan((event.entitlement_ids ?? []).map(getPlanFromEntitlementId)),
+    productId: event.product_id ?? null,
+    value,
+    currency,
   }
 }
 
@@ -202,6 +246,7 @@ export const revenueCatProvider: BillingProvider = {
       type: event.type,
       eventId: event.id,
       userIds: [...new Set(userIds)],
+      purchase: toPurchase(event) ?? undefined,
     }
   },
 
@@ -212,4 +257,4 @@ export const revenueCatProvider: BillingProvider = {
 }
 
 /** Exported for unit tests — pure, no network. */
-export const __test = { normalize }
+export const __test = { normalize, toPurchase }
