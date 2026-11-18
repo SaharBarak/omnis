@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useId, useLayoutEffect, useReducer, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react'
+import { useCallback, useEffect, useId, useLayoutEffect, useReducer, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react'
 import { anchorName, factTarget } from '@/components/bento-lab/atlas/fact-card'
 import { createInspect, IDLE } from '@/components/bento-lab/atlas/inspect'
 import { useDismiss } from '@/components/bento-lab/atlas/use-dismiss'
@@ -14,6 +14,16 @@ const tabStops = (root: HTMLElement): readonly HTMLElement[] =>
 export const isShown = (el: Element | null): el is HTMLElement =>
   el instanceof HTMLElement && (typeof el.checkVisibility !== 'function' || el.checkVisibility({ visibilityProperty: true }))
 
+/**
+ * A caller's stage, as an opener list sees it (BENTO_V2.md "The stage"):
+ * where the key under the pointer is drawn in place of a card, and who is
+ * told while this list's board is open, so no stage shows beside a board.
+ */
+export interface StagePort<K> {
+  readonly preview: (key: K | null) => void
+  readonly busy: (owner: string, open: boolean) => void
+}
+
 /** What the openers are: their keys, and the caller's key for whatever else moves them; a new one closes the board. */
 const openersKey = (keys: readonly string[], closeKey: string | undefined): string => `${keys.join(' ')}|${closeKey ?? ''}`
 
@@ -26,8 +36,13 @@ const openersKey = (keys: readonly string[], closeKey: string | undefined): stri
  * closing it), Shift+Tab before its first goes back to its own opener, and
  * Escape hands focus back to the opener. New keys, or a new `closeKey`,
  * close it, handing focus back to an opener if it was inside.
+ *
+ * With `stage` the caller has a stage (BENTO_V2.md "The stage"): a
+ * pointer over an opener reports its key there, and null as it leaves, and
+ * hover opens no card; the stage hears while the board is open, and a touch
+ * previews nothing.
  */
-export function useBoardDisclosure<K extends string>(keys: readonly K[], closeKey?: string) {
+export function useBoardDisclosure<K extends string>(keys: readonly K[], closeKey?: string, stage?: StagePort<K>) {
   const id = useId()
   const cardId = `${id}-card`
   const openerId = useCallback((key: K): string => `${id}-${key}`, [id])
@@ -51,6 +66,13 @@ export function useBoardDisclosure<K extends string>(keys: readonly K[], closeKe
   const { send, hold } = useGrace(dispatch)
   const shown = state.shown !== null && keys.includes(state.shown) ? state.shown : null
   const open = state.active !== null && shown !== null
+
+  const busy = stage?.busy
+  useEffect(() => {
+    if (!busy || !open) return
+    busy(id, true)
+    return () => busy(id, false)
+  }, [busy, id, open])
 
   /** Focus an opener without its arriving opening the board; the first shown opener where that one is gone or hidden. */
   const focusOpener = useCallback(
@@ -106,8 +128,17 @@ export function useBoardDisclosure<K extends string>(keys: readonly K[], closeKe
   /** The props of the button that opens `key`'s board. */
   const opener = (key: K) => {
     const target = factTarget(key, key === state.active, cardId, send, undefined, 'controls')
+    const staged = stage
+      ? {
+          onPointerEnter: (e: PointerEvent) => {
+            if (e.pointerType !== 'touch') stage.preview(key)
+          },
+          onPointerLeave: () => stage.preview(null),
+        }
+      : null
     return {
       ...target,
+      ...staged,
       id: openerId(key),
       type: 'button' as const,
       onFocus: () => {

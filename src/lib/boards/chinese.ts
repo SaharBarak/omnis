@@ -18,11 +18,11 @@ import {
 } from '@pleiad/engine/calculations/chinese-calendar'
 import { daysFrom } from '@pleiad/engine/calculations/day-search'
 import { DAYS_IN_XUN, XUN } from '@pleiad/engine/data/chinese-months'
-import { BRANCHES, pairAt, positionOf, type StemBranchPair } from '@pleiad/engine/data/sexagenary'
+import { BRANCHES, STEMS, pairAt, positionOf, type StemBranchPair } from '@pleiad/engine/data/sexagenary'
 import { SOLAR_TERMS, type SolarTerm, type TermSeason } from '@pleiad/engine/data/solar-terms'
 import { PHASES, phaseNamed, type PhaseName } from '@pleiad/engine/data/wuxing'
 import { dayFinder, placed, type CellFinder, type Run } from './months'
-import { byDate, dateWords, dayWords, daysOf, event, keyedLegend, monthNote, moonMark, stateOf } from './parts'
+import { FULL_TURN, byDate, dateWords, dayWords, daysOf, event, keyedLegend, monthNote, moonMark, stateOf } from './parts'
 import type { BoardEvent, BoardMark, CalendarCell, CalendarHead, CalendarSection, CalendarView, CellEvent, CellState, DayBoard, LegendEntry, Tint } from './types'
 import { fact } from '@/lib/atlas/explain'
 
@@ -140,7 +140,32 @@ function monthView(months: readonly [LunarMonth, LunarMonth], terms: readonly Da
 const TIGER = 2
 const openedBranch = (term: SolarTerm) => BRANCHES[(TIGER + term.index / 2) % BRANCHES.length]
 
-function termsView(year: readonly DatedTerm[], current: DatedTerm): CalendarView {
+/** A term's share of the Sun's turn, and a branch month's: two terms. */
+const TERM_DEGREES = FULL_TURN / SOLAR_TERMS.length
+const MONTH_DEGREES = FULL_TURN / BRANCHES.length
+/** The winter solstice, the middle of the 子 month, where the wheel's turn is measured from. */
+const WINTER_SOLSTICE = 270
+const onWheel = (longitude: number): number => (((longitude - WINTER_SOLSTICE) % FULL_TURN) + FULL_TURN) % FULL_TURN
+/** The year's wheel as the south-up compass sets the branches: 子, north, at the foot, 午, south, at the top, clockwise. The board's choice of the compass's convention. */
+const YEAR_WHEEL = { origin: 'bottom', turn: 'clockwise' } as const
+
+/**
+ * The year as a wheel (BENTO_BOARDS.md "Figures", Chinese): the twelve
+ * solar months by their branches, 子 about the winter solstice, and outside
+ * them the twenty-four terms; the hand is the Sun, set between the term in
+ * force and the next by the days gone of the days between them.
+ */
+function termsView(year: readonly DatedTerm[], current: DatedTerm, day: string, following: DatedTerm | undefined): CalendarView {
+  const monthNow = Math.floor((onWheel(current.term.longitude) + MONTH_DEGREES / 2) / MONTH_DEGREES) % BRANCHES.length
+  const months = BRANCHES.map((branch): CalendarCell => ({
+    key: `month-${branch.index}`,
+    label: { text: branch.character, lang: ZH },
+    title: `${branch.animal} month`,
+    /* The months are the terms' ground: the term is the day's place. */
+    state: 'ahead',
+    said: [`The ${branch.animal} month ${branch.character}, ${branch.pinyin}`, 'a solar month, from one sectional term to the next', ...(branch.index === monthNow ? ['the Sun is in it'] : [])].join(' · '),
+  }))
+  const gone = following ? daysFrom(current.date, day) / Math.max(1, daysFrom(current.date, following.date)) : 0
   const cells = year.map(({ term, date }): CalendarCell => {
     const branch = term.principal ? undefined : openedBranch(term)
     return {
@@ -160,16 +185,20 @@ function termsView(year: readonly DatedTerm[], current: DatedTerm): CalendarView
       ].join(' · '),
     }
   })
-  const sections: CalendarSection[] = [{ columns: SOLAR_TERMS.length, cells }]
+  const sections: CalendarSection[] = [
+    { name: 'The solar months', columns: months.length, from: onWheel(WINTER_SOLSTICE - MONTH_DEGREES / 2), cells: months },
+    { name: 'The solar terms', columns: cells.length, from: onWheel(year[0]?.term.longitude ?? WINTER_SOLSTICE), cells },
+  ]
   const lichun = year[0]
   return {
     id: 'terms',
-    layout: 'ring',
-    name: 'The solar terms',
-    tab: 'Terms',
+    layout: 'wheel',
+    name: 'The solar year',
+    tab: 'Year',
     sections,
     legend: keyedLegend([...SEASON_KEYS, PRINCIPAL], sections),
     caption: `${current.term.pinyin} ${current.term.characters} since ${dateWords(current.date)}; the year from Lichun, ${lichun ? dateWords(lichun.date) : ''}`,
+    wheel: { ...YEAR_WHEEL, hand: onWheel(current.term.longitude + gone * TERM_DEGREES) },
   }
 }
 
@@ -201,7 +230,8 @@ function yearViews(began: number): readonly CalendarView[] {
   const year = chineseYearOf(began)
   const row = Math.floor((year.cycle - 1) / ANIMALS)
   const turn: readonly CalendarSection[] = [{ columns: ANIMALS, cells: years(began, row * ANIMALS + 1, (row + 1) * ANIMALS) }]
-  const sixty: readonly CalendarSection[] = [{ columns: ANIMALS, cells: years(began, 1, YEARS_IN_CYCLE) }]
+  /* The sixty as six 旬 of ten: a row opens on a 甲 year, a column is one stem. */
+  const sixty: readonly CalendarSection[] = [{ columns: STEMS.length, cells: years(began, 1, YEARS_IN_CYCLE) }]
   return [
     {
       id: 'turn',
@@ -219,7 +249,7 @@ function yearViews(began: number): readonly CalendarView[] {
       tab: 'Sixty',
       sections: sixty,
       legend: keyedLegend([...PHASE_KEYS, ...POLARITY_KEYS], sixty),
-      caption: `The sixty from ${began - year.cycle + 1}, each column one animal`,
+      caption: `The sixty from ${began - year.cycle + 1} in six tens, each row opening on a 甲 year, each column one stem`,
     },
   ]
 }
@@ -276,7 +306,8 @@ export function chineseBoard(day: string): DayBoard | undefined {
   const pair = dayPair(day)
   const monthPair = pairOf(monthPillar(day))
   const phase = phaseNamed(year.element)
-  const views = [monthView(months, terms, day), termsView(solarYear, current), ...yearViews(began)]
+  const following = terms.find((t) => daysFrom(current.date, t.date) > 0)
+  const views = [termsView(solarYear, current, day, following), monthView(months, terms, day), ...yearViews(began)]
   return {
     value: yearName(year),
     meaning: null,

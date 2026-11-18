@@ -7,8 +7,8 @@ import { cellKeys, type CalendarView, type DayBoard } from './types'
  * captions; today once in every view; cell keys unique in their view, each
  * saying itself; one membership authority, every key a cell carries named by
  * one legend entry and every entry carried by a cell; each event that names
- * a cell naming a view and cell that exist; Next dated from `day`, nearest
- * first. Test-only: it reads vitest's `expect`.
+ * a cell naming a view and cell that exist; a wheel's rings measured whole
+ * or not at all; Next dated from `day`, nearest first. Test-only: it reads vitest's `expect`.
  */
 export function expectBoardRules(board: DayBoard, label: string, shiftDay: (day: string, n: number) => string, day: string): void {
   const views = board.views ?? []
@@ -47,5 +47,12 @@ export function expectViewRules(view: CalendarView, label: string): void {
     const at = section.cells.map((c) => section.places?.[c.key])
     expect(at.every(Boolean), `${label}: a placed section places every cell`).toBe(true)
     expect(new Set(at.map((p) => p?.join(','))).size, `${label}: no two cells share a place`).toBe(at.length)
+  }
+  /* A wheel's ring measures every cell or none (BENTO_BOARDS.md "Figures", Wheel), each span a positive length; its rings are named, so each row says what it holds. */
+  if (view.layout !== 'wheel') return
+  for (const section of view.sections) {
+    const spans = section.cells.map((c) => c.span)
+    expect(spans.every((span) => span === undefined) || spans.every((span) => span !== undefined && Number.isFinite(span) && span > 0), `${label}: a ring's spans are all given or none`).toBe(true)
+    if (view.sections.length > 1) expect(section.name, `${label}: a ring of several is named`).toBeTruthy()
   }
 }

@@ -222,7 +222,7 @@ function nakshatrasView(day: string, today: PanchangDay): CalendarView {
   const sections: CalendarSection[] = [{ columns: NAKSHATRAS.length, cells }]
   return {
     id: 'nakshatras',
-    layout: 'ring',
+    layout: 'wheel',
     name: 'The nakshatras',
     tab: 'Nakshatras',
     sections,

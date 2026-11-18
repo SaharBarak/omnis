@@ -146,8 +146,26 @@ const TATTVA_KEYS: readonly LegendEntry[] = (Object.keys(TATTVA) as Element[]).m
     .join(', ')}`,
 }))
 
-/** The rashis on a ring from Mesha, each with its Sankranti: the rashi the Sun is in since it entered, the rest in the year ahead. */
-function yearRing(day: string, here: Rashi, sankrantis: readonly Ingress[]): CalendarView {
+/** The side of the South Indian chart: a square of four, its twelve edge cells the rashis. */
+const CHART_SIDE = 4
+
+/** The edge cells of a square, clockwise from its top-left corner, as rows and columns. */
+const perimeter = (side: number): readonly (readonly [number, number])[] => {
+  const last = side - 1
+  return [
+    ...Array.from({ length: last }, (_, i) => [0, i] as const),
+    ...Array.from({ length: last }, (_, i) => [i, last] as const),
+    ...Array.from({ length: last }, (_, i) => [last, last - i] as const),
+    ...Array.from({ length: last }, (_, i) => [last - i, 0] as const),
+  ]
+}
+
+/** Where the South Indian chart fixes each rashi: clockwise round the edge, Mesha second from the left in the top row, so Meena holds the corner before it. */
+const CHART_PLACES = perimeter(CHART_SIDE)
+const chartPlace = (rashi: Rashi): readonly [number, number] => CHART_PLACES[rashi.n % RASHIS.length] ?? [0, 0]
+
+/** The rashi chart, South Indian (BENTO_BOARDS.md "Figures", Sidereal): the twelve rashis fixed round a square, each with its Sankranti; the rashi the Sun is in is today's. */
+function rashiChart(day: string, here: Rashi, sankrantis: readonly Ingress[]): CalendarView {
   const dates = new Map(sankrantis.map((s) => [rashiOf(s).n, indianDay(s)]))
   const cells: CalendarCell[] = RASHIS.map((rashi) => {
     const date = dates.get(rashi.n)
@@ -168,15 +186,16 @@ function yearRing(day: string, here: Rashi, sankrantis: readonly Ingress[]): Cal
       ),
     }
   })
-  const sections = [{ columns: RASHIS.length, cells }]
+  const places = Object.fromEntries(RASHIS.map((rashi) => [rashi.name, chartPlace(rashi)]))
+  const sections = [{ columns: CHART_SIDE, places, cells }]
   return {
     id: 'year',
-    layout: 'ring',
-    name: 'The year ahead',
-    tab: 'Year',
+    layout: 'figure',
+    name: 'The rashi chart',
+    tab: 'Chart',
     sections,
     legend: keyedLegend([...TATTVA_KEYS, { key: FESTIVAL, words: 'A Sankranti kept as a festival' }], sections),
-    caption: `Each Sankranti, the day the Sun enters a rashi in India, from ${here.name}`,
+    caption: `The rashis as the South Indian chart fixes them, each with its Sankranti, the day the Sun enters it in India`,
   }
 }
 
@@ -204,8 +223,24 @@ const LORD_KEYS: readonly LegendEntry[] = VIMSHOTTARI.map((lord) => ({
     .join(', ')}; its dasha ${lord.years} years`,
 }))
 
-/** The twenty-seven nakshatras on a ring from Ashwini, each with the day the Sun enters it: the one it is in since it entered, the rest in the year ahead. */
-function nakshatraRing(day: string, here: Nakshatra, entries: ReadonlyMap<number, Instant>): CalendarView {
+/** The nakshatra wheel runs as the chart does: Mesha from the top, clockwise. The tradition fixes no orientation for it. */
+const NAKSHATRA_WHEEL = { origin: 'top', turn: 'clockwise' } as const
+
+/**
+ * The nakshatras as a wheel (BENTO_BOARDS.md "Figures"): the twelve rashis,
+ * outside them the twenty-seven nakshatras from Ashwini at 0° Mesha, each
+ * with the day the Sun enters it; the hand is the Sun.
+ */
+function nakshatraRing(day: string, here: Nakshatra, entries: ReadonlyMap<number, Instant>, rashi: Rashi, longitude: number): CalendarView {
+  const rashis: CalendarCell[] = RASHIS.map((r) => ({
+    key: `rashi-${r.name}`,
+    ...withMark(signMark(r.sign.name)),
+    title: r.name,
+    band: r.sign.element,
+    /* The rashis are the nakshatras' ground: the nakshatra is the day's place. */
+    state: 'ahead',
+    said: [r.name, r.devanagari, ...(r.n === rashi.n ? ['the Sun is in it'] : []), `the place of ${r.sign.name}`, `its lord ${bodyName(r.lord)}`, TATTVA[r.sign.element]].join(' · '),
+  }))
   const cells: CalendarCell[] = NAKSHATRAS.map((n) => {
     const now = n.n === here.n
     const at = entries.get(n.n)
@@ -221,15 +256,19 @@ function nakshatraRing(day: string, here: Nakshatra, entries: ReadonlyMap<number
       said: [n.name, `of ${n.deity}`, `its lord ${n.lord.name}`, `from ${inRashi(n.start)}`, ...(when ? [when] : [])].join(' · '),
     }
   })
-  const sections = [{ columns: NAKSHATRAS.length, cells }]
+  const sections = [
+    { name: 'The rashis', columns: rashis.length, cells: rashis },
+    { name: 'The nakshatras', columns: cells.length, cells },
+  ]
   return {
     id: 'nakshatras',
-    layout: 'ring',
+    layout: 'wheel',
     name: 'The nakshatras',
     tab: 'Nakshatras',
     sections,
-    legend: keyedLegend(LORD_KEYS, sections),
+    legend: keyedLegend([...LORD_KEYS, ...TATTVA_KEYS], sections),
     caption: `The day the Sun enters each nakshatra in India, from ${here.name}`,
+    wheel: { ...NAKSHATRA_WHEEL, hand: longitude },
   }
 }
 
@@ -300,7 +339,7 @@ export function siderealBoard(day: string, sky: Sky): DayBoard {
       { label: 'Nakshatra lord', value: today.nakshatra.lord.name },
       ...(entered ? [{ label: 'Sankranti', value: `${dayWords(indianDay(entered))}, ${fromToday(daysFrom(day, indianDay(entered)))}` }] : []),
     ],
-    views: [monthView(day, rashi, days, entered), yearRing(day, rashi, sankrantis), nakshatraRing(day, today.nakshatra, entries)],
+    views: [rashiChart(day, rashi, sankrantis), monthView(day, rashi, days, entered), nakshatraRing(day, today.nakshatra, entries, rashi, longitude)],
     next,
   }
 }

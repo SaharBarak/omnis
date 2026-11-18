@@ -92,20 +92,25 @@ describe('BoardCalendar (BENTO_V2.md "Rows open their calendar\'s board")', () =
     expect(at('e').tabIndex).toBe(0)
   })
 
-  it('holds the inspected cell at a ring\'s hub, today at rest', () => {
-    const ring: CalendarView = { ...VIEW, layout: 'ring', sections: [{ columns: 4, cells: ['a', 'b', 'c', 'd'].map((k) => cell(k, k === 'c' ? 'today' : 'ahead')) }] }
+  it('holds the inspected cell at a wheel\'s hub, today at rest', () => {
+    const ring: CalendarView = { ...VIEW, layout: 'wheel', sections: [{ columns: 4, cells: ['a', 'b', 'c', 'd'].map((k) => cell(k, k === 'c' ? 'today' : 'ahead')) }] }
     const r = render(<BoardCalendar view={ring} />)
     expect(r.container.querySelector('[data-compact]')?.textContent).toBe('day c')
     r.rerender(<BoardCalendar view={ring} inspected="a" />)
     expect(r.container.querySelector('[data-compact]')?.textContent).toBe('day a')
   })
 
-  it('grounds a ring\'s banded cells in their band, as a grid\'s', () => {
+  it('draws a wheel\'s cells as sectors, banded as a grid\'s cells are, each cell at its sector\'s centre', () => {
     const banded = (k: string): CalendarCell => ({ ...cell(k), band: k < 'c' ? 'one' : 'two' })
-    const ring: CalendarView = { ...VIEW, layout: 'ring', sections: [{ columns: 4, cells: ['a', 'b', 'c', 'd'].map(banded) }] }
+    const ring: CalendarView = { ...VIEW, layout: 'wheel', sections: [{ columns: 4, cells: ['a', 'b', 'c', 'd'].map(banded) }] }
     const r = render(<BoardCalendar view={ring} />)
-    const d = r.getByRole('gridcell', { name: 'day d' })
-    expect([d.style.getPropertyValue('--band'), d.style.getPropertyValue('--bands'), d.style.getPropertyValue('--i')]).toEqual(['2', '2', '3'])
+    const sectors = [...r.container.querySelectorAll<SVGPathElement>('svg path')]
+    expect(sectors).toHaveLength(4)
+    expect(sectors.map((p) => [p.getAttribute('data-band'), p.style.getPropertyValue('--band'), p.style.getPropertyValue('--bands')])).toContainEqual(['two', '2', '2'])
+    /* Four equal sectors from the top, clockwise: the first stands up and to the right of the hub. */
+    const a = r.getByRole('gridcell', { name: 'day a' })
+    expect(Number(a.style.getPropertyValue('--x'))).toBeGreaterThan(0)
+    expect(Number(a.style.getPropertyValue('--y'))).toBeLessThan(0)
   })
 
   it('lets a focus request clear a held key', () => {
@@ -123,14 +128,40 @@ describe('BoardCalendar (BENTO_V2.md "Rows open their calendar\'s board")', () =
     expect(first?.querySelectorAll('[role=gridcell]')).toHaveLength(3)
   })
 
-  it('runs round a ring, the last cell on to the first', () => {
-    const ring: CalendarView = { ...VIEW, layout: 'ring', name: 'Ring', sections: [{ columns: 4, cells: ['a', 'b', 'c', 'd'].map((k) => cell(k, k === 'd' ? 'today' : 'ahead')) }] }
-    const { cellOf, press } = setup(ring)
+  it('runs round a wheel\'s ring, the last cell on to the first, and between rings at the nearest bearing, across the turn\'s seam', () => {
+    const wheel: CalendarView = {
+      ...VIEW,
+      layout: 'wheel',
+      name: 'Wheel',
+      sections: [
+        { name: 'Inner', columns: 2, cells: ['n', 's'].map((k) => cell(k)) },
+        { name: 'Outer', columns: 4, cells: ['a', 'b', 'c', 'd'].map((k) => cell(k, k === 'd' ? 'today' : 'ahead')) },
+      ],
+    }
+    const { cellOf, press } = setup(wheel)
     act(() => cellOf('d').focus())
     press('ArrowRight')
     expect(document.activeElement).toBe(cellOf('a'))
-    press('ArrowUp')
+    press('ArrowLeft')
     expect(document.activeElement).toBe(cellOf('d'))
+    /* Inward from the last quarter: the half that ends at the seam, not the one that begins there. */
+    press('ArrowDown')
+    expect(document.activeElement).toBe(cellOf('s'))
+    press('ArrowUp')
+    expect(['c', 'd'].map(cellOf)).toContain(document.activeElement)
+    press('ArrowUp')
+    expect(['c', 'd'].map(cellOf)).toContain(document.activeElement)
+  })
+
+  it('joins a figure\'s course through its tiles in the cells\' own order, whatever order the lattice reads them in', () => {
+    const course: CalendarView = {
+      ...VIEW,
+      layout: 'figure',
+      legend: [],
+      sections: [{ columns: 2, path: true, places: { a: [0, 0], b: [1, 0], c: [1, 1], d: [0, 1] }, cells: ['a', 'b', 'c', 'd'].map((k) => cell(k)) }],
+    }
+    const r = render(<BoardCalendar view={course} />)
+    expect(r.container.querySelector('polyline')?.getAttribute('points')).toBe('0.5,0.5 0.5,1.5 1.5,1.5 1.5,0.5')
   })
 
   it('keys its marks as a toolbar of toggles: pointing lights the cells that carry an entry, pressing holds it (BENTO_BOARDS.md "Keys")', () => {
@@ -162,7 +193,7 @@ describe('BoardCalendar (BENTO_V2.md "Rows open their calendar\'s board")', () =
   it("places a section's cells where its figure sets them, the gaps blank, under row heads the arrows skip", () => {
     const cross: CalendarView = {
       ...VIEW,
-      layout: 'cross',
+      layout: 'figure',
       legend: [],
       sections: [
         {

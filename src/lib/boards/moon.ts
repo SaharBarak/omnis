@@ -16,7 +16,7 @@ import {
   type MoonQuarter,
 } from '@pleiad/engine/calculations/sky-events'
 import { atWords, instantEvent, instantWords, kmWords, utcWords } from './instants'
-import { MOON_KEY, NOON, byDate, dayWords, daysOf, dateWords, inWeeks, keyedLegend, monthNote, monthWords, moonMark, numeral, quarterMark, signAt, signMark, stateOf, twoCivilMonths } from './parts'
+import { FULL_TURN, MOON_KEY, NOON, byDate, dayWords, daysOf, dateWords, inWeeks, keyedLegend, monthNote, monthWords, moonMark, numeral, quarterMark, signAt, signMark, stateOf, twoCivilMonths } from './parts'
 import type { BoardEvent, BoardMark, CalendarCell, CalendarView, CellEvent, DayBoard, LegendEntry } from './types'
 import { days, fact } from '@/lib/atlas/explain'
 import { MOON_PHASE_HINTS } from '@/lib/data/moon-phases'
@@ -198,6 +198,9 @@ function yearView(sky: Almanac, lunations: readonly Lunation[], keys: readonly L
 
 /* ---------- the board ---------- */
 
+/** The lunation's wheel: from the New Moon at the top, counter-clockwise, as the Moon goes round the Earth seen from the north. No tradition fixes it. */
+const LUNATION_WHEEL = { origin: 'top', turn: 'counterclockwise' } as const
+
 /** The next sign the Moon enters after `day`'s noon: searched noon to noon over the days it can take to cross a sign. */
 function nextSignEntry(day: string): (Instant & { readonly sign: string }) | null {
   for (let i = 0; i < 3; i++) {
@@ -219,7 +222,7 @@ export function moonBoard(day: string, sky: Sky): DayBoard {
   const cells = daysOf(run).map((date, i) => moonDay(day, sky, events, { lunationDay: i + 1, first: i === 0 })(date))
   const signGlyph = sign && signMark(sign.name)
   const keys = keysFor(signGlyph)
-  const lunationSections = [inWeeks(cells, run.first, WEEK_LOCALE)]
+  const lunationSections = [{ name: 'The days of the lunation', columns: cells.length, cells }]
   const months = twoMonths(day, sky, events, keys)
   const lunations = lunationsFrom(noon, known)
   const year = yearView(known, lunations, keys)
@@ -267,12 +270,14 @@ export function moonBoard(day: string, sky: Sky): DayBoard {
     views: [
       {
         id: 'lunation',
-        layout: 'grid',
+        layout: 'wheel',
         name: 'The lunation',
         tab: 'Lunation',
         sections: lunationSections,
         legend: keyedLegend(keys, lunationSections),
-        caption: `Day ${run.at} of the lunation`,
+        caption: `Day ${run.at} of ${run.length}, from the New Moon at the top`,
+        /* The hand stands at the middle of today's day. */
+        wheel: { ...LUNATION_WHEEL, hand: ((run.at - 1 / 2) / run.length) * FULL_TURN },
       },
       year,
       months,

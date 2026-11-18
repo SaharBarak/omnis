@@ -189,32 +189,32 @@
  * an outlined ground, black a filled one, in either theme. Scoped to the
  * module's own tinted parts: a CSS module selector needs a local class.
  */
-:is(.head, .rowHead, .swatch, .readout, .cell)[data-tint='red'] {
+:is(.head, .rowHead, .swatch, .readout, .cell, .sector)[data-tint='red'] {
   --cell-tint: var(--tint-red);
   --cell-on-tint: var(--on-tint-red);
 }
 
-:is(.head, .rowHead, .swatch, .readout, .cell)[data-tint='yellow'] {
+:is(.head, .rowHead, .swatch, .readout, .cell, .sector)[data-tint='yellow'] {
   --cell-tint: var(--tint-yellow);
   --cell-on-tint: var(--on-tint-yellow);
 }
 
-:is(.head, .rowHead, .swatch, .readout, .cell)[data-tint='green'] {
+:is(.head, .rowHead, .swatch, .readout, .cell, .sector)[data-tint='green'] {
   --cell-tint: var(--tint-green);
   --cell-on-tint: var(--on-tint-green);
 }
 
-:is(.head, .rowHead, .swatch, .readout, .cell)[data-tint='blue'] {
+:is(.head, .rowHead, .swatch, .readout, .cell, .sector)[data-tint='blue'] {
   --cell-tint: var(--tint-blue);
   --cell-on-tint: var(--on-tint-blue);
 }
 
-:is(.head, .rowHead, .swatch, .readout, .cell)[data-tint='white'] {
+:is(.head, .rowHead, .swatch, .readout, .cell, .sector)[data-tint='white'] {
   --cell-tint: var(--tint-white);
   --cell-on-tint: var(--on-tint-white);
 }
 
-:is(.head, .rowHead, .swatch, .readout, .cell)[data-tint='black'] {
+:is(.head, .rowHead, .swatch, .readout, .cell, .sector)[data-tint='black'] {
   --cell-tint: var(--tint-black);
   --cell-on-tint: var(--on-tint-black);
 }
@@ -415,7 +415,7 @@
 }
 
 .calendar[data-layout='ladder'] .face {
-  grid-template-columns: var(--line) minmax(var(--line), auto) minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(var(--line), auto) minmax(0, 1fr) auto;
   align-items: center;
   justify-items: start;
   column-gap: var(--type-group);
@@ -433,84 +433,236 @@
 }
 
 /*
- * A ring: the cells round a circle whose circumference holds them, first at
- * the top, clockwise. A ring's cell carries a name under its mark, so it is
- * as wide as its longest name (`--longest` characters of the cell's text,
- * which its notes fit within), a cell at least. The readout, set at the
- * cell's size, stands in the circle, in the square it holds.
+ * A wheel (BENTO_BOARDS.md "Figures", Wheel): each section a ring of
+ * sectors, drawn in slots (a line and its cell's padding, the room one mark
+ * takes), `--radius` slots to its rim and `--hub` to its hub (wheel.ts).
+ * The sectors are the drawing and take the pointer; the cells stand at
+ * their sectors' centres, upright, and take focus. The wheel keeps the
+ * calendar's own line: in a room too narrow for it, it scrolls across.
  */
-.calendar[data-layout='ring'] {
-  /*
-   * The cell the room allows: the circle's width is 2r plus a cell, r being
-   * n cells and gaps over 2π, so solving 2r + c = the room for c. A ring
-   * keeps its longest name's width where the room holds it.
-   */
-  --room-cell: calc((100cqi - var(--n) * var(--cell-gap) / pi) / (1 + var(--n) / pi));
-  --ring-cell: min(max(var(--cell), calc(var(--longest) * 1ch)), var(--room-cell));
-  --r: calc(var(--n) * (var(--ring-cell) + var(--cell-gap)) / (2 * pi));
-  --inner: calc(var(--r) - var(--cell) / 2 - var(--cell-gap));
-
-  grid-template-areas: 'ring' 'legend';
+.calendar[data-layout='wheel'] {
+  --slot: calc(var(--line) + 2 * var(--cell-gap));
+  --wheel: calc(2 * var(--radius) * var(--slot));
 }
 
-.calendar[data-layout='ring'] > .grid,
-.calendar[data-layout='ring'] > .hub {
-  grid-area: ring;
+.calendar[data-layout='wheel'] .grid {
+  display: grid;
+  gap: 0;
 }
 
-.calendar[data-layout='ring'] > .legend {
-  grid-area: legend;
+.wheel,
+.calendar[data-layout='wheel'] .section,
+.calendar[data-layout='wheel'] .hub {
+  grid-area: 1 / 1;
 }
 
-.calendar[data-layout='ring'] .section {
-  grid-template-columns: auto;
+.wheel {
+  inline-size: var(--wheel);
+  block-size: var(--wheel);
+  overflow: visible;
+}
+
+.sector {
+  fill: transparent;
+  stroke: var(--panel-edge);
+  stroke-width: var(--edge-w);
+  vector-effect: non-scaling-stroke;
+  /* The whole sector takes the pointer, whatever its fill. */
+  pointer-events: all;
+}
+
+.sector[data-band] {
+  fill: color-mix(in srgb, var(--cell-passed) calc(100% * var(--band) / (var(--bands) + 1)), transparent);
+}
+
+.sector[data-tint] {
+  fill: var(--cell-tint);
+}
+
+/* A sector gone keeps a wash of its colour; its cell's words stand on the page's ground. */
+.sector[data-tint][data-state='past'],
+.sector[data-tint][data-light='quiet'] {
+  fill: color-mix(in srgb, var(--cell-tint) 12%, transparent);
+  stroke: color-mix(in srgb, var(--cell-tint) 45%, transparent);
+}
+
+.sector[data-state='today'] {
+  stroke: var(--lab-ink);
+  stroke-width: calc(2 * var(--edge-w));
+}
+
+.sector[data-state='today']:not([data-tint]) {
+  fill: color-mix(in srgb, var(--tile) 35%, transparent);
+}
+
+.sector[data-light='lit'] {
+  stroke: var(--lab-ink);
+}
+
+/* Today's hand: from the hub across every ring. */
+.hand {
+  stroke: var(--lab-ink);
+  stroke-width: calc(2 * var(--edge-w));
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.calendar[data-layout='wheel'] .section {
+  position: relative;
+  display: block;
+  inline-size: var(--wheel);
+  block-size: var(--wheel);
+  pointer-events: none;
+}
+
+.calendar[data-layout='wheel'] .sectionName {
+  display: none;
 }
 
 .circle {
-  position: relative;
-  inline-size: calc(2 * var(--r) + var(--ring-cell));
-  aspect-ratio: 1;
-}
-
-/* The circle within the cells, a gap inside them. */
-.circle::before {
-  content: '';
   position: absolute;
-  inset: calc(var(--r) + var(--ring-cell) / 2 - var(--inner));
-  border: var(--edge-w) solid var(--panel-edge);
-  border-radius: 50%;
+  inset: 0;
 }
 
-/* The ring is geometry, not flow: placed from the circle's centre in physical terms, clockwise in either direction. */
-.calendar[data-layout='ring'] .cell {
-  --turn: calc(var(--i) / var(--n) * 1turn);
-
+/* A cell at its sector's centre (`--x`, `--y`, slots from the hub): geometry, in physical terms, whatever the page's direction. */
+.calendar[data-layout='wheel'] .cell[data-state] {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  inline-size: var(--ring-cell);
-  transform: translate(-50%, -50%) rotate(var(--turn)) translateY(calc(-1 * var(--r))) rotate(calc(-1 * var(--turn)));
+  top: calc(50% + var(--y) / var(--radius) * 50%);
+  left: calc(50% + var(--x) / var(--radius) * 50%);
+  min-inline-size: var(--line);
+  min-block-size: var(--line);
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  transform: translate(-50%, -50%);
 }
 
-/* A ring cell the room has narrowed keeps its words on their line, cut at its edge; the inspector says them whole. */
-.calendar[data-layout='ring'] :is(.title, .note) {
-  max-inline-size: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* A sector too narrow for its face keeps its ground, its edge and its name. */
+.calendar[data-layout='wheel'] .cell:not([data-fits]) .face {
+  visibility: hidden;
 }
 
-/* The hub: the inspected cell's mark and title in the square the circle holds. */
-.calendar[data-layout='ring'] > .hub {
+.calendar[data-layout='wheel'] .events {
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  translate: 100% -50%;
+}
+
+/* The hub: the inspected cell's mark and title in the square the hub holds. */
+.calendar[data-layout='wheel'] .hub {
   place-self: center;
   flex-direction: column;
   align-items: center;
-  inline-size: calc(var(--inner) * sqrt(2));
+  inline-size: calc(var(--hub) * var(--slot) * sqrt(2));
   text-align: center;
   pointer-events: none;
 }
 
+.hub .readoutMark {
+  /* The hub's readout is three lines in the square the hub holds: its mark two of them. */
+  --mark: calc(var(--hub) * var(--slot) * sqrt(2) * 2 / 3);
+}
+
 .hub .readoutText {
   justify-content: center;
+}
+
+/*
+ * A figure (BENTO_BOARDS.md "Figures", Figure): tiles on a lattice. A tile
+ * is its mark two lines tall, the mark its tradition sets over it, its
+ * numeral and its name, as wide as the longest word under the mark
+ * (`--longest`), so a name wraps between words. Rows share one height, so
+ * a course's line runs true through the tiles' centres.
+ */
+.calendar[data-layout='figure'] {
+  --figure-mark: calc(2 * var(--line));
+  --tile-w: max(calc(var(--figure-mark) + 2 * var(--line)), calc(var(--longest) * 1ch));
+}
+
+.calendar[data-layout='figure'] .section {
+  position: relative;
+  grid-template-columns: repeat(var(--columns), var(--tile-w));
+  grid-auto-rows: 1fr;
+}
+
+.calendar[data-layout='figure'] .cell {
+  align-content: center;
+  padding: var(--cell-gap);
+}
+
+/* A tile is opaque, so a course's line shows between tiles and never through one. */
+.calendar[data-layout='figure'] .cell:not([data-tint]) {
+  background: var(--lab-surface);
+  box-shadow: inset 0 0 0 var(--edge-w) var(--panel-edge);
+}
+
+.calendar[data-layout='figure'] .cell[data-tint][data-state='past'] {
+  background: color-mix(in srgb, var(--cell-tint) 18%, var(--lab-surface));
+}
+
+.calendar[data-layout='figure'] .cell[data-state='today']:not([data-tint]) {
+  box-shadow: inset 0 0 0 var(--edge-w) var(--tile);
+}
+
+.calendar[data-layout='figure'] .mark {
+  --mark: var(--figure-mark);
+}
+
+.calendar[data-layout='figure'] :is(.title, .note) {
+  max-inline-size: 100%;
+  white-space: normal;
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* The mark a tradition sets over a cell's own: a line tall, in the cell's ink. */
+.over {
+  --mark: var(--line);
+
+  color: var(--tile);
+}
+
+.cell[data-tint] .over {
+  color: inherit;
+}
+
+.cell[data-state='past'] .over {
+  color: var(--lab-text-3);
+}
+
+/* A course: the line through its tiles' centres, under them; the box reaches half a gap past the lattice, so a lattice unit is a tile and its gap. */
+.course {
+  position: absolute;
+  inset: calc(var(--cell-gap) / -2);
+  inline-size: calc(100% + var(--cell-gap));
+  block-size: calc(100% + var(--cell-gap));
+  pointer-events: none;
+}
+
+.course polyline {
+  fill: none;
+  stroke: var(--tile);
+  stroke-width: calc(2 * var(--edge-w));
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.calendar[data-layout='figure'] .row {
+  position: relative;
+}
+
+/*
+ * A ladder of a hexagram's lines draws the hexagram: each line's bar as
+ * wide as the six rows are tall, so the figure is square, as it is written.
+ */
+.calendar[data-layout='ladder'] .mark[data-mark='line'] {
+  inline-size: calc(6 * (var(--line) + 2 * var(--cell-gap)));
+  block-size: var(--line);
+}
+
+.calendar[data-layout='ladder'] .mark[data-mark='line'] i {
+  block-size: 50%; /* drawing */
 }
 
 /* The readout wraps to its column's width, never widens it. */
@@ -660,20 +812,4 @@
   .legendEntry[aria-pressed='true'] {
     outline: var(--edge-w) solid Highlight;
   }
-}
-
-/* The oracle's cross: five cells round a centre; a kin's name may take two lines under its role. */
-.calendar[data-layout='cross'] .section {
-  grid-template-columns: repeat(var(--columns), minmax(var(--cell), 1fr));
-  justify-content: stretch;
-}
-
-.calendar[data-layout='cross'] .cell {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.calendar[data-layout='cross'] .note {
-  white-space: normal;
-  text-wrap: balance;
-  text-align: center;
 }

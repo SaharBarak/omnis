@@ -34,7 +34,7 @@ describe('longCountBoard', () => {
     const winal = cellsOf(view(board, 'winal'))
     expect(winal.map((c) => [`${c.label?.text} ${c.title}`, c.note, /Lord of the Night (G\d)/.exec(c.said)?.[1]])).toEqual(KETTUNEN_HELMKE)
     expect(winal[0]?.events?.map((e) => e.name)).toEqual(["A k'atun ending"])
-    expect(cellsOf(view(board, 'count')).map((c) => [c.key, c.label?.text])).toEqual([["B'ak'tun", '9'], ["K'atun", '9'], ['Tun', '0'], ['Winal', '0'], ["K'in", '0']])
+    expect(cellsOf(view(board, 'count')).map((c) => [c.key, c.label?.text])).toEqual([["B'ak'tun", '9'], ["K'atun", '9'], ['Tun', '0'], ['Winal', '0'], ["K'in", '0'], ['tzolkin', undefined], ['night', undefined], ['haab', undefined]])
   })
 
   it("reads 13.0.0.0.0 as 4 Ajaw 3 K'ank'in, a b'ak'tun ending under G9", () => {

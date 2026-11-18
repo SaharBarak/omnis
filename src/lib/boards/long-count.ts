@@ -216,15 +216,63 @@ function turnings(day: string, count: ReturnType<typeof buildLongCount>): readon
     .sort((a, b) => byDate(a.event, b.event))
 }
 
-function countView(count: ReturnType<typeof buildLongCount>, turns: ReadonlyMap<string, BoardEvent>): CalendarView {
+/** What stands after the five places in an Initial Series: the Tzolk'in day, the Lord of the Night, the Haab' day. */
+interface Round {
+  readonly tzolkin: ReturnType<typeof tzolkinOfDays>
+  readonly haab: ReturnType<typeof haabOfDays>
+  readonly lord: ReturnType<typeof lordOfTheNight>
+}
+
+/** An Initial Series is read in pairs: two blocks to a row, left then right, down (Pitts, *Maya Numbers and the Maya Calendar*). */
+const SERIES_COLUMNS = 2
+
+/**
+ * The Initial Series (BENTO_BOARDS.md "Figures", Long Count), abbreviated: a
+ * stela's double column after its introducing glyph, the five places from
+ * the b'ak'tun, then the Tzolk'in day, the Lord of the Night and the Haab'
+ * day, each a block with its coefficient in bar and dot over it (the Lord
+ * of the Night has none: G1 to G9 name him). The Lunar Series a stela sets
+ * before the Haab' is left out.
+ */
+function countView(count: ReturnType<typeof buildLongCount>, turns: ReadonlyMap<string, BoardEvent>, round: Round): CalendarView {
   const top = count.places.length - 1
-  const cells: CalendarCell[] = count.places.map((value, i) => {
+  const sign = daySignMark(round.tzolkin.daySign.number)
+  const rest: CalendarCell[] = [
+    {
+      key: 'tzolkin',
+      over: { kind: 'bars', n: round.tzolkin.tone },
+      ...(sign ? { mark: sign } : {}),
+      keys: ['bars'],
+      title: signWords(round.tzolkin),
+      note: "Tzolk'in",
+      state: 'ahead',
+      said: [`The Tzolk'in day, ${tzolkinWords(round.tzolkin)}`, `day ${tzolkinPosition(round.tzolkin)} of ${TZOLKIN_DAYS}`].join(' · '),
+    },
+    {
+      key: 'night',
+      mark: { kind: 'text', text: round.lord.glyph },
+      keys: ['night'],
+      title: 'Lord of the Night',
+      state: 'ahead',
+      said: [`The Lord of the Night, ${round.lord.glyph}`, `of G1 to G${LORDS_OF_THE_NIGHT}, a round of nine nights`].join(' · '),
+    },
+    {
+      key: 'haab',
+      over: { kind: 'bars', n: round.haab.day },
+      keys: ['bars'],
+      title: round.haab.monthName,
+      note: "Haab'",
+      state: 'ahead',
+      said: [`The Haab' day, ${round.haab.day} ${round.haab.monthName}`, `day ${haabDayOfYear(round.haab) + 1} of ${HAAB_DAYS}`].join(' · '),
+    },
+  ]
+  const places: CalendarCell[] = count.places.map((value, i) => {
     const unit = top - i
     const name = placeName(unit)
     const turn = turns.get(name)
     return {
       key: name,
-      mark: { kind: 'bars', n: value },
+      over: { kind: 'bars', n: value },
       keys: ['bars'],
       label: numeral(value, 'latn'),
       title: name,
@@ -234,18 +282,21 @@ function countView(count: ReturnType<typeof buildLongCount>, turns: ReadonlyMap<
       said: [`${name} ${value}`, `${daysWords(placeDays(unit))} each`, ...(turn ? [`turns ${whenWords(turn.date, turn.inDays)}, ${fromToday(turn.inDays)}`] : [])].join(' · '),
     }
   })
+  const cells = [...places, ...rest]
+  const sections: CalendarSection[] = [{ columns: SERIES_COLUMNS, cells }]
   return {
     id: 'count',
-    layout: 'ladder',
-    name: 'The count',
-    tab: 'Count',
-    sections: [{ columns: 1, cells }],
+    layout: 'figure',
+    name: 'The Initial Series',
+    tab: 'Series',
+    sections,
     /* The count's own top place, as its numeral reads. */
     legend: [
       { key: 'bars', mark: { kind: 'bars', n: count.places[0] ?? 0 }, words: `${count.places[0] ?? 0} in bars and dots: a bar is five, a dot one, a shell zero` },
       { key: 'turns', words: 'The day a place next turns' },
+      { key: 'night', mark: { kind: 'text', text: round.lord.glyph }, words: `The Lord of the Night: one of nine, G1 to G${LORDS_OF_THE_NIGHT}, turning with the nights` },
     ],
-    caption: `${count.date}, day ${count.days.toLocaleString('en')} since the era base`,
+    caption: `${count.date} ${count.round}, read in pairs, left then right, down`,
   }
 }
 
@@ -265,7 +316,7 @@ export function longCountBoard(day: string): DayBoard {
   const station = eightNineteenOf(days)
   const signMark = daySignMark(tzolkin.daySign.number)
 
-  const views = [winalView(today), tzolkinView(today), haabView(today), countView(count, new Map(turnings(day, count).map((t) => [t.name, t.event])))]
+  const views = [countView(count, new Map(turnings(day, count).map((t) => [t.name, t.event])), { tzolkin, haab, lord }), winalView(today), tzolkinView(today), haabView(today)]
 
   /* An event's cell: the first view, in the order asked, that holds its day. */
   const cellOf = (d: number, order: readonly string[]): BoardEvent['at'] => {

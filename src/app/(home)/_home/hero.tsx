@@ -1,14 +1,15 @@
 'use client'
 
-import { useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import Link from 'next/link'
 import { ArrowUpRight, Sparkles } from 'lucide-react'
 import h from './hero.module.css'
 import { BrandLockup } from '@/components/brand-mark'
 import { Hung, MotionToggle, Notch, ThemeToggle, kit } from '@/components/bento-lab'
 import { PrimaryAction } from '@/components/bento-lab/site'
-import { DayRows, KinFace, LivePill, PixelMark, frame as f, scrub, useScrollScene, type PixelMarkHandle } from '@/components/bento-v2'
+import { DayRows, DayStage, KinFace, LivePill, PixelMark, frame as f, scrub, useScrollScene, useStage, type PixelMarkHandle } from '@/components/bento-v2'
 import { V2_MOTION, V2_SCENES } from '@/lib/design/v2-scenes'
+import type { V2DayRow } from '@/lib/site/v2-day'
 import type { V2Home } from '@/lib/site/v2-home'
 import { v2Href } from '@/lib/site/v2-routes'
 import { Spelled } from '@/lib/site/number-words'
@@ -23,13 +24,21 @@ const NAV = [
 /**
  * Hero (BENTO_V2.md "Home" 1): the pixel Lantern assembling at the centre
  * of the room the title leaves in the art panel, nav and title cut into its corners, today's kin on the gold tile,
- * the day across the calendars beside it. Scrolling out takes the mark apart
- * and lifts the side column away; a row's board, hung from where its row
- * stood, closes as the column leaves its rest.
+ * the day across the calendars beside it. The Lantern's room is a stage
+ * ("The stage"): the calendar of the row or kin under the pointer is drawn
+ * there, and the Lantern gives way and returns. Scrolling out takes the mark
+ * apart and lifts the side column away; a row's board, hung from where its
+ * row stood, closes as the column leaves its rest, and the stage empties.
  */
 export function Hero({ home, systems }: { readonly home: V2Home; readonly systems: number }) {
   const mark = useRef<PixelMarkHandle>(null)
   const [atRest, setAtRest] = useState(true)
+  const stage = useStage<V2DayRow>(!atRest)
+  const held = stage.shown !== null
+  useEffect(() => {
+    mark.current?.to('stage', held ? 0 : 1, held ? V2_MOTION.stageOutMs : V2_MOTION.stageInMs)
+  }, [held])
+  const closeKey = atRest ? 'rest' : 'scrolled'
   const scene = useScrollScene<HTMLElement>((scope) => {
     if (!scope.desktop) return
     const { root } = scope
@@ -50,6 +59,7 @@ export function Hero({ home, systems }: { readonly home: V2Home; readonly system
       <div className={`${f.panel} ${f.art} ${h.main}`}>
         <div className={h.markRoom}>
           <PixelMark ref={mark} spot={h.markSpot} className={h.markBox} intro />
+          <DayStage row={stage.shown} className={h.markSpot} onPointerEnter={stage.hold} onPointerLeave={stage.release} />
         </div>
 
         <Link href={v2Href('/')} className={`${h.brand} ${kit.rise}`} style={delay(1)} aria-label="Pleiad, home">
@@ -92,7 +102,7 @@ export function Hero({ home, systems }: { readonly home: V2Home; readonly system
 
       <div className={f.column} data-hero-side>
         <div className={`${f.panel} ${f.accent} ${f.pad} ${h.today} ${kit.rise}`} style={delay(2)}>
-          <KinFace kin={home.kin} head={<LivePill>Today&apos;s kin</LivePill>} />
+          <KinFace kin={home.kin} head={<LivePill>Today&apos;s kin</LivePill>} closeKey={closeKey} stage={stage.port} />
           <Notch corner="br" className={h.todayNotch}>
             <div className={f.notchContent}>
               <Link href={v2Href('/today')} className={f.round} aria-label="Today across the calendars">
@@ -104,7 +114,7 @@ export function Hero({ home, systems }: { readonly home: V2Home; readonly system
 
         <div className={`${f.panel} ${f.pad} ${f.grow} ${h.feedPanel} ${kit.rise}`} style={delay(3)}>
           <p className={f.eyebrow}>The day, across the calendars</p>
-          <DayRows rows={home.day} fit closeKey={atRest ? 'rest' : 'scrolled'} />
+          <DayRows rows={home.day} fit closeKey={closeKey} stage={stage.port} />
         </div>
       </div>
     </section>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, type RefObject } from 'react'
+import { useCallback, useEffect, useRef, type RefObject } from 'react'
 import { labRoot, motionAllowed, paintRoot, watchLabRoot } from './lab-state'
 import { readPalette, type LabPalette } from './palette'
 
@@ -25,12 +25,16 @@ interface LoopOptions {
  * Drives one canvas: sizes it to its box at a capped device pixel ratio (and
  * again when that ratio changes, or when the element it follows resizes), animates only while on screen and while the
  * lab's motion is allowed, and re-reads the palette when the theme flips.
+ * Returns a repaint: one frame painted now where no loop is running (off
+ * screen, or motion off), for a drawing whose input changed without a frame
+ * to carry it.
  */
 export function useCanvasLoop(
   ref: RefObject<HTMLCanvasElement | null>,
   draw: DrawFrame,
   { fps = 24, dprCap = 2, follow }: LoopOptions = {},
-): void {
+): () => void {
+  const repaint = useRef<() => void>(() => {})
   useEffect(() => {
     const canvas = ref.current
     const ctx = canvas?.getContext('2d')
@@ -110,12 +114,17 @@ export function useCanvasLoop(
       sync()
     })
 
+    repaint.current = () => {
+      if (raf === 0) paint()
+    }
+
     sizeObserver.observe(canvas)
     if (follow?.current) sizeObserver.observe(follow.current)
     viewObserver.observe(canvas)
     watchDpr()
 
     return () => {
+      repaint.current = () => {}
       cancelAnimationFrame(raf)
       sizeObserver.disconnect()
       viewObserver.disconnect()
@@ -123,4 +132,5 @@ export function useCanvasLoop(
       dprQuery?.removeEventListener('change', onDprChange)
     }
   }, [ref, draw, fps, dprCap, follow])
+  return useCallback(() => repaint.current(), [])
 }

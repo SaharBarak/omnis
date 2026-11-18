@@ -182,7 +182,7 @@ function namesView(here: PersianDate): CalendarView {
   const sections: CalendarSection[] = [{ columns: cells.length, cells }]
   return {
     id: 'names',
-    layout: 'ring',
+    layout: 'wheel',
     name: 'The thirty day names',
     tab: 'Day names',
     sections,

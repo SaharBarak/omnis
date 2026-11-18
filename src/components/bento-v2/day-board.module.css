@@ -554,3 +554,51 @@
     outline-offset: calc(-1 * var(--edge-w));
   }
 }
+
+/* ---------- the face: a board as a figure (BENTO_V2.md "The stage") ---------- */
+
+/*
+ * The mast over its calendar, as wide as the calendar and a measure at
+ * least: the mast gives the face no width of its own and takes the face's,
+ * so its words wrap to the calendar.
+ */
+.face {
+  display: grid;
+  justify-items: center;
+  gap: var(--type-group);
+  inline-size: max-content;
+  min-inline-size: var(--type-measure);
+  font-size: var(--voice-text);
+  line-height: var(--type-ui-lh);
+  color: var(--lab-ink);
+}
+
+/* On the room's own ground: no wash and no rule, since nothing follows it but its calendar. */
+.face > .mast {
+  justify-self: stretch;
+  inline-size: 0;
+  min-inline-size: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+/*
+ * In a room wider than tall (the stage names its room `stage`) the mast
+ * stands beside the calendar, a measure at most, both centred on one line,
+ * so the figure takes the room's shape and is scaled the less.
+ */
+@container stage (min-aspect-ratio: 1 / 1) {
+  .face {
+    grid-template-columns: fit-content(var(--type-measure)) max-content;
+    align-items: center;
+    gap: calc(2 * var(--type-group));
+    min-inline-size: 0;
+  }
+
+  .face > .mast {
+    inline-size: auto;
+    min-inline-size: 0;
+  }
+}

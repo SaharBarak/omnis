@@ -59,6 +59,38 @@ const PULSAR_KEYS: readonly LegendEntry[] = PULSARS.map((name) => {
   return { key: pulsarKey(pulsar), mark: { kind: 'text', text: tones.join('·') }, words: `${name} pulsar: tones ${tones.join(', ')}, the ${ORDINAL[pulsar.dimension - 1]} dimension` }
 })
 
+/** A tone as the Dreamspell writes it: bars and dots. */
+const toneMark = (kin: number): BoardMark => ({ kind: 'bars', n: kinToTone(kin as Kin) })
+
+/**
+ * The wavespell's figure (Law of Time, *Thirteen Moons in Motion*): a U on a
+ * lattice five wide and five tall. The magnetic gate stands at the top
+ * left; the course runs down to the overtone tower, across the foot to the
+ * solar tower, and up to the cosmic gate at the top right. A side holds
+ * the tones from one tower or gate to the next, so its length is theirs.
+ */
+const TOWERS = { overtone: 5, solar: 9 } as const
+const WAVE_SIDE = TOWERS.overtone
+const wavePlace = (tone: number): readonly [number, number] =>
+  tone <= TOWERS.overtone ? [tone - 1, 0] : tone <= TOWERS.solar ? [WAVE_SIDE - 1, tone - TOWERS.overtone] : [TONES.length - tone, WAVE_SIDE - 1]
+
+/** What a tone's place on the course is: a gate at either end, a tower at either turn, a chamber between. */
+const waveStation = (tone: number): { readonly key: string; readonly name: string } | undefined =>
+  tone === 1
+    ? { key: 'gate', name: 'the magnetic gate' }
+    : tone === TONES.length
+      ? { key: 'gate', name: 'the cosmic gate' }
+      : tone === TOWERS.overtone
+        ? { key: 'tower', name: 'the overtone tower' }
+        : tone === TOWERS.solar
+          ? { key: 'tower', name: 'the solar tower' }
+          : undefined
+
+const STATION_KEYS: readonly LegendEntry[] = [
+  { key: 'gate', mark: { kind: 'text', text: `1·${TONES.length}` }, words: `The gates: the magnetic gate opens the wavespell at tone 1, the cosmic gate closes it at tone ${TONES.length}` },
+  { key: 'tower', mark: { kind: 'text', text: `${TOWERS.overtone}·${TOWERS.solar}` }, words: `The towers, where the course turns: the overtone tower at tone ${TOWERS.overtone}, the solar tower at tone ${TOWERS.solar}` },
+]
+
 function wavespellView(kin: number, spin: readonly string[], day: string): CalendarView {
   const first = kin - kinToTone(kin as Kin) + 1
   const wave = getWavespellByKin(kin)
@@ -69,27 +101,29 @@ function wavespellView(kin: number, spin: readonly string[], day: string): Calen
     const pulsar = tonePulsar(tone)
     const mark = kinMark(k)
     const role = getWavespellRole(tone)
+    const station = waveStation(tone)
     return {
       key: String(k),
+      over: toneMark(k),
       ...(mark ? { mark } : {}),
-      label: numeral(tone, 'latn'),
-      title: `${toneOf(k)?.name} ${sealOf(k)?.english}`,
-      note: `${role} · ${dayWords(date)}`,
+      title: sealOf(k)?.english ?? '',
+      note: dayWords(date),
       tint: kinTint(k),
-      keys: [kinTint(k), pulsarKey(pulsar)],
+      keys: [kinTint(k), pulsarKey(pulsar), ...(station ? [station.key] : [])],
       ...(isPortal(k) ? { events: [{ name: 'galactic activation portal', key: 'portal' }] } : {}),
       state: kinState(k, kin),
-      said: [`Kin ${k}, ${kinTitle(k)}`, dayWords(date), `tone ${tone}, ${role}`, `${pulsar.name} pulsar`, ...(isPortal(k) ? ['a galactic activation portal'] : [])].join(' · '),
+      said: [`Kin ${k}, ${kinTitle(k)}`, dayWords(date), `tone ${tone}, ${role}`, ...(station ? [station.name] : []), `${pulsar.name} pulsar`, ...(isPortal(k) ? ['a galactic activation portal'] : [])].join(' · '),
     }
   })
-  const sections: CalendarSection[] = [{ columns: 1, cells }]
+  const places = Object.fromEntries(cells.map((cell, i) => [cell.key, wavePlace(i + 1)]))
+  const sections: CalendarSection[] = [{ columns: WAVE_SIDE, places, path: true, cells }]
   return {
     id: 'wavespell',
-    layout: 'ladder',
+    layout: 'figure',
     name: wave.name,
     tab: 'Wavespell',
     sections,
-    legend: keyedLegend([...PULSAR_KEYS, ...COLOUR_KEYS, PORTAL_KEY], sections),
+    legend: keyedLegend([...STATION_KEYS, ...PULSAR_KEYS, ...COLOUR_KEYS, PORTAL_KEY], sections),
     caption: `Tone ${kinToTone(kin as Kin)} of ${TONES.length}: ${wave.question}`,
   }
 }
@@ -161,6 +195,7 @@ function oracleView(kin: number, spin: readonly string[], day: string): Calendar
     const date = spin[k - 1]
     return {
       key: role,
+      over: toneMark(k),
       ...(mark ? { mark } : {}),
       label: numeral(k, 'latn'),
       title: name,
@@ -175,7 +210,7 @@ function oracleView(kin: number, spin: readonly string[], day: string): Calendar
   const sections: CalendarSection[] = [{ columns: 3, places, cells }]
   return {
     id: 'oracle',
-    layout: 'cross',
+    layout: 'figure',
     name: `The oracle of kin ${kin}`,
     tab: 'Oracle',
     sections,

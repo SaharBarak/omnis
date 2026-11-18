@@ -1,10 +1,10 @@
 'use client'
 
-import type { CSSProperties } from 'react'
+import { useMemo, type CSSProperties } from 'react'
 import { DayBoardBody } from './day-board'
 import d from './day.module.css'
 import f from './frame/frame.module.css'
-import { useBoardDisclosure } from './use-board-disclosure'
+import { useBoardDisclosure, type StagePort } from './use-board-disclosure'
 import { FactCard } from '@/components/bento-lab/atlas/fact-card'
 import { DayArtwork } from '@/components/bento-lab/blocks/board-art'
 import kit from '@/components/bento-lab/kit.module.css'
@@ -46,6 +46,9 @@ function Track({ cycle }: { readonly cycle: DayCycle | undefined }) {
  * steps forward. New rows, or a new `closeKey`, close it, handing focus back
  * to a row if it was inside.
  *
+ * With `stage` the list's caller has a stage (BENTO_V2.md "The stage"):
+ * the row under the pointer is drawn there and hover opens no board.
+ *
  * `fit` rows take the room their panel gives them without sizing it, and
  * show the whole rows that fit, in order.
  */
@@ -53,15 +56,18 @@ export function DayRows({
   rows,
   fit = false,
   closeKey,
+  stage,
   className,
 }: {
   readonly rows: readonly V2DayRow[]
   readonly fit?: boolean
   readonly closeKey?: string
+  readonly stage?: StagePort<V2DayRow>
   readonly className?: string
 }) {
   const fields = rows.map((row) => row.field)
-  const { rootRef, shown: shownField, anchorStyle, isAnchor, opener, card, close } = useBoardDisclosure(fields, closeKey)
+  const port = useMemo(() => stage && { preview: (field: string | null) => stage.preview(rows.find((row) => row.field === field) ?? null), busy: stage.busy }, [stage, rows])
+  const { rootRef, shown: shownField, anchorStyle, isAnchor, opener, card, close } = useBoardDisclosure(fields, closeKey, port)
   const shown = rows.find((row) => row.field === shownField) ?? null
 
   return (

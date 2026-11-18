@@ -1,14 +1,15 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { CycleCells } from './cycle-cells'
 import { DayBoardBody } from './day-board'
 import k from './kin.module.css'
 import f from './frame/frame.module.css'
-import { useBoardDisclosure } from './use-board-disclosure'
+import { useBoardDisclosure, type StagePort } from './use-board-disclosure'
 import { GlyphDisc, Hung } from '@/components/bento-lab'
 import { FactCard } from '@/components/bento-lab/atlas/fact-card'
 import { BarDot } from '@/components/bento-lab/blocks/board-art'
+import type { V2DayRow } from '@/lib/site/v2-day'
 import type { V2Kin } from '@/lib/site/v2-home'
 
 const KIN = ['kin'] as const
@@ -51,10 +52,24 @@ function KinBody({ kin }: { readonly kin: V2Kin }) {
  * it, as each day row is of its calendar's (BENTO_BOARDS.md "The kin's
  * board"): hover previews it, focus owns it, a press keeps it; Enter moves
  * focus into it and Escape hands it back. The head stays outside the
- * button, so the live pill and the glyph are not read as its name.
+ * button, so the live pill and the glyph are not read as its name. With
+ * `stage` the caller has a stage (BENTO_V2.md "The stage"): the tile
+ * under the pointer is drawn there and hover opens no board.
  */
-export function KinFace({ kin, head, closeKey }: { readonly kin: V2Kin; readonly head?: ReactNode; readonly closeKey?: string }) {
-  const { rootRef, shown, anchorStyle, isAnchor, opener, card, close } = useBoardDisclosure(kin.row ? KIN : [], closeKey)
+export function KinFace({
+  kin,
+  head,
+  closeKey,
+  stage,
+}: {
+  readonly kin: V2Kin
+  readonly head?: ReactNode
+  readonly closeKey?: string
+  readonly stage?: StagePort<V2DayRow>
+}) {
+  const row = kin.row
+  const port = useMemo(() => (stage && row ? { preview: (key: 'kin' | null) => stage.preview(key ? row : null), busy: stage.busy } : undefined), [stage, row])
+  const { rootRef, shown, anchorStyle, isAnchor, opener, card, close } = useBoardDisclosure(row ? KIN : [], closeKey, port)
   return (
     <div ref={rootRef} className={k.tile} style={anchorStyle}>
       <div className={k.head}>

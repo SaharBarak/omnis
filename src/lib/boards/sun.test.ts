@@ -63,7 +63,7 @@ describe('sunBoard', () => {
 
   it('rings the year by element, the equinoxes and solstices said as the ingresses they are', () => {
     const b = board(DAY)
-    expect(cells(b, 'year').map((c) => c.tint)).toEqual(['red', 'green', 'yellow', 'blue', 'red', 'green', 'yellow', 'blue', 'red', 'green', 'yellow', 'blue'])
+    expect(view(b, 'year')?.sections[0]?.cells.map((c) => c.tint)).toEqual(['red', 'green', 'yellow', 'blue', 'red', 'green', 'yellow', 'blue', 'red', 'green', 'yellow', 'blue'])
     expect(cell(b, 'year', 'capricorn')?.said).toBe(
       'Capricorn · the Sun enters it at the December solstice, Mon 21 Dec 20:50 UTC, in 43 days · earth, cardinal, feminine · ruled by Saturn · exalts Mars at 28°',
     )

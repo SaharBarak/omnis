@@ -1,0 +1,71 @@
+/*
+ * The stage (docs/redesign/BENTO_V2.md "The stage"): a calendar drawn as one
+ * figure in a room its caller places, where a mark stood. Faces share the
+ * room, one over another, while one leaves and the next arrives.
+ */
+
+.stage {
+  display: grid;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Holding a calendar, the stage is under the pointer's hand: it can rest there and the calendar stays. */
+.stage[data-held] {
+  pointer-events: auto;
+}
+
+.faces {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* A face's room: the whole stage, named so a figure can lay itself out to its shape; its figure is centred in it, and scaled to it. */
+.face {
+  container: stage / size;
+  position: relative;
+  grid-area: 1 / 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* The figure at its own size, out of the room's flow, scaled to the room (`--fit`, use-fit.ts). */
+.figure {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  translate: -50% -50%;
+  scale: var(--fit, 1);
+}
+
+.figure:dir(rtl) {
+  translate: 50% -50%;
+}
+
+/* ---------- motion: the exchange, behind the motion switch ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-lab]:not([data-motion='paused']) .face {
+    animation: stage-in var(--dur-settle) var(--ease-emphasized) both;
+  }
+
+  [data-lab]:not([data-motion='paused']) .face[data-leaving] {
+    animation: stage-out var(--dur-quick) var(--ease-standard) both;
+  }
+}
+
+@keyframes stage-in {
+  from {
+    opacity: 0;
+    translate: 0 var(--travel);
+    scale: calc(1 / var(--lift-scale));
+  }
+}
+
+@keyframes stage-out {
+  to {
+    opacity: 0;
+    scale: calc(1 / var(--lift-scale));
+  }
+}

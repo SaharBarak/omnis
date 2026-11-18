@@ -126,11 +126,17 @@ handle, never React state:
 
 - **Channels.** `assemble` is the mark's own intro share (time since mount,
   over `V2_MOTION.introMs`) times its named channels (`MarkChannel`), each
-  owned by one writer: the hero's and the close's `scroll` scrub. Two scenes
-  never race for one value; scrolling during the intro simply multiplies in.
+  owned by one writer: the hero's and the close's `scroll` scrub, the hero's
+  `stage` ("The stage"). Two scenes never race for one value; scrolling
+  during the intro simply multiplies in.
+- **Two kinds of write.** `set` follows a motion (a scrub writes every
+  value on the way). `to(channel, value, ms)` states where the mark is, and
+  the mark eases there itself on its own frames, from wherever the channel
+  stands, so a writer that changes its mind mid-way never jumps it.
 - **Rest.** Clearing a channel sets it to 1, and a scene clears its channel
-  when it reverts. While motion is off the mark draws whole whatever the
-  channels hold, so a paused page shows the whole mark.
+  when it reverts. While motion is off the mark ignores what was `set` (a
+  motion it does not play) and stands at what was stated with `to`, at
+  once: whole on a paused page, absent while its room is given away.
 - **Intro.** A mark that assembles on mount (`intro`) keeps the server's
   whole SVG only for readers without scripts or with reduced motion
   (`@media (scripting: enabled) and (prefers-reduced-motion:
@@ -327,8 +333,10 @@ and the dashboard (`src/components/bento-v2`).
   card the digest's facts open (BENTO_SITE.md, "Facts explain
   themselves"). One card per list, fed by the same inspect reducer
   (`createInspect`, keyed by the row's field) through the same wiring
-  (`factTarget`, as a disclosure): hover previews it after the hover grace,
-  focus owns it, a press keeps it, Escape and a press outside close it. New
+  (`factTarget`, as a disclosure): hover previews it after the hover grace
+  (where the list's caller has a stage, hover draws the calendar there and
+  opens no card: "The stage"), focus owns it, a press keeps it, Escape and
+  a press outside close it. New
   rows, or a new `closeKey` from the list's caller, close it: the hero
   passes one that changes as its scrub leaves rest, since a board hung from
   where its row stood would drift from a row the scrub moves. It hangs from
@@ -467,6 +475,56 @@ and the dashboard (`src/components/bento-v2`).
   (new rows, a new `closeKey`) hands focus back to its row, or to the
   first shown row where that one is gone. The row's place in its cycle is
   read with its name ("16 of 30 degrees").
+- **The stage** (`DayStage`, `BoardFace`). A card that opens under a
+  pointer passing down a list covers the page it came from, once per row.
+  Where the list's caller has a figure's room to give, the pointer's
+  calendar is drawn there instead: on the home that room is the Lantern's
+  (the hero's `markSpot`), so hovering a day row or the kin tile takes the
+  Lantern apart and draws that calendar where it stood, and leaving puts
+  the Lantern back. Hover opens no card there; focus and a press open the
+  board as anywhere, so everything the stage shows is reachable without a
+  pointer, and the stage itself is a figure: its calendar is `inert` and
+  hidden from assistive technology.
+  - **What it draws** (`BoardFace`). The board's own mast and its first
+    view (the unit the day stands in), from the row's board data, by the
+    board's components: one drawing of a calendar, whichever surface holds
+    it. No key, tabs, inspector, Next or Facts: those are worked in, and
+    the stage is looked at.
+  - **Shape.** The face lays itself out to its room's shape (the stage is
+    a size container, `stage`): in a room taller than wide the mast stands
+    over the calendar and wraps to its width, a measure at least; in a room
+    wider than tall it stands beside it, a measure at most, both centred
+    on one line.
+  - **Fit.** The face is laid out at the board's own type, then scaled as
+    one figure to the room, as the Lantern is fitted to its spot (`useFit`:
+    the lesser of the room's width and height over the face's, by
+    `ResizeObserver`), and never grown past one level of the type scale
+    (`LIFT_SCALE`), so calendars of different sizes keep one voice. No size
+    is written for any calendar or window.
+  - **Routing** (`StagePort`, `useBoardDisclosure`'s `stage`). An opener's
+    pointer reports its key to the stage, and null as it leaves, in place
+    of the reducer's `point`; touch reports nothing, as it previews
+    nothing. Each list tells the stage while its board is open.
+  - **Ownership** (`useStage`, held by the caller for every list that
+    shares the room). A preview shows at once. Leaving clears it after the
+    hover grace (`quick`), so the pointer passes from row to row, or onto
+    the stage, without the room emptying between; while the stage holds a
+    calendar it takes the pointer, and the calendar stays for as long as
+    the pointer rests on it (WCAG 1.4.13). While any list's board is open,
+    or the caller suspends it (the hero, once its scrub leaves rest), the
+    stage is empty and takes no preview, and what it showed is forgotten:
+    a stage and a board never show two calendars, and nothing returns
+    unasked when the reason ends.
+  - **In and out.** One exchange in one room. The Lantern gives way with
+    `to('stage', 0, V2_MOTION.stageOutMs)` and returns with
+    `to('stage', 1, V2_MOTION.stageInMs)`, its cells flying as they do on
+    scroll; the dust stays, so the field never blanks. A face arrives
+    rising `TRAVEL` from under and scaling up from `1 / LIFT_SCALE` over
+    `settle`, and leaves over `quick`; passing from one row to the next,
+    the leaving face goes as the arriving one comes, and the Lantern stays
+    away. With motion off the exchange is a cut: the face is there, the
+    Lantern is not, the canvas repainting once for it (`useCanvasLoop`'s
+    repaint) since no frame is running to carry the change.
 - **A row steps forward.** Under the pointer (where a pointer can hover),
   under focus and while its board is open, a row's figure and its day's dot
   grow by one level of the type scale (`LIFT_SCALE`, BENTO_MOTION.md
@@ -953,4 +1011,5 @@ is owner-scoped, as in v1.
 | Codex (`gpt-6-astra`) | the boards' calendars: mast, cells, overview switch, noon rule, crossings, numerals, grid keyboard | 2026-11-09 | incorporated |
 | Codex (`gpt-6-astra`) | the app in v2: tree-aware links, shared page bodies, appearance variants, flow list | 2026-11-09 | incorporated |
 | Codex (`gpt-6-astra`) | the app in v2, implementation review: record edits, dialogs, rail count, framed sections | 2026-11-09 | incorporated |
+| Codex (`gpt-6-astra`) | the stage: hover routing, ownership across lists, hover grace, the mark's stated channel with motion off, fit | 2026-11-12 | incorporated |
 | Codex (`gpt-6-astra`) | the framework floor: a refresh left suspended under `loading.tsx`, Next 16.4 against an app-level workaround, adapter versions | 2026-11-10 | incorporated |

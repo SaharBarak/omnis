@@ -59,7 +59,7 @@ describe('kinBoard', () => {
 
   it('draws the oracle as its cross: guide above, antipode and analog beside, occult below', () => {
     const oracle = view('oracle')
-    expect(oracle?.layout).toBe('cross')
+    expect(oracle?.layout).toBe('figure')
     expect(Object.fromEntries(cells('oracle').map((c) => [c.key, c.label?.text]))).toEqual({ guide: '259', antipode: '77', destiny: '207', analog: '12', occult: '54' })
     expect(oracle?.sections[0]?.places).toMatchObject({ guide: [0, 1], antipode: [1, 0], destiny: [1, 1], analog: [1, 2], occult: [2, 1] })
   })

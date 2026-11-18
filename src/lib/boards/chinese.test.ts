@@ -53,7 +53,7 @@ describe('chineseBoard', () => {
   })
 
   it('rings the solar year from Lichun, its seasons by phase and its principal terms keyed', () => {
-    const ring = cells(board(DAY), 'terms')
+    const ring = board(DAY).views?.find((v) => v.id === 'terms')?.sections[1]?.cells ?? []
     expect(ring.map((c) => c.note).slice(0, 4)).toEqual(['4 Feb', '18 Feb', '5 Mar', '20 Mar'])
     expect(ring.filter((c) => c.keys?.includes('principal')).map((c) => c.title)).toHaveLength(12)
     expect([...new Set(ring.map((c) => c.tint))]).toEqual(['green', 'red', 'white', 'black'])

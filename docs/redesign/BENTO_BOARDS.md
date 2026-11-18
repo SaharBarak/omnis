@@ -52,8 +52,8 @@ and the facts.
  │ THE YEAR AHEAD  the day the Sun enters… │ IN FOCUS · today                │
  │                                         │  ♏  Scorpio                     │
  │          the view's cells               │     since Fri 23 Oct 09:38 UTC  │
- │   (grid · ring · ladder · cross),       │     water, fixed, feminine      │
- │   centred; a ring holds the focused     │ ─────────────────────────────── │
+ │   (grid · figure · wheel · ladder),     │     water, fixed, feminine      │
+ │   centred; a wheel holds the focused    │ ─────────────────────────────── │
  │   cell's mark at its hub                │ NEXT  ●─ Term of Jupiter  2 d   │
  │                                         │       ●─ Decan III        3 d   │
  │ KEY  [▲ Fire] [▼ Earth] [● quarter] …   │       ●─ Sagittarius     13 d   │
@@ -97,10 +97,9 @@ scrolls.
 - **Stage.** The view shown, one mounted at a time: its name as the
   heading, its caption, then its cells, centred. The board's width holds
   across views; its height follows the view. The stage is the room its
-  view measures against (an inline-size container): a ring solves its
-  cell's width from that room (the circle is 2r and a cell wide, r being n
-  cells and gaps over 2π), and a grid wider than the room scrolls across
-  in its own scroller, never the sheet's. Under the cells, the **key**:
+  view measures against: a grid or a wheel wider than the room scrolls
+  across in its own scroller, never the sheet's, and keeps its text's
+  size. Under the cells, the **key**:
   the legend as chips that wrap across the stage, each its sign and its
   words; pointing at or focusing one lights the cells carrying its key,
   pressing it holds that.
@@ -146,11 +145,13 @@ since it is the one thing that changes as focus moves.
 
 A view is cells in a layout, under heads, banded, keyed:
 
-- **Layouts.** `grid` (rows of `columns`), `ring` (round a circle),
-  `ladder` (one under another with their names beside them) and `cross`
-  (a grid preset: five placed cells, the centre and the four round it, as
-  an oracle is laid). A section places its cells one way, never both: in
-  reading order after its blanks, or every cell where its figure sets it
+- **Layouts.** `grid` (a table: rows of `columns` under heads, a month in
+  weeks, the Tzolk'in's 260), `figure` (a tradition's own diagram: few
+  cells, each a tile placed where the diagram sets it), `wheel` (cells as
+  the sectors of concentric rings) and `ladder` (one under another with
+  their names beside them). "Figures" says which a tradition's figure is.
+  A section places its cells one way, never both: in reading order after
+  its blanks, or every cell where its figure sets it
   (`CalendarSection.places`, a row and column per cell key, from the
   section's top-left, no two alike). Placed rows are drawn as rows, the
   gaps as blank cells, so the grid's rows and indices hold for assistive
@@ -189,15 +190,91 @@ A view is cells in a layout, under heads, banded, keyed:
   pulse and is the current date to assistive technology.
 - **Readout.** A cell in full, its mark large, its first phrase as a
   title, the rest as lines: the board's inspector (BENTO_BOARDS.md "The
-  board", "Inspector"), and at a ring's hub the same cell again, compact
+  board", "Inspector"), and at a wheel's hub the same cell again, compact
   and for the eye only, since the cell's name carries every word of it.
 The calendar is one tab stop, an ARIA grid. The arrow keys move a cell at
-a time in the direction pressed: left and right along the reading order
-(round a ring), drawn so the right arrow moves to the cell drawn on the
-right in either direction of the page; up and down to the nearest column
-of the next row in the section, past a section's edge to the nearest
-column of the next section's edge row, round a ring as left and right.
+a time in the direction pressed: left and right along the reading order,
+drawn so the right arrow moves to the cell drawn on the right in either
+direction of the page; up and down to the nearest column of the next row
+in the section, past a section's edge to the nearest column of the next
+section's edge row. A wheel keeps its own keys ("Figures", Wheel).
 Home and End go to the row's ends, Control with them to the view's.
+
+## Figures
+
+A tradition draws its cycle one way, and a reader who knows the tradition
+looks for that drawing: a wavespell is a U of thirteen kins, a zodiac a
+wheel, a rashi chart a square of twelve houses, an Initial Series a double
+column of glyph blocks, a gate a hexagram. A board's first view is that
+figure, the unit the day stands in, and the stage on the page draws it
+(BENTO_V2.md "The stage"). A figure is data like any view: the builder
+places its cells and says its orientation from the tradition's source; the
+calendar draws any of them from four layouts.
+
+### The layouts a figure uses
+
+- **Figure.** Tiles on a lattice (`places`). A tile is its mark two lines
+  tall, a second mark over it where the tradition sets one there (`over`:
+  a kin's tone in bar and dot over its seal, a period's coefficient over
+  its name), its numeral and its name. A section whose cells are a course
+  (`path`) joins them in the cells' order by a line through their centres,
+  drawn under the tiles in the lattice's own units, so nothing is measured.
+- **Wheel.** Each section is a ring, from the hub outward, the coarser
+  division inside the finer, each ring named. A cell is a sector as wide
+  as its share of its ring (`span`, in the ring's own measure; every cell
+  of a ring says one or none does, and then the shares are equal). The
+  view says where the turn begins and which way it runs (`wheel.origin`, a
+  clock position; `wheel.turn`); a ring says where on the turn its first
+  cell begins (`from`) and the view where today stands (`wheel.hand`), both
+  in degrees along the turn from the origin, so the Rave Mandala's gates
+  begin at 302°, gate 41's 2° of Aquarius from 0° Aries. The hand is drawn
+  from the hub across every ring. One ring's cell is the day's place and
+  is today's; the rings round it are its ground and say in their words
+  where the Sun stands in them.
+  - *Drawing.* The sectors are the drawing: they carry the cells' colours
+    and states and take the pointer over their whole area. The cells stand
+    upright at their sectors' centres and take focus; a cell shows its
+    mark and its numeral where its sector's arc holds them, and a narrower
+    one keeps its ground, its edge and its name. The hub holds the
+    inspected cell, its mark two thirds of the square the hub holds.
+  - *Geometry*, derived in slots (a line of the calendar's text and its
+    cell's padding, the room one mark takes; `wheel.ts`): a ring is as
+    thick as the lines its cells carry; a ring's inner radius is at least
+    the circumference its cells' faces need, over 2π, and never inside the
+    ring before it; the hub is at least the readout it holds. A wheel
+    keeps the calendar's own line: in a room too narrow for it, it scrolls
+    across, as a wide grid does.
+  - *Keys.* Left and right go round the cell's own ring, the last cell on
+    to the first, in the turn's order whatever the page's direction; up
+    goes to the ring outside and down to the ring inside, at the nearest
+    bearing, measured round the turn so its seam is no gap. Home and End
+    go to the ring's ends, Control with them to the wheel's.
+- **Ladder.** A cell whose mark is a hexagram's line draws it as the
+  hexagram draws it: a bar the figure's width, broken where yin, so six
+  cells one over another are the hexagram itself.
+
+### Each tradition's figure
+
+| System | Figure (first view) | As its source draws it | Source |
+|---|---|---|---|
+| Kin | The wavespell: a U of thirteen tiles on a five-by-five lattice, tone 1 at the top left, down to the overtone tower (5), across the foot to the solar tower (9), up to the cosmic gate (13) at the top right; each tile its tone in bar and dot over its seal's glyph, in its seal's colour; the gates and towers keyed, the pulsars keyed | Magnetic gate, overtone tower, solar tower, cosmic gate and nine chambers; the pulsars 1·5·9·13, 2·6·10, 3·7·11, 4·8·12 | Law of Time, *Thirteen Moons in Motion*; the Dreamspell kit's wavespell |
+| Kin, oracle | A cross of five tiles: guide above, antipode left, analog right, occult below, the kin at the centre, each its tone over its seal | Fifth-force oracle | Law of Time tutorial |
+| Sun | The zodiac as a wheel from 0° Aries at nine o'clock, counter-clockwise (the natural wheel, a chart with Aries rising; a convention of chart drawing, not of the dignities' sources): the twelve signs, outside them the thirty-six faces under their Chaldean rulers, outside those the sixty Egyptian terms at their unequal widths; the hand at the Sun's longitude | The natural wheel (Aries rising at the left); faces in descending Chaldean order from Mars; terms of five planets | Ptolemy, *Tetrabiblos* I.20–21; astro.com on the faces |
+| Sidereal | The rashi chart, South Indian: a four-by-four square, the twelve rashis fixed round its edge, Mesha second from the left in the top row, clockwise, the middle open; the Sun's rashi is today's. It fixes signs, not houses: the board draws no ascendant | The fixed-sign chart of the south | Wikipedia, "Kundali (astrology)" |
+| Sidereal, nakshatras | A wheel: the twelve rashis, outside them the twenty-seven nakshatras, 13°20′ each from 0° Mesha, the two rings joining at Mesha, Simha and Dhanu; the hand at the Sun's sidereal longitude. Mesha begins at the top, clockwise, as the chart runs; the tradition fixes no wheel orientation | 27 × 13°20′; joints at Mesha, Simha, Dhanu | Brihat Parashara Hora Shastra 4 |
+| Gate | The hexagram: the gate's six lines as a ladder of bars, the sixth on top, each solid or broken, by its name and the day the Sun reaches it | Lines numbered from the bottom, drawn from the top | Jovian Archive |
+| Gate, mandala | The Rave Mandala as a wheel: the twelve signs, outside them the sixty-four gates in the wheel's order from gate 41 at 2° Aquarius, 5°37′30″ each, each its hexagram and number, the four quarters banded; the hand at the Sun. Turned as the zodiac wheel is (Aries at nine o'clock, counter-clockwise), the board's choice: no source read fixes the printed mandala's turn | Signs inside, gates outside; quarters from gates 13, 2, 7, 1 | Ra Uru Hu's Rave Mandala; Jovian Archive |
+| Long Count | The Initial Series, abbreviated: a double column read in pairs, left then right, down: b'ak'tun, k'atun; tun, winal; k'in, the Tzolk'in day; the Lord of the Night, the Haab' day; each block its coefficient in bar and dot over its name, the Tzolk'in block its day sign; the Lord of the Night is named G1 to G9 and carries no coefficient | A stela's Initial Series after the introducing glyph: the five places, the Tzolk'in, glyph G, the Haab' (the Lunar Series between is left out: the engine holds no table for it) | Pitts, *Maya Numbers and the Maya Calendar* (FAMSI); Kettunen and Helmke (2020) |
+| Moon | The lunation as a wheel of its days, each sector the Moon's face at noon, from the New Moon at the top, counter-clockwise as the Moon goes round the Earth seen from the north; the hand at today | No single canon: the orbit diagram's direction | NASA, "Moon Phases" |
+| Chinese | The solar year as a wheel: the twelve solar months by their branches (30° of the Sun each, from one sectional term to the next; the lunar months, of unequal length, are the Month view's), outside them the twenty-four solar terms, 15° each, tinted by season; the winter solstice at the foot, in the middle of the 子 month, the summer at the top, clockwise, as the south-up compass sets the branches, the board's choice of that convention; the hand at the Sun, set between the term in force and the next by the days gone | 子 north, 午 south, south at the top; 冬至 in the 子 month | Hong Kong Observatory; the twenty-four-direction compass |
+| Chinese, sixty | Six rows of ten, a row a 旬 opening on a 甲 year, a column a stem | 六甲 | Wikipedia, "Sexagenary cycle" |
+| Hebrew, Hijri, Persian, Panchang | The month in weeks, as their printed pages set it (right to left where the script runs so); the Persian day names and the Panchang's nakshatras as wheels | Luach, taqwim, panchang month pages | Chabad and Hebcal month views; Drik Panchang |
+
+Where a source fixes no orientation (the nakshatra wheel, the lunation's
+ring), the board keeps the one its tradition's neighbouring figure uses
+and the view's caption does not claim it as canon. Element colours on the
+zodiac (fire red, earth green, air yellow, water blue) are the modern
+print convention, named as such in the key.
 
 ## Source colours
 
@@ -233,9 +310,11 @@ the board's builder owns its views, places and words.
   its mark (bar-and-dot, glyph), and the wavespell's day; the meaning is
   the Dreamspell affirmation's five lines as three sentences
   (`generateMantra`).
-- **Wavespell** (unit, ladder). The thirteen kins of the wavespell: each
-  its seal's glyph, its tone's number, its name, its tone's role and its
-  civil date, tinted by its seal's colour; each keyed by its pulsar (time
+- **Wavespell** (unit, figure). The thirteen kins of the wavespell on its
+  U ("Figures"), joined in their order: each its tone in bar and dot over
+  its seal's glyph, its seal's name and its civil date, tinted by its
+  seal's colour; the gates (1, 13) and towers (5, 9) keyed; each keyed by
+  its pulsar (time
   1·5·9·13, life 2·6·10, sense 3·7·11, mind 4·8·12: a tone's remainder by
   four, `tonePulsar`), portal days dotted. The caption is the wavespell's
   question.
@@ -246,9 +325,10 @@ the board's builder owns its views, places and words.
   the mystic column (kins 121–140) keyed. Its cells are numerals alone,
   so they take their figures' width at the note's size and the module
   keeps to a phone's card.
-- **Oracle** (view, cross). The fifth-force oracle (`oracleKins`): guide
+- **Oracle** (view, figure). The fifth-force oracle (`oracleKins`): guide
   above, antipode left, analog right, occult below, the kin at the
-  centre; each its seal's glyph, its kin, its role and its name, tinted;
+  centre; each its tone over its seal's glyph, its kin, its role and its
+  name, tinted;
   the legend says each relation's rule (same colour set by the tone; ten
   seals across; seals summing to nineteen; to twenty-one, tones to
   fourteen).
@@ -280,17 +360,17 @@ is tested against the tradition's published values, never against itself.
 
 | System | Views | Bands and tints | Source |
 |---|---|---|---|
-| Kin | Wavespell · Tzolk'in · Oracle · 13 Moon | Seal colour (red, white, blue, yellow); heptads; pulsars; portals; mystic column | Argüelles, *Dreamspell* (1990) and *Synchrogalactic Yoga*; Law of Time; Dreamingbones tables for families and clans |
+| Kin | Wavespell (figure) · Tzolk'in · Oracle (figure) · 13 Moon | Seal colour (red, white, blue, yellow); heptads; pulsars; portals; mystic column | Argüelles, *Dreamspell* (1990) and *Synchrogalactic Yoga*; Law of Time; Dreamingbones tables for families and clans |
 | Hebrew | Month · Year · Parasha | Shabbat and Yom Tov red; Yamim Noraim, the Omer, the Three Weeks and Hanukkah banded; the Torah's five books | Hebcal (hebcal.com, CC BY 4.0) for 5786–5788; Rambam, *Kiddush HaChodesh*; Shulchan Aruch OC 428, 685; Sefer Yetzirah (Gra) 5 |
 | Hijri | Month · Year | White days, last ten nights, first ten days and Tashriq banded; sacred months and Ramadan banded in the year | Umm al-Qura (ICU `islamic-umalqura`); Qur'an 9:36, 2:203 |
 | Persian | Month · Year · Day names | Fridays and public holidays red; seasons banded; the four weeks of the day names banded | Iran's official calendar (ICU `persian`); Boyce and *Encyclopaedia Iranica* for the day and month dedications; the ephemeris for the Tahvil |
-| Gate | Lines · Wheel · Colours · Centre | The four quarters of the Rave Mandala banded; left and right tones banded; no source tints | Ra Uru Hu's Rave Mandala (gate 41 at 2° Aquarius, 302°), dated against the Swiss Ephemeris; Jovian Archive on substructure; two published godhead listings; Chrysalis, "HD101: The Human Design Circuits" |
-| Long Count | Winal · Tzolk'in · Haab' · Count | Wayeb' and today's trecena banded; period endings, 0 Pop and 819-day stations marked; no source tints | GMT correlation 584283; Kettunen and Helmke, *Introduction to Maya Hieroglyphs* (2020); Wikipedia's Haab' and Maya calendar articles (ALMG names, year bearers); MacLeod and Kinsman (2012) after Thompson on the 819-day count |
-| Sun | Season · Year · Terms | The three faces banded; each day under its term's planet; the signs tinted by element (fire red, earth green, air yellow, water blue, the modern convention) | Ptolemy, *Tetrabiblos* I.12–20 (Robbins, Loeb 1940); Dorotheus, *Carmen Astrologicum* I.1; Lilly, *Christian Astrology* (1647); USNO and NASA for the equinoxes and solstices |
-| Sidereal | Month · Year · Nakshatras | The nakshatras banded over the rashi's days; each day under its drekkana's lord; the rashis banded by tattva; the nakshatras keyed by Vimshottari lord; no source tints | Brihat Parashara Hora Shastra 4, 6, 46; Lahiri ayanamsa; Drik Panchang for the Sankrantis and the Sun's nakshatra entries |
-| Chinese | Month · Terms · Animals · Sixty | Each day and year tinted by its stem's phase (wood green, fire red, earth yellow, metal white, water black); the terms banded by season, each in its phase's tint; principal terms, terms and festivals keyed; yang a solid line, yin a broken one | The Purple Mountain Observatory's rule (GB/T 33661-2017); the Hong Kong Observatory's Gregorian-Lunar conversion tables (2025–2028, 2033); Wikipedia for the stems, branches, five phases, terms and festivals; astronomy-engine (Cross, MIT) for every new Moon and term |
+| Gate | Lines (the hexagram) · Mandala (wheel) · Colours · Centre | The four quarters of the Rave Mandala banded; left and right tones banded; no source tints | Ra Uru Hu's Rave Mandala (gate 41 at 2° Aquarius, 302°), dated against the Swiss Ephemeris; Jovian Archive on substructure; two published godhead listings; Chrysalis, "HD101: The Human Design Circuits" |
+| Long Count | Series (figure) · Winal · Tzolk'in · Haab' | Wayeb' and today's trecena banded; period endings, 0 Pop and 819-day stations marked; no source tints | GMT correlation 584283; Kettunen and Helmke, *Introduction to Maya Hieroglyphs* (2020); Wikipedia's Haab' and Maya calendar articles (ALMG names, year bearers); MacLeod and Kinsman (2012) after Thompson on the 819-day count |
+| Sun | Zodiac (wheel) · Season · Terms | The three faces banded; each day under its term's planet; the signs tinted by element (fire red, earth green, air yellow, water blue, the modern convention) | Ptolemy, *Tetrabiblos* I.12–20 (Robbins, Loeb 1940); Dorotheus, *Carmen Astrologicum* I.1; Lilly, *Christian Astrology* (1647); USNO and NASA for the equinoxes and solstices |
+| Sidereal | Chart (figure) · Month · Nakshatras (wheel) | The nakshatras banded over the rashi's days; each day under its drekkana's lord; the rashis banded by tattva; the nakshatras keyed by Vimshottari lord; no source tints | Brihat Parashara Hora Shastra 4, 6, 46; Lahiri ayanamsa; Drik Panchang for the Sankrantis and the Sun's nakshatra entries |
+| Chinese | Year (wheel) · Month · Animals · Sixty | Each day and year tinted by its stem's phase (wood green, fire red, earth yellow, metal white, water black); the terms banded by season, each in its phase's tint; principal terms, terms and festivals keyed; yang a solid line, yin a broken one | The Purple Mountain Observatory's rule (GB/T 33661-2017); the Hong Kong Observatory's Gregorian-Lunar conversion tables (2025–2028, 2033); Wikipedia for the stems, branches, five phases, terms and festivals; astronomy-engine (Cross, MIT) for every new Moon and term |
 | Panchang | Tithis · Month · Nakshatras | The pakshas white and black; kshaya and vriddhi tithis keyed; Ekadashi, Purnima, Amavasya, Sankranti and Vishti keyed; the nakshatras banded by Vimshottari lord | Surya Siddhanta 1.62 (Ujjain); Drik Panchang (Ujjain) for 2026; Wikipedia for the tithis, yogas, karanas and lunar months; Brihat Parashara Hora Shastra 46; Lahiri ayanamsa; astronomy-engine for the sunrise and every instant |
-| Moon | Lunation · Year · Two months | No source tints: the Moon's face is the mark; quarters, sign entries, apsides, supermoons and eclipses keyed | USNO for the quarters; NASA (Espenak) for the eclipses and supermoons; lunaf.com for the apsides; astronomy-engine (Cross, MIT) for every instant |
+| Moon | Lunation (wheel) · Year · Two months | No source tints: the Moon's face is the mark; quarters, sign entries, apsides, supermoons and eclipses keyed | USNO for the quarters; NASA (Espenak) for the eclipses and supermoons; lunaf.com for the apsides; astronomy-engine (Cross, MIT) for every instant |
 
 ### Hebrew
 
@@ -363,7 +443,7 @@ Chaharshanbe Suri and the Tahvil; the builder (`persian.ts`) the board.
 - **Year**. The months under their signs from Aries, by their Persian
   names, each its patron yazata, its Dari name and its feasts; the seasons
   banded.
-- **Day names** (ring). The thirty names round a ring, banded in the four
+- **Day names** (wheel). The thirty names round a wheel, banded in the four
   weeks each opened by a day of Ahura Mazda, the month's jashn keyed.
 - **Next.** The next month, the feasts and jashns and the Tahvil, nearest
   first.
@@ -399,9 +479,9 @@ base.
   complete and its circuit. Where the Sun's and the Earth's gates are one
   channel's two ends (43-23 and 34-20 in a Rave year), neither is listed as
   the other's harmonic; Facts names the channel.
-- **Wheel** ("The Rave Mandala"). The sixty-four gates by the four
-  quarters, in rows of eight from each quarter's Sphinx gate (13, 2, 7, 1),
-  each row headed by the zodiac degree it opens at; each gate its hexagram,
+- **Mandala** ("The Rave Mandala", wheel). The twelve signs and, outside
+  them, the sixty-four gates in the wheel's order from gate 41
+  ("Figures"); each gate its hexagram,
   its quarter and godhead and where it opens, to the arcsecond (gate 19
   from 7°37′30″ Aquarius). The Sun's gate, the Earth's and the harmonic
   gates keyed; the quarters banded; the gate the Sun reaches next, the next
@@ -456,7 +536,7 @@ above, a modern name).
 - **Mast.** The count (13.0.14.1.10), the Calendar Round as its title
   (4 Ok 3 Keh), the days since the era base, the day sign by its glyph and
   gloss, and the Lord of the Night.
-- **Winal** (unit). The twenty days of the winal, two rows of ten from its
+- **Winal**. The twenty days of the winal, two rows of ten from its
   Ajaw: each its day sign's glyph, its Tzolk'in number and sign, and its
   Haab' day; the readout adds the civil date, the count and the Lord of
   the Night.
@@ -469,8 +549,10 @@ above, a modern name).
   name; its Classic Mayan reading and its colonial Yukatek spelling in its
   words), each cell the day's number in the month, 0 the month's seating;
   Wayeb''s five days banded. Its name gives the year's bearer.
-- **Count** (ladder). The places as bar-and-dot numerals, b'ak'tun on top,
-  each with its span in days and the day it next turns.
+- **Series** (unit, figure). The Initial Series ("Figures"): the places as
+  bar-and-dot numerals from the b'ak'tun, each with its span in days and
+  the day it next turns, then the Tzolk'in day, the Lord of the Night and
+  the Haab' day. The k'in is today's cell.
 - **Days marked** in every view where they fall: a period ending (a tun,
   k'atun or b'ak'tun completed), 0 Pop with its bearer, a station of the
   819-day count; Wayeb' banded.
@@ -512,15 +594,17 @@ equinoxes, solstices and cross-quarters, each to the minute); the builder
 (`src/lib/boards/sun.ts`) the board. The lords are Hellenistic: the ruler
 is the traditional one, the modern one named beside it where they differ.
 
-- **Season** (unit). The sign's days in weeks, each the Sun's degree at its
+- **Season**. The sign's days in weeks, each the Sun's degree at its
   noon UTC, led by the planet whose term holds that degree and keyed by
   the term; the three faces banded under their Chaldean rulers; the
   ingress and a cross-quarter on the first day whose noon finds the Sun
   past them, each timed in UTC. An equinox or solstice is the ingress
   itself and is named once.
-- **Year** (ring). The twelve signs from Aries, each its glyph, the day the
-  Sun enters it, its element, modality, gender, ruler and exaltation, and
-  the turning of the year it holds; tinted by element.
+- **Zodiac** (unit, wheel). The twelve signs from Aries, each its glyph,
+  the day the Sun enters it, its element, modality, gender, ruler and
+  exaltation, and the turning of the year it holds, tinted by element;
+  outside them the thirty-six faces and the sixty terms, each keyed by its
+  lord, so a planet's key lights everything it rules.
 - **Terms**. The sign's five terms as a ladder, each its planet, its
   degrees and the days the Sun holds it.
 - **Next.** The next term and face in the sign, the next two ingresses (one
@@ -540,16 +624,18 @@ drekkanas, navamsas), the nakshatras (`data/nakshatras.ts`) and the Lahiri
 ayanamsa (`ayanamsa.ts`); the builder (`src/lib/boards/sidereal.ts`) the
 board.
 
-- **Month** (unit). The Sun's month in its rashi, as India's solar
+- **Month**. The Sun's month in its rashi, as India's solar
   calendars keep it, in weeks from Sunday: each day its degree at noon UTC,
   led by its drekkana's lord and keyed by the drekkana; the nakshatras it
   crosses banded, each with its deity and Vimshottari lord; the Sankranti on
   the first day whose noon finds the Sun in the rashi.
-- **Year** (ring). The twelve rashis from Mesha by their Sanskrit names, in
-  Devanagari, each the day of its Sankranti, its lord and tattva; Makara
-  and Mesha Sankranti marked as the festivals they are kept as.
-- **Nakshatras** (ring). The twenty-seven from Ashwini, each led by its
-  Vimshottari lord and keyed by it, with the day the Sun enters it.
+- **Chart** (unit, figure). The twelve rashis as the South Indian chart
+  fixes them ("Figures"), by their Sanskrit names, in Devanagari, each the
+  day of its Sankranti, its lord and tattva; Makara and Mesha Sankranti
+  marked as the festivals they are kept as.
+- **Nakshatras** (wheel). The twelve rashis and, outside them, the
+  twenty-seven nakshatras from Ashwini, each led by its Vimshottari lord
+  and keyed by it, with the day the Sun enters it.
 - **Next.** The next drekkana in the rashi, the next nakshatra, and the
   next three Sankrantis, nearest first.
 - **Facts.** The ayanamsa and its value, the rashi, its lord and tattva,
@@ -571,8 +657,9 @@ eclipses and their kinds, the supermoons by Nolle's definition as Espenak
 reckons it) and the lunation (`sky-dates.ts`); the builder
 (`src/lib/boards/moon.ts`) the board.
 
-- **Lunation** (unit). The lunation's days in weeks, each the Moon's face
-  at noon UTC and its civil date; on the first day whose noon holds them,
+- **Lunation** (unit, wheel). The lunation's days round a wheel from the
+  New Moon ("Figures"), each the Moon's face at noon UTC and its civil
+  date; on the first day whose noon holds them,
   the quarters, the signs the Moon enters, the perigee and apogee with
   their distances, the supermoons and the eclipses, each timed in UTC.
 - **Year**. A lunar year of lunations from the one the day stands in, each
@@ -597,20 +684,23 @@ year), the one table of stems and branches (`data/sexagenary.ts`, read by
 (`data/chinese-months.ts`) and the five phases (`data/wuxing.ts`), every
 date in Beijing; the builder (`src/lib/boards/chinese.ts`) the board.
 
-- **Month** (unit). This lunar month and the next, each in its three
+- **Month**. This lunar month and the next, each in its three
   decades of ten days (上旬, 中旬, 下旬 heading the rows): each day the
   Moon's face at noon in Beijing, its day as written (初一 to 三十), its
   stem and branch and its civil date, tinted by its stem's phase; the solar
   terms and the festivals on their days. A leap month is written with 闰
   before the month it repeats.
-- **Terms** (ring). The twenty-four terms of the solar year from Lichun,
+- **Year** (unit, wheel). The twelve solar months by their branches and,
+  outside them, the twenty-four terms of the solar year from Lichun
+  ("Figures"),
   each its characters, pinyin, the Hong Kong Observatory's English name and
   its day; banded by season, each season in its phase's tint (spring wood,
   summer fire, autumn metal, winter water); the principal terms keyed; a
   sectional term names the solar month it opens.
 - **Animals**. The twelve years of this turn of the animals, each its
   characters, animal and Gregorian year, tinted by its stem's phase.
-- **Sixty**. The sixty in rows of twelve, a column one animal; each year
+- **Sixty**. The sixty in six rows of ten, a row a 旬 opening on a 甲
+  year, a column one stem; each year
   tinted by its stem's phase, its polarity a solid (yang) or broken (yin)
   line.
 - **Next.** The next month, the next two terms, the next festival and the
@@ -653,7 +743,7 @@ nakshatras' lords and deities (`data/nakshatras.ts`) and the rashis
   words; the Ekadashis on their days, Purnima and Amavasya on the day they
   begin with the time, the Sankrantis on their days; a day whose sunrise
   falls in Vishti keyed.
-- **Nakshatras** (ring). The twenty-seven from Ashwini, each led by its
+- **Nakshatras** (wheel). The twenty-seven from Ashwini, each led by its
   Vimshottari lord's glyph and banded by it, its deity in its words, and
   the sunrise the Moon stands in it in its circuit about the day: the
   mansions ahead of today's by the sunrises to come, those behind by the
@@ -703,3 +793,4 @@ day row's tithi is the same reading (`panchang`).
 | Codex (`gpt-6-astra`, read-only) | The board's skeleton: wireframe, sidebar layout, bar, inspector state, opaque surface | 2026-11-09 | incorporated |
 | Code review (background agent) | The board's implementation: focus requests, inspector fallthrough, Today's state, ring bands, forced colours, the sheet's bound | 2026-11-09 | incorporated |
 | Codex (`gpt-6-astra`, read-only) | The board as a window-height sheet, against freezing its place or reserving every view's height | 2026-11-09 | incorporated |
+| Codex (`gpt-6-astra`, read-only) | Figures: the four layouts (figure tiles and courses, wheels of rings with spans, origin, turn and hand, hexagram ladders), the wheel's geometry and keys, each tradition's first view | 2026-11-18 | incorporated |

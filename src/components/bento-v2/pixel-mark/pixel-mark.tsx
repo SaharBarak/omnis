@@ -11,11 +11,13 @@ import { PIXEL_LANTERN } from '@/lib/brand/pixel-lantern.gen'
 import { V2_MOTION } from '@/lib/design/v2-scenes'
 
 /** Named inputs to the assembly; each scene owns one, and the mark draws their product (BENTO_V2.md "Pixel mark"). */
-export type MarkChannel = 'scroll'
+export type MarkChannel = 'scroll' | 'stage'
 
 export interface PixelMarkHandle {
-  /** Sets a channel, 0 scattered to 1 whole. */
+  /** Follows a motion: sets a channel, 0 scattered to 1 whole. Not played while motion is off. */
   set(channel: MarkChannel, value: number): void
+  /** States where the mark is: the channel eases there over `ms` from wherever it stands, and is there at once while motion is off. */
+  to(channel: MarkChannel, value: number, ms: number): void
   /** Returns a channel to rest, whole. */
   clear(channel: MarkChannel): void
 }
@@ -27,6 +29,30 @@ interface PixelMarkProps {
   /** Assemble on mount. The server's whole mark is then kept for readers without scripts, so the assembly never hides a mark already seen. */
   readonly intro?: boolean
   readonly className?: string
+}
+
+/** A channel's value in time: from `from` at `start` to `to` over `ms`; `stated` where a writer said where the mark is (`to`) rather than followed a motion (`set`). */
+interface ChannelRun {
+  readonly from: number
+  readonly to: number
+  readonly start: number
+  readonly ms: number
+  readonly stated: boolean
+}
+
+const runValue = (run: ChannelRun, now: number): number => (run.ms <= 0 ? run.to : run.from + (run.to - run.from) * Math.min(1, Math.max(0, (now - run.start) / run.ms)))
+
+/** A run at its end: what a stated channel is while motion is off, so motion coming back never plays a run it missed. */
+const settled = (run: ChannelRun): ChannelRun => (run.ms <= 0 ? run : { ...run, from: run.to, ms: 0 })
+
+/** The channels' product at `now`; while motion is off, of the stated channels' ends alone. */
+export const assemblyOf = (runs: Iterable<ChannelRun>, now: number, allowed: boolean, intro: number): number => {
+  let product = allowed ? intro : 1
+  for (const run of runs) {
+    if (allowed) product *= runValue(run, now)
+    else if (run.stated) product *= run.to
+  }
+  return product
 }
 
 const colourCache = new WeakMap<LabPalette, MarkColours>()
@@ -64,17 +90,28 @@ const placementOf = (spot: HTMLElement | null, canvas: HTMLCanvasElement): Place
 export const PixelMark = forwardRef<PixelMarkHandle, PixelMarkProps>(function PixelMark({ spot, dust = true, intro = false, className }, handle) {
   const canvas = useRef<HTMLCanvasElement | null>(null)
   const spotRef = useRef<HTMLDivElement | null>(null)
-  const channels = useRef(new Map<MarkChannel, number>())
+  const channels = useRef(new Map<MarkChannel, ChannelRun>())
   const born = useRef<number | null>(null)
   const place = useRef<Placement | null>(null)
   const last = useRef('')
   const paintedOnce = useRef(false)
   const [painted, setPainted] = useState(false)
   const hasMark = spot !== undefined
+  /** Set once the loop exists; a stated write repaints through it where no frame is coming. */
+  const repaintRef = useRef<() => void>(() => {})
 
   useImperativeHandle(handle, () => ({
-    set: (channel, value) => void channels.current.set(channel, value),
-    clear: (channel) => void channels.current.delete(channel),
+    set: (channel, value) => void channels.current.set(channel, { from: value, to: value, start: 0, ms: 0, stated: false }),
+    to: (channel, value, ms) => {
+      const now = performance.now()
+      const run = channels.current.get(channel)
+      channels.current.set(channel, { from: run ? runValue(run, now) : 1, to: value, start: now, ms, stated: true })
+      repaintRef.current()
+    },
+    clear: (channel) => {
+      channels.current.delete(channel)
+      repaintRef.current()
+    },
   }))
 
   useEffect(() => {
@@ -86,9 +123,10 @@ export const PixelMark = forwardRef<PixelMarkHandle, PixelMarkProps>(function Pi
     (ctx: CanvasRenderingContext2D, width: number, height: number, seconds: number, palette: LabPalette, fresh: boolean) => {
       if (fresh) place.current = placementOf(spotRef.current, ctx.canvas)
       const allowed = motionAllowed(labRoot(ctx.canvas))
-      const since = born.current === null || !allowed ? Infinity : performance.now() - born.current
-      const introShare = Math.min(1, since / V2_MOTION.introMs)
-      const assemble = allowed ? [...channels.current.values()].reduce((product, value) => product * value, introShare) : 1
+      const now = performance.now()
+      if (!allowed) for (const [channel, run] of channels.current) if (run.stated) channels.current.set(channel, settled(run))
+      const since = born.current === null || !allowed ? Infinity : now - born.current
+      const assemble = assemblyOf(channels.current.values(), now, allowed, Math.min(1, since / V2_MOTION.introMs))
       const key = `${assemble.toFixed(3)}|${Math.floor(seconds * GLINT_HZ)}`
       if (!fresh && key === last.current) return
       last.current = key
@@ -109,7 +147,10 @@ export const PixelMark = forwardRef<PixelMarkHandle, PixelMarkProps>(function Pi
     [hasMark, dust],
   )
 
-  useCanvasLoop(canvas, draw, { fps: 60, follow: spotRef })
+  const repaint = useCanvasLoop(canvas, draw, { fps: 60, follow: spotRef })
+  useEffect(() => {
+    repaintRef.current = repaint
+  }, [repaint])
 
   return (
     <div className={[s.box, className].filter(Boolean).join(' ')} aria-hidden>

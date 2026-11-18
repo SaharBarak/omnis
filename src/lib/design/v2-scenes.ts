@@ -60,6 +60,9 @@ export const V2_MOTION = Object.freeze({
   scrubFloor: 0.35,
   /** Plate in: the plate's scale where its window starts. */
   plateFrom: 0.92,
+  /** The stage (BENTO_V2.md "The stage"): the Lantern gives its room away as a component arrives, and returns as a line draws. */
+  stageOutMs: DURATION.settle,
+  stageInMs: DURATION.draw,
   /** Numerals count up over this long. */
   countMs: 1400,
 })

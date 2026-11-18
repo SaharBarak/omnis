@@ -79,8 +79,8 @@ describe('todayBoards', () => {
     expect(mast(boards.moon)).toEqual(['29', 'New Moon', ['Day 29 of 29', '1% lit', 'in Scorpio']])
     expect(facts(boards.moon)).toMatchObject({ Age: '28 days', 'Moon in': 'Scorpio' })
     const unit = boards.moon?.views?.[0]
-    expect(shape(unit)).toEqual({ layout: 'grid', name: 'The lunation', caption: 'Day 29 of the lunation', cells: [29] })
-    expect(heads(unit)).toBe('S*MTWTFS*')
+    expect(shape(unit)).toEqual({ layout: 'wheel', name: 'The lunation', caption: 'Day 29 of 29, from the New Moon at the top', cells: [29] })
+    expect(unit?.wheel).toMatchObject({ origin: 'top', turn: 'counterclockwise' })
     expect(cellsOf(unit).every((c) => c.mark?.kind === 'moon')).toBe(true)
     expect(todayIn(unit)[0]?.said).toBe('Sun 8 Nov · day 29 of the lunation · New Moon, 1% lit · Moon in Scorpio · Moon enters Scorpio, Sat 7 Nov 22:40 UTC')
     const months = boards.moon?.views?.find((v) => v.id === 'months')
@@ -102,7 +102,9 @@ describe('todayBoards', () => {
     expect(boards.sun).toMatchObject({ value: '16° Scorpio', meaning: 'Transformation, intensity, depth.' })
     expect(mast(boards.sun)).toEqual(['16°', 'Scorpio', ['Water', 'Fixed', 'Feminine', 'ruled by Mars']])
     expect(facts(boards.sun)).toMatchObject({ Ruler: 'Mars; Pluto in modern astrology', Decan: 'II, ruled by the Sun', Term: 'Mercury, 11° to 19°', Entered: 'Fri 23 Oct 09:38 UTC, 16 days ago' })
-    const unit = boards.sun?.views?.[0]
+    expect(shape(boards.sun?.views?.[0])).toEqual({ layout: 'wheel', name: 'The zodiac', caption: 'The Sun at 16° Scorpio: the signs, their faces and their terms', cells: [12, 36, 60] })
+    expect(boards.sun?.views?.[0]?.wheel).toMatchObject({ origin: 'left', turn: 'counterclockwise' })
+    const unit = boards.sun?.views?.find((v) => v.id === 'season')
     expect(shape(unit)).toEqual({ layout: 'grid', name: "Scorpio's season", caption: '16 of 30 degrees of Scorpio crossed', cells: [30] })
     expect(unit?.sections[0]?.offset).toBe(5)
     expect(unit?.legend.map((l) => l.words).slice(0, 3)).toEqual(['I · Mars, 0° to 10°', 'II · The Sun, 10° to 20°', 'III · Venus, 20° to 30°'])
@@ -110,9 +112,8 @@ describe('todayBoards', () => {
       ['2026-10-23', 'Sun enters Scorpio, 09:38 UTC'],
       ['2026-11-07', 'Cross-quarter, 15° Scorpio, 09:53 UTC'],
     ])
-    const ring = boards.sun?.views?.[1]
-    expect(shape(ring)).toMatchObject({ layout: 'ring', name: 'The year ahead', cells: [12] })
-    expect(cellsOf(ring).map((c) => c.note)).toEqual(['20 Mar', '20 Apr', '21 May', '21 Jun', '23 Jul', '23 Aug', '23 Sept', '23 Oct', '22 Nov', '21 Dec', '20 Jan', '18 Feb'])
+    const ring = boards.sun?.views?.[0]
+    expect(ring?.sections[0]?.cells.map((c) => c.note)).toEqual(['20 Mar', '20 Apr', '21 May', '21 Jun', '23 Jul', '23 Aug', '23 Sept', '23 Oct', '22 Nov', '21 Dec', '20 Jan', '18 Feb'])
     expect(todayIn(ring)[0]?.title).toBe('Scorpio')
     expect(next(boards.sun).filter(([name]) => String(name).startsWith('Enters'))).toEqual([
       ['Enters Sagittarius, 07:24 UTC', '2026-11-22', 14],
@@ -124,7 +125,11 @@ describe('todayBoards', () => {
     expect(boards.sidereal?.value).toBe('21° Libra')
     expect(boards.sidereal?.facts[0]).toEqual({ label: 'Ayanamsa', value: 'Lahiri, 24°13′' })
     expect(facts(boards.sidereal)).toMatchObject({ Rashi: 'Tula, तुला', Drekkana: 'III, of Mithuna, ruled by Mercury', Nakshatra: 'Vishakha, pada 1' })
-    expect(boards.sidereal?.views?.[0].sections[0]?.offset).toBe(0)
+    const chart = boards.sidereal?.views?.[0]
+    expect(shape(chart)).toMatchObject({ layout: 'figure', name: 'The rashi chart', cells: [12] })
+    /* The South Indian chart: Meena in the top-left corner, Mesha beside it, clockwise round the edge to Kumbha under Meena. */
+    expect(['Meena', 'Mesha', 'Mithuna', 'Kanya', 'Dhanu', 'Kumbha'].map((name) => chart?.sections[0]?.places?.[name])).toEqual([[0, 0], [0, 1], [0, 3], [3, 3], [3, 0], [1, 0]])
+    expect(boards.sidereal?.views?.find((v) => v.id === 'month')?.sections[0]?.offset).toBe(0)
     expect(next(boards.sidereal)[0]).toEqual(['Vrishchika Sankranti', '2026-11-16', 8])
   })
 
@@ -155,8 +160,10 @@ describe('todayBoards', () => {
       ['1', 'past', 'Thu 5 Nov'],
     ])
     const wheel = boards.gate?.views?.find((v) => v.id === 'wheel')
-    expect(shape(wheel)).toMatchObject({ layout: 'grid', name: 'The Rave Mandala', caption: 'Gate 1 is 51 of 64 from gate 41, where the Rave year begins', cells: [16, 16, 16, 16] })
-    expect(cellsOf(wheel).every((c) => c.mark?.kind === 'hexagram')).toBe(true)
+    expect(shape(wheel)).toMatchObject({ layout: 'wheel', name: 'The Rave Mandala', caption: 'Gate 1 is 51 of 64 from gate 41, where the Rave year begins', cells: [12, 64] })
+    /* The gates run from gate 41 at 2° Aquarius, 302° from 0° Aries. */
+    expect([wheel?.sections[1]?.from, wheel?.sections[1]?.cells[0]?.key]).toEqual([302, '41'])
+    expect(wheel?.sections[1]?.cells.every((c) => c.mark?.kind === 'hexagram')).toBe(true)
     expect(boards.gate?.views?.map((v) => v.id)).toEqual(['lines', 'wheel', 'colours', 'centre'])
     expect(next(boards.gate)).toEqual([
       ['Line 5', '2026-11-09', 1],
@@ -213,15 +220,19 @@ describe('todayBoards', () => {
     expect(boards.longCount?.value).toBe('13.0.14.1.10')
     expect(mast(boards.longCount)).toEqual(['13.0.14.1.10', '4 Ok 3 Keh', ['Day 1,877,070 of the count', 'Ok, the Dog', 'Lord of the Night G3']])
     expect(facts(boards.longCount)).toMatchObject({ 'Since creation': '1,877,070 days', "Tzolk'in": '4 Ok, the Dog: day 30 of 260', "Haab'": '3 Keh, Classic Chaksihom: day 224 of 365' })
-    expect(boards.longCount?.views?.map((v) => v.tab)).toEqual(['Winal', "Tzolk'in", "Haab'", 'Count'])
-    const winal = boards.longCount?.views?.[0]
+    expect(boards.longCount?.views?.map((v) => v.tab)).toEqual(['Series', 'Winal', "Tzolk'in", "Haab'"])
+    /* The Initial Series in pairs: the places, the Tzolk'in day, the Lord of the Night, the Haab' day. */
+    expect(cellsOf(boards.longCount?.views?.[0]).map((c) => [c.key, c.over?.kind === 'bars' ? c.over.n : c.mark?.kind === 'text' ? c.mark.text : undefined])).toEqual([
+      ["B'ak'tun", 13], ["K'atun", 0], ['Tun', 14], ['Winal', 1], ["K'in", 10], ['tzolkin', 4], ['night', 'G3'], ['haab', 3],
+    ])
+    const winal = boards.longCount?.views?.find((v) => v.id === 'winal')
     expect(shape(winal)).toMatchObject({ layout: 'grid', name: 'The winal', cells: [20] })
     expect(cellsOf(winal).every((c) => c.mark?.kind === 'glyph')).toBe(true)
     expect(cellsOf(winal).findIndex((c) => c.state === 'today')).toBe(10)
-    expect(shape(boards.longCount?.views?.[1])).toMatchObject({ cells: [260] })
-    expect(shape(boards.longCount?.views?.[2])).toMatchObject({ cells: [365] })
-    const places = boards.longCount?.views?.[3]
-    expect(cellsOf(places).map((c) => [c.key, c.label?.text])).toEqual([
+    expect(shape(boards.longCount?.views?.[2])).toMatchObject({ cells: [260] })
+    expect(shape(boards.longCount?.views?.[3])).toMatchObject({ cells: [365] })
+    const places = boards.longCount?.views?.[0]
+    expect(cellsOf(places).slice(0, 5).map((c) => [c.key, c.label?.text])).toEqual([
       ["B'ak'tun", '13'],
       ["K'atun", '0'],
       ['Tun', '14'],
@@ -251,8 +262,12 @@ describe('todayBoards', () => {
     expect(mast(boards.chineseYear)).toEqual(['丙午', 'Yang Fire Horse', ['Bing Wu', 'Year 43 of 60', 'Day 30 of the ninth month']])
     expect(boards.chineseYear?.mast?.script?.text).toBe('丙午年九月三十')
     expect(facts(boards.chineseYear)).toMatchObject({ 'Lunar date': '九月三十, day 30 of the ninth month', 'Solar term': 'Lidong 立冬, Winter Commences, since 7 Nov' })
-    expect(boards.chineseYear?.views?.map((v) => v.id)).toEqual(['month', 'terms', 'turn', 'sixty'])
-    const month = boards.chineseYear?.views?.[0]
+    expect(boards.chineseYear?.views?.map((v) => v.id)).toEqual(['terms', 'month', 'turn', 'sixty'])
+    const year = boards.chineseYear?.views?.[0]
+    expect(shape(year)).toMatchObject({ layout: 'wheel', name: 'The solar year', cells: [12, 24] })
+    /* 子 about the winter solstice at the foot; Lichun, 315°, an eighth of a turn on. */
+    expect([year?.wheel?.origin, year?.wheel?.turn, year?.sections[0]?.from, year?.sections[1]?.from]).toEqual(['bottom', 'clockwise', 345, 45])
+    const month = boards.chineseYear?.views?.find((v) => v.id === 'month')
     expect(month?.sections.map((s) => [s.name, s.columns, s.rowHeads?.map((h) => h.text).join(''), s.cells[0]?.key, s.cells.length])).toEqual([
       ['九月, the ninth month, 30 days', 10, '上旬中旬下旬', '2026-10-10', 30],
       ['十月, the tenth month, 30 days', 10, '上旬中旬下旬', '2026-11-09', 30],
@@ -260,8 +275,7 @@ describe('todayBoards', () => {
     expect(cellsOf(month).every((c) => c.mark?.kind === 'moon' && c.tint)).toBe(true)
     expect(todayIn(month)[0]).toMatchObject({ label: { text: '三十', lang: 'zh' } })
     expect(eventsIn(month)).toEqual(expect.arrayContaining([['2026-11-07', 'Lidong 立冬'], ['2026-11-22', 'Xiaoxue 小雪'], ['2026-10-18', 'Double Ninth 重阳节']]))
-    const terms = boards.chineseYear?.views?.[1]
-    expect(shape(terms)).toMatchObject({ layout: 'ring', cells: [24] })
+    const terms = boards.chineseYear?.views?.[0]
     expect(todayIn(terms)[0]).toMatchObject({ title: 'Lidong', note: '7 Nov', tint: 'black' })
     expect(shape(boards.chineseYear?.views?.[2])).toEqual({ layout: 'grid', name: 'This turn of the animals', caption: 'Year 43 of 60', cells: [12] })
     const sixty = cellsOf(boards.chineseYear?.views?.[3])
@@ -290,7 +304,7 @@ describe('todayBoards', () => {
     expect(todayIn(months)[0]?.said).toMatch(/^Sun 8 Nov · Krishna Chaturdashi · Swati · Ayushman · Shakuni · Ravivara · Amavasya from 11:2\d IST$/)
     expect(eventsIn(months).filter(([, name]) => name.includes('Ekadashi')).map(([date]) => date)).toEqual(['2026-11-05', '2026-11-20', '2026-12-04', '2026-12-20'])
     const ring = boards.panchang?.views?.[2]
-    expect(shape(ring)).toMatchObject({ layout: 'ring', cells: [27] })
+    expect(shape(ring)).toMatchObject({ layout: 'wheel', cells: [27] })
     expect(todayIn(ring)[0]).toMatchObject({ title: 'Swati', band: 'rahu' })
     expect(next(boards.panchang).map(([name, date]) => [String(name).replace(/, \d\d:\d\d IST$/, ''), date])).toEqual([
       ['Amavasya begins', '2026-11-08'],

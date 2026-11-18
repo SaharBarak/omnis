@@ -74,7 +74,7 @@ describe('persianBoard', () => {
   it('rings the thirty names in four weeks, a 31st unnamed', () => {
     const names = view(board('2026-06-21'), 'names')
     const ring = names?.sections.flatMap((s) => s.cells) ?? []
-    expect([names?.layout, ring.length, names?.caption]).toEqual(['ring', 31, 'Read onto the civil days 1 to 30; the 31st has none'])
+    expect([names?.layout, ring.length, names?.caption]).toEqual(['wheel', 31, 'Read onto the civil days 1 to 30; the 31st has none'])
     expect([ring[30]?.title, ring[30]?.band, ring[30]?.state]).toEqual([undefined, undefined, 'today'])
     expect(new Set(ring.slice(0, 30).map((c) => c.band))).toEqual(new Set(['week-1', 'week-2', 'week-3', 'week-4']))
     expect(cells(board(DAY), 'names').filter((c) => c.keys?.includes('jashn')).map((c) => c.title)).toEqual(['Aban'])

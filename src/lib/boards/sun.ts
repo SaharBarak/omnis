@@ -112,10 +112,27 @@ const ELEMENT_KEYS: readonly LegendEntry[] = (Object.keys(ELEMENT_COLOURS) as El
     .join(', ')}, in the modern colours`,
 }))
 
-/** The twelve signs on a ring from Aries, each with the day the Sun enters it: the sign it is in since it entered, the rest in the year ahead. */
-function yearRing(day: string, ingresses: readonly Ingress[], turnings: readonly SolarTurning[], here: ZodiacSign): CalendarView {
+/** The seven lords of the faces and terms, each a key that lights what it rules. */
+const lordKey = (planet: string): string => `lord-${planet}`
+const LORD_KEYS: readonly LegendEntry[] = ['saturn', 'jupiter', 'mars', 'sun', 'venus', 'mercury', 'moon'].map((planet) => ({
+  key: lordKey(planet),
+  ...withMark(planetMark(planet)),
+  words: `${capital(bodyName(planet))}: the faces and terms it rules`,
+}))
+
+/** The natural wheel: 0° Aries at nine o'clock, the signs counter-clockwise, as a chart with Aries rising is drawn. */
+const ZODIAC_WHEEL = { origin: 'left', turn: 'counterclockwise' } as const
+
+/**
+ * The zodiac as a wheel (BENTO_BOARDS.md "Figures", Sun): the twelve signs,
+ * each with the day the Sun enters it; outside them the thirty-six faces
+ * under their Chaldean rulers; outside those the sixty Egyptian terms at
+ * their own widths. The hand is the Sun.
+ */
+function zodiacWheel(day: string, ingresses: readonly Ingress[], turnings: readonly SolarTurning[], here: ZodiacSign, longitude: number): CalendarView {
   const dates = new Map(ingresses.map((i) => [i.sign.id, i]))
-  const cells: CalendarCell[] = ZODIAC_SIGNS.map((sign) => {
+  const degree = longitude - here.degreesStart
+  const signs: CalendarCell[] = ZODIAC_SIGNS.map((sign) => {
     const at = dates.get(sign.id)
     const now = sign.id === here.id
     const turns = turnings.filter((t) => signIndexAt(t.longitude) === sign.number - 1)
@@ -135,15 +152,51 @@ function yearRing(day: string, ingresses: readonly Ingress[], turnings: readonly
       said: [sign.name, ...(entered ? [entered] : []), signWords(sign), ...turns.filter((t) => t !== opening).map((t) => `${t.name}, ${atWords(t)}`)].join(' · '),
     }
   })
-  const sections = [{ columns: ZODIAC_SIGNS.length, cells }]
+  const faces: CalendarCell[] = ZODIAC_SIGNS.flatMap((sign) =>
+    Array.from({ length: DECANS_IN_SIGN }, (_, i): CalendarCell => {
+      const start = i * DECAN_DEGREES
+      const { ruler } = decanAt(sign.degreesStart + start)
+      const now = sign.id === here.id && degree >= start && degree < start + DECAN_DEGREES
+      return {
+        key: `${sign.id}-face-${i + 1}`,
+        ...withMark(planetMark(ruler)),
+        title: `${sign.name} ${ROMAN[i]}`,
+        keys: [lordKey(ruler)],
+        /* The sign is the day's place; the hand shows its face and term. */
+        state: 'ahead',
+        said: [`The ${ORDINAL[i]} face of ${sign.name}`, `${start}° to ${start + DECAN_DEGREES}°`, `ruled by ${bodyName(ruler)}`, ...(now ? ['the Sun is in it'] : [])].join(' · '),
+      }
+    }),
+  )
+  const terms: CalendarCell[] = ZODIAC_SIGNS.flatMap((sign) =>
+    termsOf(sign.id).map((term): CalendarCell => {
+      const now = sign.id === here.id && degree >= term.start && degree < term.end
+      return {
+        key: `${sign.id}-term-${term.n}`,
+        ...withMark(planetMark(term.ruler)),
+        title: `${sign.name}, ${planetName(term.ruler)}`,
+        keys: [lordKey(term.ruler)],
+        span: term.end - term.start,
+        /* The sign is the day's place; the hand shows its face and term. */
+        state: 'ahead',
+        said: [`A term of ${planetName(term.ruler)} in ${sign.name}`, termSpan(term), ...(now ? ['the Sun is in it'] : [])].join(' · '),
+      }
+    }),
+  )
+  const sections = [
+    { name: 'The signs', columns: signs.length, cells: signs },
+    { name: 'The faces', columns: faces.length, cells: faces },
+    { name: 'The terms', columns: terms.length, cells: terms },
+  ]
   return {
     id: 'year',
-    layout: 'ring',
-    name: 'The year ahead',
-    tab: 'Year',
+    layout: 'wheel',
+    name: 'The zodiac',
+    tab: 'Zodiac',
     sections,
-    legend: keyedLegend([...ELEMENT_KEYS, TURNING_KEY], sections),
-    caption: `The day the Sun enters each sign, from ${here.name}`,
+    legend: keyedLegend([...ELEMENT_KEYS, ...LORD_KEYS, TURNING_KEY], sections),
+    caption: `The Sun at ${Math.floor(degree)}° ${here.name}: the signs, their faces and their terms`,
+    wheel: { ...ZODIAC_WHEEL, hand: longitude },
   }
 }
 
@@ -314,7 +367,7 @@ export function sunBoard(day: string, sky: Sky): DayBoard {
       words: [{ text: capital(sign.element), mark: element }, { text: capital(sign.modality) }, { text: capital(polarityOf(sign)) }, { text: `ruled by ${planetName(ruler)}`, ...withMark(planetMark(ruler)) }],
     },
     facts,
-    views: [season, yearRing(day, ingresses, turnings, sign), termLadder(sign, days, today.term)],
+    views: [zodiacWheel(day, ingresses, turnings, sign, read(day, NOON)), season, termLadder(sign, days, today.term)],
     next,
   }
 }

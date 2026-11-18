@@ -49,6 +49,8 @@ export type CellState = 'past' | 'today' | 'ahead'
 export interface CalendarCell {
   readonly key: string
   readonly mark?: BoardMark
+  /** A second mark its tradition sets over the first (BENTO_BOARDS.md "Figures"): a kin's tone over its seal, a period's coefficient over its name. */
+  readonly over?: BoardMark
   readonly label?: Script
   readonly title?: string
   readonly note?: string
@@ -58,6 +60,8 @@ export interface CalendarCell {
   readonly keys?: readonly string[]
   readonly state: CellState
   readonly said: string
+  /** A wheel's sector: its share of its ring's turn, in the ring's own measure (degrees, days); equal shares where no cell of the ring says. */
+  readonly span?: number
 }
 
 /** A column's or row's head: what it shows (its words, its mark), what it says, its source colour, and whether its days are the calendar's weekend. */
@@ -82,6 +86,10 @@ export interface CalendarSection {
   readonly heads?: readonly CalendarHead[]
   readonly rowHeads?: readonly CalendarHead[]
   readonly places?: Readonly<Record<string, readonly [row: number, col: number]>>
+  /** A figure's course: its cells joined in their order by a line through their centres (a wavespell from gate to gate). */
+  readonly path?: boolean
+  /** A wheel's ring: where on the turn its first cell begins, in degrees along the turn from the wheel's origin (the Rave Mandala's gates, 2° into Aquarius). */
+  readonly from?: number
   readonly cells: readonly CalendarCell[]
 }
 
@@ -94,15 +102,31 @@ export interface LegendEntry {
   readonly words: string
 }
 
+/** A clock position a wheel's turn begins at. */
+export type ClockPosition = 'top' | 'right' | 'bottom' | 'left'
+
 /**
- * One view of a calendar: cells in rows (`grid`), round a circle (`ring`),
- * one under another with their names beside them (`ladder`), or five round
- * a centre (`cross`, placed); its stable id, its name (its heading), its
- * tab's word, its legend, and where the day stands in it.
+ * How a wheel is turned (BENTO_BOARDS.md "Figures"), as its tradition draws
+ * it: where the turn begins, which way it runs, and where today stands on
+ * it, in degrees along the turn (a hand from the hub), where the wheel
+ * measures one.
+ */
+export interface WheelTurn {
+  readonly origin: ClockPosition
+  readonly turn: 'clockwise' | 'counterclockwise'
+  readonly hand?: number
+}
+
+/**
+ * One view of a calendar: cells in rows (`grid`), tiles where their
+ * tradition's diagram places them (`figure`), the sectors of concentric
+ * rings (`wheel`, a section a ring, from the hub outward), or one under
+ * another with their names beside them (`ladder`); its stable id, its name
+ * (its heading), its tab's word, its legend, and where the day stands in it.
  */
 export interface CalendarView {
   readonly id: string
-  readonly layout: 'grid' | 'ring' | 'ladder' | 'cross'
+  readonly layout: 'grid' | 'figure' | 'wheel' | 'ladder'
   readonly name: string
   readonly tab: string
   readonly sections: readonly CalendarSection[]
@@ -110,6 +134,8 @@ export interface CalendarView {
   readonly caption: string
   /** The order the calendar's own pages set its cells in (BENTO_BOARDS.md "Direction"); left to right where absent. */
   readonly dir?: 'rtl'
+  /** A wheel's turn; a wheel with none begins at the top and runs clockwise. */
+  readonly wheel?: WheelTurn
 }
 
 /** The legend keys a cell carries: its band, its events' kinds and its own keys (BENTO_BOARDS.md "Keys"). */

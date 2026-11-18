@@ -196,6 +196,22 @@ function Facts({ facts }: { readonly facts: readonly BoardFact[] }) {
 }
 
 /**
+ * A board as a figure (BENTO_V2.md "The stage"): its mast and its first
+ * view, the unit the day stands in, with nothing to work and no key. Laid
+ * out at its own size, the mast over the calendar or beside it as its
+ * room's shape asks, for a stage to fit to that room.
+ */
+export function BoardFace({ row }: { readonly row: V2DayRow }) {
+  const view = row.board.views?.[0]
+  return (
+    <div className={b.face} style={{ ...VOICE, '--tile': `var(${row.tone})` } as CSSProperties}>
+      <Mast row={row} />
+      {view && <BoardCalendar view={view} keyed={false} />}
+    </div>
+  )
+}
+
+/**
  * A calendar's board (BENTO_BOARDS.md "The board"): one skeleton for every
  * calendar. The mast says what the day is; the bar holds the controls (the
  * views, Today) and stays in view; the stage draws the view shown with its

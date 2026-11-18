@@ -2,8 +2,9 @@ import { nextQuarter, raveNewYear } from '@pleiad/engine/calculations/hd-wheel'
 import { gateChanges, gateLines, zodiacSun, type Sky } from '@pleiad/engine/calculations/sky-dates'
 import { COLOUR_TONES, LINE_COLOURS, LINE_THEMES, MANDALA_QUARTERS, godheadOfGate, quarterGates, quarterOfGate, toneSide, type MandalaQuarter } from '@pleiad/engine/data/human-design'
 import { circuitOfChannel, harmonicsOf } from '@pleiad/engine/data/human-design-channels'
-import { GATES, GATES_BY_CENTER, LINES_IN_GATE, MANDALA_SEQUENCE_FULL, getGateDegreeRange, oppositeGate, wheelPlace, type WheelPlace } from '@pleiad/engine/data/human-design-gates'
+import { GATES, GATES_BY_CENTER, LINES_IN_GATE, MANDALA_SEQUENCE_FULL, MANDALA_START_DEGREE, getGateDegreeRange, oppositeGate, wheelPlace, type WheelPlace } from '@pleiad/engine/data/human-design-gates'
 import { HEXAGRAMS, hexagramLines } from '@pleiad/engine/data/iching'
+import { ZODIAC_SIGNS } from '@pleiad/engine/data/zodiac-signs'
 import type { CenterId } from '@pleiad/engine/types/human-design'
 import { NOON, SIGN_DEGREES, byDate, dayWords, event, fromToday, keyedLegend, numeral, planetMark, signAt, signMark, trigramCharacter, whenWords } from './parts'
 import type { BoardEvent, BoardFact, BoardMark, CalendarCell, CalendarHead, CalendarSection, CalendarView, CellState, DayBoard, LegendEntry } from './types'
@@ -175,6 +176,9 @@ function linesView(day: string, sky: Sky, act: Activations, harmonics: readonly 
 
 /* ---------- the mandala ---------- */
 
+/** The mandala is turned as the zodiac wheel is: 0° Aries at nine o'clock, counter-clockwise. */
+const MANDALA_WHEEL = { origin: 'left', turn: 'counterclockwise' } as const
+
 /** The cell events of the mandala: the gate the Sun reaches next, the Sphinx gate of the next quarter, and gate 41 at the Rave New Year. */
 interface WheelEvents {
   readonly arrives?: { readonly gate: number; readonly date: string; readonly inDays: number }
@@ -182,7 +186,7 @@ interface WheelEvents {
   readonly year?: { readonly gate: number; readonly date: string; readonly inDays: number }
 }
 
-function wheelView(act: Activations, harmonics: readonly Harmonic[], events: WheelEvents): CalendarView {
+function wheelView(act: Activations, harmonics: readonly Harmonic[], events: WheelEvents, longitude: number): CalendarView {
   const { sun, earth } = act
   const harmonic = new Set(harmonics.map((h) => h.gate))
   const cellOf = (quarter: MandalaQuarter) => (n: number): CalendarCell => {
@@ -215,14 +219,28 @@ function wheelView(act: Activations, harmonics: readonly Harmonic[], events: Whe
       ].join(' · '),
     }
   }
-  const sections: CalendarSection[] = MANDALA_QUARTERS.map((quarter) => {
-    const gates = quarterGates(quarter)
-    const rowHeads: CalendarHead[] = Array.from({ length: Math.ceil(gates.length / GATES_IN_ROW) }, (_, r) => {
-      const opens = gateOpens(gates[r * GATES_IN_ROW] ?? gates[0])
-      return { text: opens.degree, said: `From ${opens.words}`, ...(opens.mark ? { mark: opens.mark } : {}) }
-    })
-    return { name: `Quarter of ${quarter.name}, through ${quarter.theme}`, columns: GATES_IN_ROW, rowHeads, cells: gates.map(cellOf(quarter)) }
+  /* The gates in the wheel's own order from gate 41, each in the quarter that holds it. */
+  const quarterOf = new Map(MANDALA_QUARTERS.flatMap((quarter) => quarterGates(quarter).map((n) => [n, quarter] as const)))
+  const gates = MANDALA_SEQUENCE_FULL.flatMap((n) => {
+    const quarter = quarterOf.get(n)
+    return quarter ? [cellOf(quarter)(n)] : []
   })
+  const here = signAt(longitude)
+  const signs: CalendarCell[] = ZODIAC_SIGNS.map((sign) => {
+    const mark = signMark(sign.name)
+    return {
+      key: `sign-${sign.id}`,
+      ...(mark ? { mark } : {}),
+      title: sign.name,
+      /* The signs are the gates' ground: the gate is the day's place. */
+      state: 'ahead',
+      said: [sign.name, ...(sign.id === here?.id ? ['the Sun is in it'] : [])].join(' · '),
+    }
+  })
+  const sections: CalendarSection[] = [
+    { name: 'The zodiac', columns: signs.length, cells: signs },
+    { name: 'The gates', columns: gates.length, from: MANDALA_START_DEGREE, cells: gates },
+  ]
   const legend: readonly LegendEntry[] = [
     { key: 'sun', mark: SUN_MARK, words: "The Sun's gate" },
     { key: 'earth', mark: EARTH_MARK, words: "The Earth's gate, opposite the Sun's" },
@@ -234,12 +252,13 @@ function wheelView(act: Activations, harmonics: readonly Harmonic[], events: Whe
   ]
   return {
     id: 'wheel',
-    layout: 'grid',
+    layout: 'wheel',
     name: 'The Rave Mandala',
-    tab: 'Wheel',
+    tab: 'Mandala',
     sections,
     legend: keyedLegend(legend, sections),
     caption: `Gate ${sun} is ${wheelIndex(sun) + 1} of ${MANDALA_SEQUENCE_FULL.length} from gate ${MANDALA_SEQUENCE_FULL[0]}, where the Rave year begins`,
+    wheel: { ...MANDALA_WHEEL, hand: longitude },
   }
 }
 
@@ -333,7 +352,8 @@ function centreView(act: Activations, harmonics: readonly Harmonic[]): CalendarV
 /* ---------- the board ---------- */
 
 export function gateBoard(day: string, sky: Sky): DayBoard {
-  const place = wheelPlace(zodiacSun(sky, 'tropical')(day, NOON))
+  const longitude = zodiacSun(sky, 'tropical')(day, NOON)
+  const place = wheelPlace(longitude)
   const { gate, line } = place
   const act: Activations = { place, sun: gate, earth: oppositeGate(gate) }
   const changes = gateChanges(day, sky)
@@ -355,7 +375,7 @@ export function gateBoard(day: string, sky: Sky): DayBoard {
       ...(changes ? { arrives: changes.gate } : {}),
       ...(quarterAhead ? { quarter: quarterAhead } : {}),
       ...(year ? { year } : {}),
-    }),
+    }, longitude),
     coloursView(act),
     ...[centreView(act, harmonics)].filter((v): v is CalendarView => v !== undefined),
   ]
