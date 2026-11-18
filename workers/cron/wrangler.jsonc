@@ -10,7 +10,9 @@
     // The hourly "0 * * * *" send-notifications trigger is retired (2026-09-22):
     // the customer daily digest no longer goes out. Restoring it resumes the
     // sends — the digest itself is opt-IN since migration 0006.
-    "crons": ["0 6 * * *", "0 4 * * *", "0 7 * * *"]
+    // The daily "0 6 * * *" daily-kin trigger is retired (2026-11-17): the
+    // Daily Kin newsletter (the daily reading) no longer goes out.
+    "crons": ["0 4 * * *", "0 7 * * *"]
   },
   "vars": {
     "SITE_URL": "https://pleiad.io"

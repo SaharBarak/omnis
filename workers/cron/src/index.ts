@@ -14,7 +14,9 @@ interface Env {
 }
 
 const CRON_ROUTES: Record<string, string> = {
-  '0 6 * * *': '/api/cron/daily-kin',
+  // The Daily Kin newsletter (/api/cron/daily-kin) has no schedule: retired
+  // 2026-11-17, no daily reading goes out. The route still works on demand;
+  // re-add '0 6 * * *' here AND in wrangler.jsonc to resume it.
   '0 4 * * *': '/api/cron/daily-predictions',
   // The customer daily digest (/api/cron/send-notifications) has no schedule:
   // retired 2026-09-22. The route still works on demand; re-add
