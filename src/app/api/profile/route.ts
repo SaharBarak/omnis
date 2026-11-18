@@ -27,7 +27,7 @@ export async function PATCH(request: Request) {
     const body = await request.json()
     const updates = updateSchema.parse(body)
 
-    const profile = await updateOwnProfile(session.user, updates)
+    const profile = await updateOwnProfile(session.user, updates, request)
 
     return NextResponse.json({ profile: serialize(profile) })
   } catch (error) {

@@ -35,7 +35,9 @@ const IDENTITY_KEYS = ['display_name', 'hebrew_name', 'birth_date', 'birth_time'
  * with no ordering dependency. The insert that creates the profile is the one
  * honest new-user signal, so it alone pings and reports `user_signed_up`;
  * the database arbitrates concurrent first requests. `request`, where there is
- * one, joins the server event to the browser session that caused it.
+ * one, is the visitor's own: it carries their consent, and with it the event
+ * names the account and joins the browser session that caused it. Without
+ * it the event is unattributed (docs/analytics/north-star.md).
  */
 export async function ensureUserAndProfile(user: SessionUser, request?: Request) {
   const db = getDb()
@@ -77,9 +79,11 @@ export async function ensureUserAndProfile(user: SessionUser, request?: Request)
  * changes, then mirrors the profile into the account's own person once
  * onboarding is complete and an identity field changed, so the user is on
  * their own map and the two never drift. The own person is free on every plan.
+ * `request`, where the caller has the visitor's own, goes to
+ * `ensureUserAndProfile` for its consent; a server action has none.
  */
-export async function updateOwnProfile(user: SessionUser, changes: ProfileChanges) {
-  await ensureUserAndProfile(user)
+export async function updateOwnProfile(user: SessionUser, changes: ProfileChanges, request?: Request) {
+  await ensureUserAndProfile(user, request)
 
   const db = getDb()
   const [profile] = await db

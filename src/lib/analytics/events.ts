@@ -29,7 +29,11 @@ export type ClientEventMap = {
   lead_submitted: { channel: 'contact_form'; placement: 'contact_page' }
 }
 
-/** Events sent from route handlers through `trackServer()`. */
+/**
+ * Events sent from route handlers through `trackServer()`. Their properties
+ * are categorical or numeric: they also leave with unattributed events (no
+ * consent), so they never hold a person's id, an address or free text.
+ */
 export type ServerEventMap = {
   /** All shared names. `method` is the Supabase auth provider. */
   user_signed_up: { method: string }

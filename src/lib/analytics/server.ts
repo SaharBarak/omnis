@@ -7,6 +7,8 @@
  *   not held up, and the Worker stays alive until the event is sent.
  * - Analytics never fails the business action: a send error is logged here
  *   and goes no further.
+ * - An event names its account only with the visitor's consent, read from
+ *   their own request (`attributionFor`); otherwise it is sent unattributed.
  *
  * Spec and event table: docs/analytics/north-star.md.
  */
@@ -25,11 +27,27 @@ import {
   withReserved,
   type WithoutReserved,
 } from './config'
+import { gateForRequest } from './consent'
 import type { ServerEvent, ServerEventMap } from './events'
 import { redactText, redactValue } from './redact'
 
-/** Who the event is about. A signed-out visitor gets a one-off id and no person profile. */
+/**
+ * Who the event is about. The account is named only when the visitor allowed
+ * analytics; a signed-out visitor is never named.
+ */
 export type Actor = { userId: string } | { anonymous: true }
+
+/** What a server event may name, decided once for every server event by `attributionFor`. */
+export type Attribution = {
+  readonly distinctId: string
+  /** `$current_url` and `$session_id`, only from a visit that allowed analytics. */
+  readonly visit: Readonly<Record<string, string>>
+  /** Without a named account, no person profile is created or updated. */
+  readonly person: Readonly<{ $process_person_profile?: false }>
+}
+
+const NAMED_PERSON: Attribution['person'] = Object.freeze({})
+const UNATTRIBUTED_PERSON: Attribution['person'] = Object.freeze({ $process_person_profile: false })
 
 const SESSION_HEADER = 'x-posthog-session-id'
 const MAX_ID_LENGTH = 200
@@ -51,7 +69,8 @@ function getClient(): PostHog | null {
   if (!isReportingEnv(analyticsEnv())) return null
 
   // No batching: an isolate can be evicted before a background flush runs.
-  client = new PostHog(key, { host: analyticsHost(), flushAt: 1, flushInterval: 0 })
+  // No GeoIP: the request PostHog sees comes from the Worker, not the visitor.
+  client = new PostHog(key, { host: analyticsHost(), flushAt: 1, flushInterval: 0, disableGeoip: true })
   return client
 }
 
@@ -93,8 +112,7 @@ function pageUrl(request: Request): string {
 }
 
 /** Joins the server event to the browser session, where the request carries one. */
-export function requestProperties(request?: Request): Record<string, string> {
-  if (!request) return {}
+function visitProperties(request: Request): Record<string, string> {
   const sessionId = sanitizeId(request.headers.get(SESSION_HEADER))
   return {
     $current_url: pageUrl(request),
@@ -102,8 +120,26 @@ export function requestProperties(request?: Request): Record<string, string> {
   }
 }
 
-function distinctIdOf(actor: Actor): string {
-  return 'userId' in actor ? distinctIdFor(actor.userId) : crypto.randomUUID()
+/** The request, if it is a visit whose own gate allows analytics; a webhook's never is. */
+function allowedVisit(request?: Request): Request | null {
+  return request && gateForRequest(request.headers) === 'allowed' ? request : null
+}
+
+/**
+ * The one consent decision for server events (docs/analytics/north-star.md,
+ * "Server events and consent"). With the visitor's request allowing
+ * analytics, the event names the actor's account and joins the visit.
+ * Otherwise, or without a request, it is unattributed: a distinct id drawn
+ * for this event alone, no person profile, nothing from the visit.
+ */
+export function attributionFor(actor: Actor | undefined, request?: Request): Attribution {
+  const allowed = allowedVisit(request)
+  const userId = allowed && actor && 'userId' in actor ? actor.userId : null
+  return {
+    distinctId: userId === null ? crypto.randomUUID() : distinctIdFor(userId),
+    visit: allowed ? visitProperties(allowed) : {},
+    person: userId === null ? UNATTRIBUTED_PERSON : NAMED_PERSON,
+  }
 }
 
 export function trackServer<E extends ServerEvent>(
@@ -111,6 +147,7 @@ export function trackServer<E extends ServerEvent>(
   input: {
     actor: Actor
     properties: ServerEventMap[E] & WithoutReserved
+    /** The visitor's own request, which carries their consent. A webhook's is not one. */
     request?: Request
     /** The provider's event id, for webhook-sourced events: retries then count once. */
     dedupeKey?: string
@@ -120,16 +157,13 @@ export function trackServer<E extends ServerEvent>(
   if (!posthog) return
 
   const { actor, properties, request, dedupeKey } = input
+  const { distinctId, visit, person } = attributionFor(actor, request)
   const send = async () => {
     await posthog.captureImmediate({
-      distinctId: distinctIdOf(actor),
+      distinctId,
       event,
       uuid: dedupeKey ? await deterministicUuid([SITE, event, dedupeKey]) : undefined,
-      properties: withReserved({
-        ...requestProperties(request),
-        ...properties,
-        ...('anonymous' in actor ? { $process_person_profile: false } : {}),
-      }),
+      properties: withReserved({ ...visit, ...properties, ...person }),
     })
   }
   deliver(send())
@@ -143,11 +177,12 @@ export function captureServerException(
   if (!posthog) return
 
   const { actor, request, context } = input
+  const { distinctId, visit, person } = attributionFor(actor, request)
   deliver(
     posthog.captureExceptionImmediate(
       error,
-      actor ? distinctIdOf(actor) : undefined,
-      withReserved({ ...requestProperties(request), ...redactValue(context) })
+      distinctId,
+      withReserved({ ...visit, ...redactValue(context), ...person })
     )
   )
 }
