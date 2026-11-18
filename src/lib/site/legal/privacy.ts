@@ -116,10 +116,13 @@ export const PRIVACY: LegalDoc = {
       heading: 'Cookies',
       blocks: [
         p(
-          'We use essential cookies for authentication and session management. We do not use advertising cookies.',
+          'We use essential cookies for authentication and session management, and one more, pleiad-consent, that records your analytics choice so our servers can honour it as your browser does. It holds only that choice. We do not use advertising cookies.',
         ),
         p(
           'PostHog and Google Analytics set identifiers in your browser only if you allow analytics cookies. In the European Economic Area, the United Kingdom and Switzerland we ask first and load nothing until you answer; a Global Privacy Control or Do Not Track signal from your browser counts as a refusal everywhere. If you decline, Google Analytics is not loaded and PostHog counts visits without cookies or any identifier stored on your device.',
+        ),
+        p(
+          'Our servers also report a few account events to PostHog: sign-up, sign-in, newsletter confirmation and purchase. They are linked to your account only if you allow analytics. Otherwise, including before you answer, each one is counted on its own, with no account, session, page address or other identifier attached.',
         ),
       ],
     },
