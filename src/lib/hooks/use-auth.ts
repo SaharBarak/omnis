@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { User } from '@supabase/supabase-js'
-import { identifyUser, resetIdentity } from '@/lib/analytics/posthog'
+import { identify, reset, track } from '@/lib/analytics/posthog'
 import { QUERY_CACHE_STORAGE_KEY } from '@/lib/query-provider'
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import type { profiles } from '@/lib/db/schema'
@@ -71,9 +71,9 @@ export function useAuth() {
   const queryClient = useQueryClient()
 
   // Product analytics: tie the anonymous device to the signed-in user.
-  // No-op when PostHog is off; identifyUser dedupes repeat calls itself.
+  // No-op when PostHog is off; identify dedupes repeat calls itself.
   useEffect(() => {
-    if (user) identifyUser(user.id, user.email || undefined)
+    if (user) identify(user.id, { email: user.email || undefined, name: user.name ?? undefined })
   }, [user])
 
   // Load the app profile from the server (browser cannot query the DB
@@ -109,6 +109,7 @@ export function useAuth() {
     async (email: string, password: string) => {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw new Error(error.message)
+      track('user_logged_in', { method: 'email' })
     },
     [supabase]
   )
@@ -144,7 +145,7 @@ export function useAuth() {
   )
 
   const signOut = useCallback(async (returnTo?: string) => {
-    resetIdentity()
+    reset()
     // Drop the persisted query cache synchronously — the redirect below kills
     // the page before the persister's throttled write could flush a cleared
     // cache, and the next account must not restore this user's data.

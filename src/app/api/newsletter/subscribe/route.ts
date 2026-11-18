@@ -6,6 +6,7 @@ import { sendTransactionalEmail } from '@/lib/email'
 import { buildConfirmUrl } from '@/lib/email/links'
 import { esc } from '@/lib/email/layout'
 import { verifyTurnstileToken } from '@/lib/security/turnstile'
+import { asNewsletterPlacement } from '@/lib/analytics/events'
 
 export const dynamic = 'force-dynamic'
 
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
     if (!alreadyActive) {
       // Mint the link first: no secret → no way to prove address ownership →
       // abort rather than degrade into confirming anyone.
-      const confirmUrl = await buildConfirmUrl(normalizedEmail)
+      const confirmUrl = await buildConfirmUrl(normalizedEmail, asNewsletterPlacement(body?.placement))
       if (!confirmUrl) {
         console.error(
           'newsletter: UNSUBSCRIBE_SECRET not set — cannot mint a confirmation link; refusing signup',

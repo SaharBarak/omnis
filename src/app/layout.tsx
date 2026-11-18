@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Barlow, Rubik, IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
-import { GoogleAnalytics } from "@next/third-parties/google";
-import { PostHogAnalytics } from "@/lib/analytics/posthog-provider";
+import { ConsentedTrackers } from "@/components/analytics/trackers";
 import { ServiceWorkerRegistrar } from "@/lib/pwa/service-worker-registrar";
 import { QueryProvider } from "@/lib/query-provider";
 import { LabRoot } from "@/components/bento-lab";
@@ -136,13 +135,11 @@ export default function RootLayout({
       <body
         className={`${barlow.variable} ${rubik.variable} ${ibmPlexMono.variable} ${spaceGrotesk.variable} font-sans antialiased`}
       >
-        <script defer src="https://clever-swan-577.convex.site/beacon.js" data-slug="omnis" />
         <QueryProvider>
           <LabRoot>{children}</LabRoot>
         </QueryProvider>
-        <PostHogAnalytics />
         <ServiceWorkerRegistrar />
-        <GoogleAnalytics gaId="G-KY20RW9LY7" />
+        <ConsentedTrackers />
         {process.env.NEXT_PUBLIC_CF_BEACON_TOKEN && (
           <Script
             defer

@@ -4,6 +4,7 @@ import type { SessionUser } from '@/lib/auth-server'
 import { getDb } from '@/lib/db/client'
 import { upsertSelfPerson } from '@/lib/db/repositories/people-repo'
 import { profiles, users } from '@/lib/db/schema'
+import { trackServer } from '@/lib/analytics/server'
 
 /** The profile columns an account writes for itself. */
 export type ProfileChanges = Partial<
@@ -22,6 +23,9 @@ export type ProfileChanges = Partial<
   >
 >
 
+/** `method` when the session token names no auth provider. */
+const UNKNOWN_AUTH_METHOD = 'unknown'
+
 /** The fields the account's own person mirrors: a change to any of them rewrites that person. */
 const IDENTITY_KEYS = ['display_name', 'hebrew_name', 'birth_date', 'birth_time', 'birth_place', 'onboarding_completed'] as const
 
@@ -29,10 +33,11 @@ const IDENTITY_KEYS = ['display_name', 'hebrew_name', 'birth_date', 'birth_time'
  * Identity bootstrap: upserts the auth user into the local `users` mirror and
  * ensures an app profile exists, so a profile is there before the first write
  * with no ordering dependency. The insert that creates the profile is the one
- * honest new-user signal, so it alone pings; the database arbitrates
- * concurrent first requests.
+ * honest new-user signal, so it alone pings and reports `user_signed_up`;
+ * the database arbitrates concurrent first requests. `request`, where there is
+ * one, joins the server event to the browser session that caused it.
  */
-export async function ensureUserAndProfile(user: SessionUser) {
+export async function ensureUserAndProfile(user: SessionUser, request?: Request) {
   const db = getDb()
   const now = new Date().toISOString()
 
@@ -51,8 +56,15 @@ export async function ensureUserAndProfile(user: SessionUser) {
     .onConflictDoNothing()
     .returning({ id: profiles.id })
 
-  if (inserted.length > 0 && user.email) {
-    void notifyNewSignup({ kind: 'app_user', email: user.email, name: user.name })
+  if (inserted.length > 0) {
+    trackServer('user_signed_up', {
+      actor: { userId: user.id },
+      properties: { method: user.provider ?? UNKNOWN_AUTH_METHOD },
+      request,
+    })
+    if (user.email) {
+      void notifyNewSignup({ kind: 'app_user', email: user.email, name: user.name })
+    }
   }
 
   const [profile] = await db.select().from(profiles).where(eq(profiles.user_id, user.id)).limit(1)

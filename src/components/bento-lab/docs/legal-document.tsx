@@ -1,3 +1,4 @@
+import { Fragment, type ReactNode } from 'react'
 import { DocumentPage } from './document-page'
 import { RichText } from './rich-text'
 import { siteHrefForLive } from '@/lib/site/routes'
@@ -22,8 +23,18 @@ function LegalBlock({ block }: { readonly block: Block }) {
   )
 }
 
-/** A policy from the legal data in the T7 template: the same text the live page shows. */
-export function LegalDocument({ doc }: { readonly doc: LegalDoc }) {
+/**
+ * A policy from the legal data in the T7 template: the same text the live page shows.
+ * `controls` places an interactive element at the end of the section it names, for the
+ * places where a policy states a choice the reader can make on the spot.
+ */
+export function LegalDocument({
+  doc,
+  controls = {},
+}: {
+  readonly doc: LegalDoc
+  readonly controls?: Readonly<Partial<Record<string, ReactNode>>>
+}) {
   return (
     <DocumentPage
       eyebrow="Legal"
@@ -32,7 +43,10 @@ export function LegalDocument({ doc }: { readonly doc: LegalDoc }) {
       sections={doc.sections.map((section, index) => ({
         id: `section-${index + 1}`,
         title: numberedHeading(doc, index),
-        children: section.blocks.map((block, blockIndex) => <LegalBlock key={blockIndex} block={block} />),
+        children: [
+          ...section.blocks.map((block, blockIndex) => <LegalBlock key={blockIndex} block={block} />),
+          ...(controls[section.heading] ? [<Fragment key="control">{controls[section.heading]}</Fragment>] : []),
+        ],
       }))}
     />
   )

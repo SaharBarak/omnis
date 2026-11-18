@@ -296,4 +296,62 @@ describe('verifyWebhook', () => {
 
     expect(event?.userIds).toEqual(['auth0|old', 'auth0|new'])
   })
+
+  it('carries no purchase on a renewal', async () => {
+    const event = await revenueCatProvider.verifyWebhook(
+      body,
+      new Headers({ authorization: 'super-secret' })
+    )
+
+    expect(event?.purchase).toBeUndefined()
+  })
+})
+
+describe('toPurchase', () => {
+  const { toPurchase } = __test
+
+  const initial = {
+    id: 'evt_3',
+    type: 'INITIAL_PURCHASE',
+    app_user_id: 'user-1',
+    product_id: 'pleiad_complete_monthly',
+    entitlement_ids: ['complete'],
+    period_type: 'NORMAL',
+    currency: 'EUR',
+    price_in_purchased_currency: 8.99,
+  }
+
+  it('reads a first payment as charged', () => {
+    expect(toPurchase(initial)).toEqual({
+      userId: 'user-1',
+      plan: 'complete',
+      productId: 'pleiad_complete_monthly',
+      value: 8.99,
+      currency: 'EUR',
+    })
+  })
+
+  it('reads a lifetime purchase', () => {
+    expect(
+      toPurchase({ ...initial, type: 'NON_RENEWING_PURCHASE', entitlement_ids: ['lifetime'] })?.plan
+    ).toBe('lifetime')
+  })
+
+  it('counts a trial at its conversion, not at its start', () => {
+    expect(
+      toPurchase({ ...initial, period_type: 'TRIAL', price_in_purchased_currency: 0 })
+    ).toBeNull()
+    expect(
+      toPurchase({ ...initial, type: 'RENEWAL', is_trial_conversion: true })
+    ).toMatchObject({ userId: 'user-1', value: 8.99 })
+  })
+
+  it('is null for ordinary renewals, cancellations and events that state no amount', () => {
+    expect(toPurchase({ ...initial, type: 'RENEWAL' })).toBeNull()
+    expect(toPurchase({ ...initial, type: 'RENEWAL', is_trial_conversion: false })).toBeNull()
+    expect(toPurchase({ ...initial, type: 'CANCELLATION' })).toBeNull()
+    expect(toPurchase({ ...initial, currency: null })).toBeNull()
+    expect(toPurchase({ ...initial, price_in_purchased_currency: undefined })).toBeNull()
+    expect(toPurchase({ ...initial, app_user_id: undefined })).toBeNull()
+  })
 })

@@ -6,7 +6,7 @@ export const PRIVACY: LegalDoc = {
   title: 'Privacy Policy',
   description:
     'Privacy Policy for Pleiad - learn how we collect, use, and protect your personal information including birth data and symbolic mappings.',
-  updated: '2026-01-25',
+  updated: '2026-11-18',
   sections: [
     {
       heading: 'Information We Collect',
@@ -66,6 +66,7 @@ export const PRIVACY: LegalDoc = {
           [strong('RevenueCat:'), ' Purchase and subscription status, so your plan unlocks on every device'],
           [strong('Resend:'), ' Transactional and newsletter email delivery'],
           [strong('PostHog:'), ' Privacy-respecting product analytics'],
+          [strong('Google Analytics:'), ' Aggregate traffic and acquisition measurement'],
           [strong('Cloudflare:'), ' Hosting, content delivery, and bot protection'],
         ),
       ],
@@ -115,7 +116,10 @@ export const PRIVACY: LegalDoc = {
       heading: 'Cookies',
       blocks: [
         p(
-          'We use essential cookies for authentication and session management. We do not use tracking or advertising cookies.',
+          'We use essential cookies for authentication and session management. We do not use advertising cookies.',
+        ),
+        p(
+          'PostHog and Google Analytics set identifiers in your browser only if you allow analytics cookies. In the European Economic Area, the United Kingdom and Switzerland we ask first and load nothing until you answer; a Global Privacy Control or Do Not Track signal from your browser counts as a refusal everywhere. If you decline, Google Analytics is not loaded and PostHog counts visits without cookies or any identifier stored on your device.',
         ),
       ],
     },

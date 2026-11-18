@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
+import { track } from '@/lib/analytics/posthog'
 import { ErrorState, Field, Loading, PrimaryAction, site } from '../site'
 import d from './docs.module.css'
 
@@ -58,7 +59,10 @@ export function ContactForm({ fallbackAddress }: { readonly fallbackAddress: str
       message: fieldValue(form, 'message'),
     })
     setStatus(next)
-    if (next.kind === 'sent') form.reset()
+    if (next.kind === 'sent') {
+      track('lead_submitted', { channel: 'contact_form', placement: 'contact_page' })
+      form.reset()
+    }
   }
 
   if (status.kind === 'sent') {

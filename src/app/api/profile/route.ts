@@ -5,11 +5,11 @@ import { serialize } from '@/lib/db/serialize'
 import { getSession, UnauthorizedError } from '@/lib/auth-server'
 import { ensureUserAndProfile, updateOwnProfile } from '@/lib/services/profile'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getSession()
     if (!session) throw new UnauthorizedError()
-    const profile = await ensureUserAndProfile(session.user)
+    const profile = await ensureUserAndProfile(session.user, request)
     return NextResponse.json({ profile: serialize(profile) ?? null })
   } catch (error) {
     if (error instanceof UnauthorizedError) {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { captureException } from '@/lib/analytics/posthog'
 
 /**
  * Route-level error boundary. Catches render/data errors in the app tree and
@@ -16,6 +17,7 @@ export default function Error({
   useEffect(() => {
     // The digest is safe to surface; the message/stack are not shown to users.
     console.error('App error', error.digest ?? error.message)
+    captureException(error, { digest: error.digest })
   }, [error])
 
   return (
@@ -39,6 +41,9 @@ export default function Error({
         >
           Try again
         </button>
+        {/* A full document load, not a client transition: it discards the
+            client state that led to the error. */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a
           href="/"
           className="rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-white/80 transition hover:bg-white/5"

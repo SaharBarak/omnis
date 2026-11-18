@@ -9,11 +9,20 @@ import { POST } from './route'
  * - 200 once every affected user has been re-synced, and on permanently
  *   unresolvable events so the provider stops redelivering
  * - a TRANSFER event re-syncs both sides
+ * - a confirmed purchase is reported once the sync succeeded, keyed on the
+ *   provider's event id; analytics never changes the response
  */
 
 const mocks = vi.hoisted(() => ({
   verifyWebhook: vi.fn(),
   sync: vi.fn(),
+  trackServer: vi.fn(),
+  captureServerException: vi.fn(),
+}))
+
+vi.mock('@/lib/analytics/server', () => ({
+  trackServer: mocks.trackServer,
+  captureServerException: mocks.captureServerException,
 }))
 
 vi.mock('@/lib/services/billing-provider', () => ({
@@ -102,5 +111,64 @@ describe('POST /api/billing/webhook', () => {
     expect(response.status).toBe(200)
     expect(mocks.sync).toHaveBeenCalledWith('user-from')
     expect(mocks.sync).toHaveBeenCalledWith('user-to')
+  })
+
+  const purchaseEvent = {
+    type: 'INITIAL_PURCHASE',
+    eventId: 'evt_3',
+    userIds: ['user-1'],
+    purchase: {
+      userId: 'user-1',
+      plan: 'complete',
+      productId: 'pleiad_complete_monthly',
+      value: 9,
+      currency: 'USD',
+    },
+  }
+
+  it('reports a confirmed purchase, keyed on the provider event id', async () => {
+    mocks.verifyWebhook.mockResolvedValue(purchaseEvent)
+
+    const response = await POST(webhookRequest())
+
+    expect(response.status).toBe(200)
+    expect(mocks.trackServer).toHaveBeenCalledTimes(1)
+    expect(mocks.trackServer).toHaveBeenCalledWith('checkout_completed', {
+      actor: { userId: 'user-1' },
+      properties: {
+        plan: 'complete',
+        product_id: 'pleiad_complete_monthly',
+        value: 9,
+        currency: 'USD',
+      },
+      dedupeKey: 'revenuecat:evt_3',
+    })
+  })
+
+  it('does not report a purchase for a user it could not resolve', async () => {
+    mocks.verifyWebhook.mockResolvedValue(purchaseEvent)
+    mocks.sync.mockResolvedValue('unresolved_user')
+
+    const response = await POST(webhookRequest())
+
+    expect(response.status).toBe(200)
+    expect(mocks.trackServer).not.toHaveBeenCalled()
+  })
+
+  it('reports nothing for an event that is not a purchase', async () => {
+    await POST(webhookRequest())
+
+    expect(mocks.trackServer).not.toHaveBeenCalled()
+  })
+
+  it('does not report a purchase whose sync failed', async () => {
+    mocks.verifyWebhook.mockResolvedValue(purchaseEvent)
+    mocks.sync.mockRejectedValue(new Error('revenuecat down'))
+
+    const response = await POST(webhookRequest())
+
+    expect(response.status).toBe(500)
+    expect(mocks.trackServer).not.toHaveBeenCalled()
+    expect(mocks.captureServerException).toHaveBeenCalledTimes(1)
   })
 })

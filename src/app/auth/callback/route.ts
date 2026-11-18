@@ -1,8 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
+import { trackServer } from '@/lib/analytics/server'
 import { loginHref } from '@/lib/auth/gates'
 import { safeRedirect } from '@/lib/auth/safe-redirect'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
+
+/** Every link this route completes is mailed, so that is the method when Supabase names none. */
+const EMAIL_LINK_METHOD = 'email'
 
 /**
  * Email-link return leg — password reset and email confirmation. Supabase
@@ -23,8 +27,16 @@ export async function GET(request: NextRequest) {
   if (!code) return failed('missing_code')
 
   const supabase = await getSupabaseServerClient()
-  const { error } = await supabase.auth.exchangeCodeForSession(code)
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code)
   if (error) return failed('auth_failed')
+
+  if (data.user) {
+    trackServer('user_logged_in', {
+      actor: { userId: data.user.id },
+      properties: { method: data.user.app_metadata.provider ?? EMAIL_LINK_METHOD },
+      request,
+    })
+  }
 
   return NextResponse.redirect(`${origin}${redirectTo}`)
 }
