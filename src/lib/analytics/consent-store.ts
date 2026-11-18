@@ -7,6 +7,7 @@ import {
   hasPrivacySignal,
   isSettled,
   readChoice,
+  syncConsentCookie,
   writeChoice,
   type ConsentChoice,
   type ConsentGate,
@@ -18,6 +19,10 @@ import { applyConsent } from './posthog'
  * and the preference control on the privacy page. A module-level store read
  * through `useSyncExternalStore` keeps them in step without a provider, and
  * the `storage` event carries an answer given in another tab.
+ *
+ * `writeChoice` stores each answer together with the cookie that carries it
+ * to the server, so server events follow the same answer
+ * (docs/analytics/north-star.md, "Server events and consent").
  *
  * Snapshots are plain strings, so React's `Object.is` comparison is stable.
  */
@@ -49,6 +54,8 @@ function subscribe(listener: () => void): () => void {
   const fromOtherTab = (event: StorageEvent) => {
     if (event.key !== null && event.key !== CONSENT_KEY) return
     choice = readChoice()
+    // The answering tab wrote the shared cookie; this repairs one that went missing.
+    syncConsentCookie(choice)
     announce()
   }
   window.addEventListener('storage', fromOtherTab)
